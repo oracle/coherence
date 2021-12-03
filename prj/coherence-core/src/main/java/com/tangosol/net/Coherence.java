@@ -297,7 +297,10 @@ public class Coherence
         }
 
     /**
-     * Close all {@link Coherence} instance.
+     * Close all {@link Coherence} instances.
+     * <b>
+     * If starting {@link Coherence} instances ensured the Coherence {@link Cluster}
+     * instance then calling this method will also fully shutdown Coherence.
      */
     @SuppressWarnings("OptionalAssignedToNull")
     public static void closeAll()
@@ -312,6 +315,11 @@ public class Coherence
         s_serverSystem  = null;
         s_sessionSystem = null;
         s_fInitialized  = false;
+        if (s_fEnsuredCluster != null && s_fEnsuredCluster)
+            {
+            CacheFactory.shutdown();
+            }
+        s_fEnsuredCluster = null;
         }
 
     // ----- Coherence API --------------------------------------------------
@@ -680,6 +688,12 @@ public class Coherence
     private synchronized void startInternal()
         {
         Iterable<EventInterceptor<?>> globalInterceptors = f_config.getInterceptors();
+
+        Cluster cluster = CacheFactory.getCluster();
+        if (s_fEnsuredCluster == null)
+            {
+            s_fEnsuredCluster = !cluster.isRunning();
+            }
 
         // ensure the System Session before doing anything else
         // even though there might not actually be a System session
@@ -1145,6 +1159,11 @@ public class Coherence
      * The {@link DefaultCacheServer} wrapping the System session.
      */
     private static DefaultCacheServer s_serverSystem;
+
+    /**
+     * A flag indicating whether the bootstrap API ensured the Coherence cluster service.
+     */
+    private static Boolean s_fEnsuredCluster = null;
 
     /**
      * The name of this {@link Coherence} instance.
