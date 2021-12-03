@@ -50,7 +50,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author hr  2021.09.23
  */
-public class ReadFromClosestTests
+public class ReadLocatorTests
         extends AbstractFunctionalTest
     {
 
@@ -74,6 +74,7 @@ public class ReadFromClosestTests
     public void testReadFromClosest()
         {
         NamedCache mapIncoherent = getNamedCache("incoherent-reads");
+        NamedCache mapCoherent   = getNamedCache("coherent-reads");
         try
             {
             Properties props = new Properties();
@@ -119,6 +120,7 @@ public class ReadFromClosestTests
                     setKeys.add(oKey);
 
                     mapIncoherent.put(oKey, sValue);
+                    mapCoherent.put(oKey, sValue);
                     }
                 }
 
@@ -127,7 +129,13 @@ public class ReadFromClosestTests
             Set<Object> setKeys = mapKeysByPart.get(IPart);
 
             Object  oResult = mapIncoherent.get(mapKeysByPart.get(aNParts[1]).iterator().next());
-            Integer NReads  = testSecondary.invoke(TrackingBackupMap::getReadsAndReset);
+            Integer NReads  = testSecondary.invoke(TrackingMap::getBackupReadsAndReset);
+
+            assertNotNull(oResult);
+            assertEquals(1, NReads.intValue());
+
+            oResult = mapCoherent.get(mapKeysByPart.get(aNParts[1]).iterator().next());
+            NReads  = testPrimary.invoke(TrackingMap::getPrimaryReadsAndReset);
 
             assertNotNull(oResult);
             assertEquals(1, NReads.intValue());
@@ -136,13 +144,14 @@ public class ReadFromClosestTests
 
             assertEquals(setKeys.size(), mapResults.size());
 
-            NReads = testSecondary.invoke(TrackingBackupMap::getReadsAndReset);
+            NReads = testSecondary.invoke(TrackingMap::getBackupReadsAndReset);
 
             assertEquals(setKeys.size(), NReads.intValue());
             }
         finally
             {
             mapIncoherent.destroy();
+            mapCoherent.destroy();
 
             stopCacheServer("incoherent-primary");
             stopCacheServer("incoherent-secondary");
@@ -155,9 +164,19 @@ public class ReadFromClosestTests
     /**
      * A custom backing that allows the counting of reads.
      */
-    public static class TrackingBackupMap
+    public static class TrackingMap
             extends SafeHashMap
         {
+        public TrackingMap()
+            {
+            this(false);
+            }
+
+        public TrackingMap(boolean fPrimary)
+            {
+            f_fPrimary = fPrimary;
+            }
+
         @Override
         public Object get(Object oKey)
             {
@@ -165,37 +184,50 @@ public class ReadFromClosestTests
 
             if (oValue != null)
                 {
-                READ_COUNT.incrementAndGet();
+                (f_fPrimary ? PRIMARY_READS : BACKUP_READS).incrementAndGet();
                 }
 
             return oValue;
             }
 
-        public static int getReads()
+        public static int getPrimaryReads()
             {
-            return READ_COUNT.get();
+            return PRIMARY_READS.get();
             }
 
-        public static int getReadsAndReset()
+        public static int getPrimaryReadsAndReset()
             {
-            int nReads = READ_COUNT.get();
-            reset();
+            int nReads = PRIMARY_READS.get();
+            PRIMARY_READS.set(0);
 
             return nReads;
             }
 
-        public static void reset()
+        public static int getBackupReads()
             {
-            READ_COUNT.set(0);
+            return BACKUP_READS.get();
             }
 
-        protected static final AtomicInteger READ_COUNT = new AtomicInteger();
+        public static int getBackupReadsAndReset()
+            {
+            int nReads = BACKUP_READS.get();
+            BACKUP_READS.set(0);
+
+            return nReads;
+            }
+
+        protected static final AtomicInteger PRIMARY_READS = new AtomicInteger();
+        protected static final AtomicInteger BACKUP_READS = new AtomicInteger();
+
+        // ----- data members -----------------------------------------------
+
+        protected final boolean f_fPrimary;
         }
 
     // ----- console support ------------------------------------------------
 
     public static int getBackupReads()
         {
-        return TrackingBackupMap.getReads();
+        return TrackingMap.getBackupReads();
         }
     }

@@ -1013,4 +1013,32 @@
         </xsd:complexType>
     </xsd:element>
 
+  <xsd:element name="read-locator">
+      <xsd:annotation>
+          <xsd:documentation>
+              The read-locator specifies which member should service read requests.
+
+              Valid values are
+              - "primary",
+              - "closest",
+              - "random",
+              - "random-backup"
+              - implementation of BiFunction&lt;Ownership,PartitionedService,Member&gt;
+
+              Default is "primary".
+
+              Used in: backing-map-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+      <xsd:complexType mixed="true">
+          <xsd:sequence>
+              <xsd:element ref="class-scheme" minOccurs="0" maxOccurs="unbounded" />
+              <xsd:any namespace="##other" processContents="lax"
+                  minOccurs="0" maxOccurs="unbounded" />
+          </xsd:sequence>
+          <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+          <xsd:anyAttribute namespace="##other" processContents="lax"/>
+      </xsd:complexType>
+  </xsd:element>
+
 </xsd:schema>

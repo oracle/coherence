@@ -8,12 +8,15 @@
 package com.tangosol.net;
 
 
+import com.tangosol.net.partition.Ownership;
+
 import com.tangosol.net.security.StorageAccessAuthorizer;
 
 import com.tangosol.run.xml.XmlConfigurable;
 import com.tangosol.run.xml.XmlElement;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 
 /**
@@ -143,27 +146,32 @@ public interface BackingMapManager
     public StorageAccessAuthorizer getStorageAccessAuthorizer(String sName);
 
     /**
-     * Determine if the Map that is used by a CacheService to store cached values
-     * for a NamedCache with the specified name enables reading from the closest
-     * member.
+     * Return a {@link BiFunction function} that when called will return a {@link
+     * Member member} given the current partition owners and service, or null
+     * if the service should target the primary. This function is called by
+     * the respective service to target read requests at the relevant member, and
+     * can be specific to a cache.
      * <p>
-     * This can result in a stale read such that the primary or other backups
-     * have seen future values but the member that performed the read has not.
-     * There is a latency benefit that can be realized and is the primary reason
-     * to enable this functionality (balancing read requests across primary and
-     * backup nodes may be another reason to counter hot partitions).
-     * Note: 'closeness' is based on the member performing the read being on the
-     * same machine, rack or site as any of the nodes that hold data for the
-     * partition(s) being targeted.
+     * An implementation can return any member in the ownership chain, inferring
+     * a tolerance to stale reads when a backup (non-primary) is targeted. This
+     * may be possible as the primary (or other backups) process future changes
+     * while the member that performed the read (and was chosen by the returned
+     * function) has not.
+     * <p>
+     * There are several benefits in targeting backups for reads including
+     * balancing load and latency. For example, the latter can be achieved
+     * by targeting the read to a backup that resides on the same machine, rack
+     * or site. The default implementation allows this to be chosen via configuration.
      *
      * @param sName  the name of the NamedCache
      *
-     * @return true if the cache associated with the given name allows reading
-     *         from backup members that are deemed closer
+     * @return a function that when called will return a {@link Member member}
+     *         given the current partition owners and service, or null if the
+     *         service should target the primary
      */
-    public default boolean isReadFromClosest(String sName)
+    public default BiFunction<Ownership, PartitionedService, Member> getReadLocator(String sName)
         {
-        return false;
+        return null;
         }
 
     /**

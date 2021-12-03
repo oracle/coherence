@@ -1399,7 +1399,7 @@
             <xsd:element ref="transient" minOccurs="0" />
             <xsd:element ref="sliding-expiry" minOccurs="0" />
             <xsd:element ref="storage-authorizer" minOccurs="0" />
-            <xsd:element ref="read-from-closest" minOccurs="0" />
+            <xsd:element ref="read-locator" minOccurs="0" />
             <xsd:choice>
                 <xsd:group ref="standalone-caching-scheme" />
                 <xsd:element ref="read-write-backing-map-scheme" />
