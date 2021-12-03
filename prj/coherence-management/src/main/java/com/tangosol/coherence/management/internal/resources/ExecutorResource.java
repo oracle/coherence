@@ -10,6 +10,8 @@ import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
+import com.tangosol.util.Filter;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -57,10 +59,14 @@ public class ExecutorResource
     @Produces(MEDIA_TYPES)
     public Response get(@PathParam(NAME) String sName)
         {
-        QueryBuilder bldrQuery = createQueryBuilder().withBaseQuery(EXECUTOR_QUERY + sName);
+        QueryBuilder        bldrQuery      = createQueryBuilder().withBaseQuery(EXECUTOR_QUERY + sName);
+        EntityMBeanResponse responseEntity = createResponse(getParentUri(), getCurrentUri(), getLinksFilter());
+        Map<String, Object> mapResponse    = responseEntity.toJson();
 
-        return response(getResponseBodyForMBeanCollection(bldrQuery, new ExecutorResource(this),
-                null, null, getParentUri(), getCurrentUri()));
+        // aggregate executor metrics into the response
+        addAggregatedMetricsToResponseMap("*", null, bldrQuery, mapResponse);
+
+        return response(mapResponse);
         }
 
     // ----- POST API (Operations) ------------------------------------------
@@ -116,11 +122,27 @@ public class ExecutorResource
     @Override
     protected EntityMBeanResponse getQueryResult(Map mapQuery, Map<String, String> mapArguments, URI uriParent)
         {
-        String       sName     = mapArguments.get(NAME);
-        QueryBuilder bldrQuery = createQueryBuilder().withBaseQuery(EXECUTOR_QUERY + sName);
+        String         sName       = mapArguments.get(NAME);
+        URI            uriSelf     = getSubUri(uriParent, sName);
+        Filter<String> filterLinks = getLinksFilter(mapQuery);
 
-        return getResponseBodyForMBeanCollection(bldrQuery, new ExecutorResource(this),
-                mapQuery, mapArguments, uriParent, getSubUri(uriParent, MEMBERS));
+        EntityMBeanResponse responseEntity = createResponse(uriParent, uriSelf, filterLinks);
+        Map<String, Object> mapEntity      = responseEntity.getEntity();
+        QueryBuilder        bldrQuery      = createQueryBuilder().withBaseQuery(EXECUTOR_QUERY + sName);
+
+        addAggregatedMetricsToResponseMap("*", null, bldrQuery, mapEntity);
+
+        Object oChildren = mapQuery == null ? null : mapQuery.get(CHILDREN);
+
+        if (oChildren != null && oChildren instanceof Map)
+            {
+            Map mapChildrenQuery = (Map) oChildren;
+
+            addChildResourceQueryResult(new ExecutorMembersResource(this), MEMBERS, mapEntity,
+                    mapChildrenQuery, mapArguments, uriSelf);
+            }
+
+        return responseEntity;
         }
 
     /**
@@ -135,5 +157,4 @@ public class ExecutorResource
         return createQueryBuilder()
                 .withBaseQuery(EXECUTOR_QUERY + sName);
         }
-
     }

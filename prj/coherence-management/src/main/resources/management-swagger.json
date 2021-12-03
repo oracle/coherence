@@ -6637,8 +6637,7 @@
       "type": "object",
       "properties": {
         "memberId": {
-          "type": "integer",
-          "format": "int64",
+          "type": "string",
           "description": "The ID of member to which the MBean belongs",
           "readOnly": true
         },
@@ -6678,27 +6677,24 @@
           "type": "boolean",
           "description": "Indicates whether or not the executor trace logging is enabled."
         },
+        "description": {
+          "type": "string",
+          "description": "The description of this executor.",
+          "readOnly": true
+        },
         "location": {
           "type": "string",
           "description": "The location where the executor is running",
           "readOnly": true
         },
+        "id": {
+          "type": "string",
+          "description": "ID of the executor.",
+          "readOnly": true
+        },
         "name": {
           "type": "string",
           "description": "Name of the executor.",
-          "readOnly": true
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of the MBean",
-          "enum": [
-            "Executor"
-          ],
-          "readOnly": true
-        },
-        "nodeId": {
-          "type": "string",
-          "description": "Node ID of the executor.",
           "readOnly": true
         }
       }

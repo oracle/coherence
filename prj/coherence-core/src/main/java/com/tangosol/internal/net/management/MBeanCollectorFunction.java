@@ -755,6 +755,10 @@ public class MBeanCollectorFunction
             {
             return createAttributeCollector("list");
             }
+        if (oValue instanceof Boolean)
+            {
+            return createAttributeCollector("list");
+            }
         return null;
         }
 
