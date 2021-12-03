@@ -8,6 +8,7 @@ package executor;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
+
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
@@ -37,6 +38,7 @@ import com.oracle.coherence.concurrent.executor.function.Predicates;
 import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 
 import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
+
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.net.CacheFactory;
@@ -94,6 +96,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
+import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBERS;
+import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.getParentUri;
 import static com.tangosol.util.Base.ensureRuntimeException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -106,7 +110,6 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
-@Ignore
 @Category(SingleClusterForAllTests.class)
 public class MBeanTests
     {
@@ -187,30 +190,32 @@ public class MBeanTests
 
         List<Map> listItems = (List<Map>) mapResponse.get("items");
         assertThat(listItems, notNullValue());
-        assertThat(listItems.size(), is(4));
+        assertThat(listItems.size(), is(1));
 
-        String sExecutorName = null;
-        String sNodeId       = null;
-        for (Map item : listItems)
-            {
-            if (sNodeId == null)
-                {
-                sNodeId = (String) item.get("nodeId");
-                }
-            if ((Integer) item.get("tasksCompletedCount") > 0 || (Integer) item.get("tasksInProgressCount") > 0)
-                {
-                sExecutorName = (String) item.get("name");
-                break;
-                }
-            }
-        assertThat(sExecutorName, notNullValue());
+        String       sExecutorName = null;
+        List<String> sMemberIds    = null;
+        Map          mapItem       = listItems.get(0);
 
-        Map    mapItem       = listItems.get(0);
+        sMemberIds = (List<String>) mapItem.get("memberId");
+        assertThat(sMemberIds.size(), is(4));
+        sExecutorName = ((List<String>) mapItem.get("name")).get(0);
+        assertThat(sExecutorName, is("UnNamed"));
+        int count = ((Integer) ((LinkedHashMap) mapItem.get("tasksCompletedCount")).get("sum")).intValue()
+                    + ((Integer) ((LinkedHashMap) mapItem.get("tasksInProgressCount")).get("sum")).intValue();
+        assertThat(count, greaterThan(0));
+
+        // .../executors/<executorName>
         String sExecutorLink = getSelfLink(mapItem);
-        assertThat(mapItem, notNullValue());
 
-        // .../members
         response = m_client.target(sExecutorLink).request().get();
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
+        mapResponse = response.readEntity(LinkedHashMap.class);
+        assertThat(mapResponse, notNullValue());
+        assertThat(((List<String>) mapResponse.get("name")).get(0), is("UnNamed"));
+
+        // .../executors/members
+        target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(MEMBERS);
+        response = target.request().get();
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
@@ -225,14 +230,13 @@ public class MBeanTests
             MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
             mapResponse = response.readEntity(LinkedHashMap.class);
-
-            listItems = (List<Map>) mapResponse.get("items");
-            assertThat(listItems, notNullValue());
-            assertThat(listItems.size(), is(1));
+            assertThat(mapResponse, notNullValue());
+            assertThat(mapResponse.size(), is(11));
             }
 
-        // .../members/<nodeId>
-        response = m_client.target(sExecutorLink).path(sNodeId).request().get();
+        // .../executors/members/<memberId>
+        target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(MEMBERS).path(sMemberIds.get(0));
+        response = target.request().get();
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
@@ -247,9 +251,8 @@ public class MBeanTests
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
         mapResponse = response.readEntity(LinkedHashMap.class);
 
-        listItems = (List<Map>) mapResponse.get("items");
-        mapItem   = listItems.get(0);
-        assertThat(((Integer) mapItem.get("tasksCompletedCount")).intValue() + ((Integer) mapItem.get("tasksInProgressCount")).intValue(), is(0));
+        LinkedHashMap tasksCompletedCount = (LinkedHashMap) mapResponse.get("tasksCompletedCount");
+        assertThat(((Integer) tasksCompletedCount.get("sum")).intValue(), is(0));
 
         response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().post(
                     Entity.entity(new LinkedHashMap(){{put("traceLogging", false);}}, MediaType.APPLICATION_JSON_TYPE));
@@ -260,9 +263,8 @@ public class MBeanTests
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
-        listItems   = (List<Map>) mapResponse.get("items");
-        mapItem     = listItems.get(0);
-        assertThat(((Boolean) mapItem.get("traceLogging")).booleanValue(), is(false));
+        List<Boolean> traceLogging = (List<Boolean>) mapResponse.get("traceLogging");
+        assertThat(traceLogging.get(0).booleanValue(), is(false));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -300,8 +302,7 @@ public class MBeanTests
 
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
         {
-        return ((ClusteredExecutorService) m_taskExecutorService)
-                .getCacheService().ensureCache(sName, null);
+        return m_taskExecutorService.getCacheService().ensureCache(sName, null);
         }
 
     protected int getInitialExecutorCount()

@@ -57,7 +57,7 @@ public class ExecutorsResource
                 .withBaseQuery(EXECUTORS_QUERY);
 
         Response response = response(getResponseBodyForMBeanCollection(bldrQuery, new ExecutorResource(this),
-                null, null, getParentUri(), getCurrentUri()));
+                NAME, null,  getParentUri(), getCurrentUri(), null));
 
         return response == null
                 ? response(new HashMap<>())

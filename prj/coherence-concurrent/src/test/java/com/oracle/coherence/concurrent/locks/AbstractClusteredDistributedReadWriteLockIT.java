@@ -23,6 +23,8 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.atomic.Atomics;
 
+import com.tangosol.util.Base;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -419,6 +421,8 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
         // Add the listeners to listen for lock events from the second member.
         member2.addListener(foo2);
         member2.addListener(bar2);
+
+        Base.sleep(1000);
 
         // Acquire read and write lock on first member (the lock will be held for 1 minute,
         // but should be released as soon as the member is killed)
