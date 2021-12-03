@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.locks;
+package com.oracle.coherence.concurrent;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 
@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
+import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
@@ -27,27 +28,32 @@ import com.tangosol.net.Coherence;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
- * Test distributed locks across multiple cluster members using the default
- * Java serializer.
+ * Test distributed countdown latch across multiple cluster members using
+ * the Pof serializer.
+ *
+ * @author lh  2021.12.01
+ *
+ * @since 21.12
  */
-public class ClusteredDistributedLockIT
-        extends AbstractClusteredDistributedLockIT
+public class PofClusteredDistributedCountDownLatchIT
+        extends AbstractClusteredDistributedCountDownLatchIT
     {
     // ----- constructors ---------------------------------------------------
 
-    public ClusteredDistributedLockIT()
+    /**
+     * Default constructor.
+     */
+    public PofClusteredDistributedCountDownLatchIT()
         {
         super(f_coherenceResource);
         }
-
-    // ----- data members ---------------------------------------------------
 
     /**
      * A Bedrock utility to capture logs of spawned processes into files
      * under target/test-output. This is added as an option to the cluster
      * and client processes.
      */
-    static TestLogs logs = new TestLogs(ClusteredDistributedLockIT.class);
+    static TestLogs logs = new TestLogs(PofClusteredDistributedCountDownLatchIT.class);
 
     /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster made up of
@@ -64,12 +70,14 @@ public class ClusteredDistributedLockIT
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           logs,
-                          ClusterPort.automatic())
-                    .include(3,
+                          ClusterPort.automatic(),
+                          Pof.enabled(),
+                          Pof.config("coherence-concurrent-pof-config.xml"))
+                    .include(2,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
                              LocalStorage.enabled())
-                    .include(3,
+                    .include(2,
                              DisplayName.of("application"),
                              RoleName.of("application"),
                              LocalStorage.disabled());

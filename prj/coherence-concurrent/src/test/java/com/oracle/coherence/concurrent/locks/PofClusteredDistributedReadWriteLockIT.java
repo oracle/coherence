@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
+import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
@@ -27,15 +28,15 @@ import com.tangosol.net.Coherence;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
- * Test distributed locks across multiple cluster members using the default
- * Java serializer.
+ * Test distributed read/write locks across multiple cluster members using
+ * the POF serializer.
  */
-public class ClusteredDistributedLockIT
-        extends AbstractClusteredDistributedLockIT
+public class PofClusteredDistributedReadWriteLockIT
+        extends AbstractClusteredDistributedReadWriteLockIT
     {
     // ----- constructors ---------------------------------------------------
 
-    public ClusteredDistributedLockIT()
+    public PofClusteredDistributedReadWriteLockIT()
         {
         super(f_coherenceResource);
         }
@@ -47,7 +48,7 @@ public class ClusteredDistributedLockIT
      * under target/test-output. This is added as an option to the cluster
      * and client processes.
      */
-    static TestLogs logs = new TestLogs(ClusteredDistributedLockIT.class);
+    static TestLogs logs = new TestLogs(PofClusteredDistributedReadWriteLockIT.class);
 
     /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster made up of
@@ -64,7 +65,9 @@ public class ClusteredDistributedLockIT
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           logs,
-                          ClusterPort.automatic())
+                          ClusterPort.automatic(),
+                          Pof.enabled(),
+                          Pof.config("coherence-concurrent-pof-config.xml"))
                     .include(3,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),

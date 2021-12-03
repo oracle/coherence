@@ -60,6 +60,33 @@
       </serializer>
     </user-type>
 
+    <!-- locks, latches, and semaphores (970 - 980) -->
+
+    <user-type>
+      <type-id>970</type-id>
+      <class-name>com.oracle.coherence.concurrent.locks.LockOwner</class-name>
+    </user-type>
+    <user-type>
+      <type-id>971</type-id>
+      <class-name>com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder</class-name>
+    </user-type>
+    <user-type>
+      <type-id>972</type-id>
+      <class-name>com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder$RemoveLocks</class-name>
+    </user-type>
+    <user-type>
+      <type-id>973</type-id>
+      <class-name>com.oracle.coherence.concurrent.locks.internal.ReadWriteLockHolder</class-name>
+    </user-type>
+    <user-type>
+      <type-id>974</type-id>
+      <class-name>com.oracle.coherence.concurrent.locks.internal.ReadWriteLockHolder$RemoveLocks</class-name>
+    </user-type>
+    <user-type>
+      <type-id>975</type-id>
+      <class-name>com.oracle.coherence.concurrent.internal.LatchCounter</class-name>
+    </user-type>
+
     <!-- executor (270 - 299, 821-829, 870-899) -->
 
     <user-type>

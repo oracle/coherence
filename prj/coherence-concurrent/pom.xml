@@ -142,6 +142,32 @@
           <target>11</target>
         </configuration>
       </plugin>
+
+      <!-- this is necessary as this concurrent.xsd includes coherence-config-base.xsd.  -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-xsd</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/classes</outputDirectory>
+              <overwrite>true</overwrite>
+              <resources>
+                <resource>
+                  <directory>../coherence-core/src/main/resources</directory>
+                  <includes>
+                    <include>coherence-config-base.xsd</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

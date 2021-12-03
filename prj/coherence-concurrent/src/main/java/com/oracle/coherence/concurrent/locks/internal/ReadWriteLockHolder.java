@@ -8,14 +8,23 @@ package com.oracle.coherence.concurrent.locks.internal;
 
 import com.oracle.coherence.concurrent.locks.LockOwner;
 
+import com.tangosol.io.ExternalizableLite;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.net.Member;
 import com.tangosol.net.ServiceInfo;
 
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.UID;
 
-import java.io.Serializable;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,8 +40,16 @@ import java.util.stream.Collectors;
  * @author Aleks Seovic  2021.10.19
  */
 public class ReadWriteLockHolder
-        implements Serializable
+        implements ExternalizableLite, PortableObject
     {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Default constructor for serialization interfaces
+     */
+    public ReadWriteLockHolder()
+        {}
+
     /**
      * Return {@code true} if this lock is currently owned exclusively
      * by anyone.
@@ -449,6 +466,50 @@ public class ReadWriteLockHolder
                '}';
         }
 
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in)
+            throws IOException
+        {
+        m_writeLock = ExternalizableHelper.readObject(in);
+        ExternalizableHelper.readCollection(in, m_setReadLocks, null);
+        ExternalizableHelper.readCollection(in, m_setPendingRead, null);
+        ExternalizableHelper.readCollection(in, m_setPendingWrite, null);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out)
+            throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_writeLock);
+        ExternalizableHelper.writeCollection(out, m_setReadLocks);
+        ExternalizableHelper.writeCollection(out, m_setPendingRead);
+        ExternalizableHelper.writeCollection(out, m_setPendingWrite);
+        }
+
+    // ----- PortableObject interface ---------------------------------------
+
+    @Override
+    public void readExternal(PofReader in)
+            throws IOException
+        {
+        m_writeLock = in.readObject(1);
+        in.readCollection(2, m_setReadLocks);
+        in.readCollection(3, m_setPendingRead);
+        in.readCollection(4, m_setPendingWrite);
+        }
+
+    @Override
+    public void writeExternal(PofWriter out)
+            throws IOException
+        {
+        out.writeObject(1, m_writeLock);
+        out.writeCollection(2, m_setReadLocks);
+        out.writeCollection(3, m_setPendingRead);
+        out.writeCollection(4, m_setPendingWrite);
+        }
+
     // ----- inner class: RemoveLocks ---------------------------------------
 
     /**
@@ -457,7 +518,7 @@ public class ReadWriteLockHolder
      * (if the specified member ID is {@code null}).
      */
     public static class RemoveLocks
-            implements InvocableMap.EntryProcessor<String, ReadWriteLockHolder, Void>
+            implements InvocableMap.EntryProcessor<String, ReadWriteLockHolder, Void>, ExternalizableLite, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -508,6 +569,38 @@ public class ReadWriteLockHolder
                     }
                 }
             return null;
+            }
+
+        // ----- ExternalizableLite interface ---------------------------
+
+        @Override
+        public void readExternal(DataInput in)
+                throws IOException
+            {
+            m_memberId = ExternalizableHelper.readObject(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out)
+                throws IOException
+            {
+            ExternalizableHelper.writeObject(out, m_memberId);
+            }
+
+        // ----- PortableObject interface -------------------------------
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            m_memberId = in.readObject(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            out.writeObject(1, m_memberId);
             }
 
         // ----- data members -----------------------------------------------

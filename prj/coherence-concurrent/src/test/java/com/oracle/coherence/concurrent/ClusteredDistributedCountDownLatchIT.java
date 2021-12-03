@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.locks;
+package com.oracle.coherence.concurrent;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 
@@ -27,15 +27,22 @@ import com.tangosol.net.Coherence;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
- * Test distributed locks across multiple cluster members using the default
- * Java serializer.
+ * Test distributed countdown latch across multiple cluster members using
+ * the default Java serializer.
+ *
+ * @author lh  2021.12.01
+ *
+ * @since 21.12
  */
-public class ClusteredDistributedLockIT
-        extends AbstractClusteredDistributedLockIT
+public class ClusteredDistributedCountDownLatchIT
+        extends AbstractClusteredDistributedCountDownLatchIT
     {
     // ----- constructors ---------------------------------------------------
 
-    public ClusteredDistributedLockIT()
+    /**
+     * Default constructor.
+     */
+    public ClusteredDistributedCountDownLatchIT()
         {
         super(f_coherenceResource);
         }
@@ -47,7 +54,7 @@ public class ClusteredDistributedLockIT
      * under target/test-output. This is added as an option to the cluster
      * and client processes.
      */
-    static TestLogs logs = new TestLogs(ClusteredDistributedLockIT.class);
+    static TestLogs logs = new TestLogs(ClusteredDistributedCountDownLatchIT.class);
 
     /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster made up of
@@ -65,11 +72,11 @@ public class ClusteredDistributedLockIT
                           IPv4Preferred.yes(),
                           logs,
                           ClusterPort.automatic())
-                    .include(3,
+                    .include(2,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
                              LocalStorage.enabled())
-                    .include(3,
+                    .include(2,
                              DisplayName.of("application"),
                              RoleName.of("application"),
                              LocalStorage.disabled());

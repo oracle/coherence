@@ -243,7 +243,7 @@ public class ClusteredRegistration
         public ExecutorMBeanImpl(String sName, int nMemberId, String sLocation, String sExecutorId, String sDetails)
             {
             f_sName       = sName;
-            f_nMemberId   = nMemberId;
+            f_sMemberId   = Integer.toString(nMemberId);
             f_sDetails    = sDetails;
             f_sLocation   = sLocation;
             f_sExecutorId = sExecutorId;
@@ -260,9 +260,9 @@ public class ClusteredRegistration
             }
 
         @Override
-        public int getMemberId()
+        public String getMemberId()
             {
-            return f_nMemberId;
+            return f_sMemberId;
             }
 
         @Override
@@ -369,7 +369,7 @@ public class ClusteredRegistration
         public String toString()
             {
             return "ExecutorMBeanImpl{" +
-                   "member-id=" + f_nMemberId +
+                   "member-id=" + f_sMemberId +
                    ", name='" + f_sName + '\'' +
                    ", id='" + f_sExecutorId + '\'' +
                    ", details='" + f_sDetails + '\'' +
@@ -386,7 +386,7 @@ public class ClusteredRegistration
         /**
          * The member ID which hosts the executor.
          */
-        protected final int f_nMemberId;
+        protected final String f_sMemberId;
 
         /**
          * The logical name of the executor.

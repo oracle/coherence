@@ -36,7 +36,7 @@ public abstract class AbstractExecutorBuilder<T>
      * @param name  the logical name of this executor
      */
     @Injectable("name")
-    public void setsName(Expression<String> name)
+    public void setName(Expression<String> name)
         {
         m_name = name;
         }

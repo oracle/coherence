@@ -27,7 +27,7 @@ public class AsyncRemoteAtomicLongPofTest
         {
         Coherence.clusterMember().start().join();
         System.setProperty("coherence.serializer", "pof");
-        System.setProperty("coherence.pof.config", "concurrent-services-pof-config.xml");
+        System.setProperty("coherence.pof.config", "coherence-concurrent-pof-config.xml");
         }
 
     @AfterAll

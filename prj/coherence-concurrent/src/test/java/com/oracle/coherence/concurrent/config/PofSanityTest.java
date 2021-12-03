@@ -244,7 +244,7 @@ public class PofSanityTest
     /**
      * POF configuration under test.
      */
-    protected static final String POF_CONFIG = "concurrent-services-pof-config.xml";
+    protected static final String POF_CONFIG = "coherence-concurrent-pof-config.xml";
 
     /**
      * Package to scan {@link PortableObject} classes.

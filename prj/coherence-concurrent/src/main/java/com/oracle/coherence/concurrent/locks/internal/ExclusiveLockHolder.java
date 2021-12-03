@@ -8,14 +8,23 @@ package com.oracle.coherence.concurrent.locks.internal;
 
 import com.oracle.coherence.concurrent.locks.LockOwner;
 
+import com.tangosol.io.ExternalizableLite;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.net.Member;
 import com.tangosol.net.ServiceInfo;
 
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.UID;
 
-import java.io.Serializable;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,8 +41,16 @@ import java.util.stream.Collectors;
  * @author Aleks Seovic  2021.10.19
  */
 public class ExclusiveLockHolder
-        implements Serializable
+        implements ExternalizableLite, PortableObject
     {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Default constructor for serialization interfaces
+     */
+    public ExclusiveLockHolder()
+        {}
+
     /**
      * Return {@code true} if this lock is currently owned by anyone.
      *
@@ -230,6 +247,42 @@ public class ExclusiveLockHolder
                '}';
         }
 
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in)
+            throws IOException
+        {
+        m_lockOwner = ExternalizableHelper.readObject(in);
+        ExternalizableHelper.readCollection(in, m_setPending, null);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out)
+            throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_lockOwner);
+        ExternalizableHelper.writeCollection(out, m_setPending);
+        }
+
+    // ----- PortableObject interface ---------------------------------------
+
+    @Override
+    public void readExternal(PofReader in)
+            throws IOException
+        {
+        m_lockOwner = in.readObject(1);
+        in.readCollection(2, m_setPending);
+        }
+
+    @Override
+    public void writeExternal(PofWriter out)
+            throws IOException
+        {
+        out.writeObject(1, m_lockOwner);
+        out.writeCollection(2, m_setPending);
+        }
+
     // ----- inner class: RemoveLocks ---------------------------------------
 
     /**
@@ -238,7 +291,7 @@ public class ExclusiveLockHolder
      * (if the specified member ID is {@code null}).
      */
     public static class RemoveLocks
-            implements InvocableMap.EntryProcessor<String, ExclusiveLockHolder, Void>
+            implements InvocableMap.EntryProcessor<String, ExclusiveLockHolder, Void>, ExternalizableLite, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -289,6 +342,38 @@ public class ExclusiveLockHolder
                     }
                 }
             return null;
+            }
+
+        // ----- ExternalizableLite interface ---------------------------
+
+        @Override
+        public void readExternal(DataInput in)
+                throws IOException
+            {
+            m_memberId = ExternalizableHelper.readObject(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out)
+                throws IOException
+            {
+            ExternalizableHelper.writeObject(out, m_memberId);
+            }
+
+        // ----- PortableObject interface -------------------------------
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            m_memberId = in.readObject(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            out.writeObject(1, m_memberId);
             }
 
         // ----- data members -----------------------------------------------

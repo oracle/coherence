@@ -39,7 +39,7 @@ public interface ExecutorMBean
      * @return the member id where the executor is running
      */
     @Description("The member id where the executor is running.")
-    int getMemberId();
+    String getMemberId();
 
     /**
      * Return the logical name of the registered {@link ExecutorService}.

@@ -6,9 +6,18 @@
  */
 package com.oracle.coherence.concurrent.locks;
 
+import com.tangosol.io.ExternalizableLite;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.UID;
 
-import java.io.Serializable;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 import java.util.Objects;
 
@@ -18,8 +27,18 @@ import java.util.Objects;
  *
  * @author Aleks Seovic  2021.10.19
  */
-public class LockOwner implements Serializable
+public class LockOwner
+        implements ExternalizableLite, PortableObject
     {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Default constructor for serialization interfaces
+     */
+    public LockOwner()
+        {
+        }
+
     /**
      * Construct {@code LockOwner} instance.
      *
@@ -28,8 +47,8 @@ public class LockOwner implements Serializable
      */
     public LockOwner(UID memberId, long threadId)
         {
-        this.f_memberId = memberId;
-        this.f_threadId = threadId;
+        this.m_memberId = memberId;
+        this.m_threadId = threadId;
         }
 
     /**
@@ -39,7 +58,7 @@ public class LockOwner implements Serializable
      */
     public UID getMemberId()
         {
-        return f_memberId;
+        return m_memberId;
         }
 
     /**
@@ -49,7 +68,7 @@ public class LockOwner implements Serializable
      */
     public long getThreadId()
         {
-        return f_threadId;
+        return m_threadId;
         }
 
     @Override
@@ -64,26 +83,62 @@ public class LockOwner implements Serializable
             return false;
             }
         LockOwner lockOwner = (LockOwner) o;
-        return f_threadId == lockOwner.f_threadId && f_memberId.equals(lockOwner.f_memberId);
+        return m_threadId == lockOwner.m_threadId && m_memberId.equals(lockOwner.m_memberId);
         }
 
     @Override
     public int hashCode()
         {
-        return Objects.hash(f_memberId, f_threadId);
+        return Objects.hash(m_memberId, m_threadId);
         }
 
     @Override
     public String toString()
         {
         return "LockOwner{" +
-               "memberId=" + f_memberId +
-               ", threadId=" + f_threadId +
+               "memberId=" + m_memberId +
+               ", threadId=" + m_threadId +
                '}';
+        }
+
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in)
+            throws IOException
+        {
+        m_memberId = ExternalizableHelper.readObject(in);
+        m_threadId = in.readLong();
+        }
+
+    @Override
+    public void writeExternal(DataOutput out)
+            throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_memberId);
+        out.writeLong(m_threadId);
+        }
+
+    // ----- PortableObject interface ---------------------------------------
+
+    @Override
+    public void readExternal(PofReader in)
+            throws IOException
+        {
+        m_memberId = in.readObject(1);
+        m_threadId = in.readLong(2);
+        }
+
+    @Override
+    public void writeExternal(PofWriter out)
+            throws IOException
+        {
+        out.writeObject(1, m_memberId);
+        out.writeLong(2, m_threadId);
         }
 
     // ---- data members ----------------------------------------------------
 
-    private final UID f_memberId;
-    private final long f_threadId;
+    private UID m_memberId;
+    private long m_threadId;
     }
