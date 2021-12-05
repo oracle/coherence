@@ -64,6 +64,11 @@
       <scheme-name>concurrent</scheme-name>
     </cache-mapping>
 
+    <cache-mapping>
+      <cache-name>semaphores</cache-name>
+      <scheme-name>concurrent</scheme-name>
+    </cache-mapping>
+
   </caching-scheme-mapping>
 
   <caching-schemes>
@@ -72,7 +77,7 @@
       <scheme-name>concurrent</scheme-name>
       <service-name>Concurrent</service-name>
       <member-listener>
-        <class-name>com.oracle.coherence.concurrent.locks.internal.LockHolderCleaner</class-name>
+        <class-name>com.oracle.coherence.concurrent.internal.Cleaner</class-name>
       </member-listener>
       <backing-map-scheme>
         <local-scheme>
