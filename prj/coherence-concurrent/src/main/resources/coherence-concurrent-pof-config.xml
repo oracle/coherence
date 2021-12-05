@@ -86,6 +86,18 @@
       <type-id>975</type-id>
       <class-name>com.oracle.coherence.concurrent.internal.LatchCounter</class-name>
     </user-type>
+    <user-type>
+      <type-id>976</type-id>
+      <class-name>com.oracle.coherence.concurrent.semaphores.PermitAcquirer</class-name>
+    </user-type>
+    <user-type>
+      <type-id>977</type-id>
+      <class-name>com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus</class-name>
+    </user-type>
+    <user-type>
+      <type-id>978</type-id>
+      <class-name>com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus$RemovePermits</class-name>
+    </user-type>
 
     <!-- executor (270 - 299, 821-829, 870-899) -->
 

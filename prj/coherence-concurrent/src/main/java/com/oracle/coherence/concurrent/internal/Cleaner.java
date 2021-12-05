@@ -4,9 +4,12 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.locks.internal;
+package com.oracle.coherence.concurrent.internal;
 
 import com.oracle.coherence.concurrent.locks.Locks;
+import com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder;
+import com.oracle.coherence.concurrent.locks.internal.ReadWriteLockHolder;
+import com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
@@ -33,6 +36,8 @@ import com.tangosol.util.processor.AsynchronousProcessor;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.oracle.coherence.concurrent.semaphores.Semaphores.semaphoresMap;
+
 /**
  * This LockHolderCleaner is triggered by members leaving the service or partitions
  * arriving at this member. In the former case we know which LockHolders need to
@@ -42,7 +47,7 @@ import java.util.Set;
  * @author Harvey Raja  2021.08.19
  * @author Aleks Seovic  2021.10.26
  */
-public class LockHolderCleaner
+public class Cleaner
         extends Locks
         implements MemberListener, EventDispatcherAwareInterceptor<TransferEvent>
     {
@@ -117,6 +122,10 @@ public class LockHolderCleaner
             readWriteLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new ReadWriteLockHolder.RemoveLocks(memberLeft.getUid()));
+
+            semaphoresMap().async().invokeAll(
+                        new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
+                        new SemaphoreStatus.RemovePermits(memberLeft.getUid()));
             }
         }
 
@@ -164,7 +173,7 @@ public class LockHolderCleaner
 
             PartitionSet parts;
 
-            synchronized (LockHolderCleaner.this)
+            synchronized (Cleaner.this)
                 {
                 parts        = m_partsCheck;
                 m_partsCheck = null; // barrier done last
@@ -176,6 +185,9 @@ public class LockHolderCleaner
             readWriteLocksMap().async().invokeAll(
                     new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
                     new ReadWriteLockHolder.RemoveLocks(null));
+            semaphoresMap().async().invokeAll(
+                    new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
+                    new SemaphoreStatus.RemovePermits(null));
             }
         }
 
