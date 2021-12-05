@@ -26,16 +26,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import java.util.stream.Collectors;
 
 /**
- * A data structure that encapsulates server-side exclusive locking logic,
- * and keeps track of the information about lock owner and pending locks that
- * can be introspected by the clients.
+ * A data structure that encapsulates server-side exclusive locking logic.
  *
  * @since 21.12
  * @author Aleks Seovic  2021.10.19
@@ -86,30 +82,6 @@ public class ExclusiveLockHolder
         }
 
     /**
-     * Return {@code true} if the lock for the specified {@link LockOwner} is
-     * currently pending.
-     *
-     * @return {@code true} if the lock for the specified {@link LockOwner} is
-     *                      currently pending
-     */
-    public boolean isPending(LockOwner owner)
-        {
-        return m_setPending.contains(owner);
-        }
-
-    /**
-     * Return {@code true} if the lock for the specified member is
-     * currently pending.
-     *
-     * @return {@code true} if the lock for the specified member is
-     *                      currently pending
-     */
-    public boolean isPendingForMember(UID memberId)
-        {
-        return m_setPending.stream().anyMatch(owner -> owner.getMemberId().equals(memberId));
-        }
-
-    /**
      * Attempt to acquire the lock.
      *
      * @param owner  the lock owner to acquire the lock for
@@ -124,12 +96,10 @@ public class ExclusiveLockHolder
             }
         else if (isLocked())
             {
-            m_setPending.add(owner);
             return false;
             }
         else
             {
-            m_setPending.remove(owner);
             m_lockOwner = owner;
             return true;
             }
@@ -164,18 +134,7 @@ public class ExclusiveLockHolder
         }
 
     /**
-     * Return the set of pending locks.
-     *
-     * @return  the set of pending locks
-     */
-    public Set<? extends LockOwner> getPendingLocks()
-        {
-        return m_setPending;
-        }
-
-    /**
-     * Remove all the locks, both the active and pending, that are owned by
-     * a specified member.
+     * Remove the lock, if it's owned by the specified member.
      *
      * @param memberId  the UID of a member to remove the locks for
      *
@@ -183,31 +142,17 @@ public class ExclusiveLockHolder
      */
     protected boolean removeLocksFor(UID memberId)
         {
-        boolean fModified = false;
-
         if (isLockedByMember(memberId))
             {
             m_lockOwner = null;
-            fModified = true;
+            return true;
             }
 
-        Iterator<LockOwner> it = m_setPending.iterator();
-        while (it.hasNext())
-            {
-            LockOwner owner = it.next();
-            if (owner.getMemberId().equals(memberId))
-                {
-                it.remove();
-                fModified = true;
-                }
-            }
-
-        return fModified;
+        return false;
         }
 
     /**
-     * Remove all the locks, both the active and pending, that are NOT owned by
-     * one of the specified members.
+     * Remove the lock if it's NOT owned by one of the specified members.
      *
      * @param setMemberIds  the UIDs of the member to retain the locks for
      *
@@ -215,26 +160,13 @@ public class ExclusiveLockHolder
      */
     protected boolean retainLocksFor(Set<UID> setMemberIds)
         {
-        boolean fModified = false;
-
         if (isLocked() && !setMemberIds.contains(m_lockOwner.getMemberId()))
             {
             m_lockOwner = null;
-            fModified = true;
+            return true;
             }
 
-        Iterator<LockOwner> it = m_setPending.iterator();
-        while (it.hasNext())
-            {
-            LockOwner owner = it.next();
-            if (!setMemberIds.contains(owner.getMemberId()))
-                {
-                it.remove();
-                fModified = true;
-                }
-            }
-
-        return fModified;
+        return false;
         }
 
     @Override
@@ -243,7 +175,6 @@ public class ExclusiveLockHolder
         return "ExclusiveLockHolder{" +
                "locked=" + isLocked() +
                ", owner=" + getOwner() +
-               ", pendingLocks=" + getPendingLocks() +
                '}';
         }
 
@@ -254,7 +185,6 @@ public class ExclusiveLockHolder
             throws IOException
         {
         m_lockOwner = ExternalizableHelper.readObject(in);
-        ExternalizableHelper.readCollection(in, m_setPending, null);
         }
 
     @Override
@@ -262,7 +192,6 @@ public class ExclusiveLockHolder
             throws IOException
         {
         ExternalizableHelper.writeObject(out, m_lockOwner);
-        ExternalizableHelper.writeCollection(out, m_setPending);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -271,16 +200,14 @@ public class ExclusiveLockHolder
     public void readExternal(PofReader in)
             throws IOException
         {
-        m_lockOwner = in.readObject(1);
-        in.readCollection(2, m_setPending);
+        m_lockOwner = in.readObject(0);
         }
 
     @Override
     public void writeExternal(PofWriter out)
             throws IOException
         {
-        out.writeObject(1, m_lockOwner);
-        out.writeCollection(2, m_setPending);
+        out.writeObject(0, m_lockOwner);
         }
 
     // ----- inner class: RemoveLocks ---------------------------------------
@@ -366,14 +293,14 @@ public class ExclusiveLockHolder
         public void readExternal(PofReader in)
                 throws IOException
             {
-            m_memberId = in.readObject(1);
+            m_memberId = in.readObject(0);
             }
 
         @Override
         public void writeExternal(PofWriter out)
                 throws IOException
             {
-            out.writeObject(1, m_memberId);
+            out.writeObject(0, m_memberId);
             }
 
         // ----- data members -----------------------------------------------
@@ -390,9 +317,4 @@ public class ExclusiveLockHolder
      * The current owner of this lock.
      */
     private LockOwner m_lockOwner;
-
-    /**
-     * The set of pending lock requests.
-     */
-    private final Set<LockOwner> m_setPending = new HashSet<>();
     }

@@ -63,8 +63,6 @@ public class DistributedReadWriteLockTest
         assertThat(lock.isWriteLocked(), is(false));
         assertThat(lock.getReadHoldCount(), is(0));
         assertThat(lock.getWriteHoldCount(), is(0));
-        assertThat(lock.f_sync.getPendingReadLocks().isEmpty(), is(true));
-        assertThat(lock.f_sync.getPendingWriteLocks().isEmpty(), is(true));
 
         System.out.println("<<<<< Completed test method " + info.getDisplayName());
         }
