@@ -32,9 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A data structure that encapsulates server-side read/write locking logic,
- * and keeps track of the information about lock owners and pending locks that
- * can be introspected by the clients.
+ * A data structure that encapsulates server-side read/write locking logic.
  *
  * @since 21.12
  * @author Aleks Seovic  2021.10.19
@@ -171,48 +169,6 @@ public class ReadWriteLockHolder
         }
 
     /**
-     * Return {@code true} if there is a pending write lock
-     * by the specified owner.
-     *
-     * @param owner  the lock owner to check
-     *
-     * @return {@code true} if there is a pending write lock by
-     *         the specified owner
-     */
-    public boolean isPendingWrite(LockOwner owner)
-        {
-        return m_setPendingWrite.contains(owner);
-        }
-
-    /**
-     * Return {@code true} if there is a pending read lock
-     * by the specified owner.
-     *
-     * @param owner  the lock owner to check
-     *
-     * @return {@code true} if there is a pending read lock by
-     *         the specified owner
-     */
-    public boolean isPendingRead(LockOwner owner)
-        {
-        return m_setPendingRead.contains(owner);
-        }
-
-    /**
-     * Return {@code true} if there is a pending read or write lock
-     * by the specified owner.
-     *
-     * @param owner  the lock owner to check
-     *
-     * @return {@code true} if there is a pending read or write lock by
-     *         the specified owner
-     */
-    public boolean isPending(LockOwner owner)
-        {
-        return isPendingWrite(owner) || isPendingRead(owner);
-        }
-
-    /**
      * Attempt to obtain write lock, and return {@code true} if successful.
      *
      * @param owner  the lock owner to obtain the lock for
@@ -227,12 +183,10 @@ public class ReadWriteLockHolder
             }
         else if (isLocked())
             {
-            m_setPendingWrite.add(owner);
             return false;
             }
         else
             {
-            m_setPendingWrite.remove(owner);
             m_writeLock = owner;
             return true;
             }
@@ -270,13 +224,11 @@ public class ReadWriteLockHolder
             }
         else if (isWriteLockedBy(owner) || !isWriteLocked())
             {
-            m_setPendingRead.remove(owner);
             m_setReadLocks.add(owner);
             return true;
             }
         else
             {
-            m_setPendingRead.add(owner);
             return false;
             }
         }
@@ -329,28 +281,7 @@ public class ReadWriteLockHolder
         }
 
     /**
-     * Return the set of pending write locks.
-     *
-     * @return the set of pending write locks; could be empty
-     */
-    public Set<? extends LockOwner> getPendingWriteLocks()
-        {
-        return m_setPendingWrite;
-        }
-
-    /**
-     * Return the set of pending read locks.
-     *
-     * @return the set of pending read locks; could be empty
-     */
-    public Set<? extends LockOwner> getPendingReadLocks()
-        {
-        return m_setPendingRead;
-        }
-
-    /**
-     * Remove all the locks, both the active and pending, that are owned by
-     * a specified member.
+     * Remove all the locks that are owned by a specified member.
      *
      * @param memberId  the UID of a member to remove the locks for
      *
@@ -367,9 +298,6 @@ public class ReadWriteLockHolder
             }
 
         fModified = removeLocksFor(m_setReadLocks, memberId) || fModified;
-        fModified = removeLocksFor(m_setPendingRead, memberId) || fModified;
-        fModified = removeLocksFor(m_setPendingWrite, memberId) || fModified;
-
         return fModified;
         }
 
@@ -400,8 +328,7 @@ public class ReadWriteLockHolder
         }
 
     /**
-     * Remove all the locks, both the active and pending, that are NOT owned by
-     * one of the specified members.
+     * Remove all the locks that are NOT owned by one of the specified members.
      *
      * @param setMemberIds  the UIDs of the valid members to retain the locks for
      *
@@ -418,9 +345,6 @@ public class ReadWriteLockHolder
             }
 
         fModified = retainLocksFor(m_setReadLocks, setMemberIds) || fModified;
-        fModified = retainLocksFor(m_setPendingRead, setMemberIds) || fModified;
-        fModified = retainLocksFor(m_setPendingWrite, setMemberIds) || fModified;
-
         return fModified;
         }
 
@@ -461,8 +385,6 @@ public class ReadWriteLockHolder
                ", readLocked=" + isReadLocked() +
                ", writeLockOwner=" + getWriteLock() +
                ", readLocks=" + getReadLocks() +
-               ", pendingWriteLocks=" + getPendingWriteLocks() +
-               ", pendingReadLocks=" + getPendingReadLocks() +
                '}';
         }
 
@@ -474,8 +396,6 @@ public class ReadWriteLockHolder
         {
         m_writeLock = ExternalizableHelper.readObject(in);
         ExternalizableHelper.readCollection(in, m_setReadLocks, null);
-        ExternalizableHelper.readCollection(in, m_setPendingRead, null);
-        ExternalizableHelper.readCollection(in, m_setPendingWrite, null);
         }
 
     @Override
@@ -484,8 +404,6 @@ public class ReadWriteLockHolder
         {
         ExternalizableHelper.writeObject(out, m_writeLock);
         ExternalizableHelper.writeCollection(out, m_setReadLocks);
-        ExternalizableHelper.writeCollection(out, m_setPendingRead);
-        ExternalizableHelper.writeCollection(out, m_setPendingWrite);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -494,20 +412,16 @@ public class ReadWriteLockHolder
     public void readExternal(PofReader in)
             throws IOException
         {
-        m_writeLock = in.readObject(1);
-        in.readCollection(2, m_setReadLocks);
-        in.readCollection(3, m_setPendingRead);
-        in.readCollection(4, m_setPendingWrite);
+        m_writeLock = in.readObject(0);
+        in.readCollection(1, m_setReadLocks);
         }
 
     @Override
     public void writeExternal(PofWriter out)
             throws IOException
         {
-        out.writeObject(1, m_writeLock);
-        out.writeCollection(2, m_setReadLocks);
-        out.writeCollection(3, m_setPendingRead);
-        out.writeCollection(4, m_setPendingWrite);
+        out.writeObject(0, m_writeLock);
+        out.writeCollection(1, m_setReadLocks);
         }
 
     // ----- inner class: RemoveLocks ---------------------------------------
@@ -593,14 +507,14 @@ public class ReadWriteLockHolder
         public void readExternal(PofReader in)
                 throws IOException
             {
-            m_memberId = in.readObject(1);
+            m_memberId = in.readObject(0);
             }
 
         @Override
         public void writeExternal(PofWriter out)
                 throws IOException
             {
-            out.writeObject(1, m_memberId);
+            out.writeObject(0, m_memberId);
             }
 
         // ----- data members -----------------------------------------------
@@ -622,14 +536,4 @@ public class ReadWriteLockHolder
      * The set of read lock owners.
      */
     private final Set<LockOwner> m_setReadLocks = new HashSet<>();
-
-    /**
-     * The set of pending read locks.
-     */
-    private final Set<LockOwner> m_setPendingRead = new HashSet<>();
-
-    /**
-     * The set of pending write locks.
-     */
-    private final Set<LockOwner> m_setPendingWrite = new HashSet<>();
     }

@@ -62,7 +62,6 @@ public class DistributedLockTest
         assertThat(lock.isLocked(), is(false));
         assertThat(lock.isHeldByCurrentThread(), is(false));
         assertThat(lock.getHoldCount(), is(0L));
-        assertThat(lock.getPendingLocks().isEmpty(), is(true));
 
         System.out.println("<<<<< Completed test method " + info.getDisplayName());
         }

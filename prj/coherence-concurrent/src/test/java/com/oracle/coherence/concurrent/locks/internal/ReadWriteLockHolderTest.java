@@ -6,7 +6,6 @@
  */
 package com.oracle.coherence.concurrent.locks.internal;
 
-
 import com.oracle.coherence.concurrent.locks.LockOwner;
 import com.tangosol.util.UID;
 import java.util.Set;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-
 
 /**
  * Unit tests for ReadWriteLockHolder.
@@ -90,12 +88,10 @@ public class ReadWriteLockHolderTest
         assertThat(lock.lockWrite(o1), is(true));
         assertThat(lock.lockWrite(o2), is(false));
         assertThat(lock.isWriteLockedBy(o1), is(true));
-        assertThat(lock.isPendingWrite(o2), is(true));
         assertThat(lock.unlockWrite(o2), is(false));
         assertThat(lock.unlockWrite(o1), is(true));
         assertThat(lock.isLocked(), is(false));
         assertThat(lock.lockWrite(o2), is(true));
-        assertThat(lock.isPending(o2), is(false));
         assertThat(lock.isWriteLockedBy(o2), is(true));
         }
 
@@ -108,12 +104,10 @@ public class ReadWriteLockHolderTest
         assertThat(lock.lockWrite(o1), is(true));
         assertThat(lock.lockRead(o2), is(false));
         assertThat(lock.isWriteLockedBy(o1), is(true));
-        assertThat(lock.isPendingRead(o2), is(true));
         assertThat(lock.unlockRead(o2), is(false));
         assertThat(lock.unlockWrite(o1), is(true));
         assertThat(lock.isLocked(), is(false));
         assertThat(lock.lockRead(o2), is(true));
-        assertThat(lock.isPending(o2), is(false));
         assertThat(lock.isReadLockedBy(o2), is(true));
         }
 
@@ -128,14 +122,8 @@ public class ReadWriteLockHolderTest
         assertThat(lock.lockWrite(o2), is(false));
         assertThat(lock.lockRead(o3), is(false));
         assertThat(lock.isLockedBy(o1), is(true));
-        assertThat(lock.isPendingWrite(o2), is(true));
-        assertThat(lock.isPendingRead(o3), is(true));
-        assertThat(lock.removeLocksFor(o2.getMemberId()), is(true));
         assertThat(lock.removeLocksFor(o2.getMemberId()), is(false));
-        assertThat(lock.isPending(o2), is(false));
-        assertThat(lock.removeLocksFor(o3.getMemberId()), is(true));
         assertThat(lock.removeLocksFor(o3.getMemberId()), is(false));
-        assertThat(lock.isPending(o3), is(false));
         assertThat(lock.isLocked(), is(true));
         assertThat(lock.removeLocksFor(o1.getMemberId()), is(true));
         assertThat(lock.removeLocksFor(o1.getMemberId()), is(false));
@@ -157,18 +145,11 @@ public class ReadWriteLockHolderTest
         assertThat(lock.lockWrite(o2), is(false));
         assertThat(lock.lockRead(o3), is(false));
         assertThat(lock.isLockedBy(o1), is(true));
-        assertThat(lock.isPendingWrite(o2), is(true));
-        assertThat(lock.isPendingRead(o3), is(true));
         assertThat(lock.retainLocksFor(Set.of(o2.getMemberId(), o3.getMemberId())), is(true));
         assertThat(lock.retainLocksFor(Set.of(o2.getMemberId(), o3.getMemberId())), is(false));
-        assertThat(lock.isPending(o2), is(true));
-        assertThat(lock.isPending(o3), is(true));
         assertThat(lock.isLocked(), is(false));
         assertThat(lock.lockWrite(o1), is(true));
-        assertThat(lock.retainLocksFor(Set.of(o1.getMemberId(), o3.getMemberId())), is(true));
         assertThat(lock.retainLocksFor(Set.of(o1.getMemberId(), o3.getMemberId())), is(false));
-        assertThat(lock.isPending(o2), is(false));
-        assertThat(lock.isPending(o3), is(true));
         assertThat(lock.isLocked(), is(true));
         assertThat(lock.unlockWrite(o1), is(true));
         assertThat(lock.lockRead(o1), is(true));
@@ -176,27 +157,20 @@ public class ReadWriteLockHolderTest
         assertThat(lock.retainLocksFor(Set.of(o2.getMemberId())), is(true));
         assertThat(lock.isReadLockedBy(o1), is(false));
         assertThat(lock.isReadLockedBy(o2), is(true));
-        assertThat(lock.isPendingRead(o3), is(false));
         }
 
     @Test
     public void shoudReturnDetailsFromToString()
         {
         LockOwner o1 = new LockOwner(new UID(), 1);
-        LockOwner o2 = new LockOwner(new UID(), 2);
-        LockOwner o3 = new LockOwner(new UID(), 3);
         ReadWriteLockHolder lock = new ReadWriteLockHolder();
 
-        assertThat(lock.toString(), is("ReadWriteLockHolder{writeLocked=false, readLocked=false, writeLockOwner=null, readLocks=[], pendingWriteLocks=[], pendingReadLocks=[]}"));
+        assertThat(lock.toString(), is("ReadWriteLockHolder{writeLocked=false, readLocked=false, writeLockOwner=null, readLocks=[]}"));
         lock.lockWrite(o1);
-        assertThat(lock.toString(), is(String.format("ReadWriteLockHolder{writeLocked=true, readLocked=false, writeLockOwner=LockOwner{memberId=%s, threadId=1}, readLocks=[], pendingWriteLocks=[], pendingReadLocks=[]}", o1.getMemberId())));
-        lock.lockWrite(o2);
-        assertThat(lock.toString(), is(String.format("ReadWriteLockHolder{writeLocked=true, readLocked=false, writeLockOwner=LockOwner{memberId=%s, threadId=1}, readLocks=[], pendingWriteLocks=[LockOwner{memberId=%s, threadId=2}], pendingReadLocks=[]}", o1.getMemberId(), o2.getMemberId())));
-        lock.lockRead(o3);
-        assertThat(lock.toString(), is(String.format("ReadWriteLockHolder{writeLocked=true, readLocked=false, writeLockOwner=LockOwner{memberId=%s, threadId=1}, readLocks=[], pendingWriteLocks=[LockOwner{memberId=%s, threadId=2}], pendingReadLocks=[LockOwner{memberId=%s, threadId=3}]}", o1.getMemberId(), o2.getMemberId(), o3.getMemberId())));
+        assertThat(lock.toString(), is(String.format("ReadWriteLockHolder{writeLocked=true, readLocked=false, writeLockOwner=LockOwner{memberId=%s, threadId=1}, readLocks=[]}", o1.getMemberId())));
         lock.retainLocksFor(Set.of());
 
         lock.lockRead(o1);
-        assertThat(lock.toString(), is(String.format("ReadWriteLockHolder{writeLocked=false, readLocked=true, writeLockOwner=null, readLocks=[LockOwner{memberId=%s, threadId=1}], pendingWriteLocks=[], pendingReadLocks=[]}", o1.getMemberId())));
+        assertThat(lock.toString(), is(String.format("ReadWriteLockHolder{writeLocked=false, readLocked=true, writeLockOwner=null, readLocks=[LockOwner{memberId=%s, threadId=1}]}", o1.getMemberId())));
         }
     }

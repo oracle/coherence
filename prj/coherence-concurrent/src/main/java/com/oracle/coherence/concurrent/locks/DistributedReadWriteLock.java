@@ -17,7 +17,6 @@ import com.tangosol.util.UID;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
@@ -477,16 +476,6 @@ public class DistributedReadWriteLock
             return f_locks.invoke(f_sName, Processors.extract(ReadWriteLockHolder::getWriteLock));
             }
 
-        final Set<? extends LockOwner> getPendingReadLocks()
-            {
-            return f_locks.invoke(f_sName, Processors.extract(ReadWriteLockHolder::getPendingReadLocks));
-            }
-
-        final Set<? extends LockOwner> getPendingWriteLocks()
-            {
-            return f_locks.invoke(f_sName, Processors.extract(ReadWriteLockHolder::getPendingWriteLocks));
-            }
-
         final int getReadLockCount()
             {
             return f_locks.invoke(f_sName, Processors.extract(ReadWriteLockHolder::getReadLockCount));
@@ -500,16 +489,6 @@ public class DistributedReadWriteLock
         final boolean isWriteLocked()
             {
             return f_locks.invoke(f_sName, Processors.extract(ReadWriteLockHolder::isWriteLocked));
-            }
-
-        final boolean isPending(Thread thread)
-            {
-            final LockOwner owner = new LockOwner(f_memberId, thread.getId());
-            return f_locks.invoke(f_sName, entry ->
-                    {
-                    ReadWriteLockHolder lock = entry.getValue();
-                    return lock != null && lock.isPending(owner);
-                    });
             }
 
         final int getWriteHoldCount()
@@ -1224,9 +1203,7 @@ public class DistributedReadWriteLock
      */
     public final boolean hasQueuedThreads()
         {
-        return f_sync.hasQueuedThreads()
-               || !f_sync.getPendingReadLocks().isEmpty()
-               || !f_sync.getPendingWriteLocks().isEmpty();
+        return f_sync.hasQueuedThreads();
         }
 
     /**
@@ -1243,7 +1220,7 @@ public class DistributedReadWriteLock
      */
     public final boolean hasQueuedThread(Thread thread)
         {
-        return f_sync.isQueued(thread) || f_sync.isPending(thread);
+        return f_sync.isQueued(thread);
         }
 
     /**
@@ -1257,9 +1234,7 @@ public class DistributedReadWriteLock
      */
     public final int getQueueLength()
         {
-        return f_sync.getQueueLength()
-               + f_sync.getPendingReadLocks().size()
-               + f_sync.getPendingWriteLocks().size();
+        return f_sync.getQueueLength();
         }
 
     /**

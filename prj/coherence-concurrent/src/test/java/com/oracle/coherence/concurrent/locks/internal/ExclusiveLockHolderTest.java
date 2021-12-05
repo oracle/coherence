@@ -63,8 +63,6 @@ public class ExclusiveLockHolderTest
         assertThat(lock.isLocked(), is(true));
         assertThat(lock.isLockedBy(o1), is(true));
         assertThat(lock.isLockedByMember(o1.getMemberId()), is(true));
-        assertThat(lock.isPending(o2), is(true));
-        assertThat(lock.isPendingForMember(o2.getMemberId()), is(true));
         assertThat(lock.unlock(o2), is(false));
         assertThat(lock.unlock(o1), is(true));
         assertThat(lock.isLocked(), is(false));
@@ -79,10 +77,7 @@ public class ExclusiveLockHolderTest
         assertThat(lock.lock(o1), is(true));
         assertThat(lock.lock(o2), is(false));
         assertThat(lock.isLockedBy(o1), is(true));
-        assertThat(lock.isPending(o2), is(true));
-        assertThat(lock.removeLocksFor(o2.getMemberId()), is(true));
         assertThat(lock.removeLocksFor(o2.getMemberId()), is(false));
-        assertThat(lock.isPending(o2), is(false));
         assertThat(lock.removeLocksFor(o1.getMemberId()), is(true));
         assertThat(lock.removeLocksFor(o1.getMemberId()), is(false));
         assertThat(lock.isLocked(), is(false));
@@ -97,29 +92,23 @@ public class ExclusiveLockHolderTest
         assertThat(lock.lock(o1), is(true));
         assertThat(lock.lock(o2), is(false));
         assertThat(lock.isLockedBy(o1), is(true));
-        assertThat(lock.isPending(o2), is(true));
         assertThat(lock.retainLocksFor(Set.of(o2.getMemberId())), is(true));
         assertThat(lock.retainLocksFor(Set.of(o2.getMemberId())), is(false));
-        assertThat(lock.isPending(o2), is(true));
         assertThat(lock.isLocked(), is(false));
-        assertThat(lock.lock(o1), is(true));
+        assertThat(lock.lock(o2), is(true));
+        assertThat(lock.retainLocksFor(Set.of(o2.getMemberId())), is(false));
         assertThat(lock.retainLocksFor(Set.of(o1.getMemberId())), is(true));
-        assertThat(lock.retainLocksFor(Set.of(o1.getMemberId())), is(false));
-        assertThat(lock.isPending(o2), is(false));
-        assertThat(lock.isLocked(), is(true));
+        assertThat(lock.isLocked(), is(false));
         }
 
     @Test
     public void shoudReturnDetailsFromToString()
         {
         LockOwner o1 = new LockOwner(new UID(), 1);
-        LockOwner o2 = new LockOwner(new UID(), 2);
         ExclusiveLockHolder lock = new ExclusiveLockHolder();
 
-        assertThat(lock.toString(), is("ExclusiveLockHolder{locked=false, owner=null, pendingLocks=[]}"));
+        assertThat(lock.toString(), is("ExclusiveLockHolder{locked=false, owner=null}"));
         lock.lock(o1);
-        assertThat(lock.toString(), is(String.format("ExclusiveLockHolder{locked=true, owner=LockOwner{memberId=%s, threadId=1}, pendingLocks=[]}", o1.getMemberId())));
-        lock.lock(o2);
-        assertThat(lock.toString(), is(String.format("ExclusiveLockHolder{locked=true, owner=LockOwner{memberId=%s, threadId=1}, pendingLocks=[LockOwner{memberId=%s, threadId=2}]}", o1.getMemberId(), o2.getMemberId())));
+        assertThat(lock.toString(), is(String.format("ExclusiveLockHolder{locked=true, owner=LockOwner{memberId=%s, threadId=1}}", o1.getMemberId())));
         }
     }

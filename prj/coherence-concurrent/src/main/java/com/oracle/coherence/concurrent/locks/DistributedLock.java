@@ -17,8 +17,6 @@ import com.tangosol.util.UID;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
-import java.util.Set;
-
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.locks.AbstractQueuedLongSynchronizer;
@@ -383,16 +381,6 @@ public class DistributedLock
         }
 
     /**
-     * Returns the set of pending requests for this lock.
-     *
-     * @return the set of pending requests for this lock
-     */
-    public Set<? extends LockOwner> getPendingLocks()
-        {
-        return f_sync.getPendingLocks();
-        }
-
-    /**
      * Queries whether any threads are waiting to acquire this lock. Note that
      * because cancellations may occur at any time, a {@code true} return does
      * not guarantee that any other thread will ever acquire this lock.  This
@@ -403,7 +391,7 @@ public class DistributedLock
      */
     public final boolean hasQueuedThreads()
         {
-        return f_sync.hasQueuedThreads() || !f_sync.getPendingLocks().isEmpty();
+        return f_sync.hasQueuedThreads();
         }
 
     /**
@@ -420,7 +408,7 @@ public class DistributedLock
      */
     public final boolean hasQueuedThread(Thread thread)
         {
-        return f_sync.isQueued(thread) || f_sync.isPending(thread);
+        return f_sync.isQueued(thread);
         }
 
     /**
@@ -434,7 +422,7 @@ public class DistributedLock
      */
     public final int getQueueLength()
         {
-        return f_sync.getQueueLength() + getPendingLocks().size();
+        return f_sync.getQueueLength();
         }
 
     /**
@@ -612,11 +600,6 @@ public class DistributedLock
             return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::getOwner));
             }
 
-        final Set<? extends LockOwner> getPendingLocks()
-            {
-            return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::getPendingLocks));
-            }
-
         final long getHoldCount()
             {
             return isHeldExclusively() ? getState() : 0;
@@ -625,16 +608,6 @@ public class DistributedLock
         final boolean isLocked()
             {
             return f_locks.invoke(f_sName, Processors.extract(ExclusiveLockHolder::isLocked));
-            }
-
-        final boolean isPending(Thread thread)
-            {
-            final LockOwner owner = new LockOwner(f_memberId, thread.getId());
-            return f_locks.invoke(f_sName, entry ->
-                    {
-                    ExclusiveLockHolder lock = entry.getValue();
-                    return lock != null && lock.isPending(owner);
-                    });
             }
 
         // ---- data members ------------------------------------------------
