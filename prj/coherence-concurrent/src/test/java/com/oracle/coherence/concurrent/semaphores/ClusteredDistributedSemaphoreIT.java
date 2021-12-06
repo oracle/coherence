@@ -26,8 +26,11 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.concurrent.atomic.Atomics;
 
 import com.tangosol.net.Coherence;
+
+import com.tangosol.util.Base;
 
 import java.io.Serializable;
 
@@ -36,7 +39,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import java.time.Duration;
-import java.time.Instant;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +49,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.lessThan;
 
 /**
  * Test distributed semaphores across multiple cluster members.
@@ -307,6 +310,9 @@ public class ClusteredDistributedSemaphoreIT
             member1.addListener(listener1);
             member2.addListener(listener2);
 
+            Base.sleep(1000);
+
+            // Acquire the permit on first member (the permit will be held for 5 minutes)
             member1.submit(new AcquirePermit(sSemaphoreName, 1, Duration.ofMinutes(5)));
 
             // wait for the permit acquired event
@@ -389,9 +395,13 @@ public class ClusteredDistributedSemaphoreIT
             listener2.awaitReleased(Duration.ofMinutes(1));
 
             // Assert the permits were acquired and released in the order expected
-            assertThat(listener1.getAcquiredAt().isBefore(listener1.getReleasedAt()), is(true));
-            assertThat(listener1.getReleasedAt().isBefore(listener2.getAcquiredAt()), is(true));
-            assertThat(listener2.getAcquiredAt().isBefore(listener2.getReleasedAt()), is(true));
+            System.out.println("Acquired #1: " + listener1.getAcquiredOrder());
+            System.out.println("Released #1: " + listener1.getReleasedOrder());
+            System.out.println("Acquired #2: " + listener2.getAcquiredOrder());
+            System.out.println("Released #2: " + listener2.getReleasedOrder());
+            assertThat(listener1.getAcquiredOrder(), lessThan(listener1.getReleasedOrder()));
+            assertThat(listener1.getReleasedOrder(), lessThan(listener2.getAcquiredOrder()));
+            assertThat(listener2.getAcquiredOrder(), lessThan(listener2.getReleasedOrder()));
             }
         finally
             {
@@ -602,22 +612,25 @@ public class ClusteredDistributedSemaphoreIT
             boolean fAcquired;
             if (f_timeout.isZero())
                 {
+                Logger.info("Trying to acquire a permit from semaphore " + f_sSemaphoreName + " with zero timeout");
                 fAcquired = distributedSemaphore.tryAcquire(f_acquirePermits);
                 }
             else
                 {
+                Logger.info("Trying to acquire a permit from semaphore " + f_sSemaphoreName + " with timeout of " + f_timeout);
                 fAcquired = distributedSemaphore.tryAcquire(f_acquirePermits, f_timeout.toMillis(), MILLISECONDS);
                 }
 
             if (fAcquired)
                 {
                 remoteChannel.raise(new SemaphoreEvent(f_sSemaphoreName, SemaphoreEventType.Acquired));
-                distributedSemaphore.release();
+                Logger.info("Tried and succeeded to acquire a permit from semaphore " + f_sSemaphoreName + " within timeout " + f_timeout);
                 remoteChannel.raise(new SemaphoreEvent(f_sSemaphoreName, SemaphoreEventType.Released));
+                distributedSemaphore.release();
                 }
             else
                 {
-                Logger.info("Tried and failed to acquire permit " + f_sSemaphoreName + " within timeout " + f_timeout);
+                Logger.info("Tried and failed to acquire a permit from semaphore " + f_sSemaphoreName + " within timeout " + f_timeout);
                 }
 
             return fAcquired;
@@ -692,6 +705,7 @@ public class ClusteredDistributedSemaphoreIT
         public Void call()
             {
             DistributedSemaphore semaphore = Semaphores.remoteSemaphore(f_sSemaphoreName, f_permits);
+            Logger.info("Acquiring a permit from semaphore " + f_sSemaphoreName);
             if (f_acquirePermits == 1)
                 {
                 semaphore.acquireUninterruptibly();
@@ -703,6 +717,7 @@ public class ClusteredDistributedSemaphoreIT
             try
                 {
                 remoteChannel.raise(new SemaphoreEvent(f_sSemaphoreName, SemaphoreEventType.Acquired));
+                Logger.info("Semaphore " + f_sSemaphoreName + " permit acquired");
                 Thread.sleep(f_duration.toMillis());
                 }
             catch (InterruptedException ignore)
@@ -710,6 +725,7 @@ public class ClusteredDistributedSemaphoreIT
                 }
             finally
                 {
+                remoteChannel.raise(new SemaphoreEvent(f_sSemaphoreName, SemaphoreEventType.Released));
                 if (f_acquirePermits == 1)
                     {
                     semaphore.release();
@@ -718,7 +734,7 @@ public class ClusteredDistributedSemaphoreIT
                     {
                     semaphore.release(f_acquirePermits);
                     }
-                remoteChannel.raise(new SemaphoreEvent(f_sSemaphoreName, SemaphoreEventType.Released));
+                Logger.info("Semaphore " + f_sSemaphoreName + " permit released");
                 }
             return null;
             }
@@ -744,6 +760,11 @@ public class ClusteredDistributedSemaphoreIT
         private final SemaphoreEventType f_type;
 
         /**
+         * The global order of the event.
+         */
+        private final int f_order;
+
+        /**
          * Create a semaphore event.
          *
          * @param sSemaphoreName  the name of the semaphore
@@ -753,6 +774,7 @@ public class ClusteredDistributedSemaphoreIT
             {
             f_sSemaphoreName = sSemaphoreName;
             f_type           = type;
+            f_order          = Atomics.remoteAtomicInteger("ClusteredDistributedSemaphoreIT.eventCounter").incrementAndGet();
             }
 
         /**
@@ -775,11 +797,22 @@ public class ClusteredDistributedSemaphoreIT
             return f_type;
             }
 
+        /**
+         * Return the global event order.
+         *
+         * @return the global event order
+         */
+        public int getOrder()
+            {
+            return f_order;
+            }
+
         public String toString()
             {
             return "SemaphoreEvent{" +
                    "f_sSemaphoreName='" + f_sSemaphoreName + '\'' +
                    ", f_type=" + f_type +
+                   ", f_order=" + f_order +
                    '}';
             }
         }
@@ -800,22 +833,12 @@ public class ClusteredDistributedSemaphoreIT
         /**
          * A future that completes when the permit acquired event is received.
          */
-        private final CompletableFuture<Void> f_futureAcquired = new CompletableFuture<>();
+        private final CompletableFuture<Integer> f_futureAcquired = new CompletableFuture<>();
 
         /**
          * A future that completes when the permit released event is received.
          */
-        private final CompletableFuture<Void> f_futureReleased = new CompletableFuture<>();
-
-        /**
-         * The time the permit was acquired.
-         */
-        private Instant m_acquiredAt;
-
-        /**
-         * The time the permit was released.
-         */
-        private Instant m_releasedAt;
+        private final CompletableFuture<Integer> f_futureReleased = new CompletableFuture<>();
 
         /**
          * Create a {@link SemaphoreEventListener}.
@@ -830,18 +853,20 @@ public class ClusteredDistributedSemaphoreIT
         @Override
         public void onEvent(RemoteEvent event)
             {
-            if (event instanceof SemaphoreEvent && f_sSemaphoreName.equals(((SemaphoreEvent) event).getSemaphoreName()))
+            if (event instanceof SemaphoreEvent)
                 {
-                switch (((SemaphoreEvent) event).getEventType())
+                SemaphoreEvent e = (SemaphoreEvent) event;
+                if (f_sSemaphoreName.equals(e.getSemaphoreName()))
                     {
-                    case Acquired:
-                        m_acquiredAt = Instant.now();
-                        f_futureAcquired.complete(null);
-                        break;
-                    case Released:
-                        m_releasedAt = Instant.now();
-                        f_futureReleased.complete(null);
-                        break;
+                    switch (e.getEventType())
+                        {
+                        case Acquired:
+                            f_futureAcquired.complete(e.getOrder());
+                            break;
+                        case Released:
+                            f_futureReleased.complete(e.getOrder());
+                            break;
+                        }
                     }
                 }
             }
@@ -849,11 +874,13 @@ public class ClusteredDistributedSemaphoreIT
         /**
          * Wait for the permit acquired event.
          *
-         * @param timeout  the maximum amount of time to wait
+         * @param timeout the global order or the lock acquired event
+         *
+         * @return the global order of the permit acquired event
          */
-        public void awaitAcquired(Duration timeout) throws Exception
+        public int awaitAcquired(Duration timeout) throws Exception
             {
-            f_futureAcquired.get(timeout.toMillis(), MILLISECONDS);
+            return f_futureAcquired.get(timeout.toMillis(), MILLISECONDS);
             }
 
         /**
@@ -867,23 +894,25 @@ public class ClusteredDistributedSemaphoreIT
             }
 
         /**
-         * Returns the time that the permit was acquired.
+         * Returns the global order of the permit acquired event.
          *
-         * @return the time that the permit was acquired
+         * @return the global order of the permit acquired event
          */
-        public Instant getAcquiredAt()
+        public int getAcquiredOrder()
             {
-            return m_acquiredAt;
+            return f_futureAcquired.join();
             }
 
         /**
          * Wait for the permit released event.
          *
          * @param timeout  the maximum amount of time to wait
+         *
+         * @return the global order of the permit released event
          */
-        public void awaitReleased(Duration timeout) throws Exception
+        public int awaitReleased(Duration timeout) throws Exception
             {
-            f_futureReleased.get(timeout.toMillis(), MILLISECONDS);
+            return f_futureReleased.get(timeout.toMillis(), MILLISECONDS);
             }
 
         /**
@@ -897,13 +926,13 @@ public class ClusteredDistributedSemaphoreIT
             }
 
         /**
-         * Returns the time that the permit was released.
+         * Returns the global order of the permit released event.
          *
-         * @return the time that the permit was released
+         * @return the global order of the permit released event
          */
-        public Instant getReleasedAt()
+        public int getReleasedOrder()
             {
-            return m_releasedAt;
+            return f_futureReleased.join();
             }
         }
 
