@@ -92,7 +92,7 @@ public class ClusteredDistributedSemaphoreIT
                                            return null;
                                            });
                              }
-                         catch (IllegalStateException e)
+                         catch (Throwable ignore)
                              {
                              // ignoring "RemoteChannel is closed" exception
                              // from members that were shut down
