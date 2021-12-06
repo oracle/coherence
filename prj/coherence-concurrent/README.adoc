@@ -12,11 +12,11 @@
 
 Coherence Concurrent module provides distributed implementations of the concurrency primitives from the `java.util.concurrent` package that you are already familiar with, such as executors, atomics, locks, semaphores and latches.
 
-This allows you to implement concurrent applications using the constructs you are already familiar with, but to expand the scope of "concurrency" from a single process to potentially hundreds of processes within a Coherence cluster. You can use executors to submit tasks to be executed somewhere in the cluster; you can use locks, latches and semaphores to synchronize execution across many processes; you can use atomics to implement global counters across many processes, etc.
+This allows you to implement concurrent applications using the constructs you are already familiar with, but to expand the "scope" of concurrency from a single process to potentially hundreds of processes within a Coherence cluster. You can use executors to submit tasks to be executed somewhere in the cluster; you can use locks, latches and semaphores to synchronize execution across many cluster members; you can use atomics to implement global counters across many processes, etc.
 
 Please keep in mind that while these features are extremely powerful and allow you to reuse the knowledge you already have, they may have detrimental effect on scalability and/or performance. Whenever you synchronize execution via locks, latches or semaphores, you are introducing a potential bottleneck into the architecture. Whenever you use a distributed atomic to implement a global counter, you are turning very simple operations that take mere nanoseconds locally, such as increment and decrement, into fairly expensive network calls that could take milliseconds (and potentially block even longer under heavy load).
 
-So, use these features when you really need them, but don't go overboard: in many cases there is a better, faster and more scalable way to accomplish the same goal using Coherence primitives such as entry processors, aggregators and events, which were designed to perform and scale well in a distributed environment from the get go.
+So, use these features sparingly. In many cases there is a better, faster and more scalable way to accomplish the same goal using Coherence primitives such as entry processors, aggregators and events, which were designed to perform and scale well in a distributed environment from the get go.
 
 === Factory Classes
 
@@ -61,9 +61,7 @@ Once the necessary dependency is in place, you can start using the features it p
  ** <<executors-tbd,TBD (Ryan to expand/add sections)>>
  ** <<cdi-executors,CDI Support for Executors>>
 * <<atomics,Atomics>>
- ** <<atomics-primitive,Primitive Types>>
- ** <<atomics-reference,Reference Types>>
- ** <<atomics-async,Asynchronous Implementations>>
+ ** <<atomics-async,Non-blocking Atomics>>
  ** <<cdi-atomics,CDI Support for Atomics>>
 * <<locks,Locks>>
  ** <<exclusive-locks,Exclusive Locks>>
@@ -86,39 +84,266 @@ Once the necessary dependency is in place, you can start using the features it p
 [#atomics]
 === Atomics
 
-[#atomics-primitive]
-==== Primitive Types
+Coherence Concurrent provides distributed implementations of atomic types, such as `AtomicInteger`, `AtomicLong` and `AtomicReference`. It also provides local implementations of the same types. The local implementations are just thin wrappers around existing `java.util.concurrent.atomic` types, which implement the same interface as their distributed variants, in order to be interchangeable.
 
-[#atomics-reference]
-==== Reference Types
+To create instances of atomic types you need to call the appropriate factory method on the `Atomics` class:
+
+```java
+AtomicInteger localFoo  = Atomics.localAtomicInteger("foo");   // <1>
+AtomicInteger remoteFoo = Atomics.remoteAtomicInteger("foo");  // <2>
+AtomicLong    remoteBar = Atomics.remoteAtomicLong("bar", 5L); // <3>
+```
+<1> creates a local, in-process instance of named `AtomicInteger` with an implicit initial value of 0
+<2> creates a remote, distributed instance of named `AtomicInteger`, distinct from the local instance `foo`, with an implicit initial value of 0
+<3> creates a remote, distributed instance of named `AtomicLong`, with an initial value of 5
+
+Note that the `AtomicInteger` and `AtomicLong` types used above _are not_ types from the `java.util.concurrent.atomic` package they you are familiar with -- they are actually interfaces defined within `com.oracle.coherence.concurrent.atomic` package, that both `LocalAtomicXyz` and `RemoteAtomicXyz` classes implement, which are the instances that are actually returned by the methods above.
+
+That means that the above code could be rewritten as:
+
+```java
+LocalAtomicInteger  localFoo  = Atomics.localAtomicInteger("foo");
+RemoteAtomicInteger remoteFoo = Atomics.remoteAtomicInteger("foo");
+RemoteAtomicLong    remoteBar = Atomics.remoteAtomicLong("bar", 5L);
+```
+However, we strongly suggest that you use interfaces instead of concrete types, as they make it easy to switch between local and distributed implementations when necessary.
+
+Once created, these instances can be used the same way you would use any of the corresponding `java.util.concurrent.atomic` types:
+
+```java
+int  counter1 = remoteFoo.incrementAndGet();
+long counter5 = remoteBar.addAndGet(5L);
+```
 
 [#atomics-async]
 ==== Asynchronous Implementations
 
+The instances of numeric atomic types, such as `AtomicInteger` and `AtomicLong`, are frequently used to represent various counters in the application, where a client may need to increment the value, but doesn't necessarily need to know what the new value is.
+
+When working with the local atomics, the same API shown above can be used, and the return value simply ignored. However, when using distributed atomics that would introduce unnecessary blocking on the client while waiting for the response from the server, which would then simply be discarded. Obviously, this would have negative impact on both performance and throughput of the atomics.
+
+To reduce the impact of remote calls in those situations, Coherence Concurrent also provides non-blocking, asynchronous implementations of all atomic types it supports.
+
+To obtain a non-blocking instance of any supported atomic type, simply call `async` method on the blocking instance of that type:
+
+```java
+AsyncAtomicInteger asyncFoo = Atomics.remoteAtomicInteger("foo").async();      // <1>
+AsyncAtomicLong    asyncBar = Atomics.remoteAtomicLong("bar", 5L).async();     // <2>
+
+```
+<1> creates a remote, distributed instance of named, non-blocking `AsyncAtomicInteger`, with an implicit initial value of 0
+<2> creates a remote, distributed instance of named, non-blocking `AsyncAtomicLong`, with an initial value of 5
+
+Once created, these instances can be used the same way you would use any of the corresponding blocking types. The only difference is that they will simply return a `CompletableFuture` for  the result, and will not block:
+
+```java
+CompletableFuture<Integer> futureCounter1 = asyncFoo.incrementAndGet();
+CompletableFuture<Long>    futureCounter5 = asyncBar.addAndGet(5L);
+```
+
+Both the blocking and the non-blocking instance of any distributed atomic type, with the same name, are backed by the same cluster-side atomic instance state, so they can be used interchangeably.
+
 [#cdi-atomics]
 ==== CDI Support
+
+Atomic types from Coherence Concurrent can also be injected using CDI, which eliminates the need for explicit factory method calls on the `Atomics` class.
+
+```java
+@Inject
+@Name("foo")
+private AtomicInteger localFoo;   // <1>
+
+@Inject
+@Remote
+@Name("foo")
+private AtomicInteger remoteFoo;  // <2>
+
+@Inject
+@Remote
+private AsyncAtomicLong asyncBar  // <3>
+
+```
+<1> injects a local, in-process instance of an `AtomicInteger` named `foo`, with an implicit initial value of 0
+<2> injects a remote, distributed instance of an `AtomicInteger` named `foo`, distinct from the local instance `foo`, with an implicit initial value of 0
+<3> injects a remote, distributed instance of non-blocking `AsyncAtomicLong`, with an implicit name of `asyncBar`
+
+Once an instance of an atomic type is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Atomics` factory class.
 
 [#locks]
 === Locks
 
+Coherence Concurrent provides distributed implementations of `Lock` and `ReadWriteLock` interfaces from the `java.util.concurrent.locks` package, allowing you to implement lock-based concurrency control across cluster members when necessary.
+
+Unlike local JDK implementations, the classes in this package use cluster member/process ID and thread ID to identify lock owner, and store shared lock state within a Coherence `NamedMap`. However, that also implies that the calls to acquire and release locks are remote. network calls, as they need to update shared state that is likely stored on a different cluster member, which will have an impact on performance of `lock` and `unlock` operations.
+
 [#exclusive-locks]
 ==== Exclusive Locks
+
+A `DistributedLock` class provides an implementation of a `Lock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the lock at any given time.
+
+To obtain an instance of a `DistributedLock`, call `Locks.remoteLock` factory method:
+
+```java
+Lock foo = Locks.remoteLock("foo");
+```
+
+Just like with `Atomics`, you can also obtain a local `Lock` instance from the `Locks` class, with will simply return an instance of a standard `java.util.concurrent.locks.ReentrantLock`, by calling `localLock` factory method:
+
+```java
+Lock foo = Locks.localLock("foo");
+```
+
+Once you have a `Lock` instance, you can use it as you normally would:
+
+```java
+foo.lock();
+try {
+    // critical section guarded by the exclusive lock `foo`
+}
+finally {
+    foo.unlock();
+}
+```
 
 [#read-write-locks]
 ==== Read/Write Locks
 
+A `DistributedReadWriteLock` class provides an implementation of a `ReadWriteLock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the write lock at any given time, while allowing multiple concurrent readers.
+
+To obtain an instance of a `DistributedReadWriteLock`, call `Locks.remoteReadWriteLock` factory method:
+
+```java
+ReadWriteLock bar = Locks.remoteReadWriteLock("bar");
+```
+
+Just like with `Atomics`, you can also obtain a local `ReadWriteLock` instance from the `Locks` class, with will simply return an instance of a standard `java.util.concurrent.locks.ReentrantReadWriteLock`, by calling `localReadWriteLock` factory method:
+
+```java
+ReadWriteLock bar = Locks.localReadWriteLock("bar");
+```
+
+Once you have a `ReadWriteLock` instance, you can use it as you normally would:
+
+```java
+bar.writeLock().lock()
+try {
+    // critical section guarded by the exclusive write lock `bar`
+}
+finally {
+    bar.writeLock().unlock();
+}
+```
+
+Or:
+
+```java
+bar.readLock().lock()
+try {
+    // critical section guarded by the shared read lock `bar`
+}
+finally {
+    bar.readLock().unlock();
+}
+```
+
 [#cdi-locks]
 ==== CDI Support
+
+You can also use CDI to inject both the exclusive and read/write lock instances into objects that need them:
+
+```java
+@Inject
+@Remote
+@Name("foo")
+private Lock lock;           // <1>
+
+@Inject
+@Remote
+private ReadWriteLock bar;   // <2>
+```
+<1> injects distributed exclusive lock named `foo` into `lock` field
+<2> injects distributed read/write lock named `bar` into `bar` field
+
+Once an instance of lock is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Locks` factory class.
 
 [#latches-semaphores]
 === Latches and Semaphores
 
+Coherence Concurrent also provides distributed implementations of a `CountDownLatch` and `Semaphore` classes from `java.util.concurrent` package, allowing you to implement synchronization of execution across multiple Coherence cluster members as easily as you can implement it within a single process using those two JDK classes.
+
 [#count-down-latch]
 ==== Count Down Latch
+
+A `DistributedCoundDownLatch` class provides a distributed implementation of a `CountDownLatch`, and allows you to ensure that the execution of the code on any cluster member that is waiting for a latch proceeds only when the latch reaches zero. Any cluster member can both wait for a latch, and count down.
+
+To obtain an instance of a `DistributedCoundDownLatch`, call `Latches.remoteCountDownLatch` factory method:
+
+```java
+DistributedCoundDownLatch foo = Latches.remoteCountDownLatch("foo", 5);     // <1>
+```
+<1> create an instance of a `DistributedCountDownLatch` with the initial count of 5
+
+Just like with `Atomics` and `Locks`, you can also obtain a local `CountDownLatch` instance from the `Latches` class, with will simply return an instance of a standard `java.util.concurrent.CountDownLatch`, by calling `remoteCountDownLatch` factory method:
+
+```java
+CoundDownLatch foo = Latches.localCountDownLatch("foo", 10);                // <1>
+```
+<1> create an instance of a `CountDownLatch` with the initial count of 10
+
+Once you have a `DistributedCoundDownLatch` instance, you can use it as you normally would, by calling `countDown` and `await` methods on it.
 
 [#semaphore]
 ==== Semaphore
 
+A `DistributedSemaphore` class provides a distributed implementation of a `Semaphore`, and allows any cluster member to acquire and release permits from the same semaphore instance.
+
+To obtain an instance of a `DistributedSemaphore`, call `Semaphores.remoteSemaphore` factory method:
+
+```java
+DistributedSemaphore foo = Semaphores.remoteSemaphore("foo", 5);            // <1>
+```
+<1> create an instance of a remote `DistributedSemaphore` with 5 permits
+
+Just like with `Atomics` and `Locks`, you can also obtain a local `Semaphore` instance from the `Semaphores` class, with will simply return an instance of a standard `java.util.concurrent.Semaphore`, by calling `localSemaphore` factory method:
+
+```java
+Semaphore foo = Semaphores.localSemaphore("foo");                           // <1>
+```
+<1> create an instance of a local `Semaphore` with 0 permits
+
+Once you have a `DistributedSemaphore` instance, you can use it as you normally would, by calling `release` and `acquire` methods on it.
+
 [#cdi-latches-semaphores]
 ==== CDI Support
 
+You can also use CDI to inject both the count down latch and semaphore instances into objects that need them:
+
+```java
+@Inject
+@Name("foo")
+@Count(5)
+private CountDownLatch localLatchFoo;                  // <1>
+
+@Inject
+@Name("foo")
+@Remote
+@Count(10)
+private DistributedCountDownLatch remoteLatchFoo;      // <2>
+
+@Inject
+@Name("bar")
+@Remote
+private Semaphore localSemaphoreBar;                   // <3>
+
+@Inject
+@Name("bar")
+@Remote
+@Permits(1)
+private DistributedSemaphore remoteSemaphoreBar;       // <4>
+```
+<1> inject an instance of a local `CountDownLatch` with the initial count of five
+<2> inject an instance of a remote `DistributedCountDownLatch` with the initial count of ten
+<3> inject an instance of a local `Semaphore` with zero permits available
+<4> inject an instance of a remote `DistributedSemaphore` with one permit available
+
+Once a latch or a semaphore instance is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Latches` or `Semaphores` factory classes.
