@@ -6,15 +6,18 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
-import com.tangosol.config.xml.NamespaceHandler;
-import com.tangosol.util.ThreadFactory;
-import com.tangosol.util.function.Remote;
+import com.oracle.coherence.concurrent.executor.options.Name;
 
-import java.io.Closeable;
+import com.tangosol.config.xml.NamespaceHandler;
+
+import com.tangosol.util.ThreadFactory;
+
+import com.tangosol.util.function.Remote;
 
 import java.util.Collection;
 import java.util.List;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -69,29 +72,20 @@ import java.util.concurrent.TimeoutException;
  * {@code
  * <pre>
  * &lt;cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- *               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
- *               xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler">
+ *                xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+ *                xmlns:executor="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+ *                xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd
+ *                                   class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd">
+ *   ...
+ * &lt;cache-config>
  * </pre>
  * }
  * In this case, the arbitrary namespace of {@code c} was chosen and will be used
  * for the examples below.
  * <p>
  * The configuration supports multiple executor types and their related configuration.
- * See this DTD for details:
- *
- * <pre>
- *   &lt;!ELEMENT single (name, thread-pool?)>                       &lt;-- See {@link Executors#newSingleThreadExecutor()} -->
- *   &lt;!ELEMENT fixed (name, thread-count, thread-pool?)>          &lt;-- See {@link Executors#newFixedThreadPool(int)}   -->
- *   &lt;!ELEMENT cached (name, thread-pool?>)>                      &lt;-- See {@link Executors#newCachedThreadPool()}     -->
- *   &lt;!ELEMENT work-stealing (name, parallelism?, thread-pool?>   &lt;-- See {@link Executors#newWorkStealingPool()}     -->
- *   &lt;!ELEMENT name (#PCDATA)>                                    &lt;-- Expected type: {@link String}                   -->
- *   &lt;!ELEMENT thread-count (#PCDATA)>                            &lt;-- Expected type: {@link Integer}                  -->
- *   &lt;!ELEMENT parallelism (#PCDATA)>                             &lt;-- Expected type: {@link Integer}                  -->
- *   &lt;!ELEMENT thread-factory (instance)>                         &lt;-- Expected type: {@link ThreadFactory}            -->
- * </pre>
- *
- * Review the <a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/cache-configuration-elements.html#GUID-D81B8574-CC8F-4AF1-BD0F-7068BC6432FD">documentation</a>
- * for details on the {@code instance} element.
+ * See the <a href=https://github.com/oracle/coherence/blob/master/prj/coherence-concurrent/src/main/resources/concurrent.xsd">schema</a>
+ * for configuration specifics.
  * <p>
  * It should be noted, that it will be normal to have the same executor configured
  * on multiple Coherence cluster members.  When dispatching a task, it will be
@@ -473,12 +467,66 @@ public interface RemoteExecutor
      */
     void execute(Remote.Runnable command);
 
-    ///**
-    // * Closing a RemoteExecutor will clean up local resources it may
-    // * be using to dispatch tasks.  It will not have any impact
-    // * on the actual executor services running within the cluster.
-    // */
-    //void close();
+    /**
+     * Returns {@code true} if this executor has been shut down.
+     *
+     * @return {@code true} if this executor has been shut down
+     */
+    boolean isShutdown();
+
+    /**
+     * Returns {@code true} if all tasks have completed following shut down.
+     * Note that {@code isTerminated} is never {@code true} unless
+     * either {@code shutdown} or {@code shutdownNow} was called first.
+     *
+     * @return {@code true} if all tasks have completed following shut down
+     */
+    boolean isTerminated();
+
+    /**
+     * Blocks until all tasks have completed execution after a shutdown
+     * request, or the timeout occurs, or the current thread is
+     * interrupted, whichever happens first.
+     *
+     * @param lcTimeout  the maximum time to wait
+     * @param unit       the time unit of the timeout argument
+     *
+     * @return {@code true} if this executor terminated and
+     *         {@code false} if the timeout elapsed before termination
+     *
+     * @throws InterruptedException if interrupted while waiting
+     */
+    boolean awaitTermination(long lcTimeout, TimeUnit unit)
+            throws InterruptedException;
+
+    /**
+     * Initiates an orderly shutdown in which previously submitted
+     * tasks are executed, but no new tasks will be accepted.
+     * Invocation has no additional effect if already shut down.
+     *
+     * <p>This method does not wait for previously submitted tasks to
+     * complete execution.  Use {@link #awaitTermination awaitTermination}
+     * to do that.
+     */
+    void shutdown();
+
+    /**
+     * Attempts to stop all actively executing tasks, halts the
+     * processing of waiting tasks, and returns a list of the tasks
+     * that were awaiting execution.
+     *
+     * <p>This method does not wait for actively executing tasks to
+     * terminate.  Use {@link #awaitTermination awaitTermination} to
+     * do that.
+     *
+     * <p>There are no guarantees beyond best-effort attempts to stop
+     * processing actively executing tasks.  For example, typical
+     * implementations will cancel via {@link Thread#interrupt}, so any
+     * task that fails to respond to interrupts may never terminate.
+     *
+     * @return list of tasks that never commenced execution
+     */
+    List<Runnable> shutdownNow();
 
     /**
      * Return the {@code RemoteExecutor} for the given name.  Will
@@ -487,12 +535,40 @@ public interface RemoteExecutor
      *
      * @param sName  the {@code RemoteExecutor} name
      *
-     * @return the {@code RemoteExecutor} for the given name.  Will
-     *         return {@code null} if no {@link RemoteExecutor} is available
-     *         by the given name
+     * @return the {@code RemoteExecutor} for the given name.
+     *
+     * @throws NullPointerException     if {@code sName} is {@code null}
+     * @throws IllegalArgumentException if {@code sName} is zero-length
      */
     static RemoteExecutor get(String sName)
         {
-        return ExecutorsHelper.ensureRemoteExecutor(sName);
+        Objects.requireNonNull(sName, "sName argument must not be null");
+
+        if (sName.isEmpty())
+            {
+            throw new IllegalArgumentException("sName cannot be zero-length");
+            }
+
+        return new NamedClusteredExecutorService(Name.of(sName));
         }
+
+    /**
+     * Return the default executor.  This is a single-threaded executor
+     * service that is registered at service start.
+     *
+     * @return the default executor; a single-threaded executor service
+     *         that is registered at service start
+     */
+    static RemoteExecutor getDefault()
+        {
+        return get(DEFAULT_EXECUTOR_NAME);
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The name of the {@code default} executor; a single-threaded executor
+     * on each member running the {@code coherence-concurrent} module.
+     */
+    String DEFAULT_EXECUTOR_NAME = "coherence-concurrent-default-executor";
     }

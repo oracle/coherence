@@ -25,6 +25,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
@@ -32,7 +34,6 @@ import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
@@ -82,6 +83,7 @@ import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PR
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ENABLED_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.STORAGE_DISABLED_MEMBER_ROLE;
 
+import static executor.AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning;
 import static org.hamcrest.core.Is.is;
 
 /**
@@ -106,7 +108,7 @@ public class TaskExecutorServiceClusterMemberTests
     public static void setupClass()
         {
         // ensure the cluster service is running
-        s_coherence.getCluster();
+        ensureConcurrentServiceRunning(s_coherence.getCluster());
         }
 
     @After
@@ -132,16 +134,13 @@ public class TaskExecutorServiceClusterMemberTests
         System.setProperty("coherence.cluster", "TaskExecutorServiceClusterMemberTests");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
-        m_session = m_local.getSession(ExecutorsHelper.SESSION_NAME);
-        // create a storage disabled member session
-        //m_cacheFactory = s_coherence.createSession(new StorageDisabledMember());
+        m_session = m_local.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
 
         // establish an ExecutorService based on storage disabled (client) member
         m_taskExecutorService = new ClusteredExecutorService(m_session);
 
         // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
         NamedCache executors = m_session.getCache(ClusteredExecutorInfo.CACHE_NAME);
-
 
         Eventually.assertDeferred(executors::size, is(getInitialExecutorCount()));
 
@@ -205,6 +204,8 @@ public class TaskExecutorServiceClusterMemberTests
 
         // now restart the storage disabled member
         cluster.filter(member -> member.getRoleName().equals(STORAGE_DISABLED_MEMBER_ROLE)).relaunch();
+        AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
+
 
         // make sure the task is failed over to the new member and the subscriber received the result
         MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
@@ -213,6 +214,7 @@ public class TaskExecutorServiceClusterMemberTests
 
     // ----- helper methods -------------------------------------------------
 
+    @SuppressWarnings("unchecked")
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
         {
         return m_taskExecutorService.getCacheService().ensureCache(sName, null);

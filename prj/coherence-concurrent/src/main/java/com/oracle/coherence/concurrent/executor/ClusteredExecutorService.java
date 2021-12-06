@@ -13,6 +13,7 @@ import com.oracle.coherence.concurrent.executor.function.Predicates;
 import com.oracle.coherence.concurrent.executor.options.Member;
 import com.oracle.coherence.concurrent.executor.options.Role;
 
+import com.oracle.coherence.concurrent.executor.options.Storage;
 import com.oracle.coherence.concurrent.executor.subscribers.internal.AnyFutureSubscriber;
 import com.oracle.coherence.concurrent.executor.subscribers.internal.FutureSubscriber;
 
@@ -157,6 +158,17 @@ public class ClusteredExecutorService
                 optionsByType.add(Role.of(member.get().getRoleName()));
                 }
 
+            // automatically include the Storage type (when Storage is not defined)
+            if (optionsByType.get(Storage.class, null) == null)
+                {
+                CacheService service = getCacheService();
+                Storage      storage =
+                        Storage.enabled(getCacheService() instanceof DistributedCacheService
+                                        && ((DistributedCacheService) service).isLocalStorageEnabled());
+
+                optionsByType.add(storage);
+                }
+
             // establish a unique identity for the registration
             String sIdentity = UUID.randomUUID().toString();
 
@@ -226,25 +238,15 @@ public class ClusteredExecutorService
         return null;
         }
 
-    // ----- lifecycle methods ----------------------------------------------
+    // ----- RemoteExecutor interface ---------------------------------------
 
-    /**
-     * Returns {@code true} if this executor has been shut down.
-     *
-     * @return {@code true} if this executor has been shut down
-     */
+    @Override
     public boolean isShutdown()
         {
         return f_state.get().compareTo(State.STOPPING_GRACEFULLY) >= 0;
         }
 
-    /**
-     * Returns {@code true} if all tasks have completed following shut down.
-     * Note that {@code isTerminated} is never {@code true} unless
-     * either {@code shutdown} or {@code shutdownNow} was called first.
-     *
-     * @return {@code true} if all tasks have completed following shut down
-     */
+    @Override
     public boolean isTerminated()
         {
         if (f_state.get().equals(State.TERMINATED))
@@ -264,19 +266,7 @@ public class ClusteredExecutorService
             }
         }
 
-    /**
-     * Blocks until all tasks have completed execution after a shutdown
-     * request, or the timeout occurs, or the current thread is
-     * interrupted, whichever happens first.
-     *
-     * @param lcTimeout  the maximum time to wait
-     * @param unit       the time unit of the timeout argument
-     *
-     * @return {@code true} if this executor terminated and
-     *         {@code false} if the timeout elapsed before termination
-     *
-     * @throws InterruptedException if interrupted while waiting
-     */
+    @Override
     public boolean awaitTermination(long lcTimeout, TimeUnit unit)
             throws InterruptedException
         {
@@ -291,15 +281,7 @@ public class ClusteredExecutorService
             }
         }
 
-    /**
-     * Initiates an orderly shutdown in which previously submitted
-     * tasks are executed, but no new tasks will be accepted.
-     * Invocation has no additional effect if already shut down.
-     *
-     * <p>This method does not wait for previously submitted tasks to
-     * complete execution.  Use {@link #awaitTermination awaitTermination}
-     * to do that.
-     */
+    @Override
     public void shutdown()
         {
         if (shutdownInternal())
@@ -319,30 +301,13 @@ public class ClusteredExecutorService
             }
         }
 
-    /**
-     * Attempts to stop all actively executing tasks, halts the
-     * processing of waiting tasks, and returns a list of the tasks
-     * that were awaiting execution.
-     *
-     * <p>This method does not wait for actively executing tasks to
-     * terminate.  Use {@link #awaitTermination awaitTermination} to
-     * do that.
-     *
-     * <p>There are no guarantees beyond best-effort attempts to stop
-     * processing actively executing tasks.  For example, typical
-     * implementations will cancel via {@link Thread#interrupt}, so any
-     * task that fails to respond to interrupts may never terminate.
-     *
-     * @return list of tasks that never commenced execution
-     */
+    @Override
     public List<Runnable> shutdownNow()
         {
         shutdownNowInternal();
 
         return Collections.emptyList();
         }
-
-    // ----- RemoteExecutor interface --------------------------------
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override

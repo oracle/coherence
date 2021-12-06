@@ -8,7 +8,13 @@
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
-              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+              xmlns:executor="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd
+                                  class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd">
+
+  <executor:single>
+    <executor:name>coherence-concurrent-default-executor</executor:name>
+  </executor:single>
 
   <defaults>
     <scope-name>$SYS</scope-name>

@@ -22,14 +22,18 @@ import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.management.AnnotatedStandardEmitterMBean;
+import com.tangosol.net.management.Registry;
 import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
 
+import com.tangosol.util.WrapperException;
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
@@ -47,6 +51,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.management.NotCompliantMBeanException;
+
 
 /**
  * A cluster-based implementation of an {@link TaskExecutorService.Registration}.
@@ -782,6 +788,84 @@ public class ClusteredRegistration
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Registers the provided MBean for the specified executor.
+     *
+     * @param service  the cache service
+     * @param mbean    the mbean to register
+     * @param sName    the executor name
+     *
+     * @throws NullPointerException if any of {@code service}, {@code mbean},
+     *                              or {@code sName} is {@code null}
+     */
+    protected static void registerExecutorMBean(CacheService service, ExecutorMBean mbean, String sName)
+        {
+        Objects.requireNonNull(service, "service cannot be null");
+        Objects.requireNonNull(mbean,   "mbean cannot be null");
+        Objects.requireNonNull(sName,   "sName cannot be null");
+
+        Cluster cluster  = service.getCluster();
+        Registry registry = cluster.getManagement();
+
+        if (registry != null)
+            {
+            String sMbeanName = getExecutorServiceMBeanName(registry, sName);
+
+            try
+                {
+                registry.register(sMbeanName, new AnnotatedStandardEmitterMBean(mbean, ExecutorMBean.class));
+                }
+            catch (NotCompliantMBeanException e)
+                {
+                throw new WrapperException(e);
+                }
+            }
+        }
+
+    /**
+     * Unregisters the MBean for the specified executor.
+     *
+     * @param service  the cache service
+     * @param sName    the executor name
+     *
+     * @throws NullPointerException if either {@code service} or
+     *                             {@code sName} is {@code null}
+     */
+    protected static void unregisterExecutiveServiceMBean(CacheService service, String sName)
+        {
+        Objects.requireNonNull(service, "service cannot be null");
+        Objects.requireNonNull(sName,   "sName cannot be null");
+
+        Registry registry = service.getCluster().getManagement();
+
+        if (registry != null)
+            {
+            String sMBeanName = getExecutorServiceMBeanName(registry, sName);
+
+            registry.unregister(sMBeanName);
+            }
+        }
+
+    /**
+     * Get the MBean name for the {@code named} executor.
+     *
+     * @param registry  the management registry
+     * @param sName     the executor name
+     *
+     * @return the MBean name for the {@code named} executor
+     *
+     * @throws NullPointerException if either {@code registry} or
+     *                             {@code sName} is {@code null}
+     */
+    protected static String getExecutorServiceMBeanName(Registry registry, String sName)
+        {
+        Objects.requireNonNull(registry, "registry cannot be null");
+        Objects.requireNonNull(sName,    "sName cannot be null");
+
+        return registry.ensureGlobalName(
+                ExecutorMBean.EXECUTOR_TYPE + ExecutorMBean.EXECUTOR_NAME + sName);
+        }
+
+    /**
      * Execute the task and handle error/exception.
      *
      * @param taskExecutor  the {@link TaskExecutor}
@@ -891,7 +975,7 @@ public class ClusteredRegistration
                                                         f_sExecutorId,
                                                         f_optionsByType.get(Description.class, Description.UNKNOWN).getName());
 
-                ExecutorsHelper.registerExecutorMBean(service, m_executorMBean, info.getExecutorName());
+                registerExecutorMBean(service, m_executorMBean, info.getExecutorName());
 
                 // schedule a callable to update the state of the executor in the cluster using the
                 // local ScheduledExecutorService from the ClusteredExecutorService
@@ -946,7 +1030,7 @@ public class ClusteredRegistration
                 NamedCache        esCache       = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
                 ExecutorMBeanImpl executorMBean = m_executorMBean;
 
-                ExecutorsHelper.unregisterExecutiveServiceMBean(
+                unregisterExecutiveServiceMBean(
                         f_clusteredExecutorService.getCacheService(),
                         executorMBean.getName());
 

@@ -87,6 +87,15 @@ public final class ConcurrentConfiguration
             }
         }
 
+    /**
+     * Reset the ConcurrentConfiguration to it's initial state.
+     */
+    public synchronized void reset()
+        {
+        m_executorService = null;
+        f_mapNamedExecutorServices.clear();
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**

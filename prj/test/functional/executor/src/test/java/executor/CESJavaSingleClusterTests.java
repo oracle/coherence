@@ -36,9 +36,6 @@ import org.junit.ClassRule;
 
 import org.junit.experimental.categories.Category;
 
-import static org.hamcrest.core.Is.is;
-
-
 /**
  * Tests will spin up a cluster shared by each test using java as the serialization
  * format.
@@ -63,8 +60,8 @@ public class CESJavaSingleClusterTests
     public static void setupClass()
         {
         // ensure the proxy service is running (before we connect)
-        s_coherence.getCluster();
-        ensureExecutorProxyAvailable(s_coherence);
+        AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(s_coherence.getCluster());
+        ensureExecutorProxyAvailable(s_coherence.getCluster());
         }
 
     @AfterClass

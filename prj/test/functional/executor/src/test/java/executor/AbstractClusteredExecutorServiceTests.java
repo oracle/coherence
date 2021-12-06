@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
 import com.oracle.bedrock.runtime.concurrent.runnable.SystemExit;
 
@@ -42,7 +43,6 @@ import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
 import com.oracle.coherence.concurrent.executor.RecoveringTask;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
@@ -62,9 +62,11 @@ import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Service;
 import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.util.Base;
@@ -74,6 +76,7 @@ import executor.common.ExtendClient;
 import executor.common.LongRunningTask;
 import executor.common.RepeatedTask;
 
+import java.io.Serializable;
 import java.time.Duration;
 
 import java.util.Set;
@@ -164,7 +167,6 @@ public abstract class AbstractClusteredExecutorServiceTests
             Eventually.assertDeferred(() -> m_taskExecutorService.isShutdown(), is(true));
 
             // clear the caches between tests
-            CoherenceClusterResource clusterResource = getCoherence();
             getNamedCache(ClusteredTaskManager.CACHE_NAME).clear();
             getNamedCache(ClusteredAssignment.CACHE_NAME).clear();
             }
@@ -431,6 +433,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                    RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                    LocalStorage.disabled(),
                    SystemProperty.of(EXTEND_ENABLED_PROPERTY, false));
+        ensureConcurrentServiceRunning(cluster);
 
         // ensure that we are eventually done! (ie: a new compute member picks up the task)
         Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
@@ -645,6 +648,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         // now restart the proxy member and client member
         cluster.filter(member -> member.getRoleName().equals(STORAGE_DISABLED_MEMBER_ROLE)).relaunch();
         cluster.filter(member -> member.getRoleName().equals(PROXY_MEMBER_ROLE)).relaunch();
+        ensureConcurrentServiceRunning(cluster);
         ensureExecutorProxyAvailable(cluster);
 
         // make sure we can reconnect to the new proxy server and failover the task
@@ -673,6 +677,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                 .submit();
 
             cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
+            ensureConcurrentServiceRunning(cluster);
 
             Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
             Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(true));
@@ -714,6 +719,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                 .submit();
 
             cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
+            ensureConcurrentServiceRunning(cluster);
 
             Eventually.assertDeferred(cluster::getClusterSize, is(CLUSTER_SIZE));
 
@@ -824,6 +830,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         MatcherAssert.assertThat(subscriber.received(1), Matchers.is(true));
 
         getCoherence().getCluster().filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
+        ensureConcurrentServiceRunning(getCoherence().getCluster());
 
         // Verify that the task is recovered from rolling restart and is executed at lease 1 time in the 2 minutes interval
         int cReceived = subscriber.size() + 1;
@@ -1011,8 +1018,8 @@ public abstract class AbstractClusteredExecutorServiceTests
             m_taskExecutorService.register(executorService2);
 
             Eventually.assertDeferred(cacheExecutorService::size, is(EXPECTED_EXECUTORS));
-
             cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
+            ensureConcurrentServiceRunning(cluster);
 
             cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
 
@@ -1316,8 +1323,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             }
 
         NamedCache<String, ?> executorsCache =
-            ((ClusteredExecutorService) m_taskExecutorService)
-                .getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+            m_taskExecutorService.getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
 
         // verify the Executor's JMX stats
         for (String key : executorsCache.keySet())
@@ -1335,33 +1341,28 @@ public abstract class AbstractClusteredExecutorServiceTests
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Ensure the {@code $SYS:TcpProxyService} is running.
+     * Ensure the specified service has the expected member count.
      *
-     * @param clusterResource the {@link CoherenceClusterResource} to query
+     *  @param cluster  the {@link CoherenceCluster} to query
      */
-    public static void ensureExecutorProxyAvailable(CoherenceClusterResource clusterResource)
+    public static void ensureConcurrentServiceRunning(CoherenceCluster cluster)
         {
-        clusterResource.getCluster().stream()
-                .filter(member -> "proxy".equals(member.getRoleName()))
+        cluster.stream()
                 .forEach(member ->
-                         {
-                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentProxy"), is(true));
-                         });
+                                 Eventually.assertDeferred(() -> member.isServiceRunning(CONCURRENT_SERVICE_NAME), is(true)));
         }
 
     /**
-     * Ensure the {@code $SYS:TcpProxyService} is running.
+     * Ensure the {@code $SYS:ConcurrentProxy} is running.
      *
-     * @param cluster the {@link CoherenceCluster} to query
+     * @param cluster  the {@link CoherenceCluster} to query
      */
     public static void ensureExecutorProxyAvailable(CoherenceCluster cluster)
         {
         cluster.stream()
                 .filter(member -> "proxy".equals(member.getRoleName()))
                 .forEach(member ->
-                         {
-                         Eventually.assertDeferred(() -> member.isServiceRunning("$SYS:ConcurrentProxy"), is(true));
-                         });
+                             Eventually.assertDeferred(() -> member.isServiceRunning(CONCURRENT_PROXY_SERVICE_NAME), is(true)));
         }
 
     /**
@@ -1392,12 +1393,13 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             if (jmxFeature != null)
                 {
-                ObjectName name = new ObjectName("Coherence:" + ExecutorsHelper.EXECUTOR_TYPE + ",name=" + key + ",*");
-                Set setMBeans = jmxFeature.queryMBeans(name, null);
+                ObjectName          name     = new ObjectName("Coherence:" + ExecutorMBean.EXECUTOR_TYPE
+                                                              + ExecutorMBean.EXECUTOR_NAME + key + ",*");
+                Set<ObjectInstance> setMBeans = jmxFeature.queryMBeans(name, null);
 
                 if (setMBeans != null)
                     {
-                    name = ((ObjectInstance) setMBeans.iterator().next()).getObjectName();
+                    name = setMBeans.iterator().next().getObjectName();
 
                     return jmxFeature.getDeferredMBeanProxy(name, ExecutorMBean.class);
                     }
@@ -1510,6 +1512,16 @@ public abstract class AbstractClusteredExecutorServiceTests
      * System property to configure extend message debugging.
      */
     protected static final String EXTEND_DEBUG_PROPERTY = "coherence.messaging.debug";
+
+    /**
+     * Proxy service name.
+     */
+    protected static final String CONCURRENT_PROXY_SERVICE_NAME = "$SYS:ConcurrentProxy";
+
+    /**
+     * Concurrent distributed cache service name.
+     */
+    protected static final String CONCURRENT_SERVICE_NAME = "$SYS:Concurrent";
 
     /**
      * The default proxy port.

@@ -25,13 +25,15 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
-import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
+import com.oracle.coherence.concurrent.executor.RemoteExecutor;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.function.Predicates;
@@ -68,7 +70,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.junit.experimental.categories.Category;
@@ -97,11 +98,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBERS;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.getParentUri;
+
 import static com.tangosol.util.Base.ensureRuntimeException;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
+
 import static org.hamcrest.core.Is.is;
 
 /**
@@ -153,7 +157,7 @@ public class MBeanTests
         System.setProperty("coherence.cluster", "MBeanTests");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
-        m_session = m_local.getSession(ExecutorsHelper.SESSION_NAME);
+        m_session = m_local.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
 
         // establish an ExecutorService based on storage disabled (client) member
         m_taskExecutorService = new ClusteredExecutorService(m_session);
@@ -199,7 +203,7 @@ public class MBeanTests
         sMemberIds = (List<String>) mapItem.get("memberId");
         assertThat(sMemberIds.size(), is(4));
         sExecutorName = ((List<String>) mapItem.get("name")).get(0);
-        assertThat(sExecutorName, is("UnNamed"));
+        assertThat(sExecutorName, is(RemoteExecutor.DEFAULT_EXECUTOR_NAME));
         int count = ((Integer) ((LinkedHashMap) mapItem.get("tasksCompletedCount")).get("sum")).intValue()
                     + ((Integer) ((LinkedHashMap) mapItem.get("tasksInProgressCount")).get("sum")).intValue();
         assertThat(count, greaterThan(0));
@@ -211,7 +215,7 @@ public class MBeanTests
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
         mapResponse = response.readEntity(LinkedHashMap.class);
         assertThat(mapResponse, notNullValue());
-        assertThat(((List<String>) mapResponse.get("name")).get(0), is("UnNamed"));
+        assertThat(((List<String>) mapResponse.get("name")).get(0), is(RemoteExecutor.DEFAULT_EXECUTOR_NAME));
 
         // .../executors/members
         target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(MEMBERS);
@@ -292,6 +296,7 @@ public class MBeanTests
 
         // now restart the storage disabled member
         cluster.filter(member -> member.getRoleName().equals("Compute")).relaunch();
+        AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
 
         // make sure the task is failed over to the new member and the subscriber received the result
         assertThat(properties.get("key1"), Matchers.is("value1"));
