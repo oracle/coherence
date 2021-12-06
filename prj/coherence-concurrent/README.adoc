@@ -58,7 +58,12 @@ In order to use Coherence Concurrent features, you need to declare it as a depen
 Once the necessary dependency is in place, you can start using the features it provides, as the following sections describe.
 
 * <<executors,Executors>>
- ** <<executors-tbd,TBD (Ryan to expand/add sections)>>
+ ** <<executors-overview, Executors Overview>>
+ ** <<executors-usage, Executors Usage>>
+ ** <<executors-configuration, Executors Configuration>>
+ *** <<executors-configuration, Executors Configuration Examples>>
+ ** <<executors-management, Executors Management>>
+ ** <<executors-management-rest, Executors Management over REST>>
  ** <<cdi-executors,CDI Support for Executors>>
 * <<atomics,Atomics>>
  ** <<atomics-async,Non-blocking Atomics>>
@@ -74,12 +79,272 @@ Once the necessary dependency is in place, you can start using the features it p
 
 [#executors]
 === Executors
+[#executors-overview]
+==== Overview
+Coherence Concurrent provides a facility to dispatch tasks, either a `Runnable` or `Callable` to
+a Coherence cluster for execution.
 
-[#executors-tbd]
-==== TBD (Ryan to expand/add sections)
+Executors that will actually will execute the submitted tasks are configured on each cluster
+member by defining one or more named executors within a cache configuration resource.
+
+[#executors-usage]
+==== Usage Examples
+By default, each Coherence cluster with the `coherence-concurrent` module on the classpath,
+will include a single-threaded executor that may be used to execute dispatched tasks.
+
+Given this, the simplest example would be:
+
+```java
+RemoteExecutor remoteExecutor = RemoteExecutor.getDefault();
+
+Future<Void> result = remoteExecutor.submit(() -> System.out.println("Executed"));
+
+result.get(); // block until completion
+```
+
+If for example, an executor was configured named `Fixed5`, the code would be:
+
+```java
+RemoteExecutor remoteExecutor = RemoteExecutor.get("Fixed5");
+```
+
+If no executor has been configured with the given name, the `RemoteExecutor` will throw `RejectedExecutionException`.
+
+Each `RemoteExecutor` instance may hold local resources that should be released when the `RemoteExecutor` is no longer needed.  Like an `ExecutorService`, a `RemoteExecutor` has similar methods to shut the executor down.  When calling these methods, it will have no impact on the executors registered within the cluster.
+
+[#executors-configuration]
+==== Configuration
+
+Several executor types are available for configuration.
+
+|===
+|ExecutorService Type |Description
+
+|Single thread
+|Creates an ExecutorService with a single thread
+
+|Fixed thread
+|Creates an ExecutorService with a fixed number of threads
+
+|Cached
+|Create an ExecutorService that will create new threads as needed and reuse existing threads when possible
+
+|Work stealing
+|Creates a work-stealing thread pool using the number of available processors as its target parallelism level.
+|===
+
+===== Configuration Elements
+
+|===
+|Element Name |Required |Expected Type |Description
+
+|single
+|no
+|N/A
+|Defines a single-thread executor
+
+|fixed
+|no
+|N/A
+|Defines a fixed-thread-pool executor
+
+|cached
+|no
+|N/A
+|Defines a cached-thread-pool executor
+
+|work-stealing
+|no
+|N/A
+|Defines a work-stealing-pool executor
+
+|name
+|yes
+|java.lang.String
+|Defines the logical `name` of the executor
+
+|thread-count
+|yes
+|java.lang.Integer
+|Defines the thread count for a `fixed` thread pool executor.
+
+|parallelism
+|no
+|java.lang.Integer
+|Defines the parallelism of a `work-stealing` thread pool executor.  If not defined, it will default to the number of processors available on the system.
+
+|thread-factory
+|no
+|N/A
+|Defines a java.util.concurrent.ThreadFactory.  Used by `single`, `fixed`, and `cached` executors.
+
+|instance
+|yes
+|java.util.concurrent.ThreadFactory
+|Defines how the ThreadFactory will be instantiated.  See the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/develop-applications/cache-configuration-elements.html#GUID-D81B8574-CC8F-4AF1-BD0F-7068BC6432FD[docs] for details on the `instance` element.  This element must be a child of the `thread-factory` element.
+|===
+
+See the https://github.com/oracle/coherence/blob/master/prj/coherence-concurrent/src/main/resources/concurrent.xsd[schema] for full details.
+
+[#executors-configuration-examples]
+===== Configuration Examples
+
+To define executors, the `cache-config` root element needs to include the `coherence-concurrent` NamespaceHandler in order to recognize the configuration elements.
+
+```xml
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+               xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd"> .
+.
+.
+</cache-config>
+```
+
+TIP: Executors defined by configuration must precede any other elements in the document.  Failing to do so, will prevent the document from validating.
+
+The following examples assume the xml namespace defined for the NamespaceHandler is `c`:
+
+```xml
+<!-- creates a single-threaded executor named <em>Single</em> -->
+<c:single>
+  <c:name>Single</c:name>
+</c:single>
+```
+
+```xml
+<!-- creates a single-threaded executor named <em>Single</em> with a thread factor-->
+<c:single>
+  <c:name>SingleTF</c:name>
+  <c:thread-factory>
+    <c:instance>
+      <c:class-name>my.custom.ThreadFactory</c:class-name>
+    </c:instance>
+  </c:thread-factory>
+</c:single>
+```
+
+```xml
+<!-- creates a fixed-thread executor named <em>Fixed5</em> -->
+<c:fixed>
+  <c:name>Single</c:name>
+  <c:thread-count>5</c:thread-count>
+</c:fixed>
+```
+
+[#executors-management]
+==== Management
+
+The ExecutorMBean represents the operational state of a registered executor.
+
+The object name of the MBean is:
+
+```
+type=Executor,name=<executor name>,nodeId=<cluster node>
+```
+
+===== ExecutorMBean Attributes
+
+|===
+|Attribute |Type |Access |Description
+
+|MemberId
+|java.lang.String
+|read-only
+|The member ID where the executor is running.
+
+|Name
+|java.lang.String
+|read-only
+|The logical name of the executor.
+
+|Id
+|java.lang.String
+|read-only
+|The ID of the registered executor.
+
+|Description
+|java.lang.String
+|read-only
+|The generated description of the executor.
+
+|Location
+|java.lang.String
+|read-only
+|The complete location details of the executor.
+
+|State
+|java.lang.String
+|read-only
+|The current state of the executor.  May be one of `JOINING`, `RUNNING`, `CLOSING_GRACEFULLY`, `CLOSING`, `CLOSED` or `REJECTING`.
+
+|TaskCompletedCount
+|java.lang.Long
+|read-only
+|The number of tasks completed by this executor.
+
+|TaskRejectedCount
+|java.lang.Long
+|read-only
+|The number of tasks rejected by this executor.
+
+|TaskInProgressCount
+|java.lang.Long
+|read-only
+|The number of tasks currently running or pending to be run by this executor.
+
+|TraceLogging
+|java.lang.Boolean
+|read-write
+|Enables executor trace logging (WARNING! VERBOSE).  Disabled by default.
+|===
+
+===== Operations
+The ExecutorMBean MBean includes a `resetStatistics` operation that resets the statistics
+for this executor.
+
+
+[#executors-management-rest]
+==== Management over REST
+Coherence Management over REST exposes endpoints to query and invoke actions against
+ExecutorMBean instances.
+
+
+|===
+|Description |Method |Path |Produces
+
+|View all Executors
+|GET
+|/management/coherence/cluster/executors
+| JSON
+
+|View all Executors with matching name
+|GET
+|/management/coherence/cluster/executors/{name}
+| JSON
+
+|Reset Executor statistics by name
+|POST
+|/management/coherence/cluster/executors/{name}/resetStatistics
+| JSON
+|===
+
 
 [#cdi-executors]
 ==== CDI Support
+RemoteExecutors may be injected via CDI.
+For example:
+
+```java
+@Inject
+private RemoteExecutor single; // <1>
+
+@Inject
+@Name("Fixed5")
+private RemoteExecutor fixedPoolRemoteExecutor; // <2>
+```
+<1> injects a RemoteExecutor named `single`.
+<2> injects a `RemoteExecutor` named `Fixed5`.
 
 [#atomics]
 === Atomics
