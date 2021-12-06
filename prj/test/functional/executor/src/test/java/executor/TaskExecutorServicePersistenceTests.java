@@ -92,6 +92,7 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
+@Ignore
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServicePersistenceTests
     {
