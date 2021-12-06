@@ -64,6 +64,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -93,6 +94,7 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
+@Ignore
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServiceClusterMemberTests
     {
