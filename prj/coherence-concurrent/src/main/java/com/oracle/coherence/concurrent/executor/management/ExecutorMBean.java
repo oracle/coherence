@@ -128,4 +128,16 @@ public interface ExecutorMBean
      */
     @Description("Set the trace to true to enable executor trace logging; false to disable executor trace logging.")
     void setTraceLogging(boolean fTrace);
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * A string representing the "type" part of <code>ObjectName</code> for the ExecutorMBean.
+     */
+    String EXECUTOR_TYPE = "type=Executor";
+
+    /**
+     * A string representing the "name" part of <code>ObjectName</code> for the ExecutorMBean.
+     */
+    String EXECUTOR_NAME = ",name=";
     }

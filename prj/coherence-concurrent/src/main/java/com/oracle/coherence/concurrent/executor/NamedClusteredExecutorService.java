@@ -6,16 +6,26 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 
 import com.oracle.coherence.concurrent.executor.options.Name;
 
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
+
+import com.tangosol.net.Session;
 
 import com.tangosol.util.Extractors;
 import com.tangosol.util.Filters;
-import com.tangosol.util.Processors;
+
+import com.tangosol.util.function.Remote;
+
+import java.util.List;
+
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * A {@link ClusteredExecutorService} that dispatches to executors
@@ -37,7 +47,8 @@ class NamedClusteredExecutorService
      */
     public NamedClusteredExecutorService(Name name)
         {
-        super(ExecutorsHelper.session());
+        super(session());
+
         f_name = name;
         }
 
@@ -50,19 +61,39 @@ class NamedClusteredExecutorService
         }
 
     @Override
-    protected void init(CacheService cacheService)
+    public void execute(Remote.Runnable command)
         {
-        m_cacheService = cacheService;
+        if (m_viewNamed.isEmpty())
+            {
+            throw new RejectedExecutionException(String.format("No RemoteExecutor service available by name [%s]", f_name));
+            }
+        super.execute(command);
+        }
+
+    @Override
+    public void shutdown()
+        {
+        release();
+
+        super.shutdown();
+        }
+
+    @Override
+    public List<Runnable> shutdownNow()
+        {
+        release();
+
+        return super.shutdownNow();
         }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void shutdown()
+    protected void init(CacheService cacheService)
         {
-        super.shutdown();
+        m_cacheService = cacheService;
 
-        NamedCache<String, ClusteredExecutorInfo> registrations = m_cacheService.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
-        registrations.invokeAll(Processors.remove(Filters.equal(Extractors.extract("getOption", Name.class, null), f_name)));
+        m_viewNamed = cacheService.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
+                .view().filter(Filters.equal(Extractors.extract("getOption", Name.class, null), f_name)).build();
         }
 
     // ----- inner class: NamedOrchestration --------------------------------
@@ -83,10 +114,50 @@ class NamedClusteredExecutorService
             }
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return the Coherence {@link Session session} for the {@code coherence-concurrent}
+     * module.
+     *
+     * @return the Coherence {@link Session session} for the {@code coherence-concurrent}
+     *         module
+     *
+     * @throws IllegalStateException if no session is found; most likely means
+     *                               this API was called without initializing
+     *                               Coherence using the Bootstrap API
+     */
+    protected static Session session()
+        {
+        String sSessionName = ConcurrentServicesSessionConfiguration.SESSION_NAME;
+        return Coherence.findSession(sSessionName)
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format("The session '%s' has not been initialized", sSessionName)));
+        }
+
+    /**
+     * Releases resources associated with this {@code NamedExecutorService}.
+     */
+    protected void release()
+        {
+        if (m_viewNamed != null)
+            {
+            m_viewNamed.release();
+            m_viewNamed = null;
+            }
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
      * The executor's logical name.
      */
     protected final Name f_name;
+
+    /**
+     * Local view of executors matching this executor's name.
+     * If the map is empty, it means there is no registered executors
+     * for the given name causing attempted executions to be rejected.
+     */
+    protected NamedCache<String,ExecutorInfo> m_viewNamed;
     }

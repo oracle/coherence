@@ -10,18 +10,13 @@ package com.oracle.coherence.concurrent.executor.internal;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.config.ConcurrentConfiguration;
-import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
-import com.oracle.coherence.concurrent.executor.ThreadFactories;
-import com.oracle.coherence.concurrent.executor.options.ClusterMember;
 
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 
-import com.oracle.coherence.concurrent.executor.options.Storage;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
@@ -33,8 +28,6 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 
 /**
  * A {@link LifecycleEvent} interceptor to automatically activate and deactivate
@@ -77,25 +70,12 @@ public class LifecycleEventInterceptor
                         // create a clustered ClusteredExecutorService for this member
                         ClusteredExecutorService clusteredExecutorService = new ClusteredExecutorService(service);
 
-                        // establish an executor service for this member
-                        ExecutorService managedExecutorService =
-                            Executors.newSingleThreadExecutor(
-                                    ThreadFactories.createThreadFactory(true, "ManagedExecutorService", null));
-
                         // register the JDK ExecutorService and TaskExecutorService
                         // with the configurable cache factory (so we can clean it up later)
                         ResourceRegistry ccfRegistry = configurableCacheFactory.getResourceRegistry();
-                        ccfRegistry.registerResource(ExecutorService.class,
-                                                     "ManagedExecutorService",
-                                                     managedExecutorService);
                         ccfRegistry.registerResource(ClusteredExecutorService.class,
                                                      ClusteredExecutorService.class.getSimpleName(),
                                                      clusteredExecutorService);
-
-                        // Legacy: register default executor service which will
-                        //         be used for non-named executor submissions
-                        Storage storage = Storage.enabled(service instanceof DistributedCacheService && ((DistributedCacheService) service).isLocalStorageEnabled());
-                        clusteredExecutorService.register(managedExecutorService, storage, ClusterMember.INSTANCE);
 
                         ConcurrentConfiguration configuration = ConcurrentConfiguration.get();
                         configuration.setExecutorService(clusteredExecutorService);
@@ -132,13 +112,6 @@ public class LifecycleEventInterceptor
         else if (event.getType() == LifecycleEvent.Type.DISPOSING)
             {
             ResourceRegistry registry = event.getConfigurableCacheFactory().getResourceRegistry();
-            ExecutorService  managedExecutorService =
-                    registry.getResource(ExecutorService.class, "ManagedExecutorService");
-
-            if (managedExecutorService != null)
-                {
-                managedExecutorService.shutdownNow();
-                }
 
             ClusteredExecutorService clusteredExecutorService =
                     registry.getResource(ClusteredExecutorService.class,
@@ -148,6 +121,8 @@ public class LifecycleEventInterceptor
                 {
                 clusteredExecutorService.shutdownNow();
                 }
+
+            ConcurrentConfiguration.get().reset();
             }
         }
     }

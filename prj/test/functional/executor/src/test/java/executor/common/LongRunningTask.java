@@ -6,6 +6,7 @@
  */
 package executor.common;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.tangosol.io.pof.PofReader;
@@ -62,38 +63,39 @@ public class LongRunningTask
     @Override
     public String execute(Context<String> context)
         {
-        System.out.println("LongRunningTask, " + m_nId + ": Resuming? : " + context.isResuming());
-        System.out.println("LongRunningTask, " + m_nId + ": Done?     : " + context.isDone());
+        Logger.info("LongRunningTask, " + m_nId + ": Resuming? : " + context.isResuming());
+        Logger.info("LongRunningTask, " + m_nId + ": Done?     : " + context.isDone());
 
         // the instant we started the task
         Instant startedInstant = Instant.now();
         Integer cStart         = context.getProperties().get("count");
+        Instant offsetInstance = startedInstant.plus(m_duration);
 
         int cIterationCount = cStart == null ? 0 : cStart;
 
-        while (Instant.now().isBefore(startedInstant.plus(m_duration)) && !Thread.currentThread().isInterrupted())
+        while (Instant.now().isBefore(offsetInstance) && !Thread.currentThread().isInterrupted())
             {
             cIterationCount++;
 
             context.getProperties().put("count", cIterationCount);
 
-            System.out.println("LongRunningTask, " + m_nId + ": Iteration : " + cIterationCount);
+            Logger.info("LongRunningTask, " + m_nId + ": Iteration : " + cIterationCount);
 
             try
                 {
-                System.out.println("LongRunningTask: Sleeping");
+                Logger.info("LongRunningTask: Sleeping");
                 //noinspection BusyWait
                 Thread.sleep(1000);
                 }
             catch (InterruptedException e)
                 {
-                System.out.println("LongRunningTask: Interrupted");
+                Logger.info("LongRunningTask: Interrupted");
 
                 e.printStackTrace();
                 break;
                 }
             }
-
+        Logger.info("LongRunningTask: Completed; returning DONE");
         return "DONE";
         }
 

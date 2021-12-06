@@ -24,8 +24,6 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
-import com.oracle.coherence.concurrent.executor.ExecutorsHelper;
-
 import com.tangosol.net.Coherence;
 
 import executor.common.CoherenceClusterResource;
@@ -62,8 +60,8 @@ public class CESPofSingleClusterTests
     public static void setupClass()
         {
         // ensure the proxy service is running (before we connect)
-        s_coherence.getCluster();
-        ensureExecutorProxyAvailable(s_coherence);
+        ensureConcurrentServiceRunning(s_coherence.getCluster());
+        ensureExecutorProxyAvailable(s_coherence.getCluster());
         }
 
     @AfterClass

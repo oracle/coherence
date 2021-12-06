@@ -83,7 +83,6 @@ import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PR
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ADDRESS_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ENABLED_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_PORT_PROPERTY;
-import static executor.AbstractClusteredExecutorServiceTests.ensureExecutorProxyAvailable;
 
 import static org.hamcrest.core.Is.is;
 
@@ -108,8 +107,7 @@ public class TaskExecutorServicePersistenceTests
     public static void setupClass()
         {
         // ensure the proxy service is running (before we connect)
-        s_coherence.getCluster();
-        ensureExecutorProxyAvailable(s_coherence);
+        AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(s_coherence.getCluster());
         }
 
     @AfterClass
@@ -232,6 +230,8 @@ public class TaskExecutorServicePersistenceTests
         // now restart cluster
         m_taskExecutorService.shutdown();
         cluster.relaunch();
+        AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
+
 
         setup();
         coordinator = m_taskExecutorService.acquire(taskId);
@@ -244,7 +244,8 @@ public class TaskExecutorServicePersistenceTests
 
     // ----- helper methods -------------------------------------------------
 
-    public <K, V> NamedCache getNamedCache(String sName)
+    @SuppressWarnings("unchecked")
+    public <K, V> NamedCache<K, V> getNamedCache(String sName)
         {
         return m_taskExecutorService.getCacheService().ensureCache(sName, null);
         }

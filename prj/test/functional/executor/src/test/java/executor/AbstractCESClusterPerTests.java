@@ -68,6 +68,7 @@ public abstract class AbstractCESClusterPerTests
 
     @Override
     @Test
+    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
     public void shouldFailOverLongRunningTest()
         {
         super.shouldFailOverLongRunningTest();
