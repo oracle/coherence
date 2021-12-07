@@ -54,6 +54,8 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import java.util.concurrent.TimeUnit;
+
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 
@@ -64,7 +66,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -94,7 +95,6 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
-@Ignore
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServiceClusterMemberTests
     {
@@ -134,6 +134,7 @@ public class TaskExecutorServiceClusterMemberTests
     public void setup()
         {
         System.setProperty("coherence.cluster", "TaskExecutorServiceClusterMemberTests");
+        System.setProperty("tangosol.coherence.distributed.localstorage", "false");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
         m_session = m_local.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
@@ -211,7 +212,9 @@ public class TaskExecutorServiceClusterMemberTests
 
         // make sure the task is failed over to the new member and the subscriber received the result
         MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     // ----- helper methods -------------------------------------------------

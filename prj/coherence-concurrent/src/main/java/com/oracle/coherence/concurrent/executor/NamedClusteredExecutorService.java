@@ -50,6 +50,10 @@ class NamedClusteredExecutorService
         super(session());
 
         f_name = name;
+
+        //noinspection unchecked
+        m_viewNamed = getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
+                .view().filter(Filters.equal(Extractors.extract("getOption", Name.class, null), f_name)).build();
         }
 
     // ----- ClusteredExecutorService methods ---------------------------
@@ -86,14 +90,10 @@ class NamedClusteredExecutorService
         return super.shutdownNow();
         }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void init(CacheService cacheService)
         {
         m_cacheService = cacheService;
-
-        m_viewNamed = cacheService.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
-                .view().filter(Filters.equal(Extractors.extract("getOption", Name.class, null), f_name)).build();
         }
 
     // ----- inner class: NamedOrchestration --------------------------------

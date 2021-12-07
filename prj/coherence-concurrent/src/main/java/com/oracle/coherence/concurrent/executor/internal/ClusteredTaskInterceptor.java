@@ -11,7 +11,6 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.Task;
-import com.oracle.coherence.concurrent.executor.ThreadFactories;
 import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
@@ -39,6 +38,7 @@ import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.DaemonThreadFactory;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SparseArray;
@@ -86,8 +86,7 @@ public class ClusteredTaskInterceptor
         f_cMaxAllowedTasks   = 100;
         f_cOrchestratedTasks = new AtomicInteger(0);
         f_fPendingTasks      = new AtomicBoolean(false);
-        f_executorService    = Executors.newSingleThreadExecutor(
-                ThreadFactories.createThreadFactory(true, "TaskInterceptorThread", null));
+        f_executorService    = Executors.newSingleThreadExecutor(new DaemonThreadFactory("TaskInterceptorThread-"));
 
         int cParts = ((PartitionedCache) ((SafeDistributedCacheService) f_cacheService)
                 .getService()).getPartitionCount();

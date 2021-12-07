@@ -27,6 +27,8 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.management.AnnotatedStandardEmitterMBean;
 import com.tangosol.net.management.Registry;
+
+import com.tangosol.util.Base;
 import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
@@ -50,9 +52,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.management.NotCompliantMBeanException;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.management.NotCompliantMBeanException;
 
 /**
  * A cluster-based implementation of an {@link TaskExecutorService.Registration}.
@@ -1024,7 +1027,7 @@ public class ClusteredRegistration
 
             // don't use the local ClusteredExecutorService's ExecutorService as it may
             // be in the process of shutting down
-            ThreadFactories.createThreadFactory(true, "Cleanup", null).newThread(() ->
+            Runnable runnable = () ->
                 {
                 CacheService      service       = f_clusteredExecutorService.getCacheService();
                 NamedCache        esCache       = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
@@ -1045,8 +1048,9 @@ public class ClusteredRegistration
                     esCache.invoke(f_sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(
                             TaskExecutorService.ExecutorInfo.State.CLOSING));
                     }
+                };
 
-                }).start();
+            Base.makeThread(null, runnable, "ConcurrentExecutorCleaner").start();
 
             // release the assignments cache (as it's a CQC)
             if (m_assignmentsCache != null)

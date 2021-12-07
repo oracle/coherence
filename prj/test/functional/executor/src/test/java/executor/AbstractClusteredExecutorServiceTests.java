@@ -24,7 +24,6 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
-import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
 import com.oracle.bedrock.runtime.concurrent.runnable.SystemExit;
 
@@ -436,7 +435,9 @@ public abstract class AbstractClusteredExecutorServiceTests
         ensureConcurrentServiceRunning(cluster);
 
         // ensure that we are eventually done! (ie: a new compute member picks up the task)
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     public void shouldCallRunnableAfterFailOverLongRunning()
@@ -618,7 +619,9 @@ public abstract class AbstractClusteredExecutorServiceTests
         // make sure we can reconnect to the new proxy server and failover the task
         MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
 
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     public void shouldAllowClientFailoverLongRunningTest()
@@ -654,7 +657,9 @@ public abstract class AbstractClusteredExecutorServiceTests
         // make sure we can reconnect to the new proxy server and failover the task
         MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
 
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     public void shouldWorkWithRollingRestart1()

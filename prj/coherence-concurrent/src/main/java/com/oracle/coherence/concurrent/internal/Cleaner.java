@@ -111,22 +111,27 @@ public class Cleaner
         Member memberThis = service.getCluster().getLocalMember();
         Member memberLeft = evt.getMember();
 
-        if (((DistributedCacheService) service).isLocalStorageEnabled())
+        Runnable runnable = () ->
             {
-            PartitionSet partsOwned = service.getOwnedPartitions(memberThis);
+            if (service.isRunning() && ((DistributedCacheService) service).isLocalStorageEnabled())
+                {
+                PartitionSet partsOwned = service.getOwnedPartitions(memberThis);
 
-            exclusiveLocksMap().async().invokeAll(
+                exclusiveLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new ExclusiveLockHolder.RemoveLocks(memberLeft.getUid()));
 
-            readWriteLocksMap().async().invokeAll(
+                readWriteLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new ReadWriteLockHolder.RemoveLocks(memberLeft.getUid()));
 
-            semaphoresMap().async().invokeAll(
+                semaphoresMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new SemaphoreStatus.RemovePermits(memberLeft.getUid()));
-            }
+                }
+            };
+
+        Base.makeThread(null, runnable, "ConcurrentLockCleaner").start();
         }
 
     // ----- helpers --------------------------------------------------------

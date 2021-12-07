@@ -53,6 +53,8 @@ import com.tangosol.io.FileHelper;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
+import java.util.concurrent.TimeUnit;
+
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 
@@ -92,7 +94,6 @@ import static org.hamcrest.core.Is.is;
  * @author lh
  * @since 21.12
  */
-@Ignore
 @Category(SingleClusterForAllTests.class)
 public class TaskExecutorServicePersistenceTests
     {
@@ -240,7 +241,9 @@ public class TaskExecutorServicePersistenceTests
         coordinator.subscribe(subscriber2);
 
         // ensure that we are eventually done! (ie: a new compute member picks up the task)
-        Eventually.assertDeferred(() -> subscriber2.received("DONE"), Matchers.is(true));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     // ----- helper methods -------------------------------------------------

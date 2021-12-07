@@ -56,6 +56,8 @@ import executor.common.LogOutput;
 import executor.common.LongRunningTask;
 import executor.common.SingleClusterForAllTests;
 
+import java.util.concurrent.TimeUnit;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import org.hamcrest.CoreMatchers;
@@ -300,7 +302,9 @@ public class MBeanTests
 
         // make sure the task is failed over to the new member and the subscriber received the result
         assertThat(properties.get("key1"), Matchers.is("value1"));
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     // ----- helper methods -------------------------------------------------
