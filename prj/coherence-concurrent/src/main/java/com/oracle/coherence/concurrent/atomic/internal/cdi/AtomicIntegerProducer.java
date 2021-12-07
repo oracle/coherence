@@ -32,67 +32,47 @@ class AtomicIntegerProducer
         extends AbstractAtomicProducer
     {
     /**
-     * Returns a local {@link AtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns either a local or remote {@link AtomicInteger} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link AtomicInteger} will be returned, otherwise a local {@link AtomicInteger}
+     * will be returned.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link AtomicInteger} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    AtomicInteger getUnqualifiedAtomicInteger(InjectionPoint ip)
-        {
-        return getLocalAtomicInteger(ip);
-        }
-
-    /**
-     * Returns a local {@link AtomicInteger} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AtomicInteger} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    AtomicInteger getAtomicInteger(InjectionPoint ip)
-        {
-        return getLocalAtomicInteger(ip);
-        }
-
-    /**
-     * Returns a local {@link AtomicInteger} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AtomicInteger} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link AtomicInteger} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    AtomicInteger getAtomicIntegerWithRemoteAnnotation(InjectionPoint ip)
+    AtomicInteger getAtomicInteger(InjectionPoint ip)
         {
-        return getRemoteAtomicInteger(ip);
-        }
-
-    /**
-     * Returns a local {@link LocalAtomicInteger} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link LocalAtomicInteger} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Typed(LocalAtomicInteger.class)
-    LocalAtomicInteger getUnqualifiedLocalAtomicInteger(InjectionPoint ip)
-        {
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteAtomicInteger(ip);
+            }
         return getLocalAtomicInteger(ip);
         }
 
     /**
-     * Returns a local {@link LocalAtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns an {@link LocalAtomicInteger} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link LocalAtomicInteger} for the provided {@link InjectionPoint}
+     * @return a {@link LocalAtomicInteger} for the provided {@link InjectionPoint}
+     */
+    @Produces
+    LocalAtomicInteger getUnqualifiedLocalAtomicInteger(InjectionPoint ip)
+        {
+        return Atomics.localAtomicInteger(getName(ip));
+        }
+
+    /**
+     * Returns a {@link LocalAtomicInteger} for the provided {@link InjectionPoint}.
+     *
+     * @param ip  the CDI {@link InjectionPoint}
+     *
+     * @return a {@link LocalAtomicInteger} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
@@ -103,25 +83,25 @@ class AtomicIntegerProducer
         }
 
     /**
-     * Returns a local {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns an {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}
      */
     @Produces
     @Typed(RemoteAtomicInteger.class)
     RemoteAtomicInteger getUnqualifiedRemoteAtomicInteger(InjectionPoint ip)
         {
-        return getRemoteAtomicInteger(ip);
+        return Atomics.remoteAtomicInteger(getName(ip));
         }
 
     /**
-     * Returns a local {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns a {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteAtomicInteger} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")

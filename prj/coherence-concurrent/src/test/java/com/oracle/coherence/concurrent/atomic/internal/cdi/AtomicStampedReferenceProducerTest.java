@@ -62,6 +62,24 @@ public class AtomicStampedReferenceProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set("foo", 1);
+        assertThat(bean.getLocalNamed().compareAndSet("foo", "bar", 1, 2), is(true));
+        assertThat(bean.getTypedLocalNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedLocalNamed().getStamp(), is(2));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set("foo", 1);
+        assertThat(bean.getLocalUnqualified().compareAndSet("foo", "bar", 1, 2), is(true));
+        assertThat(bean.getTypedLocalNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedLocalNamed().getStamp(), is(2));
+        }
+
+    @Test
     void testRemoteInjection()
         {
         bean.getRemote().set("foo", 1);
@@ -70,27 +88,78 @@ public class AtomicStampedReferenceProducerTest
         assertThat(bean.getTypedRemote().getStamp(), is(2));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set("foo", 1);
+        assertThat(bean.getRemoteNamed().compareAndSet("foo", "bar", 1, 2), is(true));
+        assertThat(bean.getTypedRemoteNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedRemoteNamed().getStamp(), is(2));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set("foo", 1);
+        assertThat(bean.getTypedRemoteUnqualified().compareAndSet("foo", "bar", 1, 2), is(true));
+        assertThat(bean.getTypedRemoteNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedRemoteNamed().getStamp(), is(2));
+        }
+
     @ApplicationScoped
     static class AtomicStampedReferenceBean
         {
         @Inject
-        AtomicStampedReference<String> local;
-
-        @Inject
-        @Remote
-        AtomicStampedReference<String> remote;
+        AtomicStampedReference<String> local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         LocalAtomicStampedReference<String> typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AtomicStampedReference<String> localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        LocalAtomicStampedReference<String> typedLocalNamed;
+
+        @Inject
+        LocalAtomicStampedReference<String> typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AtomicStampedReference<String> remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AtomicStampedReference<String> remoteNamed;
+
+        @Inject
         @Name("remote")
         RemoteAtomicStampedReference<String> typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteAtomicStampedReference<String> typedRemoteNamed;
+
+        @Inject
+        RemoteAtomicStampedReference<String> typedRemoteUnqualified;
 
         public AtomicStampedReference<String> getLocal()
             {
             return local;
+            }
+
+        public AtomicStampedReference<String> getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AtomicStampedReference<String> getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AtomicStampedReference<String> getRemote()
@@ -106,6 +175,26 @@ public class AtomicStampedReferenceProducerTest
         public RemoteAtomicStampedReference<String> getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public LocalAtomicStampedReference<String> getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public LocalAtomicStampedReference<String> getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteAtomicStampedReference<String> getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteAtomicStampedReference<String> getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

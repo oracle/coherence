@@ -61,6 +61,22 @@ public class AtomicBooleanProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set(true);
+        assertThat(bean.getLocalNamed().getAndSet(false), is(true));
+        assertThat(bean.getTypedLocalNamed().get(), is(false));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set(true);
+        assertThat(bean.getLocalUnqualified().getAndSet(false), is(true));
+        assertThat(bean.getTypedLocalNamed().get(), is(false));
+        }
+
+    @Test
     void testRemoteInjection()
         {
         bean.getRemote().set(true);
@@ -68,27 +84,76 @@ public class AtomicBooleanProducerTest
         assertThat(bean.getTypedRemote().get(), is(false));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set(true);
+        assertThat(bean.getRemoteNamed().getAndSet(false), is(true));
+        assertThat(bean.getTypedRemoteNamed().get(), is(false));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set(true);
+        assertThat(bean.getTypedRemoteUnqualified().getAndSet(false), is(true));
+        assertThat(bean.getTypedRemoteNamed().get(), is(false));
+        }
+
     @ApplicationScoped
     static class AtomicBooleanBean
         {
         @Inject
-        AtomicBoolean local;
-
-        @Inject
-        @Remote
-        AtomicBoolean remote;
+        AtomicBoolean local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         LocalAtomicBoolean typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AtomicBoolean localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        LocalAtomicBoolean typedLocalNamed;
+
+        @Inject
+        LocalAtomicBoolean typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AtomicBoolean remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AtomicBoolean remoteNamed;
+
+        @Inject
         @Name("remote")
         RemoteAtomicBoolean typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteAtomicBoolean typedRemoteNamed;
+
+        @Inject
+        RemoteAtomicBoolean typedRemoteUnqualified;
 
         public AtomicBoolean getLocal()
             {
             return local;
+            }
+
+        public AtomicBoolean getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AtomicBoolean getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AtomicBoolean getRemote()
@@ -96,14 +161,34 @@ public class AtomicBooleanProducerTest
             return remote;
             }
 
-        public AtomicBoolean getTypedLocal()
+        public LocalAtomicBoolean getTypedLocal()
             {
             return typedLocal;
             }
 
-        public AtomicBoolean getTypedRemote()
+        public RemoteAtomicBoolean getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public LocalAtomicBoolean getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public LocalAtomicBoolean getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteAtomicBoolean getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteAtomicBoolean getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

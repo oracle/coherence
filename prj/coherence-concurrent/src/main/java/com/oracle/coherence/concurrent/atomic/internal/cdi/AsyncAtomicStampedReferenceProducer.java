@@ -7,19 +7,21 @@
 package com.oracle.coherence.concurrent.atomic.internal.cdi;
 
 import com.oracle.coherence.concurrent.atomic.AsyncAtomicStampedReference;
+import com.oracle.coherence.concurrent.atomic.AsyncLocalAtomicStampedReference;
 import com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicStampedReference;
 import com.oracle.coherence.concurrent.atomic.Atomics;
-import com.oracle.coherence.concurrent.atomic.AsyncLocalAtomicStampedReference;
-import com.oracle.coherence.concurrent.atomic.LocalAtomicStampedReference;
-import com.oracle.coherence.concurrent.atomic.RemoteAtomicStampedReference;
 
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
+
+import com.oracle.coherence.concurrent.atomic.LocalAtomicStampedReference;
+import com.oracle.coherence.concurrent.atomic.RemoteAtomicStampedReference;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.Typed;
+
 import javax.enterprise.inject.spi.InjectionPoint;
 
 /**
@@ -33,60 +35,36 @@ class AsyncAtomicStampedReferenceProducer
         extends AbstractAtomicProducer
     {
     /**
-     * Returns a {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}.
+     * Returns either a local or remote {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link AsyncAtomicStampedReference} will be returned, otherwise a local {@link AsyncAtomicStampedReference}
+     * will be returned.
      *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
+     * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    <V> AsyncAtomicStampedReference<V> getUnqualifiedAtomicStampedReference(InjectionPoint ip)
-        {
-        return getLocalAtomicStampedReference(ip);
-        }
-
-    /**
-     * Returns a {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}.
-     *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
-     *
-     * @return a {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    <V> AsyncAtomicStampedReference<V> getAtomicStampedReference(InjectionPoint ip)
-        {
-        return getLocalAtomicStampedReference(ip);
-        }
-
-    /**
-     * Returns a {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}.
-     *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
-     *
-     * @return a {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link AsyncAtomicStampedReference} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    <V> AsyncAtomicStampedReference<V> getAtomicStampedReferenceWithRemoteAnnotation(InjectionPoint ip)
+    <V> AsyncAtomicStampedReference<V> getAtomicStampedReference(InjectionPoint ip)
         {
-        return getRemoteAtomicStampedReference(ip);
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteAtomicStampedReference(ip);
+            }
+        return getLocalAtomicStampedReference(ip);
         }
 
     /**
-     * Returns a {@link AsyncLocalAtomicStampedReference} for the provided {@link InjectionPoint}.
+     * Returns an {@link AsyncLocalAtomicStampedReference} for the provided {@link InjectionPoint}.
      *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
+     * @param ip  the CDI {@link InjectionPoint}
      *
      * @return a {@link AsyncLocalAtomicStampedReference} for the provided {@link InjectionPoint}
      */
     @Produces
-    @Typed(AsyncLocalAtomicStampedReference.class)
     <V> AsyncLocalAtomicStampedReference<V> getUnqualifiedLocalAtomicStampedReference(InjectionPoint ip)
         {
         return getLocalAtomicStampedReference(ip);
@@ -95,8 +73,7 @@ class AsyncAtomicStampedReferenceProducer
     /**
      * Returns a {@link AsyncLocalAtomicStampedReference} for the provided {@link InjectionPoint}.
      *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
+     * @param ip  the CDI {@link InjectionPoint}
      *
      * @return a {@link AsyncLocalAtomicStampedReference} for the provided {@link InjectionPoint}
      */
@@ -110,10 +87,9 @@ class AsyncAtomicStampedReferenceProducer
         }
 
     /**
-     * Returns a {@link AsyncRemoteAtomicStampedReference} for the provided {@link InjectionPoint}.
+     * Returns an {@link AsyncRemoteAtomicStampedReference} for the provided {@link InjectionPoint}.
      *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
+     * @param ip  the CDI {@link InjectionPoint}
      *
      * @return a {@link AsyncRemoteAtomicStampedReference} for the provided {@link InjectionPoint}
      */
@@ -127,8 +103,7 @@ class AsyncAtomicStampedReferenceProducer
     /**
      * Returns a {@link AsyncRemoteAtomicStampedReference} for the provided {@link InjectionPoint}.
      *
-     * @param ip   the CDI {@link InjectionPoint}
-     * @param <V>  the type of object referred to by this reference
+     * @param ip  the CDI {@link InjectionPoint}
      *
      * @return a {@link AsyncRemoteAtomicStampedReference} for the provided {@link InjectionPoint}
      */

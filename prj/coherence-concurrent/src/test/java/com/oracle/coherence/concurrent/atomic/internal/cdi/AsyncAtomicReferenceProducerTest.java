@@ -61,6 +61,22 @@ public class AsyncAtomicReferenceProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set("foo").join();
+        assertThat(bean.getLocalNamed().getAndSet("bar").join(), is("foo"));
+        assertThat(bean.getTypedLocalNamed().get().join(), is("bar"));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set("foo").join();
+        assertThat(bean.getLocalUnqualified().getAndSet("bar").join(), is("foo"));
+        assertThat(bean.getTypedLocalNamed().get().join(), is("bar"));
+        }
+
+    @Test
     void testRemoteInjection()
         {
         bean.getRemote().set("foo").join();
@@ -68,27 +84,76 @@ public class AsyncAtomicReferenceProducerTest
         assertThat(bean.getTypedRemote().get().join(), is("bar"));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set("foo").join();
+        assertThat(bean.getRemoteNamed().getAndSet("bar").join(), is("foo"));
+        assertThat(bean.getTypedRemoteNamed().get().join(), is("bar"));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set("foo").join();
+        assertThat(bean.getTypedRemoteUnqualified().getAndSet("bar").join(), is("foo"));
+        assertThat(bean.getTypedRemoteNamed().get().join(), is("bar"));
+        }
+
     @ApplicationScoped
     static class AsyncAtomicReferenceBean
         {
         @Inject
-        AsyncAtomicReference<String> local;
-
-        @Inject
-        @Remote
-        AsyncAtomicReference<String> remote;
+        AsyncAtomicReference<String> local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         AsyncLocalAtomicReference<String> typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AsyncAtomicReference<String> localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        AsyncLocalAtomicReference<String> typedLocalNamed;
+
+        @Inject
+        AsyncLocalAtomicReference<String> typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AsyncAtomicReference<String> remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AsyncAtomicReference<String> remoteNamed;
+
+        @Inject
         @Name("remote")
         AsyncRemoteAtomicReference<String> typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        AsyncRemoteAtomicReference<String> typedRemoteNamed;
+
+        @Inject
+        AsyncRemoteAtomicReference<String> typedRemoteUnqualified;
 
         public AsyncAtomicReference<String> getLocal()
             {
             return local;
+            }
+
+        public AsyncAtomicReference<String> getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AsyncAtomicReference<String> getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AsyncAtomicReference<String> getRemote()
@@ -104,6 +169,26 @@ public class AsyncAtomicReferenceProducerTest
         public AsyncRemoteAtomicReference<String> getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public AsyncLocalAtomicReference<String> getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public AsyncLocalAtomicReference<String> getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public AsyncRemoteAtomicReference<String> getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public AsyncRemoteAtomicReference<String> getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }
