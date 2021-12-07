@@ -13,7 +13,6 @@ import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.ContinuationService;
-import com.oracle.coherence.concurrent.executor.ThreadFactories;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -41,6 +40,7 @@ import com.tangosol.net.events.partition.cache.EntryEvent;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.DaemonThreadFactory;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.SafeHashSet;
@@ -77,12 +77,9 @@ public class LiveObjectEventInterceptor
      */
     public LiveObjectEventInterceptor()
         {
-        f_executorService     = Executors.newSingleThreadScheduledExecutor(
-                ThreadFactories.createThreadFactory(true, "LiveObjectThread", null));
-        f_continuationService = new ContinuationService<>(
-                ThreadFactories.createThreadFactory(true, "ContinuationService", null));
-
-        f_mapLeaseExpiryTimes = new ConcurrentHashMap<>();
+        f_executorService       = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory("LiveObjectThread-"));
+        f_continuationService   = new ContinuationService<>(new DaemonThreadFactory("ContinuationService-"));
+        f_mapLeaseExpiryTimes   = new ConcurrentHashMap<>();
         f_mapMemberAwareObjects = new ConcurrentHashMap<>();
 
         // schedule checking leases

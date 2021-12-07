@@ -30,6 +30,8 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Session;
 
+import com.tangosol.util.DaemonThreadFactory;
+
 import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.tangosol.util.function.Remote;
@@ -1091,6 +1093,5 @@ public class ClusteredExecutorService
      * A {@link ScheduledExecutorService} for performing local asynchronous operations.
      */
     protected final ScheduledExecutorService f_scheduledExecutorService =
-            Executors.newSingleThreadScheduledExecutor(
-                    ThreadFactories.createThreadFactory(true, "ClusteredExecutorService", null));
+            Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory("ClusteredExecutorService-"));
     }
