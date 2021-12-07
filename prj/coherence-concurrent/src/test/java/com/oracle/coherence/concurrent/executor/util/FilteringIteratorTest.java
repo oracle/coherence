@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Functional tests for {@link FilteringIterator}.
  *
  * @author bo
+ * @since 21.12
  */
 public class FilteringIteratorTest
     {
@@ -42,7 +43,7 @@ public class FilteringIteratorTest
 
             assertThat(filtered.hasNext(), is(false));
 
-            String value = filtered.next();
+            filtered.next();
 
             Assertions.fail("Should not acquire a value from the empty iterator");
             });
@@ -57,19 +58,12 @@ public class FilteringIteratorTest
         assertThrows(NoSuchElementException.class, () ->
             {
             Iterator<String>          iterator = Collections.singletonList("Hello").iterator();
-            FilteringIterator<String> filtered = new FilteringIterator<>(iterator,
-                    new Predicate<String>()
-                        {
-                        @Override
-                        public boolean test(String string)
-                            {
-                            return string.contains("World");
-                            }
-                        });
+            FilteringIterator<String> filtered =
+                    new FilteringIterator<>(iterator, (Predicate<String>) string -> string.contains("World"));
 
             assertThat(filtered.hasNext(), is(false));
 
-            String value = filtered.next();
+            filtered.next();
 
             Assertions.fail("Should not acquire a value from the filtered iterator");
             });
@@ -82,15 +76,8 @@ public class FilteringIteratorTest
     public void shouldFilterACollection()
         {
         Iterator<String>          iterator = Arrays.asList("Hello", "World", "Gudday", "Bonjour").iterator();
-        FilteringIterator<String> filtered = new FilteringIterator<>(iterator,
-                new Predicate<String>()
-                    {
-                    @Override
-                    public boolean test(String string)
-                        {
-                        return string.contains("a");
-                        }
-                    });
+        FilteringIterator<String> filtered =
+                new FilteringIterator<>(iterator, (Predicate<String>) string -> string.contains("a"));
 
         assertThat(filtered.hasNext(), is(true));
 
