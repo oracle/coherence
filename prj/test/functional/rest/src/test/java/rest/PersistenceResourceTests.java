@@ -23,6 +23,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Binary;
+import com.tangosol.util.Base;
 
 import common.AbstractFunctionalTest;
 
@@ -312,6 +313,9 @@ public class PersistenceResourceTests
 
     public boolean isPersistenceManagerIdle(Client client)
         {
+        // wait a bit to avoid false positive of "Idle" check on window
+        Base.sleep(1000);
+
         Response response = getBaseTarget(client).path("services").path(SERVICE_NAME).path("persistence").request().get();
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
