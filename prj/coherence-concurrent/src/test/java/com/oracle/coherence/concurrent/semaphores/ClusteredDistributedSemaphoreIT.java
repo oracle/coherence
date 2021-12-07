@@ -131,7 +131,11 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member = coherenceResource.getCluster().get("storage-1");
         // Run the "shouldAcquireAndReleasePermits" method on the storage member
         // If any assertions fail this method will throw an exception
-        member.invoke(this::shouldAcquireAndReleasePermits);
+        member.invoke(() ->
+                      {
+                      this.shouldAcquireAndReleasePermits("foo-shouldAcquireAndReleasePermitOnStorageMember");
+                      return null;
+                      });
         }
 
     @Test
@@ -141,7 +145,11 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member = coherenceResource.getCluster().get("application-1");
         // Run the "shouldAcquireAndReleasePermits" method on the storage member
         // If any assertions fail this method will throw an exception
-        member.invoke(this::shouldAcquireAndReleasePermits);
+        member.invoke(() ->
+                      {
+                      this.shouldAcquireAndReleasePermits("foo-shouldAcquireAndReleasePermitOnStorageDisabledMember");
+                      return null;
+                      });
         }
 
     /**
@@ -156,9 +164,9 @@ public class ClusteredDistributedSemaphoreIT
      *
      * @return always returns Void (null).
      */
-    Void shouldAcquireAndReleasePermits()
+    Void shouldAcquireAndReleasePermits(String semaphoreName)
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        DistributedSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName, 1);
         semaphore.acquireUninterruptibly();
         try
             {
@@ -176,19 +184,27 @@ public class ClusteredDistributedSemaphoreIT
     public void shouldAcquireAndReleaseMultiplePermitsOnStorageMember()
         {
         CoherenceClusterMember member = coherenceResource.getCluster().get("storage-1");
-        member.invoke(this::shouldAcquireAndReleaseMultiplePermits);
+        member.invoke(() ->
+                      {
+                      this.shouldAcquireAndReleaseMultiplePermits("foo-shouldAcquireAndReleaseMultiplePermitsOnStorageMember");
+                      return null;
+                      });
         }
 
     @Test
     public void shouldAcquireAndReleaseMultiplePermitsOnStorageDisabledMember()
         {
         CoherenceClusterMember member = coherenceResource.getCluster().get("application-1");
-        member.invoke(this::shouldAcquireAndReleaseMultiplePermits);
+        member.invoke(() ->
+                      {
+                      this.shouldAcquireAndReleaseMultiplePermits("foo-shouldAcquireAndReleaseMultiplePermitsOnStorageDisabledMember");
+                      return null;
+                      });
         }
 
-    Void shouldAcquireAndReleaseMultiplePermits()
+    Void shouldAcquireAndReleaseMultiplePermits(String semaphoreName)
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        DistributedSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName, 5);
         semaphore.acquireUninterruptibly(3);
         try
             {
@@ -209,7 +225,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
 
-        shouldTimeOutIfThePermitIsHeldByAnotherMember(member1, member2);
+        shouldTimeOutIfThePermitIsHeldByAnotherMember(member1, member2, "foo-shouldTimeOutIfThePermitIsHeldByAnotherMemberUsingStorageMembers");
         }
 
     @Test
@@ -219,21 +235,20 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
 
-        shouldTimeOutIfThePermitIsHeldByAnotherMember(member1, member2);
+        shouldTimeOutIfThePermitIsHeldByAnotherMember(member1, member2, "foo-shouldTimeOutIfThePermitIsHeldByAnotherMemberUsingStorageDisabledMembers");
         }
-
     /**
      * This test acquires a permit on one cluster member for a specific duration and then tries to acquire
      * the permit on another member.
      *
+
      * @param member1  the member to acquire the permit on
      * @param member2  the member to try to acquire the permit on
      *
      * @throws Exception if the test fails
      */
-    void shouldTimeOutIfThePermitIsHeldByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldTimeOutIfThePermitIsHeldByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2, String sSemaphoreName) throws Exception
         {
-        String            sSemaphoreName = "foo";
         SemaphoreEventListener listener1 = new SemaphoreEventListener(sSemaphoreName);
         SemaphoreEventListener listener2 = new SemaphoreEventListener(sSemaphoreName);
 
@@ -276,7 +291,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-3");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
 
-        shouldAcquirePermitHeldByFailedMember(member1, member2);
+        shouldAcquirePermitHeldByFailedMember(member1, member2, "foo-shouldAcquirePermitHeldByFailedStorageMember");
         }
 
     @Test
@@ -286,7 +301,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-3");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
 
-        shouldAcquirePermitHeldByFailedMember(member1, member2);
+        shouldAcquirePermitHeldByFailedMember(member1, member2, "foo-shouldAcquirePermitHeldBFailedStorageDisabledMember");
         }
 
     /**
@@ -298,9 +313,8 @@ public class ClusteredDistributedSemaphoreIT
      *
      * @throws Exception if the test fails
      */
-    void shouldAcquirePermitHeldByFailedMember(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldAcquirePermitHeldByFailedMember(CoherenceClusterMember member1, CoherenceClusterMember member2, String sSemaphoreName) throws Exception
         {
-        String            sSemaphoreName = "foo";
         SemaphoreEventListener listener1 = new SemaphoreEventListener(sSemaphoreName);
         SemaphoreEventListener listener2 = new SemaphoreEventListener(sSemaphoreName);
 
@@ -343,7 +357,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
 
-        shouldAcquireAndReleasePermitInOrderFromMultipleMembers(member1, member2);
+        shouldAcquireAndReleasePermitInOrderFromMultipleMembers(member1, member2, "foo-shouldAcquireAndReleasePermitInOrderFromMultipleStorageMembers");
         }
 
     @Test
@@ -353,7 +367,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
 
-        shouldAcquireAndReleasePermitInOrderFromMultipleMembers(member1, member2);
+        shouldAcquireAndReleasePermitInOrderFromMultipleMembers(member1, member2, "foo-shouldAcquireAndReleasePermitInOrderFromMultipleStorageDisabledMembers");
         }
 
     /**
@@ -366,9 +380,8 @@ public class ClusteredDistributedSemaphoreIT
      *
      * @throws Exception if the test fails
      */
-    void shouldAcquireAndReleasePermitInOrderFromMultipleMembers(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldAcquireAndReleasePermitInOrderFromMultipleMembers(CoherenceClusterMember member1, CoherenceClusterMember member2, String sSemaphoreName) throws Exception
         {
-        String            sSemaphoreName = "foo";
         SemaphoreEventListener listener1 = new SemaphoreEventListener(sSemaphoreName);
         SemaphoreEventListener listener2 = new SemaphoreEventListener(sSemaphoreName);
 
@@ -414,29 +427,25 @@ public class ClusteredDistributedSemaphoreIT
     void shouldNotAcquireOnZeroPermitsOnStorageMember()
         {
         // Get storage members from the cluster
-        CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-1");
-        CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
+        CoherenceClusterMember member = coherenceResource.getCluster().get("storage-1");
 
-        shouldNotAcquireOnZeroPermits(member1, member2);
+        shouldNotAcquireOnZeroPermits(member, "foo-shouldNotAcquireOnZeroPermitsOnStorageMember");
         }
 
     @Test
     void shouldNotAcquireOnZeroPermitsOnStorageDisabledMember()
         {
         // Get storage disabled application members from the cluster
-        CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-1");
-        CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
+        CoherenceClusterMember member = coherenceResource.getCluster().get("application-2");
 
-        shouldNotAcquireOnZeroPermits(member1, member2);
+        shouldNotAcquireOnZeroPermits(member, "foo-shouldNotAcquireOnZeroPermitsOnStorageDisabledMember");
         }
 
-    void shouldNotAcquireOnZeroPermits(CoherenceClusterMember member1, CoherenceClusterMember member2)
+    void shouldNotAcquireOnZeroPermits(CoherenceClusterMember member, String sSemaphoreName)
         {
-        String sSemaphoreName = "foo";
-
         // Acquire the semaphore on first member
-        assertThat(member1.invoke(new TryAcquire(sSemaphoreName, 0, Duration.ZERO)), is(false));
-        assertThat(member1.invoke(() -> Semaphores.remoteSemaphore(sSemaphoreName, 0).availablePermits()), is(0));
+        assertThat(member.invoke(new TryAcquire(sSemaphoreName, 0, Duration.ZERO)), is(false));
+        assertThat(member.invoke(() -> Semaphores.remoteSemaphore(sSemaphoreName, 0).availablePermits()), is(0));
         }
 
     @Test
@@ -446,7 +455,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
 
-        shouldNotAcquireMany(member1, member2);
+        shouldNotAcquireMany(member1, member2, "foo-shouldNotAcquireManyOnStorageMembers");
         }
 
     @Test
@@ -456,13 +465,12 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
 
-        shouldNotAcquireMany(member1, member2);
+        shouldNotAcquireMany(member1, member2, "foo-shouldNotAcquireManyOnStorageDisabledMembers");
         }
 
-    void shouldNotAcquireMany(CoherenceClusterMember member1, CoherenceClusterMember member2)
+    void shouldNotAcquireMany(CoherenceClusterMember member1, CoherenceClusterMember member2, String sSemaphoreName)
             throws Exception
         {
-        String            sSemaphoreName = "foo";
         SemaphoreEventListener listener1 = new SemaphoreEventListener(sSemaphoreName);
         SemaphoreEventListener listener2 = new SemaphoreEventListener(sSemaphoreName);
 
@@ -494,7 +502,7 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("storage-2");
 
-        shouldReleaseAndAcquireOnNegativeNumberOfPermits(member1, member2);
+        shouldReleaseAndAcquireOnNegativeNumberOfPermits(member1, member2, "foo-shouldReleaseAndAcquireOnNegativeNumberOfPermitsOnStorageMembers");
         }
 
     @Test
@@ -504,13 +512,11 @@ public class ClusteredDistributedSemaphoreIT
         CoherenceClusterMember member1 = coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = coherenceResource.getCluster().get("application-2");
 
-        shouldReleaseAndAcquireOnNegativeNumberOfPermits(member1, member2);
+        shouldReleaseAndAcquireOnNegativeNumberOfPermits(member1, member2, "foo-shouldReleaseAndAcquireOnNegativeNumberOfPermitsOnStorageDisabledMembers");
         }
 
-    void shouldReleaseAndAcquireOnNegativeNumberOfPermits(CoherenceClusterMember member1, CoherenceClusterMember member2)
+    void shouldReleaseAndAcquireOnNegativeNumberOfPermits(CoherenceClusterMember member1, CoherenceClusterMember member2, String sSemaphoreName)
         {
-        String sSemaphoreName = "foo";
-
         // Try to acquire single permit (should fail)
         assertThat(member2.invoke(new TryAcquire(sSemaphoreName, -3, Duration.ZERO)), is(false));
 
@@ -874,7 +880,7 @@ public class ClusteredDistributedSemaphoreIT
         /**
          * Wait for the permit acquired event.
          *
-         * @param timeout the global order or the lock acquired event
+         * @param timeout the maximum amount of time to wait
          *
          * @return the global order of the permit acquired event
          */
