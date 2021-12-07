@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Functional tests for {@link RecordingSubscriber}.
  *
  * @author phf
+ * @since 21.12
  */
 public class RecordingSubscriberTest
     {
