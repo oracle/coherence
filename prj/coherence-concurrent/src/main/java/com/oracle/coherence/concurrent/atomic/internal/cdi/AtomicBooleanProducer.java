@@ -32,67 +32,47 @@ class AtomicBooleanProducer
         extends AbstractAtomicProducer
     {
     /**
-     * Returns a local {@link AtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns a local or remote {@link AtomicBoolean} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link AtomicBoolean} will be returned, otherwise a local {@link AtomicBoolean}
+     * will be returned.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link AtomicBoolean} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    AtomicBoolean getUnqualifiedAtomicBoolean(InjectionPoint ip)
-        {
-        return getLocalAtomicBoolean(ip);
-        }
-
-    /**
-     * Returns a local {@link AtomicBoolean} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AtomicBoolean} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    AtomicBoolean getAtomicBoolean(InjectionPoint ip)
-        {
-        return getLocalAtomicBoolean(ip);
-        }
-
-    /**
-     * Returns a local {@link AtomicBoolean} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AtomicBoolean} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link AtomicBoolean} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    AtomicBoolean getAtomicBooleanWithRemoteAnnotation(InjectionPoint ip)
+    AtomicBoolean getAtomicBoolean(InjectionPoint ip)
         {
-        return getRemoteAtomicBoolean(ip);
-        }
-
-    /**
-     * Returns a local {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Typed(LocalAtomicBoolean.class)
-    LocalAtomicBoolean getUnqualifiedLocalAtomicBoolean(InjectionPoint ip)
-        {
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteAtomicBoolean(ip);
+            }
         return getLocalAtomicBoolean(ip);
         }
 
     /**
-     * Returns a local {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns an {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}
+     * @return a {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}
+     */
+    @Produces
+    LocalAtomicBoolean getUnqualifiedLocalAtomicLong(InjectionPoint ip)
+        {
+        return Atomics.localAtomicBoolean(getName(ip));
+        }
+
+    /**
+     * Returns a {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}.
+     *
+     * @param ip  the CDI {@link InjectionPoint}
+     *
+     * @return a {@link LocalAtomicBoolean} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
@@ -103,25 +83,25 @@ class AtomicBooleanProducer
         }
 
     /**
-     * Returns a local {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns an {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}
      */
     @Produces
     @Typed(RemoteAtomicBoolean.class)
-    RemoteAtomicBoolean getUnqualifiedRemoteAtomicBoolean(InjectionPoint ip)
+    RemoteAtomicBoolean getUnqualifiedRemoteAtomicLong(InjectionPoint ip)
         {
-        return getRemoteAtomicBoolean(ip);
+        return Atomics.remoteAtomicBoolean(getName(ip));
         }
 
     /**
-     * Returns a local {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns a {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteAtomicBoolean} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")

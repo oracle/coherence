@@ -62,6 +62,24 @@ public class AtomicMarkableReferenceProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set("foo", true);
+        assertThat(bean.getLocalNamed().compareAndSet("foo", "bar", true, false), is(true));
+        assertThat(bean.getTypedLocalNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedLocalNamed().isMarked(), is(false));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set("foo", true);
+        assertThat(bean.getLocalUnqualified().compareAndSet("foo", "bar", true, false), is(true));
+        assertThat(bean.getTypedLocalNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedLocalNamed().isMarked(), is(false));
+        }
+
+    @Test
     void testRemoteInjection()
         {
         bean.getRemote().set("foo", true);
@@ -70,27 +88,78 @@ public class AtomicMarkableReferenceProducerTest
         assertThat(bean.getTypedRemote().isMarked(), is(false));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set("foo", true);
+        assertThat(bean.getRemoteNamed().compareAndSet("foo", "bar", true, false), is(true));
+        assertThat(bean.getTypedRemoteNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedRemoteNamed().isMarked(), is(false));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set("foo", true);
+        assertThat(bean.getTypedRemoteUnqualified().compareAndSet("foo", "bar", true, false), is(true));
+        assertThat(bean.getTypedRemoteNamed().getReference(), is("bar"));
+        assertThat(bean.getTypedRemoteNamed().isMarked(), is(false));
+        }
+
     @ApplicationScoped
     static class AtomicMarkableReferenceBean
         {
         @Inject
-        AtomicMarkableReference<String> local;
-
-        @Inject
-        @Remote
-        AtomicMarkableReference<String> remote;
+        AtomicMarkableReference<String> local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         LocalAtomicMarkableReference<String> typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AtomicMarkableReference<String> localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        LocalAtomicMarkableReference<String> typedLocalNamed;
+
+        @Inject
+        LocalAtomicMarkableReference<String> typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AtomicMarkableReference<String> remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AtomicMarkableReference<String> remoteNamed;
+
+        @Inject
         @Name("remote")
         RemoteAtomicMarkableReference<String> typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteAtomicMarkableReference<String> typedRemoteNamed;
+
+        @Inject
+        RemoteAtomicMarkableReference<String> typedRemoteUnqualified;
 
         public AtomicMarkableReference<String> getLocal()
             {
             return local;
+            }
+
+        public AtomicMarkableReference<String> getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AtomicMarkableReference<String> getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AtomicMarkableReference<String> getRemote()
@@ -106,6 +175,26 @@ public class AtomicMarkableReferenceProducerTest
         public RemoteAtomicMarkableReference<String> getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public LocalAtomicMarkableReference<String> getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public LocalAtomicMarkableReference<String> getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteAtomicMarkableReference<String> getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteAtomicMarkableReference<String> getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

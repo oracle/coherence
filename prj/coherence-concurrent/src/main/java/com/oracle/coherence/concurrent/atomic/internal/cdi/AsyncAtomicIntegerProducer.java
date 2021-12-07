@@ -6,10 +6,10 @@
  */
 package com.oracle.coherence.concurrent.atomic.internal.cdi;
 
-import com.oracle.coherence.concurrent.atomic.Atomics;
 import com.oracle.coherence.concurrent.atomic.AsyncAtomicInteger;
 import com.oracle.coherence.concurrent.atomic.AsyncLocalAtomicInteger;
 import com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicInteger;
+import com.oracle.coherence.concurrent.atomic.Atomics;
 
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
@@ -32,59 +32,39 @@ class AsyncAtomicIntegerProducer
         extends AbstractAtomicProducer
     {
     /**
-     * Returns a local {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns either a local or remote {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link AsyncAtomicInteger} will be returned, otherwise a local {@link AsyncAtomicInteger}
+     * will be returned.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    AsyncAtomicInteger getUnqualifiedAtomicInteger(InjectionPoint ip)
-        {
-        return getLocalAtomicInteger(ip);
-        }
-
-    /**
-     * Returns a local {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    AsyncAtomicInteger getAtomicInteger(InjectionPoint ip)
-        {
-        return getLocalAtomicInteger(ip);
-        }
-
-    /**
-     * Returns a remote {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a remote {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link AsyncAtomicInteger} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    AsyncAtomicInteger getAtomicIntegerWithRemoteAnnotation(InjectionPoint ip)
+    AsyncAtomicInteger getAtomicInteger(InjectionPoint ip)
         {
-        return getRemoteAtomicInteger(ip);
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteAtomicInteger(ip);
+            }
+        return getLocalAtomicInteger(ip);
         }
 
     /**
-     * Returns a {@link AsyncLocalAtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns an {@link AsyncLocalAtomicInteger} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
      * @return a {@link AsyncLocalAtomicInteger} for the provided {@link InjectionPoint}
      */
     @Produces
-    @Typed(AsyncLocalAtomicInteger.class)
     AsyncLocalAtomicInteger getUnqualifiedLocalAtomicInteger(InjectionPoint ip)
         {
-        return getLocalAtomicInteger(ip);
+        return Atomics.localAtomicInteger(getName(ip)).async();
         }
 
     /**
@@ -103,7 +83,7 @@ class AsyncAtomicIntegerProducer
         }
 
     /**
-     * Returns a {@link AsyncRemoteAtomicInteger} for the provided {@link InjectionPoint}.
+     * Returns an {@link AsyncRemoteAtomicInteger} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
@@ -113,7 +93,7 @@ class AsyncAtomicIntegerProducer
     @Typed(AsyncRemoteAtomicInteger.class)
     AsyncRemoteAtomicInteger getUnqualifiedRemoteAtomicInteger(InjectionPoint ip)
         {
-        return getRemoteAtomicInteger(ip);
+        return Atomics.remoteAtomicInteger(getName(ip)).async();
         }
 
     /**

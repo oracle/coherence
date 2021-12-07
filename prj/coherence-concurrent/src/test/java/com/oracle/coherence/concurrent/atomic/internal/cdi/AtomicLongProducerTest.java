@@ -41,7 +41,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AtomicLongProducerTest
     {
-
     @WeldSetup
     private WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                           .addExtension(new CoherenceExtension())
@@ -62,34 +61,99 @@ public class AtomicLongProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set(1L);
+        assertThat(bean.getLocalNamed().getAndSet(4L), is(1L));
+        assertThat(bean.getTypedLocalNamed().get(), is(4L));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set(11L);
+        assertThat(bean.getLocalUnqualified().getAndSet(44L), is(11L));
+        assertThat(bean.getTypedLocalNamed().get(), is(44L));
+        }
+
+    @Test
     void testRemoteInjection()
         {
-        bean.getRemote().set(0L);
-        assertThat(bean.getRemote().getAndSet(3L), is(0L));
-        assertThat(bean.getTypedRemote().get(), is(3L));
+        bean.getRemote().set(3L);
+        assertThat(bean.getRemote().getAndSet(6L), is(3L));
+        assertThat(bean.getTypedRemote().get(), is(6L));
+        }
+
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set(5L);
+        assertThat(bean.getRemoteNamed().getAndSet(8L), is(5L));
+        assertThat(bean.getTypedRemoteNamed().get(), is(8L));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set(5L);
+        assertThat(bean.getTypedRemoteUnqualified().getAndSet(8L), is(5L));
+        assertThat(bean.getTypedRemoteNamed().get(), is(8L));
         }
 
     @ApplicationScoped
     static class AtomicLongBean
         {
         @Inject
-        AtomicLong local;
-
-        @Inject
-        @Remote
-        AtomicLong remote;
+        AtomicLong local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         LocalAtomicLong typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AtomicLong localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        LocalAtomicLong typedLocalNamed;
+
+        @Inject
+        LocalAtomicLong typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AtomicLong remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AtomicLong remoteNamed;
+
+        @Inject
         @Name("remote")
         RemoteAtomicLong typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteAtomicLong typedRemoteNamed;
+
+        @Inject
+        RemoteAtomicLong typedRemoteUnqualified;
 
         public AtomicLong getLocal()
             {
             return local;
+            }
+
+        public AtomicLong getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AtomicLong getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AtomicLong getRemote()
@@ -105,6 +169,26 @@ public class AtomicLongProducerTest
         public RemoteAtomicLong getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public LocalAtomicLong getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public LocalAtomicLong getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteAtomicLong getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteAtomicLong getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

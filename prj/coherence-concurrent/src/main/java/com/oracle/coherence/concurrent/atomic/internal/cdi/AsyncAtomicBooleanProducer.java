@@ -8,8 +8,8 @@ package com.oracle.coherence.concurrent.atomic.internal.cdi;
 
 import com.oracle.coherence.concurrent.atomic.AsyncAtomicBoolean;
 import com.oracle.coherence.concurrent.atomic.AsyncLocalAtomicBoolean;
-import com.oracle.coherence.concurrent.atomic.Atomics;
 import com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicBoolean;
+import com.oracle.coherence.concurrent.atomic.Atomics;
 
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
@@ -32,59 +32,39 @@ class AsyncAtomicBooleanProducer
         extends AbstractAtomicProducer
     {
     /**
-     * Returns a local {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns a local or remote {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link AsyncAtomicBoolean} will be returned, otherwise a local {@link AsyncAtomicBoolean}
+     * will be returned.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    AsyncAtomicBoolean getUnqualifiedAtomicBoolean(InjectionPoint ip)
-        {
-        return getLocalAtomicBoolean(ip);
-        }
-
-    /**
-     * Returns a local {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    AsyncAtomicBoolean getAtomicBoolean(InjectionPoint ip)
-        {
-        return getLocalAtomicBoolean(ip);
-        }
-
-    /**
-     * Returns a remote {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a remote {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link AsyncAtomicBoolean} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    AsyncAtomicBoolean getAtomicBooleanWithRemoteAnnotation(InjectionPoint ip)
+    AsyncAtomicBoolean getAtomicBoolean(InjectionPoint ip)
         {
-        return getRemoteAtomicBoolean(ip);
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteAtomicBoolean(ip);
+            }
+        return getLocalAtomicBoolean(ip);
         }
 
     /**
-     * Returns a {@link AsyncLocalAtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns an {@link AsyncLocalAtomicBoolean} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
      * @return a {@link AsyncLocalAtomicBoolean} for the provided {@link InjectionPoint}
      */
     @Produces
-    @Typed(AsyncLocalAtomicBoolean.class)
     AsyncLocalAtomicBoolean getUnqualifiedLocalAtomicBoolean(InjectionPoint ip)
         {
-        return getLocalAtomicBoolean(ip);
+        return Atomics.localAtomicBoolean(getName(ip)).async();
         }
 
     /**
@@ -103,7 +83,7 @@ class AsyncAtomicBooleanProducer
         }
 
     /**
-     * Returns a {@link AsyncRemoteAtomicBoolean} for the provided {@link InjectionPoint}.
+     * Returns an {@link AsyncRemoteAtomicBoolean} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
@@ -113,7 +93,7 @@ class AsyncAtomicBooleanProducer
     @Typed(AsyncRemoteAtomicBoolean.class)
     AsyncRemoteAtomicBoolean getUnqualifiedRemoteAtomicBoolean(InjectionPoint ip)
         {
-        return getRemoteAtomicBoolean(ip);
+        return Atomics.remoteAtomicBoolean(getName(ip)).async();
         }
 
     /**

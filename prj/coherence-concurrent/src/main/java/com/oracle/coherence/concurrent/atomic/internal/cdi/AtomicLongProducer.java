@@ -32,67 +32,47 @@ class AtomicLongProducer
         extends AbstractAtomicProducer
     {
     /**
-     * Returns a local {@link AtomicLong} for the provided {@link InjectionPoint}.
+     * Returns either a local or remote {@link AtomicLong} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link AtomicLong} will be returned, otherwise a local {@link AtomicLong}
+     * will be returned.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link AtomicLong} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    AtomicLong getUnqualifiedAtomicLong(InjectionPoint ip)
-        {
-        return getLocalAtomicLong(ip);
-        }
-
-    /**
-     * Returns a local {@link AtomicLong} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AtomicLong} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    AtomicLong getAtomicLong(InjectionPoint ip)
-        {
-        return getLocalAtomicLong(ip);
-        }
-
-    /**
-     * Returns a local {@link AtomicLong} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link AtomicLong} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link AtomicLong} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    AtomicLong getAtomicLongWithRemoteAnnotation(InjectionPoint ip)
+    AtomicLong getAtomicLong(InjectionPoint ip)
         {
-        return getRemoteAtomicLong(ip);
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteAtomicLong(ip);
+            }
+        return getLocalAtomicLong(ip);
         }
 
     /**
-     * Returns a local {@link LocalAtomicLong} for the provided {@link InjectionPoint}.
+     * Returns an {@link LocalAtomicLong} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link LocalAtomicLong} for the provided {@link InjectionPoint}
+     * @return a {@link LocalAtomicLong} for the provided {@link InjectionPoint}
      */
     @Produces
-    @Typed(LocalAtomicLong.class)
     LocalAtomicLong getUnqualifiedLocalAtomicLong(InjectionPoint ip)
         {
         return getLocalAtomicLong(ip);
         }
 
     /**
-     * Returns a local {@link LocalAtomicLong} for the provided {@link InjectionPoint}.
+     * Returns a {@link LocalAtomicLong} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link LocalAtomicLong} for the provided {@link InjectionPoint}
+     * @return a {@link LocalAtomicLong} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
@@ -103,11 +83,11 @@ class AtomicLongProducer
         }
 
     /**
-     * Returns a local {@link RemoteAtomicLong} for the provided {@link InjectionPoint}.
+     * Returns an {@link RemoteAtomicLong} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link RemoteAtomicLong} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteAtomicLong} for the provided {@link InjectionPoint}
      */
     @Produces
     @Typed(RemoteAtomicLong.class)
@@ -117,11 +97,11 @@ class AtomicLongProducer
         }
 
     /**
-     * Returns a local {@link RemoteAtomicLong} for the provided {@link InjectionPoint}.
+     * Returns a {@link RemoteAtomicLong} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link RemoteAtomicLong} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteAtomicLong} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")

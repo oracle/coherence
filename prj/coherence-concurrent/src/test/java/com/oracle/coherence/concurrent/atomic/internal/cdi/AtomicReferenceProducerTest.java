@@ -61,6 +61,22 @@ public class AtomicReferenceProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set("foo");
+        assertThat(bean.getLocalNamed().getAndSet("bar"), is("foo"));
+        assertThat(bean.getTypedLocalNamed().get(), is("bar"));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set("foo");
+        assertThat(bean.getLocalUnqualified().getAndSet("bar"), is("foo"));
+        assertThat(bean.getTypedLocalNamed().get(), is("bar"));
+        }
+
+    @Test
     void testRemoteInjection()
         {
         bean.getRemote().set("foo");
@@ -68,27 +84,76 @@ public class AtomicReferenceProducerTest
         assertThat(bean.getTypedRemote().get(), is("bar"));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set("foo");
+        assertThat(bean.getRemoteNamed().getAndSet("bar"), is("foo"));
+        assertThat(bean.getTypedRemoteNamed().get(), is("bar"));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set("foo");
+        assertThat(bean.getTypedRemoteUnqualified().getAndSet("bar"), is("foo"));
+        assertThat(bean.getTypedRemoteNamed().get(), is("bar"));
+        }
+
     @ApplicationScoped
     static class AtomicReferenceBean
         {
         @Inject
-        AtomicReference<String> local;
-
-        @Inject
-        @Remote
-        AtomicReference<String> remote;
+        AtomicReference<String> local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         LocalAtomicReference<String> typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AtomicReference<String> localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        LocalAtomicReference<String> typedLocalNamed;
+
+        @Inject
+        LocalAtomicReference<String> typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AtomicReference<String> remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AtomicReference<String> remoteNamed;
+
+        @Inject
         @Name("remote")
         RemoteAtomicReference<String> typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteAtomicReference<String> typedRemoteNamed;
+
+        @Inject
+        RemoteAtomicReference<String> typedRemoteUnqualified;
 
         public AtomicReference<String> getLocal()
             {
             return local;
+            }
+
+        public AtomicReference<String> getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AtomicReference<String> getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AtomicReference<String> getRemote()
@@ -104,6 +169,26 @@ public class AtomicReferenceProducerTest
         public RemoteAtomicReference<String> getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public LocalAtomicReference<String> getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public LocalAtomicReference<String> getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteAtomicReference<String> getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteAtomicReference<String> getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

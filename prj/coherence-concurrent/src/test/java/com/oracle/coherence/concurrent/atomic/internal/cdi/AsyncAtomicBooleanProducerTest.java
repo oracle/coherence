@@ -61,6 +61,22 @@ public class AsyncAtomicBooleanProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        bean.getLocalNamed().set(true).join();
+        assertThat(bean.getLocalNamed().getAndSet(false).join(), is(true));
+        assertThat(bean.getTypedLocalNamed().get().join(), is(false));
+        }
+
+    @Test
+    void testLocalUnqualifiedInjection()
+        {
+        bean.getLocalUnqualified().set(true).join();
+        assertThat(bean.getLocalUnqualified().getAndSet(false).join(), is(true));
+        assertThat(bean.getTypedLocalNamed().get().join(), is(false));
+        }
+
+    @Test
     void testRemoteInjection()
         {
         bean.getRemote().set(true).join();
@@ -68,27 +84,76 @@ public class AsyncAtomicBooleanProducerTest
         assertThat(bean.getTypedRemote().get().join(), is(false));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        bean.getRemoteNamed().set(true).join();
+        assertThat(bean.getRemoteNamed().getAndSet(false).join(), is(true));
+        assertThat(bean.getTypedRemoteNamed().get().join(), is(false));
+        }
+
+    @Test
+    void testRemoteUnqualifiedInjection()
+        {
+        bean.getTypedRemoteUnqualified().set(true).join();
+        assertThat(bean.getTypedRemoteUnqualified().getAndSet(false).join(), is(true));
+        assertThat(bean.getTypedRemoteNamed().get().join(), is(false));
+        }
+
     @ApplicationScoped
     static class AsyncAtomicBooleanBean
         {
         @Inject
-        AsyncAtomicBoolean local;
-
-        @Inject
-        @Remote
-        AsyncAtomicBoolean remote;
+        AsyncAtomicBoolean local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         AsyncLocalAtomicBoolean typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        AsyncAtomicBoolean localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        AsyncLocalAtomicBoolean typedLocalNamed;
+
+        @Inject
+        AsyncLocalAtomicBoolean typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        AsyncAtomicBoolean remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        AsyncAtomicBoolean remoteNamed;
+
+        @Inject
         @Name("remote")
         AsyncRemoteAtomicBoolean typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        AsyncRemoteAtomicBoolean typedRemoteNamed;
+
+        @Inject
+        AsyncRemoteAtomicBoolean typedRemoteUnqualified;
 
         public AsyncAtomicBoolean getLocal()
             {
             return local;
+            }
+
+        public AsyncAtomicBoolean getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public AsyncAtomicBoolean getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public AsyncAtomicBoolean getRemote()
@@ -104,6 +169,26 @@ public class AsyncAtomicBooleanProducerTest
         public AsyncRemoteAtomicBoolean getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public AsyncLocalAtomicBoolean getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public AsyncLocalAtomicBoolean getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public AsyncRemoteAtomicBoolean getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public AsyncRemoteAtomicBoolean getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }
