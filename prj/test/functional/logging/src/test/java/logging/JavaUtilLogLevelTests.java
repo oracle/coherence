@@ -12,6 +12,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -131,7 +132,7 @@ public class JavaUtilLogLevelTests
          * {@inheritDoc}
          */
         @Override
-        public void publish(LogRecord lr)
+        public synchronized void publish(LogRecord lr)
             {
             if (m_enabled)
                 {
@@ -151,7 +152,7 @@ public class JavaUtilLogLevelTests
          * {@inheritDoc}
          */
         @Override
-        public void close() throws SecurityException
+        public synchronized void close() throws SecurityException
             {
             m_listMessages.clear();
             }
@@ -161,9 +162,10 @@ public class JavaUtilLogLevelTests
          *
          * @return a list of log messages collected
          */
-        public List<String> collect()
+        public synchronized List<String> collect()
             {
-            return Collections.unmodifiableList(m_listMessages);
+            ArrayList<String> copy = new ArrayList<>(m_listMessages);
+            return Collections.unmodifiableList(copy);
             }
 
         // ----- data members -----------------------------------------------
