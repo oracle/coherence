@@ -582,6 +582,7 @@
         <module>coherence-micrometer</module>
         <module>coherence-helidon-client</module>
         <module>coherence-java-client</module>
+        <module>coherence-concurrent</module>
         <module>coherence-bom</module>
         <module>plugins</module>
       </modules>
