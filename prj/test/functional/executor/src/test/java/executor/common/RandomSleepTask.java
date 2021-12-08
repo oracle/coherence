@@ -6,23 +6,24 @@
  */
 package executor.common;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
+import com.oracle.coherence.concurrent.executor.Task;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
 import java.util.Random;
 
 /**
- * A {@link PortableTask} that will sleep a random number of seconds (up to some maximum) before returning the current
+ * A {@link Task} that will sleep a random number of seconds (up to some maximum) before returning the current
  * system time (in milliseconds)
  *
  * @since 21.12
  */
 public class RandomSleepTask
-        implements PortableTask<Long>
+        implements Task<Long>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -44,7 +45,7 @@ public class RandomSleepTask
         m_cMaxSleepDurationInSeconds = maxSleepDurationInSeconds;
         }
 
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @SuppressWarnings({"finally", "ReturnInsideFinallyBlock"})
     @Override

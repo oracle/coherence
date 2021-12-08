@@ -6,11 +6,11 @@
  */
 package executor.common;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
@@ -22,7 +22,7 @@ import java.io.IOException;
  * @since 21.12
  */
 public class RepeatedTask<T>
-        implements PortableTask<T>
+        implements Task<T>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -46,7 +46,7 @@ public class RepeatedTask<T>
         m_cDurationMillis = cDurationMillis;
         }
 
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @Override
     public T execute(Context<T> context)
@@ -69,6 +69,8 @@ public class RepeatedTask<T>
             throw new RuntimeException(e);
             }
         }
+
+    // ----- PortableObject interface ---------------------------------------
 
     @Override
     public void readExternal(PofReader in)

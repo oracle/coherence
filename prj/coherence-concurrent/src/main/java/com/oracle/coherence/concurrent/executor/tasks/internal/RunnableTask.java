@@ -7,21 +7,22 @@
 
 package com.oracle.coherence.concurrent.executor.tasks.internal;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
+import com.oracle.coherence.concurrent.executor.Task;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
 /**
- * A {@link PortableTask} that calls a {@link Runnable}.
+ * A {@link Task} that calls a {@link Runnable}.
  *
  * @author bo, lh
  * @since 21.12
  */
 public class RunnableTask
-        implements PortableTask<Boolean>
+        implements Task<Boolean>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -83,7 +84,7 @@ public class RunnableTask
     // ----- data members ---------------------------------------------------
 
     /**
-     * The runnable for the {@link PortableTask}.
+     * The runnable for the {@link Task}.
      */
     protected Runnable m_runnable;
     }

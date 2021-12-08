@@ -7,18 +7,18 @@
 
 package com.oracle.coherence.concurrent.executor.tasks;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
-
 import com.oracle.coherence.concurrent.executor.Task;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
 import java.util.Objects;
 
 /**
- * A {@link PortableTask} that provides a constant value as a result.
+ * A {@link Task} that provides a constant value as a result.
  *
  * @param <T>  the type of result produced by the {@link Task}
  *
@@ -26,7 +26,7 @@ import java.util.Objects;
  * @since 21.12
  */
 public class ValueTask<T>
-        implements PortableTask<T>
+        implements Task<T>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -109,7 +109,7 @@ public class ValueTask<T>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The value for the {@link PortableTask}.
+     * The value for the {@link Task}.
      */
     protected T m_value;
     }

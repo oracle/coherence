@@ -6,11 +6,11 @@
  */
 package executor.common;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ import java.time.Duration;
  * @since 21.12
  */
 public class YieldingTask
-        implements PortableTask<Integer>
+        implements Task<Integer>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -67,7 +67,7 @@ public class YieldingTask
             }
         }
 
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @Override
     public Integer execute(Context<Integer> context) throws Exception
@@ -94,6 +94,8 @@ public class YieldingTask
             return m_cResumed;
             }
         }
+
+    // ----- PortableObject interface ---------------------------------------
 
     @Override
     public void readExternal(PofReader in) throws IOException
