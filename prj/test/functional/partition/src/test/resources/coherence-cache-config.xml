@@ -59,6 +59,21 @@
     </cache-mapping>
 
     <cache-mapping>
+      <cache-name>sched-*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+        <init-param>
+          <param-name>async-backup</param-name>
+          <param-value>10s</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
       <cache-name>single-listener</cache-name>
       <scheme-name>single-listener-scheme</scheme-name>
     </cache-mapping>
@@ -177,6 +192,7 @@
         </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
+      <async-backup system-property="coherence.distributed.custom.asyncbackup">{async-backup false}</async-backup>
     </distributed-scheme>
 
     <distributed-scheme>
