@@ -44,16 +44,16 @@ public class Locks
         }
 
     /**
-     * Return a singleton instance of a remote {@link DistributedLock}
+     * Return a singleton instance of a remote {@link RemoteLock}
      * with a specified name.
      *
      * @param sName  the cluster-wide, unique name of the lock
      *
      * @return an instance of a remote lock with a specified name
      */
-    public static DistributedLock remoteLock(String sName)
+    public static RemoteLock remoteLock(String sName)
         {
-        return f_mapExclusive.computeIfAbsent(sName, n -> new DistributedLock(n, exclusiveLocksMap()));
+        return f_mapExclusive.computeIfAbsent(sName, n -> new RemoteLock(n, exclusiveLocksMap()));
         }
 
     /**
@@ -70,16 +70,16 @@ public class Locks
         }
 
     /**
-     * Return a singleton instance of a remote {@link DistributedReadWriteLock}
+     * Return a singleton instance of a remote {@link RemoteReadWriteLock}
      * with a specified name.
      *
      * @param sName  the cluster-wide, unique name of the lock
      *
      * @return an instance of a remote read/write lock with a specified name
      */
-    public static DistributedReadWriteLock remoteReadWriteLock(String sName)
+    public static RemoteReadWriteLock remoteReadWriteLock(String sName)
         {
-        return f_mapReadWrite.computeIfAbsent(sName, n -> new DistributedReadWriteLock(n, readWriteLocksMap()));
+        return f_mapReadWrite.computeIfAbsent(sName, n -> new RemoteReadWriteLock(n, readWriteLocksMap()));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -101,7 +101,7 @@ public class Locks
      *
      * @return Coherence {@link NamedMap} containing the exclusive locks state
      */
-    protected static NamedMap<String, ExclusiveLockHolder> exclusiveLocksMap()
+    public static NamedMap<String, ExclusiveLockHolder> exclusiveLocksMap()
         {
         return session().getMap("locks-exclusive");
         }
@@ -111,7 +111,7 @@ public class Locks
      *
      * @return Coherence {@link NamedMap} containing the read/write locks state
      */
-    protected static NamedMap<String, ReadWriteLockHolder> readWriteLocksMap()
+    public static NamedMap<String, ReadWriteLockHolder> readWriteLocksMap()
         {
         return session().getMap("locks-read-write");
         }
@@ -137,11 +137,11 @@ public class Locks
      * A process-wide cache of remote locks, to avoid creating multiple lock
      * instances (and thus sync objects) for the same server-side lock.
      */
-    private static final Map<String, DistributedLock> f_mapExclusive = new ConcurrentHashMap<>();
+    private static final Map<String, RemoteLock> f_mapExclusive = new ConcurrentHashMap<>();
 
     /**
      * A process-wide cache of remote read/write locks, to avoid creating multiple lock
      * instances (and thus sync objects) for the same server-side lock.
      */
-    private static final Map<String, DistributedReadWriteLock> f_mapReadWrite = new ConcurrentHashMap<>();
+    private static final Map<String, RemoteReadWriteLock> f_mapReadWrite = new ConcurrentHashMap<>();
     }

@@ -4,10 +4,12 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.semaphores;
+package com.oracle.coherence.concurrent;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.concurrent.RemoteSemaphore;
+import com.oracle.coherence.concurrent.Semaphores;
 import com.tangosol.net.Coherence;
 
 import com.tangosol.util.Base;
@@ -27,11 +29,11 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Tests for {@link DistributedSemaphore} class.
+ * Tests for {@link RemoteSemaphore} class.
  *
  * @author Vaso Putica  2021.11.30
  */
-public class DistributedSemaphoreTest
+public class RemoteSemaphoreTest
     {
     @BeforeAll
     static void startServer()
@@ -54,7 +56,7 @@ public class DistributedSemaphoreTest
     @Test
     void shouldAcquireAndReleasePermits()
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
         semaphore.acquireUninterruptibly();
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -65,7 +67,7 @@ public class DistributedSemaphoreTest
     void shouldAcquireAndReleasePermitsnterruptibly()
             throws InterruptedException
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
         semaphore.acquire();
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -75,7 +77,7 @@ public class DistributedSemaphoreTest
     @Test
     void shouldAcquireAndReleasePermitWithoutBlocking()
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
         assertThat(semaphore.tryAcquire(), is(true));
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -85,7 +87,7 @@ public class DistributedSemaphoreTest
     @Test
     void shouldAcquireAndReleasePermitWithTimeout() throws InterruptedException
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
         assertThat(semaphore.tryAcquire(1L, TimeUnit.SECONDS), is(true));
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -95,7 +97,7 @@ public class DistributedSemaphoreTest
     @Test
     void shouldAcquireAndReleaseMultipleTimes() throws InterruptedException
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
         semaphore.acquire();
         semaphore.acquire();
         semaphore.acquire();
@@ -109,7 +111,7 @@ public class DistributedSemaphoreTest
     void shouldAcquireAndReleasePermitFromMultipleThreads()
             throws Throwable
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -154,7 +156,7 @@ public class DistributedSemaphoreTest
     void shouldTimeOutIfAcquiredByAnotherThread()
         throws InterruptedException
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -180,7 +182,7 @@ public class DistributedSemaphoreTest
     void shouldBeAbleToInterruptAcquireRequest() throws Throwable
         {
         CountDownLatch latch = new CountDownLatch(1);
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
         Thread thread = new Thread(() ->
                {
                try

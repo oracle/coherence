@@ -4,10 +4,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.semaphores;
+package com.oracle.coherence.concurrent;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
-import com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus;
+import com.oracle.coherence.concurrent.internal.SemaphoreStatus;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
@@ -15,7 +15,6 @@ import com.tangosol.net.Session;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
 
 /**
  * Factory methods for local and remote semaphore implementations.
@@ -26,16 +25,16 @@ import java.util.concurrent.Semaphore;
 public class Semaphores
     {
     /**
-     * Return a singleton instance of a {@link DistributedSemaphore} with a
+     * Return a singleton instance of a {@link RemoteSemaphore} with a
      * specified name and number of permits.
      *
      * @param sName   the cluster-wide, unique name of the semaphore
      * @param permits the initial number of permits
      *
-     * @return an instance of a {@link DistributedSemaphore} with a specified
+     * @return an instance of a {@link RemoteSemaphore} with a specified
      *         name and number of permits
      */
-    public static DistributedSemaphore remoteSemaphore(String sName, int permits)
+    public static RemoteSemaphore remoteSemaphore(String sName, int permits)
         {
         NamedMap<String, SemaphoreStatus> map = semaphoresMap();
         return f_mapSemaphores.compute(sName, (k, v) ->
@@ -56,7 +55,7 @@ public class Semaphores
                     throw new IllegalArgumentException("The semaphore " + sName + " with a different initial number of permits "
                                                        + existingInitialPermits + " already exists.");
                     }
-                return new DistributedSemaphore(k, permits, map);
+                return new RemoteSemaphore(k, permits, map);
                 }
 
             if (v.getInitialPermits() != permits)
@@ -69,22 +68,23 @@ public class Semaphores
         }
 
     /**
-     * Return a singleton instance of a local {@link Semaphore} with a
+     * Return a singleton instance of a {@link LocalSemaphore} with a
      * specified name and number of permits.
      *
      * @param sName   the process-wide, unique name of the semaphore
-     * @param permits the initial number of permits
+     * @param cPermits the initial number of permits
      *
      * @return an instance of a local semaphore with specified name and
      *         number of permits
      */
-    public static Semaphore localSemaphore(String sName, int permits)
+    public static LocalSemaphore localSemaphore(String sName, int cPermits)
         {
-        return f_mapLocalSemaphores.computeIfAbsent(sName, n -> new Semaphore(permits));
+        return f_mapLocalSemaphores.computeIfAbsent(sName, n -> new LocalSemaphore(cPermits));
         }
 
     /**
-     * Clears all {@code semaphores} caches (local and remote ones).
+     * Clears all {@code semaphores} caches (both local and remote).
+     * Used only for testing.
      */
     static void clear()
         {
@@ -95,10 +95,16 @@ public class Semaphores
 
     // ----- helper methods -------------------------------------------------
 
+    /**
+     * Return Coherence {@link NamedMap} for the remote semaphores.
+     *
+     * @return Coherence {@link NamedMap} for the remote semaphores
+     */
     public static NamedMap<String, SemaphoreStatus> semaphoresMap()
         {
         return session().getMap("semaphores");
         }
+
     /**
      * Return Coherence {@link Session} for the Semaphore module.
      *
@@ -122,10 +128,10 @@ public class Semaphores
      * A process-wide map of semaphores, to avoid creating multiple semaphore
      * instances (and thus sync objects) for the same server-side semaphore.
      */
-    private static final Map<String, DistributedSemaphore> f_mapSemaphores = new ConcurrentHashMap<>();
+    private static final Map<String, RemoteSemaphore> f_mapSemaphores = new ConcurrentHashMap<>();
 
     /**
      * A process-wide cache of named local semaphores.
      */
-    private static final Map<String, Semaphore> f_mapLocalSemaphores = new ConcurrentHashMap<>();
+    private static final Map<String, LocalSemaphore> f_mapLocalSemaphores = new ConcurrentHashMap<>();
     }

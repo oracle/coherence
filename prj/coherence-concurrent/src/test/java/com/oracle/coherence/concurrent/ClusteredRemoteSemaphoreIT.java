@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.semaphores;
+package com.oracle.coherence.concurrent;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 import com.oracle.bedrock.runtime.LocalPlatform;
@@ -59,7 +59,7 @@ import static org.hamcrest.Matchers.lessThan;
  *
  * @author Vaso Putica 2021.11.30
  */
-public class ClusteredDistributedSemaphoreIT
+public class ClusteredRemoteSemaphoreIT
         implements Serializable
     {
     @BeforeEach
@@ -166,7 +166,7 @@ public class ClusteredDistributedSemaphoreIT
      */
     Void shouldAcquireAndReleasePermits(String semaphoreName)
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName, 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName, 1);
         semaphore.acquireUninterruptibly();
         try
             {
@@ -204,7 +204,7 @@ public class ClusteredDistributedSemaphoreIT
 
     Void shouldAcquireAndReleaseMultiplePermits(String semaphoreName)
         {
-        DistributedSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName, 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName, 5);
         semaphore.acquireUninterruptibly(3);
         try
             {
@@ -533,7 +533,7 @@ public class ClusteredDistributedSemaphoreIT
     /**
      * A Bedrock remote callable that tries to acquire a permit within a given timeout.
      * <p>
-     * The result of the call to {@link DistributedSemaphore#tryAcquire()}} is returned.
+     * The result of the call to {@link RemoteSemaphore#tryAcquire()}} is returned.
      * If the permit was acquired it is immediately released.
      */
     static class TryAcquire
@@ -613,7 +613,7 @@ public class ClusteredDistributedSemaphoreIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedSemaphore distributedSemaphore = Semaphores.remoteSemaphore(f_sSemaphoreName, f_permits);
+            RemoteSemaphore distributedSemaphore = Semaphores.remoteSemaphore(f_sSemaphoreName, f_permits);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -710,8 +710,8 @@ public class ClusteredDistributedSemaphoreIT
         @Override
         public Void call()
             {
-            DistributedSemaphore semaphore = Semaphores.remoteSemaphore(f_sSemaphoreName, f_permits);
             Logger.info("Acquiring a permit from semaphore " + f_sSemaphoreName);
+            RemoteSemaphore semaphore = Semaphores.remoteSemaphore(f_sSemaphoreName, f_permits);
             if (f_acquirePermits == 1)
                 {
                 semaphore.acquireUninterruptibly();
@@ -956,7 +956,7 @@ public class ClusteredDistributedSemaphoreIT
      * under target/test-output. This is added as an option to the cluster
      * and client processes.
      */
-    static TestLogs logs = new TestLogs(ClusteredDistributedSemaphoreIT.class);
+    static TestLogs logs = new TestLogs(ClusteredRemoteSemaphoreIT.class);
 
     /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster made up of

@@ -56,12 +56,12 @@ import static org.junit.jupiter.api.Assertions.fail;
  *
  * @author lh
  */
-public abstract class AbstractClusteredDistributedCountDownLatchIT
+public abstract class AbstractClusteredRemoteCountDownLatchIT
         implements Serializable
     {
     // ----- constructors ---------------------------------------------------
 
-    AbstractClusteredDistributedCountDownLatchIT(CoherenceClusterExtension coherenceResource)
+    AbstractClusteredRemoteCountDownLatchIT(CoherenceClusterExtension coherenceResource)
         {
         m_coherenceResource = coherenceResource;
         }
@@ -148,8 +148,8 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         CoherenceClusterMember member4 = m_coherenceResource.getCluster().get("application-2");
 
         String                                                  sName     = "foo";
-        AbstractClusteredDistributedCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredDistributedCountDownLatchIT.LatchEventListener(sName);
-        AbstractClusteredDistributedCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredDistributedCountDownLatchIT.LatchEventListener(sName);
+        AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
+        AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
 
         // add the listener to listen for latch events on member1 and member2
         member1.addListener(listener1);
@@ -159,20 +159,20 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         int                        count         = 4;
         Random                     random        = Randoms.getRandom();
         int                        limit         = 5;
-        CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredDistributedCountDownLatchIT.AcquireLatch(sName, count));
+        CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
         listener1.awaitAcquired(Duration.ofSeconds(20));
 
         CompletableFuture<Long> currentCount = member1.submit(new GetCount(sName, count));
         assertThat(currentCount.get().intValue(), is(count));
 
-        AbstractClusteredDistributedCountDownLatchIT.CountDown countDown       = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
+        AbstractClusteredRemoteCountDownLatchIT.CountDown countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         CompletableFuture<Void>                        futureCountDown = member1.submit(countDown);
         listener1.awaitCountedDown(Duration.ofSeconds(20));
         assertThat(futureCountDown.get(), nullValue());
 
         try
             {
-            countDown = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count + 1, Duration.ofSeconds(1));
+            countDown = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count + 1, Duration.ofSeconds(1));
             member2.submit(countDown);
             listener2.awaitCountedDown(Duration.ofSeconds(10));
             fail("Should get TimeoutException.");
@@ -183,7 +183,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         currentCount = member4.submit(new GetCount(sName, count));
         assertThat(currentCount.get(), is(3L));
 
-        countDown       = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
+        countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         futureCountDown = member2.submit(countDown);
         listener2.awaitCountedDown(Duration.ofSeconds(20));
         assertThat(futureCountDown.get(), nullValue());
@@ -191,7 +191,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         currentCount = member3.submit(new GetCount(sName, count));
         assertThat(currentCount.get(), is(2L));
 
-        countDown = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
+        countDown = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         member3.submit(countDown);
 
         try
@@ -202,7 +202,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         catch (TimeoutException e)
             {}
 
-        countDown       = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
+        countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         futureCountDown = member4.submit(countDown);
 
         assertThat(futureCountDown.get(), nullValue());
@@ -228,8 +228,8 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
         String                                                  sName     = "foo";
-        AbstractClusteredDistributedCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredDistributedCountDownLatchIT.LatchEventListener(sName);
-        AbstractClusteredDistributedCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredDistributedCountDownLatchIT.LatchEventListener(sName);
+        AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
+        AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
 
         // add the listener to listen for latch events on all members
         member1.addListener(listener1);
@@ -239,11 +239,11 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         int                        count         = 3;
         Random                     random        = Randoms.getRandom();
         int                        limit         = 5;
-        CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredDistributedCountDownLatchIT.AcquireLatch(sName, count));
+        CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
 
         listener1.awaitAcquired(Duration.ofSeconds(20));
 
-        AbstractClusteredDistributedCountDownLatchIT.CountDown countDown       = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
+        AbstractClusteredRemoteCountDownLatchIT.CountDown countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         CompletableFuture<Void>                                futureCountDown = member1.submit(countDown);
 
         listener1.awaitCountedDown(Duration.ofSeconds(20));
@@ -255,7 +255,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         m_coherenceResource.getCluster().filter(member -> member.getLocalMemberUID().equals(member1.getLocalMemberUID())).relaunch();
         CoherenceClusterMember newMember1 = m_coherenceResource.getCluster().get("storage-1");
 
-        futureAcquire = newMember1.submit(new AbstractClusteredDistributedCountDownLatchIT.AcquireLatch(sName, count));
+        futureAcquire = newMember1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
         listener1.awaitAcquired(Duration.ofSeconds(10));
 
         currentCount = newMember1.submit(new GetCount(sName, count));
@@ -300,7 +300,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
     Void shouldAcquireAndCountDown() throws InterruptedException
         {
         Logger.info("In shouldAcquireAndCountDown()");
-        DistributedCountDownLatch latch     = Latches.countDownLatch("foo", 1);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("foo", 1);
         Semaphore                 semaphore = new Semaphore(0);
         Thread                    worker    = new Thread(new Runnable()
             {
@@ -336,8 +336,8 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
             throws Exception
         {
         String                                                  sName     = "foo";
-        AbstractClusteredDistributedCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredDistributedCountDownLatchIT.LatchEventListener(sName);
-        AbstractClusteredDistributedCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredDistributedCountDownLatchIT.LatchEventListener(sName);
+        AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
+        AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
 
         // Add the listeners to listen for latch events from the all members.
         member1.addListener(listener1);
@@ -345,10 +345,10 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
 
         // Acquire the latch and wait on first member
         int                        count         = 1;
-        CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredDistributedCountDownLatchIT.AcquireLatch(sName, count));
+        CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
         listener1.awaitAcquired(Duration.ofSeconds(20));
 
-        AbstractClusteredDistributedCountDownLatchIT.CountDown countDown       = new AbstractClusteredDistributedCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(1));
+        AbstractClusteredRemoteCountDownLatchIT.CountDown countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(1));
         CompletableFuture<Void>                        futureCountDown = member2.submit(countDown);
 
         listener2.awaitCountedDown(Duration.ofSeconds(20));
@@ -362,7 +362,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
     // ----- inner class: AcquireLatch --------------------------------------
 
     /**
-     * A Bedrock remote callable that acquires a {@link DistributedCountDownLatch}.
+     * A Bedrock remote callable that acquires a {@link RemoteCountDownLatch}.
      * <p>
      * This callable fires remote events to indicate when the acquire happened.
      */
@@ -386,7 +386,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         private final long f_count;
 
         /**
-         * Create an {@link DistributedCountDownLatch} callable.
+         * Create an {@link RemoteCountDownLatch} callable.
          *
          * @param sName     the name of the latch to acquire
          * @param count     the latch count
@@ -403,7 +403,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
             Logger.info("Acquiring latch " + f_sName);
             try
                 {
-                DistributedCountDownLatch latch = Latches.countDownLatch(f_sName, (int) f_count);
+                RemoteCountDownLatch latch = Latches.remoteCountDownLatch(f_sName, (int) f_count);
                 remoteChannel.raise(new LatchEvent(f_sName, LatchEventType.Acquired));
                 Logger.info("Acquired latch " + f_sName + " with count " + latch.getCount());
 
@@ -467,7 +467,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
             {
             try
                 {
-                DistributedCountDownLatch latch = Latches.countDownLatch(f_sName, f_nCount);
+                RemoteCountDownLatch latch = Latches.remoteCountDownLatch(f_sName, f_nCount);
 
                 if (latch != null)
                     {
@@ -503,7 +503,7 @@ public abstract class AbstractClusteredDistributedCountDownLatchIT
         @Override
         public Long call()
             {
-            return Latches.countDownLatch(f_sName, (int) f_lInitialCount).getCount();
+            return Latches.remoteCountDownLatch(f_sName, (int) f_lInitialCount).getCount();
             }
         }
 

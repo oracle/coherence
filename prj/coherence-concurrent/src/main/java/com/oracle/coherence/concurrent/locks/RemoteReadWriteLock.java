@@ -128,7 +128,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author Aleks Seovic  2021.10.27
  */
-public class DistributedReadWriteLock
+public class RemoteReadWriteLock
         implements ReadWriteLock
     {
     // ---- constructors ----------------------------------------------------
@@ -139,7 +139,7 @@ public class DistributedReadWriteLock
      * @param sName the name of the lock
      * @param locks the {@link NamedMap} that stores this lock's state
      */
-    DistributedReadWriteLock(String sName, NamedMap<String, ReadWriteLockHolder> locks)
+    RemoteReadWriteLock(String sName, NamedMap<String, ReadWriteLockHolder> locks)
         {
         f_sync       = new Sync(sName, locks);
         f_readerLock = new ReadLock(this);
@@ -176,7 +176,7 @@ public class DistributedReadWriteLock
     // ---- inner class: Sync -----------------------------------------------
 
     /**
-     * Synchronization implementation for {@link DistributedReadWriteLock}.
+     * Synchronization implementation for {@link RemoteReadWriteLock}.
      */
     static class Sync
             extends AbstractQueuedSynchronizer
@@ -599,7 +599,7 @@ public class DistributedReadWriteLock
     // ---- inner class: ReadLock -------------------------------------------
 
     /**
-     * The lock returned by method {@link DistributedReadWriteLock#readLock}.
+     * The lock returned by method {@link RemoteReadWriteLock#readLock}.
      */
     public static class ReadLock
             implements Lock
@@ -613,7 +613,7 @@ public class DistributedReadWriteLock
          *
          * @throws NullPointerException if the lock is null
          */
-        protected ReadLock(DistributedReadWriteLock lock)
+        protected ReadLock(RemoteReadWriteLock lock)
             {
             f_sync = lock.f_sync;
             }
@@ -802,7 +802,7 @@ public class DistributedReadWriteLock
     // ---- inner class: WriteLock ------------------------------------------
 
     /**
-     * The lock returned by method {@link DistributedReadWriteLock#writeLock}.
+     * The lock returned by method {@link RemoteReadWriteLock#writeLock}.
      */
     public static class WriteLock
             implements Lock
@@ -816,7 +816,7 @@ public class DistributedReadWriteLock
          *
          * @throws NullPointerException if the lock is null
          */
-        protected WriteLock(DistributedReadWriteLock lock)
+        protected WriteLock(RemoteReadWriteLock lock)
             {
             f_sync = lock.f_sync;
             }

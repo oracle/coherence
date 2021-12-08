@@ -9,7 +9,7 @@ package com.oracle.coherence.concurrent.locks.internal.cdi;
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
 
-import com.oracle.coherence.concurrent.locks.DistributedReadWriteLock;
+import com.oracle.coherence.concurrent.locks.RemoteReadWriteLock;
 import com.oracle.coherence.concurrent.locks.Locks;
 
 import java.util.concurrent.locks.ReadWriteLock;
@@ -33,67 +33,47 @@ class ReadWriteLockProducer
         extends AbstractLockProducer
     {
     /**
-     * Returns a local {@link ReadWriteLock} for the provided {@link InjectionPoint}.
+     * Returns either a local or remote {@link ReadWriteLock} for the provided {@link InjectionPoint}.
+     * <p>
+     * If the injection point is annotated with the {@link Remote} qualifier a remote
+     * {@link ReadWriteLock} will be returned, otherwise a local {@link ReadWriteLock}
+     * will be returned.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link ReadWriteLock} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    ReadWriteLock getUnqualifiedReadWriteLock(InjectionPoint ip)
-        {
-        return getReentrantReadWriteLock(ip);
-        }
-
-    /**
-     * Returns a local {@link ReadWriteLock} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link ReadWriteLock} for the provided {@link InjectionPoint}
-     */
-    @Produces
-    @Name("")
-    ReadWriteLock getReadWriteLock(InjectionPoint ip)
-        {
-        return getReentrantReadWriteLock(ip);
-        }
-
-    /**
-     * Returns a distributed {@link ReadWriteLock} for the provided {@link InjectionPoint}.
-     *
-     * @param ip  the CDI {@link InjectionPoint}
-     *
-     * @return a local {@link ReadWriteLock} for the provided {@link InjectionPoint}
+     * @return a local or remote {@link ReadWriteLock} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
     @Remote
-    ReadWriteLock getReadWriteLockWithRemoteAnnotation(InjectionPoint ip)
+    ReadWriteLock getReadWriteLock(InjectionPoint ip)
         {
-        return getDistributedReadWriteLock(ip);
+        if (ip.getQualifiers().contains(Remote.Literal.INSTANCE))
+            {
+            return getRemoteReadWriteLock(ip);
+            }
+        return getReentrantReadWriteLock(ip);
         }
 
     /**
-     * Returns a local {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}.
+     * Returns an {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}
+     * @return a {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}
      */
     @Produces
-    @Typed(ReentrantReadWriteLock.class)
     ReentrantReadWriteLock getUnqualifiedReentrantReadWriteLock(InjectionPoint ip)
         {
         return getReentrantReadWriteLock(ip);
         }
 
     /**
-     * Returns a local {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}.
+     * Returns a {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}
+     * @return a {@link ReentrantReadWriteLock} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
@@ -104,30 +84,30 @@ class ReadWriteLockProducer
         }
 
     /**
-     * Returns a local {@link DistributedReadWriteLock} for the provided {@link InjectionPoint}.
+     * Returns an {@link RemoteReadWriteLock} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a local {@link DistributedReadWriteLock} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteReadWriteLock} for the provided {@link InjectionPoint}
      */
     @Produces
-    @Typed(DistributedReadWriteLock.class)
-    DistributedReadWriteLock getUnqualifiedDistributedReadWriteLock(InjectionPoint ip)
+    @Typed(RemoteReadWriteLock.class)
+    RemoteReadWriteLock getUnqualifiedRemoteReadWriteLock(InjectionPoint ip)
         {
-        return getDistributedReadWriteLock(ip);
+        return getRemoteReadWriteLock(ip);
         }
 
     /**
-     * Returns a {@link DistributedReadWriteLock} for the provided {@link InjectionPoint}.
+     * Returns a {@link RemoteReadWriteLock} for the provided {@link InjectionPoint}.
      *
      * @param ip  the CDI {@link InjectionPoint}
      *
-     * @return a {@link DistributedReadWriteLock} for the provided {@link InjectionPoint}
+     * @return a {@link RemoteReadWriteLock} for the provided {@link InjectionPoint}
      */
     @Produces
     @Name("")
-    @Typed(DistributedReadWriteLock.class)
-    DistributedReadWriteLock getDistributedReadWriteLock(InjectionPoint ip)
+    @Typed(RemoteReadWriteLock.class)
+    RemoteReadWriteLock getRemoteReadWriteLock(InjectionPoint ip)
         {
         return Locks.remoteReadWriteLock(getName(ip));
         }

@@ -26,7 +26,7 @@ For example, you will use factory methods within `Atomics` class to get instance
 
 === Local vs Remote
 
-In many cases the factory classes will allow you to get both the *local* and the *remote* instances of various constructs. For example, `Locks.localLock` will give you an instance of a standard `java.util.concurrent.locks.ReentrantLock`, while `Locks.remoteLock` will return an instance of a `DistributedLock`.
+In many cases the factory classes will allow you to get both the *local* and the *remote* instances of various constructs. For example, `Locks.localLock` will give you an instance of a standard `java.util.concurrent.locks.ReentrantLock`, while `Locks.remoteLock` will return an instance of a `RemoteLock`.
 
 The main advantage of using factory classes to construct both the local and the remote lock instances (in this case) is that it allows you to name local locks the same way you have to name distributed locks: calling `Locks.localLock("foo")` will always return the same `Lock` instance, as the `Locks` class internally caches both the local and the remote instances it created. Of course, in the case of remote locks, every locally cached remote lock instance is ultimately backed by a shared lock instance somewhere in the cluster, which is used to synchronize lock state across the processes.
 
@@ -444,9 +444,9 @@ Unlike local JDK implementations, the classes in this package use cluster member
 [#exclusive-locks]
 ==== Exclusive Locks
 
-A `DistributedLock` class provides an implementation of a `Lock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the lock at any given time.
+A `RemoteLock` class provides an implementation of a `Lock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the lock at any given time.
 
-To obtain an instance of a `DistributedLock`, call `Locks.remoteLock` factory method:
+To obtain an instance of a `RemoteLock`, call `Locks.remoteLock` factory method:
 
 ```java
 Lock foo = Locks.remoteLock("foo");
@@ -473,9 +473,9 @@ finally {
 [#read-write-locks]
 ==== Read/Write Locks
 
-A `DistributedReadWriteLock` class provides an implementation of a `ReadWriteLock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the write lock at any given time, while allowing multiple concurrent readers.
+A `RemoteReadWriteLock` class provides an implementation of a `ReadWriteLock` interface and allows you to ensure that only one thread on one member is running critical section guarded by the write lock at any given time, while allowing multiple concurrent readers.
 
-To obtain an instance of a `DistributedReadWriteLock`, call `Locks.remoteReadWriteLock` factory method:
+To obtain an instance of a `RemoteReadWriteLock`, call `Locks.remoteReadWriteLock` factory method:
 
 ```java
 ReadWriteLock bar = Locks.remoteReadWriteLock("bar");
@@ -546,7 +546,7 @@ To obtain an instance of a `DistributedCoundDownLatch`, call `Latches.remoteCoun
 ```java
 DistributedCoundDownLatch foo = Latches.remoteCountDownLatch("foo", 5);     // <1>
 ```
-<1> create an instance of a `DistributedCountDownLatch` with the initial count of 5
+<1> create an instance of a `RemoteCountDownLatch` with the initial count of 5
 
 Just like with `Atomics` and `Locks`, you can also obtain a local `CountDownLatch` instance from the `Latches` class, with will simply return an instance of a standard `java.util.concurrent.CountDownLatch`, by calling `remoteCountDownLatch` factory method:
 
@@ -560,14 +560,14 @@ Once you have a `DistributedCoundDownLatch` instance, you can use it as you norm
 [#semaphore]
 ==== Semaphore
 
-A `DistributedSemaphore` class provides a distributed implementation of a `Semaphore`, and allows any cluster member to acquire and release permits from the same semaphore instance.
+A `RemoteSemaphore` class provides a distributed implementation of a `Semaphore`, and allows any cluster member to acquire and release permits from the same semaphore instance.
 
-To obtain an instance of a `DistributedSemaphore`, call `Semaphores.remoteSemaphore` factory method:
+To obtain an instance of a `RemoteSemaphore`, call `Semaphores.remoteSemaphore` factory method:
 
 ```java
 DistributedSemaphore foo = Semaphores.remoteSemaphore("foo", 5);            // <1>
 ```
-<1> create an instance of a remote `DistributedSemaphore` with 5 permits
+<1> create an instance of a remote `RemoteSemaphore` with 5 permits
 
 Just like with `Atomics` and `Locks`, you can also obtain a local `Semaphore` instance from the `Semaphores` class, with will simply return an instance of a standard `java.util.concurrent.Semaphore`, by calling `localSemaphore` factory method:
 
@@ -576,7 +576,7 @@ Semaphore foo = Semaphores.localSemaphore("foo");                           // <
 ```
 <1> create an instance of a local `Semaphore` with 0 permits
 
-Once you have a `DistributedSemaphore` instance, you can use it as you normally would, by calling `release` and `acquire` methods on it.
+Once you have a `RemoteSemaphore` instance, you can use it as you normally would, by calling `release` and `acquire` methods on it.
 
 [#cdi-latches-semaphores]
 ==== CDI Support
@@ -607,8 +607,8 @@ private Semaphore localSemaphoreBar;                   // <3>
 private DistributedSemaphore remoteSemaphoreBar;       // <4>
 ```
 <1> inject an instance of a local `CountDownLatch` with the initial count of five
-<2> inject an instance of a remote `DistributedCountDownLatch` with the initial count of ten
+<2> inject an instance of a remote `RemoteCountDownLatch` with the initial count of ten
 <3> inject an instance of a local `Semaphore` with zero permits available
-<4> inject an instance of a remote `DistributedSemaphore` with one permit available
+<4> inject an instance of a remote `RemoteSemaphore` with one permit available
 
 Once a latch or a semaphore instance is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Latches` or `Semaphores` factory classes.

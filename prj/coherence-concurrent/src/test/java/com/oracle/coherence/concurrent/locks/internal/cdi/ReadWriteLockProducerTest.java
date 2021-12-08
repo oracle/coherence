@@ -12,7 +12,7 @@ import com.oracle.coherence.cdi.Remote;
 
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
-import com.oracle.coherence.concurrent.locks.DistributedReadWriteLock;
+import com.oracle.coherence.concurrent.locks.RemoteReadWriteLock;
 
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -30,6 +30,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 
@@ -56,11 +57,11 @@ public class ReadWriteLockProducerTest
     @Test
     void testLocalInjection()
         {
-        assertThat(bean.getLocal(), is(bean.getTypedLocal()));
+        assertThat(bean.getLocal(), sameInstance(bean.getTypedLocal()));
         assertThat(bean.getLocal().writeLock().tryLock(), is(true));
         assertThat(bean.getTypedLocal().isWriteLocked(), is(true));
         bean.getLocal().writeLock().unlock();
-        
+
         assertThat(bean.getLocal().readLock().tryLock(), is(true));
         assertThat(bean.getTypedLocal().getReadHoldCount(), is(1));
         assertThat(bean.getTypedLocal().getReadLockCount(), is(1));
@@ -69,13 +70,29 @@ public class ReadWriteLockProducerTest
         }
 
     @Test
+    void testLocalNamedInjection()
+        {
+        assertThat(bean.getLocalNamed(), sameInstance(bean.getTypedLocalNamed()));
+        assertThat(bean.getLocalNamed(), sameInstance(bean.getLocalUnqualified()));
+        assertThat(bean.getLocalNamed().writeLock().tryLock(), is(true));
+        assertThat(bean.getTypedLocalNamed().isWriteLocked(), is(true));
+        bean.getLocalUnqualified().writeLock().unlock();
+
+        assertThat(bean.getLocalNamed().readLock().tryLock(), is(true));
+        assertThat(bean.getTypedLocalNamed().getReadHoldCount(), is(1));
+        assertThat(bean.getLocalUnqualified().getReadLockCount(), is(1));
+        bean.getLocalNamed().readLock().unlock();
+        assertThat(bean.getTypedLocalNamed().getReadLockCount(), is(0));
+        }
+
+    @Test
     void testRemoteInjection()
         {
-        assertThat(bean.getRemote(), is(bean.getTypedRemote()));
+        assertThat(bean.getRemote(), sameInstance(bean.getTypedRemote()));
         assertThat(bean.getRemote().writeLock().tryLock(), is(true));
         assertThat(bean.getTypedRemote().isWriteLocked(), is(true));
         bean.getRemote().writeLock().unlock();
-        
+
         assertThat(bean.getRemote().readLock().tryLock(), is(true));
         assertThat(bean.getTypedRemote().getReadHoldCount(), is(1));
         assertThat(bean.getTypedRemote().getReadLockCount(), is(1));
@@ -83,27 +100,78 @@ public class ReadWriteLockProducerTest
         assertThat(bean.getTypedRemote().getReadLockCount(), is(0));
         }
 
+    @Test
+    void testRemoteNamedInjection()
+        {
+        assertThat(bean.getRemoteNamed(), sameInstance(bean.getTypedRemoteNamed()));
+        assertThat(bean.getRemoteNamed(), sameInstance(bean.getTypedRemoteUnqualified()));
+        assertThat(bean.getRemoteNamed().writeLock().tryLock(), is(true));
+        assertThat(bean.getTypedRemoteNamed().isWriteLocked(), is(true));
+        bean.getTypedRemoteUnqualified().writeLock().unlock();
+
+        assertThat(bean.getRemoteNamed().readLock().tryLock(), is(true));
+        assertThat(bean.getTypedRemoteNamed().getReadHoldCount(), is(1));
+        assertThat(bean.getTypedRemoteUnqualified().getReadLockCount(), is(1));
+        bean.getRemoteNamed().readLock().unlock();
+        assertThat(bean.getTypedRemoteNamed().getReadLockCount(), is(0));
+        }
+
+    // ----- inner class ReadWriteLockBean ---------------------------------
+
     @ApplicationScoped
     static class ReadWriteLockBean
         {
         @Inject
-        ReadWriteLock local;
-
-        @Inject
-        @Remote
-        ReadWriteLock remote;
+        ReadWriteLock local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         ReentrantReadWriteLock typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        ReadWriteLock localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        ReentrantReadWriteLock typedLocalNamed;
+
+        @Inject
+        ReentrantReadWriteLock typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        ReadWriteLock remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        ReadWriteLock remoteNamed;
+
+        @Inject
         @Name("remote")
-        DistributedReadWriteLock typedRemote;
+        RemoteReadWriteLock typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteReadWriteLock typedRemoteNamed;
+
+        @Inject
+        RemoteReadWriteLock typedRemoteUnqualified;
 
         public ReadWriteLock getLocal()
             {
             return local;
+            }
+
+        public ReadWriteLock getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public ReadWriteLock getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public ReadWriteLock getRemote()
@@ -116,9 +184,29 @@ public class ReadWriteLockProducerTest
             return typedLocal;
             }
 
-        public DistributedReadWriteLock getTypedRemote()
+        public RemoteReadWriteLock getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public ReentrantReadWriteLock getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public ReentrantReadWriteLock getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteReadWriteLock getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteReadWriteLock getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

@@ -6,10 +6,10 @@
  */
 package com.oracle.coherence.concurrent.internal;
 
+import com.oracle.coherence.concurrent.Semaphores;
 import com.oracle.coherence.concurrent.locks.Locks;
 import com.oracle.coherence.concurrent.locks.internal.ExclusiveLockHolder;
 import com.oracle.coherence.concurrent.locks.internal.ReadWriteLockHolder;
-import com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
@@ -36,19 +36,15 @@ import com.tangosol.util.processor.AsynchronousProcessor;
 import java.util.Collections;
 import java.util.Set;
 
-import static com.oracle.coherence.concurrent.semaphores.Semaphores.semaphoresMap;
-
 /**
- * This LockHolderCleaner is triggered by members leaving the service or partitions
- * arriving at this member. In the former case we know which LockHolders need to
- * be removed whereas on primary transfer we make sure all lock holders represent
- * valid members.
+ * This Cleaner is triggered by members leaving the service or partitions
+ * arriving at this member, and is used to release locks and semaphore permits
+ * held by the departed members.
  *
  * @author Harvey Raja  2021.08.19
  * @author Aleks Seovic  2021.10.26
  */
 public class Cleaner
-        extends Locks
         implements MemberListener, EventDispatcherAwareInterceptor<TransferEvent>
     {
     // ----- EventInterceptor methods ---------------------------------------
@@ -117,15 +113,15 @@ public class Cleaner
                 {
                 PartitionSet partsOwned = service.getOwnedPartitions(memberThis);
 
-                exclusiveLocksMap().async().invokeAll(
+                Locks.exclusiveLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new ExclusiveLockHolder.RemoveLocks(memberLeft.getUid()));
 
-                readWriteLocksMap().async().invokeAll(
+                Locks.readWriteLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new ReadWriteLockHolder.RemoveLocks(memberLeft.getUid()));
 
-                semaphoresMap().async().invokeAll(
+                Semaphores.semaphoresMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
                         new SemaphoreStatus.RemovePermits(memberLeft.getUid()));
                 }
@@ -184,13 +180,13 @@ public class Cleaner
                 m_partsCheck = null; // barrier done last
                 }
 
-            exclusiveLocksMap().async().invokeAll(
+            Locks.exclusiveLocksMap().async().invokeAll(
                     new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
                     new ExclusiveLockHolder.RemoveLocks(null));
-            readWriteLocksMap().async().invokeAll(
+            Locks.readWriteLocksMap().async().invokeAll(
                     new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
                     new ReadWriteLockHolder.RemoveLocks(null));
-            semaphoresMap().async().invokeAll(
+            Semaphores.semaphoresMap().async().invokeAll(
                     new PartitionedFilter<>(AlwaysFilter.INSTANCE(), parts),
                     new SemaphoreStatus.RemovePermits(null));
             }

@@ -71,7 +71,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Aleks Seovic  2021.10.19
  * @since 21.12
  */
-public class DistributedLock
+public class RemoteLock
         implements Lock
     {
     /**
@@ -80,7 +80,7 @@ public class DistributedLock
      * @param sName  the name of the lock
      * @param locks  the {@link NamedMap} that stores this lock's state
      */
-    DistributedLock(String sName, NamedMap<String, ExclusiveLockHolder> locks)
+    RemoteLock(String sName, NamedMap<String, ExclusiveLockHolder> locks)
         {
         f_sync = new Sync(sName, locks);
         locks.addMapListener(new SimpleMapListener<String, ExclusiveLockHolder>()
