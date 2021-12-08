@@ -120,6 +120,11 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-concurrent</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-helidon-client</artifactId>
         <version>${project.version}</version>
       </dependency>
