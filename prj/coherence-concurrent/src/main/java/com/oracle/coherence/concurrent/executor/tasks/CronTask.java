@@ -9,7 +9,6 @@ package com.oracle.coherence.concurrent.executor.tasks;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 
@@ -17,6 +16,7 @@ import com.oracle.coherence.concurrent.executor.util.CronPattern;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,15 +27,15 @@ import java.io.ObjectOutputStream;
 import java.time.Duration;
 
 /**
- * A {@link PortableTask} that can run repeatedly at scheduled time, like a crontab job.
+ * A {@link Task} that can run repeatedly at scheduled time, like a crontab job.
  *
- * @param <T>  the type of the {@link PortableTask}
+ * @param <T>  the type of the {@link Task}
  *
  * @author lh, bo
  * @since 21.12
  */
 public class CronTask<T>
-        implements PortableTask<T>, TaskExecutorService.Registration.Option
+        implements Task<T>, PortableObject, TaskExecutorService.Registration.Option
     {
     // ----- constructors ---------------------------------------------------
 
@@ -129,7 +129,7 @@ public class CronTask<T>
 
             context.setResult(result);
 
-            m_task = (PortableTask<T>) clone(m_origTask);
+            m_task = (Task<T>) clone(m_origTask);
 
             }
         catch (Yield yield)
@@ -153,9 +153,9 @@ public class CronTask<T>
     public void readExternal(PofReader in)
         throws IOException
         {
-        m_origTask = in.readObject(0);
-        m_task = in.readObject(1);
-        sCronPattern = in.readString(2);
+        m_origTask               = in.readObject(0);
+        m_task                   = in.readObject(1);
+        sCronPattern             = in.readString(2);
         m_ldtNextExecutionMillis = in.readLong(3);
         }
 
@@ -166,7 +166,7 @@ public class CronTask<T>
         out.writeObject(0, m_origTask);
         out.writeObject(1, m_task);
         out.writeString(2, sCronPattern);
-        out.writeLong(3, m_ldtNextExecutionMillis);
+        out.writeLong(3,   m_ldtNextExecutionMillis);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -258,17 +258,17 @@ public class CronTask<T>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The original {@link PortableTask}.
+     * The original {@link Task}.
      */
     protected Task<T> m_origTask;
 
     /**
-     * The actual {@link PortableTask}.
+     * The actual {@link Task}.
      */
     protected Task<T> m_task;
 
     /**
-     * The crontab scheduling pattern for the {@link PortableTask}.
+     * The crontab scheduling pattern for the {@link Task}.
      */
     protected String sCronPattern;
 

@@ -6,22 +6,40 @@
  */
 package executor.common;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
+import com.oracle.coherence.concurrent.executor.Task;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
+import java.io.IOException;
 
 /**
- * A {@link PortableTask} that returns <code>null</code>.
+ * A {@link Task} that returns <code>null</code>.
  *
  * @author bo
  * @since 21.12
  */
 public class NullTask<T>
-        implements PortableTask<T>
+        implements Task<T>, PortableObject
     {
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @Override
     public T execute(Context<T> context)
         {
         return null;
+        }
+
+    // ----- PortableObject interface ---------------------------------------
+
+    @Override
+    public void readExternal(PofReader in) throws IOException
+        {
+        }
+
+    @Override
+    public void writeExternal(PofWriter out) throws IOException
+        {
         }
     }

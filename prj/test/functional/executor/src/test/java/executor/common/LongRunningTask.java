@@ -7,10 +7,12 @@
 package executor.common;
 
 import com.oracle.coherence.common.base.Logger;
-import com.oracle.coherence.concurrent.executor.PortableTask;
+
 import com.oracle.coherence.concurrent.executor.Task;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
@@ -18,12 +20,12 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * A {@link PortableTask} that runs for at least a specified {@link Duration}.
+ * A {@link Task} that runs for at least a specified {@link Duration}.
  *
  * @since 21.12
  */
 public class LongRunningTask
-        implements PortableTask<String>
+        implements Task<String>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -58,7 +60,7 @@ public class LongRunningTask
         m_nId      = id;
         }
 
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @Override
     public String execute(Context<String> context)
@@ -121,7 +123,7 @@ public class LongRunningTask
     protected Duration m_duration;
 
     /**
-     * The {@link PortableTask} ID.
+     * The {@link Task} ID.
      */
     protected int m_nId;
     }

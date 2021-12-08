@@ -6,11 +6,11 @@
  */
 package executor.common;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
@@ -21,7 +21,7 @@ import java.io.IOException;
  * @since 21.12
  */
 public class ExceptionTask<T>
-        implements PortableTask<T>
+        implements Task<T>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -50,7 +50,7 @@ public class ExceptionTask<T>
         return new RuntimeException("Exception Task [" + m_value + "]");
         }
 
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @Override
     public T execute(Context<T> context)

@@ -19,7 +19,6 @@ import com.oracle.coherence.concurrent.executor.AbstractCollector;
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
-import com.oracle.coherence.concurrent.executor.PortableTask;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 
@@ -2076,7 +2075,7 @@ public abstract class AbstractTaskExecutorServiceTests
      * "started".
      */
     public static class SleeperTask
-            implements PortableTask<String>
+            implements Task<String>, PortableObject
         {
         // ----- constructors -----------------------------------------------
         /*
@@ -2086,7 +2085,7 @@ public abstract class AbstractTaskExecutorServiceTests
             {
             }
 
-        // ----- PortableTask interface -------------------------------------
+        // ----- Task interface ---------------------------------------------
 
         @Override
         public String execute(Context<String> context)
@@ -2098,6 +2097,8 @@ public abstract class AbstractTaskExecutorServiceTests
 
             return "finished";
             }
+
+        // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in)
@@ -2353,7 +2354,7 @@ public abstract class AbstractTaskExecutorServiceTests
      * A {@link Task} that sets results multiple times during execution.
      */
     public static class MultipleResultsTask
-            implements PortableTask<Integer>
+            implements Task<Integer>, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -2375,7 +2376,7 @@ public abstract class AbstractTaskExecutorServiceTests
             this.cResults = cResults;
             }
 
-        // ----- PortableTask interface -------------------------------------
+        // ----- Task interface ---------------------------------------------
 
         @Override
         public Integer execute(Context<Integer> context)
@@ -2386,6 +2387,8 @@ public abstract class AbstractTaskExecutorServiceTests
                 }
             return cResults;
             }
+        
+        // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in)
@@ -2412,9 +2415,9 @@ public abstract class AbstractTaskExecutorServiceTests
      * A {@link Task} that updates its {@link Properties}.
      */
     public static class UpdatePropertiesTask
-            implements PortableTask<String>
+            implements Task<String>, PortableObject
         {
-        // ----- PortableTaskInterface --------------------------------------
+        // ----- Task interface ---------------------------------------------
 
         @Override
         public String execute(Context<String> context) throws Exception
@@ -2428,6 +2431,18 @@ public abstract class AbstractTaskExecutorServiceTests
 
             return "finished";
             }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     // ----- inner class: CountingTask --------------------------------------
@@ -2436,9 +2451,9 @@ public abstract class AbstractTaskExecutorServiceTests
      * A {@link Task} that keeps track of the execution count through task {@link Properties}.
      */
     public static class CountingTask
-            implements PortableTask<Integer>
+            implements Task<Integer>, PortableObject
         {
-        // ----- PortableTask interface -------------------------------------
+        // ----- Task interface ---------------------------------------------
 
         @Override
         public Integer execute(Context<Integer> context)
@@ -2454,6 +2469,18 @@ public abstract class AbstractTaskExecutorServiceTests
             System.out.println("CountingTask has executed: " + count + " times.");
             return count;
             }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     // ----- inner class: GetTaskIdTask -------------------------------------
@@ -2462,9 +2489,9 @@ public abstract class AbstractTaskExecutorServiceTests
      * A {@link Task} that returns the task id obtained from the {@link Context}.
      */
     public static class GetTaskIdTask
-            implements PortableTask<String>
+            implements Task<String>, PortableObject
         {
-        // ----- PortableTask interface -------------------------------------
+        // ----- Task interface ---------------------------------------------
 
         @Override
         public String execute(Context<String> context)
@@ -2481,6 +2508,18 @@ public abstract class AbstractTaskExecutorServiceTests
 
             return sResult;
             }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     // ----- GetExecutorIdTask ----------------------------------------------
@@ -2489,9 +2528,9 @@ public abstract class AbstractTaskExecutorServiceTests
      * A {@link Task} that returns the {@link Executor} id obtained from the {@link Context}.
      */
     public static class GetExecutorIdTask
-            implements PortableTask<String>
+            implements Task<String>, PortableObject
         {
-        // ----- PortableTask interface -------------------------------------
+        // ----- Task interface ---------------------------------------------
 
         @Override
         public String execute(Context<String> context)
@@ -2507,6 +2546,18 @@ public abstract class AbstractTaskExecutorServiceTests
                                + ']');
 
             return sResult;
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
             }
         }
 

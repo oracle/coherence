@@ -7,18 +7,18 @@
 
 package com.oracle.coherence.concurrent.executor.tasks.internal;
 
-import com.oracle.coherence.concurrent.executor.PortableTask;
-
 import com.oracle.coherence.concurrent.executor.Task;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
 import java.util.concurrent.Callable;
 
 /**
- * A {@link PortableTask} that calls a {@link Callable}.
+ * A {@link Task} that calls a {@link Callable}.
  *
  * @param <T>  the type of result produced by the {@link Task}
  *
@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
  * @since 21.12
  */
 public class CallableTask<T>
-        implements PortableTask<T>
+        implements Task<T>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -88,7 +88,7 @@ public class CallableTask<T>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The value for the {@link PortableTask}.
+     * The value for the {@link Task}.
      */
     protected Callable<T> m_callable;
     }

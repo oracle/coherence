@@ -10,6 +10,7 @@ import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 
 import java.io.IOException;
 
@@ -17,13 +18,13 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * A {@link PortableTask} that runs for at least a specified {@link Duration},
+ * A {@link Task} that runs for at least a specified {@link Duration},
  * returning the resuming / recovering status when completed.
  *
  * @since 21.12
  */
 public class RecoveringTask
-        implements PortableTask<Boolean>
+        implements Task<Boolean>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -45,7 +46,7 @@ public class RecoveringTask
         m_duration = duration;
         }
 
-    // ----- PortableTask interface -----------------------------------------
+    // ----- Task interface -------------------------------------------------
 
     @Override
     public Boolean execute(Context<Boolean> context)

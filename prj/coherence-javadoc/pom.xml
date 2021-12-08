@@ -584,21 +584,17 @@
                     <exclude>com/oracle/coherence/concurrent/executor/ExecutionPlan.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategy.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategyBuilder.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ExecutorsHelper.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/MutableExecutionPlan.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/NamedClusteredExecutorService.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/PortableAbstractProcessor.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/PortableCollector.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/PortableTask.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/RecoveringTask.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/RemoteExecutorService.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/Result.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/StandardExecutionStrategy.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/Task.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskCollectors.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskExecutorService.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskProperties.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ThreadFactories.java</exclude>
 
                     <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
                     <exclude>com/tangosol/util/CommandLine.java</exclude>
