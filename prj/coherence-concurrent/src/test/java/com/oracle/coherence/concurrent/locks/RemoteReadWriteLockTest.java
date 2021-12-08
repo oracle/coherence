@@ -29,11 +29,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Tests for {@link DistributedReadWriteLock} class.
+ * Tests for {@link RemoteReadWriteLock} class.
  *
  * @author Aleks Seovic  2021.11.13
  */
-public class DistributedReadWriteLockTest
+public class RemoteReadWriteLockTest
     {
     @BeforeAll
     static void startServer()
@@ -58,7 +58,7 @@ public class DistributedReadWriteLockTest
         {
         // sanity check: let's make sure the lock is not locked, and there are
         // no pending locks on it
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.isReadLocked(), is(false));
         assertThat(lock.isWriteLocked(), is(false));
         assertThat(lock.getReadHoldCount(), is(0));
@@ -129,7 +129,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLock()
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.writeLock().lock();
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -143,7 +143,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLock()
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.readLock().lock();
         System.out.println("Read lock acquired by " + Thread.currentThread());
         assertThat(lock.isReadLocked(), is(true));
@@ -157,7 +157,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLockInterruptibly() throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.writeLock().lockInterruptibly();
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -171,7 +171,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLockInterruptibly() throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.readLock().lockInterruptibly();
 
         System.out.println("Read lock acquired by " + Thread.currentThread());
@@ -186,7 +186,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLockWithoutBlocking()
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.writeLock().tryLock(), is(true));
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -200,7 +200,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLockWithoutBlocking()
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.readLock().tryLock(), is(true));
         System.out.println("Read lock acquired by " + Thread.currentThread());
         assertThat(lock.isReadLocked(), is(true));
@@ -214,7 +214,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLockWithTimeout() throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.writeLock().tryLock(1L, TimeUnit.SECONDS), is(true));
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -228,7 +228,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLockWithTimeout() throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         assertThat(lock.readLock().tryLock(1L, TimeUnit.SECONDS), is(true));
         System.out.println("Read lock acquired by " + Thread.currentThread());
         assertThat(lock.isReadLocked(), is(true));
@@ -242,7 +242,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReentrantWriteLock()
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.writeLock().lock();
         lock.writeLock().lock();
         lock.writeLock().lock();
@@ -263,7 +263,7 @@ public class DistributedReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReentrantReadLock()
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         lock.readLock().lock();
         lock.readLock().lock();
         lock.readLock().lock();
@@ -286,7 +286,7 @@ public class DistributedReadWriteLockTest
     void shouldAcquireAndReleaseWriteLockInOrderFromMultipleThreads()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -339,7 +339,7 @@ public class DistributedReadWriteLockTest
     void shouldAcquireAndReleaseReadLockFromMultipleThreads()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -382,7 +382,7 @@ public class DistributedReadWriteLockTest
     void shouldTimeOutWriteLockIfWriteLockIsHeldByAnotherThread()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -410,7 +410,7 @@ public class DistributedReadWriteLockTest
     void shouldTimeOutReadLockIfWriteLockIsHeldByAnotherThread()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -438,7 +438,7 @@ public class DistributedReadWriteLockTest
     void shouldBeAbleToInterruptWriteLockRequest()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
 
         Thread thread = new Thread(() ->
                {
@@ -475,7 +475,7 @@ public class DistributedReadWriteLockTest
     void shouldBeAbleToInterruptReadLockRequest()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         Thread thread = new Thread(() ->
                {
                try
@@ -512,7 +512,7 @@ public class DistributedReadWriteLockTest
     void shouldBeAbleToDowngradeWriteLockToReadLock()
             throws InterruptedException
         {
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 

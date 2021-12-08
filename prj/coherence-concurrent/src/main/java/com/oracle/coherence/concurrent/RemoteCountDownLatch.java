@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
- * A distributed CountDownLatch with the same basic behavior and semantics
+ * A distributed count down latch with the same basic behavior and semantics
  * as the Java {@link CountDownLatch} class, but uses the {@link NamedCache}
  * to support for synchronization aid that allows one or more threads across
  * multiple cluster members to wait until a set of operations being performed
@@ -32,10 +32,11 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @author as, lh  2021.11.16
  * @since 21.12
  */
-public class DistributedCountDownLatch
+public class RemoteCountDownLatch
+        implements com.oracle.coherence.concurrent.CountDownLatch
     {
     /**
-     * Constructs a {@code DistributedCountDownLatch} initialized with the
+     * Constructs a {@code RemoteCountDownLatch} initialized with the
      * given count.
      *
      * @param sName    the name of the latch
@@ -45,14 +46,14 @@ public class DistributedCountDownLatch
      *
      * @throws IllegalArgumentException if {@code count} is negative
      */
-    public DistributedCountDownLatch(String sName, int count, NamedMap<String, LatchCounter> latches)
+    public RemoteCountDownLatch(String sName, int count, NamedMap<String, LatchCounter> latches)
         {
         if (count < 0)
             {
             throw new IllegalArgumentException("count < 0");
             }
 
-        this.f_sync         = new DistributedCountDownLatch.Sync(sName, latches);
+        this.f_sync         = new RemoteCountDownLatch.Sync(sName, latches);
         this.f_initialCount = count;
         latches.addMapListener(new SimpleMapListener<String, LatchCounter>()
                         .addDeleteHandler(this::onDelete), sName, false);
@@ -182,7 +183,7 @@ public class DistributedCountDownLatch
      */
     public String toString()
         {
-        return "DistributedCountDownLatch{count = " + f_sync.getCount()
+        return "RemoteCountDownLatch{count = " + f_sync.getCount()
                 + ", initialCount = " + f_initialCount + '}';
         }
 
@@ -216,7 +217,7 @@ public class DistributedCountDownLatch
     // ----- inner class Sync -----------------------------------------------
 
     /**
-     * Synchronization control For DistributedCountDownLatch.
+     * Synchronization control For RemoteCountDownLatch.
      */
     private static final class Sync
             extends AbstractQueuedSynchronizer
@@ -240,7 +241,7 @@ public class DistributedCountDownLatch
          */
         public long getCount()
             {
-            return f_latches.invoke(f_sName, Processors.extract(LatchCounter::getCount));
+            return f_latches.invoke(f_sName, e -> e.isPresent() ? e.getValue().getCount() : 0L);
             }
 
         @Override
@@ -297,12 +298,7 @@ public class DistributedCountDownLatch
             if (releases == 0)
                 {
                 // release only
-                if (count == 0)
-                    {
-                    return true;
-                    }
-
-                return false;
+                return count == 0;
                 }
 
             return count == 1;

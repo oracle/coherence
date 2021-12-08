@@ -27,15 +27,15 @@ import com.tangosol.net.Coherence;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
- * Test distributed read/write locks across multiple cluster members using
- * the default Java serializer.
+ * Test distributed locks across multiple cluster members using the default
+ * Java serializer.
  */
-public class ClusteredDistributedReadWriteLockIT
-        extends AbstractClusteredDistributedReadWriteLockIT
+public class ClusteredRemoteLockIT
+        extends AbstractClusteredRemoteLockIT
     {
     // ----- constructors ---------------------------------------------------
 
-    public ClusteredDistributedReadWriteLockIT()
+    public ClusteredRemoteLockIT()
         {
         super(f_coherenceResource);
         }
@@ -47,7 +47,7 @@ public class ClusteredDistributedReadWriteLockIT
      * under target/test-output. This is added as an option to the cluster
      * and client processes.
      */
-    static TestLogs logs = new TestLogs(ClusteredDistributedReadWriteLockIT.class);
+    static TestLogs logs = new TestLogs(ClusteredRemoteLockIT.class);
 
     /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster made up of

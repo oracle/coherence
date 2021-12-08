@@ -24,13 +24,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Basic Tests for {@link DistributedCountDownLatch} class.
+ * Basic Tests for {@link RemoteCountDownLatch} class.
  *
  * @author as, lh  2021.11.17
  *
  * @since 21.12
  */
-public class DistributedCountDownLatchTest
+public class RemoteCountDownLatchTest
     {
     @BeforeAll
     static void startServer()
@@ -47,7 +47,7 @@ public class DistributedCountDownLatchTest
     @Test
     void shouldAcquireAndCountDown() throws InterruptedException
         {
-        DistributedCountDownLatch latch     = Latches.countDownLatch("foo", 1);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("foo", 1);
         Semaphore                 semaphore = new Semaphore(0);
         Thread                    worker    = new Thread(new Runnable()
             {
@@ -72,7 +72,7 @@ public class DistributedCountDownLatchTest
     void shouldAcquireAndTimedOut() throws InterruptedException
         {
         int                       count     = 1;
-        DistributedCountDownLatch latch     = Latches.countDownLatch("foo", count);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("foo", count);
         Semaphore                 semaphore = new Semaphore(0);
         Thread                    worker    = new Thread(new Runnable()
             {
@@ -98,9 +98,9 @@ public class DistributedCountDownLatchTest
 
         try
             {
-            DistributedCountDownLatch latch1 = Latches.countDownLatch("foo", 2*count);
+            RemoteCountDownLatch latch1 = Latches.remoteCountDownLatch("foo", 2 * count);
             assertThat((int) latch.getCount(), is(2*count));
-            DistributedCountDownLatch latch2 = Latches.countDownLatch("foo", count);
+            RemoteCountDownLatch latch2 = Latches.remoteCountDownLatch("foo", count);
             fail("Should return IllegalArgumentException") ;
             }
         catch (IllegalArgumentException e)
@@ -113,7 +113,7 @@ public class DistributedCountDownLatchTest
     void shouldAcquireAndCountDownMany() throws InterruptedException
         {
         final int                 size      = 5;
-        DistributedCountDownLatch latch     = Latches.countDownLatch("manyFoo", size);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("manyFoo", size);
         Semaphore                 semaphore = new Semaphore(0);
         Thread[]                  workers   = new Thread[size];
 

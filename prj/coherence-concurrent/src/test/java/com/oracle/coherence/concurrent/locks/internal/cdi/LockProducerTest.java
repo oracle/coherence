@@ -12,7 +12,7 @@ import com.oracle.coherence.cdi.Remote;
 
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
-import com.oracle.coherence.concurrent.locks.DistributedLock;
+import com.oracle.coherence.concurrent.locks.RemoteLock;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,6 +30,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -56,44 +57,93 @@ public class LockProducerTest
     @Test
     void testLocalInjection()
         {
-        assertThat(bean.getLocal(), is(bean.getTypedLocal()));
+        assertThat(bean.getLocal(), sameInstance(bean.getTypedLocal()));
         assertThat(bean.getLocal().tryLock(), is(true));
         assertThat(bean.getTypedLocal().isLocked(), is(true));
-        bean.getLocal().unlock();
-        assertThat(bean.getTypedLocal().isLocked(), is(false));
+        }
+
+    @Test
+    void testLocalNamedInjection()
+        {
+        assertThat(bean.getLocalNamed(), sameInstance(bean.getTypedLocalNamed()));
+        assertThat(bean.getLocalNamed(), sameInstance(bean.getLocalUnqualified()));
+        assertThat(bean.getLocalNamed().tryLock(), is(true));
+        assertThat(bean.getTypedLocalNamed().isLocked(), is(true));
         }
 
     @Test
     void testRemoteInjection()
         {
-        assertThat(bean.getRemote(), is(bean.getTypedRemote()));
+        assertThat(bean.getRemote(), sameInstance(bean.getTypedRemote()));
         assertThat(bean.getRemote().tryLock(), is(true));
         assertThat(bean.getTypedRemote().isLocked(), is(true));
-        bean.getRemote().unlock();
-        assertThat(bean.getTypedRemote().isLocked(), is(false));
         }
+
+    @Test
+    void testRemoteNamedInjection()
+        {
+        assertThat(bean.getRemoteNamed(), sameInstance(bean.getTypedRemoteNamed()));
+        assertThat(bean.getRemoteNamed(), sameInstance(bean.getTypedRemoteUnqualified()));
+        assertThat(bean.getRemoteNamed().tryLock(), is(true));
+        assertThat(bean.getTypedRemoteNamed().isLocked(), is(true));
+        }
+
+    // ----- inner class LockBean ---------------------------------
 
     @ApplicationScoped
     static class LockBean
         {
         @Inject
-        Lock local;
-
-        @Inject
-        @Remote
-        Lock remote;
+        Lock local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
         @Name("local")
         ReentrantLock typedLocal;
 
         @Inject
+        @Name("typedLocalUnqualified")
+        Lock localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        ReentrantLock typedLocalNamed;
+
+        @Inject
+        ReentrantLock typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        Lock remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        Lock remoteNamed;
+
+        @Inject
         @Name("remote")
-        DistributedLock typedRemote;
+        RemoteLock typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteLock typedRemoteNamed;
+
+        @Inject
+        RemoteLock typedRemoteUnqualified;
 
         public Lock getLocal()
             {
             return local;
+            }
+
+        public Lock getLocalNamed()
+            {
+            return localNamed;
+            }
+
+        public Lock getRemoteNamed()
+            {
+            return remoteNamed;
             }
 
         public Lock getRemote()
@@ -106,9 +156,29 @@ public class LockProducerTest
             return typedLocal;
             }
 
-        public DistributedLock getTypedRemote()
+        public RemoteLock getTypedRemote()
             {
             return typedRemote;
+            }
+
+        public ReentrantLock getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public ReentrantLock getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteLock getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteLock getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

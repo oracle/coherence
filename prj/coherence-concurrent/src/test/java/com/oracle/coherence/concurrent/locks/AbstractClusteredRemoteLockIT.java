@@ -46,12 +46,12 @@ import static org.hamcrest.Matchers.lessThan;
  * This class must be Serializable so that its methods can be used as
  * remote callables by Bedrock.
  */
-public abstract class AbstractClusteredDistributedLockIT
+public abstract class AbstractClusteredRemoteLockIT
         implements Serializable
     {
     // ----- constructors ---------------------------------------------------
 
-    AbstractClusteredDistributedLockIT(CoherenceClusterExtension coherenceResource)
+    AbstractClusteredRemoteLockIT(CoherenceClusterExtension coherenceResource)
         {
         m_coherenceResource = coherenceResource;
         }
@@ -130,7 +130,7 @@ public abstract class AbstractClusteredDistributedLockIT
     Void shouldAcquireAndReleaseLock()
         {
         Logger.info("In shouldAcquireAndReleaseLock()");
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
 
         lock.lock();
         System.out.println("Lock acquired by " + lock.getOwner());
@@ -335,7 +335,7 @@ public abstract class AbstractClusteredDistributedLockIT
     /**
      * A Bedrock remote callable that tries to acquire a lock within a given timeout.
      * <p>
-     * The result of the call to {@link DistributedLock#tryLock()} is returned.
+     * The result of the call to {@link RemoteLock#tryLock()} is returned.
      * If the lock was acquired it is immediately released.
      */
     static class TryLock
@@ -383,7 +383,7 @@ public abstract class AbstractClusteredDistributedLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedLock lock = Locks.remoteLock(f_sLockName);
+            RemoteLock lock = Locks.remoteLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -455,7 +455,7 @@ public abstract class AbstractClusteredDistributedLockIT
         public Void call()
             {
             Logger.info("Acquiring lock " + f_sLockName);
-            DistributedLock lock = Locks.remoteLock(f_sLockName);
+            RemoteLock lock = Locks.remoteLock(f_sLockName);
             lock.lock();
             try
                 {

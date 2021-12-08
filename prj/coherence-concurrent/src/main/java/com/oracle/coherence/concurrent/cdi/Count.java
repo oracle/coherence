@@ -33,7 +33,7 @@ public @interface Count
      *
      * @return the latch count
      */
-    @Nonbinding int value() default 0;
+    @Nonbinding int value() default 1;
 
     // ---- inner class: Literal --------------------------------------------
 

@@ -9,10 +9,12 @@ package com.oracle.coherence.concurrent.internal.cdi;
 import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.Name;
 
+import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
-import com.oracle.coherence.concurrent.DistributedCountDownLatch;
-import com.oracle.coherence.concurrent.Latches;
+import com.oracle.coherence.concurrent.CountDownLatch;
+import com.oracle.coherence.concurrent.LocalCountDownLatch;
+import com.oracle.coherence.concurrent.RemoteCountDownLatch;
 
 import com.oracle.coherence.concurrent.cdi.Count;
 
@@ -29,10 +31,8 @@ import javax.enterprise.context.ApplicationScoped;
 
 import javax.inject.Inject;
 
-import java.util.concurrent.CountDownLatch;
-
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -58,27 +58,39 @@ public class CountDownLatchProducerTest
     @Test
     void testLocalInjection()
         {
-        CountDownLatch localLatch = bean.getLocal();
-        long count = localLatch.getCount();
-        assertThat(count, is(1L));
-        assertThat(Latches.localCountDownLatch("foo"), notNullValue());
-
-        localLatch = bean.getLocalNoName();
-        count = localLatch.getCount();
-        assertThat(count, is(3L));
+        assertThat(bean.getLocal(), sameInstance(bean.getTypedLocal()));
+        assertThat(bean.getLocal().getCount(), is(2L));
+        bean.getLocal().countDown();
+        assertThat(bean.getTypedLocal().getCount(), is(1L));
         }
 
     @Test
-    void testDistributedInjection()
+    void testLocalNamedInjection()
         {
-        DistributedCountDownLatch latch = bean.getDistributed();
-        assertThat(latch.getCount(), is(2L));
-        latch.countDown();
-        assertThat(latch.getCount(), is(1L));
-        latch.countDown();
+        assertThat(bean.getLocalNamed(), sameInstance(bean.getTypedLocalNamed()));
+        assertThat(bean.getLocalNamed(), sameInstance(bean.getLocalUnqualified()));
+        assertThat(bean.getLocalNamed().getCount(), is(1L));
+        bean.getLocalNamed().countDown();
+        assertThat(bean.getTypedLocalNamed().getCount(), is(0L));
+        }
 
-        latch = bean.getDistributedNoName();
-        assertThat(latch.getCount(), is(4L));
+    @Test
+    void testRemoteInjection()
+        {
+        assertThat(bean.getRemote(), sameInstance(bean.getTypedRemote()));
+        assertThat(bean.getRemote().getCount(), is(2L));
+        bean.getRemote().countDown();
+        assertThat(bean.getTypedRemote().getCount(), is(1L));
+        }
+
+    @Test
+    void testRemoteNamedInjection()
+        {
+        assertThat(bean.getRemoteNamed(), sameInstance(bean.getTypedRemoteNamed()));
+        assertThat(bean.getRemoteNamed(), sameInstance(bean.getTypedRemoteUnqualified()));
+        assertThat(bean.getRemoteNamed().getCount(), is(1L));
+        bean.getRemoteNamed().countDown();
+        assertThat(bean.getTypedRemoteNamed().getCount(), is(0L));
         }
 
     // ----- inner class CountDownLatchBean ---------------------------------
@@ -87,41 +99,95 @@ public class CountDownLatchProducerTest
     static class CountDownLatchBean
         {
         @Inject
-        @Name("foo")
-        @Count(1)
-        CountDownLatch local;
-
-        @Inject
-        @Count(3)
-        CountDownLatch localNoName;
-
-        @Inject
-        @Name("foo")
         @Count(2)
-        DistributedCountDownLatch distributed;
+        CountDownLatch local;  // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
 
         @Inject
-        @Count(4)
-        DistributedCountDownLatch distributedNoName;
+        @Name("local")
+        @Count(2)
+        LocalCountDownLatch typedLocal;
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        CountDownLatch localNamed; // IntelliJ highlights this as an ambiguous dependency, but it is not as the test passes
+
+        @Inject
+        @Name("typedLocalUnqualified")
+        LocalCountDownLatch typedLocalNamed;
+
+        @Inject
+        LocalCountDownLatch typedLocalUnqualified;
+
+        @Inject
+        @Remote
+        @Count(2)
+        CountDownLatch remote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        @Remote
+        CountDownLatch remoteNamed;
+
+        @Inject
+        @Name("remote")
+        @Count(2)
+        RemoteCountDownLatch typedRemote;
+
+        @Inject
+        @Name("typedRemoteUnqualified")
+        RemoteCountDownLatch typedRemoteNamed;
+
+        @Inject
+        RemoteCountDownLatch typedRemoteUnqualified;
 
         public CountDownLatch getLocal()
             {
             return local;
             }
 
-        public CountDownLatch getLocalNoName()
+        public CountDownLatch getLocalNamed()
             {
-            return localNoName;
+            return localNamed;
             }
 
-        public DistributedCountDownLatch getDistributed()
+        public CountDownLatch getRemoteNamed()
             {
-            return distributed;
+            return remoteNamed;
             }
 
-        public DistributedCountDownLatch getDistributedNoName()
+        public CountDownLatch getRemote()
             {
-            return distributedNoName;
+            return remote;
+            }
+
+        public LocalCountDownLatch getTypedLocal()
+            {
+            return typedLocal;
+            }
+
+        public RemoteCountDownLatch getTypedRemote()
+            {
+            return typedRemote;
+            }
+
+        public LocalCountDownLatch getLocalUnqualified()
+            {
+            return typedLocalUnqualified;
+            }
+
+        public LocalCountDownLatch getTypedLocalNamed()
+            {
+            return typedLocalNamed;
+            }
+
+        public RemoteCountDownLatch getTypedRemoteNamed()
+            {
+            return typedRemoteNamed;
+            }
+
+        public RemoteCountDownLatch getTypedRemoteUnqualified()
+            {
+            return typedRemoteUnqualified;
             }
         }
     }

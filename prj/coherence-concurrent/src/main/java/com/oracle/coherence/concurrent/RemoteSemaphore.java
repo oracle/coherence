@@ -4,9 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.semaphores;
+package com.oracle.coherence.concurrent;
 
-import com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus;
+import com.oracle.coherence.concurrent.internal.SemaphoreStatus;
 
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedMap;
@@ -26,19 +26,23 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * permits.  Each {@link #acquire} blocks if necessary until a permit is
  * available, and then takes it.  Each {@link #release} adds a permit,
  * potentially releasing a blocking acquirer.
- * However, no actual permit objects are used; the {@code DistributedSemaphore}
+ * However, no actual permit objects are used; the {@code RemoteSemaphore}
  * just keeps a count of the number available and acts accordingly.
+ *
+ * @author Vaso Putica  2021.12.01
+ * @since 21.12
  */
-public class DistributedSemaphore
+public class RemoteSemaphore
+        implements com.oracle.coherence.concurrent.Semaphore
     {
     /**
-     * Create an instance of {@code DistributedSemaphore}
+     * Create an instance of {@code RemoteSemaphore}
      *
      * @param sName      the name of the semaphore
      * @param permits    the initial number of permits available
      * @param semaphores the {@link NamedMap} that stores this semaphore's state
      */
-    public DistributedSemaphore(String sName, int permits, NamedMap<String, SemaphoreStatus> semaphores)
+    public RemoteSemaphore(String sName, int permits, NamedMap<String, SemaphoreStatus> semaphores)
         {
         f_sync = new Sync(sName, permits, semaphores);
         semaphores.addMapListener(new SimpleMapListener<String, SemaphoreStatus>()
@@ -463,7 +467,7 @@ public class DistributedSemaphore
     // ----- inner class Sync -----------------------------------------------
 
     /**
-     * Synchronization control for {@link DistributedSemaphore}.
+     * Synchronization control for {@link RemoteSemaphore}.
      */
     static class Sync extends AbstractQueuedSynchronizer
         {

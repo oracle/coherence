@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.semaphores.cdi;
+package com.oracle.coherence.concurrent.cdi;
 
 import com.oracle.coherence.cdi.AnnotationLiteral;
 
@@ -34,7 +34,7 @@ public @interface Permits
      *
      * @return the permits count
      */
-    @Nonbinding int value();
+    @Nonbinding int value() default 0;
 
     // ---- inner class: Literal --------------------------------------------
 

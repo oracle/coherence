@@ -67,7 +67,7 @@ public class App
             }
 
         String          name = args[0];
-        DistributedLock lock = Locks.remoteLock(name);
+        RemoteLock lock = Locks.remoteLock(name);
 
         if (args.length == 2)  // LOCK name timeout
             {
@@ -94,7 +94,7 @@ public class App
             }
 
         String          name = args[0];
-        DistributedLock lock = Locks.remoteLock(name);
+        RemoteLock lock = Locks.remoteLock(name);
 
         System.out.printf("\n%s: unlock() => ", name);
         lock.unlock();
@@ -111,7 +111,7 @@ public class App
             }
 
         String                   name = args[0];
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock(name);
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(name);
 
         if (args.length == 2)  // READ name timeout
             {
@@ -138,7 +138,7 @@ public class App
             }
 
         String                   name = args[0];
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock(name);
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(name);
 
         System.out.printf("\n%s: readLock().unlock() => ", name);
         lock.readLock().unlock();
@@ -155,7 +155,7 @@ public class App
             }
 
         String                   name = args[0];
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock(name);
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(name);
 
         if (args.length == 2)  // WRITE name timeout
             {
@@ -182,7 +182,7 @@ public class App
             }
 
         String                   name = args[0];
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock(name);
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(name);
 
         System.out.printf("\n%s: writeLock().unlock() => ", name);
         lock.writeLock().unlock();

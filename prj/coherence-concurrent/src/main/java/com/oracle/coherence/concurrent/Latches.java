@@ -28,16 +28,16 @@ import java.util.concurrent.CountDownLatch;
 public class Latches
     {
     /**
-     * Return a singleton instance of a {@link DistributedCountDownLatch}
+     * Return a singleton instance of a {@link RemoteCountDownLatch}
      * with a specified name and count.
      *
      * @param sName  the cluster-wide, unique name of the countdown latch
      * @param count  the initial count of the countdown latch
      *
-     * @return an instance of a {@link DistributedCountDownLatch} with
+     * @return an instance of a {@link RemoteCountDownLatch} with
      *         a specified name and count
      */
-    public static DistributedCountDownLatch countDownLatch(String sName, int count)
+    public static RemoteCountDownLatch remoteCountDownLatch(String sName, int count)
         {
         NamedMap<String, LatchCounter> map = latchesMap();
 
@@ -62,7 +62,7 @@ public class Latches
                                 + existingInitialCount + " already exists.");
                     }
 
-                return new DistributedCountDownLatch(k, count, map);
+                return new RemoteCountDownLatch(k, count, map);
                 }
 
             if (v.getInitialCount() != count)
@@ -76,35 +76,22 @@ public class Latches
         }
 
     /**
-     * Return a singleton instance of a local {@link CountDownLatch}
-     * with a specified name. If the named latch does not exist, return null.
+     * Return a singleton instance of a {@link LocalCountDownLatch}
+     * with a specified name and initial count.
+     * <p/>
+     * The specified latch count is only relevant during the initial latch creation,
+     * and is ignored if the latch already exists in the current process. That means
+     * that the returned latch instance could have a different count from the one
+     * requested.
      *
      * @param sName  the process-wide, unique name of the latch
-     *
-     * @return an instance of a local countdown latch with a specified name
-     *         or null if one does not exist
-     */
-    public static CountDownLatch localCountDownLatch(String sName)
-        {
-        return f_mapLatchLocal.get(sName);
-        }
-
-    /**
-     * Return a singleton instance of a local {@link CountDownLatch}
-     * with a specified name and count.  If one is already exist, then it
-     * is overridden.
-     *
-     * @param sName  the process-wide, unique name of the latch
-     * @param count  the latch count
+     * @param count  the initial latch count; ignored if the latch already exists
      *
      * @return an instance of a local countdown latch with a specified name
      */
-    public static CountDownLatch localCountDownLatch(String sName, int count)
+    public static LocalCountDownLatch localCountDownLatch(String sName, int count)
         {
-        return  f_mapLatchLocal.compute(sName, (k, v) ->
-            {
-            return new CountDownLatch(count);
-            });
+        return f_mapLatchLocal.computeIfAbsent(sName, k -> new LocalCountDownLatch(count));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -151,12 +138,12 @@ public class Latches
     /**
      * A process-wide map of named local countdown latches.
      */
-    private static final Map<String, CountDownLatch> f_mapLatchLocal = new ConcurrentHashMap<>();
+    private static final Map<String, LocalCountDownLatch> f_mapLatchLocal = new ConcurrentHashMap<>();
 
     /**
      * A process-wide map of distributed countdown latches, to avoid creating multiple
      * countdown latch instances (and thus sync objects) for the same
      * server-side latch.
      */
-    private static final Map<String, DistributedCountDownLatch> f_mapLatch = new ConcurrentHashMap<>();
+    private static final Map<String, RemoteCountDownLatch> f_mapLatch = new ConcurrentHashMap<>();
     }

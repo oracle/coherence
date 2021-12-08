@@ -4,9 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.concurrent.semaphores.internal;
+package com.oracle.coherence.concurrent.internal;
 
-import com.oracle.coherence.concurrent.semaphores.PermitAcquirer;
+import com.oracle.coherence.concurrent.PermitAcquirer;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;

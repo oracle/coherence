@@ -46,12 +46,12 @@ import static org.hamcrest.Matchers.lessThan;
  * This class must be Serializable so that its methods can be used as
  * remote callables by Bedrock.
  */
-public abstract class AbstractClusteredDistributedReadWriteLockIT
+public abstract class AbstractClusteredRemoteReadWriteLockIT
         implements Serializable
     {
     // ----- constructors ---------------------------------------------------
 
-    AbstractClusteredDistributedReadWriteLockIT(CoherenceClusterExtension coherenceResource)
+    AbstractClusteredRemoteReadWriteLockIT(CoherenceClusterExtension coherenceResource)
         {
         m_coherenceResource = coherenceResource;
         }
@@ -132,7 +132,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
     Void shouldAcquireAndReleaseWriteLock()
         {
         Logger.info("In shouldAcquireAndReleaseWriteLock()");
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
 
         lock.writeLock().lock();
         System.out.println("Write lock acquired by " + lock.getOwner());
@@ -151,7 +151,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
     Void shouldAcquireAndReleaseReadLock()
         {
         Logger.info("In shouldAcquireAndReleaseReadLock()");
-        DistributedReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
 
         lock.readLock().lock();
         System.out.println("Read lock acquired by " + Thread.currentThread());
@@ -449,7 +449,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
     /**
      * A Bedrock remote callable that tries to acquire a lock within a given timeout.
      * <p>
-     * The result of the call to {@link DistributedReadWriteLock.WriteLock#tryLock()} is returned.
+     * The result of the call to {@link RemoteReadWriteLock.WriteLock#tryLock()} is returned.
      * If the lock was acquired it is immediately released.
      */
     static class TryWriteLock
@@ -497,7 +497,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
+            RemoteReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -532,7 +532,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
     /**
      * A Bedrock remote callable that tries to acquire a read lock within a given timeout.
      * <p>
-     * The result of the call to {@link DistributedReadWriteLock.ReadLock#tryLock()} is returned.
+     * The result of the call to {@link RemoteReadWriteLock.ReadLock#tryLock()} is returned.
      * If the lock was acquired it is immediately released.
      */
     static class TryReadLock
@@ -580,7 +580,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
         @Override
         public Boolean call() throws Exception
             {
-            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
+            RemoteReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
 
             boolean fAcquired;
             if (f_timeout.isZero())
@@ -652,7 +652,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
         public Void call()
             {
             Logger.info("Acquiring write lock " + f_sLockName);
-            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
+            RemoteReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
             lock.writeLock().lock();
             try
                 {
@@ -715,7 +715,7 @@ public abstract class AbstractClusteredDistributedReadWriteLockIT
         public Void call()
             {
             Logger.info("Acquiring read lock " + f_sLockName);
-            DistributedReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
+            RemoteReadWriteLock lock = Locks.remoteReadWriteLock(f_sLockName);
             lock.readLock().lock();
             try
                 {

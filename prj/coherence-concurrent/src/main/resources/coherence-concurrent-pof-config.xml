@@ -88,15 +88,15 @@
     </user-type>
     <user-type>
       <type-id>976</type-id>
-      <class-name>com.oracle.coherence.concurrent.semaphores.PermitAcquirer</class-name>
+      <class-name>com.oracle.coherence.concurrent.PermitAcquirer</class-name>
     </user-type>
     <user-type>
       <type-id>977</type-id>
-      <class-name>com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus</class-name>
+      <class-name>com.oracle.coherence.concurrent.internal.SemaphoreStatus</class-name>
     </user-type>
     <user-type>
       <type-id>978</type-id>
-      <class-name>com.oracle.coherence.concurrent.semaphores.internal.SemaphoreStatus$RemovePermits</class-name>
+      <class-name>com.oracle.coherence.concurrent.internal.SemaphoreStatus$RemovePermits</class-name>
     </user-type>
 
     <!-- executor (270 - 299, 821-829, 870-899) -->

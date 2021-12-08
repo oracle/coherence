@@ -29,11 +29,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * Tests for {@link DistributedLock} class.
+ * Tests for {@link RemoteLock} class.
  *
  * @author Aleks Seovic  2021.10.20
  */
-public class DistributedLockTest
+public class RemoteLockTest
     {
     @BeforeAll
     static void startServer()
@@ -58,7 +58,7 @@ public class DistributedLockTest
         {
         // sanity check: let's make sure the lock is not locked, and there are
         // no pending locks on it
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         assertThat(lock.isLocked(), is(false));
         assertThat(lock.isHeldByCurrentThread(), is(false));
         assertThat(lock.getHoldCount(), is(0L));
@@ -107,7 +107,7 @@ public class DistributedLockTest
     @Test
     void shouldAcquireAndReleaseLock()
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         lock.lock();
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -121,7 +121,7 @@ public class DistributedLockTest
     @Test
     void shouldAcquireAndReleaseLockInterruptibly() throws InterruptedException
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         lock.lockInterruptibly();
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -135,7 +135,7 @@ public class DistributedLockTest
     @Test
     void shouldAcquireAndReleaseLockWithoutBlocking()
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         assertThat(lock.tryLock(), is(true));
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -149,7 +149,7 @@ public class DistributedLockTest
     @Test
     void shouldAcquireAndReleaseLockWithTimeout() throws InterruptedException
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         assertThat(lock.tryLock(1L, TimeUnit.SECONDS), is(true));
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -163,7 +163,7 @@ public class DistributedLockTest
     @Test
     void shouldAcquireAndReleaseReentrantLock()
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         lock.lock();
         lock.lock();
         lock.lock();
@@ -189,7 +189,7 @@ public class DistributedLockTest
     void shouldAcquireAndReleaseLockInOrderFromMultipleThreads()
             throws InterruptedException
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -241,7 +241,7 @@ public class DistributedLockTest
     void shouldTimeOutIfTheLockIsHeldByAnotherThread()
             throws InterruptedException
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -269,7 +269,7 @@ public class DistributedLockTest
     void shouldBeAbleToInterruptLockRequest()
             throws InterruptedException
         {
-        DistributedLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock("foo");
         Thread thread = new Thread(() ->
                {
                try
