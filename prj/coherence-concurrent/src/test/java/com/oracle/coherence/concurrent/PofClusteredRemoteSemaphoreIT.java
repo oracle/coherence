@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
+import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
@@ -23,10 +24,10 @@ import com.tangosol.net.Coherence;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
- * Test distributed semaphores across multiple cluster members using
- * the default Java serializer.
+ * Test distributed semaphore across multiple cluster members using
+ * the Pof serializer.
  */
-public class ClusteredRemoteSemaphoreIT
+public class PofClusteredRemoteSemaphoreIT
         extends AbstractClusteredRemoteSemaphoreIT
     {
     // ----- constructors ---------------------------------------------------
@@ -34,7 +35,7 @@ public class ClusteredRemoteSemaphoreIT
     /**
      * Default constructor.
      */
-    public ClusteredRemoteSemaphoreIT()
+    public PofClusteredRemoteSemaphoreIT()
         {
         super(f_coherenceResource);
         }
@@ -46,7 +47,7 @@ public class ClusteredRemoteSemaphoreIT
      * under target/test-output. This is added as an option to the cluster
      * and client processes.
      */
-    static TestLogs logs = new TestLogs(ClusteredRemoteSemaphoreIT.class);
+    static TestLogs logs = new TestLogs(PofClusteredRemoteSemaphoreIT.class);
 
     /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster made up of
@@ -63,7 +64,9 @@ public class ClusteredRemoteSemaphoreIT
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           logs,
-                          ClusterPort.automatic())
+                          ClusterPort.automatic(),
+                          Pof.enabled(),
+                          Pof.config("coherence-concurrent-pof-config.xml"))
                     .include(3,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
