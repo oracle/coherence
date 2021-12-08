@@ -1,175 +1,99 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package logging;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
+import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-
-import common.AbstractFunctionalTest;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.oracle.coherence.common.base.Logger;
+import com.tangosol.net.CacheFactory;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
 
 
 /**
  * Functional test of the jdk logging functionality.
  *
- * @author si  2013.10.15
+ * @author jonathan knight  2021.12.7
  */
-public class LogLevelTests extends AbstractFunctionalTest
+public class LogLevelTests extends AbstractLoggerTests
     {
-
-    @BeforeClass
-    public static void _statup()
-        {
-        System.setProperty("test.log.level", "9");
-        System.setProperty("test.log", "jdk");
-
-        Logger logger = m_logger = Logger.getLogger("Coherence");
-        logger.addHandler(m_logHandler = new LogHandler());
-        m_logHandler.m_enabled = true;
-
-        AbstractFunctionalTest._startup();
-        }
-
-    // ----- test methods ---------------------------------------------------
-
-    /**
-     * Ensure
-     *  1. messages are filtered based on destination log level.
-     *  2. messages are logged based on the destination log level.
-     */
     @Test
     public void testLogLevel()
         {
-        String sMessage_info   = "This is a INFO message";
-        String sMessage_finest = "This is a TRACE message";
+        String sMessage_info_1 = "This is a INFO message";
+        String sMessage_info_2 = "This is a INFO message after Coherence level change";
+        String sMessage_finest = "This is a FINEST message";
 
-        // Default log level for JDK logging is INFO
-        // with JDK logging configured, it should override
-        // default coherence log level.
-        assertFalse(com.oracle.coherence.common.base.Logger.isEnabled(5));
+        CapturingApplicationConsole console = new CapturingApplicationConsole();
 
-        // FINEST level message should not be logged
-        m_logger.log(Level.FINEST, sMessage_finest);
-
-        // INFO level message is logged
-        m_logger.log(Level.INFO, sMessage_info);
-
-        // wait for the logger to wake
-        Eventually.assertThat(invoking(this).isLogged(sMessage_info), is(true));
-        assertFalse(isLogged(sMessage_finest));
-        }
-
-    @AfterClass
-    public static void _shutdown()
-        {
-        System.clearProperty("test.log.level");
-        System.clearProperty("test.log");
-        }
-
-    /**
-     * Helper method to check if a given string is logged.
-     */
-     public boolean isLogged(String sMsg)
-         {
-         boolean fMatch = false;
-         for (String sLog : m_logHandler.collect())
-             {
-             fMatch |= sLog.contains(sMsg);
-             }
-         return fMatch;
-         }
-
-    // ----- inner class: LogHandler ----------------------------------------
-
-    /**
-     * A jdk logging handler to capture log messages when enabled.
-     */
-    public static class LogHandler
-            extends Handler
-        {
-
-        // ----- Handler methods --------------------------------------------
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void publish(LogRecord lr)
+        try (CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class,
+                    SystemProperty.of("test.log.level", CacheFactory.LOG_DEBUG),
+                    SystemProperty.of("test.log", "stderr"),
+                    Console.of(console)))
             {
-            if (m_enabled)
+            Eventually.assertDeferred(member::getClusterSize, is(1));
+            
+            // Default log level for Coherence logging is LOG_DEBUG
+            assertThat(member.invoke(() -> Logger.isEnabled(CacheFactory.LOG_DEBUG)), is(true));
+            assertThat(member.invoke(() -> Logger.isEnabled(CacheFactory.LOG_QUIET)), is(false));
+
+            // FINEST level message should not be logged
+            member.invoke(() ->
                 {
-                m_listMessages.add(lr.getMessage());
-                }
+                Logger.finest(sMessage_finest);
+                return null;
+                });
+
+            // INFO level message 1 should be logged
+            member.invoke(() ->
+                {
+                Logger.info(sMessage_info_1);
+                return null;
+                });
+
+            // wait for info message 1 to be logged
+            Eventually.assertDeferred(() -> isLogged(console, sMessage_info_1), is(true));
+            // the finest message should not have been logged
+            assertThat(isLogged(console, sMessage_finest), is(false));
+
+            // Change the Coherence log level
+            member.invoke(() -> changeCoherenceLogLevel(CacheFactory.LOG_MAX));
+
+            // FINEST level message should now be logged
+            member.invoke(() ->
+                {
+                Logger.finest(sMessage_finest);
+                return null;
+                });
+
+            // INFO level message 2 should be logged
+            member.invoke(() ->
+                {
+                Logger.info(sMessage_info_2);
+                return null;
+                });
+
+            // wait for info message 2 to be logged
+            Eventually.assertDeferred(() -> isLogged(console, sMessage_info_1), is(true));
+            // the finest message should have been logged
+            assertThat(isLogged(console, sMessage_finest), is(true));
             }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void flush()
-            {
-            }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void close() throws SecurityException
-            {
-            m_listMessages.clear();
-            }
-
-        /**
-         * Returns a list of log messages collected.
-         *
-         * @return a list of log messages collected
-         */
-        public List<String> collect()
-            {
-            return Collections.unmodifiableList(m_listMessages);
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * Whether to collect log messages.
-         */
-        protected volatile boolean m_enabled = false;
-
-        /**
-         * The log messages collected.
-         */
-        protected List<String> m_listMessages = new LinkedList<String>();
         }
 
-    // ----- data members ---------------------------------------------------
-
-    /**
-    * The sniffing log handler that can be enabled / disabled.
-    */
-    private static LogHandler m_logHandler;
-
-    /**
-     * A reference to logger to ensure it is not gc'd as jdk only holds a
-     * weak reference to the logger.
-     */
-     private static Logger m_logger;
+     private boolean isLogged(CapturingApplicationConsole console, String sMsg)
+         {
+         return console.getCapturedErrorLines()
+                 .stream()
+                 .anyMatch(s -> s.contains(sMsg));
+         }
     }
