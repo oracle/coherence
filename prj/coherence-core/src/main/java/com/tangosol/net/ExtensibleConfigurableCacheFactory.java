@@ -27,6 +27,7 @@ import com.tangosol.coherence.config.builder.NamedCacheBuilder;
 import com.tangosol.coherence.config.builder.NamedCollectionBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
+import com.tangosol.coherence.config.builder.ReadLocatorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
 import com.tangosol.coherence.config.builder.SubscriberGroupBuilder;
 
@@ -92,13 +93,13 @@ import com.tangosol.net.options.WithClassLoader;
 
 import com.tangosol.net.partition.ObservableSplittingBackingCache;
 import com.tangosol.net.partition.ObservableSplittingBackingMap;
+import com.tangosol.net.partition.Ownership;
 
 import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.Security;
 import com.tangosol.net.security.StorageAccessAuthorizer;
 
 import com.tangosol.net.topic.NamedTopic;
-import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.run.xml.XmlDocumentReference;
 import com.tangosol.run.xml.XmlElement;
@@ -129,6 +130,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.BiFunction;
 
 /**
  * ExtensibleConfigurableCacheFactory provides a facility to access caches
@@ -1823,11 +1825,13 @@ public class ExtensibleConfigurableCacheFactory
             }
 
         @Override
-        public boolean isReadFromClosest(String sName)
+        public BiFunction<Ownership, PartitionedService, Member> getReadLocator(String sName)
             {
             DistributedScheme schemeDist = findDistributedScheme(sName);
             ParameterResolver resolver   = getResolver(sName);
-            return schemeDist.getBackingMapScheme().isReadFromClosest(resolver);
+
+            return schemeDist.getBackingMapScheme().getReadLocatorBuilder()
+                    .realize(resolver, getContext().getClassLoader(), null);
             }
 
         /**

@@ -7,6 +7,7 @@
 package com.tangosol.coherence.config.scheme;
 
 import com.tangosol.coherence.config.builder.MapBuilder;
+import com.tangosol.coherence.config.builder.ReadLocatorBuilder;
 
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
@@ -199,30 +200,6 @@ public class BackingMapScheme
         }
 
     /**
-     * Return true iff read from closest is enabled.
-     *
-     * @param resolver  the ParameterResolver
-     *
-     * @return true iff read from closest is enabled
-     */
-    public Boolean isReadFromClosest(ParameterResolver resolver)
-        {
-        return m_exprReadClosest.evaluate(resolver);
-        }
-
-    /**
-     * Set the read from closest flag.
-     *
-     * @param expr  true iff read from closest is enabled
-     */
-    @Injectable("read-from-closest")
-    public void setReadFromClosest(Expression<Boolean> expr)
-        {
-        m_exprReadClosest = expr;
-        }
-
-
-    /**
      * Return true iff received federated changes should be applied locally as synthetic updates.
      *
      * @param resolver  the ParameterResolver
@@ -269,6 +246,31 @@ public class BackingMapScheme
     public void setStorageAccessAuthorizer(Expression<String> exprStorageAccessAuthorizer)
         {
         m_exprStorageAccessAuthorizer = exprStorageAccessAuthorizer;
+        }
+
+    /**
+     * Return a builder that is capable of building BiFunction's that return
+     * the Member reads for a partitioned cache should be targeted against.
+     *
+     * @return a builder that is capable of building BiFunction's that return
+     *         the Member reads for a partitioned cache should be targeted against
+     */
+    public ReadLocatorBuilder getReadLocatorBuilder()
+        {
+        return m_bldrReadLocator;
+        }
+
+    /**
+     * Sets the {@link ReadLocatorBuilder builder} that is capable of building
+     * BiFunction's that return the Member reads for a partitioned cache should
+     * be targeted against.
+     *
+     *  @param bldrReadLocator  the {@link ReadLocatorBuilder builder}
+     */
+    @Injectable("read-locator")
+    public void etReadLocatorBuilder(ReadLocatorBuilder bldrReadLocator)
+        {
+        m_bldrReadLocator = bldrReadLocator;
         }
 
     // ----- internal -------------------------------------------------------
@@ -339,11 +341,6 @@ public class BackingMapScheme
     private Expression<Boolean> m_exprSlidingExpiry = new LiteralExpression<Boolean>(Boolean.FALSE);
 
     /**
-     * A flag indicating if read from closest is enabled.
-     */
-    private Expression<Boolean> m_exprReadClosest = new LiteralExpression<Boolean>(Boolean.FALSE);
-
-    /**
      * A flag indicating if received federated changes should be applied locally as synthetic updates.
      *
      * @since 12.2.1.4
@@ -354,6 +351,12 @@ public class BackingMapScheme
      * The name of the StorageAccessAuthorizer to use.
      */
     private Expression<String> m_exprStorageAccessAuthorizer = null;
+
+    /**
+     * The ReadLocatorBuilder that can build the BiFunction that will pick
+     * which Member will perform the read.
+     */
+    private ReadLocatorBuilder m_bldrReadLocator = new ReadLocatorBuilder();
 
     /**
      * The inner scheme which builds the backing map.

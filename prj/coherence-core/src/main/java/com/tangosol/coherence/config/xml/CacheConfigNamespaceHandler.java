@@ -90,6 +90,7 @@ import com.tangosol.coherence.config.xml.processor.PartitionedQuorumPolicyProces
 import com.tangosol.coherence.config.xml.processor.PersistenceProcessor;
 import com.tangosol.coherence.config.xml.processor.ProviderProcessor;
 import com.tangosol.coherence.config.xml.processor.ProxyQuorumPolicyProcessor;
+import com.tangosol.coherence.config.xml.processor.ReadLocatorProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLHostnameVerifierProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLManagerProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLNameListProcessor;
@@ -241,6 +242,7 @@ public class CacheConfigNamespaceHandler
         registerProcessor(PersistenceProcessor.class);
         registerProcessor(ProviderProcessor.class);
         registerProcessor(ProxyQuorumPolicyProcessor.class);
+        registerProcessor(ReadLocatorProcessor.class);
         registerProcessor(SchemesProcessor.class);
         registerProcessor(ScopeNameProcessor.class);
         registerProcessor(SerializerFactoryProcessor.class);
