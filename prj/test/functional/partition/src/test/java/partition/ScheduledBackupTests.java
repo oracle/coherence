@@ -19,7 +19,6 @@ import com.tangosol.net.partition.SimplePartitionKey;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.CompositeKey;
-import com.tangosol.util.SafeHashMap;
 
 import common.AbstractFunctionalTest;
 
@@ -29,14 +28,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.internal.util.collections.HashCodeAndEqualsSafeSet;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.not;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * A functional test to validate that changes in primary are sent to the backup
@@ -68,6 +68,7 @@ public class ScheduledBackupTests
         try
             {
             Properties props = new Properties();
+            // test system property
             props.setProperty("coherence.distributed.asyncbackup", "10s");
 
             CoherenceClusterMember testPrimary   = startCacheServer("testScheduledBackupFromPut-1", "partition", null, props);
@@ -114,14 +115,26 @@ public class ScheduledBackupTests
     @Test
     public void testBackupFromPutAll()
         {
-        NamedCache cache = getNamedCache("dist-1");
+        testBackupFromPutAll("testScheduledBackupFromPutAll", 10_000l, true);
+        }
+
+    @Test
+    public void testBackupFromPutAllNoWait()
+        {
+        testBackupFromPutAll("testScheduledBackupFromPutAllNoWait", 30_000l, false);
+        }
+
+    public void testBackupFromPutAll(String sServerPrefix, long cInterval, boolean fExpected)
+        {
+        NamedCache cache = getNamedCache("sched-1");
         try
             {
             Properties props = new Properties();
-            props.setProperty("coherence.distributed.asyncbackup", "10s");
+            // test config-driven value, overriden
+            props.setProperty("coherence.distributed.custom.asyncbackup", String.valueOf(cInterval) + "ms");
 
-            CoherenceClusterMember testPrimary   = startCacheServer("testScheduledBackupFromPutAll-1", "partition", null, props);
-            CoherenceClusterMember testSecondary = startCacheServer("testScheduledBackupFromPutAll-2", "partition", null, props);
+            CoherenceClusterMember testPrimary   = startCacheServer(sServerPrefix + "-1", "partition", null, props);
+            CoherenceClusterMember testSecondary = startCacheServer(sServerPrefix + "-2", "partition", null, props);
 
             DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
 
@@ -132,7 +145,6 @@ public class ScheduledBackupTests
             PartitionSet         parts         = service.getOwnedPartitions(memberPrimary);
             int                  cKeys         = parts.cardinality();
             Map<Object, String>  mapKeys       = new HashMap<>(cKeys);
-            long                 lInterval     = 10_000l; //10s
             for (int iPart = parts.next(0); iPart >= 0; iPart = parts.next(iPart + 1))
                 {
                 String sValue = "test-" + iPart;
@@ -145,13 +157,18 @@ public class ScheduledBackupTests
 
             assertTrue(cache.size() == cKeys);
 
-            Base.sleep(lInterval + 1000l);
+            // wait for backup to take place
+            if (fExpected)
+                {
+                Base.sleep(cInterval + 1000l);
+                }
             // the scheduled backup should already happened; stop the primary node should not lead to data loss
-            stopCacheServer("testScheduledBackupFromPutAll-1");
+            // (unless it is the intended outcome)
+            stopCacheServer(sServerPrefix + "-1");
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(1));
             waitForBalanced(service);
 
-            Eventually.assertThat(invoking(cache).size(), is(cKeys));
+            Eventually.assertThat(invoking(cache).size(), fExpected ? is(cKeys) : not(cKeys));
             }
         finally
             {
@@ -164,11 +181,11 @@ public class ScheduledBackupTests
     @Test
     public void testBackupFromPartitionTransfer()
         {
-        NamedCache cache = getNamedCache("dist-1");
+        NamedCache cache = getNamedCache("sched-1");
         try
             {
+            // test config-driven value
             Properties props = new Properties();
-            props.setProperty("coherence.distributed.asyncbackup", "10s");
 
             CoherenceClusterMember testPrimary   = startCacheServer("testScheduledBackupFromTransfer-1", "partition", null, props);
             CoherenceClusterMember testSecondary = startCacheServer("testScheduledBackupFromTransfer-2", "partition", null, props);
