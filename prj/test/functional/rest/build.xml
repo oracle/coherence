@@ -91,31 +91,29 @@
 
   <target name="create.keystores"
           description="Generate the various keystore files used by the SSL tests.">
-    <delete>
-      <fileset dir="src/test/resources" includes="*.jks"/>
-      <fileset dir="src/test/resources" includes="*.pem"/>
-    </delete>
+
+    <mkdir dir="target/test-classes/"/>
 
     <!-- Create the client, server keystores -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore src/test/resources/client.jks -storepass password"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=client, O=Oracle, L=Burlington, ST=MA, C=US' -alias client -keypass private -keystore target/test-classes/client.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-exportcert -alias client -file src/test/resources/client.pem -keystore src/test/resources/client.jks -storepass password"/>
+      <arg line="-exportcert -alias client -file target/test-classes/client.pem -keystore target/test-classes/client.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore src/test/resources/server.jks -storepass password"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -storetype JKS -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass private -keystore target/test-classes/server.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-exportcert -alias server -file src/test/resources/server.pem -keystore src/test/resources/server.jks -storepass password"/>
+      <arg line="-exportcert -alias server -file target/test-classes/server.pem -keystore target/test-classes/server.jks -storepass password"/>
     </exec>
 
     <!-- Create the trust keystore -->
     <exec executable="${keytool}">
-      <arg line="-importcert -noprompt -alias clientcert -file src/test/resources/client.pem -keystore src/test/resources/trust-server.jks -storepass password"/>
+      <arg line="-importcert -noprompt -alias clientcert -file target/test-classes/client.pem -keystore target/test-classes/trust-server.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}">
-      <arg line="-importcert -noprompt -alias servercert -file src/test/resources/server.pem -keystore src/test/resources/trust-client.jks -storepass password"/>
+      <arg line="-importcert -noprompt -alias servercert -file target/test-classes/server.pem -keystore target/test-classes/trust-client.jks -storepass password"/>
     </exec>
   </target>
 </project>
