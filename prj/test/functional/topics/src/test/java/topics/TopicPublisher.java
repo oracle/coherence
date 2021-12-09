@@ -77,7 +77,7 @@ public class TopicPublisher
                 if (m_fSync)
                     {
                     Publisher.Status metadata = future.get();
-                    Logger.finest("publisher id: " + publisher.hashCode() + " send message:" + sMessage + " to " + metadata.getPosition());
+//                    Logger.finest("publisher id: " + publisher.hashCode() + " send message:" + sMessage + " to " + metadata.getPosition());
                     }
                 else
                     {
@@ -99,7 +99,7 @@ public class TopicPublisher
             }
         finally
             {
-            CacheFactory.log("Exiting " + this, Base.LOG_DEBUG);
+            Logger.fine("Exiting " + this);
             }
         }
 

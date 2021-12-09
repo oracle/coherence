@@ -66,7 +66,7 @@ public class TopicSubscriber
                         {
                         if (m_fVerifyOrder)
                             {
-                            Logger.finest("subscriber id: " + m_subscriber.hashCode() + " consumed message order for " + element.getValue() + " expecting " + m_sPrefix + m_nConsumed + " position=" + element.getPosition());
+//                            Logger.finest("subscriber id: " + m_subscriber.hashCode() + " consumed message order for " + element.getValue() + " expecting " + m_sPrefix + m_nConsumed + " position=" + element.getPosition());
                             assertThat("subscriber verifying published order", element.getValue(), is(m_sPrefix + m_nConsumed));
                             }
                         m_nConsumed++;
@@ -90,7 +90,7 @@ public class TopicSubscriber
             }
         finally
             {
-            CacheFactory.log("Exiting TopicSubscriber: duration: " + duration + " " + this, Base.LOG_DEBUG);
+            Logger.fine("Exiting TopicSubscriber: duration: " + duration + " " + this);
             m_subscriber.close();
             }
         }
