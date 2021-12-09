@@ -24,13 +24,12 @@
 
   <target name="create.keystores"
           description="Generate the various keystore files used by the SSL tests.">
-    <delete>
-      <fileset dir="src/test/resources" includes="*.jks"/>
-    </delete>
+
+    <mkdir dir="target/test-classes/"/>
 
     <!-- Create the testcert keystore -->
     <exec executable="${keytool}">
-      <arg line="-genkey -keyalg RSA -alias testcert -validity 3650 -dname 'CN=TestCert, O=Oracle, OU=Coherence, C=US' -storetype jks -keystore src/test/resources/testcert.jks -keypass password -storepass password"/>
+      <arg line="-genkey -keyalg RSA -alias testcert -validity 3650 -dname 'CN=TestCert, O=Oracle, OU=Coherence, C=US' -storetype jks -keystore target/test-classes/testcert.jks -keypass password -storepass password"/>
     </exec>
   </target>
 </project>
