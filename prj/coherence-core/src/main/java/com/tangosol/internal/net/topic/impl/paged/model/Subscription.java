@@ -6,7 +6,6 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.io.AbstractEvolvable;
@@ -528,7 +527,6 @@ public class Subscription
      */
     private Map<Integer, Set<Long>> refresh(SortedSet<Long> setSubscriber, int cChannel, Set<Integer> setMember)
         {
-        Logger.finest("Refreshing subscription current=" + Arrays.toString(m_aChannel));
         long[]                  aChannel    = new long[cChannel];
         Map<Integer, Set<Long>> mapRemoved  = new TreeMap<>();
 
@@ -600,7 +598,6 @@ public class Subscription
                 }
             }
         m_aChannel = aChannel;
-        Logger.finest("Refreshed subscription current=" + Arrays.toString(m_aChannel));
         return mapRemoved;
         }
 
