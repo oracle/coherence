@@ -26,9 +26,9 @@ For example, you will use factory methods within `Atomics` class to get instance
 
 === Local vs Remote
 
-In many cases the factory classes will allow you to get both the *local* and the *remote* instances of various constructs. For example, `Locks.localLock` will give you an instance of a standard `java.util.concurrent.locks.ReentrantLock`, while `Locks.remoteLock` will return an instance of a `RemoteLock`.
+In many cases the factory classes will allow you to get both the *local* and the *remote* instances of various constructs. For example, `Locks.localLock` will give you an instance of a standard `java.util.concurrent.locks.ReentrantLock`, while `Locks.remoteLock` will return an instance of a `RemoteLock`. In cases where JDK doesn't provide a standard interface, which is the case with atomics, latches and semaphores, we've extracted the interface from the existing JDK class, and created a thin wrapper around the corresponding JDK implementation. For example, Coherence Concurrent provides a `Semaphore` interface, and `LocalSemaphore` class that wraps `java.util.concurrent.Semaphore`. The same is true for the `CountDownLatch`, and all atomic types.
 
-The main advantage of using factory classes to construct both the local and the remote lock instances (in this case) is that it allows you to name local locks the same way you have to name distributed locks: calling `Locks.localLock("foo")` will always return the same `Lock` instance, as the `Locks` class internally caches both the local and the remote instances it created. Of course, in the case of remote locks, every locally cached remote lock instance is ultimately backed by a shared lock instance somewhere in the cluster, which is used to synchronize lock state across the processes.
+The main advantage of using factory classes to construct both the local and the remote instances is that it allows you to name local locks the same way you have to name remote locks: calling `Locks.localLock("foo")` will always return the same `Lock` instance, as the `Locks` class internally caches both the local and the remote instances it created. Of course, in the case of remote locks, every locally cached remote lock instance is ultimately backed by a shared lock instance somewhere in the cluster, which is used to synchronize lock state across the processes.
 
 === Serialization
 
@@ -40,7 +40,7 @@ If you want to use POF instead, you will need to specify that by setting `cohere
 
 Coherence Concurrent supports both active and on-demand persistence, but just like in the rest of Coherence it is set to `on-demand` by default.
 
-In order to use active persistence you should set `coherence.concurrent.persistence` system property to `active`.
+In order to use active persistence you should set `coherence.concurrent.persistence.environment` system property to `default-active`, or another persistence environment that has active persistence enabled.
 
 == Usage
 
@@ -84,7 +84,7 @@ Once the necessary dependency is in place, you can start using the features it p
 Coherence Concurrent provides a facility to dispatch tasks, either a `Runnable` or `Callable` to
 a Coherence cluster for execution.
 
-Executors that will actually will execute the submitted tasks are configured on each cluster
+Executors that will actually  execute the submitted tasks are configured on each cluster
 member by defining one or more named executors within a cache configuration resource.
 
 [#executors-usage]
@@ -439,7 +439,7 @@ Once an instance of an atomic type is obtained via CDI injection, it can be used
 
 Coherence Concurrent provides distributed implementations of `Lock` and `ReadWriteLock` interfaces from the `java.util.concurrent.locks` package, allowing you to implement lock-based concurrency control across cluster members when necessary.
 
-Unlike local JDK implementations, the classes in this package use cluster member/process ID and thread ID to identify lock owner, and store shared lock state within a Coherence `NamedMap`. However, that also implies that the calls to acquire and release locks are remote. network calls, as they need to update shared state that is likely stored on a different cluster member, which will have an impact on performance of `lock` and `unlock` operations.
+Unlike local JDK implementations, the classes in this package use cluster member/process ID and thread ID to identify lock owner, and store shared lock state within a Coherence `NamedMap`. However, that also implies that the calls to acquire and release locks are remote, network calls, as they need to update shared state that is likely stored on a different cluster member, which will have an impact on performance of `lock` and `unlock` operations.
 
 [#exclusive-locks]
 ==== Exclusive Locks
@@ -534,81 +534,88 @@ Once an instance of lock is obtained via CDI injection, it can be used the same 
 [#latches-semaphores]
 === Latches and Semaphores
 
-Coherence Concurrent also provides distributed implementations of a `CountDownLatch` and `Semaphore` classes from `java.util.concurrent` package, allowing you to implement synchronization of execution across multiple Coherence cluster members as easily as you can implement it within a single process using those two JDK classes.
+Coherence Concurrent also provides distributed implementations of a `CountDownLatch` and `Semaphore` classes from `java.util.concurrent` package, allowing you to implement synchronization of execution across multiple Coherence cluster members as easily as you can implement it within a single process using those two JDK classes. It also provides interfaces for those two concurrency primitives, that both remote and local implementations conform to.
+
+Just like with atomics, the local implementations are nothing more than thin wrappers around corresponding JDK classes.
 
 [#count-down-latch]
 ==== Count Down Latch
 
-A `DistributedCoundDownLatch` class provides a distributed implementation of a `CountDownLatch`, and allows you to ensure that the execution of the code on any cluster member that is waiting for a latch proceeds only when the latch reaches zero. Any cluster member can both wait for a latch, and count down.
+The `RemoteCoundDownLatch` class provides a distributed implementation of a `CountDownLatch`, and allows you to ensure that the execution of the code on any cluster member that is waiting for the latch proceeds only when the latch reaches zero. Any cluster member can both wait for a latch, and count down.
 
-To obtain an instance of a `DistributedCoundDownLatch`, call `Latches.remoteCountDownLatch` factory method:
+To obtain an instance of a `RemoteCountDownLatch`, call `Latches.remoteCountDownLatch` factory method:
 
 ```java
-DistributedCoundDownLatch foo = Latches.remoteCountDownLatch("foo", 5);     // <1>
+CoundDownLatch foo = Latches.remoteCountDownLatch("foo", 5);     // <1>
 ```
 <1> create an instance of a `RemoteCountDownLatch` with the initial count of 5
 
-Just like with `Atomics` and `Locks`, you can also obtain a local `CountDownLatch` instance from the `Latches` class, with will simply return an instance of a standard `java.util.concurrent.CountDownLatch`, by calling `remoteCountDownLatch` factory method:
+Just like with `Atomics` and `Locks`, you can also obtain a local `CountDownLatch` instance from the `Latches` class by calling `remoteCountDownLatch` factory method:
 
 ```java
-CoundDownLatch foo = Latches.localCountDownLatch("foo", 10);                // <1>
+CoundDownLatch foo = Latches.localCountDownLatch("foo", 10);     // <1>
 ```
-<1> create an instance of a `CountDownLatch` with the initial count of 10
+<1> create an instance of a `LocalCountDownLatch` with the initial count of 10
 
-Once you have a `DistributedCoundDownLatch` instance, you can use it as you normally would, by calling `countDown` and `await` methods on it.
+Once you have a `RemoteCountDownLatch` instance, you can use it as you normally would, by calling `countDown` and `await` methods on it.
 
 [#semaphore]
 ==== Semaphore
 
-A `RemoteSemaphore` class provides a distributed implementation of a `Semaphore`, and allows any cluster member to acquire and release permits from the same semaphore instance.
+The `RemoteSemaphore` class provides a distributed implementation of a `Semaphore`, and allows any cluster member to acquire and release permits from the same semaphore instance.
 
 To obtain an instance of a `RemoteSemaphore`, call `Semaphores.remoteSemaphore` factory method:
 
 ```java
-DistributedSemaphore foo = Semaphores.remoteSemaphore("foo", 5);            // <1>
+Semaphore foo = Semaphores.remoteSemaphore("foo", 5);            // <1>
 ```
-<1> create an instance of a remote `RemoteSemaphore` with 5 permits
+<1> create an instance of a `RemoteSemaphore` with 5 permits
 
-Just like with `Atomics` and `Locks`, you can also obtain a local `Semaphore` instance from the `Semaphores` class, with will simply return an instance of a standard `java.util.concurrent.Semaphore`, by calling `localSemaphore` factory method:
+Just like with `Atomics` and `Locks`, you can also obtain a local `Semaphore` instance from the `Semaphores` class by calling `localSemaphore` factory method:
 
 ```java
-Semaphore foo = Semaphores.localSemaphore("foo");                           // <1>
+Semaphore foo = Semaphores.localSemaphore("foo");                // <1>
 ```
-<1> create an instance of a local `Semaphore` with 0 permits
+<1> create an instance of a `LocalSemaphore` with 0 permits
 
-Once you have a `RemoteSemaphore` instance, you can use it as you normally would, by calling `release` and `acquire` methods on it.
+Once you have a `Semaphore` instance, you can use it as you normally would, by calling `release` and `acquire` methods on it.
 
 [#cdi-latches-semaphores]
 ==== CDI Support
 
-You can also use CDI to inject both the count down latch and semaphore instances into objects that need them:
+You can also use CDI to inject both the `CountDownLatch` and `Semaphore` instances into objects that need them:
 
 ```java
 @Inject
 @Name("foo")
 @Count(5)
-private CountDownLatch localLatchFoo;                  // <1>
+private CountDownLatch localLatchFoo;           // <1>
 
 @Inject
 @Name("foo")
 @Remote
 @Count(10)
-private DistributedCountDownLatch remoteLatchFoo;      // <2>
+private CountDownLatch remoteLatchFoo;          // <2>
 
 @Inject
 @Name("bar")
 @Remote
-private Semaphore localSemaphoreBar;                   // <3>
+private Semaphore localSemaphoreBar;            // <3>
 
 @Inject
 @Name("bar")
 @Remote
 @Permits(1)
-private DistributedSemaphore remoteSemaphoreBar;       // <4>
+private Semaphore remoteSemaphoreBar;           // <4>
 ```
-<1> inject an instance of a local `CountDownLatch` with the initial count of five
-<2> inject an instance of a remote `RemoteCountDownLatch` with the initial count of ten
-<3> inject an instance of a local `Semaphore` with zero permits available
-<4> inject an instance of a remote `RemoteSemaphore` with one permit available
+<1> inject an instance of a `LocalCountDownLatch` with the initial count of five
+<2> inject an instance of a `RemoteCountDownLatch` with the initial count of ten
+<3> inject an instance of a `LocalSemaphore` with zero permits available
+<4> inject an instance of a `RemoteSemaphore` with one permit available
 
 Once a latch or a semaphore instance is obtained via CDI injection, it can be used the same way as an instance obtained directly from the `Latches` or `Semaphores` factory classes.
+
+The `@Name` annotation is optional in both cases, as long as the member name (in the examples above, the field name) can be obtained from the injection point, but is required otherwise (such as when using constructor injection).
+
+The `@Count` annotation specifies the initial latch count, and if omitted will be defaulted to one. The `@Permits` annotation specifies the number of available permits for a semaphore, and if omitted will be defaulted to zero, which means that the first `acquire` call will block until another thread releases one or more permits.
+
