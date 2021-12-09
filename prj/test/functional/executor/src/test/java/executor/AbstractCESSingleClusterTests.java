@@ -6,6 +6,8 @@
  */
 package executor;
 
+import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
+import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import executor.common.SingleClusterForAllTests;
 
 import org.junit.Ignore;
@@ -29,6 +31,17 @@ import org.junit.runner.Description;
 public abstract class AbstractCESSingleClusterTests
         extends AbstractClusteredExecutorServiceTests
     {
+    // ----- test lifecycle -------------------------------------------------
+
+    @Override
+    public void cleanup()
+        {
+        super.cleanup();
+
+        getNamedCache(ClusteredTaskManager.CACHE_NAME).clear();
+        getNamedCache(ClusteredAssignment.CACHE_NAME).clear();
+        }
+
     // ----- constructors ---------------------------------------------------
 
     public AbstractCESSingleClusterTests(String extendConfig)
