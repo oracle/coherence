@@ -164,10 +164,6 @@ public abstract class AbstractClusteredExecutorServiceTests
             m_taskExecutorService.shutdown();
 
             Eventually.assertDeferred(() -> m_taskExecutorService.isShutdown(), is(true));
-
-            // clear the caches between tests
-            getNamedCache(ClusteredTaskManager.CACHE_NAME).clear();
-            getNamedCache(ClusteredAssignment.CACHE_NAME).clear();
             }
         }
 
