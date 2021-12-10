@@ -595,6 +595,24 @@
                     <exclude>com/oracle/coherence/concurrent/executor/TaskCollectors.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskExecutorService.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/TaskProperties.java</exclude>
+  
+                    <exclude>com/oracle/coherence/concurrent/config/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/config/builders/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/config/processors/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/atomic/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/function/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/internal/cdi/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/options/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/processors/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/subscribers/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/subscribers/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/tasks/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/tasks/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/executor/util/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/internal/cdi/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/locks/internal/*.java</exclude>
 
                     <exclude>com/tangosol/util/CheckedWrapperException.java</exclude>
                     <exclude>com/tangosol/util/CommandLine.java</exclude>
@@ -615,7 +633,7 @@
                     </group>
                     <group>
                       <title>Coherence Concurrent</title>
-                      <packages>com.oracle.coherence.concurrent:com.oracle.coherence.concurrent.atomic:com.oracle.coherence.concurrent.cdi:com.oracle.coherence.concurrent.executor:com.oracle.coherence.concurrent.locks</packages>
+                      <packages>com.oracle.coherence.concurrent:com.oracle.coherence.concurrent.atomic:com.oracle.coherence.concurrent.cdi:com.oracle.coherence.concurrent.executor:com.oracle.coherence.concurrent.executor.management:com.oracle.coherence.concurrent.locks</packages>
                     </group>
                     <group>
                       <title>Coherence Configuration</title>
