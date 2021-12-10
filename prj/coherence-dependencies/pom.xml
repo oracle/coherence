@@ -179,7 +179,7 @@
     <jsonp.version>1.1.6</jsonp.version>
     <jsonp-impl.version>1.1.6</jsonp-impl.version>
     <log4j.version>1.2.17</log4j.version>
-    <log4j2.version>2.13.3</log4j2.version>
+    <log4j2.version>2.15.0</log4j2.version>
     <micrometer.version>1.6.6</micrometer.version>
     <mvel.version>2.4.12.Final</mvel.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
