@@ -19,6 +19,7 @@
 
   <artifactId>coherence-concurrent</artifactId>
   <name>Coherence Concurrent</name>
+  <description>Utility classes commonly useful in concurrent programming within a Coherence Cluster.</description>
   <packaging>jar</packaging>
 
   <properties>
