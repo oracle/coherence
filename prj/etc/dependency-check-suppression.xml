@@ -283,12 +283,4 @@
   </suppress>
 
 
-  <!-- Apache SSHD SFTP 2.7.0 - We are excluding this as there is no fix available yet and only impacts our examples -->
-  <suppress>
-     <notes><![CDATA[
-     file name: sshd-sftp-2.7.0.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/org\.apache\.sshd/sshd\-sftp@.*$</packageUrl>
-     <cve>CVE-2009-1890</cve>
-  </suppress>
 </suppressions>
