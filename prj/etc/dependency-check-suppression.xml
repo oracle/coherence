@@ -265,6 +265,13 @@
      <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
      <vulnerabilityName>CVE-2019-17571</vulnerabilityName>
   </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: log4j-1.2.17.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
+     <vulnerabilityName>CVE-2021-44228</vulnerabilityName>
+  </suppress>
 
   <!-- Commons IO pulled in by Maven Plugin API - not shipped by us and no later version available -->
   <suppress>
