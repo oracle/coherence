@@ -8,6 +8,7 @@ package com.tangosol.net.topic;
 
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
@@ -669,6 +670,22 @@ public interface Subscriber<V>
      *         is subscribed to
      */
     public <T> NamedTopic<T> getNamedTopic();
+
+    /**
+     * Returns the number of remaining messages to be read from the topic for this subscriber.
+     *
+     * @return  the number of remaining messages
+     */
+    int getRemainingMessages();
+
+    /**
+     * Returns the number of remaining messages to be read from the topic channel for this subscriber.
+     *
+     * @param nChannel  the channel to count remaining messages in
+     *
+     * @return  the number of remaining messages, or zero if this subscriber does not own the channel
+     */
+    int getRemainingMessages(int nChannel);
 
     // ----- inner interface Element ----------------------------------------
 

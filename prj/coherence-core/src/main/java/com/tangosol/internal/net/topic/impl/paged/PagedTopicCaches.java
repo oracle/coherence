@@ -15,6 +15,7 @@ import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 
+import com.tangosol.internal.net.topic.impl.paged.filter.UnreadTopicContentFilter;
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
@@ -52,6 +53,7 @@ import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.ValueExtractor;
 
+import com.tangosol.util.aggregator.Count;
 import com.tangosol.util.aggregator.GroupAggregator;
 
 import com.tangosol.util.extractor.EntryExtractor;
@@ -59,9 +61,11 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.PartitionedFilter;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,6 +79,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.tangosol.net.cache.TypeAssertion.withTypes;
 
@@ -747,6 +752,43 @@ public class PagedTopicCaches
     public Set<NamedCache> getCaches()
         {
         return Collections.unmodifiableSet(f_setCaches);
+        }
+
+    /**
+     * Returns the number of remaining messages to be read from the topic for the specific {@link SubscriberGroupId}.
+     * <p>
+     * This method is a sum of the remaining messages for each channel from the last committed message (exclusive)
+     * to the current tail.This result returned by this method is somewhat transient in situations where there are
+     * active Subscribers with in-flight commit requests, so the count may change just after the method returns.
+     * Message expiry may also affect the returned value, if messages expire after the count is returned.
+     *
+     * @param id  the {@link SubscriberGroupId}
+     *
+     * @return  the number of remaining messages for the {@link SubscriberGroupId}
+     */
+    public int getRemainingMessages(SubscriberGroupId id, int... anChannel)
+        {
+        if (Subscriptions.containsKey(new Subscription.Key(0, 0, id)))
+            {
+            Map<Integer, Position> mapHeads = getLastCommitted(id);
+            Map<Integer, Position> mapTails = getTails();
+
+            for (int i = 0; i < getChannelCount(); i++)
+                {
+                mapHeads.putIfAbsent(i, new PagedPosition(-1L, -1));
+                }
+
+            if (anChannel.length > 0)
+                {
+                List<Integer> listChannel = IntStream.of(anChannel).boxed().collect(Collectors.toList());
+                mapHeads.keySet().retainAll(listChannel);
+                mapTails.keySet().retainAll(listChannel);
+                }
+
+            return Data.aggregate(new UnreadTopicContentFilter(mapHeads, mapTails), new Count<>());
+            }
+        // subscriber group does not exist, return the total number of messages
+        return Data.size();
         }
 
     // ----- object methods -------------------------------------------------

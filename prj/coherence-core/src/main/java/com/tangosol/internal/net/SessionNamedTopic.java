@@ -228,6 +228,12 @@ public class SessionNamedTopic<V>
         return f_loader;
         }
 
+    @Override
+    public int getRemainingMessages(String sSubscriberGroup, int... anChannel)
+        {
+        return f_topic.getRemainingMessages(sSubscriberGroup, anChannel);
+        }
+
     // ----- object methods -------------------------------------------------
 
     @Override
