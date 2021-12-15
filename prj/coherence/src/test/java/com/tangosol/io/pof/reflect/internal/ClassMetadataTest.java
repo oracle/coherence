@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -20,6 +20,8 @@ import java.lang.reflect.ReflectPermission;
 
 import java.security.AccessControlException;
 import java.security.Permission;
+
+import test.CheckJDK;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -155,6 +157,9 @@ public class ClassMetadataTest
     @Test(expected = IllegalArgumentException.class)
     public void testPrivateField() throws NoSuchFieldException
         {
+        // skip test from JDK 18 and on, deprecated java.security.manager defaults to disallow
+        CheckJDK.assumeJDKVersionLessThanOrEqual(17);
+
         System.setSecurityManager(new SecurityManager()
             {
             @Override
@@ -181,6 +186,9 @@ public class ClassMetadataTest
     @Test(expected = IllegalArgumentException.class)
     public void testPrivateMethod() throws NoSuchMethodException
         {
+        // skip test from JDK 18 and on, deprecated java.security.manager defaults to disallow
+        CheckJDK.assumeJDKVersionLessThanOrEqual(17);
+
         System.setSecurityManager(new SecurityManager()
             {
             @Override
