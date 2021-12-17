@@ -1539,10 +1539,10 @@ public class ManagementInfoResourceTests
         long   cEntrySize;
         do
             {
-            Response response  = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","units")
-                    .queryParam("role", "*")
-                    .request().get();
-            LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            WebTarget     target      = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","units")
+                                        .queryParam("role", "*");
+            Response      response    = target.request().get();
+            LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
             System.out.println(mapResponse);
 
@@ -1560,37 +1560,37 @@ public class ManagementInfoResourceTests
 
         do
             {
-            Response response  = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","size")
-                    .queryParam("role", "*")
-                    .request().get();
-            LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            WebTarget     target      = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","size")
+                                        .queryParam("role", "*");
+            Response      response    = target.request().get();
+            LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
             acTmp[0] = ((Number) mapResponse.get("size")).longValue();
             }
         while (sleep(() -> acTmp[0] != 10L, REMOTE_MODEL_PAUSE_DURATION));
 
-        Response response  = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
-                .path(CACHES).path(CACHE_NAME).queryParam("fields","size")
-                .request().get();
-        LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        WebTarget     target      = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
+                                    .path(CACHES).path(CACHE_NAME).queryParam("fields","size");
+        Response      response    = target.request().get();
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
         // aggregate all attributes for a cache on a service across all nodes
         assertThat(((Number) mapResponse.get("size")).longValue(), is(10L));
 
-        response  = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
+        target = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
                 .path(CACHES).path(CACHE_NAME).queryParam("fields","units")
-                .queryParam("role","*")
-                .request().get();
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+                .queryParam("role","*");
+        response = target.request().get();
+        mapResponse = new LinkedHashMap(readEntity(target, response));
 
         // aggregate Units attribute for a cache across all nodes
         assertThat(((Number) mapResponse.get("units")).longValue(), is(cEntrySize * 10));
 
-        response  = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
+        target = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
                 .path(CACHES).path(CACHE_NAME).queryParam("fields","units")
                 .queryParam("role","*")
-                .queryParam("collector", "list")
-                .request().get();
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+                .queryParam("collector", "list");
+        response = target.request().get();
+        mapResponse = new LinkedHashMap(readEntity(target, response));
 
         // list the Units attribute for a cache across all nodes
         List<Integer> listUnits = (List) mapResponse.get("units");
@@ -1621,11 +1621,12 @@ public class ManagementInfoResourceTests
             }
         Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
 
-        response = getBaseTarget().path(CACHES).path(CACHE_NAME).request().get();
+        target = getBaseTarget().path(CACHES).path(CACHE_NAME);
+        response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        mapResponse = new LinkedHashMap(readEntity(target, response));
         System.out.println(mapResponse.toString());
 
         assertEquals(nSize, ((Integer) mapResponse.get("size")).intValue());
@@ -2678,11 +2679,13 @@ public class ManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
 
-        String sMembersUrl = getLink(mapResponse, "members");
-        response = m_client.target(sMembersUrl).queryParam("tier", "back").request().get();
+        String    sMembersUrl = getLink(mapResponse, "members");
+        WebTarget memTarget   = m_client.target(sMembersUrl).queryParam("tier", "back");
+
+        response = memTarget.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        LinkedHashMap mapCacheMembers = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+        LinkedHashMap mapCacheMembers = new LinkedHashMap(readEntity(memTarget, response));
         assertThat(mapCacheMembers, notNullValue());
 
         List<LinkedHashMap> listCacheMembers = (List<LinkedHashMap>) mapCacheMembers.get("items");
@@ -2700,9 +2703,13 @@ public class ManagementInfoResourceTests
             assertThat(sSelfUrl, isOneOf(sMembersUrl+ "/" + mapCacheMember.get(NODE_ID),
                     sMembersUrl+ "/" + mapCacheMember.get(MEMBER)));
 
-            response = m_client.target(sSelfUrl).request().get();
+            assertThat(mapCacheMember.get("listenerFilterCount"), instanceOf(Number.class));
+            assertThat(mapCacheMember.get("listenerKeyCount"), instanceOf(Number.class));
+
+            memTarget = m_client.target(sSelfUrl);
+            response = memTarget.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            mapResponse = new LinkedHashMap(readEntity(memTarget, response));
 
             List<LinkedHashMap> listCacheMembersOfANode = (List<LinkedHashMap>) mapResponse.get("items");
             assertThat(listCacheMembersOfANode, notNullValue());
@@ -2711,9 +2718,6 @@ public class ManagementInfoResourceTests
                     .map(map -> map.get(NAME)).collect(Collectors.toSet());
             assertThat(setCacheNames.size(), is(1));
             assertThat(setCacheNames.iterator().next(), is(CACHE_NAME));
-
-            assertThat(mapCacheMember.get("listenerFilterCount"), instanceOf(Number.class));
-            assertThat(mapCacheMember.get("listenerKeyCount"), instanceOf(Number.class));
             }
         }
 
