@@ -9,6 +9,7 @@ package com.tangosol.net;
 
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Lockable;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.cache.TypeAssertion;
@@ -580,7 +581,9 @@ public abstract class CacheFactory
     public static Cluster ensureCluster()
         {
         Cluster cluster = getCluster();
-        synchronized (cluster)
+
+        // Note: SafeCluster implements Lockable (COH-23345)
+        try (Lockable.Unlockable unlockable = ((Lockable) cluster).exclusively())
             {
             if (!cluster.isRunning())
                 {

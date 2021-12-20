@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.oracle.coherence.common.base.Lockable;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Options;
 
@@ -749,7 +750,8 @@ public class ExtensibleConfigurableCacheFactory
         Cluster cluster = bldrService.isRunningClusterNeeded()
                           ? CacheFactory.ensureCluster() : CacheFactory.getCluster();
 
-        synchronized (cluster)
+        // Note: SafeCluster implements Lockable (COH-23345)
+        try (Lockable.Unlockable unlockable = ((Lockable) cluster).exclusively())
             {
             ConfigurableCacheFactory factory         = this;
             ParameterResolver        factoryResolver = new ParameterResolver()

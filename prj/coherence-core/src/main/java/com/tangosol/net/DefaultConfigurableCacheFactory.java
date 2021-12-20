@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.oracle.coherence.common.base.Lockable;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.CacheConfig;
@@ -1183,7 +1184,8 @@ public class DefaultConfigurableCacheFactory
             }
         sServiceName = getScopedServiceName(sServiceName);
 
-        synchronized (cluster)
+        // Note: SafeCluster implements Lockable (COH-23345)
+        try (Lockable.Unlockable unlockable = ((Lockable) cluster).exclusively())
             {
             Service service = cluster.ensureService(sServiceName, sServiceType);
             if (service.isRunning())
