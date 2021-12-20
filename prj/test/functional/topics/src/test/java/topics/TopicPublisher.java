@@ -15,6 +15,7 @@ import com.tangosol.net.topic.Publisher.Option;
 import com.tangosol.util.Base;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jk 2015.07.01
@@ -65,6 +66,8 @@ public class TopicPublisher
     @Override
     public void run()
         {
+        Logger.fine("Starting " + this);
+
         try (Publisher<String>   publisher = m_topic.createPublisher(m_arOptions))
             {
             CompletableFuture<Publisher.Status>[] aFutures  = new CompletableFuture[m_nCount];
@@ -76,7 +79,7 @@ public class TopicPublisher
 
                 if (m_fSync)
                     {
-                    Publisher.Status metadata = future.get();
+                    Publisher.Status metadata = future.get(5, TimeUnit.MINUTES);
 //                    Logger.finest("publisher id: " + publisher.hashCode() + " send message:" + sMessage + " to " + metadata.getPosition());
                     }
                 else
@@ -89,7 +92,7 @@ public class TopicPublisher
 
             if (!m_fSync)
                 {
-                CompletableFuture.allOf(aFutures).get();
+                CompletableFuture.allOf(aFutures).get(10, TimeUnit.MINUTES);
                 }
 
             }
