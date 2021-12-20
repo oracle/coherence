@@ -183,6 +183,7 @@ public abstract class AbstractNamedTopicTests
     public void beforeEach()
         {
         System.err.println(">>>>> Starting test: " + m_testName.getMethodName());
+        System.err.flush();
         m_nSuffix.getAndIncrement();
         }
 
@@ -208,7 +209,11 @@ public abstract class AbstractNamedTopicTests
             {
             e.printStackTrace();
             }
-        System.err.println(">>>>> Finished test: " + m_testName.getMethodName());
+        finally
+            {
+            System.err.println(">>>>> Finished test: " + m_testName.getMethodName());
+            System.err.flush();
+            }
         }
 
     // ----- test methods ---------------------------------------------------
@@ -2542,27 +2547,27 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
-            {
-            int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
-            long nHigh   = SERVER_CAPACITY / cbValue; // from config
+        // create a subscriber group to ensure messages are retained and the topic wil fill up
+        topic.ensureSubscriberGroup(m_testName.getMethodName() + "-group");
 
-            try(Publisher<String>  publisher = topic.createPublisher(Publisher.FailOnFull.enabled()))
+        int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
+        long nHigh   = SERVER_CAPACITY / cbValue; // from config
+
+        try(Publisher<String>  publisher = topic.createPublisher(Publisher.FailOnFull.enabled()))
+            {
+            for (int i = 0; i < nHigh * 2; ++i)
                 {
-                for (int i = 0; i < nHigh * 2; ++i)
-                    {
-                    publisher.publish("Element-" + i).join();
-                    }
-                fail(); // we're not supposed to finish
+                publisher.publish("Element-" + i).join();
                 }
-            catch (CompletionException e)
-                {
-                // expected
-                assertThat(e.getCause(), is(instanceOf(TopicPublisherException.class)));
-                Throwable cause = e.getCause().getCause();
-                assertThat(cause, is(instanceOf(IllegalStateException.class)));
-                assertThat(cause.getMessage().contains("topic is at capacity"), is(true));
-                }
+            fail(); // we're not supposed to finish
+            }
+        catch (CompletionException e)
+            {
+            // expected
+            assertThat(e.getCause(), is(instanceOf(TopicPublisherException.class)));
+            Throwable cause = e.getCause().getCause();
+            assertThat(cause, is(instanceOf(IllegalStateException.class)));
+            assertThat(cause.getMessage().contains("topic is at capacity"), is(true));
             }
         }
 
@@ -3151,7 +3156,6 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a some messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3195,9 +3199,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
