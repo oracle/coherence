@@ -43,12 +43,12 @@
         </StorageInfo>
       </Library>
       <Library>
-        <Name>log4j-api-2.16.0.jar</Name>
+        <Name>log4j-api-2.17.0.jar</Name>
         <Description/>
         <Customizable>true</Customizable>
         <Visibility>standard</Visibility>
         <StorageInfo>
-          <Location>./3.0/lib/log4j-api-2.16.0.jar</Location>
+          <Location>./3.0/lib/log4j-api-2.17.0.jar</Location>
         </StorageInfo>
       </Library>
       <Library>
