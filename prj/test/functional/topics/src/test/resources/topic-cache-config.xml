@@ -215,6 +215,7 @@
       <autostart>true</autostart>
       <page-size system-property="page.size">100B</page-size>
       <retain-consumed>{retain-values false}</retain-consumed>
+      <subscriber-timeout system-property="coherence.topic.subscriber.timeout"/>
     </paged-topic-scheme>
 
     <paged-topic-scheme>

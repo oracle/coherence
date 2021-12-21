@@ -414,7 +414,7 @@ public class PagedTopicScheme
         // add the subscriber expiry interceptor
         NamedEventInterceptorBuilder builder = new NamedEventInterceptorBuilder();
         builder.setOrder(Interceptor.Order.HIGH);
-        builder.setName("$SubscriberExpiry$");
+        builder.setName("$SubscriberExpiry$" + getServiceName());
         builder.setRegistrationBehavior(RegistrationBehavior.REPLACE);
         builder.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
 

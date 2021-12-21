@@ -82,7 +82,6 @@ import com.tangosol.util.filter.InKeySetFilter;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
-import java.time.Duration;
 import java.time.Instant;
 
 import java.util.ArrayList;
@@ -102,9 +101,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -1461,7 +1464,7 @@ public class PagedTopicSubscriber<V>
                 Set<Integer> setAdded = new HashSet<>(listChannels);
                 setAdded = Collections.unmodifiableSet(setAdded);
 
-                Logger.finest(String.format("Subscriber %d channel allocation changed, assigned=%s revoked=%s",
+                Logger.fine(String.format("Subscriber %d channel allocation changed, assigned=%s revoked=%s",
                         f_nId, setAdded, setRevoked));
 
                 m_aChannelOwned = aChannel;
@@ -1925,7 +1928,7 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
-     * Called to notify this subscriber that it has closed.
+     * Called to notify the topic that a subscriber has closed or timed-out.
      *
      * @param cache              the subscription cache
      * @param subscriberGroupId  the subscriber group identifier
@@ -1941,7 +1944,7 @@ public class PagedTopicSubscriber<V>
 
         try
             {
-            DistributedCacheService service     = (DistributedCacheService) cache.getCacheService();
+            DistributedCacheService service      = (DistributedCacheService) cache.getCacheService();
             int                     cParts       = service.getPartitionCount();
             List<Subscription.Key>  listSubParts = new ArrayList<>(cParts);
             for (int i = 0; i < cParts; ++i)
@@ -2705,6 +2708,15 @@ public class PagedTopicSubscriber<V>
     public static class TimeoutInterceptor
             implements EventDispatcherAwareInterceptor<EntryEvent<SubscriberInfo.Key, SubscriberInfo>>
         {
+        public TimeoutInterceptor()
+            {
+            f_executor = Executors.newSingleThreadScheduledExecutor(runnable ->
+                {
+                String sName = "SubscriberTimeoutInterceptor:" + f_instance.incrementAndGet();
+                return Base.makeThread(null, runnable, sName);
+                });
+            }
+
         @Override
         public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
             {
@@ -2719,34 +2731,56 @@ public class PagedTopicSubscriber<V>
             }
 
         @Override
-        @SuppressWarnings({"unchecked"})
         public void onEvent(EntryEvent<SubscriberInfo.Key, SubscriberInfo> event)
             {
             if (event.getType() == EntryEvent.Type.REMOVED)
                 {
                 SubscriberInfo.Key key            = event.getKey();
-                SubscriberInfo     info           = event.getOriginalValue();
                 long               nId            = key.getSubscriberId();
                 SubscriberGroupId  groupId        = key.getGroupId();
-                String             sTopicName     = PagedTopicCaches.Names.getTopicName(event.getCacheName());
-                String             sSubscriptions = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
 
-                if (event.getEntry().isSynthetic())
-                    {
-                    Logger.fine(String.format(
-                            "Subscriber expired after %d ms - groupId='%s', memberId=%d, notificationId=%d, last heartbeat at %s",
-                            info.getTimeoutMillis(), groupId.getGroupName(), memberIdFromId(nId), notificationIdFromId(nId), info.getLastHeartbeat()));
-                    }
-                else
-                    {
-                    Logger.fine(String.format(
-                            "Subscriber %d in group '%s' removed due to departure of member %d",
-                            nId, groupId.getGroupName(), memberIdFromId(nId)));
-                    }
+                Logger.fine(String.format(
+                        "Cleaning up subscriber %d in group '%s' owned by member %d",
+                        key.getSubscriberId(), groupId.getGroupName(), memberIdFromId(nId)));
 
-                notifyClosed(event.getService().ensureCache(sSubscriptions, null), groupId, nId);
+                // we MUST process the event on another thread so as not to block the event dispatcher thread.
+                f_executor.execute(() -> processSubscriberRemoval(event));
                 }
             }
+
+        @SuppressWarnings({"unchecked"})
+        private void processSubscriberRemoval(EntryEvent<SubscriberInfo.Key, SubscriberInfo> event)
+            {
+            SubscriberInfo.Key key            = event.getKey();
+            SubscriberInfo     info           = event.getOriginalValue();
+            long               nId            = key.getSubscriberId();
+            SubscriberGroupId  groupId        = key.getGroupId();
+            String             sTopicName     = PagedTopicCaches.Names.getTopicName(event.getCacheName());
+            String             sSubscriptions = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
+
+            if (event.getEntry().isSynthetic())
+                {
+                Logger.fine(String.format(
+                        "Subscriber expired after %d ms - groupId='%s', memberId=%d, notificationId=%d, last heartbeat at %s",
+                        info.getTimeoutMillis(), groupId.getGroupName(), memberIdFromId(nId), notificationIdFromId(nId), info.getLastHeartbeat()));
+                }
+            else
+                {
+                Logger.fine(String.format(
+                        "Subscriber %d in group '%s' removed due to departure of member %d",
+                        nId, groupId.getGroupName(), memberIdFromId(nId)));
+                }
+
+            notifyClosed(event.getService().ensureCache(sSubscriptions, null), groupId, nId);
+            }
+
+        // ----- constants --------------------------------------------------
+
+        private static final AtomicInteger f_instance = new AtomicInteger();
+
+        // ----- data members -----------------------------------------------
+
+        private final Executor f_executor;
         }
 
     // ----- constants ------------------------------------------------------
