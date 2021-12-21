@@ -52,12 +52,12 @@
         </StorageInfo>
       </Library>
       <Library>
-        <Name>slf4j-api-1.7.12.jar</Name>
+        <Name>slf4j-api-1.7.32.jar</Name>
         <Description/>
         <Customizable>true</Customizable>
         <Visibility>standard</Visibility>
         <StorageInfo>
-          <Location>./3.0/lib/slf4j-api-1.7.12.jar</Location>
+          <Location>./3.0/lib/slf4j-api-1.7.32.jar</Location>
         </StorageInfo>
       </Library>
     </Target>

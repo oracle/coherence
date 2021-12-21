@@ -195,7 +195,7 @@
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
     <servlet.version>3.1.0</servlet.version>
-    <slf4j.version>1.7.26</slf4j.version>
+    <slf4j.version>1.7.32</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
     <weld.version>3.1.6.Final</weld.version>
     <weld-junit.version>2.0.1.Final</weld-junit.version>
