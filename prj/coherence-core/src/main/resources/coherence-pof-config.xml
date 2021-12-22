@@ -1485,6 +1485,11 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>595</type-id>
+      <class-name>com.tangosol.internal.net.topic.impl.paged.filter.UnreadTopicContentFilter</class-name>
+    </user-type>
+
 
     <!-- type id reservations for Coherence types not in coherence-pof-config.xml -->
 

@@ -161,6 +161,12 @@ public class PagedTopic<V>
         return f_pagedTopicCaches.getChannelCount();
         }
 
+    @Override
+    public int getRemainingMessages(String sSubscriberGroup, int... anChannel)
+        {
+        return f_pagedTopicCaches.getRemainingMessages(SubscriberGroupId.withName(sSubscriberGroup), anChannel);
+        }
+
     // ----- ClassLoaderAware methods ---------------------------------------
 
     @Override

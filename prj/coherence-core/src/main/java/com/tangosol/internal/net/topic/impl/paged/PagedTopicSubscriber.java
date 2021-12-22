@@ -559,7 +559,24 @@ public class PagedTopicSubscriber<V>
         return seekToHeadOrTail(false, anChannel);
         }
 
-    // ----- Closeable methods ----------------------------------------------
+    @Override
+    public int getRemainingMessages()
+        {
+        int[] anChannel = getChannels();
+        return m_caches.getRemainingMessages(f_subscriberGroupId, anChannel);
+        }
+
+    @Override
+    public int getRemainingMessages(int nChannel)
+        {
+        if (isOwner(nChannel))
+            {
+            return m_caches.getRemainingMessages(f_subscriberGroupId, nChannel);
+            }
+        return 0;
+        }
+
+// ----- Closeable methods ----------------------------------------------
 
     @Override
     public void close()

@@ -2922,9 +2922,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10001; i++)
                 {
@@ -2933,7 +2933,8 @@ public abstract class AbstractNamedTopicTests
             publisher.flush().get(2, TimeUnit.MINUTES);
 
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -2986,9 +2987,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 500; i++)
                 {
@@ -2999,7 +3000,8 @@ public abstract class AbstractNamedTopicTests
             publisher.flush().get(2, TimeUnit.MINUTES);
 
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3151,9 +3153,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a some messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 20; i++)
                 {
@@ -3162,7 +3164,8 @@ public abstract class AbstractNamedTopicTests
             publisher.flush().get(2, TimeUnit.MINUTES);
 
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3220,9 +3223,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10019; i++)
                 {
@@ -3231,7 +3234,8 @@ public abstract class AbstractNamedTopicTests
             publisher.flush().get(2, TimeUnit.MINUTES);
 
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3299,9 +3303,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < cMsg; i++)
                 {
@@ -3309,7 +3313,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3351,12 +3356,12 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
+        int                       nChannel      = 1;
         int                       i;
         Status                    status;
         PagedPosition             positionLast;
-        int                       nChannel;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (i = 0; i < cMsg; i++)
                 {
@@ -3368,7 +3373,8 @@ public abstract class AbstractNamedTopicTests
             // Get the position of the last message
             positionLast = (PagedPosition) status.getPosition();
             // Get the channel messages were published to
-            nChannel = status.getChannel();
+            int nChannelPublished = status.getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // get the last Page of the topic
@@ -3377,7 +3383,7 @@ public abstract class AbstractNamedTopicTests
         // publish more messages until the Page gets sealed (i.e. it is full)
         if (!page.isSealed())
             {
-            try (Publisher<String> publisher = topic.createPublisher())
+            try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
                 {
                 while (!page.isSealed())
                     {
@@ -3429,9 +3435,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < cMsg; i++)
                 {
@@ -3439,7 +3445,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3482,9 +3489,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10001; i++)
                 {
@@ -3492,7 +3499,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3554,9 +3562,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10001; i++)
                 {
@@ -3564,7 +3572,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3638,9 +3647,9 @@ public abstract class AbstractNamedTopicTests
             {
             // publish a lot os messages so we have multiple pages spread over all of the partitions
             CompletableFuture<Status> futurePublish = null;
-            int                       nChannel;
+            int                       nChannel      = 1;
 
-            try (Publisher<String> publisher = topic.createPublisher())
+            try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
                 {
                 for (int i = 0; i < 10001; i++)
                     {
@@ -3648,7 +3657,8 @@ public abstract class AbstractNamedTopicTests
                     }
                 publisher.flush().get(2, TimeUnit.MINUTES);
                 // Get the channel messages were published to
-                nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+                int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+                assertThat(nChannelPublished, is(nChannel));
                 }
 
             // move subscriber one on by receiving pages
@@ -3712,9 +3722,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10019; i++)
                 {
@@ -3722,7 +3732,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3796,9 +3807,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10019; i++)
                 {
@@ -3806,7 +3817,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3866,9 +3878,9 @@ public abstract class AbstractNamedTopicTests
 
         // publish a lot os messages so we have multiple pages spread over all of the partitions
         CompletableFuture<Status> futurePublish = null;
-        int                       nChannel;
+        int                       nChannel      = 1;
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10019; i++)
                 {
@@ -3876,7 +3888,8 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
             // Get the channel messages were published to
-            nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
             }
 
         // Create two subscribers in different groups.
@@ -3926,12 +3939,14 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekToTail() throws Exception
         {
-        NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-5");
+        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-rewindable-5");
+        int                nChannel = 1;
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        try (Publisher<String> publisher = topic.createPublisher())
+
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             CompletableFuture<Status> futurePublish = null;
             for (int i = 0; i < 10000; i++)
@@ -3939,7 +3954,8 @@ public abstract class AbstractNamedTopicTests
                 futurePublish = publisher.publish("element-" + i);
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
-            int nChannel = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
 
             try (Subscriber<String> subscriber = topic.createSubscriber(CompleteOnEmpty.enabled()))
                 {
@@ -3960,12 +3976,13 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekToHead() throws Exception
         {
-        NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-5");
+        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-rewindable-5");
+        int                nChannel = 1;
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             for (int i = 0; i < 10000; i++)
                 {
@@ -3984,11 +4001,13 @@ public abstract class AbstractNamedTopicTests
                     {
                     future = subscriber.receive();
                     }
-                Element<String> element  = future.get(2, TimeUnit.MINUTES);
-                int             nChannel = element.getChannel();
+                Element<String> element     = future.get(2, TimeUnit.MINUTES);
+                int             nChannelSub = element.getChannel();
+
+                assertThat(nChannelSub, is(nChannel));
 
                 // seek to the head of the channel
-                subscriber.seekToHead(nChannel);
+                subscriber.seekToHead(nChannelSub);
 
                 element = subscriber.receive().get(2, TimeUnit.MINUTES);
                 assertThat(element, is(notNullValue()));
@@ -4001,12 +4020,13 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekToHeadRollingBackCommit() throws Exception
         {
-        NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-5");
+        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-rewindable-5");
+        int                nChannel = 1;
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        try (Publisher<String> publisher = topic.createPublisher())
+        try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             CompletableFuture<Status> futurePublish = null;
             for (int i = 0; i < 10000; i++)
@@ -4015,7 +4035,9 @@ public abstract class AbstractNamedTopicTests
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
 
-            int             nChannel    = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
+            assertThat(nChannelPublished, is(nChannel));
+
             Element<String> elementHead;
 
             try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "test"), CompleteOnEmpty.enabled()))
@@ -4124,6 +4146,50 @@ public abstract class AbstractNamedTopicTests
 
         }
 
+    @Test
+    public void shouldCountRemainingMessages() throws Exception
+        {
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
+        int                cTotal = 1000;
+
+        try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup));
+             Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup));
+             Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin()))
+            {
+            for (int i = 0; i < 1000; i++)
+                {
+                publisher.publish("message-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            assertThat(topic.getRemainingMessages(sGroup), is(cTotal));
+
+            Map<Integer, Integer> mapCount = new HashMap<>();
+            int                   cMessage = 0;
+            for (int nChannel = 0; nChannel < topic.getChannelCount(); nChannel++)
+                {
+                int c = topic.getRemainingMessages(sGroup, nChannel);
+                cMessage += c;
+                mapCount.put(nChannel, c);
+                }
+
+            assertThat(cMessage, is(cTotal));
+
+            int cOne = subscriberOne.getRemainingMessages();
+            int cTwo = subscriberTwo.getRemainingMessages();
+            assertThat(cOne + cTwo, is(cTotal));
+
+            for (int nChannel : subscriberOne.getChannels())
+                {
+                assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            for (int nChannel : subscriberTwo.getChannels())
+                {
+                assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+            }
+        }
 
     // ----- helper methods -------------------------------------------------
 

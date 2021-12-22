@@ -7,6 +7,7 @@
 package com.tangosol.net.topic;
 
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.net.NamedCollection;
 
 import com.tangosol.util.Binary;
@@ -176,6 +177,39 @@ public interface NamedTopic<V>
      *  @return the number of channels that this topic has
      */
     public int getChannelCount();
+
+    /**
+     * Returns the number of remaining messages to be read from the topic for the specific subscriber group.
+     * <p>
+     * This method is a sum of the remaining messages for each channel from the last committed message (exclusive)
+     * to the current tail. This result returned by this method is somewhat transient in situations where there are
+     * active Subscribers with in-flight commit requests, so the count may change just after the method returns.
+     * Message expiry may also affect the returned value, if messages expire after the count is returned.
+     *
+     * @param sSubscriberGroup  the name of the subscriber group
+     *
+     * @return  the number of remaining messages for the subscriber group
+     */
+    default int getRemainingMessages(String sSubscriberGroup)
+        {
+        return getRemainingMessages(sSubscriberGroup, new int[0]);
+        }
+
+    /**
+     * Returns the number of remaining messages to be read from the topic for the specific subscriber group,
+     * and optionally for one or more specific channels.
+     * <p>
+     * This method is a sum of the remaining messages for each channel from the last committed message (exclusive)
+     * to the current tail. This result returned by this method is somewhat transient in situations where there are
+     * active Subscribers with in-flight commit requests, so the count may change just after the method returns.
+     * Message expiry may also affect the returned value, if messages expire after the count is returned.
+     *
+     * @param sSubscriberGroup  the name of the subscriber group
+     * @param anChannel         one or more optional channels
+     *
+     * @return  the number of remaining messages for the subscriber group
+     */
+    int getRemainingMessages(String sSubscriberGroup, int... anChannel);
 
     // ----- inner interface: ElementCalculator -----------------------------
 
