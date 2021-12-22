@@ -9,10 +9,12 @@ package topics;
 
 import com.oracle.bedrock.deferred.DeferredHelper;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.NonBlocking;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
@@ -71,8 +73,12 @@ import com.tangosol.util.filter.GreaterEqualsFilter;
 import com.tangosol.util.filter.GreaterFilter;
 import com.tangosol.util.filter.LessFilter;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -107,6 +113,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import org.junit.runners.model.Statement;
 import topics.data.Address;
 import topics.data.AddressExternalizableLite;
 import topics.data.AddressPof;
@@ -416,7 +423,7 @@ public abstract class AbstractNamedTopicTests
 
                 String sElement = "Element-" + i;
 
-                publisher.publish(sElement).join();
+                publisher.publish(sElement).get(5, TimeUnit.MINUTES);
                 }
 
             System.out.println();
@@ -713,9 +720,9 @@ public abstract class AbstractNamedTopicTests
             {
             try (Publisher<String> publisher = topic.createPublisher())
                 {
-                publisher.publish("Element-0").join();
-                publisher.publish("Element-1").join();
-                publisher.publish("Element-2").join();
+                publisher.publish("Element-0").get(5, TimeUnit.MINUTES);
+                publisher.publish("Element-1").get(5, TimeUnit.MINUTES);
+                publisher.publish("Element-2").get(5, TimeUnit.MINUTES);
                 }
 
             List<Element<String>> elementsOne   = subscriberOne.receive(1).get(1, TimeUnit.MINUTES);
@@ -1288,7 +1295,7 @@ public abstract class AbstractNamedTopicTests
             Customer customer = new Customer("Mr Smith", 25, AddressExternalizableLite.getRandomAddress());
             try
                 {
-                publisher.publish(customer).join();
+                publisher.publish(customer).get(5, TimeUnit.MINUTES);
                 assertThat(subscriberFoo.receive().get(1, TimeUnit.MINUTES).getValue().equals(customer), is(true));
                 assertThat(subscriberBar.receive().get(1, TimeUnit.MINUTES).getValue().equals(customer), is(true));
 
@@ -1487,7 +1494,7 @@ public abstract class AbstractNamedTopicTests
             int cCA = 0;
             for (Customer customer : list)
                 {
-                publisher.publish(customer).join();
+                publisher.publish(customer).get(5, TimeUnit.MINUTES);
 
                 if (customer.getAddress().getState().equals("MA"))
                     {
@@ -1554,7 +1561,7 @@ public abstract class AbstractNamedTopicTests
                     {
                     publisher.publish(Integer.toString(i));
                     }
-                publisher.flush().join();
+                publisher.flush().get(5, TimeUnit.MINUTES);
                 }
 
             int cPages = caches.Pages.size();
@@ -1693,7 +1700,7 @@ public abstract class AbstractNamedTopicTests
                 aFutures[i] = subscriber.receive();
                 }
 
-            CompletableFuture.allOf(aFutures).join();
+            CompletableFuture.allOf(aFutures).get(5, TimeUnit.MINUTES);
 
             for (int i=0; i<aFutures.length; i++)
                 {
@@ -1863,7 +1870,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i=0; i<nCount; i++)
                 {
-                publisher.publish(sPrefix + i).join();
+                publisher.publish(sPrefix + i).get(5, TimeUnit.MINUTES);
                 }
             }
 
@@ -1891,7 +1898,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i=0; i<nCount; i++)
                 {
-                publisher.publish(sPrefix + i).join();
+                publisher.publish(sPrefix + i).get(5, TimeUnit.MINUTES);
                 }
 
             // read everything with subscriber one but do not commit anything
@@ -2330,7 +2337,7 @@ public abstract class AbstractNamedTopicTests
             {
             try (Publisher<String> publisher = topic.createPublisher())
                 {
-                publisher.publish("blah").join();
+                publisher.publish("blah").get(5, TimeUnit.MINUTES);
                 }
 
             assertThat(subscriber.receive().get(1, TimeUnit.MINUTES).getValue(), is("blah"));
@@ -2400,6 +2407,7 @@ public abstract class AbstractNamedTopicTests
                 }
 
             thread.interrupt(); // the thread may be blocked on flow control
+            Eventually.assertDeferred(thread::isAlive, is(false));
             thread.join();
 
             assertThat(flowControl.getBacklog(), is(lessThanOrEqualTo(nMaxBacklog)));
@@ -2557,11 +2565,18 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i = 0; i < nHigh * 2; ++i)
                 {
-                publisher.publish("Element-" + i).join();
+                try
+                    {
+                    publisher.publish("Element-" + i).get(5, TimeUnit.MINUTES);
+                    }
+                catch (InterruptedException | TimeoutException e)
+                    {
+                    fail("Failed to publish element " + i + ". Expected CompletionException but caught " + e);
+                    }
                 }
-            fail(); // we're not supposed to finish
+            fail("Publish loop should not have completed"); // we're not supposed to finish
             }
-        catch (CompletionException e)
+        catch (CompletionException | ExecutionException e)
             {
             // expected
             assertThat(e.getCause(), is(instanceOf(TopicPublisherException.class)));
@@ -2581,7 +2596,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (@SuppressWarnings("unused") Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
+        try (Subscriber<String> unused = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = SERVER_CAPACITY / cbValue; // from config
@@ -2590,11 +2605,18 @@ public abstract class AbstractNamedTopicTests
                 {
                 for (int i = 0; i < nHigh * 2; ++i)
                     {
-                    publisher.publish("Element-" + i).join();
+                    try
+                        {
+                        publisher.publish("Element-" + i).get(5, TimeUnit.MINUTES);
+                        }
+                    catch (InterruptedException | TimeoutException e)
+                        {
+                        fail("Failed to publish element " + i + ". Expected CompletionException but caught " + e);
+                        }
                     }
-                fail(); // we're not supposed to finish
+                fail("Publish loop should not have completed"); // we're not supposed to finish
                 }
-            catch (CompletionException e)
+            catch (CompletionException | ExecutionException e)
                 {
                 // expected
                 assertThat(e.getCause(), is(instanceOf(TopicPublisherException.class)));
@@ -2687,7 +2709,7 @@ public abstract class AbstractNamedTopicTests
                 {
                 for (int i=0; i<nCount; i++)
                     {
-                    publisher.publish(sPrefix + i).join();
+                    publisher.publish(sPrefix + i).get(5, TimeUnit.MINUTES);
                     }
                 }
 
@@ -2721,7 +2743,7 @@ public abstract class AbstractNamedTopicTests
             @SuppressWarnings("unused")
             Subscriber<String> subscriberPin = topic.createSubscriber()) // ensures data inserted before test subscriber is created remains in the topic
             {
-            publisher.publish(sPrefix + 1).join();
+            publisher.publish(sPrefix + 1).get(5, TimeUnit.MINUTES);
 
             Subscriber<String> subscriber = topic.createSubscriber();
 
@@ -2741,7 +2763,7 @@ public abstract class AbstractNamedTopicTests
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
-            publisher.publish(sPrefix + 1).join();
+            publisher.publish(sPrefix + 1).get(5, TimeUnit.MINUTES);
 
             try (Subscriber<String> subscriber1 = topic.createSubscriber(Subscriber.Name.inGroup(m_testName.getMethodName() + "foo")))
                 {
@@ -3968,7 +3990,7 @@ public abstract class AbstractNamedTopicTests
 
                 CompletableFuture<Element<String>> future = subscriber.receive();
 
-                publisher.publish("element-last").join();
+                publisher.publish("element-last").get(5, TimeUnit.MINUTES);
 
                 Element<String> elementTail = future.get(2, TimeUnit.MINUTES);
                 assertThat(elementTail, is(notNullValue()));
@@ -4403,7 +4425,7 @@ public abstract class AbstractNamedTopicTests
         }
 
     @SuppressWarnings("SameParameterValue")
-    protected void populate(Publisher<String> publisher, int nMsgSize, int nCount)
+    protected void populate(Publisher<String> publisher, int nMsgSize, int nCount) throws Exception
         {
         byte[] bytes = new byte[nMsgSize];
         Arrays.fill(bytes, (byte)'A');
@@ -4418,7 +4440,7 @@ public abstract class AbstractNamedTopicTests
                 throw Base.ensureRuntimeException(e);
                 }
             }
-        publisher.flush().join();
+        publisher.flush().get(5, TimeUnit.MINUTES);
         }
 
     protected synchronized NamedTopic<String> ensureTopic()
@@ -4553,15 +4575,38 @@ public abstract class AbstractNamedTopicTests
             extends TestWatcher
         {
         @Override
-        protected void starting(Description d) {
+        public Statement apply(Statement base, Description d)
+            {
+            try
+                {
+                Class<?> testClass = d.getTestClass();
+                File folder = MavenProjectFileUtils.ensureTestOutputBaseFolder(testClass);
+                m_out = new PrintStream(new File(folder, testClass.getSimpleName() + ".log"));
+                }
+            catch (FileNotFoundException e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            return super.apply(base, d);
+            }
+
+        @Override
+        protected void starting(Description d)
+            {
             m_sName = d.getMethodName();
             System.err.println(">>>>> Starting test: " + m_sName + " in class " + d.getTestClass());
-        }
+            System.err.flush();
+            m_out.println(">>>>> Starting test: " + m_sName + " in class " + d.getTestClass());
+            m_out.flush();
+            }
 
         @Override
         protected void succeeded(Description description)
             {
             System.err.println(">>>>> Test Passed: " + m_sName);
+            System.err.flush();
+            m_out.println(">>>>> Test Passed: " + m_sName);
+            m_out.flush();
             }
 
         @Override
@@ -4570,12 +4615,28 @@ public abstract class AbstractNamedTopicTests
             System.err.println(">>>>> Test Failed: " + m_sName);
             e.printStackTrace();
             System.err.println("<<<<<");
+            System.err.flush();
+            m_out.println(">>>>> Test Failed: " + m_sName);
+            e.printStackTrace(m_out);
+            m_out.println("<<<<<");
+            m_out.flush();
             }
 
         @Override
         protected void skipped(AssumptionViolatedException e, Description description)
             {
             System.err.println(">>>>> Test Skipped: " + m_sName);
+            System.err.flush();
+            m_out.println(">>>>> Test Skipped: " + m_sName);
+            m_out.flush();
+            }
+
+        @Override
+        protected void finished(Description description)
+            {
+            m_out.flush();
+            m_out.close();
+            super.finished(description);
             }
 
         /**
@@ -4588,6 +4649,8 @@ public abstract class AbstractNamedTopicTests
         // ----- data members -----------------------------------------------
 
         private volatile String m_sName;
+        
+        private PrintStream m_out;
         }
 
     static class ListLogger
