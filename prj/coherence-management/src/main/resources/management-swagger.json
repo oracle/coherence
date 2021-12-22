@@ -1770,7 +1770,7 @@
         ],
         "summary": "Stop a Service",
         "description": "Use this endpoint to force a specific service to stop. Use the shutdown endpoint for normal service termination.",
-        "operationId": "management/coherence/cluster/services/{memberIdentifier}/{serviceName}/stop POST",
+        "operationId": "management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/stop POST",
         "produces": [
           "application/json"
         ],
