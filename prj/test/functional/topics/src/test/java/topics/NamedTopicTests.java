@@ -7,7 +7,12 @@
 package topics;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
+import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.coherence.options.Multicast;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -81,7 +86,12 @@ public class NamedTopicTests
         String sMsg = ">>>>> Starting test: " + m_testName.getMethodName();
         for (CoherenceClusterMember member : cluster.getCluster())
             {
-            member.submit(() -> System.err.println(sMsg)).join();
+            member.submit(() ->
+                {
+                System.err.println(sMsg);
+                System.err.flush();
+                return null;
+                }).join();
             }
         }
 
@@ -91,7 +101,12 @@ public class NamedTopicTests
         String sMsg = ">>>>> Finished test: " + m_testName.getMethodName();
         for (CoherenceClusterMember member : cluster.getCluster())
             {
-            member.submit(() -> System.err.println(sMsg)).join();
+            member.submit(() ->
+                {
+                System.err.println(sMsg);
+                System.err.flush();
+                return null;
+                }).join();
             }
         }
 
@@ -276,9 +291,10 @@ public class NamedTopicTests
                     .with(ClusterName.of("TopicTests"),
                             Logging.at(9),
                             CacheConfig.of(CACHE_CONFIG_FILE),
-                            SystemProperty.of("coherence.localhost", "127.0.0.1"),
+                            LocalHost.only(),
+                            JMXManagementMode.ALL,
+                            IPv4Preferred.yes(),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
-                            SystemProperty.of("coherence.management", "all"),
                             SystemProperty.of("coherence.management.remote", "true"),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
