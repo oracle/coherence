@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 
 <coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
@@ -15,7 +15,7 @@
             <init-params>
                 <init-param id="4">
                     <param-name>local-storage</param-name>
-                    <param-value system-property="tangosol.coherence.distributed.localstorage">false</param-value>
+                    <param-value system-property="coherence.distributed.localstorage">false</param-value>
                 </init-param>
             </init-params>
         </service>

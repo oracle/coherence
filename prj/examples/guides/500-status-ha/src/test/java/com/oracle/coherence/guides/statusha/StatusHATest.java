@@ -7,47 +7,46 @@
 
 package com.oracle.coherence.guides.statusha;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Properties;
+import java.net.Socket;
 import java.util.Set;
 
-import com.oracle.bedrock.OptionsByType;
+import com.oracle.bedrock.junit.CoherenceClusterExtension;
+import com.oracle.bedrock.junit.SessionBuilders;
 import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
-import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
+import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.options.ClassName;
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
+import com.oracle.bedrock.util.Capture;
 import com.oracle.coherence.guides.statusha.fetcher.DataFetcher;
 import com.oracle.coherence.guides.statusha.fetcher.HTTPDataFetcher;
 import com.oracle.coherence.guides.statusha.fetcher.JMXDataFetcher;
 import com.oracle.coherence.guides.statusha.fetcher.MBeanServerProxyDataFetcher;
 import com.oracle.coherence.guides.statusha.model.ServiceData;
 
-import com.tangosol.discovery.NSLookup;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedMap;
-import com.tangosol.net.Session;
-
-import javax.management.remote.JMXServiceURL;
-import org.hamcrest.CoreMatchers;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -69,77 +68,79 @@ public class StatusHATest {
     private static final String SERVICE2 = "PartitionedCache2";
 
     /**
-     * Cache servers.
+     * A collection of available TCP ports.
      */
-    private static CoherenceCacheServer member1;
-    private static CoherenceCacheServer member2;
-
-    /**
-     * Properties for server startup.
-     */
-    private static Properties props;
+    private static final AvailablePortIterator ports = LocalPlatform.get().getAvailablePorts();
 
     /**
      * JMX Port.
      */
-    private static int jmxPort;
+    private static final Capture<Integer> jmxPort = new Capture<>(ports);
 
     /**
      * Management Port.
      */
-    private static int managementPort;
+    private static final Capture<Integer> managementPort = new Capture<>(ports);
+
+    /**
+     * A Bedrock utility to capture logs of spawned processes into files
+     * under target/test-output. This is added as an option to the cluster.
+     */
+    @RegisterExtension
+    static TestLogsExtension logs = new TestLogsExtension(StatusHATest.class);
+
+    /**
+     * A Bedrock JUnit5 extension that starts a Coherence cluster, in this case made up of
+     * two storage enabled members. The first member ("member1") is configured to
+     * run both the JMX server and Coherence management over REST server.
+     */
+    @RegisterExtension
+    static CoherenceClusterExtension coherenceCluster =
+            new CoherenceClusterExtension()
+                    .using(LocalPlatform.get())
+                    .with(ClassName.of(Coherence.class),
+                          Logging.at(9),
+                          LocalHost.only(),
+                          Multicast.ttl(0),
+                          IPv4Preferred.yes(),
+                          logs,
+                          LocalStorage.enabled(),
+                          CacheConfig.of(CACHE_CONFIG),
+                          ClusterName.of(CLUSTER_NAME),
+                          WellKnownAddress.of("127.0.0.1"),
+                          JMXManagementMode.ALL,
+                          ClusterPort.automatic())
+                    .include(1,
+                             RoleName.of("member1"),
+                             DisplayName.of("member1"),
+                             SystemProperty.of("com.sun.management.jmxremote", "true"),
+                             SystemProperty.of("com.sun.management.jmxremote.authenticate", "false"),
+                             SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
+                             SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
+                             SystemProperty.of("com.sun.management.jmxremote.port", jmxPort),
+                             SystemProperty.of("coherence.management.http.host", "127.0.0.1"),
+                             SystemProperty.of("coherence.management.http.port", managementPort),
+                             SystemProperty.of("coherence.management.http", "inherit"))
+                    .include(1,
+                             RoleName.of("member2"),
+                             DisplayName.of("member2"));
 
     /**
      * Startup the Coherence cluster members.
      */
     @BeforeAll
     public static void startup() {
-        LocalPlatform platform = LocalPlatform.get();
-        AvailablePortIterator availablePortIterator = LocalPlatform.get().getAvailablePorts();
-        jmxPort = availablePortIterator.next();
-        managementPort = availablePortIterator.next();
+        // Make sure the MBean server in member-1 is listening before we start
+        Eventually.assertDeferred(StatusHATest::isMBeanServerListening, is(true));
+        // Make sure the Management over REST server in member-1 is listening before we start
+        Eventually.assertDeferred(StatusHATest::isRestServerListening, is(true));
 
-        props = new Properties();
-        props.put("coherence.cluster", CLUSTER_NAME);
-        props.put("coherence.cacheconfig", CACHE_CONFIG);
+        // Make this test a storage disabled cluster member using the properties from the cluster started above.
+        ConfigurableCacheFactory ccf = coherenceCluster.createSession(SessionBuilders.storageDisabledMember());
 
-        OptionsByType optionsByType = OptionsByType.empty();
-        optionsByType.addAll(LocalStorage.enabled(), Multicast.ttl(0), Logging.at(9),
-                WellKnownAddress.of("127.0.0.1"), ClusterName.of(CLUSTER_NAME));
-
-        // add the properties to the Bedrock startup
-        props.forEach((k, v) -> optionsByType.add(SystemProperty.of((String) k, (String) v)));
-
-        OptionsByType optionsByTypeMember1 = OptionsByType.of(optionsByType)
-                .addAll(RoleName.of("member1"),
-                        SystemProperty.of("com.sun.management.jmxremote", "true"),
-                        SystemProperty.of("com.sun.management.jmxremote.authenticate", "false"),
-                        SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
-                        SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
-                        SystemProperty.of("com.sun.management.jmxremote.port", jmxPort),
-                        SystemProperty.of("coherence.management.http.host", "127.0.0.1"),
-                        SystemProperty.of("coherence.management.http.port", managementPort),
-                        SystemProperty.of("coherence.management.http", "inherit")
-                );
-        OptionsByType optionsByTypeMember2 = OptionsByType.of(optionsByType).add(RoleName.of("member2"));
-
-        member1 = platform.launch(CoherenceCacheServer.class, optionsByTypeMember1.asArray());
-        member2 = platform.launch(CoherenceCacheServer.class, optionsByTypeMember2.asArray());
-
-        Eventually.assertThat(invoking(member1).getClusterSize(), CoreMatchers.is(2));
-
-        // set client properties
-        System.setProperty("coherence.wka", "127.0.0.1");
-        System.setProperty("coherence.cluster", CLUSTER_NAME);
-        System.setProperty("coherence.distributed.localstorage", "false");
-        System.setProperty("coherence.cacheconfig", CACHE_CONFIG);
-
-        Coherence coherence = Coherence.client();
-        coherence.start().join();
-        Session session = coherence.getSession();
-
-        NamedMap<Integer, String> namedMap1 = session.getMap("test1-cache");
-        NamedMap<Integer, String> namedMap2 = session.getMap("test2-cache");
+        // Populate two caches
+        NamedMap<Integer, String> namedMap1 = ccf.ensureCache("test1-cache", null);
+        NamedMap<Integer, String> namedMap2 = ccf.ensureCache("test2-cache", null);
 
         for (int i = 0; i < 10000; i++) {
             namedMap1.put(i, "Value-" + i);
@@ -150,15 +151,12 @@ public class StatusHATest {
     @AfterAll
     public static void shutdown() {
         CacheFactory.shutdown();
-
-        destroyMember(member1);
-        destroyMember(member2);
     }
 
     @Test
     public void testMBeanServerProxyAllServices() {
         DataFetcher dataFetcher = new MBeanServerProxyDataFetcher(null);
-        assertDataFetcher(new MBeanServerProxyDataFetcher(null), 2);
+        assertDataFetcher(new MBeanServerProxyDataFetcher(null), 3);
         Set<String> serviceNames = dataFetcher.getServiceNames();
         assertThat(serviceNames.contains(SERVICE1), is(true));
         assertThat(serviceNames.contains(SERVICE2), is(true));
@@ -175,8 +173,8 @@ public class StatusHATest {
 
     @Test
     public void testJMXAllServices()  {
-        DataFetcher dataFetcher = new JMXDataFetcher("service:jmx:rmi:///jndi/rmi://127.0.0.1:" + jmxPort + "/jmxrmi", null);
-        assertDataFetcher(dataFetcher, 2);
+        DataFetcher dataFetcher = new JMXDataFetcher(getJmxURL(), null);
+        assertDataFetcher(dataFetcher, 3);
         Set<String> serviceNames = dataFetcher.getServiceNames();
         assertThat(serviceNames.contains(SERVICE1), is(true));
         assertThat(serviceNames.contains(SERVICE2), is(true));
@@ -184,7 +182,7 @@ public class StatusHATest {
 
     @Test
     public void testJMXOneService() {
-        DataFetcher dataFetcher = new JMXDataFetcher("service:jmx:rmi:///jndi/rmi://127.0.0.1:" + jmxPort + "/jmxrmi", SERVICE2);
+        DataFetcher dataFetcher = new JMXDataFetcher(getJmxURL(), SERVICE2);
         assertDataFetcher(dataFetcher, 1);
         Set<String> serviceNames = dataFetcher.getServiceNames();
         assertThat(serviceNames.contains(SERVICE1), is(false));
@@ -193,8 +191,8 @@ public class StatusHATest {
 
     @Test
     public void testHttpAllServices() {
-        DataFetcher dataFetcher = new HTTPDataFetcher("http://127.0.0.1:" + managementPort + "/management/coherence/cluster", null);
-        assertDataFetcher(dataFetcher, 2);
+        DataFetcher dataFetcher = new HTTPDataFetcher(getManagementURL(), null);
+        assertDataFetcher(dataFetcher, 3);
         Set<String> serviceNames = dataFetcher.getServiceNames();
         assertThat(serviceNames.contains(SERVICE1), is(true));
         assertThat(serviceNames.contains(SERVICE2), is(true));
@@ -202,11 +200,57 @@ public class StatusHATest {
 
     @Test
     public void testHttpOneService() {
-        DataFetcher dataFetcher = new HTTPDataFetcher("http://127.0.0.1:" + managementPort + "/management/coherence/cluster", SERVICE2);
+        DataFetcher dataFetcher = new HTTPDataFetcher(getManagementURL(), SERVICE2);
         assertDataFetcher(dataFetcher, 1);
         Set<String> serviceNames = dataFetcher.getServiceNames();
         assertThat(serviceNames.contains(SERVICE1), is(false));
         assertThat(serviceNames.contains(SERVICE2), is(true));
+    }
+
+    /**
+     * Returns the JMX url to use to connect to the Coherence JMX server.
+     *
+     * @return the JMX url to use to connect to the Coherence JMX server
+     */
+    private String getJmxURL() {
+        return "service:jmx:rmi:///jndi/rmi://127.0.0.1:" + jmxPort.get() + "/jmxrmi";
+    }
+
+    /**
+     * Returns the management over rest url to use to connect to the Coherence management server.
+     *
+     * @return the management over rest url to use to connect to the Coherence management server
+     */
+    private String getManagementURL() {
+        return "http://127.0.0.1:" + managementPort.get() + "/management/coherence/cluster";
+    }
+
+    /**
+     * Test whether the remote MBean server is listening by trying to connect to the socket.
+     *
+     * @return {@code true} if the remote MBean server is listening
+     */
+    private static boolean isMBeanServerListening() {
+        return isListening(jmxPort.get());
+    }
+
+    /**
+     * Test whether the remote Management over REST server is listening by trying to connect to the socket.
+     *
+     * @return {@code true} if the remote Management over REST server is listening
+     */
+    private static boolean isRestServerListening() {
+        return isListening(managementPort.get());
+    }
+
+    private static boolean isListening(int port) {
+        try {
+            try (Socket ignored = new Socket("127.0.0.1", port)) {
+                return true;
+            }
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     /**
@@ -240,20 +284,5 @@ public class StatusHATest {
         assertThat(data.getPartitionsVulnerable(), is(notNullValue()));
         assertThat(data.getPartitionsUnbalanced(), is(notNullValue()));
         assertThat(data.getStorageCount(), is(2));
-    }
-
-    /**
-     * Destroy a member and ignore any errors.
-     *
-     * @param member the {@link CoherenceClusterMember} to destroy
-     */
-    private static void destroyMember(CoherenceClusterMember member) {
-        try {
-            if (member != null) {
-                member.close();
-            }
-        } catch (Throwable thrown) {
-            // ignored
-        }
     }
 }

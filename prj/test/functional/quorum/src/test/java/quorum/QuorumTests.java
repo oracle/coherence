@@ -172,7 +172,7 @@ public class QuorumTests
         cacheEvents.put("DISTRIBUTION_ALLOWED", Boolean.valueOf(fDistribution));
         cacheEvents.put("BACKUP_ALLOWED", Boolean.valueOf(fBackup));
 
-        props.setProperty("tangosol.coherence.override", getOverrideConfig());
+        props.setProperty("coherence.override", getOverrideConfig());
 
         sServer = gePrefix() + sServer;
 
@@ -652,9 +652,9 @@ public class QuorumTests
         OptionsByType optionsByType   = createCacheServerOptions()
                 .add(CacheConfig.of(getCacheConfig()))
                 .add(SystemProperty.of("test.quorum.proxy", true))
-                .add(SystemProperty.of("tangosol.coherence.extend.address", hostName))
+                .add(SystemProperty.of("coherence.extend.address", hostName))
                 .add(SystemProperty.of("test.unicast.address", hostName))
-                .add(SystemProperty.of("tangosol.coherence.extend.port", LocalPlatform.get().getAvailablePorts()));
+                .add(SystemProperty.of("coherence.extend.port", LocalPlatform.get().getAvailablePorts()));
 
         CoherenceCacheServer proxy0 = startCoherenceClusterMember(optionsByType, "testProxy0-0");
         Eventually.assertDeferred(() -> proxy0.isServiceRunning("TcpProxyService"), is(true));
@@ -884,7 +884,7 @@ public class QuorumTests
             {
             Name  = gePrefix() + sName;
             Props = new Properties();
-            Props.setProperty("tangosol.coherence.override", getOverrideConfig());
+            Props.setProperty("coherence.override", getOverrideConfig());
             Props.setProperty("test.log.level", "3");
             for (int i = 0; i < asProp.length; i+=2)
                 {
@@ -1897,7 +1897,7 @@ public class QuorumTests
     */
     protected void testExtendConnect(CoherenceClusterMember proxy, boolean fAllowed)
         {
-        int port = Integer.parseInt(proxy.getSystemProperty("tangosol.coherence.extend.port"));
+        int port = Integer.parseInt(proxy.getSystemProperty("coherence.extend.port"));
 
         getInitiatorAddressProvider().setNextPort(port);
 

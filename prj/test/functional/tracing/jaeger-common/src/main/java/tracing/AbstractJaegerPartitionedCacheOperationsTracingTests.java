@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -71,7 +71,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
         {
         Properties props = super.getDefaultProperties();
         props.setProperty(JaegerConfigProperties.SERVICE_NAME.toString(), getClass().getName());
-        props.setProperty("tangosol.coherence.distributed.localstorage",  "false");
+        props.setProperty("coherence.distributed.localstorage",  "false");
         props.setProperty("java.security.debug",                          "access,domain,failure");
         return props;
         }
@@ -92,10 +92,10 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
 
         Properties propsMain = new Properties();
         propsMain.putAll(getDefaultProperties());
-        propsMain.setProperty("tangosol.coherence.role",                     "storage");
-        propsMain.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        propsMain.setProperty("coherence.role",                     "storage");
+        propsMain.setProperty("coherence.distributed.localstorage", "true");
         propsMain.setProperty("java.security.debug",                         "access,domain,failure");
-        propsMain.setProperty("tangosol.coherence.cacheconfig",              f_sCacheConfig);
+        propsMain.setProperty("coherence.cacheconfig",              f_sCacheConfig);
 
         m_memberStorageNode = startMember(2, propsMain);
         }

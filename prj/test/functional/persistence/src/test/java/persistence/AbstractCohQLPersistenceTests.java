@@ -78,10 +78,10 @@ public abstract class AbstractCohQLPersistenceTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.management.remote", "true");
-        System.setProperty("tangosol.coherence.management.refresh.expiry", "1");
-        System.setProperty("tangosol.coherence.management.refresh.policy", "refresh-expired");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.management.refresh.expiry", "1");
+        System.setProperty("coherence.management.refresh.policy", "refresh-expired");
 
         AbstractFunctionalTest._startup();
         }
@@ -122,8 +122,8 @@ public abstract class AbstractCohQLPersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
         props.setProperty("test.persistence.members", "3");
-        props.setProperty("tangosol.coherence.management", "all");
-        props.setProperty("tangosol.coherence.management.remote", "true");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
         props.setProperty("test.start.archiver", "true");
 
         final NamedCache       cache    = getNamedCache(sPersistentCache);

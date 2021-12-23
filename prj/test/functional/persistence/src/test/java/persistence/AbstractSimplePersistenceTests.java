@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -128,9 +128,9 @@ public abstract class AbstractSimplePersistenceTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.management.remote", "true");
-        System.setProperty("tangosol.coherence.management.refresh.expiry", "1s");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.management.refresh.expiry", "1s");
         System.setProperty("coherence.management.http", "inherit");
         System.setProperty("coherence.management.metrics.port", "0");
 
@@ -718,8 +718,8 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.persistence.active.dir", fActive ? fileActive.getAbsolutePath() : "");
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
-        props.setProperty("tangosol.coherence.management", "all");
-        props.setProperty("tangosol.coherence.management.remote", "true");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
         props.setProperty("test.threads", "1");
 
@@ -970,9 +970,9 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
         props.setProperty("test.start.archiver", "true");
-        props.setProperty("tangosol.coherence.management", "all");
-        props.setProperty("tangosol.coherence.management.refresh.expiry", "1s");
-        props.setProperty("tangosol.coherence.management.remote", "true");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.refresh.expiry", "1s");
+        props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
@@ -1144,9 +1144,9 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
         props.setProperty("test.start.archiver", "true");
-        props.setProperty("tangosol.coherence.management", "all");
-        props.setProperty("tangosol.coherence.management.refresh.expiry", "1s");
-        props.setProperty("tangosol.coherence.management.remote", "true");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.refresh.expiry", "1s");
+        props.setProperty("coherence.management.remote", "true");
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
@@ -1234,8 +1234,8 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
         props.setProperty("test.start.archiver", "true");
-        props.setProperty("tangosol.coherence.management", "all");
-        props.setProperty("tangosol.coherence.management.remote", "true");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
 
         NamedCache              cache    = getNamedCache(sPersistentCache);

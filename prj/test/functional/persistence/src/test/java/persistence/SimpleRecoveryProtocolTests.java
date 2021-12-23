@@ -122,13 +122,14 @@ public class SimpleRecoveryProtocolTests
             System.setProperty("test.persistence.active.dir",    s_fileActive.getAbsolutePath());
             System.setProperty("test.persistence.snapshot.dir",  s_fileSnapshot.getAbsolutePath());
             System.setProperty("test.persistence.trash.dir",     s_fileTrash.getAbsolutePath());
-            System.setProperty("tangosol.coherence.cacheconfig", CFG_FILE);
+            System.setProperty("coherence.cacheconfig", CFG_FILE);
 
             AbstractFunctionalTest._startup();
 
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.recover.quorum", "0");
+            props.setProperty("coherence.distributed.localstorage", "true");
 
             CoherenceClusterMember clusterMember = startCacheServer("SRPT-setup", getProjectName(), "simple-recovery-cache-config.xml", props);
             Eventually.assertThat(invoking(clusterMember).getClusterSize(), is(2));
@@ -156,6 +157,7 @@ public class SimpleRecoveryProtocolTests
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testNoPersistentData");
+            props.setProperty("coherence.distributed.localstorage", "true");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -220,6 +222,7 @@ public class SimpleRecoveryProtocolTests
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testAllOnMember3");
+            props.setProperty("coherence.distributed.localstorage", "true");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -284,6 +287,7 @@ public class SimpleRecoveryProtocolTests
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testHalfOn3HalfOn4");
+            props.setProperty("coherence.distributed.localstorage", "true");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -362,6 +366,7 @@ public class SimpleRecoveryProtocolTests
             Properties props = new Properties();
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testHalfOn3HalfMissing");
+            props.setProperty("coherence.distributed.localstorage", "true");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();

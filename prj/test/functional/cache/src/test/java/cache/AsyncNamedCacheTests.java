@@ -69,7 +69,7 @@ public class AsyncNamedCacheTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         AbstractFunctionalTest._startup();
         }
 

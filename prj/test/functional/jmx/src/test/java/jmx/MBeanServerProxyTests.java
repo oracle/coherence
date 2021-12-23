@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -72,8 +72,8 @@ public class MBeanServerProxyTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.role", "main");
-        System.setProperty("tangosol.coherence.log.level", "3");
+        System.setProperty("coherence.role", "main");
+        System.setProperty("coherence.log.level", "3");
 
         // we will control the startup manually
         }

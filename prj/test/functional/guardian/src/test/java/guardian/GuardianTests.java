@@ -73,8 +73,8 @@ public class GuardianTests
             System.setProperty("test.guardian.GuardianTests.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.threads", "2");
             System.setProperty("test.guardian.GuardianTests.request.timeout", "15s");
-            System.setProperty("tangosol.coherence.log.level", "9");
-            System.setProperty("tangosol.coherence.management", "all");
+            System.setProperty("coherence.log.level", "9");
+            System.setProperty("coherence.management", "all");
 
             CacheService service = startService("PartitionedCacheDefaultPolicies");
             NamedCache   cache   = service.ensureCache("foo", null);
@@ -409,7 +409,7 @@ public class GuardianTests
         // test terminate of a task on the service thread
         try
             {
-            System.setProperty("tangosol.coherence.override", "guardian-coherence-override.xml");
+            System.setProperty("coherence.override", "guardian-coherence-override.xml");
             System.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
             System.setProperty("test.guardian.GuardianTests.threads", "0");
@@ -429,7 +429,7 @@ public class GuardianTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             System.clearProperty("test.guardian.GuardianTests.global.timeout");
             System.clearProperty("test.guardian.GuardianTests.global.policy");
             CacheFactory.shutdown();
@@ -438,7 +438,7 @@ public class GuardianTests
         // test terminate of a task on a worker thread
         try
             {
-            System.setProperty("tangosol.coherence.override", "guardian-coherence-override.xml");
+            System.setProperty("coherence.override", "guardian-coherence-override.xml");
             System.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
             System.setProperty("test.guardian.GuardianTests.threads", "2");
@@ -467,7 +467,7 @@ public class GuardianTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             System.clearProperty("test.guardian.GuardianTests.global.timeout");
             System.clearProperty("test.guardian.GuardianTests.global.policy");
             CacheFactory.shutdown();
@@ -476,7 +476,7 @@ public class GuardianTests
         // test terminate of a task on a service thread with a custom policy
         try
             {
-            System.setProperty("tangosol.coherence.override", "guardian-coherence-override.xml");
+            System.setProperty("coherence.override", "guardian-coherence-override.xml");
             System.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             System.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
             System.setProperty("test.guardian.GuardianTests.threads", "0");
@@ -505,7 +505,7 @@ public class GuardianTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             System.clearProperty("test.guardian.GuardianTests.global.timeout");
             System.clearProperty("test.guardian.GuardianTests.global.policy");
             CacheFactory.shutdown();
@@ -614,7 +614,7 @@ public class GuardianTests
         Properties props = new Properties();
         try
             {
-            props.setProperty("tangosol.coherence.override",
+            props.setProperty("coherence.override",
                               "guardian-coherence-override.xml");
             props.setProperty("test.guardian.GuardianTests.global.timeout", "60000");
             props.setProperty("test.guardian.GuardianTests.global.policy", "exit-cluster");
@@ -647,7 +647,7 @@ public class GuardianTests
         Properties props = new Properties();
         try
             {
-            props.setProperty("tangosol.coherence.override",
+            props.setProperty("coherence.override",
                               "guardian-coherence-override.xml");
             props.setProperty("test.guardian.GuardianTests.global.timeout", "3000");
             props.setProperty("test.guardian.GuardianTests.global.policy", "logging");

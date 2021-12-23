@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -54,7 +54,7 @@ public abstract class AbstractJmxConfigurationTests
         {
         Properties propsLocal = props == null ? new Properties() : props;
 
-        propsLocal.put("tangosol.coherence.role", "node1");
+        propsLocal.put("coherence.role", "node1");
 
         super._startCluster(propsLocal, sOverrideXml);
         }
@@ -63,7 +63,7 @@ public abstract class AbstractJmxConfigurationTests
     protected Properties getDefaultProperties()
         {
         Properties propsDefault = super.getDefaultProperties();
-        propsDefault.setProperty("tangosol.coherence.management.refresh.timeout", "900ms");
+        propsDefault.setProperty("coherence.management.refresh.timeout", "900ms");
         return propsDefault;
         }
 

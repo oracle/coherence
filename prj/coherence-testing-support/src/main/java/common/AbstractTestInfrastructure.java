@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -236,14 +236,14 @@ public abstract class AbstractTestInfrastructure
         props.setProperty("test.multicast.port",
             String.valueOf(LocalPlatform.get().getAvailablePorts().next()));
 
-        props.setProperty("tangosol.coherence.nameservice.address",
+        props.setProperty("coherence.nameservice.address",
             LocalPlatform.get().getLoopbackAddress().getHostAddress());
 
         // assume that this process should be storage disabled
         if (com.tangosol.coherence.config.Config.getProperty(
-                "tangosol.coherence.distributed.localstorage") == null)
+                "coherence.distributed.localstorage") == null)
             {
-            props.setProperty("tangosol.coherence.distributed.localstorage", "false");
+            props.setProperty("coherence.distributed.localstorage", "false");
             }
 
         // test static lambdas when testing security
@@ -265,12 +265,12 @@ public abstract class AbstractTestInfrastructure
         Cluster cluster;
         try
             {
-            props.setProperty("tangosol.coherence.join.timeout", "0"); // dramatically speed up the start of this (the first node)
+            props.setProperty("coherence.join.timeout", "0"); // dramatically speed up the start of this (the first node)
             cluster = CacheFactory.ensureCluster();
             }
         finally
             {
-            props.remove("tangosol.coherence.join.timeout");
+            props.remove("coherence.join.timeout");
             }
 
         // capture the unicast port that we bound too
@@ -466,25 +466,25 @@ public abstract class AbstractTestInfrastructure
         props.setProperty("test.application.wait",      String.valueOf(fWait));
         if (sCacheConfig != null && sCacheConfig.length() > 0)
             {
-            props.setProperty("tangosol.coherence.cacheconfig", sCacheConfig);
+            props.setProperty("coherence.cacheconfig", sCacheConfig);
             }
 
         // set the role name of the cache application to it's name so that we
         // can later identify it programmatically
-        props.setProperty("tangosol.coherence.role", sApplication);
+        props.setProperty("coherence.role", sApplication);
 
         // enable remote management unless explicitly set
         if (com.tangosol.coherence.config.Config.getProperty(
-                "tangosol.coherence.management") == null)
+                "coherence.management") == null)
             {
-            props.setProperty("tangosol.coherence.management", "all");
+            props.setProperty("coherence.management", "all");
             }
 
         // add "standard" system properties
         addTestProperties(props);
 
         // assume that the cache application is storage disabled
-        props.setProperty("tangosol.coherence.distributed.localstorage", "false");
+        props.setProperty("coherence.distributed.localstorage", "false");
 
         OptionsByType optionsByType = createCacheServerOptions(sClass);
 
@@ -667,34 +667,34 @@ public abstract class AbstractTestInfrastructure
             classMain = DefaultCacheServer.class;
             }
 
-        OptionsByType optionsByType = createCacheServerOptions(classMain.getCanonicalName(), sClassPath);
+        OptionsByType optionsByType = createCacheServerOptions(classMain.getCanonicalName(), sClassPath, props);
 
         props.setProperty("test.server.name", sServer);
         if (sCacheConfig != null && sCacheConfig.length() > 0)
             {
-            props.setProperty("tangosol.coherence.cacheconfig", sCacheConfig);
+            props.setProperty("coherence.cacheconfig", sCacheConfig);
             }
 
         // set the role name of the cache server to it's name so that we
         // can later identify it programmatically, if it hasn't already been specified
         if (!props.containsKey("coherence.role") && !props.containsKey("tangosol.coherence.role"))
             {
-            props.setProperty("tangosol.coherence.role", sServer);
+            props.setProperty("coherence.role", sServer);
+            }
+
+        if (props.containsKey("test.server.distributed.localstorage"))
+            {
+            props.setProperty("coherence.distributed.localstorage",
+                    props.getProperty("test.server.distributed.localstorage"));
+            }
+        else if (!props.containsKey("coherence.distributed.localstorage"))
+            {
+            // assume that the cache server is storage enabled
+            props.setProperty("coherence.distributed.localstorage", "true");
             }
 
         // add "standard" system properties
         addTestProperties(props);
-
-        if (props.containsKey("test.server.distributed.localstorage"))
-            {
-            props.setProperty("tangosol.coherence.distributed.localstorage",
-                    props.getProperty("test.server.distributed.localstorage"));
-            }
-        else
-            {
-            // assume that the cache server is storage enabled
-            props.setProperty("tangosol.coherence.distributed.localstorage", "true");
-            }
 
         if (!props.containsKey("test.unicast.address"))
             {
@@ -702,9 +702,9 @@ public abstract class AbstractTestInfrastructure
             }
 
         // only bind the NameService to the loopback address unless explicitly set
-        if (!props.containsKey("tangosol.coherence.nameservice.address"))
+        if (!props.containsKey("coherence.nameservice.address"))
             {
-            props.setProperty("tangosol.coherence.nameservice.address",
+            props.setProperty("coherence.nameservice.address",
                 LocalPlatform.get().getLoopbackAddress().getHostAddress());
             }
 
@@ -831,7 +831,7 @@ public abstract class AbstractTestInfrastructure
 
     protected static OptionsByType createCacheServerOptions(String sClass)
         {
-        return createCacheServerOptions(sClass, null);
+        return createCacheServerOptions(sClass, null, new Properties());
         }
 
     /**
@@ -843,7 +843,7 @@ public abstract class AbstractTestInfrastructure
      *
      * @return an OptionsByTpe
      */
-    public static OptionsByType createCacheServerOptions(String sClass, String sClassPath)
+    public static OptionsByType createCacheServerOptions(String sClass, String sClassPath, Properties props)
         {
         if (sClassPath == null || sClassPath.isEmpty())
             {
@@ -874,7 +874,16 @@ public abstract class AbstractTestInfrastructure
         optionsByType.add(Headless.enabled());
 
         optionsByType.add(LocalHost.only());
-        optionsByType.add(JMXManagementMode.NONE);
+
+        String sMgmt = System.getProperty("coherence.management");
+        if (sMgmt == null)
+            {
+            sMgmt = System.getProperty("tangosol.coherence.management");
+            }
+        if (sMgmt == null && !props.containsKey("coherence.management") && !props.containsKey("tangosol.coherence.management"))
+            {
+            optionsByType.add(JMXManagementMode.NONE);
+            }
 
         optionsByType.add(JmxFeature.enabled());
         optionsByType.add(SystemProperty.of(JavaApplication.JAVA_RMI_SERVER_HOSTNAME,

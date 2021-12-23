@@ -176,8 +176,8 @@ public class PriorityAggregatorTests
             .with(Logging.at(9),
                   CacheConfig.of("timeout-server-cache-config.xml"),
                   SystemProperty.of("coherence.localhost", "127.0.0.1"),
-                  SystemProperty.of("tangosol.coherence.extend.enabled", true),
-                  SystemProperty.of("tangosol.coherence.extend.port", LocalPlatform.get().getAvailablePorts().next()),
+                  SystemProperty.of("coherence.extend.enabled", true),
+                  SystemProperty.of("coherence.extend.port", LocalPlatform.get().getAvailablePorts().next()),
                   SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
                                     Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
             .include(2, LocalStorage.enabled());

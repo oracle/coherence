@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -72,7 +72,7 @@ public class QueryRecordReporterTests
     @BeforeClass
     public static void startup()
         {
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         CoherenceCacheServer clusterMember1 = (CoherenceCacheServer) startCacheServer("QueryRecordReporterTests-1", "filter", null, PROPS_SEONE);
         CoherenceCacheServer clusterMember2 = (CoherenceCacheServer) startCacheServer("QueryRecordReporterTests-2", "filter", null, PROPS_SEONE);
         Eventually.assertThat(invoking(clusterMember1).getClusterSize(), is(3));

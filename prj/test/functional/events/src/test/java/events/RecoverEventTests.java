@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -64,7 +64,7 @@ public class RecoverEventTests
     public static void _startup()
         {
         // we will control the startup manually
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         AbstractFunctionalTest.setupProps();
         }
 
@@ -99,8 +99,8 @@ public class RecoverEventTests
         System.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         System.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         System.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
-        System.setProperty("tangosol.coherence.cacheconfig", "event-persistence-cache-config.xml");
-        System.setProperty("tangosol.coherence.override", "event-override.xml");
+        System.setProperty("coherence.cacheconfig", "event-persistence-cache-config.xml");
+        System.setProperty("coherence.override", "event-override.xml");
 
         String sIdentifier = TestTransferInterceptor.IDENTIFIER;
 
@@ -199,8 +199,8 @@ public class RecoverEventTests
         System.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         System.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         System.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
-        System.setProperty("tangosol.coherence.cacheconfig", "event-persistence-cache-config.xml");
-        System.setProperty("tangosol.coherence.override", "event-override.xml");
+        System.setProperty("coherence.cacheconfig", "event-persistence-cache-config.xml");
+        System.setProperty("coherence.override", "event-override.xml");
 
         String sIdentifier      = TestTransferInterceptor.IDENTIFIER;
         String sPersistentCache = "simple-persistent";

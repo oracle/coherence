@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -66,7 +66,7 @@ public class BinaryStorageManagerConfigTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
 
         // get the temp directory. java.io.tmpdir doesn't work on linux so get
         // the directory from a temp file
@@ -89,7 +89,7 @@ public class BinaryStorageManagerConfigTests
         Random rand = new Random();
 
         m_sBdbDir = tmpDir + BDB_TMP_DIR + rand.nextInt();
-        System.setProperty("tangosol.coherence.bdb.tmpdir", m_sBdbDir);
+        System.setProperty("coherence.bdb.tmpdir", m_sBdbDir);
 
         try
             {
@@ -101,7 +101,7 @@ public class BinaryStorageManagerConfigTests
 
 
         m_sNioDir = tmpDir + NIO_TMP_DIR + rand.nextInt();
-        System.setProperty("tangosol.coherence.nio.tmpdir", m_sNioDir);
+        System.setProperty("coherence.nio.tmpdir", m_sNioDir);
 
         AbstractFunctionalTest._startup();
         }

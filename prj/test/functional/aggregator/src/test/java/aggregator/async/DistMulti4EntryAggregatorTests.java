@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -43,7 +43,7 @@ public class DistMulti4EntryAggregatorTests
     public static void startup()
         {
         // set the scratch space to 1b in order to force splitting of the aggregation
-        System.setProperty("tangosol.coherence.distributed.scratchspace", "1");
+        System.setProperty("coherence.distributed.scratchspace", "1");
 
         startCacheServer("DistMulti4EntryAggregatorTests-1", "aggregator");
         startCacheServer("DistMulti4EntryAggregatorTests-2", "aggregator");

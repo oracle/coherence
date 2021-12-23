@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -73,7 +73,7 @@ public class NSLookupTests
                                SystemProperty.of("test.multicast.address",
                                                  AbstractFunctionalTest.generateUniqueAddress(true)),
                                SystemProperty.of("test.multicast.port", nClusterPort),
-                               SystemProperty.of("tangosol.coherence.management", "dynamic"),
+                               SystemProperty.of("coherence.management", "dynamic"),
                                JmxProfile.enabled(),
                                JmxProfile.authentication(false),
                                JmxProfile.hostname(hostName)

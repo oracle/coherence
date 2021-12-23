@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -56,11 +56,11 @@ public class DiscoveryMBeanTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.role", "main");
-        System.setProperty("tangosol.coherence.log.level", "3");
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.management.remote", "true");
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.role", "main");
+        System.setProperty("coherence.log.level", "3");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
 
         AbstractFunctionalTest._startup();
         }

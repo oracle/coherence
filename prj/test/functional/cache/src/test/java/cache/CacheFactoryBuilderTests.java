@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -263,7 +263,7 @@ public class CacheFactoryBuilderTests
     @Test
     public void testDefaultBuilderScope()
         {
-        System.setProperty("tangosol.coherence.cacheconfig", "scope-cache-config.xml");
+        System.setProperty("coherence.cacheconfig", "scope-cache-config.xml");
         CacheFactory.shutdown();
         CacheFactory.ensureCluster();
 
@@ -274,7 +274,7 @@ public class CacheFactoryBuilderTests
 
         assertServiceName(sServiceName, sScopeName, service);
 
-        System.getProperties().remove("tangosol.coherence.cacheconfig");
+        System.getProperties().remove("coherence.cacheconfig");
         CacheFactory.shutdown();
         }
 
@@ -285,14 +285,14 @@ public class CacheFactoryBuilderTests
     @Test
     public void testOverrideConfiguration()
         {
-        System.setProperty("tangosol.coherence.override", "scope-override.xml");
+        System.setProperty("coherence.override", "scope-override.xml");
         CacheFactory.shutdown();
         CacheFactory.ensureCluster();
 
         NamedCache cache = CacheFactory.getCache("test", getLoader(0));
         assertServiceName("DistributedCache", "Scope_0", cache.getCacheService());
 
-        System.getProperties().remove("tangosol.coherence.override");
+        System.getProperties().remove("coherence.override");
         CacheFactory.shutdown();
         }
 

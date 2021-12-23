@@ -67,8 +67,8 @@ public abstract class AbstractArchiverPersistenceTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.management.remote", "true");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.remote", "true");
 
         AbstractFunctionalTest._startup();
         }

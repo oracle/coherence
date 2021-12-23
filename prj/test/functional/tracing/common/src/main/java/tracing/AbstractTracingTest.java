@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -98,14 +98,14 @@ public class AbstractTracingTest
             props = new Properties();
             }
 
-        if (!props.containsKey("tangosol.coherence.distributed.localstorage")
+        if (!props.containsKey("coherence.distributed.localstorage")
             && !props.containsKey("coherence.distributed.localstorage"))
             {
-            props.setProperty("tangosol.coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.distributed.localstorage", "true");
             }
         if (sOverrideXml != null && !sOverrideXml.isEmpty())
             {
-            props.setProperty("tangosol.coherence.override", sOverrideXml);
+            props.setProperty("coherence.override", sOverrideXml);
             }
         props.setProperty("test.name", m_testName.getMethodName());
 
@@ -139,7 +139,7 @@ public class AbstractTracingTest
     protected Properties getDefaultProperties()
         {
         Properties props = new Properties();
-        props.put("tangosol.coherence.log.level", "9");
+        props.put("coherence.log.level", "9");
         props.put("test.log.level", "9");
         return props;
         }
@@ -227,7 +227,7 @@ public class AbstractTracingTest
         Cluster cluster = CacheFactory.ensureCluster();
 
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.role", "node" + nId);
+        propsMain.put("coherence.role", "node" + nId);
         propsMain.putAll(props);
 
         assertThat(cluster.isRunning(), is(true));

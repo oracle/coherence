@@ -78,11 +78,11 @@ public class ProxyServiceDynamicThreadSizingTests
     public static void startup()
         {
         m_fCheckInitialThreadCount = true;
-        System.setProperty("tangosol.coherence.daemonpool.adjust.period", "500");
-        System.setProperty("tangosol.coherence.daemonpool.max.period", "1000");
-        System.setProperty("tangosol.coherence.daemonpool.min.period", "100");
-        System.setProperty("tangosol.coherence.daemonpool.grow.percentage", "0.5");
-        System.setProperty("tangosol.coherence.daemonpool.debug", "true");
+        System.setProperty("coherence.daemonpool.adjust.period", "500");
+        System.setProperty("coherence.daemonpool.max.period", "1000");
+        System.setProperty("coherence.daemonpool.min.period", "100");
+        System.setProperty("coherence.daemonpool.grow.percentage", "0.5");
+        System.setProperty("coherence.daemonpool.debug", "true");
 
         startCacheServerWithProxy("ProxyServiceThreadSizingTests", "extend", "server-cache-config-threadpool.xml");
         ensureRunningService("ProxyServiceThreadSizingTests", "ExtendTcpProxyService");
