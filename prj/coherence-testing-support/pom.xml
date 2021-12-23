@@ -91,7 +91,7 @@
     <!-- Bedrock -->
     <dependency>
       <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-14.1.1-testing-support</artifactId>
+      <artifactId>coherence-21.06-testing-support</artifactId>
     </dependency>
     <dependency>
       <groupId>com.oracle.bedrock</groupId>

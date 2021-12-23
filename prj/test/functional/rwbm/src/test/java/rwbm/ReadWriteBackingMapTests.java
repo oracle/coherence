@@ -138,8 +138,8 @@ public class ReadWriteBackingMapTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-        System.setProperty("tangosol.coherence.rwbm.requeue.delay", "5000");
+        System.setProperty("coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.rwbm.requeue.delay", "5000");
 
         AbstractFunctionalTest._startup();
         }

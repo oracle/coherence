@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -135,12 +135,12 @@
         <proxy-scheme>
             <scheme-name>proxy</scheme-name>
             <service-name>ProxyService</service-name>
-            <thread-count system-property="tangosol.coherence.extend.threads">5</thread-count>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
             <acceptor-config>
                 <tcp-acceptor>
                     <local-address>
-                        <address system-property="tangosol.coherence.extend.address">localhost</address>
-                        <port system-property="tangosol.coherence.extend.port">9099</port>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
                     </local-address>
                 </tcp-acceptor>
             </acceptor-config>
@@ -164,37 +164,37 @@
                     </init-params>
                 </invocation-service-proxy>
             </proxy-config>
-            <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
         </proxy-scheme>
 
         <!-- Proxy Service scheme that allows remote clients to connect to the cluster over TCP/IP. -->
         <proxy-scheme>
             <scheme-name>invalidAuthorizedHostsProxyScheme</scheme-name>
             <service-name>invalidAuthorizedHostsProxyService</service-name>
-            <thread-count system-property="tangosol.coherence.extend.threads">5</thread-count>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
             <acceptor-config>
                 <tcp-acceptor>
                     <local-address>
-                        <address system-property="tangosol.coherence.extend.address">localhost</address>
-                        <port system-property="tangosol.coherence.extend.port">9099</port>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
                     </local-address>
                     <authorized-hosts>
                         <host-filter><class-name>nonexistentFilterClass</class-name></host-filter>
                     </authorized-hosts>
                 </tcp-acceptor>
             </acceptor-config>
-            <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
         </proxy-scheme>
 
         <proxy-scheme>
             <scheme-name>invalidLoadBalancerProxyScheme</scheme-name>
             <service-name>invalidLoadBalancerProxyService</service-name>
-            <thread-count system-property="tangosol.coherence.extend.threads">5</thread-count>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
             <acceptor-config>
                 <tcp-acceptor>
                     <local-address>
-                        <address system-property="tangosol.coherence.extend.address">localhost</address>
-                        <port system-property="tangosol.coherence.extend.port">9099</port>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
                     </local-address>
                 </tcp-acceptor>
             </acceptor-config>
@@ -203,46 +203,46 @@
                     <class-name>nonexistentProxyServiceLoadBalancerClass</class-name>
                 </instance>
             </load-balancer>
-            <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
         </proxy-scheme>
 
         <proxy-scheme>
             <scheme-name>invalidLocalAddressMissingHostProxyScheme</scheme-name>
             <service-name>invalidLocalAddressMissingHostProxyService</service-name>
-            <thread-count system-property="tangosol.coherence.extend.threads">5</thread-count>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
             <acceptor-config>
                 <tcp-acceptor>
                     <local-address>
-                        <address system-property="tangosol.coherence.extend.address">nonexistentHost</address>
-                        <port system-property="tangosol.coherence.extend.port">9090</port>
+                        <address system-property="coherence.extend.address">nonexistentHost</address>
+                        <port system-property="coherence.extend.port">9090</port>
                     </local-address>
                 </tcp-acceptor>
             </acceptor-config>
-            <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
         </proxy-scheme>
         <!-- Proxy Service scheme that references a non-existent address provider. -->
         <proxy-scheme>
             <scheme-name>nonExistentAddressProviderRefProxyScheme</scheme-name>
             <service-name>nonExistentAddressProviderRefProxyService</service-name>
-            <thread-count system-property="tangosol.coherence.extend.threads">5</thread-count>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
             <acceptor-config>
                 <tcp-acceptor>
                     <address-provider>nonexistentAddressProvider</address-provider>
                 </tcp-acceptor>
             </acceptor-config>
-            <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
         </proxy-scheme>
 
         <proxy-scheme>
             <scheme-name>existentAddressProviderRefProxyScheme</scheme-name>
             <service-name>existentAddressProviderRefProxyService</service-name>
-            <thread-count system-property="tangosol.coherence.extend.threads">5</thread-count>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
             <acceptor-config>
                 <tcp-acceptor>
                     <address-provider>ExistentAddressProvider</address-provider>
                 </tcp-acceptor>
             </acceptor-config>
-            <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+            <autostart system-property="coherence.extend.enabled">false</autostart>
         </proxy-scheme>
 
     </caching-schemes>

@@ -276,7 +276,7 @@ public class LiteTxnProcessorTests
 
         // make sure we start the invocation service
         Properties props = new Properties();
-        props.setProperty("tangosol.coherence.invocation.autostart", "true");
+        props.setProperty("coherence.invocation.autostart", "true");
         props.setProperty("test.log.level", "9");
 
         CoherenceClusterMember clusterMember = startCacheServer(sServer, s_sProject, s_sCacheConfig, props);

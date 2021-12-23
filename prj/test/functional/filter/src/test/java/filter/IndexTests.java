@@ -106,8 +106,8 @@ public class IndexTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-        System.setProperty("tangosol.coherence.distributed.threads", "4");
+        System.setProperty("coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.threads", "4");
 
         s_cIterations = Integer.getInteger("test.iterations", 1);
         s_cThreads = Integer.getInteger("test.threads", 1);

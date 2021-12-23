@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 /**
- * COH-12944 enable "coherence. system properties with backwards compatibility support for "tangosol.coherence.
+ * COH-12944 enable "coherence. system properties with backwards compatibility support for "coherence.
  * Does not extend {@link }AbstractFunctionalTest} since this test goal is to test both 12.2.1 Coherence system property
  * format of <tt>coherence.</tt> and backwards compatibility mode <tt>tangosol.coherence</tt>.  Since testing
  * is using prior to 12.2.1 Coherence system property conventions, do not extend {@link AbstractFunctionalTest}
@@ -69,7 +69,7 @@ public class SystemPropertyTests
     @Test
     public void testPersistenceSystemPropertiesBackwardCompatibility() throws IOException
         {
-        testPersistenceSystemProperties("tangosol.coherence.");
+        testPersistenceSystemProperties("coherence.");
         }
 
     /**

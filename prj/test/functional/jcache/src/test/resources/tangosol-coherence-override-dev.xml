@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 
 <coherence>
     <!-- copied all override values from ../common/tangosol-coherence-override.xml.
@@ -14,20 +14,20 @@
       -->
     <cluster-config>
         <unicast-listener>
-            <address system-property="tangosol.coherence.localhost">127.0.0.1</address>
+            <address system-property="coherence.localhost">127.0.0.1</address>
         </unicast-listener>
 
         <multicast-listener>
           <!-- start with values other then the defaults to avoid intersecting with other "standard" clusters -->
-          <address system-property="tangosol.coherence.clusteraddress">239.192.99.88</address>
-            <port system-property="tangosol.coherence.clusterport">7675</port>
-            <time-to-live system-property="tangosol.coherence.ttl">0</time-to-live>
-            <join-timeout-milliseconds system-property="tangosol.coherence.join.timeout">1000</join-timeout-milliseconds>
+          <address system-property="coherence.clusteraddress">239.192.99.88</address>
+            <port system-property="coherence.clusterport">7675</port>
+            <time-to-live system-property="coherence.ttl">0</time-to-live>
+            <join-timeout-milliseconds system-property="coherence.join.timeout">1000</join-timeout-milliseconds>
         </multicast-listener>
     </cluster-config>
     <management-config>
         <default-domain-name></default-domain-name>
-        <managed-nodes system-property="tangosol.coherence.management">all</managed-nodes>
+        <managed-nodes system-property="coherence.management">all</managed-nodes>
         <allow-remote-management>true</allow-remote-management>
         <service-name>Management</service-name>
     </management-config>

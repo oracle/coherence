@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -24,11 +24,13 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 
+import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+import com.tangosol.net.DefaultCacheServer;
 import executor.common.LogOutput;
 import executor.common.NewClusterPerTest;
 
@@ -81,7 +83,8 @@ public class CESJavaClusterPerTests
     @Rule
     public CoherenceClusterResource m_coherence =
             new CoherenceClusterResource()
-                    .with(SystemProperty.of("tangosol.coherence.serializer", "java"),
+                    .with(SystemProperty.of("coherence.serializer", "java"),
+                          ClassName.of(DefaultCacheServer.class),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),

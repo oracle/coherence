@@ -185,7 +185,7 @@
     <distributed-scheme>
       <scheme-name>example-distributed</scheme-name>
       <service-name>DistributedCache</service-name>
-      <thread-count-min system-property="tangosol.coherence.distributed.threads.min">3</thread-count-min>
+      <thread-count-min system-property="coherence.distributed.threads.min">3</thread-count-min>
       <backing-map-scheme>
         <local-scheme>
           <scheme-ref>example-binary-backing-map</scheme-ref>
@@ -198,7 +198,7 @@
     <distributed-scheme>
       <scheme-name>distributed-tracking-backupmap</scheme-name>
       <service-name>DistTrackingBackupMap</service-name>
-      <thread-count-min system-property="tangosol.coherence.distributed.threads.min">3</thread-count-min>
+      <thread-count-min system-property="coherence.distributed.threads.min">3</thread-count-min>
       <backup-storage>
         <type>scheme</type>
         <scheme-name>tracking-map-scheme</scheme-name>
@@ -226,7 +226,7 @@
     <distributed-scheme>
       <scheme-name>sas-distributed</scheme-name>
       <service-name>DistributedCacheSimpleAssignment</service-name>
-      <backup-count system-property="tangosol.coherence.distributed.backupcount">1</backup-count>
+      <backup-count system-property="coherence.distributed.backupcount">1</backup-count>
 
       <backing-map-scheme>
         <local-scheme>

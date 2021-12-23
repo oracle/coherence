@@ -57,7 +57,7 @@ public class CacheConfigurationTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         }
 
     /**
@@ -79,7 +79,7 @@ public class CacheConfigurationTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.cacheconfig", FILE_CFG_CACHE_UTF8_BOM);
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_UTF8_BOM);
             AbstractFunctionalTest._startup();
             CacheFactory.getCache("dist-testCache");
             }
@@ -97,7 +97,7 @@ public class CacheConfigurationTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.cacheconfig", FILE_CFG_CACHE_UTF8_NOBOM);
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_UTF8_NOBOM);
             AbstractFunctionalTest._startup();
             CacheFactory.getCache("dist-testCache");
             }
@@ -115,7 +115,7 @@ public class CacheConfigurationTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.cacheconfig", FILE_CFG_CACHE_ANSI);
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_ANSI);
             AbstractFunctionalTest._startup();
             CacheFactory.getCache("dist-testCache");
             }
@@ -134,7 +134,7 @@ public class CacheConfigurationTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.cacheconfig", FILE_CFG_CACHE_NON_EXISTENT);
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_NON_EXISTENT);
             AbstractFunctionalTest._startup();
             CacheFactory.getCache("dist-testCache");
             }
@@ -164,7 +164,7 @@ public class CacheConfigurationTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.cacheconfig", FILE_CFG_CACHE_ILLEGAL);
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_ILLEGAL);
             AbstractFunctionalTest._startup();
             CacheFactory.getCache("dist-testCache");
             }
@@ -196,7 +196,7 @@ public class CacheConfigurationTests
             {
             URL url = Resources.findFileOrResource("server-cache-config.xml", null);
             FileHelper.copyFile(new File(url.toURI()), cacheConfigFile);
-            System.setProperty("tangosol.coherence.cacheconfig", FILE_CFG_CACHE_HASH_CHAR_IN_FILE_NAME);
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_HASH_CHAR_IN_FILE_NAME);
             AbstractFunctionalTest._startup();
             CacheFactory.getCache("dist-testCache");
             }
@@ -207,7 +207,6 @@ public class CacheConfigurationTests
         finally
             {
             cacheConfigFile.delete();
-            System.clearProperty("tangosol.coherence.cacheconfig");
             AbstractFunctionalTest._shutdown();
             }
         }

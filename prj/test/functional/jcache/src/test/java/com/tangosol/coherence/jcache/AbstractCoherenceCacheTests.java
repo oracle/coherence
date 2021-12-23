@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -102,7 +102,7 @@ public abstract class AbstractCoherenceCacheTests
 
         System.setProperty("tangosol.pof.enabled", s_sPofEnabled);
         System.setProperty("tangosol.pof.config", s_sPofConfigUri);
-        System.setProperty("tangosol.coherence.jcache.statistics.refreshtime", "0s");
+        System.setProperty("coherence.jcache.statistics.refreshtime", "0s");
 
         cacheMgr = getJcacheTestContext().getCacheManager(null, null, null);
         }

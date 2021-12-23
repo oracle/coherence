@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -62,7 +62,7 @@ public class RelaxConfigProcessingTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         System.setProperty("coherence.override", "persistence-tangosol-coherence-override.xml");
 
         AbstractFunctionalTest._startup();
@@ -297,7 +297,7 @@ public class RelaxConfigProcessingTests
         {
         CacheFactory.shutdown();
 
-        try (SystemPropertyResource prop = new SystemPropertyResource("tangosol.coherence.override", "invalid-quorum-coherence-override.xml"))
+        try (SystemPropertyResource prop = new SystemPropertyResource("coherence.override", "invalid-quorum-coherence-override.xml"))
             {
             com.tangosol.coherence.component.util.SafeCluster clusterSafe =
                     (com.tangosol.coherence.component.util.SafeCluster) CacheFactory.ensureCluster();
@@ -408,7 +408,7 @@ public class RelaxConfigProcessingTests
         {
         CacheFactory.shutdown();
 
-        try (SystemPropertyResource prop = new SystemPropertyResource("tangosol.coherence.override", "addressproviders-coherence-override-dev.xml"))
+        try (SystemPropertyResource prop = new SystemPropertyResource("coherence.override", "addressproviders-coherence-override-dev.xml"))
             {
             Service svc = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(FILE_CFG_CACHE,
                     null).ensureService("existentAddressProviderRefProxyService");

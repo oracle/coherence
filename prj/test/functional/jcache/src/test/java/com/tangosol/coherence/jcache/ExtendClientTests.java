@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -75,8 +75,8 @@ public class ExtendClientTests
         Caching.getCachingProvider().close();
         CacheFactory.shutdown();
 
-        String sLocalStorage = System.getProperty("tangosol.coherence.distributed.localstorage", "false");
-        System.setProperty("tangosol.coherence.distributed.localstorage", sLocalStorage);
+        String sLocalStorage = System.getProperty("coherence.distributed.localstorage", "false");
+        System.setProperty("coherence.distributed.localstorage", sLocalStorage);
 
         System.setProperty(PROPERTY_POF_ENABLED, "true");
 
@@ -225,7 +225,7 @@ public class ExtendClientTests
         optionsByType.add(SystemProperty.of(DEFAULT_COHERENCE_JCACHE_CONFIGURATION_CLASS_NAME_SYSTEM_PROPERTY, "extend"));
 
         // extend client system properties
-        optionsByType.add(SystemProperty.of("tangosol.coherence.remote.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()));
+        optionsByType.add(SystemProperty.of("coherence.remote.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()));
 
         // client system properties
         optionsByType.add(SystemProperty.of(PROPERTY_POF_ENABLED, S_POF_ENABLED));
@@ -249,7 +249,7 @@ public class ExtendClientTests
                 DisplayName.of("JCacheProxy"),
                 Pof.enabled(Boolean.valueOf(S_POF_ENABLED)),
                 LocalStorage.enabled(false),
-                SystemProperty.of("tangosol.coherence.extend.enabled", true)));
+                SystemProperty.of("coherence.extend.enabled", true)));
         }
 
     /**
@@ -294,7 +294,7 @@ public class ExtendClientTests
     private final static String POF_CONFIG                 = "coherence-jcache-junit-pof-config.xml";
     private final static int    S_NCCACHESERVERS           = 3;
 
-    private static String S_LOCAL_ADDRESS      = System.getProperty("tangosol.coherence.localhost", "127.0.0.1");
+    private static String S_LOCAL_ADDRESS      = System.getProperty("coherence.localhost", "127.0.0.1");
     private static String PROPERTY_POF_ENABLED = "tangosol.pof.enabled";
     private static String S_POF_ENABLED        = System.getProperty(PROPERTY_POF_ENABLED, "true");
     private static String PROPERTY_POF_CONFIG  = "tangosol.pof.config";

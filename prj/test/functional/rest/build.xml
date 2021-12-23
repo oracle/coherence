@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 <!-- ANT build script for Coherence REST test project.                     -->
 <!--                                                                       -->
@@ -52,8 +52,8 @@
     <property name="test.glassfish.port"    value="8080"/>
     <property name="test.glassfish.context" value="/rest"/>
 
-    <property name="tangosol.coherence.wka"      value="127.0.0.1"/>
-    <property name="tangosol.coherence.wka.port" value="8888"/>
+    <property name="coherence.wka"      value="127.0.0.1"/>
+    <property name="coherence.wka.port" value="8888"/>
     <property name="test.unicast.address"        value="127.0.0.1"/>
     <property name="test.unicast.port"           value="8888"/>
 
@@ -73,8 +73,8 @@
     <property name="test.weblogic.port"    value="7001"/>
     <property name="test.weblogic.context" value="/rest"/>
 
-    <property name="tangosol.coherence.wka"      value="127.0.0.1"/>
-    <property name="tangosol.coherence.wka.port" value="8888"/>
+    <property name="coherence.wka"      value="127.0.0.1"/>
+    <property name="coherence.wka.port" value="8888"/>
     <property name="test.unicast.address"        value="127.0.0.1"/>
     <property name="test.unicast.port"           value="8888"/>
 

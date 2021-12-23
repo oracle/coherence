@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -80,9 +80,9 @@ public abstract class AbstractSnapshotAnalyzerTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.management.remote", "true");
-        System.setProperty("tangosol.coherence.management.refresh.expiry", "1s");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.management.refresh.expiry", "1s");
 
         AbstractFunctionalTest._startup();
         }
@@ -119,13 +119,13 @@ public abstract class AbstractSnapshotAnalyzerTests
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
-        props.setProperty("tangosol.coherence.management", "all");
-        props.setProperty("tangosol.coherence.management.refresh.expiry", "1s");
-        props.setProperty("tangosol.coherence.management.remote", "true");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.refresh.expiry", "1s");
+        props.setProperty("coherence.management.remote", "true");
         props.setProperty("test.start.archiver", "true");
         props.setProperty("coherence.distribution.2server", "false");
 
-        System.setProperty("tangosol.coherence.distributed.localstorage", "false");
+        System.setProperty("coherence.distributed.localstorage", "false");
 
         final NamedCache cache            = getNamedCache(sPersistentCache);
         CacheService     service          = cache.getCacheService();

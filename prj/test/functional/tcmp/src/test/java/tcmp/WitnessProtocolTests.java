@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -30,7 +30,7 @@ public class WitnessProtocolTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.override","witness-test-override.xml");
+        System.setProperty("coherence.override","witness-test-override.xml");
 
         AbstractFunctionalTest._startup();
         }

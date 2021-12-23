@@ -92,7 +92,7 @@ public class PartitionedCacheTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         System.setProperty("coherence.distribution.2server", "false");
 
         AbstractFunctionalTest._startup();
@@ -448,7 +448,7 @@ public class PartitionedCacheTests
     @Test
     public void testRegisterPartitionListenerWithStorageDisabledNode()
         {
-        System.setProperty("tangosol.coherence.distributed.localstorage", "false");
+        System.setProperty("coherence.distributed.localstorage", "false");
         try
             {
             getNamedCache("COH10397");
@@ -459,7 +459,7 @@ public class PartitionedCacheTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.distributed.localstorage");
+            System.clearProperty("coherence.distributed.localstorage");
             }
         }
 

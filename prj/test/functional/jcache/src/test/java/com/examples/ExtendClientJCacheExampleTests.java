@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -184,11 +184,11 @@ public class ExtendClientJCacheExampleTests
         optionsByType.add(SystemProperty.of(DEFAULT_COHERENCE_JCACHE_CONFIGURATION_CLASS_NAME_SYSTEM_PROPERTY, "extend"));
 
         // extend client system properties
-        optionsByType.add(SystemProperty.of("tangosol.coherence.extend.address", s_sProxyAddress));
-        optionsByType.add(SystemProperty.of("tangosol.coherence.extend.port", String.valueOf(s_nProxyPort)));
+        optionsByType.add(SystemProperty.of("coherence.extend.address", s_sProxyAddress));
+        optionsByType.add(SystemProperty.of("coherence.extend.port", String.valueOf(s_nProxyPort)));
 
         // client system properties
-        optionsByType.add(SystemProperty.of("tangosol.coherence.multicastport", String.valueOf(s_nClusterPort)));
+        optionsByType.add(SystemProperty.of("coherence.multicastport", String.valueOf(s_nClusterPort)));
         optionsByType.add(SystemProperty.of(PROPERTY_POF_ENABLED, S_POF_ENABLED));
         optionsByType.add(SystemProperty.of(PROPERTY_POF_CONFIG, POF_CONFIG));
 
@@ -248,9 +248,9 @@ public class ExtendClientJCacheExampleTests
             DisplayName.of("JCacheProxy"),
             RoleName.of("JCacheProxy"),
             LocalStorage.enabled(false),
-            SystemProperty.of("tangosol.coherence.extend.enabled", true),
-            SystemProperty.of("tangosol.coherence.extend.address", S_LOCAL_ADDRESS),
-            SystemProperty.of("tangosol.coherence.extend.port", String.valueOf(proxyPort)),
+            SystemProperty.of("coherence.extend.enabled", true),
+            SystemProperty.of("coherence.extend.address", S_LOCAL_ADDRESS),
+            SystemProperty.of("coherence.extend.port", String.valueOf(proxyPort)),
             Pof.enabled(Boolean.valueOf(S_POF_ENABLED))));
         }
 
@@ -270,7 +270,7 @@ public class ExtendClientJCacheExampleTests
 
     // ----- data members ---------------------------------------------------
 
-    private static String S_LOCAL_ADDRESS      = System.getProperty("tangosol.coherence.localhost", "127.0.0.1");
+    private static String S_LOCAL_ADDRESS      = System.getProperty("coherence.localhost", "127.0.0.1");
     private static String PROPERTY_POF_ENABLED = "tangosol.pof.enabled";
     private static String S_POF_ENABLED        = System.getProperty(PROPERTY_POF_ENABLED, "true");
     private static String PROPERTY_POF_CONFIG  = "tangosol.pof.config";

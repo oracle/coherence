@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -58,7 +58,7 @@ public class SimpleRecoveryDynamicQuorumTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.cacheconfig", CFG_FILE);
+        System.setProperty("coherence.cacheconfig", CFG_FILE);
 
         AbstractFunctionalTest._startup();
         }
@@ -105,9 +105,10 @@ public class SimpleRecoveryDynamicQuorumTests
             s_fileSnapshot = FileHelper.createTempDir();
             s_fileTrash    = FileHelper.createTempDir();
 
-            props.setProperty("test.persistence.active.dir",    s_fileActive.getAbsolutePath());
-            props.setProperty("test.persistence.snapshot.dir",  s_fileSnapshot.getAbsolutePath());
-            props.setProperty("test.persistence.trash.dir",     s_fileTrash.getAbsolutePath());
+            props.setProperty("test.persistence.active.dir",        s_fileActive.getAbsolutePath());
+            props.setProperty("test.persistence.snapshot.dir",      s_fileSnapshot.getAbsolutePath());
+            props.setProperty("test.persistence.trash.dir",         s_fileTrash.getAbsolutePath());
+            props.setProperty("coherence.distributed.localstorage", "true");
 
             NamedCache              cache       = getNamedCache("dynamic-quorum");
             DistributedCacheService service     = (DistributedCacheService) cache.getCacheService();

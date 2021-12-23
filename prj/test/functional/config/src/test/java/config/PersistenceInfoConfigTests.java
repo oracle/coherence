@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -61,10 +61,10 @@ public class PersistenceInfoConfigTests
         {
         Properties props = new Properties();
 
-        props.setProperty("tangosol.coherence.override", "persistence-tangosol-coherence-override.xml");
-        props.setProperty("tangosol.coherence.distributed.localstorage", "false");
+        props.setProperty("coherence.override", "persistence-tangosol-coherence-override.xml");
+        props.setProperty("coherence.distributed.localstorage", "false");
         props.setProperty("coherence.distributed.synchronize", "false");
-        props.setProperty("tangosol.coherence.distributed.aggressive", "21");
+        props.setProperty("coherence.distributed.aggressive", "21");
         CacheFactory.shutdown();
 
         try
@@ -129,7 +129,7 @@ public class PersistenceInfoConfigTests
             }
         finally
             {
-            System.clearProperty("tangosol.coherence.override");
+            System.clearProperty("coherence.override");
             CacheFactory.shutdown();
             }
         }

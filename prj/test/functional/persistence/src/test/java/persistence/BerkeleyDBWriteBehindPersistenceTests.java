@@ -71,9 +71,9 @@ public class BerkeleyDBWriteBehindPersistenceTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.management.remote", "true");
-        System.setProperty("tangosol.coherence.management.refresh.expiry", "1s");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.management.refresh.expiry", "1s");
         System.setProperty("coherence.management.http", "inherit");
         System.setProperty("coherence.management.metrics.port", "0");
 

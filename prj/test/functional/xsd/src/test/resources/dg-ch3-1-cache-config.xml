@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 
 
 <!--
@@ -35,7 +35,7 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
 
     Example values include: java, pof. Default value is java.
     -->
-    <serializer system-property="tangosol.coherence.serializer"/>
+    <serializer system-property="coherence.serializer"/>
 
     <!--
     Note: This element defines the default socket-provider for all Coherence
@@ -51,7 +51,7 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
 
     Example values include: system, ssl. Default value is system.
     -->
-    <socket-provider system-property="tangosol.coherence.socketprovider"/>
+    <socket-provider system-property="coherence.socketprovider"/>
   </defaults>
 
   <caching-scheme-mapping>
@@ -331,7 +331,7 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
       <scheme-name>example-invocation</scheme-name>
       <service-name>InvocationService</service-name>
 
-      <autostart system-property="tangosol.coherence.invocation.autostart">true</autostart>
+      <autostart system-property="coherence.invocation.autostart">true</autostart>
     </invocation-scheme>
 
     <!--
@@ -345,13 +345,13 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
       <acceptor-config>
         <tcp-acceptor>
           <local-address>
-            <address system-property="tangosol.coherence.extend.address">localhost</address>
-            <port system-property="tangosol.coherence.extend.port">9099</port>
+            <address system-property="coherence.extend.address">localhost</address>
+            <port system-property="coherence.extend.port">9099</port>
           </local-address>
         </tcp-acceptor>
       </acceptor-config>
 
-      <autostart system-property="tangosol.coherence.extend.enabled">false</autostart>
+      <autostart system-property="coherence.extend.enabled">false</autostart>
     </proxy-scheme>
 
     <!--

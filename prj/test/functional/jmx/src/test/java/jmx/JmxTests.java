@@ -121,8 +121,8 @@ public class JmxTests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.role", "main");
-        System.setProperty("tangosol.coherence.log.level", "3");
+        System.setProperty("coherence.role", "main");
+        System.setProperty("coherence.log.level", "3");
 
         // we will control the startup manually
         }
@@ -146,9 +146,9 @@ public class JmxTests
     public void testEventAttributes()
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "true");
-        System.setProperty("tangosol.coherence.distributed.localstorage","true");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "true");
+        System.setProperty("coherence.distributed.localstorage","true");
         System.getProperties().putAll(propsMain);
 
         AbstractFunctionalTest._startup();
@@ -211,12 +211,12 @@ public class JmxTests
     */
     public void testStatusHAHelper(String sStrategy, String sEndangered, String sNode, String sMachine, String sRack, String sSite)
         {
-        System.setProperty("tangosol.coherence.log.level", "3");
-        System.setProperty("tangosol.coherence.management", "all");
-        System.setProperty("tangosol.coherence.distributed.localstorage","false");
-        System.setProperty("tangosol.coherence.rack", "rack-test");
-        System.setProperty("tangosol.coherence.site", "site-test");
-        System.setProperty("tangosol.coherence.machine", "machine-test");
+        System.setProperty("coherence.log.level", "3");
+        System.setProperty("coherence.management", "all");
+        System.setProperty("coherence.distributed.localstorage","false");
+        System.setProperty("coherence.rack", "rack-test");
+        System.setProperty("coherence.site", "site-test");
+        System.setProperty("coherence.machine", "machine-test");
 
         AbstractFunctionalTest._startup();
 
@@ -346,8 +346,8 @@ public class JmxTests
             throws JMException
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "local-only");
-        propsMain.put("tangosol.coherence.management.remote", "true");
+        propsMain.put("coherence.management", "local-only");
+        propsMain.put("coherence.management.remote", "true");
         System.getProperties().putAll(propsMain);
         Properties propsSecond = new Properties(propsMain);
 
@@ -387,8 +387,8 @@ public class JmxTests
                 }
 
             // local-only, true <-> all, true
-            propsSecond.put("tangosol.coherence.management", "all");
-            propsSecond.put("tangosol.coherence.management.remote", "true");
+            propsSecond.put("coherence.management", "all");
+            propsSecond.put("coherence.management.remote", "true");
             member = startCacheServer("testLocalOnlyTrue2", PROJECT, null, propsSecond);
             try
                 {
@@ -527,8 +527,8 @@ public class JmxTests
             throws JMException
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "false");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "false");
         testAll(propsMain);
         }
 
@@ -540,8 +540,8 @@ public class JmxTests
             throws JMException
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "true");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "true");
         testAll(propsMain);
         }
 
@@ -571,7 +571,7 @@ public class JmxTests
             assertTrue("Should be registered: " + sNode1, serverJMX.isRegistered(new ObjectName(sNode1)));
 
             // all, x <-> all, true
-            propsSecond.put("tangosol.coherence.management.remote", "true");
+            propsSecond.put("coherence.management.remote", "true");
             CoherenceClusterMember member = startCacheServer("testAll1", PROJECT, null, propsSecond);
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
 
@@ -590,8 +590,8 @@ public class JmxTests
                 }
 
             // all, x <-> none, true
-            propsSecond.put("tangosol.coherence.management", "none");
-            propsSecond.put("tangosol.coherence.management.remote", "true");
+            propsSecond.put("coherence.management", "none");
+            propsSecond.put("coherence.management.remote", "true");
             member = startCacheServer("testAll2", PROJECT, null, propsSecond);
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
 
@@ -644,8 +644,8 @@ public class JmxTests
                 ReflectionException
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "true");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "true");
         System.getProperties().putAll(propsMain);
 
         AbstractFunctionalTest._startup();
@@ -698,8 +698,8 @@ public class JmxTests
     public void testMBeansAndMXBeans()
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "true");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "true");
         System.getProperties().putAll(propsMain);
 
         AbstractFunctionalTest._startup();
@@ -745,15 +745,15 @@ public class JmxTests
      public void testQuorumStatusOfSuspendedService()
          {
          Properties propsClient = new Properties();
-         propsClient.put("tangosol.coherence.management", "all");
-         propsClient.put("tangosol.coherence.distributed.localstorage", "false");
-         propsClient.put("tangosol.coherence.management.remote", "true");
+         propsClient.put("coherence.management", "all");
+         propsClient.put("coherence.distributed.localstorage", "false");
+         propsClient.put("coherence.management.remote", "true");
          System.getProperties().putAll(propsClient);
 
          Properties propsServer = new Properties();
-         propsServer.put("tangosol.coherence.management", "all");
-         propsServer.put("tangosol.coherence.distributed.localstorage", "true");
-         propsServer.put("tangosol.coherence.management.remote", "true");
+         propsServer.put("coherence.management", "all");
+         propsServer.put("coherence.distributed.localstorage", "true");
+         propsServer.put("coherence.management.remote", "true");
 
          try
              {
@@ -795,9 +795,9 @@ public class JmxTests
          {
          CacheFactory.shutdown();
 
-         System.setProperty("tangosol.coherence.management","all");
-         System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-         System.setProperty("tangosol.coherence.management.remote","true");
+         System.setProperty("coherence.management","all");
+         System.setProperty("coherence.distributed.localstorage", "true");
+         System.setProperty("coherence.management.remote","true");
 
          AbstractFunctionalTest._startup();
 
@@ -851,8 +851,8 @@ public class JmxTests
         {
         CacheFactory.shutdown();
 
-        System.setProperty("tangosol.coherence.management","all");
-        System.setProperty("tangosol.coherence.management.remote","true");
+        System.setProperty("coherence.management","all");
+        System.setProperty("coherence.management.remote","true");
         System.setProperty("test.log", "jdk");
 
         Logger     logger     = m_logger = Logger.getLogger("Coherence");
@@ -889,8 +889,8 @@ public class JmxTests
             {
             logHandler.m_enabled = false;
 
-            System.clearProperty("tangosol.coherence.management");
-            System.clearProperty("tangosol.coherence.management.remote");
+            System.clearProperty("coherence.management");
+            System.clearProperty("coherence.management.remote");
             System.clearProperty("test.log");
             }
         }
@@ -1182,8 +1182,8 @@ public class JmxTests
                ReflectionException
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "true");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "true");
         System.getProperties().putAll(propsMain);
 
         AbstractFunctionalTest._startup();
@@ -1240,13 +1240,13 @@ public class JmxTests
             ReflectionException, InterruptedException
         {
         Properties propsMain = new Properties();
-        propsMain.put("tangosol.coherence.management", "all");
-        propsMain.put("tangosol.coherence.management.remote", "false");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "false");
         System.getProperties().putAll(propsMain);
 
         Properties propsSecond = new Properties();
-        propsSecond.put("tangosol.coherence.management", "none");
-        propsSecond.put("tangosol.coherence.management.remote", "true");
+        propsSecond.put("coherence.management", "none");
+        propsSecond.put("coherence.management.remote", "true");
 
         AbstractFunctionalTest._startup();
         try
@@ -1393,9 +1393,9 @@ public class JmxTests
     public CoherenceClusterMember startCacheServerWithIdentity(String sServerName, String sSite, String sRack, String sMachine)
         {
         Properties propsServer = new Properties();
-        propsServer.put("tangosol.coherence.site", sSite);
-        propsServer.put("tangosol.coherence.rack", sRack);
-        propsServer.put("tangosol.coherence.machine", sMachine);
+        propsServer.put("coherence.site", sSite);
+        propsServer.put("coherence.rack", sRack);
+        propsServer.put("coherence.machine", sMachine);
 
         CoherenceClusterMember server = startCacheServer(sServerName, "jmx", FILE_CFG_CACHE, propsServer);
 

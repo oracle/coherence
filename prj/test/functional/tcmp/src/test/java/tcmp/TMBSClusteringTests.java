@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,12 +28,12 @@ public class TMBSClusteringTests
         s_properties = new Properties();
 
         URL url = Resources.findFileOrResource("keystore.jks", getContextClassLoader());
-        s_properties.setProperty("tangosol.coherence.security.keystore", url.toExternalForm());
-        s_properties.setProperty("tangosol.coherence.transport.reliable", "tmbs");
-        s_properties.setProperty("tangosol.coherence.socketprovider", "ssl");
-        s_properties.setProperty("tangosol.coherence.security.password", "password");
-        s_properties.setProperty("tangosol.coherence.wka", "127.0.0.1");
-        s_properties.setProperty("tangosol.coherence.wka.port", "8888");
+        s_properties.setProperty("coherence.security.keystore", url.toExternalForm());
+        s_properties.setProperty("coherence.transport.reliable", "tmbs");
+        s_properties.setProperty("coherence.socketprovider", "ssl");
+        s_properties.setProperty("coherence.security.password", "password");
+        s_properties.setProperty("coherence.wka", "127.0.0.1");
+        s_properties.setProperty("coherence.wka.port", "8888");
         System.getProperties().putAll(s_properties);
 
         AbstractFunctionalTest._startup();

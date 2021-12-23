@@ -46,7 +46,7 @@ public class COH23114Tests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.localstorage", "true");
         AbstractFunctionalTest._startup();
         }
 

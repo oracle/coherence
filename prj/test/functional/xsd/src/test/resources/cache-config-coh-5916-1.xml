@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -12,12 +12,12 @@
 
   <caching-scheme-mapping>
     <cache-mapping>
-      <cache-name system-property="tangosol.coherence.cachename">dist-*</cache-name>
-      <scheme-name system-property="tangosol.coherence.schemename">example-distributed</scheme-name>
+      <cache-name system-property="coherence.cachename">dist-*</cache-name>
+      <scheme-name system-property="coherence.schemename">example-distributed</scheme-name>
       <init-params>
         <init-param>
-          <param-name system-property="tangosol.coherence.paramname">back-size-limit</param-name>
-          <param-value system-property="tangosol.coherence.paramvalue">8MB</param-value>
+          <param-name system-property="coherence.paramname">back-size-limit</param-name>
+          <param-value system-property="coherence.paramvalue">8MB</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -49,16 +49,16 @@
     Distributed caching scheme.
     -->
     <distributed-scheme>
-      <scheme-name system-property="tangosol.coherence.schemename">example-distributed</scheme-name>
-      <service-name system-property="tangosol.coherence.servicename">DistributedCache</service-name>
+      <scheme-name system-property="coherence.schemename">example-distributed</scheme-name>
+      <service-name system-property="coherence.servicename">DistributedCache</service-name>
 
       <backing-map-scheme>
         <local-scheme>
-          <scheme-ref system-property="tangosol.coherence.schemeref">example-binary-backing-map</scheme-ref>
+          <scheme-ref system-property="coherence.schemeref">example-binary-backing-map</scheme-ref>
         </local-scheme>
       </backing-map-scheme>
 
-      <autostart system-property="tangosol.coherence.autostart">true</autostart>
+      <autostart system-property="coherence.autostart">true</autostart>
     </distributed-scheme>
 
 

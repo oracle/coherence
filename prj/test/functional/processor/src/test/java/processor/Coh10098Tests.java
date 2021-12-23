@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -77,8 +77,8 @@ public class Coh10098Tests
     @Test
     public void testInvokeSvcThread()
         {
-        System.setProperty("tangosol.coherence.distributed.threads", "0");
-        System.setProperty("tangosol.coherence.distributed.transport.reliable", "datagram");
+        System.setProperty("coherence.distributed.threads", "0");
+        System.setProperty("coherence.distributed.transport.reliable", "datagram");
 
         doTestInvoke("testCoh10098InvokeSvc");
         }
@@ -86,8 +86,8 @@ public class Coh10098Tests
 //    @Test
 //    public void testInvokeWorkers()
 //        {
-//        System.setProperty("tangosol.coherence.distributed.threads", "4");
-//        System.setProperty("tangosol.coherence.distributed.transport.reliable", "datagram");
+//        System.setProperty("coherence.distributed.threads", "4");
+//        System.setProperty("coherence.distributed.transport.reliable", "datagram");
 //
 //        doTestInvoke("testCoh10098InvokeWorkers");
 //        }
@@ -95,8 +95,8 @@ public class Coh10098Tests
 //    @Test
 //    public void testInvokePreprocessing()
 //        {
-//        System.setProperty("tangosol.coherence.distributed.threads", "-1");
-//        System.setProperty("tangosol.coherence.distributed.transport.reliable", "tmb");
+//        System.setProperty("coherence.distributed.threads", "-1");
+//        System.setProperty("coherence.distributed.transport.reliable", "tmb");
 //
 //        doTestInvoke("testCoh10098InvokePreprocessing", props);
 //        }

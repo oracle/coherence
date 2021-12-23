@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -82,8 +82,8 @@ public class PartitionedCacheMultipleServersTests
         {
         Caching.getCachingProvider().close();
         CacheFactory.shutdown();
-        String sLocalStorage = System.getProperty("tangosol.coherence.distributed.localstorage", "false");
-        System.setProperty("tangosol.coherence.distributed.localstorage", sLocalStorage);
+        String sLocalStorage = System.getProperty("coherence.distributed.localstorage", "false");
+        System.setProperty("coherence.distributed.localstorage", sLocalStorage);
 
 
         beforeClassSetup();
@@ -200,7 +200,7 @@ public class PartitionedCacheMultipleServersTests
 
         System.out.println("OraclebedrockGetLocalHost()=" + localHostName);
 
-        String cacheconfigfile = System.getProperty("tangosol.coherence.cacheconfig",
+        String cacheconfigfile = System.getProperty("coherence.cacheconfig",
                                      "coherence-jcache-cache-config.xml");
 
         return  OptionsByType.of(

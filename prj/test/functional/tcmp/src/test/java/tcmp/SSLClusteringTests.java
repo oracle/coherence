@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -37,11 +37,11 @@ public class SSLClusteringTests
     public static void _startup()
         {
         URL url = Resources.findFileOrResource("keystore.jks", getContextClassLoader());
-        System.setProperty("tangosol.coherence.security.keystore", url.toExternalForm());
-        System.setProperty("tangosol.coherence.socketprovider",    "ssl");
-        System.setProperty("tangosol.coherence.security.password", "password");
-        System.setProperty("tangosol.coherence.wka",               "127.0.0.1");
-        System.setProperty("tangosol.coherence.wka.port",          "8888");
+        System.setProperty("coherence.security.keystore", url.toExternalForm());
+        System.setProperty("coherence.socketprovider",    "ssl");
+        System.setProperty("coherence.security.password", "password");
+        System.setProperty("coherence.wka",               "127.0.0.1");
+        System.setProperty("coherence.wka.port",          "8888");
 
         AbstractFunctionalTest._startup();
         }

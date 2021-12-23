@@ -95,8 +95,8 @@ public class UnavailableTimeTests
 
             handler.m_enabled = true;
 
-            System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-            System.setProperty("tangosol.coherence.distributed.partitioncount", "100");
+            System.setProperty("coherence.distributed.localstorage", "true");
+            System.setProperty("coherence.distributed.partitioncount", "100");
             System.setProperty("coherence.distributed.partition.events", "log");
 
             AbstractFunctionalTest._startup();

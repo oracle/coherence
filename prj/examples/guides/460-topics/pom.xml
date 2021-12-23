@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -37,7 +37,7 @@
 
     <junit.jupiter.version>5.7.0</junit.jupiter.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <oracle.bedrock.version>5.1.2</oracle.bedrock.version>
+    <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -92,7 +92,7 @@
     </dependency>
     <dependency>
       <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-14.1.1-testing-support</artifactId>
+      <artifactId>coherence-21.06-testing-support</artifactId>
       <version>${oracle.bedrock.version}</version>
       <scope>test</scope>
     </dependency>

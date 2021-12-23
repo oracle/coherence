@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -148,7 +148,7 @@ public class IndexIntegrityTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+            System.setProperty("coherence.distributed.localstorage", "true");
             _startup();
             runnable.run();
             }
@@ -175,7 +175,7 @@ public class IndexIntegrityTests
         {
         try
             {
-            System.setProperty("tangosol.coherence.distributed.localstorage", "false");
+            System.setProperty("coherence.distributed.localstorage", "false");
             _startup();
             doStressTest_(sTest, sCacheMain, sCacheAux, extractor, keyCreator, nServers, cRollingRestart);
             }

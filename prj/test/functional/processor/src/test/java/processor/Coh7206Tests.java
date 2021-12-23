@@ -48,8 +48,8 @@ public class Coh7206Tests
     @BeforeClass
     public static void _startup()
         {
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-        System.setProperty("tangosol.coherence.distributed.threads", "2");
+        System.setProperty("coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.threads", "2");
         AbstractFunctionalTest._startup();
         }
 

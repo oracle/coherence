@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000-2021 Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -207,7 +207,7 @@
     <junit.jupiter.version>5.7.0</junit.jupiter.version>
     <junit.vintage.version>5.7.0</junit.vintage.version>
     <mockito.version>3.6.28</mockito.version>
-    <oracle.bedrock.version>5.1.2</oracle.bedrock.version>
+    <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
   </properties>
 
   <dependencyManagement>
@@ -659,6 +659,31 @@
         <version>${jacoco.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-21.06-testing-support</artifactId>
+        <version>${oracle.bedrock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-3.7.1-testing-support</artifactId>
+        <version>${oracle.bedrock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-12.1.2-testing-support</artifactId>
+        <version>${oracle.bedrock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-12.1.3-testing-support</artifactId>
+        <version>${oracle.bedrock.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.oracle.bedrock.coherence</groupId>
+        <artifactId>coherence-12.2.1-testing-support</artifactId>
+        <version>${oracle.bedrock.version}</version>
+      </dependency>
       <dependency>
         <groupId>com.oracle.bedrock.coherence</groupId>
         <artifactId>coherence-14.1.1-testing-support</artifactId>
