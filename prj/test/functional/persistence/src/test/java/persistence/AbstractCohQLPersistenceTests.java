@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -50,9 +49,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-
-import javax.management.MBeanException;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -91,18 +87,11 @@ public abstract class AbstractCohQLPersistenceTests
     /**
      * Test CohQL -f option to run scripts.
      *
-     * @throws IOException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws MBeanException
-     * @throws NoSuchMethodException
-     * @throws ExecutionException
-     * @throws InterruptedException
+     * @throws IOException if there is an error
      */
     @Test
     public void testCohQLCommands()
-            throws IOException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, MBeanException,
-            ExecutionException, InterruptedException
+            throws IOException
         {
         String sServer          = "testCohQLScripts" + getPersistenceManagerName();
         String sPersistentCache = "simple-archiver";
@@ -122,7 +111,7 @@ public abstract class AbstractCohQLPersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
         props.setProperty("test.persistence.members", "3");
-        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management", "none");
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("test.start.archiver", "true");
 
