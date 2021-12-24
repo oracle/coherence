@@ -3991,11 +3991,16 @@ public abstract class AbstractNamedTopicTests
                 Map<Integer, Position> map = subscriber.seekToTail(nChannel);
                 assertThat(map.get(nChannel), is(notNullValue()));
 
-                CompletableFuture<Element<String>> future = subscriber.receive();
+                CompletableFuture<Element<String>> future      = subscriber.receive();
+                Element<String>                    elementTail = future.get(2, TimeUnit.MINUTES);
+
+                assertThat(elementTail, is(nullValue()));
 
                 publisher.publish("element-last").get(5, TimeUnit.MINUTES);
 
-                Element<String> elementTail = future.get(2, TimeUnit.MINUTES);
+                future      = subscriber.receive();
+                elementTail = future.get(2, TimeUnit.MINUTES);
+
                 assertThat(elementTail, is(notNullValue()));
                 assertThat(elementTail.getValue(), is("element-last"));
                 }
