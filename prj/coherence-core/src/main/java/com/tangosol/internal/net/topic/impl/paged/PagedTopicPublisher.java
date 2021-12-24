@@ -186,7 +186,7 @@ public class PagedTopicPublisher<V>
         }
 
     @Override
-    public synchronized void close()
+    public void close()
         {
         if (isActive())
             {
@@ -373,7 +373,7 @@ public class PagedTopicPublisher<V>
                 {
                 // create a new publisher for the closed channel
                 publisher = f_aChannel[nChannel];
-                if (!publisher.isActive())
+                if (isActive() && !publisher.isActive())
                     {
                     m_caches.ensureConnected();
                     Logger.info("Restarting publisher for channel " + nChannel + " topic " + m_caches.getTopicName() + " publisher " + f_nId);
@@ -425,85 +425,94 @@ public class PagedTopicPublisher<V>
      *                    to the topic being destroyed, in which case there is no
      *                    need to clean up cached data
      */
-    protected synchronized void closeInternal(boolean fDestroyed)
+    protected void closeInternal(boolean fDestroyed)
         {
-        if (m_caches == null)
+        if (m_caches == null || m_state == State.Closing || m_state == State.Closed)
             {
-            // already closed
+            // already closed or closing
             return;
             }
 
-        m_state = State.Closing;
-
-        try
+        synchronized (this)
             {
-            if (!fDestroyed)
+            if (m_caches == null || m_state == State.Closing || m_state == State.Closed)
                 {
-                unregisterDeactivationListener();
-
-                if (f_nNotifyPostFull != 0)
-                    {
-                    // unregister the publisher listener in each partition
-                    PagedTopicCaches caches = m_caches;
-
-                    if (caches.Notifications.isActive())
-                        {
-                        caches.Notifications.removeMapListener(f_listenerNotification, f_filterListenerNotification);
-                        }
-                    }
+                // already closed
+                return;
                 }
 
-            // Stop the channel publishers
-            for (PagedTopicChannelPublisher channel : f_aChannel)
-                {
-                channel.stop();
-                }
+            m_state = State.Closing;
 
-            // flush this publisher to wait for all of the outstanding
-            // add operations to complete (or to be cancelled if we're destroying)
             try
                 {
-                flushInternal(fDestroyed ? FLUSH_DESTROY : FLUSH).get(CLOSE_TIMEOUT_SECS, TimeUnit.SECONDS);
-                }
-            catch (TimeoutException e)
-                {
-                // too long to wait for completion; force all outstanding futures to complete exceptionally
-                flushInternal(FLUSH_CLOSE_EXCEPTIONALLY).join();
-                Logger.warn("Publisher.close: timeout after waiting " + CLOSE_TIMEOUT_SECS
-                        + " seconds for completion with flush.join(), forcing complete exceptionally");
-                }
-            catch (ExecutionException | InterruptedException e)
-                {
-                // ignore
-                }
+                if (!fDestroyed)
+                    {
+                    unregisterDeactivationListener();
 
-            // Close the channel publishers
-            for (PagedTopicChannelPublisher channel : f_aChannel)
-                {
-                channel.close();
-                }
-            }
-        finally
-            {
-            // clean up
-            m_caches = null;
-            Arrays.fill(f_aChannel, null);
+                    if (f_nNotifyPostFull != 0)
+                        {
+                        // unregister the publisher listener in each partition
+                        PagedTopicCaches caches = m_caches;
 
-            f_listOnCloseActions.forEach(action ->
-                {
+                        if (caches.Notifications.isActive())
+                            {
+                            caches.Notifications.removeMapListener(f_listenerNotification, f_filterListenerNotification);
+                            }
+                        }
+                    }
+
+                // Stop the channel publishers
+                for (PagedTopicChannelPublisher channel : f_aChannel)
+                    {
+                    channel.stop();
+                    }
+
+                // flush this publisher to wait for all of the outstanding
+                // add operations to complete (or to be cancelled if we're destroying)
                 try
                     {
-                    action.run();
+                    flushInternal(fDestroyed ? FLUSH_DESTROY : FLUSH).get(CLOSE_TIMEOUT_SECS, TimeUnit.SECONDS);
                     }
-                catch (Throwable t)
+                catch (TimeoutException e)
                     {
-                    Logger.fine(this.getClass().getName() + ".close(): handled onClose exception: " +
-                        t.getClass().getCanonicalName() + ": " + t.getMessage());
+                    // too long to wait for completion; force all outstanding futures to complete exceptionally
+                    flushInternal(FLUSH_CLOSE_EXCEPTIONALLY).join();
+                    Logger.warn("Publisher.close: timeout after waiting " + CLOSE_TIMEOUT_SECS
+                            + " seconds for completion with flush.join(), forcing complete exceptionally");
                     }
-                });
+                catch (ExecutionException | InterruptedException e)
+                    {
+                    // ignore
+                    }
 
-            f_daemon.shutdown();
-            m_state = State.Closed;
+                // Close the channel publishers
+                for (PagedTopicChannelPublisher channel : f_aChannel)
+                    {
+                    channel.close();
+                    }
+                }
+            finally
+                {
+                // clean up
+                m_caches = null;
+                Arrays.fill(f_aChannel, null);
+
+                f_listOnCloseActions.forEach(action ->
+                    {
+                    try
+                        {
+                        action.run();
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.fine(this.getClass().getName() + ".close(): handled onClose exception: " +
+                            t.getClass().getCanonicalName() + ": " + t.getMessage());
+                        }
+                    });
+
+                f_daemon.shutdown();
+                m_state = State.Closed;
+                }
             }
         }
 
