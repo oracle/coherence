@@ -118,6 +118,7 @@ public class StatusHATest {
                              SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
                              SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
                              SystemProperty.of("com.sun.management.jmxremote.port", jmxPort),
+                             SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                              SystemProperty.of("coherence.management.http.host", "127.0.0.1"),
                              SystemProperty.of("coherence.management.http.port", managementPort),
                              SystemProperty.of("coherence.management.http", "inherit"))
