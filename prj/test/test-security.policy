@@ -760,11 +760,17 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-json/-" {
   // The following is required to support serialization of lambdas
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
   permission java.lang.RuntimePermission "getenv.*";
+  permission java.util.PropertyPermission "oracle.io.*", "read";
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-json/target/coherence-json-${test.project.version}.jar" {
   // The following is required to support serialization of lambdas
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.util.PropertyPermission "oracle.io.*", "read";
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
 };
 
 // Permissions for LoginModule (normally in the boot-class-path)
@@ -909,6 +915,10 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/transaction/t
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/io/target/-" {
   // allow shaded bdb to access its log files in tmp directory.
   permission java.io.FilePermission "${test.bdb.directory}${/}-", "read, write, delete, execute";
+  permission java.lang.RuntimePermission "getenv.*";
+
+  // The following is required to support serialization of lambdas
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-examples/examples-java/target/-" {

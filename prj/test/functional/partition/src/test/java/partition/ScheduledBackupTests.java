@@ -8,12 +8,12 @@
 package partition;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
-
 import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.partition.SimplePartitionKey;
 
@@ -22,17 +22,20 @@ import com.tangosol.util.CompositeKey;
 
 import common.AbstractFunctionalTest;
 
+import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -190,7 +193,8 @@ public class ScheduledBackupTests
             CoherenceClusterMember testPrimary   = startCacheServer("testScheduledBackupFromTransfer-1", "partition", null, props);
             CoherenceClusterMember testSecondary = startCacheServer("testScheduledBackupFromTransfer-2", "partition", null, props);
 
-            DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+            DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
+            String                  sService = service.getInfo().getServiceName();
 
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
             waitForBalanced(service);
@@ -213,7 +217,7 @@ public class ScheduledBackupTests
             assertTrue(cache.size() == cKeys);
 
             // the scheduled backup does not happen yet; start new members should lead to partition transfer
-            startCacheServer("testScheduledBackupFromTransfer-3", "partition", null, props);
+            CoherenceClusterMember memberControl = startCacheServer("testScheduledBackupFromTransfer-3", "partition", null, props);
             startCacheServer("testScheduledBackupFromTransfer-4", "partition", null, props);
 
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(4));
@@ -231,6 +235,8 @@ public class ScheduledBackupTests
             stopCacheServer("testScheduledBackupFromTransfer-1");
 
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
+            Eventually.assertThat(invoking(this)
+                            .getServiceStatus(memberControl, sService), is(ServiceStatus.NODE_SAFE.name()), within(3, TimeUnit.MINUTES));
             waitForBalanced(service);
 
             Eventually.assertThat(invoking(cache).size(), is(cKeys));
@@ -238,6 +244,8 @@ public class ScheduledBackupTests
             stopCacheServer("testScheduledBackupFromTransfer-2");
 
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+            Eventually.assertThat(invoking(this)
+                    .getServiceStatus(memberControl, sService), is(ServiceStatus.NODE_SAFE.name()), within(3, TimeUnit.MINUTES));
             waitForBalanced(service);
 
             Eventually.assertThat(invoking(cache).size(), is(cKeys));
@@ -248,5 +256,12 @@ public class ScheduledBackupTests
 
             stopAllApplications();
             }
+        }
+
+    // ----- Helper methods -------------------------------------------------
+
+    public String getServiceStatus(CoherenceClusterMember member, String sService)
+        {
+        return member.getServiceStatus(sService).name();
         }
     }

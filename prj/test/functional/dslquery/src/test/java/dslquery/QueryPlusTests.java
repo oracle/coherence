@@ -334,7 +334,6 @@ public class QueryPlusTests
     public static final String POF_CONFIG         = "dslquery-pof-config.xml";
     public static final String EMPTY_COHQL_PROMPT = "CohQL> ";
 
-    // COH-23847 - hack to set the required system property outside the bedrock
     static
         {
         System.setProperty("coherence.pof.enabled", "true");

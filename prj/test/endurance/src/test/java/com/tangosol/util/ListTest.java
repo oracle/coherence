@@ -618,6 +618,7 @@ public class ListTest
     */
     public static void speedTest(TestOp[] aop, List list, int cIters)
         {
+        cIters = Math.min(aop.length, list.size());
         for (int iIter = 0; iIter < cIters; ++iIter)
             {
             for (int i = 0, c = aop.length; i < c; ++i)
@@ -1045,7 +1046,7 @@ public class ListTest
                     return null;
 
                 case 1:
-                    if (cSize > 0)
+                    if (cSize > 0 && m_i < cSize)
                         {
                         return list.remove(m_i);
                         }

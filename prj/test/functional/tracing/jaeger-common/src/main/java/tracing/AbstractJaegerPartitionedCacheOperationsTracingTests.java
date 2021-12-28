@@ -98,6 +98,8 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
         propsMain.setProperty("coherence.cacheconfig",              f_sCacheConfig);
 
         m_memberStorageNode = startMember(2, propsMain);
+        waitForServer(m_memberStorageNode);
+        waitForBalanced(getNamedCache().getCacheService());
         }
 
     // ----- methods from AbstractCacheOperationsTracingTest ----------------

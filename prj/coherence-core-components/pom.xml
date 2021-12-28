@@ -5,6 +5,7 @@
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
   -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -130,6 +131,23 @@
         <version>${maven.antrun.plugin.version}</version>
 
         <executions>
+
+          <!-- remove any dependencies added by previous builds; including coherence-tx module builds -->
+          <execution>
+            <id>clean-dependencies</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <delete failonerror="false" includeemptydirs="true">
+                  <fileset dir="${tde.projects.dependencies.path}"/>
+                </delete>
+              </target>
+            </configuration>
+          </execution>
+
           <!-- ensure that there is no left-over src directory from any previous code-coverage build -->
           <execution>
             <id>delete-coverage-src</id>
@@ -329,7 +347,7 @@
                 <argument>-Xms${java.memory.minimum}</argument>
                 <argument>-Xmx${java.memory.maximum}</argument>
                 <argument>-Djava.awt.headless=true</argument>
-                <argument>-Dtangosol.taps.repos=file://${tde.projects.path}</argument>
+                <argument>-Dtangosol.taps.repos=${tde.projects.file.url}</argument>
                 <argument>-Dtangosol.taps.prj=${core.project}:${core.project.version}</argument>
                 <argument>-classpath</argument>
                 <argument>${tde.classpath}</argument>
@@ -355,7 +373,7 @@
                 <argument>-Xms${java.memory.minimum}</argument>
                 <argument>-Xmx${java.memory.maximum}</argument>
                 <argument>-Djava.awt.headless=true</argument>
-                <argument>-Dtangosol.taps.repos=file://${tde.projects.path}</argument>
+                <argument>-Dtangosol.taps.repos=${tde.projects.file.url}</argument>
                 <argument>-Dtangosol.taps.prj=${core-net.project}:${core-net.project.version}</argument>
                 <argument>-classpath</argument>
                 <argument>${tde.classpath}</argument>
@@ -381,7 +399,7 @@
                 <argument>-Xms${java.memory.minimum}</argument>
                 <argument>-Xmx${java.memory.maximum}</argument>
                 <argument>-Djava.awt.headless=true</argument>
-                <argument>-Dtangosol.taps.repos=file://${tde.projects.path}</argument>
+                <argument>-Dtangosol.taps.repos=${tde.projects.file.url}</argument>
                 <argument>-Dtangosol.taps.prj=${core-net.project}:${core-net.project.version}</argument>
                 <argument>-classpath</argument>
                 <argument>${tde.classpath}</argument>

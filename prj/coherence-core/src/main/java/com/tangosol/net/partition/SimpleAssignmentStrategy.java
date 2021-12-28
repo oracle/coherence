@@ -482,7 +482,7 @@ public class SimpleAssignmentStrategy
             return m_fTrivialDistribution = false;
             }
 
-        if (!manager.getOwnershipLeavingMembers().isEmpty() ||
+        if (!ctx.getLeavingOwners().isEmpty() ||
                 ctx.getOwnershipMembers().size() == 1)
             {
             // defer to the standard algorithm, but allow to come back
@@ -569,7 +569,7 @@ public class SimpleAssignmentStrategy
      */
     protected void checkLeaving(AnalysisContext ctx)
         {
-        Set      setLeaving     = getManager().getOwnershipLeavingMembers();
+        Set      setLeaving     = ctx.getLeavingOwners();
         Member[] aOwners        = ctx.getOwnershipMembersList();
         int      cBackupsConfig = getBackupCount();
 
@@ -2053,6 +2053,16 @@ public class SimpleAssignmentStrategy
             }
 
         /**
+         * Return the set of ownership members that are leaving.
+         *
+         * @return the set of leaving ownership enabled members
+         */
+        protected Set<Member> getLeavingOwners()
+            {
+            return m_setOwenersLeaving;
+            }
+
+        /**
          * Return an array containing the members across which to distribute the
          * partition ownership, arranged in arbitrary order.
          * <p>
@@ -2194,7 +2204,8 @@ public class SimpleAssignmentStrategy
 
             // cache the set of non-leaving ownership members
             m_setOwnershipMembers = setOwners;
-            m_aOwnershipMembers = (Member[]) setOwners.toArray(new Member[setOwners.size()]);
+            m_aOwnershipMembers   = (Member[]) setOwners.toArray(new Member[setOwners.size()]);
+            m_setOwenersLeaving   = setLeaving;
 
             // the number of backups could be smaller than configured if we have a
             // small enough number of members
@@ -2290,7 +2301,7 @@ public class SimpleAssignmentStrategy
          */
         protected boolean isMemberLeaving(Member member)
             {
-            return getManager().getOwnershipLeavingMembers().contains(member);
+            return getLeavingOwners().contains(member);
             }
 
         /**
@@ -2833,9 +2844,12 @@ public class SimpleAssignmentStrategy
                 // no membership change has occurred since the last delay calculation;
                 // check to see if the previously issued advice has been enacted
                 PartitionSet parts = ctxLast.getUpdatedPartitions();
-                if (parts == null)
+                if (parts == null || !ctxLast.getLeavingOwners().isEmpty())
                     {
-                    // no changes were suggested last time; no harm in proceeding
+                    // 1. no changes were suggested last time - no harm in proceeding
+                    // 2. there were members leaving (graceful shutdown) therefore
+                    //    re-execute a plan to ensure we get to balance asap and/or
+                    //    re-issue any dropped advice due to restore during a plan update
                     return 0L;
                     }
 
@@ -3598,6 +3612,11 @@ public class SimpleAssignmentStrategy
          * Note: this set does not include members that are leaving
          */
         protected Set m_setOwnershipMembers;
+
+        /**
+         * The set of ownership members that are leaving.
+         */
+        protected Set m_setOwenersLeaving;
 
         /**
          * An array of the ownership members to include in the distribution,

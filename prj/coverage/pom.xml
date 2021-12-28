@@ -261,6 +261,12 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>executor</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
           <artifactId>events</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>

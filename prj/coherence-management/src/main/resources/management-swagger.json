@@ -3,7 +3,7 @@
   "info": {
     "title": "RESTful Management Interface for Oracle Coherence MBeans",
     "description": "RESTful Management Interface for Oracle Coherence MBeans",
-    "version": "12.2.1.4.0"
+    "version": "14.1.2.0.0"
   },
   "schemes": [
     "http",
@@ -64,11 +64,12 @@
       "name": "JMX",
       "description": "The JMX management resource provides a set of endpoints for viewing and changing how Coherence JMX management is configured.",
       "x-priority":11
+      "x-priority":12
     },
     {
       "name": "Executor",
       "description": "The Executor resource provides a set of endpoints for managing executor service. Use this resource to access operational information and performance statistics for executor operations.",
-      "x-priority":12
+      "x-priority":13
     }
   ],
   "paths": {
@@ -2992,6 +2993,35 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetstatistics": {
+      "post": {
+        "tags": [
+          "Federation"
+        ],
+        "summary": "Reset Incoming Statistics of a Participant",
+        "description": "Use this endpoint to clear the current statistics for a specific incoming/origin participant.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetstatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          },
+          {
+            "$ref": "#/parameters/participantName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants": {
       "get": {
         "tags": [
@@ -3061,6 +3091,37 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetstatistics": {
+      "post": {
+        "tags": [
+          "Federation"
+        ],
+        "summary": "Reset Outgoing Statistics of a Participant",
+        "description": "Use this endpoint to clear the current statistics for a specific outgoing/destination participant.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetstatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          },
+          {
+            "$ref": "#/parameters/participantName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+
+
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [
@@ -3198,6 +3259,60 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+      "get": {
+        "tags": [
+          "HotCache"
+        ],
+        "summary": "View HotCache Members",
+        "description": "Use this endpoint to view a list of HotCache members",
+        "operationId": "/management/coherence/cluster/hotcache/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns HotCache Members",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/hotcacheMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/hotcache/members/{memberIdentifier}": {
+      "get": {
+        "tags": [
+          "HotCache"
+        ],
+        "summary": "View HotCache Member Information",
+        "description": "Use this endpoint to view HotCache information for a specific cluster member.",
+        "operationId": "/management/coherence/cluster/hotcache/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns HotCache information",
+            "schema": {
+              "$ref": "#/definitions/hotcacheMember"
+            }
           }
         }
       }
@@ -5501,6 +5616,11 @@
           "description": "The number of pending outgoing messages.",
           "format": "int64",
           "type": "integer"
+        },
+        "traceLogging": {
+          "default": "false",
+          "description": "True if federation trace logging is on.",
+          "type": "boolean"
         }
       }
     },
@@ -5670,6 +5790,11 @@
           "type": "string",
           "description": "Return the participant state.",
           "readOnly": true
+        },
+        "traceLogging": {
+          "default": "false",
+          "type": "boolean",
+          "description": "True if federation trace logging is turned on."
         }
       }
     },

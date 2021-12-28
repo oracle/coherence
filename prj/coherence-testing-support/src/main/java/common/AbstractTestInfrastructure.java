@@ -27,9 +27,10 @@ import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.ClassName;
+import com.oracle.bedrock.runtime.java.options.Freeform;
+import com.oracle.bedrock.runtime.java.options.Freeforms;
 import com.oracle.bedrock.runtime.java.options.Headless;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
-import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.runtime.java.options.SystemProperties;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
@@ -866,11 +867,21 @@ public abstract class AbstractTestInfrastructure
             optionsByType.add(ClassPath.of(sClassPath));
             }
 
-        optionsByType.add(JvmOptions.include("-server",
-                                             "-XX:+HeapDumpOnOutOfMemoryError",
-                                             "-XX:HeapDumpPath=" + System.getProperty("test.project.dir") + File.separatorChar + "target",
-                                             "-XX:+ExitOnOutOfMemoryError"));
-        optionsByType.add(HeapSize.of(256, HeapSize.Units.MB, 1024, HeapSize.Units.MB));
+        String[] defaultJvmOpts = new String[] { "-server",
+                "-XX:+HeapDumpOnOutOfMemoryError",
+                "-XX:HeapDumpPath=" + System.getProperty("test.project.dir") + File.separatorChar + "target",
+                "-XX:+ExitOnOutOfMemoryError" };
+
+        Freeforms jvmOptions = System.getProperty("test.jvm.options") != null
+                ? new Freeforms(new Freeform(defaultJvmOpts),
+                                new Freeform(System.getProperty("test.jvm.options").split(" ")))
+                : new Freeforms(new Freeform(defaultJvmOpts));
+
+        optionsByType.add(jvmOptions);
+
+        int cMax = Integer.parseInt(System.getProperty("test.heap.max", "1024"));
+
+        optionsByType.add(HeapSize.of(256, HeapSize.Units.MB, cMax, HeapSize.Units.MB));
         optionsByType.add(Headless.enabled());
 
         optionsByType.add(LocalHost.only());
@@ -1685,6 +1696,13 @@ public abstract class AbstractTestInfrastructure
 
         private final CacheService f_service;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Environment variable name for setting extra JVM options.
+     */
+    protected static final String JVM_EXTRA_OPTS = "JVM_EXTRA_OPTS";
 
     // ----- data members ---------------------------------------------------
 

@@ -7,10 +7,11 @@
 
 package com.tangosol.net;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
-import com.tangosol.util.HashHelper;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -296,6 +297,11 @@ public class ConfigurableAddressProvider
             switch (xmlAddr.getName())
                 {
                 case "socket-address":
+                    if (xmlConfig.getName().equalsIgnoreCase("well-known-addresses"))
+                        {
+                        Logger.warn("The use of <socket-address> for the <well-known-addresses> element is deprecated and the <port> value is ignored. Use <address> instead.");
+                        }
+
                     sAddr = xmlAddr.getSafeElement("address").getString().trim();
                     nPort = xmlAddr.getSafeElement("port").getInt();
                     break;

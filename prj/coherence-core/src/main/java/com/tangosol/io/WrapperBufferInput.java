@@ -144,6 +144,24 @@ public class WrapperBufferInput
         bufIn.setOffset(of);
         }
 
+    @Override
+    public Object getObjectInputFilter()
+        {
+        BufferInput bufIn = m_bufIn;
+
+        return bufIn == null ? null : bufIn.getObjectInputFilter();
+        }
+
+    @Override
+    public void setObjectInputFilter(Object filter)
+        {
+        BufferInput bufIn = m_bufIn;
+
+        if (bufIn != null)
+            {
+            bufIn.setObjectInputFilter(filter);
+            }
+        }
 
     // ----- accessors ------------------------------------------------------
 

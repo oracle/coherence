@@ -33,9 +33,11 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,6 +59,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 import static org.junit.Assert.fail;
 
@@ -708,6 +711,30 @@ public class MetricsSupportTests
                                     "Coherence.Dummy.ValueTwo");                   //  metric from annotated method with no name specified
         }
 
+    @Test
+    public void shouldGetHeapAfterGCMetrics() throws Exception
+        {
+        Assume.assumeThat("test skipped, no memory pool MBeans", ManagementFactory.getMemoryPoolMXBeans().size(), is(not(0)));
+        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
+        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
+
+        metricSupport.register(getMBeanName("*:type=Platform,Domain=java.lang,subType=MemoryPool,*"));
+
+        assertThat(adapter.metricCount(), is(not(0)));
+
+        List<String> metrics = adapter.getMetrics()
+                .stream()
+                .map(MBeanMetric::getName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        assertThat(metrics.size(), is(4));
+        assertThat(metrics, containsInAnyOrder("Coherence.Memory.HeapAfterGC.Initial",
+                                               "Coherence.Memory.HeapAfterGC.Used",
+                                               "Coherence.Memory.HeapAfterGC.Committed",
+                                               "Coherence.Memory.HeapAfterGC.Max"));
+        }
+
     // ----- helper methods -------------------------------------------------
 
 
@@ -954,7 +981,7 @@ public class MetricsSupportTests
     /**
      * True iff JVM is for JDK 15 or greater.
      */
-    private static final Boolean s_bTestJdk15 = Integer.valueOf(System.getProperty("java.version").split("\\.")[0]) > 14 ? true : false;
+    private static final Boolean s_bTestJdk15 = Integer.valueOf(System.getProperty("java.version").split("-|\\.")[0]) > 14 ? true : false;
 
     // ----- data members ---------------------------------------------------
 

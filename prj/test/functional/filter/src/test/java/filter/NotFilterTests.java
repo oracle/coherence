@@ -198,7 +198,6 @@ public class NotFilterTests
         Eventually.assertThat(invoking(s_cache).keySet(filter), containsInAnyOrder(0, 1, 6, 7));
         }
 
-    // COH-23847 - hack to set the required system property outside the bedrock
     static
         {
         System.setProperty("coherence.pof.enabled", "true");

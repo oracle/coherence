@@ -67,17 +67,17 @@ public class BinaryEntryExpiryTest
         cache.invoke(2, processor);
 
         Object result = cache.invoke(1, processor);
-        assertTrue((lExpiry - (long) result) < 100l);
+        assertTrue((lExpiry - (long) result) < 1000l);
 
         lExpiry = 60000l;
         cache.put(1, 1, lExpiry);
         result = cache.invoke(1, processor);
-        assertTrue((lExpiry - (long) result) < 100l);
+        assertTrue((lExpiry - (long) result) < 500l);
 
         lExpiry = 432000000l;
         cache.put(1, 1, lExpiry);
         result = cache.invoke(1, processor);
-        assertTrue((lExpiry - (long) result) < 100l);
+        assertTrue((lExpiry - (long) result) < 1000l);
         }
 
 

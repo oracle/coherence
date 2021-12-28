@@ -13,6 +13,7 @@ import java.util.Map;
 import com.oracle.coherence.common.base.Blocking;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.After;
 import org.junit.Test;
 
 
@@ -37,13 +38,26 @@ public class WrapperConcurrentMapTest
             };
         }
 
+    @After
+    public void cleanup()
+        {
+        for (int i = 0; i < m_aTestCases.length; i++)
+            {
+            TestCase testCase = m_aTestCases[i];
+            testCase.shutdown();
+            }
+
+        sleep(100);
+        }
+
     /**
     * Test SegmentedConcurrentMap implementation.
     */
     @Test
     public void testSegmentedConcurrentMap()
         {
-        testSegmentedConcurrentMap(setupTests());
+        m_aTestCases = setupTests();
+        testSegmentedConcurrentMap(m_aTestCases);
         }
 
     /**
@@ -70,7 +84,8 @@ public class WrapperConcurrentMapTest
     @Test
     public void testWrapperConcurrentMap()
         {
-        testWrapperConcurrentMap(setupTests());
+        m_aTestCases = setupTests();
+        testWrapperConcurrentMap(m_aTestCases);
         }
 
     /**
@@ -558,4 +573,9 @@ public class WrapperConcurrentMapTest
     * The number of concurrent test threads.
     */
     public static final int NUM_THREADS    = 50;
+
+    /**
+     * Array of test cases.
+     */
+    private TestCase[] m_aTestCases;
     }

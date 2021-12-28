@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -142,6 +142,21 @@ public interface Bus
      * </p>
      */
     public void flush();
+
+    /**
+     * Ensure that any buffered asynchronous operations are dispatched.
+     * <p>
+     * Upon completion of the asynchronous operation all previously buffered
+     * asynchronous operations will have been dispatched.
+     * </p>
+     *
+     * @param fSocketWrite  true if the caller is willing to offer its cpu to
+     *                      perform a socket write
+     */
+    public default void flush(boolean fSocketWrite)
+        {
+        flush();
+        }
 
     /**
      * Register a collector which will receive events for this Bus.

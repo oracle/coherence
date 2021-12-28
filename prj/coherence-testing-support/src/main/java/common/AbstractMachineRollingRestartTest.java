@@ -8,16 +8,27 @@
 package common;
 
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Member;
+import com.tangosol.net.MemberEvent;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.SafeLinkedList;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 
 
 public abstract class AbstractMachineRollingRestartTest
@@ -137,6 +148,53 @@ public abstract class AbstractMachineRollingRestartTest
             }
 
         /**
+         * Start a cache server.
+         *
+         * @param props  the properties to start the server with, may be null
+         *
+         * @return the new Member
+         */
+        public Member addServer(Properties props)
+            {
+            String     sServerName = getPrefix() + m_nNonce++;
+            Properties propsAll    = ensureProperties();
+
+            if (props != null)
+                {
+                propsAll.putAll(props);
+                }
+
+            Cluster cluster = getCluster();
+            int     nSize   = cluster.getMemberSet().size();
+
+            CoherenceClusterMember clusterMember = startCacheServer(sServerName, getProjectName(),
+                    getCacheConfigPath(), propsAll, true);
+
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(nSize + 1));
+
+            Set setMembers = cluster.getMemberSet();
+            Member memberNew  = null;
+            for (Iterator iterMembers = setMembers.iterator(); iterMembers.hasNext(); )
+                {
+                Member member = (Member) iterMembers.next();
+                if (Base.equals(sServerName, member.getRoleName()))
+                    {
+                    memberNew = member;
+                    break;
+                    }
+                }
+
+            assertNotNull(memberNew);
+
+            synchronized (m_listServers)
+                {
+                m_listServers.add(memberNew);
+                m_mapClusterMembers.put(memberNew.getId(), clusterMember);
+                }
+            return memberNew;
+            }
+
+        /**
          * Kill all members on the specified (psuedo) machine.
          *
          * @param sMachine  the machine name
@@ -180,5 +238,27 @@ public abstract class AbstractMachineRollingRestartTest
                 addServer(sMachine);
                 }
             }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void memberLeft(MemberEvent evt)
+            {
+            synchronized (m_listServers)
+                {
+                Member member = evt.getMember();
+                m_listServers.remove(member);
+                m_mapClusterMembers.remove(member.getId());
+
+                m_listServers.notifyAll();
+                }
+            }
+
+        // ----- data members ------
+
+        /**
+         * List of CoherenceClusterMember.
+         */
+        protected Map<Integer, CoherenceClusterMember> m_mapClusterMembers = new HashMap<>();
         }
     }

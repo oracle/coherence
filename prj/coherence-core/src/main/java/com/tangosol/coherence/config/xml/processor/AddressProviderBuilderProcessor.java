@@ -127,6 +127,11 @@ public class AddressProviderBuilderProcessor
                     switch (xmlAddr.getName())
                         {
                         case "socket-address" :
+                            if (xmlElement.getName().equalsIgnoreCase("well-known-addresses"))
+                                {
+                                Logger.warn("The use of <socket-address> for the <well-known-addresses> element is deprecated and the <port> value is ignored. Use <address> instead.");
+                                }
+
                             sAddr = xmlAddr.getSafeElement("address").getString().trim();
                             nPort = xmlAddr.getSafeElement("port").getInt();
                             break;

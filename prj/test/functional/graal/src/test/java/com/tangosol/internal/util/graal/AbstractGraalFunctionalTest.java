@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -115,6 +115,11 @@ public abstract class AbstractGraalFunctionalTest
                 }
 
             props.put("coherence.distributed.localstorage", "true");
+
+            if (System.getenv(JVM_EXTRA_OPTS) != null)
+                {
+                System.setProperty("test.jvm.options", System.getenv(JVM_EXTRA_OPTS));
+                }
 
             CoherenceClusterMember m1 = startCacheServer(
                     getServerName(1),"graal-functional",

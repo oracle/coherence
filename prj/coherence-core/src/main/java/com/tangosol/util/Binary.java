@@ -913,6 +913,22 @@ public final class Binary
         }
 
 
+    // ----- HashEncoded methods ------------------------------------------
+
+    /**
+    * {@inheritDoc}
+    */
+    public int getEncodedHash()
+        {
+        int nHash = m_nHash;
+        if (nHash == HashEncoded.UNENCODED)
+            {
+            m_nHash = nHash = super.getEncodedHash();
+            }
+
+        return nHash;
+        }
+
     // ----- AbstractByteArrayReadBuffer methods ----------------------------
 
     /**
@@ -975,14 +991,25 @@ public final class Binary
         {
         int nHash = m_nHash;
 
-        if (nHash == 0)
+        if (nHash == HashEncoded.UNENCODED)
             {
-            // cache the CRC32 result
-            nHash = toCrc(m_ab, m_of, m_cb);
-            if (nHash == 0)
+            try
                 {
-                // to allow for caching of the hashcode
-                nHash = 17;
+                nHash = super.getEncodedHash();
+                }
+            catch (RuntimeException e)
+                {
+                }
+
+            if (nHash == HashEncoded.UNENCODED)
+                {
+                // cache the CRC32 result
+                nHash = toCrc(m_ab, m_of, m_cb);
+                if (nHash == HashEncoded.UNENCODED)
+                    {
+                    // to allow for caching of the hashcode
+                    nHash = 17;
+                    }
                 }
             m_nHash = nHash;
             }
@@ -1023,7 +1050,9 @@ public final class Binary
                 // compare hash-code (another quick way to disprove equality)
                 int nThisHash = this.m_nHash;
                 int nThatHash = that.m_nHash;
-                if (nThisHash == 0 || nThatHash == 0 || nThisHash == nThatHash)
+                if (nThisHash == HashEncoded.UNENCODED ||
+                    nThatHash == HashEncoded.UNENCODED ||
+                    nThisHash == nThatHash)
                     {
                     // COH-2279 - Use Arrays.equals if the entire buffers should
                     // be equal. Intentionally only using cbThis since the equality
@@ -1155,6 +1184,8 @@ public final class Binary
 
         int    cb = in.readInt();
         byte[] ab;
+
+        ExternalizableHelper.validateLoadArray(byte[].class, cb, in);
         if (cb < ExternalizableHelper.CHUNK_THRESHOLD)
             {
             ab = new byte[cb];
@@ -1852,5 +1883,5 @@ public final class Binary
     /**
     * Cached hash code.
     */
-    private transient int m_nHash;
+    private transient int m_nHash = HashEncoded.UNENCODED;
     }

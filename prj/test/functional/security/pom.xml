@@ -69,13 +69,20 @@
 
   <build>
     <plugins>
-      <!-- Can be removed when COH-20993 is resolved -->
+      <!-- CreateKeyStore.java is used to create key stores for 
+           the security tests and requires JDK 8 to build.  
+           To build CreateKeyStore.java, replace
+           <testExcludes> with
+           <source>${java.version}</source>
+           <target>${java.version}</target>
+           and make sure java.version is 1.8 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <configuration combine.self="override">
-          <source>${java.version}</source>
-          <target>${java.version}</target>
+        <configuration>
+          <testExcludes>
+            <testExclude>**/CreateKeyStore.java</testExclude>
+          </testExcludes>
         </configuration>
       </plugin>
     </plugins>

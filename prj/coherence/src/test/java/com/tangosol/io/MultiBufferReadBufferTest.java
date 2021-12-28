@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.io.nio.ByteBufferReadBuffer;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
+import com.tangosol.util.ExternalizableHelperTest;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -103,6 +104,53 @@ public class MultiBufferReadBufferTest extends ExternalizableHelper
         checkBufferInput(buf, bIn);
         }
 
+    /**
+     * Test the behavior of MultiBufferReadBufferContructor(ReadBuffer[])
+     * and getDestructiveBufferInput().
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testNullObjectInputFilter()
+            throws IOException
+        {
+        int                   cBuffers = 256;
+        int                   cSize    = 256;
+        MultiBufferReadBuffer buf      = new MultiBufferReadBuffer(
+                createReadBuffers(cBuffers, cSize));
+
+        checkMultiBuffer(buf, cBuffers, cSize);
+        BufferInput bIn = buf.getDestructiveBufferInput();
+
+        assertNull(bIn.getObjectInputFilter());
+        checkBufferInput(buf, bIn);
+        }
+
+    /**
+     * Test the behavior of MultiBufferReadBufferContructor(ReadBuffer[])
+     * and getDestructiveBufferInput().
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testSetObjectInputFilter()
+            throws IOException
+        {
+        int                   cBuffers = 256;
+        int                   cSize    = 256;
+        MultiBufferReadBuffer buf      = new MultiBufferReadBuffer(
+                createReadBuffers(cBuffers, cSize));
+
+        checkMultiBuffer(buf, cBuffers, cSize);
+
+        BufferInput bIn          = buf.getDestructiveBufferInput();
+        Object      oInputFilter = ExternalizableHelperTest.createObjectInputFilter("data.*");
+
+        bIn.setObjectInputFilter(oInputFilter);
+        assertEquals(oInputFilter, bIn.getObjectInputFilter());
+
+        checkBufferInput(buf, bIn);
+        }
     /**
     * Test for byteAt(int of)
     */

@@ -1200,6 +1200,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             // now set the executor state to be running
             executorCache.invoke(sId, new ClusteredExecutorInfo.SetStateProcessor(RUNNING));
+            Base.sleep(2000);
 
             // now ensure that the executor works normally
             RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
@@ -1225,6 +1226,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             // now shutdown the executor service (this will cause it to reject locally)
             executorService.shutdown();
+            Eventually.assertThat(executorService.isShutdown(), is(true));
 
             // submit a task that should fail due to rejection
             RecordingSubscriber<String> subscriber4 = new RecordingSubscriber<>();

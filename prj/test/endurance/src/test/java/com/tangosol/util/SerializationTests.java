@@ -46,9 +46,10 @@ public class SerializationTests
 
             fail("Unexpected success of the large object serialization");
             }
-        catch (UnsupportedOperationException e)
+        catch (UnsupportedOperationException | OutOfMemoryError e)
             {
             // expected from ByteArrayWriteBuffer#checkBounds
+            Base.log("Expected Exception/Error " + e.toString());
             }
 
         // still no stats; ExternalizableHelper will use BinaryWriteBuffer

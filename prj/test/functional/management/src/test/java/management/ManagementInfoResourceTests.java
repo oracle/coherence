@@ -1132,8 +1132,8 @@ public class ManagementInfoResourceTests
             assertThat(mapEntry.get("joinTime"), notNullValue());
             assertThat(mapEntry.get("links"), notNullValue());
 
-            String sSelfUrl = getSelfLink(mapEntry);
-            response = m_client.target(sSelfUrl).request().get();
+            target = m_client.target(getSelfLink(mapEntry));
+            response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             LinkedHashMap mapMemberResponse = new LinkedHashMap(readEntity(target, response));
 
@@ -1167,9 +1167,7 @@ public class ManagementInfoResourceTests
         assertThat(mapResponse.get("partitionCount"), is(257));
         assertThat(mapResponse.get("backupCount"), is(1));
 
-        String sSelfUrl = getSelfLink(mapResponse);
-
-        target = m_client.target(sSelfUrl);
+        target = m_client.target(getSelfLink(mapResponse));
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         LinkedHashMap mapPartitionResponse = new LinkedHashMap(readEntity(target, response));
@@ -1824,10 +1822,10 @@ public class ManagementInfoResourceTests
         for(LinkedHashMap mapEntry : listItems)
             {
             assertThat(mapEntry.get(NAME), is("ExtendProxyService"));
-            String sProxyUrl = getLink(mapEntry, "proxy");
-            response = m_client.target(sProxyUrl).request().get();
+            target = m_client.target(getLink(mapEntry, "proxy"));
+            response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            LinkedHashMap mapMemberResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
+            LinkedHashMap mapMemberResponse = new LinkedHashMap(readEntity(target, response));
             assertThat(mapMemberResponse.get("protocol"), notNullValue());
             }
         }
@@ -3277,7 +3275,7 @@ public class ManagementInfoResourceTests
      */
     protected static final long REMOTE_MODEL_PAUSE_DURATION = 128L + /*buffer*/ 16L;
 
-    protected static final Boolean s_bTestJdk11 = Integer.valueOf(System.getProperty("java.version").split("\\.")[0]) > 10 ? true : false;
+    protected static final Boolean s_bTestJdk11 = Integer.valueOf(System.getProperty("java.version").split("-|\\.")[0]) > 10 ? true : false;
 
     /**
      * The number of attributes to check for.

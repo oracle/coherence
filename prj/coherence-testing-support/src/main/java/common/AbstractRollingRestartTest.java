@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import java.util.concurrent.TimeUnit;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
@@ -39,6 +40,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
@@ -284,7 +286,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertDeferred(() -> serviceReal.calculateEndangered(), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateEndangered(), is(0), within(2, TimeUnit.MINUTES));
         }
 
     // ----- inner class: WaitForNoOrphansRunnable ------------------------
@@ -626,7 +628,7 @@ public abstract class AbstractRollingRestartTest
                 }
 
             // wait for server death to be noticed
-            Eventually.assertDeferred(() -> m_listServers.contains(memberKill), is(false));
+            Eventually.assertDeferred(() -> m_listServers.contains(memberKill), is(false), within(2, TimeUnit.MINUTES));
             }
 
         /**

@@ -276,11 +276,21 @@ public class MetricSupport
             return;
             }
 
-        ensureMemoryMetrics(f_listRegistry);
+        if (sMBeanName.startsWith("type=Platform") && sMBeanName.contains("subType=MemoryPool"))
+            {
+            ensureMemoryMetrics(f_listRegistry);
+            }
 
         f_setRegistered.add(sMBeanName);
 
         MBeanInfo        mBeanInfo = proxy.getMBeanInfo(sMBeanName);
+
+        if (mBeanInfo == null)
+            {
+            Logger.warn("MetricSupport.registerInternal(), mBeanInfo is null on MBean: " + sMBeanName
+            + ", proxy: " + proxy);
+            }
+
         Set<MBeanMetric> setMetric = getMetrics(sMBeanName, mBeanInfo, proxy);
         if (setMetric.size() > 0)
             {
@@ -950,55 +960,81 @@ public class MetricSupport
                 && "java.lang".equals(objectName.getKeyProperty("Domain")));
         }
 
+    /**
+     * Obtains the MemoryPoolMXBeans and creates after GC usage metrics for each
+     * of them. This makes it much easier to capture these metrics than trying
+     * to obtain them directly from the Coherence Platform MBeans.
+     *
+     * @param listRegistry  the metric registries to register the metrics with
+     */
     private synchronized void ensureMemoryMetrics(List<MetricsRegistryAdapter> listRegistry)
         {
-        if (f_fMemoryRegistered || listRegistry.isEmpty())
+        if (f_fMemoryRegistered || listRegistry == null || listRegistry.isEmpty())
             {
             return;
             }
         f_fMemoryRegistered = true;
 
-        for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans())
+        try
             {
-            if (bean.getType() == MemoryType.HEAP)
+            for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans())
                 {
-                String              sMBeanName       = bean.getObjectName().getCanonicalName();
-                String              sDescr           = "Memory pool heap usage after GC ";
-                MBeanServerProxy    proxy            = f_suppMBeanServerProxy.get();
-                Map<String, String> mapTagAttributes = new HashMap<>();
-                Map<String, String> mapTag           = createMetricTags(sMBeanName,
-                                                                        proxy,
-                                                                        bean.getObjectName(),
-                                                                        mapTagAttributes);
-
-                mapTag.put("name", bean.getName());
-
-                Identifier idUsed      = new Identifier(MBeanMetric.Scope.VENDOR,
-                                                       METRIC_PREFIX_HEAP_AFTER_GC + "Used",
-                                                        mapTag);
-                Identifier idMax       = new Identifier(MBeanMetric.Scope.VENDOR,
-                                                        METRIC_PREFIX_HEAP_AFTER_GC + "Max",
-                                                        mapTag);
-                Identifier idCommitted = new Identifier(MBeanMetric.Scope.VENDOR,
-                                                       METRIC_PREFIX_HEAP_AFTER_GC + "Committed",
-                                                        mapTag);
-                Identifier idInit      = new Identifier(MBeanMetric.Scope.VENDOR,
-                                                       METRIC_PREFIX_HEAP_AFTER_GC + "Initial",
-                                                        mapTag);
-
-                MemoryAfterGCMetric metricUsed      = new MemoryAfterGCMetric(idUsed, sDescr + "(used)", bean, MemoryUsage::getUsed);
-                MemoryAfterGCMetric metricMax       = new MemoryAfterGCMetric(idMax, sDescr + "(max)", bean, MemoryUsage::getMax);
-                MemoryAfterGCMetric metricCommitted = new MemoryAfterGCMetric(idCommitted, sDescr + "(committed)", bean, MemoryUsage::getCommitted);
-                MemoryAfterGCMetric metricInit      = new MemoryAfterGCMetric(idInit, sDescr + "(initial)", bean, MemoryUsage::getInit);
-
-                for (MetricsRegistryAdapter adapter : listRegistry)
+                if (bean.getType() == MemoryType.HEAP)
                     {
-                    adapter.register(metricUsed);
-                    adapter.register(metricMax);
-                    adapter.register(metricCommitted);
-                    adapter.register(metricInit);
+                    String              sMBeanName       = bean.getObjectName().getCanonicalName();
+                    String              sDescr           = "Memory pool heap usage after GC ";
+                    MBeanServerProxy    proxy            = f_suppMBeanServerProxy.get();
+                    Map<String, String> mapTagAttributes = new HashMap<>();
+                    Map<String, String> mapTag           = createMetricTags(sMBeanName,
+                                                                            proxy,
+                                                                            bean.getObjectName(),
+                                                                            mapTagAttributes);
+
+                    mapTag.put("name", bean.getName());
+
+                    String     sNameUsed      = METRIC_PREFIX_HEAP_AFTER_GC + "Used";
+                    Identifier idUsed         = new Identifier(MBeanMetric.Scope.VENDOR, sNameUsed, mapTag);
+                    String     sNameMax       = METRIC_PREFIX_HEAP_AFTER_GC + "Max";
+                    Identifier idMax          = new Identifier(MBeanMetric.Scope.VENDOR, sNameMax, mapTag);
+                    String     sNameCommitted = METRIC_PREFIX_HEAP_AFTER_GC + "Committed";
+                    Identifier idCommitted    = new Identifier(MBeanMetric.Scope.VENDOR, sNameCommitted, mapTag);
+                    String     sNameInitial   = METRIC_PREFIX_HEAP_AFTER_GC + "Initial";
+                    Identifier idInit         = new Identifier(MBeanMetric.Scope.VENDOR,sNameInitial, mapTag);
+
+                    MemoryAfterGCMetric metricUsed = new MemoryAfterGCMetric(idUsed, sDescr + "(used)",
+                            bean, MemoryUsage::getUsed);
+
+                    MemoryAfterGCMetric metricMax = new MemoryAfterGCMetric(idMax, sDescr + "(max)",
+                            bean, MemoryUsage::getMax);
+
+                    MemoryAfterGCMetric metricCommitted = new MemoryAfterGCMetric(idCommitted,
+                            sDescr + "(committed)", bean, MemoryUsage::getCommitted);
+
+                    MemoryAfterGCMetric metricInit      = new MemoryAfterGCMetric(idInit,
+                            sDescr + "(initial)", bean, MemoryUsage::getInit);
+
+                    for (MetricsRegistryAdapter adapter : listRegistry)
+                        {
+                        try
+                            {
+                            adapter.register(metricUsed);
+                            adapter.register(metricMax);
+                            adapter.register(metricCommitted);
+                            adapter.register(metricInit);
+                            }
+                        catch (Throwable t)
+                            {
+                            CacheFactory.err("Failed to register MemoryPool metrics with adapter " + adapter);
+                            CacheFactory.err(t);
+                            }
+                        }
                     }
                 }
+            }
+        catch (Throwable t)
+            {
+            CacheFactory.err("Failed to register MemoryPool metrics");
+            CacheFactory.err(t);
             }
         }
 

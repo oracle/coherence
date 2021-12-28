@@ -1062,7 +1062,7 @@ public class SocketBusDriver
          * The maximum number of concurrent writers on which to attempt direct writes.
          */
         protected int m_cThreadsDirect = Integer.parseInt(System.getProperty(
-                SocketBusDriver.class.getName() + ".directWriteThreadThreshold", "1"));
+                SocketBusDriver.class.getName() + ".directWriteThreadThreshold", "4"));
 
         /**
          * The drop ratio.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
 import java.net.SocketException;
 
 import java.util.logging.Level;
@@ -244,14 +245,15 @@ public abstract class BufferedSocketBus
          * @param fFlushInProg   true if a flush was in progress before the send
          * @param fFlushPending  true if a flush was required before the send
          * @param cbPending      the number of bytes pending on the connection
+         * @param fSocketWrite   true if the caller is willing to offer its cpu to perform a socket write
          */
-        protected void evaluateAutoFlush(boolean fFlushInProg, boolean fFlushPending, long cbPending)
+        protected void evaluateAutoFlush(boolean fFlushInProg, boolean fFlushPending, long cbPending, boolean fSocketWrite)
             {
             if (!fFlushInProg)
                 {
                 if (cbPending > getAutoFlushThreshold())
                     {
-                    if (!flush(/*fAuto*/ true))
+                    if (!flush(/*fSocketWrite*/ fSocketWrite, /*fAuto*/true))
                         {
                         if (!fFlushPending)
                             {
@@ -293,7 +295,17 @@ public abstract class BufferedSocketBus
          */
         public void flush()
             {
-            if (flush(/*fAuto*/ false))
+            flush(/*fSocketWrite*/ true);
+            }
+
+        /**
+         * Send any scheduled BufferSequences.
+         *
+         * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
+         */
+        public void flush(boolean fSocketWrite)
+            {
+            if (flush(/*fSocketWrite*/fSocketWrite, /*fAuto*/false))
                 {
                 removeFlushable(this);
                 }
@@ -302,11 +314,12 @@ public abstract class BufferedSocketBus
         /**
          * Send any scheduled BufferSequences.
          *
-         * @param fAuto  true iff it is an auto-flush
+         * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
+         * @param fAuto         true iff it is an auto-flush
          *
          * @return true if the connection has flushed all pending data
          */
-        public boolean flush(boolean fAuto)
+        public boolean flush(boolean fSocketWrite, boolean fAuto)
             {
             SocketBusDriver.Dependencies deps = getSocketDriver().getDependencies();
 
@@ -358,11 +371,12 @@ public abstract class BufferedSocketBus
                 m_cReceiptsUnflushed = 0;
                 }
 
+            int cWriter = getConcurrentWriters();
             if (batch == null)
                 {
                 return true; // nothing to flush
                 }
-            else if (f_cbQueued.get() == 0 && getConcurrentWriters() <= deps.getDirectWriteThreadThreshold())
+            else if (f_cbQueued.get() == 0 && (cWriter == 1 || (cWriter <= deps.getDirectWriteThreadThreshold() && fSocketWrite)))
                 {
                 // SS thread isn't writing, so this is the current head.  Even if the SS thread never sees this
                 // batch we want to overwrite any historic batch with the current head to avoid building up
@@ -1054,7 +1068,7 @@ public abstract class BufferedSocketBus
             {
             long cbBacklog = f_cbQueued.get();
 
-            if (fReady)
+            if (fReady || cbBacklog > 0)
                 {
                 WriteBatch batch       = m_batchWriteSendHead;
                 long       cbBundle    = getAutoFlushThreshold();

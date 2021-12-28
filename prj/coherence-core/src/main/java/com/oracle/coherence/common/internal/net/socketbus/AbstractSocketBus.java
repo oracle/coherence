@@ -320,6 +320,14 @@ public abstract class AbstractSocketBus
      */
     public void flush()
         {
+        flush(/*fSocketWrite*/true);
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void flush(boolean fSocketWrite)
+        {
         BusState nState = m_nState;
         if (nState != BusState.OPEN && nState != BusState.CLOSING)
             {
@@ -336,7 +344,7 @@ public abstract class AbstractSocketBus
 
             for (Connection conn : aConn)
                 {
-                conn.optimisticFlush(); // it is up to the connection to remove itself from the flush set
+                conn.optimisticFlush(fSocketWrite); // it is up to the connection to remove itself from the flush set
                 }
             }
         finally
@@ -1572,6 +1580,13 @@ public abstract class AbstractSocketBus
         protected abstract void flush();
 
         /**
+         * Flush the connection.
+         *
+         * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
+         */
+        protected abstract void flush(boolean fSocketWrite);
+
+        /**
          * Issue a heartbeat if necessary
          *
          * @return true if a heartbeat was issued, false if it was determined one wasn't needed
@@ -1595,6 +1610,19 @@ public abstract class AbstractSocketBus
          */
         public void optimisticFlush()
             {
+            optimisticFlush(/*fSocketWrite*/true);
+            }
+
+        /**
+         * Perform an optimistic flush, i.e. flush only if the connection is not already being flushed.
+         *
+         * Caller's need not be synchronized on the connection when calling this method, though the method
+         * will synchronize if it determines that it will flush.
+         *
+         * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
+         */
+        public void optimisticFlush(boolean fSocketWrite)
+            {
             AtomicBoolean lockFlush = f_lockFlush;
 
             if (lockFlush.compareAndSet(false, true))
@@ -1603,7 +1631,7 @@ public abstract class AbstractSocketBus
                     {
                     try
                         {
-                        ensureValid().flush();
+                        ensureValid().flush(fSocketWrite);
                         }
                     catch (IllegalArgumentException e)
                         {

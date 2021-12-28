@@ -88,7 +88,7 @@ public class BDBStoreTests
             }
         finally
             {
-            FileHelper.deleteDir(fileBDBTempDir);
+            FileHelper.deleteDirSilent(fileBDBTempDir);
             }
         }
 
@@ -136,7 +136,7 @@ public class BDBStoreTests
             }
         finally
             {
-            FileHelper.deleteDir(fileBDBTempDir);
+            FileHelper.deleteDirSilent(fileBDBTempDir);
             }
         }
 

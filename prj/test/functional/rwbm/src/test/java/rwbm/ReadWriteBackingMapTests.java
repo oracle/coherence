@@ -307,7 +307,7 @@ public class ReadWriteBackingMapTests
             assertEquals("put() caused an immediate store.", map.size(), 0);
 
             // wait until the write-behind delay has elapsed
-            definiteSleep(cMillis + 20L);
+            definiteSleep(cMillis + 50L);
             assertEquals("write did not occur.", map.size(), 1);
 
             // verify the store store() method was called once

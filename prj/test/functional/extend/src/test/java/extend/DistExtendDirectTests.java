@@ -170,17 +170,17 @@ public class DistExtendDirectTests
         NamedCache cache = getNamedCache("dist-expiry-sliding");
         // key 1's expiry should be extended after the get call
         cache.putAll(map);
-        Base.sleep(cSleep);
+        Base.sleep(2 * cSleep);
         cache.get(1);
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(cExpiry - 2 * cSleep + 250L);
         assertEquals(1, cache.size());
         cache.clear();
 
         // all keys's expiry should be extended after the getAll call
         cache.putAll(map);
-        Base.sleep(cSleep);
+        Base.sleep(2 * cSleep);
         cache.getAll(setKeys);
-        Base.sleep(cExpiry - cSleep + 250);
+        Base.sleep(cExpiry - 2 * cSleep + 250);
         assertEquals(cache.size(), cSize);
         cache.clear();
         }
@@ -281,8 +281,6 @@ public class DistExtendDirectTests
                 }
             }
         }
-
-
 
     @Test
     public void testCoh15021()

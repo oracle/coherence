@@ -95,7 +95,7 @@ public class PersistenceEnvironmentProcessorTests
     public void teardownTest()
             throws IOException
         {
-        FileHelper.deleteDir(m_fileHome);
+        FileHelper.deleteDirSilent(m_fileHome);
         }
 
     // ----- test methods ---------------------------------------------------
