@@ -284,26 +284,20 @@ public class BaseMapTest
         int     i, j;
         Integer IFrom, ITo;
 
-        i     = rnd(nRange);
-        j     = rnd(nRange);
+        i = rnd(nRange);
+        j = rnd(nRange);
         IFrom = Math.min(i, j);
         ITo   = Math.max(i, j);
+        assertIdenticalSortedMaps(mapControl.subMap(IFrom, ITo),
+                                  mapTest   .subMap(IFrom, ITo));
 
-        ITo           = rnd(nRange);
-        subMapControl = mapControl.headMap(ITo);
-        subMapTest    = mapTest   .headMap(ITo);
-        if (!subMapControl.isEmpty() && !subMapTest.isEmpty())
-            {
-            assertIdenticalSortedMaps(subMapControl, subMapTest);
-            }
+        ITo = rnd(nRange);
+        assertIdenticalSortedMaps(mapControl.headMap(ITo),
+                                  mapTest   .headMap(ITo));
 
-        IFrom         = rnd(nRange);
-        subMapControl = mapControl.tailMap(IFrom);
-        subMapTest    = mapTest   .tailMap(IFrom);
-        if (!subMapControl.isEmpty() && !subMapTest.isEmpty())
-            {
-            assertIdenticalSortedMaps(subMapControl, subMapTest);
-            }
+        IFrom = rnd(nRange);
+        assertIdenticalSortedMaps(mapControl.tailMap(IFrom),
+                                  mapTest   .tailMap(IFrom));
 
         // test clean up
         mapControl.clear();
