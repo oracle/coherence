@@ -381,8 +381,6 @@
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
 
-        <module>plugins</module>
-
         <module>test/functional</module>
         <module>test/endurance</module>
         <module>test/performance</module>
