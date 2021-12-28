@@ -63,7 +63,6 @@
     {
       "name": "JMX",
       "description": "The JMX management resource provides a set of endpoints for viewing and changing how Coherence JMX management is configured.",
-      "x-priority":11
       "x-priority":12
     },
     {
@@ -3259,60 +3258,6 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
-          }
-        }
-      }
-    },
-      "get": {
-        "tags": [
-          "HotCache"
-        ],
-        "summary": "View HotCache Members",
-        "description": "Use this endpoint to view a list of HotCache members",
-        "operationId": "/management/coherence/cluster/hotcache/members GET",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "A successful request that returns HotCache Members",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/hotcacheMember"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/management/coherence/cluster/hotcache/members/{memberIdentifier}": {
-      "get": {
-        "tags": [
-          "HotCache"
-        ],
-        "summary": "View HotCache Member Information",
-        "description": "Use this endpoint to view HotCache information for a specific cluster member.",
-        "operationId": "/management/coherence/cluster/hotcache/members/{memberIdentifier} GET",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/memberIdentifier"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A successful request that returns HotCache information",
-            "schema": {
-              "$ref": "#/definitions/hotcacheMember"
-            }
           }
         }
       }
