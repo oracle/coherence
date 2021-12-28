@@ -101,7 +101,7 @@
      <maven.bundle.plugin.version>4.2.1</maven.bundle.plugin.version>
      <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
      <maven.dependency.plugin.version>2.8</maven.dependency.plugin.version>
-     <maven.dependency-check.plugin.version>6.1.1</maven.dependency-check.plugin.version>
+     <maven.dependency-check.plugin.version>6.1.6</maven.dependency-check.plugin.version>
      <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
      <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
      <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
@@ -135,7 +135,7 @@
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
     <asm.version>9.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
-    <bnd.version>4.3.0</bnd.version>
+    <bnd.version>5.2.0</bnd.version>
     <cdi-api.version>2.0.2</cdi-api.version>
     <codemodel.version>2.6</codemodel.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
@@ -143,7 +143,7 @@
     <eclipse.mp.config.version>1.4</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
-    <felix.version>6.0.3</felix.version>
+    <felix.version>6.0.4</felix.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
     <grpc.version>1.35.1</grpc.version>
