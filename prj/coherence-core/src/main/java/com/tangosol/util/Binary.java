@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1877,6 +1877,23 @@ public final class Binary
          */
         private static final Unsafe INSTANCE = new Unsafe();
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * An empty Binary.
+     */
+    public static final Binary EMPTY = new Binary();
+
+    /**
+     * A Binary representation of {@code Boolean.TRUE} value.
+     */
+    public static final Binary TRUE = new Binary(new byte[] {1});
+
+    /**
+     * A Binary representation of {@code Boolean.FALSE} value.
+     */
+    public static final Binary FALSE = new Binary(new byte[] {0});
 
     // ----- data members ---------------------------------------------------
 
