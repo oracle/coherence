@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,12 +8,11 @@ package com.oracle.coherence.concurrent;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.oracle.coherence.concurrent.RemoteSemaphore;
-import com.oracle.coherence.concurrent.Semaphores;
 import com.tangosol.net.Coherence;
 
 import com.tangosol.util.Base;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -23,10 +22,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests for {@link RemoteSemaphore} class.
@@ -36,9 +37,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class RemoteSemaphoreTest
     {
     @BeforeAll
-    static void startServer()
+    static void startServer() throws Exception
         {
-        Coherence.clusterMember().start().join();
+        Coherence.clusterMember().start().get(10, TimeUnit.MINUTES);
         }
 
     @AfterAll
@@ -54,6 +55,7 @@ public class RemoteSemaphoreTest
         }
 
     @Test
+    @Timeout(60)
     void shouldAcquireAndReleasePermits()
         {
         RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
@@ -64,6 +66,7 @@ public class RemoteSemaphoreTest
         }
 
     @Test
+    @Timeout(60)
     void shouldAcquireAndReleasePermitsnterruptibly()
             throws InterruptedException
         {
@@ -75,6 +78,7 @@ public class RemoteSemaphoreTest
         }
 
     @Test
+    @Timeout(60)
     void shouldAcquireAndReleasePermitWithoutBlocking()
         {
         RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
@@ -85,6 +89,7 @@ public class RemoteSemaphoreTest
         }
 
     @Test
+    @Timeout(60)
     void shouldAcquireAndReleasePermitWithTimeout() throws InterruptedException
         {
         RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
@@ -95,6 +100,7 @@ public class RemoteSemaphoreTest
         }
 
     @Test
+    @Timeout(60)
     void shouldAcquireAndReleaseMultipleTimes() throws InterruptedException
         {
         RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
@@ -108,10 +114,12 @@ public class RemoteSemaphoreTest
         }
 
     @Test
+    @Timeout(120)
     void shouldAcquireAndReleasePermitFromMultipleThreads()
             throws Throwable
         {
         RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        Semaphore s0 = new Semaphore(0);
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -119,6 +127,8 @@ public class RemoteSemaphoreTest
         Thread thread = new Thread(() ->
                {
                assertThat(semaphore.tryAcquire(), is(false));
+               s0.release();
+
                semaphore.acquireUninterruptibly();
                assertThat(semaphore.availablePermits(), is(0));
 
@@ -139,20 +149,24 @@ public class RemoteSemaphoreTest
         thread.start();
         Eventually.assertDeferred(semaphore::availablePermits, is(0));
 
+        s0.acquireUninterruptibly();
         semaphore.release();
 
-        s1.acquireUninterruptibly();
+        CompletableFuture.runAsync(s1::acquireUninterruptibly).get(45, TimeUnit.SECONDS);
+
+        if (exceptionThrown.get() != null)
+            {
+            fail("alternate thread exception", exceptionThrown.get());
+            }
+
         assertThat(semaphore.availablePermits(), is(0));
         assertThat(semaphore.isAcquiredByCurrentThread(), is(false));
         s2.release();
         thread.join();
-        if (exceptionThrown.get() != null)
-            {
-            throw exceptionThrown.get();
-            }
         }
 
     @Test
+    @Timeout(60)
     void shouldTimeOutIfAcquiredByAnotherThread()
         throws InterruptedException
         {
@@ -175,10 +189,11 @@ public class RemoteSemaphoreTest
         assertThat(semaphore.tryAcquire(500, TimeUnit.MILLISECONDS), is(false));
 
         s2.release();
-        thread.join();
+        thread.join(60000);
         }
 
     @Test
+    @Timeout(60)
     void shouldBeAbleToInterruptAcquireRequest() throws Throwable
         {
         CountDownLatch latch = new CountDownLatch(1);
@@ -208,8 +223,7 @@ public class RemoteSemaphoreTest
         assertThat(semaphore.isAcquiredByCurrentThread(), is(true));
 
         thread.interrupt();
-        thread.join();
-
+        thread.join(60000);
         semaphore.release();
 
         assertThat(exceptionThrown.get(), nullValue());
