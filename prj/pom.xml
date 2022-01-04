@@ -697,7 +697,7 @@
     <jvisualvm.version>RELEASE138</jvisualvm.version>
     <ldb.version>1.8</ldb.version>
     <log4j.version>1.2.17</log4j.version>
-    <log4j2.version>2.17.0</log4j2.version>
+    <log4j2.version>2.17.1</log4j2.version>
     <mvel.version>2.4.12.Final</mvel.version>
     <netty.version>4.1.51.Final</netty.version>
     <opentracing.version>0.33.0</opentracing.version>
