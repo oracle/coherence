@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -481,25 +481,28 @@ public class PagedTopicPartition
             long  lTail = usage.getPartitionTail();
             if (lTail != Page.NULL_PAGE)
                 {
-                Page  page        = enlistPage(nChannel, lTail);
-                int[] anNotifiers = page.getInsertionNotifiers();
-                if (anNotifiers != null && anNotifiers.length >= 2)
+                Page page = enlistPage(nChannel, lTail);
+                if (page != null)
                     {
-                    // remove two random notifiers (this method is called as part of a subscriber
-                    // instance ensuring the subscription) by removing two we ensure we'll eventually
-                    // clean out any garbage.  Note if we remove ones which are still in use those
-                    // subscribers will receive the deletion event and re-register.  This is harmless
-                    // as it just looks like a spurious notification.
+                    int[] anNotifiers = page.getInsertionNotifiers();
+                    if (anNotifiers != null && anNotifiers.length >= 2)
+                        {
+                        // remove two random notifiers (this method is called as part of a subscriber
+                        // instance ensuring the subscription) by removing two we ensure we'll eventually
+                        // clean out any garbage.  Note if we remove ones which are still in use those
+                        // subscribers will receive the deletion event and re-register.  This is harmless
+                        // as it just looks like a spurious notification.
 
-                    int[] anNew = new int[anNotifiers.length - 2];
-                    int   of    = ThreadLocalRandom.current().nextInt(anNotifiers.length - 1);
+                        int[] anNew = new int[anNotifiers.length - 2];
+                        int   of    = ThreadLocalRandom.current().nextInt(anNotifiers.length - 1);
 
-                    System.arraycopy(anNotifiers, 0, anNew, 0, of);
-                    System.arraycopy(anNotifiers, of + 2, anNew, of, anNew.length - of);
+                        System.arraycopy(anNotifiers, 0, anNew, 0, of);
+                        System.arraycopy(anNotifiers, of + 2, anNew, of, anNew.length - of);
 
-                    notifyAll(new int[] {anNotifiers[of], anNotifiers[of + 1]});
+                        notifyAll(new int[] {anNotifiers[of], anNotifiers[of + 1]});
 
-                    page.setInsertionNotifies(anNew);
+                        page.setInsertionNotifies(anNew);
+                        }
                     }
                 }
             }
