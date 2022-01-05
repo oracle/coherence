@@ -1153,6 +1153,18 @@ public class ManagementInfoResourceTests
         }
 
     @Test
+    public void testManagementInfoRefreshTimeIsPresent()
+        {
+        WebTarget target   = getBaseTarget().path("management");
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
+        assertThat(mapResponse, notNullValue());
+        assertThat(mapResponse.get("refreshTime"), is(notNullValue()));
+        }
+
+    @Test
     public void testPartitionInfo()
         {
         WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("partition");
