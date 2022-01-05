@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -2012,12 +2012,13 @@ public class ManagementInfoResourceTests
         mapEntity.put("links", new String[]{});
         mapEntity.put("fields", new String[]{"clusterName","clusterSize"});
 
-        WebTarget target   = getBaseTarget().path("search");
-        Response  response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        WebTarget             target   = getBaseTarget().path("search");
+        Entity<LinkedHashMap> entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
+        Response              response = target.request().post(entity);
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response));
+        LinkedHashMap mapResponse = new LinkedHashMap(readEntity(target, response, entity));
         assertThat(mapResponse.size(), is(2));
         assertThat(mapResponse.get("clusterName"), is(notNullValue()));
         assertThat((int) mapResponse.get("clusterSize"), greaterThan(1));
