@@ -79,6 +79,7 @@ import org.junit.experimental.categories.Category;
 
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
+
 import org.junit.runner.Description;
 
 import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PROPERTY;
@@ -95,7 +96,6 @@ import static org.hamcrest.core.Is.is;
  * @since 21.12
  */
 @Category(SingleClusterForAllTests.class)
-@Ignore
 public class TaskExecutorServicePersistenceTests
     {
     // ----- test lifecycle -------------------------------------------------
@@ -350,7 +350,6 @@ public class TaskExecutorServicePersistenceTests
     public static CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(ClassName.of(Coherence.class),
-                          SystemProperty.of("coherence.concurrent.persistence.environment", "default-active"),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),
@@ -360,9 +359,10 @@ public class TaskExecutorServicePersistenceTests
                           SystemProperty.of(EXTEND_PORT_PROPERTY, "9099"),
                           JmxFeature.enabled(),
                           Pof.config("coherence-executor-test-pof-config.xml"),
-                          SystemProperty.of("coherence.persistence.active.dir", s_fileActive.getAbsoluteFile()),
-                          SystemProperty.of("coherence.persistence.snapshot.dir", s_fileSnapshot.getAbsoluteFile()),
-                          SystemProperty.of("coherence.persistence.trash.dir", s_fileTrash.getAbsoluteFile()))
+                          SystemProperty.of("coherence.concurrent.persistence.environment",   "default-active"),
+                          SystemProperty.of("coherence.distributed.persistence.active.dir",   s_fileActive.getAbsoluteFile()),
+                          SystemProperty.of("coherence.distributed.persistence.snapshot.dir", s_fileSnapshot.getAbsoluteFile()),
+                          SystemProperty.of("coherence.distributed.persistence.trash.dir",    s_fileTrash.getAbsoluteFile()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),
