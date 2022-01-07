@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -210,7 +210,23 @@ public interface TaskExecutorService
             /**
              * The {@link ExecutorService} is rejecting {@link Task}s.
              */
-            REJECTING
+            REJECTING;
+
+            /**
+             * Return an integer value for the enum to be used as {@code MetricValue}.
+             *
+             * @return integer value for the enum {@link State}
+             *
+             * @since 22.06
+             */
+            public int getCode()
+                {
+                // optimization to return ordinal() as enum's constant
+                // Since this is intended to be used as MetricsValue,
+                // start at 1 since a value of zero would be considered not set
+                // and the metric would not be returned.
+                return ordinal() + 1;
+                }
             }
         }
 

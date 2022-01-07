@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,10 +8,14 @@
 package com.oracle.coherence.concurrent.executor.management;
 
 import com.tangosol.net.management.annotation.Description;
+import com.tangosol.net.management.annotation.MetricsScope;
+import com.tangosol.net.management.annotation.MetricsTag;
+import com.tangosol.net.management.annotation.MetricsValue;
+
+import com.tangosol.net.metrics.MBeanMetric;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-
 
 /**
  * ExecutorMBean provides a monitor interface for the {@link Executor} statistics.
@@ -20,6 +24,7 @@ import java.util.concurrent.ExecutorService;
  * @since 21.12
  */
 @SuppressWarnings("unused")
+@MetricsScope(MBeanMetric.Scope.VENDOR)
 @Description("Provides Executor statistics.")
 public interface ExecutorMBean
     {
@@ -39,6 +44,7 @@ public interface ExecutorMBean
      * @return the member id where the executor is running
      */
     @Description("The member id where the executor is running.")
+    @MetricsTag("memberId")
     String getMemberId();
 
     /**
@@ -82,11 +88,30 @@ public interface ExecutorMBean
     String getState();
 
     /**
+     * Get the state of the executor as an integer.
+     *
+     * @return the executor state as an integer
+     *
+     * @since 22.06
+     */
+    @Description("The State of the executor. "
+                 + "The value of 1 (JOINING) indicates executor is joining the orchestration."
+                 + "The value of 2 (RUNNING) indicates accepting and executing Tasks."
+                 + "The value of 3 (CLOSING_GRACEFULLY) has commenced graceful closing. No new tasks will be accepted, but existing ones will run to completion."
+                 + "The value of 4 (CLOSING) indicates Executor has commenced closing."
+                 + "The value of 5 indicates CLOSED."
+                 + "The value of 6 indicates executor is REJECTING tasks."
+    )
+    @MetricsValue
+    int getStateCode();
+
+    /**
      * Get the completed tasks count for the executor.
      *
      * @return the completed tasks count for the executor
      */
     @Description("The completed tasks count.")
+    @MetricsValue
     long getTasksCompletedCount();
 
     /**
@@ -95,6 +120,7 @@ public interface ExecutorMBean
      * @return the rejected tasks count for the executor
      */
     @Description("The tasks rejected count.")
+    @MetricsValue
     long getTasksRejectedCount();
 
     /**
@@ -103,6 +129,7 @@ public interface ExecutorMBean
      * @return the in progress tasks count for the executor
      */
     @Description("The in progress tasks count.")
+    @MetricsValue
     long getTasksInProgressCount();
 
     /**

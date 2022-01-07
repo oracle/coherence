@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -36,6 +36,7 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.WrapperException;
+
 import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
@@ -301,7 +302,13 @@ public class ClusteredRegistration
         @Override
         public String getState()
             {
-            return m_sState;
+            return m_state.name();
+            }
+
+        @Override
+        public int getStateCode()
+            {
+            return m_state.getCode();
             }
 
         @Override
@@ -333,11 +340,15 @@ public class ClusteredRegistration
         /**
          * Set the current executor state.
          *
-         * @param sState  the current executor state
+         * @param state  the current executor state
+         *
+         * @throws NullPointerException if {@code state} is {@code null}
          */
-        void setState(String sState)
+        void setState(TaskExecutorService.ExecutorInfo.State state)
             {
-            m_sState = sState;
+            Objects.requireNonNull(state, "state cannot be null");
+
+            m_state = state;
             }
 
         // ----- operations -------------------------------------------------
@@ -383,7 +394,7 @@ public class ClusteredRegistration
                    ", id='" + f_sExecutorId + '\'' +
                    ", details='" + f_sDetails + '\'' +
                    ", location='" + f_sLocation + '\'' +
-                   ", state='" + m_sState + '\'' +
+                   ", state='" + m_state.name() + '\'' +
                    ", tasks-completed='" + m_cTasksCompletedCount + '\'' +
                    ", tasks-in-progress='" + m_cTasksInProgressCount + '\'' +
                    ", tasks-rejected='" + m_cTasksRejectedCount + '\'' +
@@ -420,7 +431,7 @@ public class ClusteredRegistration
         /**
          * The state of the executor.
          */
-        protected String m_sState;
+        protected TaskExecutorService.ExecutorInfo.State m_state = TaskExecutorService.ExecutorInfo.State.JOINING;
         }
 
     // ----- inner class TaskExecutor --------------------------------------
@@ -1112,7 +1123,7 @@ public class ClusteredRegistration
             TaskExecutorService.ExecutorInfo.State stateInfo  = info.getState();
             if (stateInfo != null && m_executorMBean != null)
                 {
-                m_executorMBean.setState(stateInfo.name());
+                m_executorMBean.setState(stateInfo);
                 }
             }
 

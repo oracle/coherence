@@ -1,28 +1,30 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
-
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.SiteName;
+
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
+import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
 
 import com.tangosol.coherence.component.application.console.Coherence;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
-import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
@@ -38,6 +40,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.lang.management.ManagementFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +49,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import java.util.function.Supplier;
+
 import java.util.stream.Collectors;
 
 import static com.tangosol.internal.metrics.MetricSupport.GLOBAL_TAG_CLUSTER;
@@ -57,12 +62,13 @@ import static com.tangosol.internal.metrics.MetricSupport.GLOBAL_TAG_SITE;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 import static org.junit.Assert.fail;
-
 
 /**
  * @author jk  2019.06.25
@@ -84,7 +90,7 @@ public class MetricsSupportTests
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
 
         // ensure that all the local services are running before the tests start
-        DefaultCacheServer.startServerDaemon();
+        com.tangosol.net.Coherence.clusterMember().start().join();
 
         getCache(TEST_CACHE);
         getCache(TEST_NEAR_CACHE);
@@ -564,6 +570,32 @@ public class MetricsSupportTests
                                     "Coherence.ConnectionManager.ConnectionCount");
         }
 
+    /**
+     * Validate executor metrics.
+     *
+     * @since 22.06
+     */
+    @Test
+    public void shouldExecutorMetrics()
+        {
+        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
+        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
+
+        metricSupport.register(getMBeanName(ExecutorMBean.EXECUTOR_TYPE, "coherence-concurrent-default-executor"));
+
+        Map<String, String> mapTags = getCommonTagsWithNodeId();
+
+        mapTags.put("name", "coherence-concurrent-default-executor");
+        mapTags.put("memberId", null);
+
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Executor.StateCode",
+                                    "Coherence.Executor.TasksRejectedCount",
+                                    "Coherence.Executor.TasksCompletedCount",
+                                    "Coherence.Executor.TasksInProgressCount");
+        }
+
     @Test
     public void shouldGetPlatformOSMetrics()
         {
@@ -712,7 +744,7 @@ public class MetricsSupportTests
         }
 
     @Test
-    public void shouldGetHeapAfterGCMetrics() throws Exception
+    public void shouldGetHeapAfterGCMetrics()
         {
         Assume.assumeThat("test skipped, no memory pool MBeans", ManagementFactory.getMemoryPoolMXBeans().size(), is(not(0)));
         MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
@@ -753,8 +785,8 @@ public class MetricsSupportTests
             {
             List<String> listExpected = Arrays.asList(asMetricName);
             List<String> listExtra = list.stream()
-                    .filter(m -> !listExpected.contains(m.getName()))
                     .map(MBeanMetric::getName)
+                    .filter(name -> !listExpected.contains(name))
                     .collect(Collectors.toList());
 
             fail("Extra metric found " + listExtra);
@@ -863,7 +895,6 @@ public class MetricsSupportTests
                 .orElseThrow(() -> new AssertionError("Did not find an MBean matching " + sPattern));
         }
 
-
     private MBeanMetric findMetric(String sName, List<MBeanMetric> list)
         {
         return list.stream()
@@ -871,7 +902,6 @@ public class MetricsSupportTests
                 .findFirst()
                 .orElse(null);
         }
-
 
     private Map<String, String> getClusterTags(boolean fGlobal)
         {
@@ -916,7 +946,6 @@ public class MetricsSupportTests
         {
         return CacheFactory.getCache(sCache);
         }
-
 
     // ----- inner class: MetricsRegistryAdapterStub  -----------------------
 
@@ -976,12 +1005,12 @@ public class MetricsSupportTests
      * java.lang.OperatingSystem SystemCpuLoad - returns "recent cpu usage".
      * Reasons for mbean attribute to intermittently be considered not set and corresponding metric not returned are detailed in Bug 33374653.
      */
-    private static final List<String> LIST_OPTIONAL = Arrays.asList("Coherence.OS.SystemCpuLoad");
+    private static final List<String> LIST_OPTIONAL = Collections.singletonList("Coherence.OS.SystemCpuLoad");
 
     /**
      * True iff JVM is for JDK 15 or greater.
      */
-    private static final Boolean s_bTestJdk15 = Integer.valueOf(System.getProperty("java.version").split("-|\\.")[0]) > 14 ? true : false;
+    private static final Boolean s_bTestJdk15 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 14;
 
     // ----- data members ---------------------------------------------------
 
