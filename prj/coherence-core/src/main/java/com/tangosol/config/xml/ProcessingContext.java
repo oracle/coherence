@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -245,6 +245,15 @@ public interface ProcessingContext
      * @return the registered {@link NamespaceHandler} for the {@link ProcessingContext}
      */
     public NamespaceHandler ensureNamespaceHandler(String sPrefix, NamespaceHandler handler);
+
+    /**
+     * Load all the custom {@link NamespaceHandler} instances for the specified {@link XmlElement}.
+     *
+     * @param xmlElement  the {@link XmlElement} to load {@link NamespaceHandler} instances for
+     *
+     * @throws NullPointerException if the {@code xmlElement} parameter is {@code null}
+     */
+    public void loadNamespaceHandlers(XmlElement xmlElement);
 
     /**
      * Obtains the {@link NamespaceHandler} that is capable of processing the namespace defined with the specified

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,7 +11,6 @@ import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.ExpressionParser;
 import com.tangosol.config.expression.LiteralExpression;
-import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.Value;
 import com.tangosol.config.xml.DocumentProcessor.Dependencies;
@@ -44,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -87,13 +85,13 @@ public class DefaultProcessingContext
         m_dependencies = dependencies == null ? new DocumentProcessor.DefaultDependencies() : dependencies;
         m_ctxParent                    = null;
         m_xmlElement                   = null;
-        m_mapNamespaceURIsByPrefix     = new LinkedHashMap<String, URI>();
-        m_mapNamespaceHandlersByURI    = new LinkedHashMap<URI, NamespaceHandler>();
-        m_mapCookiesByType             = new HashMap<Class<?>, HashMap<String, Object>>();
-        m_mapPropertyPaths             = new HashMap<String, String>();
-        m_mapAttributeProcessorsByType = new HashMap<Class<?>, AttributeProcessor<?>>();
-        m_mapElementProcessorsByType   = new HashMap<Class<?>, ElementProcessor<?>>();
-        m_setProcessedChildElements    = new HashSet<XmlElement>();
+        m_mapNamespaceURIsByPrefix     = new LinkedHashMap<>();
+        m_mapNamespaceHandlersByURI    = new LinkedHashMap<>();
+        m_mapCookiesByType             = new HashMap<>();
+        m_mapPropertyPaths             = new HashMap<>();
+        m_mapAttributeProcessorsByType = new HashMap<>();
+        m_mapElementProcessorsByType   = new HashMap<>();
+        m_setProcessedChildElements    = new HashSet<>();
         }
 
     /**
@@ -133,6 +131,10 @@ public class DefaultProcessingContext
         this(dependencies);
         m_ctxParent  = null;
         m_xmlElement = xmlElement;
+        if (m_xmlElement != null)
+            {
+            loadNamespaceHandlers(m_xmlElement);
+            }
         }
 
     // ----- ResourceResolver interface -------------------------------------
@@ -204,13 +206,8 @@ public class DefaultProcessingContext
     @Override
     public <T> void addCookie(Class<T> clzCookie, String sName, T value)
         {
-        HashMap<String, Object> mapCookiesByName = m_mapCookiesByType.get(clzCookie);
-
-        if (mapCookiesByName == null)
-            {
-            mapCookiesByName = new HashMap<String, Object>();
-            m_mapCookiesByType.put(clzCookie, mapCookiesByName);
-            }
+        HashMap<String, Object> mapCookiesByName = m_mapCookiesByType
+                .computeIfAbsent(clzCookie, k -> new HashMap<>());
 
         mapCookiesByName.put(sName, value);
         }
@@ -279,7 +276,7 @@ public class DefaultProcessingContext
     @Override
     public <T> void registerAttributeType(Class<T> clzType)
         {
-        registerProcessor(clzType, new SimpleAttributeProcessor<T>(clzType));
+        registerProcessor(clzType, new SimpleAttributeProcessor<>(clzType));
         }
 
     /**
@@ -288,7 +285,7 @@ public class DefaultProcessingContext
     @Override
     public <T> void registerElementType(Class<T> clzType)
         {
-        registerProcessor(clzType, new SimpleElementProcessor<T>(clzType));
+        registerProcessor(clzType, new SimpleElementProcessor<>(clzType));
         }
 
     /**
@@ -350,7 +347,7 @@ public class DefaultProcessingContext
         Object oResult = null;
 
         // we need a list of XmlAttributes for the XmlElement as we may use these in multiple places.
-        ArrayList<XmlAttribute> lstAttributes = new ArrayList<XmlAttribute>(xmlElement.getAttributeMap().size());
+        ArrayList<XmlAttribute> lstAttributes = new ArrayList<>(xmlElement.getAttributeMap().size());
 
         for (String sAttributeName : ((Set<String>) xmlElement.getAttributeMap().keySet()))
             {
@@ -409,6 +406,7 @@ public class DefaultProcessingContext
 
                     if (preprocessor != null)
                         {
+                        //noinspection ConstantConditions
                         fRevisit = fRevisit || preprocessor.preprocess(context, xmlElement);
 
                         if (fRevisit)
@@ -440,7 +438,7 @@ public class DefaultProcessingContext
             }
         else
             {
-            // TASK 5: Process all of the xml attributes declared in the element.
+            // TASK 5: Process all the xml attributes declared in the element.
             for (XmlAttribute attribute : lstAttributes)
                 {
                 QualifiedName    qnAttribute = attribute.getQualifiedName();
@@ -461,6 +459,7 @@ public class DefaultProcessingContext
                 AttributeProcessor<?> procAttribute = nsAttribute == null
                                                       ? null : nsAttribute.getAttributeProcessor(attribute);
 
+                //noinspection StatementWithEmptyBody
                 if (nsAttribute == null || procAttribute == null)
                     {
                     // SKIP: when we don't have an NamespaceHandler or AttributeProcessor for the attribute
@@ -473,11 +472,11 @@ public class DefaultProcessingContext
                     }
                 }
 
-            // TASK 6: Use the located ElementProcessor to process the element in it's context.
+            // TASK 6: Use the located ElementProcessor to process the element in its context.
             ConditionalElementProcessor<?> procConditional = procElement instanceof ConditionalElementProcessor
-                                                             ? ((ConditionalElementProcessor) procElement) : null;
+                                                             ? ((ConditionalElementProcessor<?>) procElement) : null;
 
-            if (procConditional == null || (procConditional != null && procConditional.accepts(context, xmlElement)))
+            if (procConditional == null || procConditional.accepts(context, xmlElement))
                 {
                 oResult = procElement.process(context, xmlElement);
                 }
@@ -531,14 +530,13 @@ public class DefaultProcessingContext
     public Map<String, ?> processElementsOf(XmlElement xmlElement)
             throws ConfigurationException
         {
-        // process all of the children of the xmlElement
-        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
+        // process all the children of the xmlElement
+        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<>();
 
-        for (Iterator<XmlElement> children = xmlElement.getElementList().iterator(); children.hasNext(); )
+        for (XmlElement xmlChild : (Iterable<XmlElement>) xmlElement.getElementList())
             {
-            XmlElement xmlChild = children.next();
             String sId = xmlChild.getAttributeMap().containsKey("id")
-                         ? xmlChild.getAttribute("id").getString() : new UUID().toString();
+                    ? xmlChild.getAttribute("id").getString() : new UUID().toString();
 
             if (sId.trim().length() == 0)
                 {
@@ -561,17 +559,15 @@ public class DefaultProcessingContext
         {
         String sPrefix = xmlElement.getQualifiedName().getPrefix();
 
-        // process all of the children of the xmlElement
-        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
+        // process all the children of the xmlElement
+        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<>();
 
-        for (Iterator<XmlElement> children = xmlElement.getElementList().iterator(); children.hasNext(); )
+        for (XmlElement xmlChild : (Iterable<XmlElement>) xmlElement.getElementList())
             {
-            XmlElement xmlChild = children.next();
-
             if (!xmlChild.getQualifiedName().getPrefix().equals(sPrefix))
                 {
                 String sId = xmlChild.getAttributeMap().containsKey("id")
-                             ? xmlChild.getAttribute("id").getString() : new UUID().toString();
+                        ? xmlChild.getAttribute("id").getString() : new UUID().toString();
 
                 if (sId.trim().length() == 0)
                     {
@@ -593,17 +589,15 @@ public class DefaultProcessingContext
     public Map<String, ?> processRemainingElementsOf(XmlElement xmlElement)
             throws ConfigurationException
         {
-        // process all of the children of the xmlElement that aren't in the set of elements we've already processed
-        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
+        // process all the children of the xmlElement that aren't in the set of elements we've already processed
+        LinkedHashMap<String, Object> mapResult = new LinkedHashMap<>();
 
-        for (Iterator<XmlElement> children = xmlElement.getElementList().iterator(); children.hasNext(); )
+        for (XmlElement xmlChild : (Iterable<XmlElement>) xmlElement.getElementList())
             {
-            XmlElement xmlChild = children.next();
-
             if (!m_setProcessedChildElements.contains(xmlChild))
                 {
                 String sId = xmlChild.getAttributeMap().containsKey("id")
-                             ? xmlChild.getAttribute("id").getString() : new UUID().toString();
+                        ? xmlChild.getAttribute("id").getString() : new UUID().toString();
 
                 if (sId.trim().length() == 0)
                     {
@@ -785,7 +779,7 @@ public class DefaultProcessingContext
     /**
      * {@inheritDoc}
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     @Override
     public <T> T getMandatoryProperty(String sPath, Type typeProperty, XmlElement xmlParent)
             throws ConfigurationException
@@ -824,6 +818,51 @@ public class DefaultProcessingContext
         else
             {
             return (T) value.get();
+            }
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void loadNamespaceHandlers(XmlElement xmlElement)
+        {
+        int cAttribute = xmlElement.getAttributeMap().size();
+        if (cAttribute == 0)
+            {
+            // nothing to load
+            return;
+            }
+
+        ArrayList<XmlAttribute> lstAttributes = new ArrayList<>(cAttribute);
+
+        for (String sAttributeName : ((Set<String>) xmlElement.getAttributeMap().keySet()))
+            {
+            lstAttributes.add(new SimpleAttribute(xmlElement, sAttributeName, xmlElement.getAttribute(sAttributeName)));
+            }
+
+        for (XmlAttribute attribute : lstAttributes)
+            {
+            QualifiedName qnAttribute = attribute.getQualifiedName();
+
+            // only process "xmlns" declarations
+            if (qnAttribute.getLocalName().equals("xmlns"))
+                {
+                String sURI = attribute.getXmlValue().getString();
+
+                try
+                    {
+                    // ensure that the declared Xml Namespaces are available in the context of this element.
+                    ensureNamespaceHandler(qnAttribute.getPrefix(), new URI(sURI));
+                    }
+                catch (URISyntaxException uriSyntaxException)
+                    {
+                    throw new ConfigurationException(String.format("Invalid URI '%s' specified for Xml Namespace '%s'",
+                        sURI, qnAttribute.getPrefix()), "You must specify a valid URI for the Xml Namespace.",
+                            uriSyntaxException);
+                    }
+                }
             }
         }
 
@@ -874,7 +913,7 @@ public class DefaultProcessingContext
         // determine if the NamespaceHandler for the specified URI is already defined
         NamespaceHandler namespaceHandler = getNamespaceHandler(uri);
 
-        if ((namespaceHandler == null) || ((namespaceHandler != null) && !getNamespaceURI(sPrefix).equals(uri)))
+        if (namespaceHandler == null || !getNamespaceURI(sPrefix).equals(uri))
             {
             String sScheme = uri.getScheme();
 
@@ -995,7 +1034,7 @@ public class DefaultProcessingContext
     @Override
     public Iterable<NamespaceHandler> getNamespaceHandlers()
         {
-        LinkedHashMap<URI, NamespaceHandler> mapNamespaceHandlersByURI = new LinkedHashMap<URI, NamespaceHandler>();
+        LinkedHashMap<URI, NamespaceHandler> mapNamespaceHandlersByURI = new LinkedHashMap<>();
         DefaultProcessingContext             ctx                       = this;
 
         while (ctx != null)
@@ -1043,6 +1082,7 @@ public class DefaultProcessingContext
      * @throws ConfigurationException  if the property was but could not be processed or is
      *                                 of the incorrect type
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Value getPropertyValue(String sPropertyName, Type typeProperty, XmlElement xmlParent,
                                   boolean fOnlyUsePropertyName)
             throws ConfigurationException
@@ -1070,7 +1110,7 @@ public class DefaultProcessingContext
         Class<?> clzProperty = ClassHelper.getClass(typeProperty);
 
         // STEP 1: Attempt to resolve the property value using an XmlAttribute defined by the XmlElement
-        if (!fValueResolved && !sPropertyName.equals("."))
+        if (!sPropertyName.equals("."))
             {
             XmlAttribute xmlValue = getPropertyAttribute(xmlParent, sPropertyName);
 
@@ -1212,7 +1252,7 @@ public class DefaultProcessingContext
                             {
                             try
                                 {
-                                oValue = clzProperty.newInstance();
+                                oValue = clzProperty.getDeclaredConstructor().newInstance();
                                 }
                             catch (Exception e)
                                 {
@@ -1227,11 +1267,9 @@ public class DefaultProcessingContext
                         // are of the correct type
                         int idx = 0;
 
-                        for (Iterator<XmlElement> children = xmlValue.getElementList().iterator(); children.hasNext(); )
+                        for (XmlElement xmlChild : (Iterable<XmlElement>) xmlValue.getElementList())
                             {
-                            XmlElement xmlChild = children.next();
-
-                            Object     oChild   = processElement(xmlChild);
+                            Object oChild = processElement(xmlChild);
 
                             // ensure the child value is compatible with the component type
                             if (clzComponent.isInstance(oChild))
@@ -1248,9 +1286,9 @@ public class DefaultProcessingContext
                             else
                                 {
                                 throw new ConfigurationException(String.format("Incompatible types"
-                                    + "The value [%s] is not assignable to a collection of type [%s]"
-                                    + "as expected by the property [%s] in [%s]", oChild, clzComponent, sPropertyName,
-                                        xmlValue), "Please ensure assignment compatible values are provided");
+                                                                                       + "The value [%s] is not assignable to a collection of type [%s]"
+                                                                                       + "as expected by the property [%s] in [%s]", oChild, clzComponent, sPropertyName,
+                                                                               xmlValue), "Please ensure assignment compatible values are provided");
                                 }
 
                             idx++;
@@ -1265,8 +1303,7 @@ public class DefaultProcessingContext
 
                     DefaultProcessingContext ctxValue = new DefaultProcessingContext(this, xmlValue);
 
-                    if (procConditional == null
-                        || (procConditional != null && procConditional.accepts(ctxValue, xmlValue)))
+                    if (procConditional == null || procConditional.accepts(ctxValue, xmlValue))
                         {
                         oValue = procElement.process(ctxValue, xmlValue);
 
@@ -1310,7 +1347,7 @@ public class DefaultProcessingContext
                 }
             }
 
-        // STEP 5: Perform necessary type checking and value coersion
+        // STEP 5: Perform necessary type checking and value coercion
         if (fValueResolved)
             {
             // attempt to convert the raw value into the required type
@@ -1414,7 +1451,7 @@ public class DefaultProcessingContext
      * it is permitted to return any one of the matching elements, to return null, or to throw an arbitrary runtime
      * exception.
      *
-     * @param xmlElement  the base {@link XmlElement} from which the locate the desired element
+     * @param xmlElement  the base {@link XmlElement} from which to locate the desired element
      * @param sPath       the path to follow from the base {@link XmlElement} to find the desired {@link XmlElement}
      * @param sPrefix     the namespace prefix to use for path elements that are not fully qualified
      *
@@ -1450,11 +1487,6 @@ public class DefaultProcessingContext
             if (sName.equals(".."))
                 {
                 xml = xml.getParent();
-
-                if (xml == null)
-                    {
-                    // skip: if we get to a null parent, the element is not defined
-                    }
                 }
             else
                 {
@@ -1474,11 +1506,11 @@ public class DefaultProcessingContext
      * Obtains the property content defined as an {@link XmlAttribute} based on a path relative to a specified
      * base {@link XmlElement}.
      * <p>
-     * This is the primary method by which {@link XmlAttribute}-based content for properties is located.  Typically the
-     * provided path is simply the name of the attribute.  However there are circumstances where it may be a path, in
+     * This is the primary method by which {@link XmlAttribute}-based content for properties is located.  Typically, the
+     * provided path is simply the name of the attribute.  However, there are circumstances where it may be a path, in
      * which case the last defined path element (name) in the path (after a / or ..) is used as the attribute name.
      *
-     * @param xmlElement  the {@link XmlElement} from which the locate the content
+     * @param xmlElement  the {@link XmlElement} from which to locate the content
      * @param sPath       the path to the property content relative to the base {@link XmlElement}
      *
      * @return an {@link XmlAttribute} representing the content or <code>null</code> if the content is not found.
@@ -1533,7 +1565,7 @@ public class DefaultProcessingContext
      * <p>
      * This is the primary method by which {@link XmlElement}-based content for properties is located.
      *
-     * @param xmlElement  the {@link XmlElement} from which the locate the content
+     * @param xmlElement  the {@link XmlElement} from which to locate the content
      * @param sPath       the path to the property content relative to the base {@link XmlElement}
      *
      * @return an {@link XmlElement} representing the content or <code>null</code> if the content is not found.
@@ -1626,14 +1658,15 @@ public class DefaultProcessingContext
             // insert "-" and convert to lower case when encounter upper case
             for (int i = 1; i < sn.length(); i++)
                 {
-                if (Character.isUpperCase(sn.charAt(i)))
+                char ch = sn.charAt(i);
+                if (Character.isUpperCase(ch))
                     {
                     sbPropertyName.append("-");
-                    sbPropertyName.append(sn.substring(i, i + 1).toLowerCase());
+                    sbPropertyName.append(Character.toLowerCase(ch));
                     }
                 else
                     {
-                    sbPropertyName.append(sn.substring(i, i + 1));
+                    sbPropertyName.append(ch);
                     }
                 }
             }
@@ -1646,7 +1679,7 @@ public class DefaultProcessingContext
         }
 
     /**
-     * Terminates and end's all of the {@link NamespaceHandler}s established in the {@link ProcessingContext}.
+     * Terminates and end's all the {@link NamespaceHandler}s established in the {@link ProcessingContext}.
      */
     void terminate()
         {
@@ -1678,7 +1711,7 @@ public class DefaultProcessingContext
      * The {@link DocumentProcessor} {@link DocumentProcessor.Dependencies} to be when processing content in
      * this {@link ProcessingContext} implementation.
      */
-    private Dependencies m_dependencies;
+    private final Dependencies m_dependencies;
 
     /**
      * The parent {@link ProcessingContext}.
@@ -1688,39 +1721,39 @@ public class DefaultProcessingContext
     /**
      * The map of {@link AttributeProcessor}s by type for this {@link ProcessingContext}.
      */
-    private HashMap<Class<?>, AttributeProcessor<?>> m_mapAttributeProcessorsByType;
+    private final HashMap<Class<?>, AttributeProcessor<?>> m_mapAttributeProcessorsByType;
 
     /**
      * The cookies defined in the {@link ProcessingContext} by type and name.
      */
-    private HashMap<Class<?>, HashMap<String, Object>> m_mapCookiesByType;
+    private final HashMap<Class<?>, HashMap<String, Object>> m_mapCookiesByType;
 
     /**
      * The map of {@link ElementProcessor}s by type for this {@link ProcessingContext}.
      */
-    private HashMap<Class<?>, ElementProcessor<?>> m_mapElementProcessorsByType;
+    private final HashMap<Class<?>, ElementProcessor<?>> m_mapElementProcessorsByType;
 
     /**
      * The {@link NamespaceHandler}s for the xml namespaces registered in this {@link ProcessingContext}.
      */
-    private LinkedHashMap<URI, NamespaceHandler> m_mapNamespaceHandlersByURI;
+    private final LinkedHashMap<URI, NamespaceHandler> m_mapNamespaceHandlersByURI;
 
     /**
      * The xml namespaces registered in this {@link ProcessingContext}.  A mapping from prefix to URIs
      */
-    private LinkedHashMap<String, URI> m_mapNamespaceURIsByPrefix;
+    private final LinkedHashMap<String, URI> m_mapNamespaceURIsByPrefix;
 
     /**
      * A mapping of Property Names to an {@link XmlElement} paths.  This is used to
-     * override the default behavior used to certain locate property values for this {@link ProcessingContext}.
+     * override the default behavior used to locate property values for this {@link ProcessingContext}.
      */
-    private HashMap<String, String> m_mapPropertyPaths;
+    private final HashMap<String, String> m_mapPropertyPaths;
 
     /**
      * The set of child {@link XmlElement} names with in the {@link #m_xmlElement} that have been processed thus
      * far by the {@link ProcessingContext}.
      */
-    private HashSet<XmlElement> m_setProcessedChildElements;
+    private final HashSet<XmlElement> m_setProcessedChildElements;
 
     /**
      * The {@link XmlElement} for which this {@link ProcessingContext} was created.

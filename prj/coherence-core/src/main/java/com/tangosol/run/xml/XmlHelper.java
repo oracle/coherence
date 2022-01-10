@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -45,10 +45,13 @@ import java.sql.Time;
 import java.sql.Timestamp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
 
@@ -1909,6 +1912,8 @@ public abstract class XmlHelper extends Base
     public static void overrideElement(XmlElement xmlBase, XmlElement xmlOverride,
             String sIdAttrName)
         {
+        mergeSchema(xmlBase, xmlOverride);
+
         for (Iterator iterOver = xmlOverride.getElementList().iterator(); iterOver.hasNext();)
             {
             XmlElement xmlOver = (XmlElement) iterOver.next();
@@ -1997,6 +2002,94 @@ public abstract class XmlHelper extends Base
                 overrideElement(xmlMatch, xmlOver, sIdAttrName);
                 }
             }
+        }
+
+    /**
+     * Merge the {@code xmlns} schema attributes and {@code xsi:schemaLocation} attribute
+     * of the target {@link XmlElement} into the source {@link XmlElement}.
+     *
+     * @param xmlTarget  the {@link XmlElement} to merge the schema attributes into
+     * @param xmlSource  the {@link XmlElement} to merge the schema attributes from
+     *
+     * @return the xmlSource element
+     */
+    @SuppressWarnings("unchecked")
+    public static XmlElement mergeSchema(XmlElement xmlTarget, XmlElement xmlSource)
+        {
+        Map<String, XmlValue> mapTarget  = xmlTarget.getAttributeMap();
+        Map<String, XmlValue> mapSource  = xmlSource.getAttributeMap();
+
+        for (Map.Entry<String, XmlValue> entry : mapSource.entrySet())
+            {
+            String sKey = entry.getKey();
+            if (sKey.startsWith(XML_ATTR_XMLNS))
+                {
+                if (!mapTarget.containsKey(sKey))
+                    {
+                    xmlTarget.setAttribute(sKey, (XmlValue) entry.getValue().clone());
+                    }
+                }
+            }
+
+        Map<String, String> mapSourceLocations = getSchemaLocations(xmlSource);
+        if (!mapSourceLocations.isEmpty())
+            {
+            Map<String, String> mapTargetLocations = getSchemaLocations(xmlTarget);
+            if (mapTargetLocations.isEmpty())
+                {
+                // target has no schema locations so just use a copy of the source
+                xmlTarget.setAttribute(XML_ATTR_SCHEMA_LOCATION,
+                        (XmlValue) xmlSource.getAttribute(XML_ATTR_SCHEMA_LOCATION).clone());
+                }
+            else
+                {
+                // target has schema locations so merge in the source locations
+                for (Map.Entry<String, String> entry : mapSourceLocations.entrySet())
+                    {
+                    mapTargetLocations.putIfAbsent(entry.getKey(), entry.getValue());
+                    }
+
+                String sMerged = mapTargetLocations.entrySet()
+                        .stream()
+                        .map(e -> e.getKey() + " " + e.getValue())
+                        .collect(Collectors.joining(" "));
+
+                xmlTarget.setAttribute(XML_ATTR_SCHEMA_LOCATION, new SimpleValue(sMerged, true));
+                }
+            }
+
+        return xmlTarget;
+        }
+
+    /**
+     * Obtain a {@link Map} of schema URI to schema location for each schema
+     * defined in the {@code xsi:schemaLocation} attribute of the specified
+     * {@link XmlElement}.
+     *
+     * @param xml  the {@link XmlElement} to obtain the schema locations from
+     *
+     * @return  a {@link Map} of schema URI to schema location or an empty {@link Map} if
+     *          the {@link XmlElement} has no {@code xsi:schemaLocation} attribute
+     */
+    private static Map<String, String> getSchemaLocations(XmlElement xml)
+        {
+        XmlValue xmlLocations = xml.getAttribute(XML_ATTR_SCHEMA_LOCATION);
+        if (xmlLocations != null)
+            {
+            String[] asLocation = xmlLocations.getString().split("\\s+");
+            if (asLocation.length > 0)
+                {
+                Map<String, String> mapLocation = new LinkedHashMap<>();
+                for (int i = 0; i < asLocation.length; i++)
+                    {
+                    mapLocation.put(asLocation[i++], asLocation[i]);
+                    }
+                return mapLocation;
+                }
+            }
+
+        // no schema locations attribute was found or it was empty
+        return Collections.emptyMap();
         }
 
     /**
@@ -3331,4 +3424,14 @@ public abstract class XmlHelper extends Base
     * Hexadecimal digits.
     */
     private static final char[] HEX = "0123456789ABCDEF".toCharArray();
+
+    /**
+     * The XML attribute used to specify schema locations.
+     */
+    public static final String XML_ATTR_SCHEMA_LOCATION = "xsi:schemaLocation";
+
+    /**
+     * The XML attribute name used to specify xml schema.
+     */
+    public static final String XML_ATTR_XMLNS = "xmlns";
     }
