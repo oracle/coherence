@@ -19,12 +19,11 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
-import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
-
 import com.tangosol.coherence.component.application.console.Coherence;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
@@ -90,7 +89,7 @@ public class MetricsSupportTests
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
 
         // ensure that all the local services are running before the tests start
-        com.tangosol.net.Coherence.clusterMember().start().join();
+        DefaultCacheServer.startServerDaemon();
 
         getCache(TEST_CACHE);
         getCache(TEST_NEAR_CACHE);
@@ -568,32 +567,6 @@ public class MetricsSupportTests
                                     "Coherence.ConnectionManager.OutgoingByteBacklog",
                                     "Coherence.ConnectionManager.OutgoingMessageBacklog",
                                     "Coherence.ConnectionManager.ConnectionCount");
-        }
-
-    /**
-     * Validate executor metrics.
-     *
-     * @since 22.06
-     */
-    @Test
-    public void shouldExecutorMetrics()
-        {
-        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
-        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
-
-        metricSupport.register(getMBeanName(ExecutorMBean.EXECUTOR_TYPE, "coherence-concurrent-default-executor"));
-
-        Map<String, String> mapTags = getCommonTagsWithNodeId();
-
-        mapTags.put("name", "coherence-concurrent-default-executor");
-        mapTags.put("memberId", null);
-
-        assertMetricsWithoutAfterGC(adapter.getMetrics(),
-                                    mapTags,
-                                    "Coherence.Executor.StateCode",
-                                    "Coherence.Executor.TasksRejectedCount",
-                                    "Coherence.Executor.TasksCompletedCount",
-                                    "Coherence.Executor.TasksInProgressCount");
         }
 
     @Test
