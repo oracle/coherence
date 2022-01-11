@@ -32,7 +32,7 @@
     },
     {
       "name": "Journal",
-      "description": "The Journal resource provides a set of endpoints for managing Elastic Data journals that are used to store cache data. Use this resource to access operational information and performance statistics and to force journals to remove stale values. Cache data is aggregated across all cluster members or it can be viewed for each cluster member.",
+      "description": "The Journal resource provides a set of endpoints for managing Elastic Data journals that are used to store cache data. Use this resource to access operational information and performance statistics and to force journals to remove stale values. Cache data is aggregated across all cluster members or it can be viewed for each cluster member. This API is available only when you use the Coherence Grid Edition.",
       "x-priority":5
     },
     {
@@ -42,13 +42,18 @@
     },
     {
       "name": "Federation",
-      "description": "The Federation resource provides a set of endpoints for managing federation for a service. Use this resource to access operational information and performance statistics and to perform federation operations.",
+      "description": "The Federation resource provides a set of endpoints for managing federation for a service. Use this resource to access operational information and performance statistics and to perform federation operations. This API is available only when you use the Coherence Grid Edition.",
       "x-priority":7
     },
     {
       "name": "Coherence*Web",
-      "description": "The Coherence*Web resource provides a set of endpoints for managing caches that are used for storing HTTP session data. Use this resource to access operational information and performance statistics. Management data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover web application IDs. Application IDs are required to access management data.",
+      "description": "The Coherence*Web resource provides a set of endpoints for managing caches that are used for storing HTTP session data. Use this resource to access operational information and performance statistics. Management data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover web application IDs. Application IDs are required to access management data. This API is available only when you use the Coherence Enterprise Edition.",
       "x-priority":8
+    },
+    {
+      "name": "HotCache",
+      "description": "The HotCache resource provides a set of endpoints for managing caches that are integrated with Oracle GoldenGate. Use this resource to access operational information. This API is available only when you use the Coherence Grid Edition.",
+      "x-priority":9
     },
     {
       "name": "Platform",
