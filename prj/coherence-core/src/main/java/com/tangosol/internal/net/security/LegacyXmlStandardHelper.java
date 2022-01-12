@@ -1,10 +1,24 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.security;
+
+import com.tangosol.coherence.config.ParameterMacroExpressionParser;
+
+import com.tangosol.coherence.config.builder.ParameterizedBuilder;
+
+import com.tangosol.coherence.config.xml.OperationalConfigNamespaceHandler;
+
+import com.tangosol.coherence.config.xml.processor.PasswordProviderBuilderProcessor;
+
+import com.tangosol.config.xml.DefaultProcessingContext;
+import com.tangosol.config.xml.DocumentProcessor;
+
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.PasswordProvider;
 
 import com.tangosol.net.security.AccessController;
 
@@ -16,6 +30,8 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
 
 import javax.security.auth.callback.CallbackHandler;
+
+import java.util.Arrays;
 
 /**
  * LegacyXmlStandardHelper parses the {@code <security-config>} XML to
@@ -74,12 +90,49 @@ public class LegacyXmlStandardHelper
     private static Object newInstance(XmlElement xmlConfig)
         {
         String sClass = xmlConfig.getSafeElement("class-name").getString();
+
         if (sClass.length() > 0)
             {
-            XmlElement xmlParams = xmlConfig.getSafeElement("init-params");
-            Object[]   aoParam   = XmlHelper.parseInitParams(xmlParams);
+            XmlElement       xmlParams      = xmlConfig.getSafeElement("init-params");
+            Object[]         aoParam        = XmlHelper.parseInitParams(xmlParams);
+            XmlElement       xmlPwdProvider = xmlConfig.getElement("password-provider");
+
             try
                 {
+                if (xmlPwdProvider != null)
+                    {
+                    OperationalConfigNamespaceHandler nsHandler    = new OperationalConfigNamespaceHandler();
+                    DocumentProcessor.Dependencies    dependencies =
+                            new DocumentProcessor.DefaultDependencies(nsHandler)
+                                    .setExpressionParser(new ParameterMacroExpressionParser());
+                    DefaultProcessingContext          ctx          = new DefaultProcessingContext(dependencies, null);
+                    ctx.ensureNamespaceHandler("", nsHandler);
+
+                    ParameterizedBuilder<PasswordProvider> bldr        = new PasswordProviderBuilderProcessor().process(ctx, xmlPwdProvider);
+                    PasswordProvider                       pwdProvider = bldr.realize(null, null, null);
+
+                    int len = aoParam.length;
+
+                    if (len < 4)
+                        {
+                        aoParam      = Arrays.copyOf(aoParam, len + 1);
+                        aoParam[len] = pwdProvider;
+                        }
+                    else
+                        {
+                        if (aoParam[3] instanceof String)
+                            {
+                            String password = (String) aoParam[3];
+                            if (!password.isEmpty())
+                                {
+                                CacheFactory.log("Both a password parameter and a PasswordProvider are configured for the AccessController. The PasswordProvider will be used.", Base.LOG_WARN);
+                                }
+                            }
+
+                        aoParam[3] = pwdProvider;
+                        }
+                    }
+
                 Class clz = ExternalizableHelper.loadClass(sClass, null, null);
                 return ClassHelper.newInstance(clz, aoParam);
                 }
@@ -93,4 +146,4 @@ public class LegacyXmlStandardHelper
             return null;
             }
         }
-      }
+    }
