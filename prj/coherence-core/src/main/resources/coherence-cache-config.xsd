@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -51,6 +51,23 @@
                 <xsd:element ref="topic-scheme-mapping" minOccurs="0"/>
                 <xsd:element ref="caching-schemes" minOccurs="0" />
             </xsd:sequence>
+            <xsd:attribute name="xml-override" use="optional">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The xml-override attribute allows to specify override file for the
+                        cache-config xml file.
+
+                        Consider the following example to specify cache configuration override
+
+                        &lt;cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                      xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+                                      xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+                                      xml-override="{coherence.cacheconfig.override cache-config-override.xml}"&gt;
+
+                        Used in: cache-config
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
             <xsd:anyAttribute namespace="##other" processContents="lax" />
         </xsd:complexType>
     </xsd:element>

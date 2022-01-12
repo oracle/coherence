@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.config.xml;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.ExpressionParser;
@@ -14,7 +15,6 @@ import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlDocumentReference;
-import com.tangosol.run.xml.XmlHelper;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
@@ -64,14 +64,6 @@ public class DocumentProcessor
         // load the xml document
         XmlDocument xmlDocument = refDocument.getXmlDocument();
 
-        // apply overrides
-        for (XmlDocumentReference refOverride : aOverrides)
-            {
-            XmlDocument xmlOverride = refOverride.getXmlDocument();
-
-            XmlHelper.overrideElement(xmlDocument, xmlOverride);
-            }
-
         // establish the root processing context
         DefaultProcessingContext context = new DefaultProcessingContext(m_dependencies, xmlDocument);
 
@@ -80,6 +72,19 @@ public class DocumentProcessor
 
         if (handler != null)
             {
+            // apply overrides
+            for (XmlDocumentReference refOverride : aOverrides)
+                {
+                XmlDocument xmlOverride = refOverride.getXmlDocument();
+
+                if (handler.getOverrideProcessor() != null)
+                    {
+                    handler.getOverrideProcessor().process(xmlDocument, xmlOverride);
+                    }
+
+                Logger.finer("Effective cache configuration after applying override:\n" + xmlDocument);
+                }
+
             context.ensureNamespaceHandler("", handler);
             }
 

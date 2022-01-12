@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -61,6 +61,17 @@ public interface NamespaceHandler
      *         not be found
      */
     ElementProcessor<?> getElementProcessor(XmlElement element);
+
+    /**
+     * Obtains the {@link OverrideProcessor} that is suitable for processing the xml override.
+     *
+     * @return the {@link OverrideProcessor} or <code>null</code> if a suitable {@link OverrideProcessor} could
+     *         not be found
+     */
+    default OverrideProcessor getOverrideProcessor()
+        {
+        return null;
+        }
 
     /**
      * Called when the xml namespace associated with the {@link NamespaceHandler} is first encountered in an xml

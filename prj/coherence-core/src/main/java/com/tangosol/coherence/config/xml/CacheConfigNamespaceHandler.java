@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -51,6 +51,7 @@ import com.tangosol.coherence.config.xml.processor.AsyncBackupProcessor;
 import com.tangosol.coherence.config.xml.processor.AuthorizedHostsProcessor;
 import com.tangosol.coherence.config.xml.processor.BackingMapSchemeProcessor;
 import com.tangosol.coherence.config.xml.processor.BufferTypeProcessor;
+import com.tangosol.coherence.config.xml.processor.CacheConfigOverrideProcessor;
 import com.tangosol.coherence.config.xml.processor.CacheMappingProcessor;
 import com.tangosol.coherence.config.xml.processor.CacheServiceProxyProcessor;
 import com.tangosol.coherence.config.xml.processor.CachingSchemeMappingProcessor;
@@ -119,6 +120,7 @@ import com.tangosol.coherence.config.xml.processor.WrapperStreamFactoryListProce
 
 import com.tangosol.config.xml.AbstractNamespaceHandler;
 import com.tangosol.config.xml.DocumentElementPreprocessor;
+import com.tangosol.config.xml.OverrideProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 
 import com.tangosol.internal.net.service.peer.acceptor.DefaultJmsAcceptorDependencies;
@@ -381,4 +383,25 @@ public class CacheConfigNamespaceHandler
             context.addCookie(OperationalContext.class, (OperationalContext) CacheFactory.getCluster());
             }
         }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public OverrideProcessor getOverrideProcessor()
+        {
+        if (m_overrideProcessor == null)
+            {
+            m_overrideProcessor = new CacheConfigOverrideProcessor();
+            }
+
+        return m_overrideProcessor;
+        }
+
+    // ----- Data members ---------------------------------------------------
+
+    /**
+     * {@link OverrideProcessor} for processing cache config override xml file.
+     */
+    private OverrideProcessor m_overrideProcessor;
     }

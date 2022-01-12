@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -105,6 +105,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.run.xml.XmlDocumentReference;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
+import com.tangosol.run.xml.XmlValue;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -113,12 +114,17 @@ import com.tangosol.util.MapSet;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.ResourceRegistry;
+import com.tangosol.util.Resources;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SimpleResourceRegistry;
 
+import static com.tangosol.util.Base.ensureRuntimeException;
+
 import java.io.File;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -1583,8 +1589,9 @@ public class ExtensibleConfigurableCacheFactory
             resolverScoped.add(new Parameter("pof-config-uri", sPofConfigUri));
 
             // create a reference to the xml document containing the cache
-            // configuration to process
-            XmlDocumentReference docRef = new XmlDocumentReference(xmlConfig.toString());
+            // configuration and override to process
+            XmlDocumentReference docRef      = new XmlDocumentReference(xmlConfig.toString());
+            XmlElement           xmlOverride = findXmlOverride(xmlConfig, loader);
 
             // create and configure the DocumentProcessor Dependencies
             DocumentProcessor.DefaultDependencies dependencies =
@@ -1598,7 +1605,17 @@ public class ExtensibleConfigurableCacheFactory
 
             // use a DocumentProcessor to create our CacheConfig
             DocumentProcessor processor   = new DocumentProcessor(dependencies);
-            CacheConfig       cacheConfig = processor.process(docRef);
+            CacheConfig       cacheConfig;
+
+            if (xmlOverride != null)
+                {
+                XmlDocumentReference overrideRef = new XmlDocumentReference(xmlOverride.toString());
+                cacheConfig = processor.process(docRef, overrideRef);
+                }
+            else
+                {
+                cacheConfig = processor.process(docRef);
+                }
 
             InterceptorManager manager = new InterceptorManager(cacheConfig,
                 loader, resourceRegistry);
@@ -1606,6 +1623,64 @@ public class ExtensibleConfigurableCacheFactory
 
             return new DefaultDependencies(cacheConfig, loader, resourceRegistry);
             }
+        }
+
+   /**
+    * Find the cache configuration override to use if xml-override attribute
+    * is present in cache configuration file.
+    * 
+    * @param xmlConfig  base cache configuration
+    * @param loader     the {@link ClassLoader} to use
+    *
+    * @return cache configuration override file if found otherwise returns null
+    */
+    private static XmlElement findXmlOverride(XmlElement xmlConfig, ClassLoader loader)
+        {
+        XmlValue xmlOverride = xmlConfig.getAttribute("xml-override");
+
+        if (xmlOverride != null)
+            {
+            String sAttr = xmlOverride.getString();
+
+            while (sAttr.startsWith("{") && sAttr.endsWith("}"))
+                {
+                int ofDefault = sAttr.indexOf(' ');
+                int cchLength = sAttr.length();
+                String sDefault;
+                String sPropName;
+                if (ofDefault < 0)
+                    {
+                    sPropName = sAttr.substring(1, cchLength - 1);
+                    sDefault  = sPropName;
+                    }
+                else
+                    {
+                    sPropName = sAttr.substring(1, ofDefault);
+                    sDefault  = sAttr.substring(ofDefault + 1, cchLength - 1);
+                    }
+
+                sAttr = Config.getProperty(sPropName, sDefault);
+                }
+
+            URL url = Resources.findFileOrResource(sAttr, loader);
+            if (url == null)
+                {
+                try
+                    {
+                    url = new URL((sAttr.contains(":") ? "" : "file://") + sAttr);
+                    }
+                catch (MalformedURLException e)
+                    {
+                    throw ensureRuntimeException(e, "The configuration URI contains illegal characters for a URL " +
+                            sAttr);
+                    }
+                }
+            XmlElement xmlOverrideConfig = XmlHelper.loadResource(url, "cache configuration override", loader);
+
+            return xmlOverrideConfig;
+            }
+
+        return null;
         }
 
     // ----- Manager class -------------------------------------------------
