@@ -19,6 +19,7 @@ import com.tangosol.internal.net.DebouncedFlowControl;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.DestroySubscriptionProcessor;
+import com.tangosol.internal.net.topic.impl.paged.agent.EvictSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.agent.HeadAdvancer;
 import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor;
@@ -618,7 +619,7 @@ public class PagedTopicSubscriber<V>
         return 0;
         }
 
-// ----- Closeable methods ----------------------------------------------
+    // ----- Closeable methods ----------------------------------------------
 
     @Override
     public void close()
@@ -1888,6 +1889,7 @@ public class PagedTopicSubscriber<V>
                         unregisterChannelAllocationListener();
                         unregisterNotificationListener();
                         notifyClosed(m_caches.Subscriptions, f_subscriberGroupId, f_nId);
+                        removeSubscriberEntry();
                         }
 
                     if (!fDestroyed && f_subscriberGroupId.getMemberTimestamp() != 0)
@@ -1895,8 +1897,10 @@ public class PagedTopicSubscriber<V>
                         // this subscriber is anonymous and thus non-durable and must be destroyed upon close
                         // Note: if close isn't the cluster will eventually destroy this subscriber once it
                         // identifies the associated member has left the cluster.
-                        // TODO: should we also do it via a finalizer or similar to avoid leaks if app code forgets
-                        // to call close?
+                        // If an application creates a lot of subscribers and does not close them when finished
+                        // then this will cause heap consumption to rise.
+                        // There used to be a To-Do comment here about cleaning up in a finalizer, but as
+                        // finalizers in the JVM are not reliable that is probably not such a good idea.
                         destroy(m_caches, f_subscriberGroupId);
                         }
                     }
@@ -1995,6 +1999,28 @@ public class PagedTopicSubscriber<V>
                 listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
                 }
             cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(nId));
+            }
+        catch (Throwable t)
+            {
+            Logger.err(t);
+            }
+        }
+    /**
+     * Called to remove the entry for this subscriber from the subscriber info cache.
+     *
+     */
+    protected void removeSubscriberEntry()
+        {
+        NamedCache<SubscriberInfo.Key, SubscriberInfo> cache = m_caches.Subscribers;
+        if (!cache.isActive())
+            {
+            // cache is already inactive so we cannot do anything
+            return;
+            }
+
+        try
+            {
+            cache.invoke(f_key, EvictSubscriber.INSTANCE);
             }
         catch (Throwable t)
             {
