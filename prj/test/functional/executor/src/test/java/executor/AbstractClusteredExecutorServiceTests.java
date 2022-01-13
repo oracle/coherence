@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -61,11 +61,9 @@ import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
 import com.tangosol.io.Serializer;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.Service;
 import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.util.Base;
@@ -75,7 +73,6 @@ import executor.common.ExtendClient;
 import executor.common.LongRunningTask;
 import executor.common.RepeatedTask;
 
-import java.io.Serializable;
 import java.time.Duration;
 
 import java.util.Set;
@@ -382,7 +379,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorService::size,
                                   is(getInitialExecutorCount() + 1),
-                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 5000, TimeUnit.MILLISECONDS));
+                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 15000, TimeUnit.MILLISECONDS));
 
             Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
             }
