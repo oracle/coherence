@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.tangosol.dev.tools.CommandLineTool;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ClusterPermission;
+import com.tangosol.net.PasswordProvider;
 
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlDocument;
@@ -36,7 +37,6 @@ import java.io.Serializable;
 import java.net.URL;
 
 import java.security.AccessControlException;
-
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Permissions;
@@ -111,7 +111,28 @@ public final class DefaultController
     public DefaultController(File fileKeyStore, File filePermits, boolean fAudit)
             throws IOException, AccessControlException
         {
-        this(fileKeyStore, filePermits, fAudit, null);
+        this(fileKeyStore, filePermits, fAudit, (char[]) null);
+        }
+
+    /**
+     * Construct DefaultController for the specified key store file,
+     * permissions description (XML) file, the audit flag,
+     * and key store password provider.
+     *
+     * @param fileKeyStore the key store
+     * @param filePermits  the permissions file
+     * @param fAudit       the audit flag; if true, log all the access requests
+     * @param pwdProvider  the key store password provider
+     *
+     * @throws IOException             if an I/O error occurs
+     * @throws AccessControlException  if an access control error occurs
+     *
+     * @since 12.2.1.4.13
+     */
+    public DefaultController(File fileKeyStore, File filePermits, boolean fAudit, PasswordProvider pwdProvider)
+            throws IOException, AccessControlException
+        {
+        this(fileKeyStore, filePermits, fAudit, pwdProvider.get());
         }
 
     /**
@@ -131,6 +152,12 @@ public final class DefaultController
     public DefaultController(File fileKeyStore, File filePermits, boolean fAudit, String sPwd)
             throws IOException, AccessControlException
         {
+        this(fileKeyStore, filePermits, fAudit, (sPwd == null || sPwd.isEmpty()) ? null : sPwd.toCharArray());
+        }
+
+    private DefaultController(File fileKeyStore, File filePermits, boolean fAudit, char[] pwdArray)
+            throws IOException, AccessControlException
+        {
         azzert(fileKeyStore != null && filePermits  != null, "Null files");
 
         if (!filePermits.exists() || !filePermits.canRead())
@@ -142,7 +169,6 @@ public final class DefaultController
         FileInputStream inStore = null;
         try
             {
-            char[]   pwdArray = sPwd == null ? null : sPwd.toCharArray();
             KeyStore store    = KeyStore.getInstance(KEYSTORE_TYPE);
 
             inStore = new FileInputStream(fileKeyStore);
