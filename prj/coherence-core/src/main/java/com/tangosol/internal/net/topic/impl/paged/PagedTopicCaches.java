@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,8 +13,10 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
+import com.tangosol.internal.net.SessionNamedTopic;
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 
+import com.tangosol.internal.net.topic.impl.paged.agent.EvictSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.filter.UnreadTopicContentFilter;
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
@@ -30,6 +32,7 @@ import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
@@ -61,7 +64,7 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.PartitionedFilter;
 
-import java.util.Arrays;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -80,6 +83,7 @@ import java.util.function.Function;
 
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.tangosol.net.cache.TypeAssertion.withTypes;
 
@@ -143,6 +147,26 @@ public class PagedTopicCaches
         m_state = State.Active;
         }
 
+    /**
+     * Returns a {@link PagedTopicCaches} instance for the specified {@link NamedTopic}.
+     *
+     * @param topic  the {@link NamedTopic} to get the associated {@link PagedTopicCaches} for
+     *
+     * @return a {@link PagedTopicCaches} instance for the specified {@link NamedTopic}
+     */
+    public static PagedTopicCaches fromTopic(NamedTopic<?> topic)
+        {
+        while (topic instanceof SessionNamedTopic)
+            {
+            topic = ((SessionNamedTopic<?>) topic).getInternalNamedTopic();
+            }
+        if (topic instanceof PagedTopic)
+            {
+            return new PagedTopicCaches(topic.getName(), ((PagedTopic<?>) topic).getCacheService());
+            }
+        throw new IllegalArgumentException("Topic is not an instance of PagedTopic");
+        }
+
     // ----- TopicCaches methods --------------------------------------
 
     /**
@@ -172,8 +196,7 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return whether or not the caches are active,
-     * specifically the page cache for the topic.
+     * Determines {@code true} if the caches are active.
      *
      * @return true if the caches are active; false otherwise
      */
@@ -184,7 +207,7 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return whether or not the caches are destroyed,
+     * Returns {@code true} if the caches are destroyed,
      * specifically the page cache for the topic.
      *
      * @return true if the caches are destroyed; false otherwise
@@ -195,7 +218,7 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return whether or not the caches are released,
+     * Returns whether or not the caches are released,
      * specifically the page cache for the topic.
      *
      * @return true if the caches are released; false otherwise
@@ -509,9 +532,25 @@ public class PagedTopicCaches
     /**
      * Return the set of {@link Subscriber.Name named} subscriber group(s) and statically configured subscriber-group(s).
      *
-     * @return the set of named subscriber groups.
+     * @return the set of named subscriber groups
      */
     public Set<String> getSubscriberGroups()
+        {
+        return getSubscriberGroupsIds(false)
+                .stream()
+                .map(SubscriberGroupId::getGroupName)
+                .collect(Collectors.toSet());
+        }
+
+    /**
+     * Return the set of subscriber group(s) for the topic, optionally including pseudo-groups
+     * created for anonymous subscribers.
+     *
+     * @param fAnonymous  {@code true} to include anonymous subscriber groups
+     *
+     * @return the set of named subscriber groups
+     */
+    public Set<SubscriberGroupId> getSubscriberGroupsIds(boolean fAnonymous)
         {
         int          cParts  = ((PartitionedService) Subscriptions.getCacheService()).getPartitionCount();
         PartitionSet setPart = new PartitionSet(cParts);
@@ -520,10 +559,181 @@ public class PagedTopicCaches
 
         Set<Subscription.Key> setSubs = Subscriptions.keySet(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), setPart));
 
-        return setSubs.stream()
-                .filter((key) -> key.getGroupId().getMemberTimestamp() == 0)
-                .map((key) -> key.getGroupId().getGroupName())
-                .collect(Collectors.toSet());
+        Stream<SubscriberGroupId> stream = setSubs.stream()
+                .map(Subscription.Key::getGroupId);
+
+        if (!fAnonymous)
+            {
+            stream = stream.filter((key) -> !key.isAnonymous());
+            }
+
+        return stream.collect(Collectors.toSet());
+        }
+
+    /**
+     * Returns an immutable map of subscriber id to channels allocated to that subscriber.
+     *
+     * @param sGroup  the subscriber group to obtain allocations for
+     *
+     * @return an immutable map of subscriber id to channels allocated to that subscriber
+     */
+    public Map<Long, Set<Integer>> getChannelAllocations(String sGroup)
+        {
+        Subscription.Key key          = new Subscription.Key(0, 0, SubscriberGroupId.withName(sGroup));
+        Subscription     subscription = Subscriptions.get(key);
+        if (subscription != null)
+            {
+            return Collections.unmodifiableMap(subscription.getAllocationMap());
+            }
+        return Collections.emptyMap();
+        }
+
+    /**
+     * Print the channel allocations for the specified subscriber group.
+     *
+     * @param sGroup  the name of the subscriber group
+     * @param out     the {@link PrintStream} to print to
+     */
+    public void printChannelAllocations(String sGroup, PrintStream out)
+        {
+        Map<Integer, String> mapMember = f_cacheService.getCluster()
+                .getMemberSet()
+                .stream()
+                .collect(Collectors.toMap(Member::getId, Member::toString));
+
+        out.println("Subscriber channel allocations for topic \"" + f_sTopicName + "\" subscriber group \"" + sGroup + "\":");
+        for (Map.Entry<Long, Set<Integer>> entry : getChannelAllocations(sGroup).entrySet())
+            {
+            long nId     = entry.getKey();
+            int  nMember = PagedTopicSubscriber.memberIdFromId(nId);
+            out.println("SubscriberId=" + nId + " channels=" + entry.getValue() + " " + mapMember.get(nMember));
+            }
+        }
+
+    /**
+     * Disconnect a specific subscriber from a topic.
+     * <p>
+     * Disconnecting a subscriber will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @param sGroup  the name of the subscriber group
+     * @param nId     the subscriber id
+     *
+     * @return {@code true} if the subscriber was disconnected
+     */
+    public boolean disconnectSubscriber(String sGroup, long nId)
+        {
+        return Subscribers.invoke(new SubscriberInfo.Key(SubscriberGroupId.withName(sGroup), nId), EvictSubscriber.INSTANCE);
+        }
+
+    /**
+     * Disconnect a specific subscriber from a topic.
+     * <p>
+     * Disconnecting a subscriber will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @param key  the {@link SubscriberInfo.Key key} of the subscriber to disconnect
+     *
+     * @return {@code true} if the subscriber was disconnected
+     */
+    public boolean disconnectSubscriber(SubscriberInfo.Key key)
+        {
+        return Subscribers.invoke(key, EvictSubscriber.INSTANCE);
+        }
+
+    /**
+     * Disconnect all group subscribers from a topic.
+     * <p>
+     * Disconnecting subscribers will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @param sGroup   the name of the subscriber group
+     * @param nMember  the cluster member to disconnect subscribers for
+     *
+     * @return the identifiers of the disconnected subscribers
+     */
+    public long[] disconnectAllSubscribers(String sGroup, int nMember)
+        {
+        return disconnectAllSubscribers(SubscriberGroupId.withName(sGroup), nMember);
+        }
+
+    /**
+     * Disconnect all group subscribers from a topic.
+     * <p>
+     * Disconnecting subscribers will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @param id       the {@link SubscriberGroupId id} of the subscriber group
+     * @param nMember  the cluster member to disconnect subscribers for
+     *
+     * @return the identifiers of the disconnected subscribers
+     */
+    public long[] disconnectAllSubscribers(SubscriberGroupId id, int nMember)
+        {
+        Filter filter = Filters.equal(SubscriberInfo.GroupIdExtractor.INSTANCE, id)
+                .and(Filters.equal(SubscriberInfo.MemberIdExtractor.INSTANCE, nMember));
+
+        Map<SubscriberInfo.Key, Boolean> map = Subscribers.invokeAll(filter, EvictSubscriber.INSTANCE);
+        return map.keySet().stream().mapToLong(SubscriberInfo.Key::getSubscriberId).toArray();
+        }
+
+    /**
+     * Disconnect all subscribers in a group.
+     * <p>
+     * Disconnecting subscribers will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @param sGroup  the name of the subscriber group
+     *
+     * @return the identifiers of the disconnected subscribers
+     */
+    public long[] disconnectAllSubscribers(String sGroup)
+        {
+        return disconnectAllSubscribers(SubscriberGroupId.withName(sGroup));
+        }
+
+    /**
+     * Disconnect all subscribers in a group.
+     * <p>
+     * Disconnecting subscribers will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @param id  the {@link SubscriberGroupId id} of the subscriber group
+     *
+     * @return the identifiers of the disconnected subscribers
+     */
+    public long[] disconnectAllSubscribers(SubscriberGroupId id)
+        {
+        Filter<Map.Entry<SubscriberInfo.Key, SubscriberInfo>> filter = Filters.equal(SubscriberInfo.GroupIdExtractor.INSTANCE, id);
+        Map<SubscriberInfo.Key, Boolean>                      map    = Subscribers.invokeAll(filter, EvictSubscriber.INSTANCE);
+        return map.keySet().stream().mapToLong(SubscriberInfo.Key::getSubscriberId).toArray();
+        }
+
+    /**
+     * Disconnect all group subscribers from <b>all</b> groups.
+     * <p>
+     * Disconnecting subscribers will cause channels to be reallocated and
+     * positions to be rolled back to the last commit for the channels
+     * owned by the disconnected subscriber.
+     *
+     * @return the identifiers of the disconnected subscribers
+     */
+    public long[] disconnectAllSubscribers()
+        {
+        long[] alId = Subscribers.keySet()
+                            .stream()
+                            .mapToLong(SubscriberInfo.Key::getSubscriberId)
+                            .toArray();
+
+        Subscribers.clear();
+
+        return alId;
         }
 
     /**
