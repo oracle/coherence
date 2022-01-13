@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,8 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Session;
@@ -31,12 +33,16 @@ import com.tangosol.net.topic.Subscriber;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Testing that topic subscribers are cleaned up if the member they are running
@@ -68,6 +74,26 @@ public class TopicSubscribeCleanupTests
         }
 
     @Test
+    public void shouldRemoveSubscriberInfoOnClose()
+        {
+        NamedTopic<String>      topic = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service = (DistributedCacheService) topic.getService();
+
+        PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service);
+        assertThat(caches.Subscribers.isEmpty(), is(true));
+
+        try (PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
+            {
+            SubscriberInfo info = caches.Subscribers.get(subscriber.getKey());
+            assertThat(info, is(notNullValue()));
+
+            subscriber.close();
+
+            assertThat(caches.Subscribers.isEmpty(), is(true));
+            }
+        }
+
+    @Test
     public void shouldCloseSubscribersOnMemberDeparture()
         {
         LocalPlatform platform = LocalPlatform.get();
@@ -76,7 +102,7 @@ public class TopicSubscribeCleanupTests
                                                         ClassName.of(Coherence.class),
                                                         s_testLogs.builder()))
             {
-            NamedTopic<String> topic = s_session.getTopic("test");
+            NamedTopic<String>      topic   = s_session.getTopic(f_testName.getMethodName());
             DistributedCacheService service = (DistributedCacheService) topic.getService();
             Eventually.assertDeferred(() -> service.getOwnershipEnabledMembers().size(), is(2));
 
@@ -92,7 +118,7 @@ public class TopicSubscribeCleanupTests
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
 
                 // create some more subscribers on the remote member
-                int cNewSubscriber = member.invoke(new CreateSubscriber());
+                int cNewSubscriber = member.invoke(new CreateSubscriber(topic.getName()));
 
                 // there should eventually be the correct number of subscribers
                 // and the local subscriber should not own all the channels
@@ -115,23 +141,33 @@ public class TopicSubscribeCleanupTests
     public static class CreateSubscriber
             implements RemoteCallable<Integer>
         {
+        public CreateSubscriber(String sTopicName)
+            {
+            this.f_sTopicName = sTopicName;
+            }
+
         @Override
         public Integer call()
             {
             Session            session = Coherence.getInstance().getSession();
-            NamedTopic<String> topic   = session.getTopic("test");
+            NamedTopic<String> topic   = session.getTopic(f_sTopicName);
             topic.createSubscriber(inGroup("group-one"));
             topic.createSubscriber(inGroup("group-one"));
             topic.createSubscriber(inGroup("group-two"));
             topic.createSubscriber(inGroup("group-two"));
             return 4;
             }
+
+        private final String f_sTopicName;
         }
 
     // ----- data members ---------------------------------------------------
 
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
+
+    @Rule
+    public final TestName f_testName = new TestName();
 
     private static Coherence s_coherence;
 
