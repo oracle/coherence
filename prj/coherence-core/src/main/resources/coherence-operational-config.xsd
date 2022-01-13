@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -1463,6 +1463,7 @@
             <xsd:sequence>
                 <xsd:element ref="class-name" minOccurs="0" />
                 <xsd:element ref="init-params" minOccurs="0" />
+                <xsd:element ref="password-provider" minOccurs="0" />
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
