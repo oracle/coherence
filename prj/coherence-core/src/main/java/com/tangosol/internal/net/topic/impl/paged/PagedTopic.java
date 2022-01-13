@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 import com.tangosol.coherence.config.unit.Seconds;
 
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.util.Primes;
 
 import com.tangosol.net.CacheService;
@@ -211,6 +212,22 @@ public class PagedTopic<V>
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Returns the identifiers for all the subscribers belonging to a subscriber group.
+     * <p>
+     * There is no guarantee that all of the subscribers are actually still active. If a subscriber
+     * process exits without closing the subscriber, the identifier remains in the cache until it
+     * is timed-out.
+     *
+     * @param sSubscriberGroup  the subscriber group name to get subscribers for
+     *
+     * @return the identifiers for all the subscribers belonging to a subscriber group
+     */
+    public Set<SubscriberInfo.Key> getSubscribers(String sSubscriberGroup)
+        {
+        return f_pagedTopicCaches.getSubscribers(sSubscriberGroup);
+        }
 
     /**
      * Ensure that this {@link PagedTopic} is active.

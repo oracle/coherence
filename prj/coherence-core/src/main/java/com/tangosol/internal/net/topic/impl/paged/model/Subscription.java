@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -348,15 +348,7 @@ public class Subscription
      */
     public String getAllocations()
         {
-        Map<Long, List<Integer>> map = new HashMap<>();
-        long[]             alChannel = m_aChannel;
-        for (int i = 0; i < alChannel.length; i++)
-            {
-            if (alChannel[i] != 0)
-                {
-                map.computeIfAbsent(alChannel[i], k -> new ArrayList<>()).add(i);
-                }
-            }
+        Map<Long, Set<Integer>> map = getAllocationMap();
 
         if (map.isEmpty())
             {
@@ -366,6 +358,27 @@ public class Subscription
         return map.entrySet().stream()
                 .map(e -> e.getValue() + "=" + e.getKey() + "/" + PagedTopicSubscriber.memberIdFromId(e.getKey()))
                 .collect(Collectors.joining(", "));
+        }
+
+    /**
+     * Returns a Map of subscriber id to a Set of channels allocated to that subscriber.
+     *
+     * @return a Map of subscriber id to a Set of channels allocated to that subscriber
+     */
+    public Map<Long, Set<Integer>> getAllocationMap()
+        {
+        Map<Long, Set<Integer>> map       = new HashMap<>();
+        long[]                   alChannel = m_aChannel;
+
+        for (int i = 0; i < alChannel.length; i++)
+            {
+            if (alChannel[i] != 0)
+                {
+                map.computeIfAbsent(alChannel[i], k -> new TreeSet<>()).add(i);
+                }
+            }
+
+        return map;
         }
 
     /**

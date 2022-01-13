@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -211,6 +211,28 @@ public class PagedTopicSubscriber<V>
         return f_nId;
         }
 
+    /**
+     * Returns this subscriber's key.
+     *
+     * @return  this subscriber's key
+     */
+    public SubscriberInfo.Key getKey()
+        {
+        return f_key;
+        }
+
+    /**
+     * Returns {@code true} if this is an anonymous subscriber,
+     * or {@code false} if this subscriber is in a group.
+     *
+     * @return {@code true} if this is an anonymous subscriber,
+     *         or {@code false} if this subscriber is in a group
+     */
+    public boolean isAnonymous()
+        {
+        return f_fAnonymous;
+        }
+
     // ----- Subscriber methods ---------------------------------------------
 
     @Override
@@ -293,6 +315,26 @@ public class PagedTopicSubscriber<V>
     @Override
     public int[] getChannels()
         {
+        return getChannelSet().stream()
+                .mapToInt(i -> i)
+                .toArray();
+        }
+
+
+    /**
+     * Returns the current set of channels that this {@link Subscriber} owns.
+     * <p>
+     * Subscribers that are part of a subscriber group own a sub-set of the available channels.
+     * A subscriber in a group should normally be assigned ownership of at least one channel. In the case where there
+     * are more subscribers in a group that the number of channels configured for a topic, then some
+     * subscribers will obviously own zero channels.
+     * Anonymous subscribers that are not part of a group are always owners all of the available channels.
+     *
+     * @return the current set of channels that this {@link Subscriber} is the owner of, or an
+     *         empty array if this subscriber has not been assigned ownership any channels
+     */
+    public Set<Integer> getChannelSet()
+        {
         // Only have channels when connected
         if (m_nState == STATE_CONNECTED)
             {
@@ -302,8 +344,8 @@ public class PagedTopicSubscriber<V>
                 {
                 return Arrays.stream(f_aChannel)
                         .filter(c -> c.m_fOwned)
-                        .mapToInt(c -> c.subscriberPartitionSync.getChannelId())
-                        .toArray();
+                        .map(c -> c.subscriberPartitionSync.getChannelId())
+                        .collect(Collectors.toSet());
                 }
             finally
                 {
@@ -312,7 +354,7 @@ public class PagedTopicSubscriber<V>
             }
         else
             {
-            return new int[0];
+            return Collections.emptySet();
             }
         }
 
