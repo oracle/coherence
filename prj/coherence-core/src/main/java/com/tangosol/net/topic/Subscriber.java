@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1464,6 +1464,21 @@ public interface Subscriber<V>
         public static <V> ChannelOwnershipListeners<V> of(ChannelOwnershipListener... aListener)
             {
             return new ChannelOwnershipListeners<>(Arrays.asList(aListener));
+            }
+
+        /**
+         * Create a {@link ChannelOwnershipListeners} option with one or more
+         * {@link ChannelOwnershipListener listeners}.
+         *
+         * @param aListener the {@link ChannelOwnershipListener listeners} to add to the subscriber
+         * @param <V>       the type of the elements being received from the topic
+         *
+         * @return a {@link ChannelOwnershipListeners} option with one or more
+         *          {@link ChannelOwnershipListener listeners}
+         */
+        public static <V> ChannelOwnershipListeners<V> withListener(ChannelOwnershipListener... aListener)
+            {
+            return of(aListener);
             }
 
         /**
