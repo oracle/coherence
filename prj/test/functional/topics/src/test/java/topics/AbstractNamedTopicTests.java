@@ -194,7 +194,6 @@ public abstract class AbstractNamedTopicTests
         {
         System.err.println(">>>>> Starting test: " + m_testName.getMethodName());
         System.err.flush();
-        m_nSuffix.getAndIncrement();
         }
 
     @After
@@ -4521,7 +4520,7 @@ public abstract class AbstractNamedTopicTests
         {
         if (m_sTopicName == null)
             {
-            m_sTopicName = sPrefix + "-" + m_testName.getMethodName() + "-" + m_nSuffix.getAndIncrement();
+            m_sTopicName = sPrefix + "-" + m_testName.getMethodName();
             }
         return m_sTopicName;
         }
@@ -4546,7 +4545,7 @@ public abstract class AbstractNamedTopicTests
         {
         if (m_topic != null)
             {
-            assertThat(m_topic.getName(), is(sTopicName + "-" + m_nSuffix.get()));
+            assertThat(m_topic.getName(), is(sTopicName + "-" + m_testName.getMethodName()));
             return (NamedTopic<String>) m_topic;
             }
         String sName = ensureTopicName(sTopicName);
@@ -4747,7 +4746,6 @@ public abstract class AbstractNamedTopicTests
     protected String               m_sSerializer;
     protected NamedTopic<?>        m_topic;
     protected String               m_sTopicName;
-    protected AtomicInteger        m_nSuffix = new AtomicInteger();
     protected NamedTopic<Customer> m_topicCustomer;
     protected ExecutorService      m_executorService = Executors.newFixedThreadPool(4);
     }
