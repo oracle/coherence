@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,7 +13,6 @@ import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.cache.WrapperNamedCache;
 
 import com.tangosol.util.Binary;
-import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 
 import org.junit.Test;
@@ -24,14 +23,14 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
-* Unit tests for the PartitionedCache$Storage$BinaryEntry.
+* Unit tests for the PartitionedCache.Storage.BinaryEntry.
 *
 * @author tb  2011.01.10
 */
 public class PartitionedCacheStorageBinaryEntryTest
     {
     /**
-    * Test expire on PartitionedCache$Storage$BinaryEntry.
+    * Test expire on PartitionedCache.Storage.BinaryEntry.
     */
     @Test
     public void testExpire()
@@ -48,7 +47,7 @@ public class PartitionedCacheStorageBinaryEntryTest
         // set expectations
         when(mockService.getClusterTime()).thenReturn(9999L);
 
-        PartitionedCache$Storage$BinaryEntry entry = new PartitionedCache$Storage$BinaryEntry(null, storage, true);
+        PartitionedCache.Storage.BinaryEntry entry = new PartitionedCache.Storage.BinaryEntry(null, storage, true);
 
         entry.updateBinaryValue(binVal);
 
@@ -123,9 +122,9 @@ public class PartitionedCacheStorageBinaryEntryTest
     // ----- inner classes --------------------------------------------------
 
     /**
-    * Testable PartitionedCache$Storage
+    * Testable PartitionedCache.Storage
     */
-    class TestStorage extends PartitionedCache$Storage
+    class TestStorage extends PartitionedCache.Storage
         {
         /**
         * Construct a TestStorage
@@ -141,7 +140,7 @@ public class PartitionedCacheStorageBinaryEntryTest
             setBackingMapInternal(backingMap);
             }
 
-        // ----- PartitionedCache$Storage overrides ---------------------
+        // ----- PartitionedCache.Storage overrides ---------------------
         /**
         * Initialize.
         */

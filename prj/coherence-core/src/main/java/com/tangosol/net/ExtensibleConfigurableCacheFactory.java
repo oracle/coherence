@@ -1690,7 +1690,7 @@ public class ExtensibleConfigurableCacheFactory
      * and provides client access to those maps.
      * <p>
      * This class also implements methods to create/release backup maps as
-     * needed by PartitionedCache$Storage$BackingManager.
+     * needed by PartitionedCache.Storage$BackingManager.
      */
     public static class Manager
             extends AbstractBackingMapManager

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -31,9 +31,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.coherence.component.net.Cluster$NameService;
-import com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor;
-import com.tangosol.coherence.component.util.Daemon$Guard;
+import com.tangosol.coherence.component.net.Cluster.NameService;
+import com.tangosol.coherence.component.util.Daemon;
 import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -541,7 +540,7 @@ public class GuardianTests
                     PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
                     Base.out("Modifying guardian-timeout to 3 seconds");
-                    Daemon$Guard guard = serviceReal.getGuardable();
+                    Daemon.Guard guard = serviceReal.getGuardable();
 
                     Eventually.assertThat(invoking(guard).getContext(), is(notNullValue()));
                     Guardian.GuardContext ctx      = guard.getContext();
@@ -687,10 +686,10 @@ public class GuardianTests
             cache.put("key", "value");
 
             cluster.getCluster().halt();
-            Cluster$NameService   nameService  = cluster.getCluster().getNameService();
+            NameService   nameService  = cluster.getCluster().getNameService();
             ServerSocket          serverSocket = nameService.getClusterSocket();
             assertTrue(serverSocket.isClosed());
-            serverSocket = ((Cluster$NameService$TcpAcceptor) nameService.getAcceptor())
+            serverSocket = ((NameService.TcpAcceptor) nameService.getAcceptor())
                 .getProcessor().getServerSocket();
             assertTrue(serverSocket.isClosed());
             }

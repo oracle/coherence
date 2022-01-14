@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ import com.tangosol.util.Filter;
 
 /**
  * QueryResult is a structure that holds the state of the query execution
- * (see PartitionedCache$Storage#query)
+ * (see PartitionedCache.Storage#query)
  *
  * @author gg 2015.04.13
  */

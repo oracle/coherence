@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,7 +9,7 @@ package com.tangosol.internal.util;
 
 
 /**
-* A HeuristicCommitException is thrown by the PartitionedCache$Storage 
+* A HeuristicCommitException is thrown by the PartitionedCache.Storage 
 * to indicate that some parts of the transaction may not have been committed 
 * due to an unrecoverable backing map failure.
 * 

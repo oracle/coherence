@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -224,7 +224,7 @@ public class InnerClass extends VMStructure implements Constants, Comparable
     *
     * @return the encoded inner class name
     */
-    protected String getInnerClass()
+    public String getInnerClass()
         {
         return m_clzInner.getValue();
         }
@@ -244,7 +244,7 @@ public class InnerClass extends VMStructure implements Constants, Comparable
     *
     * @return the outer class name or null
     */
-    protected String getOuterClass()
+    public String getOuterClass()
         {
         return (m_clzOuter != null ? m_clzOuter.getValue() : null);
         }
@@ -264,7 +264,7 @@ public class InnerClass extends VMStructure implements Constants, Comparable
     *
     * @param  sOuter  the outer class name or null
     */
-    protected void setOuterClass(String sOuter)
+    public void setOuterClass(String sOuter)
         {
         m_clzOuter = (sOuter != null ? new ClassConstant(sOuter) : null);
         }
@@ -284,7 +284,7 @@ public class InnerClass extends VMStructure implements Constants, Comparable
     *
     * @return the inner class simple name or null
     */
-    protected String getInnerName()
+    public String getInnerName()
         {
         return (m_utfInner != null ? m_utfInner.getValue() : null);
         }
@@ -304,7 +304,7 @@ public class InnerClass extends VMStructure implements Constants, Comparable
     *
     * @param sInner  the inner class simple name or null
     */
-    protected void setInnerName(String sInner)
+    public void setInnerName(String sInner)
         {
         m_utfInner = (sInner != null ? new UtfConstant(sInner) : null);
         }
@@ -327,7 +327,7 @@ public class InnerClass extends VMStructure implements Constants, Comparable
     *
     * @return the declared access flags for the inner class
     */
-    protected AccessFlags getAccessFlags()
+    public AccessFlags getAccessFlags()
         {
         return m_flags;
         }

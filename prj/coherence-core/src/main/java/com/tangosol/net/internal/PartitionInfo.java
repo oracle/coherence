@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -110,7 +110,7 @@ public class PartitionInfo
      * The target Member.
      * <p>
      * When the ownership changes, a new PartitionInfo will be instantiated and
-     * inserted into PartitionedCache$RequestCoordinator#PartitionInfoArray.
+     * inserted into PartitionedCache.RequestCoordinator#PartitionInfoArray.
      */
     private final Member f_memberTarget;
 
@@ -118,7 +118,7 @@ public class PartitionInfo
      * The ownership version of the partition.
      * <p>
      * When the ownership changes, a new PartitionInfo will be instantiated and
-     * inserted into PartitionedCache$RequestCoordinator#PartitionInfoArray.
+     * inserted into PartitionedCache.RequestCoordinator#PartitionInfoArray.
      */
     private final int f_nOwnershipVersion;
 
@@ -134,7 +134,7 @@ public class PartitionInfo
      * relatively short period of time - until all the pending requests are
      * responded to.
      * <p>
-     * See documentation for PartitionedCache$RequestCoordinator component.
+     * See documentation for PartitionedCache.RequestCoordinator component.
      */
     private volatile LongArray m_laDeferredRequests;
     }

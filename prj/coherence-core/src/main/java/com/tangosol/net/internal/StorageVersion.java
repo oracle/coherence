@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -157,7 +157,7 @@ public class StorageVersion
      * counter for the specified partition.
      * <p>
      * This method should be called while holding synchronization on the
-     * corresponding backing map (see PartitionedCache$Storage#checkIndexConsistency).
+     * corresponding backing map (see PartitionedCache.Storage#checkIndexConsistency).
      *
      * @param nPartition  the partition to update
      */
@@ -175,7 +175,7 @@ public class StorageVersion
 
     /**
      * Increment committed version and decrement the outstanding submission counter of the
-     * specified partition (see PartitionedCache$ResourceCoordinator#processEvent).
+     * specified partition (see PartitionedCache.ResourceCoordinator#processEvent).
      *
      * @param nPartition  the partition to update
      */

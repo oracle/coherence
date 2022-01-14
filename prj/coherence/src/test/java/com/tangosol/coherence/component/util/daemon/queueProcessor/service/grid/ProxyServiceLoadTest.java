@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,10 +25,10 @@ public class ProxyServiceLoadTest
     @Test
     public void testEquals()
         {
-        ProxyService$ServiceLoad load1 = new ProxyService$ServiceLoad();
+        ProxyService.ServiceLoad load1 = new ProxyService.ServiceLoad();
         assertEquals(load1, load1);
 
-        ProxyService$ServiceLoad load2 = new ProxyService$ServiceLoad();
+        ProxyService.ServiceLoad load2 = new ProxyService.ServiceLoad();
         assertEquals(load1, load2);
 
         load1.setConnectionCount(1);
@@ -63,10 +63,10 @@ public class ProxyServiceLoadTest
     @Test
     public void testCompareTo()
         {
-        ProxyService$ServiceLoad load1 = new ProxyService$ServiceLoad();
+        ProxyService.ServiceLoad load1 = new ProxyService.ServiceLoad();
         assertTrue(load1.compareTo(load1) == 0);
 
-        ProxyService$ServiceLoad load2 = new ProxyService$ServiceLoad();
+        ProxyService.ServiceLoad load2 = new ProxyService.ServiceLoad();
         assertTrue(load1.compareTo(load2) == 0);
         assertTrue(load2.compareTo(load1) == 0);
 
@@ -137,8 +137,8 @@ public class ProxyServiceLoadTest
     @Test
     public void testPassivation()
         {
-        ProxyService$ServiceLoad load1 = new ProxyService$ServiceLoad();
-        ProxyService$ServiceLoad load2 = new ProxyService$ServiceLoad();
+        ProxyService.ServiceLoad load1 = new ProxyService.ServiceLoad();
+        ProxyService.ServiceLoad load2 = new ProxyService.ServiceLoad();
 
         load1.setConnectionLimit(1);
         load1.setConnectionCount(2);

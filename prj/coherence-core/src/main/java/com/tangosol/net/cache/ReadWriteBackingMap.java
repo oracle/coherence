@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -5594,7 +5594,7 @@ public class ReadWriteBackingMap
                         //
                         // Note: Persistence decoration should not result in sending map
                         //       listener events.
-                        //       See PartitionedCache$ResourceCoordinator.processEvent
+                        //       See PartitionedCache.ResourceCoordinator.processEvent
                         binValue = ExternalizableHelper.undecorate(
                             binValue, BackingMapManagerContext.DECO_STORE);
 

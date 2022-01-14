@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,7 +11,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor$TcpConnection;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor;
 
 import com.tangosol.io.pof.PortableObject;
 import com.tangosol.io.pof.PofReader;
@@ -308,7 +308,7 @@ public class SuspectProtocolTests
         public void run()
             {
             Service service = ((SafeService) CacheFactory.getService(m_sServiceName)).getService();
-            ((TcpAcceptor$TcpConnection) ((ConnectionAcceptor) ((ProxyService) service).getAcceptor()).getConnections().iterator().next()).setOutgoingDisabled(true);
+            ((TcpAcceptor.TcpConnection) ((ConnectionAcceptor) ((ProxyService) service).getAcceptor()).getConnections().iterator().next()).setOutgoingDisabled(true);
             }
 
         /**
