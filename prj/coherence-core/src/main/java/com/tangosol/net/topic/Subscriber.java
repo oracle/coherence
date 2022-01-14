@@ -687,6 +687,87 @@ public interface Subscriber<V>
      */
     int getRemainingMessages(int nChannel);
 
+    // ----- option methods -------------------------------------------------
+
+    /**
+     * Obtain a {@link Option} that specifies a group name
+     * for a {@link Subscriber}.
+     *
+     * @param sName  the group name to use for the {Link Subscriber}.
+     * @param <V>    the type of the elements being received from the topic
+     *
+     * @return a {@link Option} that specifies a group name
+     *         for a {@link Subscriber}
+     */
+    static <V> Name<V> inGroup(String sName)
+        {
+        return Name.inGroup(sName);
+        }
+
+    /**
+     * Obtain the Option indicating futures should complete if the topic is empty.
+     *
+     * @return the Option indicating futures should complete if the topic is empty
+     */
+    static <V> CompleteOnEmpty<V> completeOnEmpty()
+        {
+        return CompleteOnEmpty.enabled();
+        }
+
+    /**
+     * Create a {@link ChannelOwnershipListeners} option with one or more
+     * {@link ChannelOwnershipListener listeners}.
+     *
+     * @param aListener the {@link ChannelOwnershipListener listeners} to add to the subscriber
+     * @param <V>       the type of the elements being received from the topic
+     *
+     * @return a {@link ChannelOwnershipListeners} option with one or more
+     *          {@link ChannelOwnershipListener listeners}
+     */
+    static <V> ChannelOwnershipListeners<V> withListener(ChannelOwnershipListener... aListener)
+        {
+        return ChannelOwnershipListeners.of(aListener);
+        }
+
+    /**
+     * Return a Convert option with the specified function.
+     *
+     * @param function  the converter function
+     * @param <V>       the type of the elements being received from the topic
+     *
+     * @return the Filtered option
+     */
+    static <V, U> Convert<V, U> withConverter(Function<? super V, U> function)
+        {
+        return Convert.using(function);
+        }
+
+    /**
+     * Return a Convert option with the specified function.
+     *
+     * @param function  the converter function
+     * @param <V>       the type of the elements being received from the topic
+     *
+     * @return the Filtered option
+     */
+    static <V, U> Convert<V, U> withConverter(Remote.Function<? super V, U> function)
+        {
+        return Convert.using(function);
+        }
+
+    /**
+     * Return a Filtered option with the specified filter.
+     *
+     * @param filter  the filter
+     * @param <V>     the type of the elements being received from the topic
+     *
+     * @return the Filtered option
+     */
+    public static <V> Filtered<V> withFilter(Filter<? super V> filter)
+        {
+        return Filtered.by(filter);
+        }
+
     // ----- inner interface Element ----------------------------------------
 
     /**

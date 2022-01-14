@@ -903,8 +903,10 @@ public class PagedTopicSubscriber<V>
                 Channel channel  = f_aChannel[nChannel];
                 long    lHead    = channel.m_lHead;
                 long    lVersion = channel.m_lVersion;
-                int     nPart    = ((PartitionedService) m_caches.Subscriptions.getCacheService())
-                        .getKeyPartitioningStrategy().getKeyPartition(new Page.Key(nChannel, lHead));
+
+                int nPart = ((PartitionedService) m_caches.Subscriptions.getCacheService())
+                                    .getKeyPartitioningStrategy()
+                                    .getKeyPartition(new Page.Key(nChannel, lHead));
 
                 InvocableMapHelper.invokeAsync(m_caches.Subscriptions,
                                                new Subscription.Key(nPart, nChannel, f_subscriberGroupId), m_caches.getUnitOfOrder(nPart),
@@ -929,7 +931,7 @@ public class PagedTopicSubscriber<V>
                 {
                 if (m_queueValuesPrefetched.isEmpty() && nChannel < 0)
                     {
-                    // we have emptied the pre-fetch queue or we the topic is empty
+                    // we have emptied the pre-fetch queue or the topic is empty
                     // we need to switch channel under the gate lock as we might have a concurrent notification
                     // that a channel is no longer empty (which also happens under the lock)
                     Gate<?> gate = f_gate;
@@ -940,10 +942,18 @@ public class PagedTopicSubscriber<V>
                         // now we are in the gate lock, re-try switching channel as we might have had a notification
                         if (switchChannel())
                             {
+                            // we have a non-empty channel so go be round and process the receive requests again
                             receiveInternal(queueRequest, cBatch);
                             }
                         else
                             {
+                            // the topic is empty
+                            if (f_fCompleteOnEmpty)
+                                {
+                                // the complete-on-empty flag is set, so complete any outstanding requests
+                                m_queueValuesPrefetched.add(getEmptyElement());
+                                complete(queueRequest);
+                                }
                             queueRequest.resetTrigger();
                             }
                         }
