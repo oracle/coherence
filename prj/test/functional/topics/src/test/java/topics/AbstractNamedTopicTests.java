@@ -4035,7 +4035,7 @@ public abstract class AbstractNamedTopicTests
             int nChannelPublished = futurePublish.get(2, TimeUnit.MINUTES).getChannel();
             assertThat(nChannelPublished, is(nChannel));
 
-            try (Subscriber<String> subscriber = topic.createSubscriber(completeOnEmpty()))
+            try (PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(completeOnEmpty()))
                 {
                 Map<Integer, Position> map = subscriber.seekToTail(nChannel);
                 assertThat(map.get(nChannel), is(notNullValue()));
@@ -4045,7 +4045,18 @@ public abstract class AbstractNamedTopicTests
 
                 assertThat(elementTail, is(nullValue()));
 
+                // the subscriber thinks the topic is empty and will be waiting on a notification
+                // that the topic now has a message, this is async so if we immediately call
+                // receive it may return null, so we wait for the notification count to go up
+
+                // Get the current notification count
+                long cNotification = subscriber.getNotify();
+
+                // pubish the message, which should trigger a notification
                 publisher.publish("element-last").get(5, TimeUnit.MINUTES);
+
+                // wait for the subscriber's notification count to go up
+                Eventually.assertDeferred(subscriber::getNotify, is(greaterThan(cNotification)));
 
                 future      = subscriber.receive();
                 elementTail = future.get(2, TimeUnit.MINUTES);
