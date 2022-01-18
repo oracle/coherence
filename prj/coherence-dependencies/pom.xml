@@ -190,7 +190,7 @@
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
     <jandex.version>2.3.1.Final</jandex.version>
-    <protobuf.version>3.10.0</protobuf.version>
+    <protobuf.version>3.19.3</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
@@ -1054,7 +1054,7 @@
             </execution>
           </executions>
           <configuration>
-            <protocArtifact>com.google.protobuf:protoc:3.5.1-1:exe:${os.detected.classifier}</protocArtifact>
+            <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
             <pluginId>grpc-java</pluginId>
             <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
           </configuration>
