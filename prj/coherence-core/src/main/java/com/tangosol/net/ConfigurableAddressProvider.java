@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import java.net.UnknownHostException;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -316,21 +317,26 @@ public class ConfigurableAddressProvider
                     continue;
                 }
 
-            m_fResolve |= InetAddressHelper.isHostName(sAddr);
+            String[] saAddresses = Arrays.stream(sAddr.split(","))
+                    .map(String::trim)
+                    .toArray(String[]::new);
 
-            if (sAddr.isEmpty())
+            for (String sAddress : saAddresses)
                 {
-                // ignore empty elements
-                continue;
-                }
-
-            try
-                {
-                list.add(new AddressHolder(sAddr, nPort).validate());
-                }
-            catch (RuntimeException e)
-                {
-                throw Base.ensureRuntimeException(e, "Invalid configuration element: " + xmlAddr);
+                if (sAddress.isEmpty())
+                    {
+                    // ignore empty elements
+                    continue;
+                    }
+                m_fResolve |= InetAddressHelper.isHostName(sAddress);
+                try
+                    {
+                    list.add(new AddressHolder(sAddress, nPort).validate());
+                    }
+                catch (RuntimeException e)
+                    {
+                    throw Base.ensureRuntimeException(e, "Invalid configuration element: " + xmlAddr);
+                    }
                 }
             }
 

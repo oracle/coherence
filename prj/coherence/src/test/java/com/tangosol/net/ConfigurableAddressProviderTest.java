@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,10 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
 import java.net.InetSocketAddress;
+
+import java.util.Comparator;
+
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -93,6 +97,30 @@ public class ConfigurableAddressProviderTest
                 firstAddr, provider.getNextAddress());
         }
 
+    /**
+     * Assert that comma separated addresses are correctly parsed.
+     */
+    @Test
+    public void testCommaDelimitedAddresses()
+        {
+        InetSocketAddress[] expected = new InetSocketAddress[]
+                {
+                        new InetSocketAddress("127.0.0.1", 81),
+                        new InetSocketAddress("127.0.0.2", 99),
+                        new InetSocketAddress("127.0.0.3", 99),
+                        new InetSocketAddress("127.0.0.4", 99),
+                        new InetSocketAddress("127.0.0.5", 0),
+                        new InetSocketAddress("127.0.0.6", 0),
+                        new InetSocketAddress("127.0.0.7", 0)
+                };
+
+        ConfigurableAddressProvider provider = new ConfigurableAddressProvider(createCommaDelimitedConfiguration());
+        InetSocketAddress[] actual           = ((Stream<InetSocketAddress>) provider.stream())
+                .sorted(Comparator.comparing(InetSocketAddress::toString))
+                .toArray(InetSocketAddress[]::new);
+
+        assertArrayEquals(expected, actual);
+        }
 
     // ----- helper methods -------------------------------------------------
 
@@ -120,6 +148,28 @@ public class ConfigurableAddressProviderTest
             }
         builder.append("</socket-addresses>");
 
+        return XmlHelper.loadXml(builder.toString());
+        }
+
+    /**
+     * Create a ConfigurableAddressProvider XML configuration.
+     *
+     * @return XML configuration containing comma separated addresses
+     */
+    protected XmlElement createCommaDelimitedConfiguration()
+        {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<socket-addresses>");
+        builder.append("<socket-address><address>127.0.0.1</address><port>81</port></socket-address>");
+
+        builder.append("<socket-address>");
+        builder.append("<address>127.0.0.2, 127.0.0.3, 127.0.0.4</address>");
+        builder.append("<port>99</port>");
+        builder.append("</socket-address>");
+
+        builder.append("<address>127.0.0.5, 127.0.0.6, 127.0.0.7</address>");
+
+        builder.append("</socket-addresses>");
         return XmlHelper.loadXml(builder.toString());
         }
     }
