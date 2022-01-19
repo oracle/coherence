@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -126,6 +126,7 @@
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
               <skip>false</skip>
+              <trimStackTrace>false</trimStackTrace>
               <argLine>-Xmx8g -Xms8g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./</argLine>
               <systemPropertyVariables>
                 <test.heap.max>${test.heap.max}</test.heap.max>
@@ -138,6 +139,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <skip>false</skip>
+              <trimStackTrace>false</trimStackTrace>
               <argLine>-Xmx8g -Xms8g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./</argLine>
               <excludes combine.children="append">
                 <exclude>**/SerializationTests.java</exclude>
