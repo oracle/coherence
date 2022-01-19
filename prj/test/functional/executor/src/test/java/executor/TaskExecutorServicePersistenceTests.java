@@ -31,6 +31,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
+import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
@@ -161,7 +162,7 @@ public class TaskExecutorServicePersistenceTests
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void shouldPersistLongRunningTest() throws Exception
+    public void shouldPersistLongRunningTest() throws Throwable
         {
         CoherenceCluster cluster = s_coherence.getCluster();
 
@@ -199,10 +200,34 @@ public class TaskExecutorServicePersistenceTests
         RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
         coordinator.subscribe(subscriber2);
 
-        Thread.sleep(2000);
+        try
+            {
+            // ensure that we are eventually done! (ie: a new compute member picks up the task)
+            Eventually.assertDeferred(() -> subscriber2.received("DONE"), Matchers.is(true), Eventually.within(3, TimeUnit.MINUTES));
+            }
+        catch (Throwable t)
+            {
+            final StringBuilder builder = new StringBuilder(1024);
+            builder.append("### Dumping Cache States ...\n");
+            NamedCache<?, ?> executors = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            builder.append("=== Executors [count=").append(executors.size()).append("] ===\n");
+            executors.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
 
-        // ensure that we are eventually done! (ie: a new compute member picks up the task)
-        Eventually.assertDeferred(() -> subscriber2.received("DONE"), Matchers.is(true));
+            NamedCache<?, ?> assignments = getNamedCache(ClusteredAssignment.CACHE_NAME);
+            builder.append("\n\n=== Assignments [count=").append(assignments.size()).append("] ===\n");
+            assignments.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+
+            NamedCache<?, ?> tasks = getNamedCache(ClusteredTaskManager.CACHE_NAME);
+            builder.append("\n\n=== Tasks [count=").append(tasks.size()).append("] ===\n");
+            tasks.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+
+            NamedCache<?, ClusteredProperties> properties = getNamedCache(ClusteredProperties.CACHE_NAME);
+            builder.append("\n\n=== Properties [count=").append(properties.size()).append("] ===\n");
+            properties.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+            builder.append("\n\n");
+            System.out.print(builder);
+            throw t;
+            }
         }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -398,8 +423,8 @@ public class TaskExecutorServicePersistenceTests
 
         protected void failed(Throwable e, Description description)
             {
-            System.out.println("### Failed test: " + description.getMethodName());
-            System.out.println("### Cause: " + e);
+            System.out.printf("### Failed test: %s\n", description.getMethodName());
+            System.out.printf("### Cause: %s\n\n", e);
             e.printStackTrace();
             }
 
