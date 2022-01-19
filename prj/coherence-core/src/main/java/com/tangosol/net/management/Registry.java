@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -263,6 +263,12 @@ public interface Registry
     * CacheMBean.
     */
     public final static String CACHE_TYPE = "type=Cache";
+
+    /**
+     * String representing the "type" part of <tt>ObjectName</tt> for the
+     * ViewMBean.
+     */
+    public final static String VIEW_TYPE = "type=View";
 
     /**
     * String representing the "type" part of <tt>ObjectName</tt> for the

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,6 +33,8 @@ import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
+
+import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
@@ -345,6 +347,7 @@ public class ViewCacheService
             cacheCQC.setCacheName(cacheCQC.getCache().getCacheName());
             cacheCQC.setReconnectInterval(deps.getReconnectInterval());
             cacheCQC.setReadOnly(fReadOnly);
+            MBeanHelper.registerViewMBean(cacheCQC);
             }
 
         return cacheView;
@@ -402,6 +405,7 @@ public class ViewCacheService
         finally
             {
             f_mapCaches.remove(sCache);
+            MBeanHelper.unregisterViewMBean(cache);
             }
         return null;
         }

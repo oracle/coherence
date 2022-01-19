@@ -1,14 +1,19 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package jmx;
 
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.Service;
+import com.tangosol.net.internal.ViewCacheService;
 import com.tangosol.net.management.MBeanHelper;
+import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Base;
 
@@ -130,6 +135,14 @@ public class CacheMBeanTests
         validateCacheSize("readwriteoverflow-test", 10000);
         }
 
+    /**
+     * Test that a view cache has a MBean.
+     */
+    @Test
+    public void testViewCacheMBean()
+        {
+        validateViewMBean("view-test",  15);
+        }
     // ----- helpers --------------------------------------------------------
 
     /**
@@ -226,6 +239,56 @@ public class CacheMBeanTests
 
             // test that the MBean is destroyed when the cache is released
             getFactory().destroyCache(cache);
+            setObjectNames = serverJMX.queryNames(nameMBean, null);
+            assertTrue(setObjectNames.isEmpty());
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+        }
+
+    protected void validateViewMBean(String sCacheName, int cCacheSize)
+        {
+        try
+            {
+            NamedCache cache = getNamedCache(sCacheName);
+            Map<Integer, String> map = new HashMap<Integer, String>();
+
+            for (int i = 0; i < cCacheSize; i++)
+                {
+                map.put(i, "Val" + i);
+                }
+            cache.putAll(map);
+
+            // connect to local MBeanServer to retrieve info for the MBean
+            MBeanServer serverJMX = MBeanHelper.findMBeanServer();
+
+            String sName = "Coherence:name=" + cache.getCacheName()
+                           + ",nodeId=1,service=" + cache.getCacheService().getInfo().getServiceName()
+                           + "," + Registry.VIEW_TYPE;
+
+            ObjectName nameMBean = new ObjectName(sName);
+            Set<ObjectName> setObjectNames = serverJMX.queryNames(nameMBean, null);
+            assertEquals(1, setObjectNames.size());
+
+            for (ObjectName name : setObjectNames)
+                {
+                long cSize = (long) serverJMX.getAttribute(name, "Size");
+                assertEquals(cCacheSize, cSize);
+
+                long interval = (long) serverJMX.getAttribute(name, "ReconnectInterval");
+                assertEquals(123L, interval);
+                }
+
+
+            ConcurrentHashMap<String, Service> mapServices = cache.getService()
+                    .getCluster()
+                    .getResourceRegistry()
+                    .getResource(ConcurrentHashMap.class, ViewCacheService.KEY_CLUSTER_REGISTRY);
+            Service service = mapServices.get("DistributedCache");
+            ((ViewCacheService)service).destroyCache(cache);
+
             setObjectNames = serverJMX.queryNames(nameMBean, null);
             assertTrue(setObjectNames.isEmpty());
             }

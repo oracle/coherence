@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.management.annotation.Description;
 import com.tangosol.net.management.annotation.Notification;
 
@@ -302,6 +303,85 @@ public abstract class MBeanHelper
         catch (Throwable e)
             {
             Logger.warn("Failed to register cache \"" + sCacheName + "\"; " + e);
+            }
+        }
+
+    /**
+     * Register the specified view cache with the cluster registry.
+     *
+     * @param cache  the ContinuousQueryCache to register
+     */
+    public static void registerViewMBean(ContinuousQueryCache cache)
+        {
+        registerViewMBean(cache.getCacheService(), cache);
+        }
+
+    /**
+     * Register the specified view cache with the cluster registry.
+     *
+     * @param service     the CacheService that the cache belongs to
+     * @param cache       the cache object to register
+     */
+    public static void registerViewMBean(CacheService service, ContinuousQueryCache cache)
+        {
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sName = Registry.VIEW_TYPE +
+                               "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+                               ",name="    + cache.getCacheName();
+
+                sName = registry.ensureGlobalName(sName);
+
+                ViewMBean viewMBean = new ViewMBeanImpl(cache);
+                registry.register(sName, new AnnotatedStandardEmitterMBean(viewMBean, ViewMBean.class));
+                }
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register view \"" + cache.getCacheName() + "\"; " + e);
+            }
+        }
+
+    /**
+     * Unregister all managed objects related to the given view cache and
+     * context from the cluster registry.
+     *
+     * @param cache     the cache
+     */
+    public static void unregisterViewMBean(NamedCache cache)
+        {
+        CacheService service = cache.getCacheService();
+        unregisterViewMBean(service.getCluster(), service.getInfo().getServiceName(), cache.getCacheName());
+        }
+
+    /**
+     * Unregister all managed objects related to the given view cache and
+     * context from the cluster registry.
+     *
+     * @param cluster       the Cluster object
+     * @param sServiceName  the CacheService that the cache belongs to
+     * @param sCacheName    the cache name
+     */
+    public static void unregisterViewMBean(Cluster cluster, String sServiceName, String sCacheName)
+        {
+        try
+            {
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sName = Registry.VIEW_TYPE + "," + Registry.KEY_SERVICE + sServiceName +
+                               ",name=" + sCacheName;
+
+                sName = registry.ensureGlobalName(sName);
+                registry.unregister(sName);
+                }
+            }
+        catch (Throwable e)
+            {
             }
         }
 

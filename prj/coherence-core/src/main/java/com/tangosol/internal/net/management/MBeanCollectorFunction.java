@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -814,6 +814,7 @@ public class MBeanCollectorFunction
         put("cache", Registry.CACHE_TYPE);
         put("storage", Registry.STORAGE_MANAGER_TYPE);
         put("service", Registry.SERVICE_TYPE);
+        put("view", Registry.VIEW_TYPE);
         //put("cluster", Registry.CLUSTER_TYPE);
         //put("management", Registry.MANAGEMENT_TYPE);
         //put("node", Registry.NODE_TYPE);
