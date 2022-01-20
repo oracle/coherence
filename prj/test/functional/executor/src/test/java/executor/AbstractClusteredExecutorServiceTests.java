@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -40,6 +40,7 @@ import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
+import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.RecoveringTask;
@@ -61,11 +62,9 @@ import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
 import com.tangosol.io.Serializer;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.Service;
 import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.util.Base;
@@ -75,7 +74,6 @@ import executor.common.ExtendClient;
 import executor.common.LongRunningTask;
 import executor.common.RepeatedTask;
 
-import java.io.Serializable;
 import java.time.Duration;
 
 import java.util.Set;
@@ -382,7 +380,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorService::size,
                                   is(getInitialExecutorCount() + 1),
-                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 5000, TimeUnit.MILLISECONDS));
+                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 15000, TimeUnit.MILLISECONDS));
 
             Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
             }
@@ -986,7 +984,34 @@ public abstract class AbstractClusteredExecutorServiceTests
                     .until(Predicates.is(EXPECTED_EXECUTORS))
                     .subscribe(subscriber).submit();
 
-            Eventually.assertDeferred(() -> subscriber.isCompleted(), Matchers.is(true));
+            try
+                {
+                Eventually.assertDeferred(() -> subscriber.isCompleted(), Matchers.is(true), Eventually.within(3, TimeUnit.MINUTES));
+                }
+            catch (Throwable t)
+                {
+                final StringBuilder builder = new StringBuilder(1024);
+                builder.append("### Dumping Cache States ...\n");
+                NamedCache<?, ?> executors = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+                builder.append("=== Executors [count=").append(executors.size()).append("] ===\n");
+                executors.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+
+                NamedCache<?, ?> assignments = getNamedCache(ClusteredAssignment.CACHE_NAME);
+                builder.append("\n\n=== Assignments [count=").append(assignments.size()).append("] ===\n");
+                assignments.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+
+                NamedCache<?, ?> tasks = getNamedCache(ClusteredTaskManager.CACHE_NAME);
+                builder.append("\n\n=== Tasks [count=").append(tasks.size()).append("] ===\n");
+                tasks.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+
+                NamedCache<?, ClusteredProperties> properties = getNamedCache(ClusteredProperties.CACHE_NAME);
+                builder.append("\n\n=== Properties [count=").append(properties.size()).append("] ===\n");
+                properties.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+                builder.append("\n\n");
+                System.out.print(builder);
+                throw t;
+                }
+
             MatcherAssert.assertThat(subscriber.isSubscribed(), Matchers.is(false));
             MatcherAssert.assertThat(subscriber.received(EXPECTED_EXECUTORS), Matchers.is(true));
 
