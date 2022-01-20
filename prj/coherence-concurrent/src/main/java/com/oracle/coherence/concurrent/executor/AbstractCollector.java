@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
+
+import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.function.Remote.Predicate;
 
@@ -26,9 +28,9 @@ import java.util.function.Supplier;
  * @since 21.12
  */
 public abstract class AbstractCollector<T, R>
-        implements PortableCollector<T, List<T>, R>
+        implements Task.Collector<T, List<T>, R>, PortableObject
     {
-    // ----- PortableCollector interface ------------------------------------
+    // ----- Task.Collector interface ---------------------------------------
 
     @Override
     public BiConsumer<List<T>, T> accumulator()

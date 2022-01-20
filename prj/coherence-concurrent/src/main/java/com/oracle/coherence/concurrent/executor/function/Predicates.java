@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -226,7 +226,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link AlwaysPredicate} (required for Serializable).
+         * Constructs a {@link AlwaysPredicate} (required for serialization).
          */
         public AlwaysPredicate()
             {
@@ -271,7 +271,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link EqualToPredicate} (required for Serializable).
+         * Constructs a {@link EqualToPredicate} (required for serialization).
          */
         @SuppressWarnings("unused")
         public EqualToPredicate()
@@ -333,7 +333,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link IsValuePredicate} (required for Serializable).
+         * Constructs a {@link IsValuePredicate} (required for serialization).
          */
         public IsValuePredicate()
             {
@@ -383,7 +383,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link NegatePredicate} (required for Serializable).
+         * Constructs a {@link NegatePredicate} (required for serialization).
          */
         @SuppressWarnings("unused")
         public NegatePredicate()
@@ -439,7 +439,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link NeverPredicate} (required for Serializable).
+         * Constructs a {@link NeverPredicate} (required for serialization).
          */
         public NeverPredicate()
             {
@@ -485,7 +485,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link NullValuePredicate} (required for Serializable).
+         * Constructs a {@link NullValuePredicate} (required for serialization).
          */
         public NullValuePredicate()
             {
@@ -531,7 +531,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link OptionPredicate} (required for Serializable).
+         * Constructs a {@link OptionPredicate} (required for serialization).
          */
         @SuppressWarnings("unused")
         public OptionPredicate()
@@ -591,7 +591,7 @@ public final class Predicates
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link RolePredicate} (required for Serializable).
+         * Constructs a {@link RolePredicate} (required for serialization).
          */
         @SuppressWarnings("unused")
         public RolePredicate()

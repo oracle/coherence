@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
+
+import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.util.function.Remote.Predicate;
 
@@ -13,6 +15,7 @@ import java.io.Serializable;
 import java.time.Duration;
 
 import java.util.Objects;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
@@ -40,7 +43,7 @@ import java.util.function.Supplier;
  * @since 21.12
  */
 public interface Task<T>
-        extends Serializable
+        extends ExternalizableLite
     {
     /**
      * Executes the {@link Task}.
@@ -137,7 +140,7 @@ public interface Task<T>
      * @param <R>  the result type of the reduction operation
      */
     interface Collector<T, A, R>
-            extends Serializable
+            extends ExternalizableLite
         {
         /**
          * A function that folds {@link Task} results into a mutable result container.
@@ -198,7 +201,7 @@ public interface Task<T>
      * @param <T>  the type of result produced by the task.
      */
     interface CompletionRunnable<T>
-            extends Consumer<T>, Serializable
+            extends Consumer<T>, ExternalizableLite
         {
         }
 
@@ -373,7 +376,7 @@ public interface Task<T>
      * An option for configuring {@link Task} orchestration.
      */
     interface Option
-            extends Serializable
+            extends ExternalizableLite
         {
         }
 

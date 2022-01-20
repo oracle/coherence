@@ -1,17 +1,23 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
+
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -30,7 +36,7 @@ import java.util.concurrent.Executor;
  * @since 21.12
  */
 public class Result<T>
-        implements Serializable, PortableObject
+        implements ExternalizableLite, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -231,6 +237,24 @@ public class Result<T>
         return "Result{"
                + (m_fPresent
                   ? (m_throwable == null ? "value=" + m_value : "throwable=" + m_throwable) : "not-present") + "}";
+        }
+
+    // ----- ExternalizableLite interface -------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_fPresent  = in.readBoolean();
+        m_value     = ExternalizableHelper.readObject(in);
+        m_throwable = ExternalizableHelper.readObject(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        out.writeBoolean(m_fPresent);
+        ExternalizableHelper.writeObject(out, m_value);
+        ExternalizableHelper.writeObject(out, m_throwable);
         }
 
     // ----- PortableObject interface ---------------------------------------

@@ -6,7 +6,7 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
-import java.io.Serializable;
+import com.tangosol.io.ExternalizableLite;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -102,7 +102,7 @@ public interface TaskExecutorService
      * {@link ExecutorService}.
      */
     interface ExecutorInfo
-        extends Serializable
+            extends ExternalizableLite
         {
         /**
          * Obtains the unique identity for the {@link ExecutorService}.
@@ -265,7 +265,7 @@ public interface TaskExecutorService
          * An {@link Option} for an {@link ExecutorService} when registered.
          */
         interface Option
-            extends Serializable
+            extends ExternalizableLite
             {
             }
         }

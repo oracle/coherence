@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,8 @@ import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.util.FilteringIterable;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
+import com.tangosol.io.ExternalizableLite;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -29,6 +31,7 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
@@ -41,8 +44,9 @@ import com.tangosol.util.function.Remote.Predicate;
 
 import com.tangosol.util.processor.ConditionalRemove;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
 
 import java.time.Duration;
 
@@ -71,7 +75,7 @@ import java.util.function.BiConsumer;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ClusteredTaskManager<T, A, R>
-        implements Serializable, LiveObject, PortableObject
+        implements ExternalizableLite, LiveObject, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -601,6 +605,81 @@ public class ClusteredTaskManager<T, A, R>
     public void setTaskSequence(long sequence)
         {
         m_lTaskSequence = sequence;
+        }
+
+    // ----- ExternalizableLite interface -------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_sTaskId                = ExternalizableHelper.readUTF(in);
+        m_task                   = ExternalizableHelper.readObject(in);
+        m_executionStrategy      = ExternalizableHelper.readObject(in);
+        m_collector              = ExternalizableHelper.readObject(in);
+        m_completionPredicate    = ExternalizableHelper.readObject(in);
+        m_completionRunnable     = ExternalizableHelper.readObject(in);
+        m_fRunCompletionRunnable = m_completionRunnable != null;
+        long retainSeconds       = ExternalizableHelper.readLong(in);
+
+        if (retainSeconds == -1L)
+            {
+            m_retainDuration = null;
+            }
+        else
+            {
+            m_retainDuration = Duration.ofSeconds(retainSeconds);
+            }
+
+        m_debugging      = ExternalizableHelper.readObject(in);
+        m_lastResult     = ExternalizableHelper.readObject(in);
+        m_nResultVersion = ExternalizableHelper.readInt(in);
+        m_executionPlan  = ExternalizableHelper.readObject(in);
+
+        m_cPendingExecutionStrategyUpdateCount   = ExternalizableHelper.readInt(in);
+        m_cPendingExecutionPlanOptimizationCount = ExternalizableHelper.readInt(in);
+
+        if (m_collector != null)
+            {
+            // we only keep a list if there is a collector
+            m_listResults = new ArrayList<>();
+            ExternalizableHelper.readCollection(in, m_listResults, null);
+            }
+
+        m_lCurrentResultGeneration   = ExternalizableHelper.readLong(in);
+        m_lProcessedResultGeneration = ExternalizableHelper.readLong(in);
+
+        m_fCancelled = in.readBoolean();
+        m_fCompleted = in.readBoolean();
+        m_state      = ExternalizableHelper.readObject(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeUTF(out, m_sTaskId);
+        ExternalizableHelper.writeObject(out, m_task);
+        ExternalizableHelper.writeObject(out, m_executionStrategy);
+        ExternalizableHelper.writeObject(out, m_collector);
+        ExternalizableHelper.writeObject(out, m_completionPredicate);
+        ExternalizableHelper.writeObject(out, m_completionRunnable);
+        ExternalizableHelper.writeLong(out, m_retainDuration == null ? -1L : m_retainDuration.getSeconds());
+        ExternalizableHelper.writeObject(out, m_debugging);
+        ExternalizableHelper.writeObject(out, m_lastResult);
+        ExternalizableHelper.writeInt(out, m_nResultVersion);
+        ExternalizableHelper.writeObject(out, m_executionPlan);
+        ExternalizableHelper.writeInt(out, m_cPendingExecutionStrategyUpdateCount);
+        ExternalizableHelper.writeInt(out, m_cPendingExecutionPlanOptimizationCount);
+
+        if (m_collector != null)
+            {
+            ExternalizableHelper.writeCollection(out, m_listResults);
+            }
+
+        ExternalizableHelper.writeLong(out, m_lCurrentResultGeneration);
+        ExternalizableHelper.writeLong(out, m_lProcessedResultGeneration);
+        out.writeBoolean(m_fCancelled);
+        out.writeBoolean(m_fCompleted);
+        ExternalizableHelper.writeObject(out, m_state);
         }
 
     // ----- PortableObject interface ---------------------------------------

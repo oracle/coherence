@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
-import java.io.Serializable;
+import com.tangosol.io.ExternalizableLite;
 
 import java.util.Iterator;
 
@@ -22,7 +22,7 @@ import java.util.function.Predicate;
  * @since 21.12
  */
 public interface ExecutionPlan
-        extends Serializable
+        extends ExternalizableLite
     {
     /**
      * Obtains the proposed {@link ExecutionPlan.Action} for the specified

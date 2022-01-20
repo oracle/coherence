@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
+import com.tangosol.io.ExternalizableLite;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -15,6 +17,7 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -22,8 +25,9 @@ import com.tangosol.util.filter.EqualsFilter;
 
 import com.tangosol.util.processor.ConditionalRemove;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
 
 import java.util.Iterator;
 
@@ -38,12 +42,12 @@ import static com.oracle.coherence.concurrent.executor.ExecutionPlan.Action;
  * @since 21.06
  */
 public class ClusteredAssignment
-        implements Serializable, PortableObject
+        implements ExternalizableLite, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link ClusteredAssignment} (required for Serializable).
+     * Constructs a {@link ClusteredAssignment} (required for serialization).
      */
     @SuppressWarnings("unused")
     public ClusteredAssignment()
@@ -62,6 +66,26 @@ public class ClusteredAssignment
         m_sTaskId     = sTaskId;
         m_state       = State.ASSIGNED;
         m_fRecovered  = false;
+        }
+
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_sExecutorId = ExternalizableHelper.readSafeUTF(in);
+        m_sTaskId     = ExternalizableHelper.readSafeUTF(in);
+        m_state       = ExternalizableHelper.readObject(in);
+        m_fRecovered  = in.readBoolean();
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeUTF(out, m_sExecutorId);
+        ExternalizableHelper.writeUTF(out, m_sTaskId);
+        ExternalizableHelper.writeObject(out, m_state);
+        out.writeBoolean(m_fRecovered);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -299,7 +323,7 @@ public class ClusteredAssignment
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link AssignmentProcessor} (required for Serializable).
+         * Constructs a {@link AssignmentProcessor} (required for serialization).
          */
         @SuppressWarnings("unused")
         public AssignmentProcessor()
@@ -401,7 +425,7 @@ public class ClusteredAssignment
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link SetStateProcessor} (required for Serializable).
+         * Constructs a {@link SetStateProcessor} (required for serialization).
          */
         @SuppressWarnings("unused")
         public SetStateProcessor()

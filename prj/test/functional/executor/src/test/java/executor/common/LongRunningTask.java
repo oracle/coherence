@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -14,6 +14,10 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import java.time.Duration;
@@ -100,6 +104,24 @@ public class LongRunningTask
         Logger.info("LongRunningTask: Completed; returning DONE");
         return "DONE";
         }
+
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_duration = Duration.ofSeconds(ExternalizableHelper.readLong(in));
+        m_nId      = ExternalizableHelper.readInt(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeLong(out, m_duration.getSeconds());
+        ExternalizableHelper.writeInt(out, m_nId);
+        }
+
+    // ----- PortableObject interface ---------------------------------------
 
     @Override
     public void readExternal(PofReader in) throws IOException

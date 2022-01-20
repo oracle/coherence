@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,8 +10,12 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.ExternalizableHelper;
+
 import com.tangosol.util.function.Remote.Predicate;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.EnumSet;
@@ -36,7 +40,7 @@ public class StandardExecutionStrategy
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link StandardExecutionStrategy} (required for Serializable).
+     * Constructs a {@link StandardExecutionStrategy} (required for serialization).
      */
     @SuppressWarnings("unused")
     public StandardExecutionStrategy()
@@ -196,6 +200,24 @@ public class StandardExecutionStrategy
         newPlan.setPendingRecoveryCount(Math.max(cPendingRecoveries, 0));
 
         return newPlan;
+        }
+
+    // ----- ExternalizableLite interface -------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_cDesiredExecutors    = ExternalizableHelper.readInt(in);
+        m_predicate            = ExternalizableHelper.readObject(in);
+        m_fPerformConcurrently = in.readBoolean();
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeInt(out, m_cDesiredExecutors);
+        ExternalizableHelper.writeObject(out, m_predicate);
+        out.writeBoolean(m_fPerformConcurrently);
         }
 
     // ----- PortableObject interface ---------------------------------------
