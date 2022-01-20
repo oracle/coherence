@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -32,8 +32,12 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import com.tangosol.util.ExternalizableHelper;
+
 import com.tangosol.util.function.Remote;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import java.time.Duration;
@@ -2098,6 +2102,16 @@ public abstract class AbstractTaskExecutorServiceTests
             return "finished";
             }
 
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -2330,6 +2344,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
     public static class SumCollector
             extends AbstractCollector<Integer, Integer>
+            implements PortableObject
         {
         // ----- AbstractCollector interface --------------------------------
         @Override
@@ -2345,6 +2360,26 @@ public abstract class AbstractTaskExecutorServiceTests
                     }
                 return nSum;
                 };
+            }
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        public void writeExternal(PofWriter out) throws IOException
+            {
             }
         }
 
@@ -2387,7 +2422,19 @@ public abstract class AbstractTaskExecutorServiceTests
                 }
             return cResults;
             }
-        
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            cResults = ExternalizableHelper.readInt(in);
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeInt(out, cResults);
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -2432,6 +2479,16 @@ public abstract class AbstractTaskExecutorServiceTests
             return "finished";
             }
 
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -2468,6 +2525,16 @@ public abstract class AbstractTaskExecutorServiceTests
             properties.put("count", count);
             System.out.println("CountingTask has executed: " + count + " times.");
             return count;
+            }
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
             }
 
         // ----- PortableObject interface -----------------------------------
@@ -2509,6 +2576,16 @@ public abstract class AbstractTaskExecutorServiceTests
             return sResult;
             }
 
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -2548,6 +2625,16 @@ public abstract class AbstractTaskExecutorServiceTests
             return sResult;
             }
 
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -2583,6 +2670,18 @@ public abstract class AbstractTaskExecutorServiceTests
             {
             s_fLogTaskCalled = true;
             System.out.println("Task has completed with result: " + result);
+            }
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            s_fLogTaskCalled = in.readBoolean();
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            out.writeBoolean(s_fLogTaskCalled);
             }
 
         // ----- PortableObject interface -----------------------------------

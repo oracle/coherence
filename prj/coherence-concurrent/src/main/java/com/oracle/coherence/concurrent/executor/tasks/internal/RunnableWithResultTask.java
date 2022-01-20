@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,6 +13,10 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 /**
@@ -29,7 +33,7 @@ public class RunnableWithResultTask<T>
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link RunnableWithResultTask} (required for Serializable).
+     * Constructs a {@link RunnableWithResultTask} (required for serialization).
      */
     @SuppressWarnings("unused")
     public RunnableWithResultTask()
@@ -56,6 +60,22 @@ public class RunnableWithResultTask<T>
         m_runnable.run();
 
         return m_result;
+        }
+
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_runnable = ExternalizableHelper.readObject(in);
+        m_result   = ExternalizableHelper.readObject(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_runnable);
+        ExternalizableHelper.writeObject(out, m_result);
         }
 
     // ----- PortableObject interface ---------------------------------------

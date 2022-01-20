@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,8 +18,12 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.ExternalizableHelper;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -40,7 +44,7 @@ public class CronTask<T>
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link CronTask} (required for Serializable).
+     * Constructs a {@link CronTask} (required for serialization).
      */
     @SuppressWarnings("unused")
     public CronTask()
@@ -67,7 +71,7 @@ public class CronTask<T>
 
         m_origTask               = task;
         m_task                   = (Task<T>) clone(task);
-        sCronPattern             = sPattern;
+        m_sCronPattern           = sPattern;
         m_ldtNextExecutionMillis = 0;
         }
 
@@ -90,7 +94,7 @@ public class CronTask<T>
      */
     public String getCronPattern()
         {
-        return sCronPattern;
+        return m_sCronPattern;
         }
 
     /**
@@ -102,7 +106,7 @@ public class CronTask<T>
      */
     public long getNextExecutionMillis(long cMillis)
         {
-        m_ldtNextExecutionMillis = new CronPattern(sCronPattern).getNextExecuteTime(cMillis);
+        m_ldtNextExecutionMillis = new CronPattern(m_sCronPattern).getNextExecuteTime(cMillis);
 
         return m_ldtNextExecutionMillis;
         }
@@ -147,6 +151,26 @@ public class CronTask<T>
         throw Yield.atLeast(Duration.ofMillis(ldtNextMillis - ldtCurrentMillis));
         }
 
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_origTask               = ExternalizableHelper.readObject(in);
+        m_task                   = ExternalizableHelper.readObject(in);
+        m_sCronPattern           = ExternalizableHelper.readUTF(in);
+        m_ldtNextExecutionMillis = ExternalizableHelper.readLong(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_origTask);
+        ExternalizableHelper.writeObject(out, m_task);
+        ExternalizableHelper.writeUTF(out, m_sCronPattern);
+        ExternalizableHelper.writeLong(out, m_ldtNextExecutionMillis);
+        }
+
     // ----- PortableObject interface ---------------------------------------
 
     @Override
@@ -155,7 +179,7 @@ public class CronTask<T>
         {
         m_origTask               = in.readObject(0);
         m_task                   = in.readObject(1);
-        sCronPattern             = in.readString(2);
+        m_sCronPattern           = in.readString(2);
         m_ldtNextExecutionMillis = in.readLong(3);
         }
 
@@ -165,7 +189,7 @@ public class CronTask<T>
         {
         out.writeObject(0, m_origTask);
         out.writeObject(1, m_task);
-        out.writeString(2, sCronPattern);
+        out.writeString(2, m_sCronPattern);
         out.writeLong(3,   m_ldtNextExecutionMillis);
         }
 
@@ -191,7 +215,7 @@ public class CronTask<T>
             return false;
             }
 
-        return sCronPattern.equals(cronTask.sCronPattern);
+        return m_sCronPattern.equals(cronTask.m_sCronPattern);
         }
 
     @Override
@@ -199,7 +223,7 @@ public class CronTask<T>
         {
         int result = m_task.hashCode();
 
-        result = 31 * result + sCronPattern.hashCode();
+        result = 31 * result + m_sCronPattern.hashCode();
 
         return result;
         }
@@ -207,7 +231,7 @@ public class CronTask<T>
     @Override
     public String toString()
         {
-        return "CronTask{" + "task=" + m_task + "cron pattern=" + sCronPattern + '}';
+        return "CronTask{" + "task=" + m_task + "cron pattern=" + m_sCronPattern + '}';
         }
 
     /**
@@ -270,7 +294,7 @@ public class CronTask<T>
     /**
      * The crontab scheduling pattern for the {@link Task}.
      */
-    protected String sCronPattern;
+    protected String m_sCronPattern;
 
     /**
      * The next execution time.

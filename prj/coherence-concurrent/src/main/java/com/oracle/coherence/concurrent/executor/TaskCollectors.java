@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,9 +8,15 @@ package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.util.function.Remote.Predicate;
 
-import java.io.Serializable;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -117,7 +123,7 @@ public final class TaskCollectors
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link CountCollector} (required for Serializable).
+         * Constructs a {@link CountCollector} (required for serialization).
          */
         public CountCollector()
             {
@@ -130,6 +136,30 @@ public final class TaskCollectors
             {
             return List::size;
             }
+
+        // ----- ExternalizableLite -----------------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     /**
@@ -138,9 +168,9 @@ public final class TaskCollectors
      * @param <T>  the type of result
      */
     public static class FirstOfCollector<T>
-            implements PortableCollector<T, AtomicReference<T>, T>, Serializable
+            implements Task.Collector<T, AtomicReference<T>, T>, PortableObject
         {
-        // ----- PortableCollector interface --------------------------------
+        // ----- Task.Collector interface -----------------------------------
 
         @Override
         public BiConsumer<AtomicReference<T>, T> accumulator()
@@ -175,6 +205,30 @@ public final class TaskCollectors
             {
             return () -> new AtomicReference<>(null);
             }
+
+        // ----- ExternalizableLite -----------------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     // ----- inner class: LastOfCollector -----------------------------------
@@ -204,6 +258,30 @@ public final class TaskCollectors
                 return last;
                 };
             }
+
+        // ----- ExternalizableLite -----------------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     // ----- inner class: ListOfCollector -----------------------------------
@@ -215,9 +293,9 @@ public final class TaskCollectors
      * @param <T>  the type of the result
      */
     public static class ListOfCollector<T>
-            implements PortableCollector<T, List<T>, List<T>>, Serializable
+            implements Task.Collector<T, List<T>, List<T>>, PortableObject
         {
-        // ----- PortableCollector interface --------------------------------
+        // ----- Task.Collector interface -----------------------------------
 
         @Override
         public BiConsumer<List<T>, T> accumulator()
@@ -255,6 +333,31 @@ public final class TaskCollectors
             {
             return ArrayList::new;
             }
+
+
+        // ----- ExternalizableLite -----------------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            }
         }
 
     // ----- inner class: SetOfCollector ------------------------------------
@@ -266,9 +369,9 @@ public final class TaskCollectors
      * @param <T>  the type of the result
      */
     public static class SetOfCollector<T>
-            implements PortableCollector<T, Set<T>, Set<T>>, Serializable
+            implements Task.Collector<T, Set<T>, Set<T>>, PortableObject
         {
-        // ----- PortableCollector interface --------------------------------
+        // ----- Task.Collector interface -----------------------------------
 
         @Override
         public BiConsumer<Set<T>, T> accumulator()
@@ -305,6 +408,31 @@ public final class TaskCollectors
         public Supplier<Set<T>> supplier()
             {
             return HashSet::new;
+            }
+
+
+        // ----- ExternalizableLite -----------------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
             }
         }
     }

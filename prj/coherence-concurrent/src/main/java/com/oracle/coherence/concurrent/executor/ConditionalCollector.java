@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,7 +8,17 @@ package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.util.ExternalizableHelper;
+
 import com.tangosol.util.function.Remote.Predicate;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,9 +39,17 @@ import java.util.function.Supplier;
  * @since 21.12
  */
 public class ConditionalCollector<T, A, R>
-        implements Task.Collector<T, List<T>, R>
+        implements Task.Collector<T, List<T>, R>, PortableObject
     {
     // ----- constructors ---------------------------------------------------
+
+    /**
+     * For serialization.
+     */
+    @SuppressWarnings("unused")
+    public ConditionalCollector()
+        {
+        }
 
     /**
      * Constructs a {@link ConditionalCollector}.
@@ -44,9 +62,9 @@ public class ConditionalCollector<T, A, R>
     public ConditionalCollector(Predicate<? super Iterator<T>> predicate, Task.Collector<? super T, A, R>  collector,
                                 R defaultResult)
         {
-        f_predicate     = predicate;
-        f_collector     = (Task.Collector<T, A, R>) collector;
-        f_defaultResult = defaultResult;
+        m_predicate     = predicate;
+        m_collector     = (Task.Collector<T, A, R>) collector;
+        m_defaultResult = defaultResult;
         }
 
     // ----- Task.Collector interface ---------------------------------------
@@ -68,13 +86,13 @@ public class ConditionalCollector<T, A, R>
         {
         return results ->
             {
-            if (f_predicate.test(results.iterator()))
+            if (m_predicate.test(results.iterator()))
                 {
                 // use the provided collector to perform the actual collection
-                A                collectorContainer   = f_collector.supplier().get();
-                BiConsumer<A, T> collectorAccumulator = f_collector.accumulator();
-                Predicate<A>     collectorFinishable  = f_collector.finishable();
-                Function<A, R>   collectorFinisher    = f_collector.finisher();
+                A                collectorContainer   = m_collector.supplier().get();
+                BiConsumer<A, T> collectorAccumulator = m_collector.accumulator();
+                Predicate<A>     collectorFinishable  = m_collector.finishable();
+                Function<A, R>   collectorFinisher    = m_collector.finisher();
 
                 for (Iterator<T> iterator = results.iterator();
                          iterator.hasNext() && !collectorFinishable.test(collectorContainer); )
@@ -88,7 +106,7 @@ public class ConditionalCollector<T, A, R>
                 }
             else
                 {
-                return f_defaultResult;
+                return m_defaultResult;
                 }
             };
         }
@@ -99,20 +117,54 @@ public class ConditionalCollector<T, A, R>
         return ArrayList::new;
         }
 
+    // ----- ExternalizableLite interface -------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_predicate     = ExternalizableHelper.readObject(in);
+        m_collector     = ExternalizableHelper.readObject(in);
+        m_defaultResult = ExternalizableHelper.readObject(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_predicate);
+        ExternalizableHelper.writeObject(out, m_collector);
+        ExternalizableHelper.writeObject(out, m_defaultResult);
+        }
+
+    // ----- PortableObject interface ---------------------------------------
+
+    public void readExternal(PofReader in) throws IOException
+        {
+        m_predicate     = in.readObject(0);
+        m_collector     = in.readObject(1);
+        m_defaultResult = in.readObject(2);
+        }
+
+    public void writeExternal(PofWriter out) throws IOException
+        {
+        out.writeObject(0, m_predicate);
+        out.writeObject(1, m_collector);
+        out.writeObject(2, m_defaultResult);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
      * The {@link Predicate} to determine when results can be collected.
      */
-    protected final Predicate<? super Iterator<T>> f_predicate;
+    protected Predicate<? super Iterator<T>> m_predicate;
 
     /**
      * The {@link Task.Collector} to use when the {@link Predicate} is satisfied.
      */
-    protected final Task.Collector<T, A, R> f_collector;
+    protected Task.Collector<T, A, R> m_collector;
 
     /**
      * The default result to return when the {@link Predicate} is not satisfied.
      */
-    protected final R f_defaultResult;
+    protected R m_defaultResult;
     }

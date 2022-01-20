@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,10 @@ import com.oracle.coherence.concurrent.executor.Task;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import java.time.Duration;
@@ -33,7 +37,7 @@ public class ScheduledCallableTask<T>
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructs a {@link ScheduledCallableTask} (required for Serializable).
+     * Constructs a {@link ScheduledCallableTask} (required for serialization).
      */
     @SuppressWarnings("unused")
     public ScheduledCallableTask()
@@ -82,7 +86,7 @@ public class ScheduledCallableTask<T>
         return getCallable().call();
         }
 
-    // ------- Callable interface -------------------------------------
+    // ----- Callable interface ---------------------------------------------
 
     @Override
     public T call()
@@ -90,7 +94,29 @@ public class ScheduledCallableTask<T>
         throw new UnsupportedOperationException();
         }
 
-    // ------- PortableObject interface -------------------------------------
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        super.readExternal(in);
+        m_ldtSubmitNanos = ExternalizableHelper.readLong(in);
+        long seconds     = ExternalizableHelper.readLong(in);
+        if (seconds > 0)
+            {
+            m_ltdInitialDelay = Duration.ofSeconds(seconds);
+            }
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        super.writeExternal(out);
+        ExternalizableHelper.writeLong(out, m_ldtSubmitNanos);
+        ExternalizableHelper.writeLong(out, m_ltdInitialDelay == null ? 0 : m_ltdInitialDelay.getSeconds());
+        }
+
+    // ----- PortableObject interface ---------------------------------------
 
     @Override
     public void readExternal(PofReader in) throws IOException

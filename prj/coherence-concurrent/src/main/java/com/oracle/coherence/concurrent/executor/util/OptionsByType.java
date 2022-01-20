@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,14 +9,18 @@ package com.oracle.coherence.concurrent.executor.util;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Objects;
 
+import com.tangosol.io.ExternalizableLite;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import java.io.Externalizable;
+import com.tangosol.util.Base;
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.Serializable;
 
 import java.lang.annotation.Documented;
@@ -47,12 +51,12 @@ import java.util.Stack;
  * @since 21.12
  */
 public class OptionsByType<T>
-        implements Externalizable, PortableObject
+        implements ExternalizableLite, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Constructor for {@link Externalizable} support.
+     * Constructor for {@link ExternalizableLite} support.
      */
     public OptionsByType()
         {
@@ -226,66 +230,6 @@ public class OptionsByType<T>
 
         return sb.toString();
         }
-
-    // ----- Externalizable interface ---------------------------------------
-
-    @Override
-    public void readExternal(ObjectInput input) throws IOException, ClassNotFoundException
-        {
-        // read the class of option
-        String sClassOfOptionName = input.readUTF();
-
-        // resolve the class of option
-        //noinspection unchecked
-        m_clzOfOption = (Class<T>) Class.forName(sClassOfOptionName);
-
-        // read the options
-        m_mapOptionsByType = new LinkedHashMap<>();
-
-        int optionCount = input.readInt();
-
-        while (optionCount > 0)
-            {
-            //noinspection unchecked
-            T option = (T) input.readObject();
-
-            add(option);
-
-            optionCount--;
-            }
-        }
-
-    @Override
-    public void writeExternal(ObjectOutput output) throws IOException
-        {
-        // write the class of option
-        output.writeUTF(m_clzOfOption.getName());
-
-        // collect the serializable options (we can only serialize those)
-        List<T> serializableOptions = new ArrayList<>(m_mapOptionsByType.size());
-
-        for (Iterator<T> iterator = m_mapOptionsByType.values().iterator(); iterator.hasNext(); )
-            {
-            T option = iterator.next();
-
-            if (option instanceof Serializable)
-                {
-                serializableOptions.add(option);
-                }
-            }
-
-        // write the number of serializable options
-        // (so we know how many to read back)
-        output.writeInt(serializableOptions.size());
-
-        // write the serializable options
-        for (Iterator<T> iterator = serializableOptions.iterator(); iterator.hasNext(); )
-            {
-            output.writeObject(iterator.next());
-            }
-        }
-
-    // ----- PortableObject interface ---------------------------------------
 
     /**
      * Constructs an {@link OptionsByType} collection given an array of options.
@@ -572,6 +516,68 @@ public class OptionsByType<T>
         return null;
         }
 
+    // ----- Externalizable interface ---------------------------------------
+
+    public void readExternal(DataInput in) throws IOException
+        {
+        // read the class of option
+        String sClassOfOptionName = ExternalizableHelper.readUTF(in);
+
+        try
+            {
+            // resolve the class of option
+            //noinspection unchecked
+            m_clzOfOption = (Class<T>) Class.forName(sClassOfOptionName);
+            }
+        catch (ClassNotFoundException e)
+            {
+            throw new IOException(e);
+            }
+
+        // read the options
+        m_mapOptionsByType = new LinkedHashMap<>();
+
+        int optionCount = ExternalizableHelper.readInt(in);
+
+        while (optionCount > 0)
+            {
+            T option = ExternalizableHelper.readObject(in);
+
+            add(option);
+
+            optionCount--;
+            }
+        }
+
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        // write the class of option
+        ExternalizableHelper.writeUTF(out, m_clzOfOption.getName());
+
+        // collect the serializable options (we can only serialize those)
+        List<T> serializableOptions = new ArrayList<>(m_mapOptionsByType.size());
+
+        for (Iterator<T> iterator = m_mapOptionsByType.values().iterator(); iterator.hasNext(); )
+            {
+            T option = iterator.next();
+
+            if (option instanceof Serializable)
+                {
+                serializableOptions.add(option);
+                }
+            }
+
+        // write the number of serializable options
+        // (so we know how many to read back)
+        ExternalizableHelper.writeInt(out, serializableOptions.size());
+
+        // write the serializable options
+        for (Iterator<T> iterator = serializableOptions.iterator(); iterator.hasNext(); )
+            {
+            ExternalizableHelper.writeObject(out, iterator.next());
+            }
+        }
+
     // ----- PortableObject interface ---------------------------------------
 
     @Override
@@ -629,9 +635,11 @@ public class OptionsByType<T>
                 }
             }
 
+        // write the number of serializable options
+        // (so we know how many to read back)
         out.writeInt(1, listSerializableOptions.size());
-        // write the serializable options
-        int c = 2;
+
+        int c = 2; // current pof index
         for (Iterator<T> iterator = listSerializableOptions.iterator(); iterator.hasNext(); )
             {
             out.writeObject(c++, iterator.next());
@@ -692,18 +700,14 @@ public class OptionsByType<T>
             return (T[]) EMPTY;
             }
 
-        // ----- Externalizable interface -----------------------------------
+        // ----- ExternalizableLite interface -------------------------------
 
-        @Override
-        public void readExternal(ObjectInput input) throws IOException, ClassNotFoundException
+        public void readExternal(DataInput in) throws IOException
             {
-            // nothing to input as it's empty
             }
 
-        @Override
-        public void writeExternal(ObjectOutput output) throws IOException
+        public void writeExternal(DataOutput out) throws IOException
             {
-            // nothing to output as it's empty
             }
 
         // ----- PortableObject interface -----------------------------------
@@ -711,13 +715,11 @@ public class OptionsByType<T>
         @Override
         public void readExternal(PofReader in) throws IOException
             {
-            // nothing to output as it's empty
             }
 
         @Override
         public void writeExternal(PofWriter out) throws IOException
             {
-            // nothing to output as it's empty
             }
 
         // ----- constants --------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -17,6 +19,10 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.KeyAssociation;
 
+import com.tangosol.util.ExternalizableHelper;
+
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -30,7 +36,7 @@ import java.util.Objects;
  * @since 21.12
  */
 public class ClusteredProperties
-        implements Task.Properties, Serializable, PortableObject
+        implements Task.Properties, ExternalizableLite, PortableObject
     {
     // ----- constructors ---------------------------------------------------
 
@@ -113,6 +119,23 @@ public class ClusteredProperties
         return null;
         }
 
+    // ----- ExternalizableLite interface -----------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_sTaskId = ExternalizableHelper.readUTF(in);
+        m_service = ExternalizableHelper.readObject(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeUTF(out, m_sTaskId);
+        ExternalizableHelper.writeObject(out, m_service);
+        }
+
+
     // ----- PortableObject interface ---------------------------------------
 
     @Override
@@ -136,7 +159,7 @@ public class ClusteredProperties
      */
     @SuppressWarnings("rawtypes")
     public static class PropertyKey
-            implements Serializable, KeyAssociation, PortableObject
+            implements ExternalizableLite, KeyAssociation, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -233,13 +256,29 @@ public class ClusteredProperties
             return m_oKey;
             }
 
+        // ----- ExternalizableLite interface -------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_sTaskId = ExternalizableHelper.readUTF(in);
+            m_oKey    = ExternalizableHelper.readObject(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeUTF(out, m_sTaskId);
+            ExternalizableHelper.writeObject(out, m_oKey);
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in) throws IOException
             {
             m_sTaskId = in.readString(0);
-            m_oKey = in.readObject(1);
+            m_oKey    = in.readObject(1);
             }
 
         @Override
@@ -268,7 +307,7 @@ public class ClusteredProperties
      * Property value.
      */
     public static class PropertyValue
-            implements Serializable, PortableObject
+            implements ExternalizableLite, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -355,6 +394,22 @@ public class ClusteredProperties
             return m_oValue;
             }
 
+        // ----- ExternalizableLite interface -------------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_sTaskId = ExternalizableHelper.readUTF(in);
+            m_oValue  = ExternalizableHelper.readObject(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeUTF(out, m_sTaskId);
+            ExternalizableHelper.writeObject(out, m_oValue);
+            }
+
         // ----- PortableObject interface -----------------------------------
 
         @Override
@@ -402,6 +457,4 @@ public class ClusteredProperties
      * The {@link CacheService} used by the {@link Task}, hence the property cache.
      */
     protected CacheService m_service;
-
-
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,6 +18,8 @@ import com.oracle.coherence.concurrent.executor.options.Debugging;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
 import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
+
+import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -43,8 +45,9 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SparseArray;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -515,7 +518,7 @@ public class ClusteredTaskInterceptor
      * Comparator used to compare sequence number.
      */
     public static class SequenceComparator
-            implements Comparator<Object>, Serializable, PortableObject
+            implements Comparator<Object>, ExternalizableLite, PortableObject
         {
         // ----- Comparator interface ---------------------------------------
 
@@ -544,6 +547,16 @@ public class ClusteredTaskInterceptor
                 {
                 return o1.hashCode() - o2.hashCode();
                 }
+            }
+
+        // ----- ExternalizableLite interface -------------------------------
+
+        public void readExternal(DataInput in) throws IOException
+            {
+            }
+
+        public void writeExternal(DataOutput out) throws IOException
+            {
             }
 
         // ----- PortableObject interface -----------------------------------

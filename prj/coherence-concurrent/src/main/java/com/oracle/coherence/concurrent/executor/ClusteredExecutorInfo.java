@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
 import com.tangosol.util.UID;
@@ -39,6 +40,8 @@ import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.processor.ConditionalRemove;
 import com.tangosol.util.processor.ExtractorProcessor;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.Map;
@@ -449,6 +452,38 @@ public class ClusteredExecutorInfo
             }
         }
 
+    // ---- ExternalizableLite interface ------------------------------------
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        m_state         = ExternalizableHelper.readObject(in);
+        m_sIdentity     = ExternalizableHelper.readUTF(in);
+        m_optionsByType = ExternalizableHelper.readObject(in);
+        m_ldtUpdate     = ExternalizableHelper.readLong(in);
+        m_cMaxMemory    = ExternalizableHelper.readLong(in);
+        m_cTotalMemory  = ExternalizableHelper.readLong(in);
+        m_cFreeMemory   = ExternalizableHelper.readLong(in);
+        m_cCompleted    = ExternalizableHelper.readLong(in);
+        m_cRejected     = ExternalizableHelper.readLong(in);
+        m_cInProgress   = ExternalizableHelper.readLong(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeObject(out, m_state);
+        ExternalizableHelper.writeUTF(out, m_sIdentity);
+        ExternalizableHelper.writeObject(out, m_optionsByType);
+        ExternalizableHelper.writeLong(out, m_ldtUpdate);
+        ExternalizableHelper.writeLong(out, m_cMaxMemory);
+        ExternalizableHelper.writeLong(out, m_cTotalMemory);
+        ExternalizableHelper.writeLong(out, m_cFreeMemory);
+        ExternalizableHelper.writeLong(out, m_cCompleted);
+        ExternalizableHelper.writeLong(out, m_cRejected);
+        ExternalizableHelper.writeLong(out, m_cInProgress);
+        }
+
     // ----- PortableObject interface ---------------------------------------
 
     @Override
@@ -642,7 +677,7 @@ public class ClusteredExecutorInfo
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link JoiningContinuation} (required for Serializable).
+         * Constructs a {@link JoiningContinuation} (required for serialization).
          */
         @SuppressWarnings("unused")
         public JoiningContinuation()
@@ -771,7 +806,7 @@ public class ClusteredExecutorInfo
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs a {@link SetStateProcessor} (required for Serializable).
+         * Constructs a {@link SetStateProcessor} (required for serialization).
          */
         @SuppressWarnings("unused")
         public SetStateProcessor()
