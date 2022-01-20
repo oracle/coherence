@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import com.tangosol.coherence.rest.io.MarshallerRegistry;
 import com.tangosol.coherence.rest.query.Query;
 import com.tangosol.coherence.rest.query.QueryEngine;
 import com.tangosol.coherence.rest.query.QueryEngineRegistry;
+import com.tangosol.coherence.rest.query.QueryException;
 
 import com.tangosol.coherence.rest.server.InjectionBinder;
 
@@ -31,6 +32,7 @@ import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
 
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.FilterBuildingException;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.QueryHelper;
 import com.tangosol.util.SimpleMapEntry;
@@ -142,8 +144,9 @@ public class CacheResource
             {
             return Response.ok(executeQuery(sQuery, extractor, nStart, cResults, sSort)).build();
             }
-        catch (Exception e)
+        catch (FilterBuildingException | QueryException | IllegalArgumentException e)
             {
+            RestHelper.log(e);
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
         }
@@ -187,8 +190,9 @@ public class CacheResource
             {
             return Response.ok(executeQuery(sQuery, extractor, nStart, cResults, sSort)).build();
             }
-        catch (Exception e)
+        catch (FilterBuildingException | QueryException | IllegalArgumentException e)
             {
+            RestHelper.log(e);
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
         }
@@ -217,8 +221,9 @@ public class CacheResource
             {
             return Response.ok(keys(sQuery)).build();
             }
-        catch (Exception e)
+        catch (FilterBuildingException | QueryException | IllegalArgumentException e)
             {
+            RestHelper.log(e);
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
         }
@@ -257,6 +262,7 @@ public class CacheResource
             }
         catch (IllegalArgumentException e)
             {
+            RestHelper.log(e);
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
 
@@ -310,6 +316,7 @@ public class CacheResource
             }
         catch (IllegalArgumentException e)
             {
+            RestHelper.log(e);
             return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
 
