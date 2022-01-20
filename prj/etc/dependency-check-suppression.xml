@@ -375,14 +375,4 @@
     <cve>CVE-2021-2371</cve>
     <cve>CVE-2021-2428</cve>
   </suppress>
-
-  <!-- com.h2database 1.4.200 - CVE references API not used by Coherence; referenced by JDBC in examples and/or tests -->
-  <suppress>
-    <notes><![CDATA[
-    file name: h2-1.4.200.jar
-    ]]></notes>
-      <packageUrl regex="true">^pkg:maven/com\.h2database/h2@.*$</packageUrl>
-      <cve>CVE-2021-23463</cve>
-  </suppress>
-
 </suppressions>
