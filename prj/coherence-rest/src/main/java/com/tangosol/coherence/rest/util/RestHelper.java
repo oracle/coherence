@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
+
+import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Base;
 
@@ -74,6 +76,32 @@ public abstract class RestHelper
             }
 
         return cMax;
+        }
+
+    /**
+     * Log server side message for handled exceptions that return a http response
+     * of {@code BAD REQUEST}, status 400.
+     *
+     * @param ex   server side exception handled while processing a rest http request
+     */
+    public static void log(Exception ex)
+        {
+        if (ex instanceof RuntimeException && ex.getMessage().contains("unknown user type"))
+            {
+            // identified an internal server error that pof is misconfigured for a type,
+            // rethrow so client receives a server internal error.
+            throw (RuntimeException) ex;
+            }
+        if (CacheFactory.isLogEnabled(Base.LOG_QUIET))
+            {
+            Throwable exCause = ex.getCause();
+            String    sCause  = exCause == null
+                                ? null
+                                : String.format(" Cause: " + exCause.getClass().getName() +
+                                  " : " + exCause.getLocalizedMessage());
+            CacheFactory.log("Rest Server exception: " + ex.getClass().getName() +
+                             " : " + ex.getLocalizedMessage() + sCause, Base.LOG_QUIET);
+            }
         }
 
     /**
