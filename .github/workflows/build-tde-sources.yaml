@@ -1,12 +1,12 @@
-# Copyright 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2022 Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
-# Coherence CE GitHub Actions CI build.
+# Coherence CE GitHub Actions TDE Sources build.
 # ---------------------------------------------------------------------------
 
-name: CI Build
+name: TDE Sources
 
 on:
   workflow_dispatch:
@@ -73,7 +73,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pcopyright -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pcopyright,tde.sources -DskipTests clean install
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
