@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 import com.tangosol.net.Coherence;
 
 import java.util.concurrent.RejectedExecutionException;
@@ -93,6 +94,19 @@ public abstract class AbstractRemoteExecutorTest
                 () -> { def.execute(() -> System.out.println("Shouldn't Run")); });
 
         assertThat(exception.getMessage(), is("No RemoteExecutor service available by name [Name{unknown}]"));
+        }
+
+    /**
+     * This is a work-around to fix the fact that the JUnit5 test logs extension
+     * in Bedrock does not work for BeforeAll methods and extensions.
+     */
+    static class TestLogs
+            extends AbstractTestLogs
+        {
+        public TestLogs(Class<?> testClass)
+            {
+            init(testClass, "BeforeAll");
+            }
         }
 
     // ----- data members ---------------------------------------------------

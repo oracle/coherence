@@ -23,6 +23,8 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
+import com.oracle.coherence.concurrent.AbstractClusteredRemoteCountDownLatchIT;
+import com.oracle.coherence.concurrent.ClusteredRemoteCountDownLatchIT;
 import com.tangosol.net.Coherence;
 
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -49,6 +51,13 @@ public class RemoteExecutorExtendTestIT
     // ----- data members ---------------------------------------------------
 
     /**
+     * A Bedrock utility to capture logs of spawned processes into files
+     * under target/test-output. This is added as an option to the cluster
+     * and client processes.
+     */
+    static TestLogs logs = new TestLogs(RemoteExecutorExtendTestIT.class);
+
+    /**
      * A Bedrock JUnit5 extension that starts a Coherence cluster of a single
      * storage-enabled member.
      */
@@ -61,6 +70,7 @@ public class RemoteExecutorExtendTestIT
                           LocalHost.only(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
+                          logs,
                           ClusterPort.automatic())
                     .include(1,
                              SystemProperty.of("coherence.concurrent.extend.enabled", true),

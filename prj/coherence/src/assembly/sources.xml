@@ -16,7 +16,8 @@
   <dependencySets>
     <dependencySet>
       <includes>
-        <include>com.oracle.coherence.ce:coherence-core:jar:sources:${project.version}</include>
+        <include>${coherence.group.id}:coherence-core:jar:sources:${project.version}</include>
+        <include>${coherence.group.id}:coherence-core-components:jar:sources:${project.version}</include>
       </includes>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <useProjectArtifact>false</useProjectArtifact>
