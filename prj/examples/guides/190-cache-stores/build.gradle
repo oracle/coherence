@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ dependencies {
 	testImplementation "com.oracle.bedrock.coherence:coherence-12.2.1-testing-support:${bedrockVersion}"
     testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 
+    implementation "com.h2database:h2:${h2Version}"
     implementation "io.r2dbc:r2dbc-h2:${r2dbch2Version}"
 	testImplementation "org.hsqldb:hsqldb:${hsqldbVersion}"
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
