@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -33,7 +33,6 @@ import com.tangosol.util.filter.AlwaysFilter;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -109,6 +108,8 @@ public class MultiserverMetricsTests
             props.put("test.extend.port2", Integer.toString(proxyPorts.next()));
 
             CoherenceClusterMember clusterMember = startCacheServer(sMemberName, "metrics", FILE_SERVER_CFG_CACHE, props);
+
+            anNodeIds[i] = clusterMember.getLocalMemberId();
 
             Eventually.assertThat(invoking(clusterMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
             }
@@ -225,6 +226,10 @@ public class MultiserverMetricsTests
         partitionAssignmentTags.put("cluster", cache.getCacheService().getCluster().getClusterName());
         partitionAssignmentTags.put("coherence_service", "DistributedCacheService");
 
+        Map<String, String>   mapServiceTags   = new LinkedHashMap<>();
+        mapServiceTags.put("name", "DistributedCacheService");
+        mapServiceTags.put("type", "DistributedCache");
+
         String currentMetric = null;
 
         try
@@ -238,6 +243,15 @@ public class MultiserverMetricsTests
             currentMetric = "Coherence.PartitionAssignment.HAStatusCode";
             Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, partitionAssignmentTags),
                                   is((long) SimpleStrategyMBean.HAStatus.NODE_SAFE.getCode()), DeferredHelper.within(5L, TimeUnit.SECONDS));
+
+            // check each cache server member (by iterating over nodeIds of storage-enabled members) has StatusHACode.
+            for (int nodeId : anNodeIds)
+                {
+                currentMetric = "Coherence.Service.StatusHACode";
+                mapServiceTags.put("nodeId", Integer.toString(nodeId));
+                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, mapServiceTags),
+                                      is((long) SimpleStrategyMBean.HAStatus.NODE_SAFE.getCode()), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                }
             }
         catch (Throwable t)
             {
@@ -448,7 +462,12 @@ public class MultiserverMetricsTests
      * Prometheus port for each cache server by index starting at 1.
      */
     private static int[]   cacheServerMetricsPorts = new int[N_SERVERS];
-    
+
+    /**
+     * Node Ids for cache servers.
+     */
+    private static int[] anNodeIds = new int[N_SERVERS];
+
     private static File   fileActiveDir;
     private static File   fileSnapshotDir;
     private static File   fileArchiveDir;

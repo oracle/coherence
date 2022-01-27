@@ -1,19 +1,20 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
-
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.SiteName;
+
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
@@ -373,6 +374,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.RequestPendingDuration",
                                     "Coherence.Service.RequestTimeoutCount",
                                     "Coherence.Service.RequestTotalCount",
+                                    "Coherence.Service.StatusHACode",
                                     "Coherence.Service.StorageEnabledCount",
                                     "Coherence.Service.TaskAverageDuration",
                                     "Coherence.Service.TaskBacklog",
@@ -465,6 +467,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.RequestPendingDuration",
                                     "Coherence.Service.RequestTimeoutCount",
                                     "Coherence.Service.RequestTotalCount",
+                                    "Coherence.Service.StatusHACode",
                                     "Coherence.Service.StorageEnabledCount",
                                     "Coherence.Service.TaskAverageDuration",
                                     "Coherence.Service.TaskBacklog",
@@ -954,7 +957,7 @@ public class MetricsSupportTests
     /**
      * True iff JVM is for JDK 15 or greater.
      */
-    private static final Boolean s_bTestJdk15 = Integer.valueOf(System.getProperty("java.version").split("\\.")[0]) > 14 ? true : false;
+    private static final Boolean s_bTestJdk15 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 14;
 
     // ----- data members ---------------------------------------------------
 
