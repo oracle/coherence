@@ -29,12 +29,14 @@
     <javadoc.src>${project.build.directory}/src</javadoc.src>
 
     <!-- javadoc configuration -->
-    <doclint.check>reference</doclint.check>
+    <doclint.check>-html</doclint.check>
 
     <!-- ignore default javadoc execution -->
     <skip.docs>true</skip.docs>
 
-    <stylesheet.file>${project.basedir}/src/main/javadoc/stylesheet.css</stylesheet.file>
+    <stylesheet.file>${project.build.directory}/stylesheet.css</stylesheet.file>
+    <old-stylesheet.file>${project.basedir}/src/main/javadoc/stylesheet.css</old-stylesheet.file>
+    <new-stylesheet.file>${project.basedir}/src/main/javadoc/new-stylesheet.css</new-stylesheet.file>
   </properties>
 
   <dependencies>
@@ -314,6 +316,44 @@
       </activation>
       <build>
         <plugins>
+          <!-- set css file to use based on the version of jdk in use
+               as generated javadoc is different between jdk 17 and jdk 11 -->
+          <plugin>
+            <groupId>org.codehaus.gmaven</groupId>
+            <artifactId>groovy-maven-plugin</artifactId>
+            <version>${maven.groovy.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>copy-css</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <source>
+                    import java.nio.file.Paths
+                    import java.nio.file.Files
+
+                    props = project.properties
+
+                    javaVersion = Integer.valueOf(System.getProperty("java.version").split('-|\\.')[0])
+
+                    if (javaVersion >= 17)
+                      {
+                      cssSource = Paths.get(props.get("new-stylesheet.file"))
+                      }
+                    else
+                      {
+                      cssSource = Paths.get(props.get("old-stylesheet.file"))
+                      }
+
+                    Files.copy(cssSource, Paths.get(props.get("stylesheet.file")))
+                  </source>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
           <!-- create a source tree from which to generate javadoc -->
 
           <!--

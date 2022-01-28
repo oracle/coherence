@@ -128,6 +128,7 @@
      <maven.animalsniffer.plugin.version>1.18</maven.animalsniffer.plugin.version>
      <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
      <maven.protobuf.plugin.version>0.6.1</maven.protobuf.plugin.version>
+     <maven.groovy.plugin.version>2.1.1</maven.groovy.plugin.version>
 
     <!-- library dependency versions -->
     <activation-api.version>1.2.2</activation-api.version>
