@@ -405,6 +405,7 @@
         <module>coherence-java-client</module>
         <module>coherence-helidon-client</module>
         <module>coherence-concurrent</module>
+        <module>coherence-caffeine</module>
         <module>plugins</module>
       </modules>
     </profile>
