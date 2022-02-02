@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1274,7 +1274,7 @@ public abstract class AbstractTestInfrastructure
     *
     * @param optionsByType  the {@link OptionsByType} to add the properties to
     */
-    protected static void addTestProperties(OptionsByType optionsByType)
+    public static void addTestProperties(OptionsByType optionsByType)
         {
         // add "standard" system properties
         addSystemProperties("com.oracle.common.", optionsByType);
@@ -1293,7 +1293,7 @@ public abstract class AbstractTestInfrastructure
     *
     * @param props  the Properties object to add the properties to
     */
-    protected static void addTestProperties(Properties props)
+    public static void addTestProperties(Properties props)
         {
         // add "standard" system properties
         addSystemProperties("com.oracle.common.", props);
