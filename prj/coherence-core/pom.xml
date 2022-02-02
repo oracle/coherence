@@ -52,6 +52,12 @@
       <artifactId>je</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <version>6.27.3</version>
+    </dependency>
+
     <!-- codemodel -->
     <dependency>
       <groupId>com.sun.codemodel</groupId>

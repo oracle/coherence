@@ -28,7 +28,7 @@ import com.tangosol.io.ReadBuffer;
 import com.tangosol.persistence.AbstractPersistenceEnvironment;
 import com.tangosol.persistence.CachePersistenceHelper;
 import com.tangosol.persistence.SafePersistenceWrappers;
-import com.tangosol.persistence.bdb.BerkeleyDBEnvironment;
+import com.tangosol.persistence.rocksdb.RocksDBEnvironment;
 
 import com.tangosol.util.Base;
 
@@ -85,7 +85,7 @@ public class PersistenceEnvironmentParamBuilder
             {
             // default to a BerkeleyDBEnvironment or delegate to the builder
             environment = m_bldr == null
-                    ? new BerkeleyDBEnvironment(
+                    ? new RocksDBEnvironment(
                             info.getPersistenceActiveDirectory(),
                             info.getPersistenceSnapshotDirectory(),
                             info.getPersistenceTrashDirectory(),

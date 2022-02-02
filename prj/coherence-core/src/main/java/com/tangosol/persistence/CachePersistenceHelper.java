@@ -46,7 +46,7 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.partition.VersionAwareMapListener;
 
-import com.tangosol.persistence.bdb.BerkeleyDBManager;
+import com.tangosol.persistence.rocksdb.RocksDBManager;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -1168,7 +1168,7 @@ public class CachePersistenceHelper
 
             if ("BDB".equals(sPersistenceType))
                 {
-                tools = new BerkeleyDBManager(dirSnapshot, null, null).getPersistenceTools();
+                tools = new RocksDBManager(dirSnapshot, null, null).getPersistenceTools();
                 }
             else
                 {

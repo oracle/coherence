@@ -1190,9 +1190,9 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 }
             finally
                 {
-                ensureExtent(lNewExtentId);
                 if (fLock)
                     {
+                    ensureExtent(lNewExtentId);
                     unlockWrite();
                     }
                 }
