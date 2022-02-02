@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -30,8 +30,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
-
+import com.tangosol.coherence.management.internal.MapProvider;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -84,7 +83,9 @@ public class EmptyManagementResourcesTests
         Eventually.assertThat(invoking(member2).getServiceStatus(SERVICE_NAME),
                 is(ServiceStatus.NODE_SAFE));
 
-        m_client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
+        m_client = ClientBuilder.newBuilder()
+                .register(MapProvider.class)
+                .build();
         }
 
     @AfterClass

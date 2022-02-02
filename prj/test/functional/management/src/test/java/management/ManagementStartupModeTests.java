@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.tangosol.coherence.management.internal.MapProvider;
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.internal.net.management.HttpHelper;
@@ -40,16 +41,13 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.tangosol.internal.net.management.HttpHelper.DEFAULT_MANAGEMENT_OVER_REST_PORT;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -262,7 +260,8 @@ public class ManagementStartupModeTests
 
                 // sanity check all listeners for data
                 Client client = ClientBuilder.newBuilder()
-                        .register(JacksonFeature.class).build();
+                        .register(MapProvider.class)
+                        .build();
 
                 try (final Closeable clientCloser = client::close)
                     {

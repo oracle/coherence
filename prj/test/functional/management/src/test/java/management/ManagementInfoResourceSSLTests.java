@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,11 +7,15 @@
 package management;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
+
+import com.tangosol.coherence.management.internal.MapProvider;
+
 import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
+
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
+
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.BeforeClass;
 
 import javax.ws.rs.client.Client;
@@ -50,7 +54,7 @@ public class ManagementInfoResourceSSLTests
     public static void startup()
         {
         m_client = createSslClient(ClientBuilder.newBuilder()
-                .register(JacksonFeature.class));
+                .register(MapProvider.class));
         }
 
     @BeforeClass
