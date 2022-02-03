@@ -43,6 +43,8 @@ import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 
+import com.tangosol.net.RequestIncompleteException;
+import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 
@@ -2008,7 +2010,26 @@ public class PagedTopicSubscriber<V>
                 // Note: we unsubscribe against channel 0 in each partition, and it will in turn update all channels
                 listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
                 }
-            cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(nId));
+
+            // even though we should not be on a service thread at this point we still seem to need to do the
+            // invokeALl on the async cache, else we get errors in Coherence. COH-24851
+            cache.async().invokeAll(listSubParts, new CloseSubscriptionProcessor(nId))
+                     .handle((result, error) ->
+                             {
+                             if (error != null)
+                                 {
+                                 if (error instanceof RequestPolicyException
+                                     || error instanceof RequestIncompleteException
+                                     && !cache.isActive())
+                                     {
+                                     // cache became inactive during async execution, we can ignore the error
+                                     return null;
+                                     }
+                                 Logger.err("Caught exception closing subscription for subscriber "
+                                     + idToString(nId) + " in group " + subscriberGroupId.getGroupName(), error);
+                                 }
+                             return null;
+                             });
             }
         catch (Throwable t)
             {
