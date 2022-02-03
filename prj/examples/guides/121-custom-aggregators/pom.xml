@@ -17,7 +17,7 @@
   <name>Coherence Guides - Custom Aggregators</name>
 
   <properties>
-    <revision>21.12.2</revision>
+    <revision>21.12.3-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${revision}</coherence.version>
