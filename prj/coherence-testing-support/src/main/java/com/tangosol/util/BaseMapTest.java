@@ -451,6 +451,7 @@ public class BaseMapTest
             int cThreads = 1 << iThreadLevel;
             if (cThreads > cMaxThreads)
                 {
+                mapTest.clear();
                 break;
                 }
 
