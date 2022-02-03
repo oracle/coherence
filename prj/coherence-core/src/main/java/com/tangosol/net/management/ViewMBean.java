@@ -31,7 +31,7 @@ public interface ViewMBean
      * @return {@code true} if this {@code ContinuousQueryCache} has been configured as
      *         read-only
      */
-    @Description("The readonly setting for the cachestore.")
+    @Description("Indicates if the view cache is read only.")
     boolean isReadOnly();
 
     /**
@@ -40,7 +40,7 @@ public interface ViewMBean
      * @return {@code true} if this {@code ContinuousQueryCache} has been configured to transform
      *         values
      */
-    @Description("Determine if this cache transforms values.")
+    @Description("Indicates if the cache transforms values.")
     boolean isTransformed();
 
     /**
@@ -59,7 +59,7 @@ public interface ViewMBean
      *
      * @return the {@link ValueExtractor} that this cache uses to transform entries from the underlying cache
      */
-    @Description("The implementation of a com.tangosol.util.ValueExtractor used to transform values retrieved from the underlying cache, before storing them locally. If specified, this view can be set to read-only. ")
+    @Description("The implementation of a com.tangosol.util.ValueExtractor used to transform values retrieved from the underlying cache, before storing them locally. If specified, this view can be set to read-only.")
     String getTransformer();
 
     /**
