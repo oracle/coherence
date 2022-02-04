@@ -1990,10 +1990,16 @@ public abstract class XmlHelper extends Base
                         XmlElement xmlChild = ((XmlElement) listChildren.get(0));
                         String     sChild   = xmlChild.getName();
                         List       list     = xmlMatch.getElementList();
+                        boolean    fUpdate  = false;
 
                         for (Iterator iter = xmlMatch.getElements(sChild); iter.hasNext();)
                             {
+                            fUpdate = true;
                             list.set(list.indexOf(iter.next()), xmlChild);
+                            }
+                        if (!fUpdate)
+                            {
+                            xmlMatch.getElementList().addAll(listChildren);
                             }
                         continue;
                         }
