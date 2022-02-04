@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -23,12 +23,12 @@ import com.tangosol.net.metrics.MBeanMetric;
 public interface GrpcProxyMetricsMBean
     {
     /**
-     * Return the fifteen minute rate of requests that responded with an error.
+     * Return the count of requests that responded with success.
      *
-     * @return  the fifteen minute rate of requests that responded with an error
+     * @return  the count of requests that responded with success
      */
     @MetricsValue("RequestCount")
-    @Description("The count of successful requests")
+    @Description("The count of requests that responded with success")
     long getSuccessfulRequestCount();
 
     /**
@@ -62,9 +62,9 @@ public interface GrpcProxyMetricsMBean
     double getSuccessfulRequestOneMinuteRate();
 
     /**
-     * Return the one minute rate of requests that responded with an error.
+     * Return the one minute rate of successful requests.
      *
-     * @return  the one minute rate of requests that responded with an error
+     * @return  the one minute rate of successful requests.
      */
     @MetricsValue("RequestRate")
     @MetricsLabels({"rate", "mean"})
@@ -120,7 +120,6 @@ public interface GrpcProxyMetricsMBean
     @Description("The mean rate of requests that responded with an error")
     double getErrorRequestMeanRate();
 
-
     /**
      * Return the count of messages received.
      *
@@ -169,7 +168,6 @@ public interface GrpcProxyMetricsMBean
     @MetricsLabels({"rate", "mean"})
     @Description("The mean rate of messages received")
     double getMessagesReceivedMeanRate();
-
 
     /**
      * Return the count of responses sent.
