@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -73,7 +73,7 @@ public class SafeStreamObserver<T>
             else
                 {
                 done = true;
-                delegate.onError(checkNotNull(thrown));
+                delegate.onError(ErrorsHelper.ensureStatusRuntimeException(checkNotNull(thrown)));
                 }
             }
         catch (Throwable t)

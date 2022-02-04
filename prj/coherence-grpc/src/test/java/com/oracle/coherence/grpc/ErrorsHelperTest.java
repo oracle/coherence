@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.grpc.proxy;
+package com.oracle.coherence.grpc;
 
 import io.grpc.Status;
 import io.grpc.StatusException;
@@ -86,7 +86,7 @@ class ErrorsHelperTest
                 Status.ABORTED.withDescription("Oops...").withCause(cause).asRuntimeException();
         StatusRuntimeException exception = ErrorsHelper.ensureStatusRuntimeException(error);
 
-        assertThat(exception, is(sameInstance(error)));
+        assertThat(exception.getStatus(), is(error.getStatus()));
         }
 
     @Test

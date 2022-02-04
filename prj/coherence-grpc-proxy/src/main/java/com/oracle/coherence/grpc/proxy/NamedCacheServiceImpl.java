@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.oracle.coherence.grpc.DestroyRequest;
 import com.oracle.coherence.grpc.Entry;
 import com.oracle.coherence.grpc.EntryResult;
 import com.oracle.coherence.grpc.EntrySetRequest;
+import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.GetAllRequest;
 import com.oracle.coherence.grpc.GetRequest;
 import com.oracle.coherence.grpc.InvokeAllRequest;

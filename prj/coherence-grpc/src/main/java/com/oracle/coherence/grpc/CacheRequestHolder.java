@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -443,17 +443,20 @@ public class CacheRequestHolder<Req, Res>
             CacheService cacheService = f_asyncNamedCache.getNamedCache().getCacheService();
             String       cacheFormat  = getCacheFormat(cacheService);
 
+            Converter<Binary, Binary> converter;
             if (f_sFormat == null || f_sFormat.trim().isEmpty() || f_sFormat.equals(cacheFormat))
                 {
-                m_converterKeyDown = BinaryHelper::toBinaryKey;
+                converter = BinaryHelper::toBinaryKey;
                 }
             else
                 {
                 BackingMapManagerContext  context      = cacheService.getBackingMapManager().getContext();
                 Converter<Object, Binary> converterKey = context.getKeyToInternalConverter();
 
-                m_converterKeyDown = new DownConverter(f_serializer, converterKey);
+                converter = new DownConverter(f_serializer, converterKey);
                 }
+
+            m_converterKeyDown = new ErrorHandlingConverter<>(converter);
             }
         return m_converterKeyDown;
         }
@@ -472,18 +475,22 @@ public class CacheRequestHolder<Req, Res>
             {
             CacheService cacheService = f_asyncNamedCache.getNamedCache().getCacheService();
             String       cacheFormat  = getCacheFormat(cacheService);
+
+            Converter<Binary, Binary> converter;
             if (f_sFormat == null || f_sFormat.trim().isEmpty() || f_sFormat.equals(cacheFormat))
                 {
                 // pass-thru
-                m_converterDown = b -> b;
+                converter = b -> b;
                 }
             else
                 {
                 BackingMapManagerContext  context        = cacheService.getBackingMapManager().getContext();
                 Converter<Object, Binary> converterValue = context.getValueToInternalConverter();
 
-                m_converterDown = new DownConverter(f_serializer, converterValue);
+                converter = new DownConverter(f_serializer, converterValue);
                 }
+
+            m_converterDown = new ErrorHandlingConverter<>(converter);
             }
         return m_converterDown;
         }
@@ -527,16 +534,18 @@ public class CacheRequestHolder<Req, Res>
             Serializer   serializerCache = cacheService.getSerializer();
             String       cacheFormat     = serializerCache.getName();
 
+            Converter<Binary, Binary> converter;
             if (f_sFormat == null || f_sFormat.trim().isEmpty() || f_sFormat.equals(cacheFormat))
                 {
                 // pass-thru
-                m_converterUp = b -> b;
+                converter = b -> b;
                 }
             else
                 {
-                m_converterUp = new UpConverter(serializerCache, f_serializer);
+                converter = new UpConverter(serializerCache, f_serializer);
                 }
 
+            m_converterUp = new ErrorHandlingConverter<>(converter);
             }
         return m_converterUp;
         }
@@ -640,6 +649,40 @@ public class CacheRequestHolder<Req, Res>
          * The {@link Converter} used to convert the object into a {@link Binary}.
          */
         protected final Converter<Object, Binary> f_converter;
+        }
+
+    // ----- inner class: ErrorHandlingConverter ----------------------------
+
+    private static class ErrorHandlingConverter<F, T>
+            implements Converter<F, T>
+        {
+        private ErrorHandlingConverter(Converter<F, T> converter)
+            {
+            f_converter = converter;
+            }
+
+        @Override
+        public T convert(F value)
+            {
+            try
+                {
+                return f_converter.convert(value);
+                }
+            catch (Throwable t)
+                {
+                throw Status.UNKNOWN
+                        .withDescription("Caught an exception while serializing or deserializing")
+                        .withCause(t)
+                        .asRuntimeException();
+                }
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The wrapped converter.
+         */
+        private final Converter<F, T> f_converter;
         }
 
     // ----- data members ---------------------------------------------------
