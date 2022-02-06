@@ -3170,6 +3170,8 @@ public abstract class BaseManagementInfoResourceTests
             }
 
         OptionsByType commonOptions = AbstractTestInfrastructure.createCacheServerOptions(clsMain.getName(), null, System.getProperties());
+
+        AbstractTestInfrastructure.addTestProperties(commonOptions);
         commonOptions.addAll(opts);
 
         CoherenceClusterBuilder builder      = new CoherenceClusterBuilder();
@@ -3181,6 +3183,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("coherence.management.extendedmbeanname", true));
         propsServer1.add(SystemProperty.of("coherence.member", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.role", SERVER_PREFIX + -1));
+        propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
         propsServer1.add(SystemProperty.of("coherence.management.http.port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
@@ -3204,6 +3207,7 @@ public abstract class BaseManagementInfoResourceTests
         OptionsByType propsServer2 = OptionsByType.of(propsServer1);
         propsServer2.add(SystemProperty.of("coherence.member", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.role", SERVER_PREFIX + "-2"));
+        propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
 
         builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
 
