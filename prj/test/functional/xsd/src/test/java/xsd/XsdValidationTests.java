@@ -18,6 +18,7 @@ import com.tangosol.run.xml.XmlHelper;
 
 import com.tangosol.util.Resources;
 
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -261,7 +262,7 @@ public class XsdValidationTests
      * maintains the order of the elements in the configuration and
      * the result XML passes schema validation.
      *
-     * @since 14.1.2.0
+     * @since 14.1.1.9
      */
     @Test
     public void testOverrideElement()
@@ -277,6 +278,15 @@ public class XsdValidationTests
 
         XmlHelper.overrideElement(xmlBase, xmlOverride);
         parser.parseXml(xmlBase.toString());
+
+        // test adding to base XML
+        sOverrideXml = new String(read(new File(Resources.findFileOrResource("cluster-config-override-add.xml", loader).toURI())));
+        xmlOverride  = parser.parseXml(sOverrideXml);
+
+        Assert.assertFalse(xmlBase.toString().contains("interface"));
+
+        XmlHelper.overrideElement(xmlBase, xmlOverride);
+        Assert.assertTrue(xmlBase.toString().contains("interface"));
         }
 
     // ----- helpers --------------------------------------------------------
