@@ -910,10 +910,21 @@ public class PagedTopicPartition
 
         Subscription subscriptionZero = null;
 
+        // We enlist all the Subscription entries first - this is to avoid cache entry deadlocks later with any
+        // other processing that may be going on. See COH-24945
+        Map<Integer, BinaryEntry<Subscription.Key, Subscription>> mapSubscriptionByChannel = new HashMap<>();
         for (int nChannel = 0; nChannel < alResult.length; ++nChannel)
             {
-            BinaryEntry<Subscription.Key, Subscription> entrySub  = (BinaryEntry) ctxSubscriptions.getBackingMapEntry(
+            BinaryEntry<Subscription.Key, Subscription> entrySub = (BinaryEntry) ctxSubscriptions.getBackingMapEntry(
                     toBinaryKey(new Subscription.Key(getPartition(), nChannel, subscriberGroupId)));
+            mapSubscriptionByChannel.put(nChannel, entrySub);
+            }
+
+        // Now we have effectively locked all the Subscription entries we need, we can proceed safe in the knowledge
+        // that a subscriber will not try to poll the same entry and lock pages while were initializing
+        for (int nChannel = 0; nChannel < alResult.length; ++nChannel)
+            {
+            BinaryEntry<Subscription.Key, Subscription> entrySub  = mapSubscriptionByChannel.get(nChannel);
 
             Subscription subscription = entrySub.getValue();
             Usage        usage        = enlistUsage(nChannel);
