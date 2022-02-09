@@ -1938,6 +1938,16 @@ public abstract class BaseManagementInfoResourceTests
             return null;
             });
 
+        // ensure async put has completed before proceeding
+        f_inClusterInvoker.accept(f_sClusterName, () ->
+            {
+            NamedCache cache    = CacheFactory.getCache("dist-foo");
+
+            Eventually.assertDeferred(()-> cache.size(), greaterThanOrEqualTo(1));
+            System.out.println("testCaches: verify : get(1) returns " + cache.get(1) + " size=" + cache.size());
+            return null;
+            });
+
         WebTarget target   = getBaseTarget().path(CACHES);
         Response  response = target.request().get();
         testCachesResponse(target, response);
@@ -3198,8 +3208,13 @@ public abstract class BaseManagementInfoResourceTests
 
         if (Boolean.getBoolean("test.security.enabled"))
             {
-            System.setProperty("java.security.debug", "access,failure,domains");
-            propsServer1.add(SystemProperty.of("java.security.debug", "access,failure,domains"));
+            // Workaround: Hitting stack overflow with security manager debugging of access with MultiCluster.
+            String sDebug = clsMain.isAssignableFrom(MultiCluster.class)
+                                ? "failure,domains"
+                                : "access,failure,domains";
+
+            System.setProperty("java.security.debug", sDebug);
+            propsServer1.add(SystemProperty.of("java.security.debug", sDebug));
             }
 
         builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer1).asArray());
