@@ -283,4 +283,12 @@
   </suppress>
 
 
+  <!-- Netty Codec for Redis.  Excluding as there is no fix available yet -->
+  <suppress>
+     <notes><![CDATA[
+     file name: netty-codec-redis-4.1.73.Final.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-codec\-redis@.*$</packageUrl>
+     <cpe>cpe:/a:redis:redis</cpe>
+  </suppress>
 </suppressions>
