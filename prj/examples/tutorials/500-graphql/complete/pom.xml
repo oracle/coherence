@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2022 Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -21,7 +21,7 @@
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
-    <helidon.version>2.3.1</helidon.version>
+    <helidon.version>2.4.2</helidon.version>
 
     <java.version>11</java.version>
     <java.version.release>11</java.version.release>
