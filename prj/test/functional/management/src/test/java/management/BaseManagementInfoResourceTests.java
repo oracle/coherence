@@ -1929,24 +1929,31 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCaches()
         {
+        final String CACHE_NAME = "dist-foo";
+
         f_inClusterInvoker.accept(f_sClusterName, () ->
             {
             // fill a cache
-            NamedCache cache    = CacheFactory.getCache("dist-foo");
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
             Binary     binValue = Binary.getRandomBinary(1024, 1024);
             cache.put(1, binValue);
             return null;
             });
 
-        // ensure async put has completed before proceeding
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        // ensure async put has completed
+        long[] acTmp      = new long[1];
+        do
             {
-            NamedCache cache    = CacheFactory.getCache("dist-foo");
+            WebTarget target      = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","units")
+                                    .queryParam("role", "*");
+            Response  response    = target.request().get();
+            Map       mapResponse = readEntity(target, response);
 
-            Eventually.assertDeferred(()-> cache.size(), greaterThanOrEqualTo(1));
-            System.out.println("testCaches: verify : get(1) returns " + cache.get(1) + " size=" + cache.size());
-            return null;
-            });
+            System.out.println(mapResponse);
+
+            acTmp[0] = ((Number) mapResponse.get("units")).longValue();
+            }
+        while (sleep(() -> acTmp[0] <= 0L, REMOTE_MODEL_PAUSE_DURATION));
 
         WebTarget target   = getBaseTarget().path(CACHES);
         Response  response = target.request().get();
