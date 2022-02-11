@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 // because adding fields would affect the "equality"
 // of a key
 public class SubscriberGroupId
-        implements PortableObject
+        implements PortableObject,Comparable<SubscriberGroupId>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -99,6 +99,25 @@ public class SubscriberGroupId
     public boolean isAnonymous()
         {
         return m_ldtMember != 0;
+        }
+
+    // ----- Comparable methods ---------------------------------------------
+
+    @Override
+    public int compareTo(SubscriberGroupId other)
+        {
+        if (other == null)
+            {
+            return 1;
+            }
+
+        int i = m_sGroupId.compareTo(other.m_sGroupId);
+        if (i == 0)
+            {
+            i = Long.compare(m_ldtMember, other.m_ldtMember);
+            }
+
+        return i;
         }
 
     // ----- PortableObject methods -----------------------------------------

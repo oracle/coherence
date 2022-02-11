@@ -1685,8 +1685,13 @@ public class PagedTopicPartition
 
             if (lPage == Page.NULL_PAGE)
                 {
-                // There is no page, the topic is probably totally empty
-                return new SeekProcessor.Result(null, new PagedPosition(0L, 0));
+                Usage usage = enlistUsage(nChannel);
+                lPage = usage.getPartitionHead();
+                if (lPage == Page.NULL_PAGE)
+                    {
+                    // There is no page, the topic is probably totally empty
+                    return new SeekProcessor.Result(null, new PagedPosition(0L, 0));
+                    }
                 }
 
             page = peekPage(nChannel, lPage);

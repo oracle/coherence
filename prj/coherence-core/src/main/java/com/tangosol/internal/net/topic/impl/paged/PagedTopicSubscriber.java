@@ -25,6 +25,7 @@ import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.SubscriberHeartbeatProcessor;
 
+import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
@@ -97,6 +98,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
@@ -259,6 +261,32 @@ public class PagedTopicSubscriber<V>
         {
         ensureActive();
         return (CompletableFuture<List<Element<V>>>) f_queueReceiveOrders.add(new Request(true, cBatch));
+        }
+
+    public Optional<Element<V>> peek(int nChannel)
+        {
+        ensureActive();
+        Map<Integer, Position> map = getHeads();
+        Position position = map.get(nChannel);
+        if (position != null)
+            {
+            Optional<CommittableElement> optional = m_queueValuesPrefetched.stream()
+                    .filter(e -> e.getPosition().equals(position))
+                    .findFirst();
+
+            if (optional.isPresent())
+                {
+                return Optional.of(optional.get().getElement());
+                }
+
+            PagedPosition pagedPosition = (PagedPosition) position;
+            ContentKey    key           = new ContentKey(nChannel, pagedPosition.getPage(), pagedPosition.getOffset());
+            Binary        binary        = m_caches.Data.get(key.toBinary(m_caches.getPartitionCount()));
+            return binary == null
+                    ? Optional.empty()
+                    : Optional.of(PageElement.fromBinary(binary, m_caches.getSerializer()));
+            }
+        return Optional.empty();
         }
 
     @Override
@@ -558,9 +586,13 @@ public class PagedTopicSubscriber<V>
             ValueExtractor<Object, Instant>  extractorTimestamp = Page.ElementExtractor.chained(Element::getTimestamp);
             ValueExtractor<Object, Position> extractorPosition  = Page.ElementExtractor.chained(Element::getPosition);
 
-            PagedPosition position = m_caches.Data.aggregate(
+            Binary bin = m_caches.Data.aggregate(
                     Filters.equal(extractorChannel, nChannel).and(Filters.greater(extractorTimestamp, timestamp)),
                     new ComparableMin<>(extractorPosition));
+
+            @SuppressWarnings("unchecked")
+            PagedPosition position = (PagedPosition) m_caches.getCacheService().getBackingMapManager()
+                    .getContext().getValueFromInternalConverter().convert(bin);
 
             if (position == null)
                 {
@@ -2271,6 +2303,18 @@ public class PagedTopicSubscriber<V>
             {
             m_element  = PageElement.fromBinary(binValue, f_serializer);
             f_nChannel = nChannel;
+            }
+
+        // ----- accessors --------------------------------------------------
+
+        /**
+         * Returns the wrapped element.
+         *
+         * @return the wrapped {@link PageElement}
+         */
+        PageElement<V> getElement()
+            {
+            return m_element;
             }
 
         // ----- Element methods --------------------------------------------

@@ -8,7 +8,6 @@ package com.tangosol.net.topic;
 
 import com.oracle.coherence.common.base.Exceptions;
 
-import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
@@ -70,13 +69,13 @@ import java.util.function.Function;
  * count to 1, would mean that all publishers contend to publish to a single channel, and that only one subscriber
  * in a subscriber group will be able to receive messages. Setting the channel count too high (above say the number of
  * publishers) may mean that some channels never receive any messages and are wasted. Finding the appropriate value is
- * admittedly non-trivial, however when faced with maxing out throughput from a publishers perspective this is a
+ * admittedly non-trivial, however when faced with maxing out throughput from a publisher's perspective this is a
  * configuration that can be tweaked.
  *
  * <h3>Subscriber Groups</h3>
  * Subscribers can be part of a subscriber group. Within each subscriber group, each value is only
  * {@link #receive() received} by one of the {@link Subscriber group members}, enabling distributed, parallel
- * processing of the values delivered to the subscriber group. Thus each subscriber group in effect behaves like a
+ * processing of the values delivered to the subscriber group. Thus, each subscriber group in effect behaves like a
  * queue over the topic data.
  * <p>
  * Subscribers in a group can be considered durable, if they are closed, or fail, then message processing will continue
@@ -104,7 +103,7 @@ import java.util.function.Function;
  * A {@link Position} is an opaque representation of the underlying position as theoretically the implementation of
  * the {@link Position} could change for different types of topic. Positions are used in various places in the API,
  * for example, positions can be committed, and they can be used to move the subscriber to back or forwards within
- * a channel. A {@link Position} is serializable so they can be stored and recovered to later reset a subscriber
+ * a channel. A {@link Position} is serializable, so they can be stored and recovered to later reset a subscriber
  * to a desired position. Positions are {@link Comparable} so positions for elements can be used to determine whether
  * how two elements related to each other within a channel.
  *
@@ -126,7 +125,7 @@ import java.util.function.Function;
  * subscribers in the group, those subscribers will start to receive messages from the last committed position for
  * of the channels from the failed subscriber.
  * <p>
- * Commits may be performed synchronously (using {@link #commit(int, Position)} or asynchronously (using
+ * Commits may be performed synchronously (using {@link #commit(int, Position)}) or asynchronously (using
  * {@link #commitAsync(int, Position)}). There is no facility for automatic commit of messages, all calls
  * to commit <i>must</i> be done manually by application code.
  *
@@ -154,8 +153,8 @@ import java.util.function.Function;
  *
  * <h4>Seeking Forwards</h4>
  * It is important to note that seeking forwards is skipping over messages, those skipped message will never
- * be received once another commit is executed. Moving forwards does not alter the commit position, so it a subscriber
- * has committed a position, then moves forwards and later fails, it will restart back at the commit.
+ * be received once another commit is executed. Moving forwards does not alter the commit position, so when a
+ * subscriber has committed a position, then moves forwards and later fails, it will restart back at the commit.
  *
  * <h4>Seeking Backwards Over Previous Commits</h4>
  * When topics are configured not to retain elements removal of elements occurs as their positions are committed, so
@@ -173,20 +172,20 @@ import java.util.function.Function;
  * the returned futures will complete in the correct order to maintain message ordering in a channel.
  * To maintain ordering, the futures are completed by a single daemon thread. This means that code using
  * any of the synchronous {@link CompletableFuture} handling patterns, such as
- * {@link CompletableFuture#thenApply(Function)} or {@link CompletableFuture#thenAccept(Consumer)}, etc, will run on
+ * {@link CompletableFuture#thenApply(Function)} or {@link CompletableFuture#thenAccept(Consumer)}, etc. will run on
  * the same daemon thread, so application code in the handler methods must complete before the next receive future
- * will be completed. Again, this is intentional, so as to maintain strict ordering of processing of received elements.
+ * will be completed. Again, this is intentional, to maintain strict ordering of processing of received elements.
  * If the {@link CompletableFuture} asynchronous handler methods are used such as,
- * {@link CompletableFuture#thenApplyAsync(Function)} or {@link CompletableFuture#thenAcceptAsync(Consumer)}, etc,
+ * {@link CompletableFuture#thenApplyAsync(Function)} or {@link CompletableFuture#thenAcceptAsync(Consumer)}, etc.
  * then the application code handling the received element will execute on another thread, and at this point there
  * are no ordering guarantees.
  * <p>
- * It is important that application code uses the correct handling of the returned futures so as to both maintain
+ * It is important that application code uses the correct handling of the returned futures to both maintain
  * ordering (if that is important to the application) and also to have correct error handling, and not lose exceptions,
  * which is easy to do in poorly written asynchronous future handler code.
  *
  * <h3>Clean-Up</h3>
- * Subscribers should ideally be closed when application code finishes with them. This will clean-up server-side
+ * Subscribers should ideally be closed when application code finishes with them. This will clean up server-side
  * resources associated with a subscriber.
  * <p>
  * It is also important (possibly more important) to {@link NamedTopic#destroySubscriberGroup(String) clean up
@@ -208,8 +207,8 @@ public interface Subscriber<V>
      * <p>
      * Note: If the returned future is {@link CompletableFuture#cancel(boolean) cancelled} it is possible that a value
      * may still be considered by the topic to have been received by this group, while the group would consider this
-     * a lost value. Subscriber implementations will make a best effort to prevent such loss, but it cannot be guaranteed
-     * and thus cancellation is not advisable.
+     * a lost value. Subscriber implementations will make its best effort to prevent such loss, but it cannot be
+     * guaranteed and thus cancellation is not advisable.
      * <p>
      * The {@link CompletableFuture futures} returned from calls to {@code receive} are completed sequentially.
      * If the methods used to handle completion in application code block this will block completions of
@@ -228,12 +227,12 @@ public interface Subscriber<V>
      * Receive a batch of {@link Element elements} from the topic.
      * <p>
      * The {@code cMessage} parameter specifies the maximum number of elements to receive in the batch. The subscriber
-     * may return less elements than the {@code cMessage} parameter; this does not signify that the topic is empty.
+     * may return fewer elements than the {@code cMessage} parameter; this does not signify that the topic is empty.
      * <p>
      * If there is no value available then the future will complete according to the {@link CompleteOnEmpty} option used
      * to create the {@link Subscriber}.
      * <p>
-     * If the poll of the topic returns nothing (i.e. the topic was empty and {@link CompleteOnEmpty} is true then the
+     * If the poll of the topic returns nothing (i.e. the topic was empty and {@link CompleteOnEmpty}) is true then the
      * {@link Consumer} will not be called.
      * <p>
      * The {@link CompletableFuture futures} returned from calls to {@code receive} are completed sequentially.
@@ -258,7 +257,7 @@ public interface Subscriber<V>
      * A subscriber in a group should normally be assigned ownership of at least one channel. In the case where there
      * are more subscribers in a group that the number of channels configured for a topic, then some
      * subscribers will obviously own zero channels.
-     * Anonymous subscribers that are not part of a group are always owners all of the available channels.
+     * Anonymous subscribers that are not part of a group are always owners all the available channels.
      *
      * @return the current set of channels that this {@link Subscriber} is the owner of, or an
      *         empty array if this subscriber has not been assigned ownership any channels
@@ -399,7 +398,7 @@ public interface Subscriber<V>
     /**
      * Commit the specified channels and positions.
      *
-     * @param mapPositions  a map of channels to positions to commit
+     * @param mapPositions  a map of channels napped to the position to commit
      *
      * @return a map of results of the commit request for each channel
      *
@@ -420,7 +419,7 @@ public interface Subscriber<V>
     /**
      * Asynchronously commit the specified channels and positions.
      *
-     * @param mapPositions  a map of channels to positions to commit
+     * @param mapPositions  a map of channels mapped to the positions to commit
      *
      * @return a map of results of the commit request for each channel
      *
@@ -429,7 +428,7 @@ public interface Subscriber<V>
     public CompletableFuture<Map<Integer, CommitResult>> commitAsync(Map<Integer, Position> mapPositions);
 
     /**
-     * Returns an {@link Optional} containing latest position committed for a channel,
+     * Returns an {@link Optional} containing the latest position committed for a channel,
      * or {@link Optional#empty()} if the channel is not owned by this {@link Subscriber}
      *
      * @param nChannel  the channel to get the last committed position for
@@ -492,7 +491,45 @@ public interface Subscriber<V>
     public Position seek(int nChannel, Position position);
 
     /**
-     * Seek to the specified position in a set of channels channel.
+     * Seek to the specified position in a channel and set the commit point to the new {@link Position}.
+     * <p>
+     * This method will position the subscriber such that the element returned by the next
+     * call to any {@code receive} method will be the element <i>after</i> the specified
+     * position in the channel.
+     * <p>
+     * An attempt to move the position after the current tail position for the channel will
+     * reposition the channel at the tail, effectively making the channel appear empty.
+     * <p>
+     * An attempt to move the position before the current head position for the channel will
+     * reposition the channel at the head, effectively moving the subscriber back to the first
+     * available element in the channel.
+     * <p>
+     * Repositioning a channel back before the current committed position will move the committed position
+     * for the channel back to the seeked position (i.e. back to the position returned from this method).
+     *
+     * @param nChannel  the channel to reposition
+     * @param position  the {@link Position} to seek to
+     *
+     * @return the {@link Position} actually seeked to, which may be different to the {@code position}
+     *         parameter if the {@code position} parameter is before the channel's head or after the
+     *         channel's tail.
+     *
+     * @throws IllegalArgumentException if the {@link Position} is not the correct type for
+     *                                  the topic implementation or is an invalid position
+     * @throws IllegalStateException    if this subscriber is not the owner of the channel being repositioned
+     */
+    public default Position seekAndCommit(int nChannel, Position position)
+        {
+        Position positionNew = seek(nChannel, position);
+        if (positionNew != null)
+            {
+            commit(nChannel, positionNew);
+            }
+        return positionNew;
+        }
+
+    /**
+     * Seek to the specified position in a set of channels.
      * <p>
      * This method will position the subscriber such that the element returned by the next
      * call to any {@code receive} method will be the element <i>after</i> the specified
@@ -528,7 +565,45 @@ public interface Subscriber<V>
     public Map<Integer, Position> seek(Map<Integer, Position> mapPosition);
 
     /**
-     * Seek to the a position in a channel based the published timestamp of the elements in the topic.
+     * Seek to the specified position in a set of channels and sets the commit position for the channels.
+     * <p>
+     * This method will position the subscriber such that the element returned by the next
+     * call to any {@code receive} method will be the element <i>after</i> the specified
+     * position in each channel.
+     * <p>
+     * An attempt to move the position after the current tail position for a channel will
+     * reposition the channel at the tail, effectively making the channel appear empty.
+     * <p>
+     * An attempt to move the position before the current head position for a channel will
+     * reposition the channel at the head, effectively moving the subscriber back to the first
+     * available element for that channel.
+     * <p>
+     * Repositioning a channel back before the current committed position will move the committed position
+     * for the channel back to the seeked position (i.e. back to the position returned for that channel
+     * from this method).
+     *
+     * @param mapPosition  a {@link Map} of {@link Position positions} keyed by channel to seek to
+     *
+     * @return a {@link Map} keyed by channel of the {@link Position} seeked to, which may be different
+     *         to the {@code position} parameter if the {@code position} parameter is before the
+     *         channel's head or after the channel's tail.
+     *
+     * @throws IllegalArgumentException if the {@link Position} is not the correct type for
+     *                                  the topic implementation or is an invalid position
+     * @throws IllegalStateException    if this subscriber is not the owner of the channel being repositioned
+     */
+    public default Map<Integer, Position> seekAndCommit(Map<Integer, Position> mapPosition)
+        {
+        Map<Integer, Position> map = seek(mapPosition);
+        if (map != null && !map.isEmpty())
+            {
+            commit(map);
+            }
+        return map;
+        }
+
+    /**
+     * Seek to a position in a channel based the published timestamp of the elements in the topic.
      * <p>
      * This method will position the subscriber such that the element returned by the next call to any
      * {@code receive} method that polls the specific channel will be the element with a published timestamp
@@ -564,6 +639,45 @@ public interface Subscriber<V>
     public Position seek(int nChannel, Instant timestamp);
 
     /**
+     * Seek to a position in a channel based the published timestamp of the elements in the topic
+     * and set the commit point to the new position.
+     * <p>
+     * This method will position the subscriber such that the element returned by the next call to any
+     * {@code receive} method that polls the specific channel will be the element with a published timestamp
+     * <i>after</i> the specified timestamp. The published timestamp is the
+     * {@link com.tangosol.net.Cluster#getTimeMillis() cluster timestamp} on the member receiving the published
+     * element at the time the publish request was accepted.
+     * <p>
+     * An attempt to move the position using a timestamp later that the timestamp of the current tail position for
+     * the channel will reposition the channel at the tail, effectively making the channel appear empty.
+     * <p>
+     * An attempt to move the position using a timestamp earlier than the current head position for the channel will
+     * reposition the channel at the head, effectively moving the subscriber back to the first available element in
+     * the channel.
+     * <p>
+     * Repositioning a channel back before the current committed position will move the committed position for
+     * the channel back to the seeked position (i.e. back to the position returned from this method) effectively
+     * rolling back commits made to elements in the channel after the seeked.
+     *
+     * @param nChannel  the channel to reposition
+     * @param timestamp the timestamp to seek to
+     *
+     * @return the {@link Position} actually seeked to
+     *
+     * @throws IllegalStateException  if this subscriber is not the owner of the channel being repositioned
+     * @throws NullPointerException   if the {@code timestamp} is {@code null}
+     */
+    public default Position seekAndCommit(int nChannel, Instant timestamp)
+        {
+        Position position = seek(nChannel, timestamp);
+        if (position != null)
+            {
+            commit(nChannel, position);
+            }
+        return position;
+        }
+
+    /**
      * Reposition one or more channels to their respective head positions.
      * <p>
      * If any of the specified channels have been committed their commits will also be reset,
@@ -578,7 +692,7 @@ public interface Subscriber<V>
      *
      * @return a {@link Map} keyed by channel of the head {@link Position} seeked to for each channel
      *
-     * @throws IllegalStateException if this subscriber is not the owner of any of the specified channels
+     * @throws IllegalStateException if this subscriber is not the owner one or more of the specified channels
      */
     public Map<Integer, Position> seekToHead(int... anChannel);
 
@@ -590,9 +704,30 @@ public interface Subscriber<V>
      *
      * @return a {@link Map} keyed by channel of the tail {@link Position} seeked to for each channel
      *
-     * @throws IllegalStateException if this subscriber is not the owner of any of the specified channels
+     * @throws IllegalStateException if this subscriber is not the owner of one or more of the specified channels
      */
     public Map<Integer, Position> seekToTail(int... anChannel);
+
+    /**
+     * Reposition one or more channels to their respective tail positions and set the commit point
+     * to the new {@link Position}. The channel will be repositioned to read the next message
+     * published to that channel.
+     *
+     * @param anChannel  one or more channels to reposition to the tail
+     *
+     * @return a {@link Map} keyed by channel of the tail {@link Position} seeked to for each channel
+     *
+     * @throws IllegalStateException if this subscriber is not the owner of one or more of the specified channels
+     */
+    public default Map<Integer, Position> seekToTailAndCommit(int... anChannel)
+        {
+        Map<Integer, Position> mapPosition = seekToTail(anChannel);
+        if (mapPosition != null && !mapPosition.isEmpty())
+            {
+            commit(mapPosition);
+            }
+        return mapPosition;
+        }
 
     /**
      * Returns the {@link Position} that is currently the tail for the specified channel,
@@ -612,7 +747,7 @@ public interface Subscriber<V>
         
     /**
      * Returns a {@link Map} of the {@link Position Positions} that are currently the head
-     * for the each channel owned by this {@link Subscriber}.
+     * for each channel owned by this {@link Subscriber}.
      * <p>
      * This result is somewhat transient in situations where the Subscriber has in-flight
      * receive requests, so the heads returned may change just after the method returns.
@@ -646,7 +781,7 @@ public interface Subscriber<V>
 
     /**
      * Returns a {@link Map} of the {@link Position Positions} that are currently the tail
-     * for the each channel owned by this {@link Subscriber}; that is the last message in
+     * for each channel owned by this {@link Subscriber}; that is the last message in
      * the channel.
      * <p>
      * This result is somewhat transient in situations where publishers are actively publishing
@@ -1061,7 +1196,7 @@ public interface Subscriber<V>
         Committed,
         /**
          * The position was already committed.
-         * Typically this is caused by a commit of a higher position in the channel
+         * Typically, this is caused by a commit of a higher position in the channel
          * already being processed.
          */
         AlreadyCommitted,
@@ -1174,7 +1309,7 @@ public interface Subscriber<V>
      * Naming a subscriber also allows it to outlive its subscriber instances.
      * For example a group can be created, all instances can terminate and
      * then later be recreated and pickup exactly where they left off in the
-     * topic.  As the groups life is independent of its subscriber instances
+     * topic.  As the group's life is independent of its subscriber instances
      * the group must be explicitly
      * {@link NamedTopic#destroySubscriberGroup(String) destroyed}
      * in order to have the topic stop retaining values for it.
@@ -1582,7 +1717,7 @@ public interface Subscriber<V>
          * A singleton empty {@link ChannelOwnershipListeners} option.
          */
         @SuppressWarnings("rawtypes")
-        private static final ChannelOwnershipListeners EMPTY = new ChannelOwnershipListeners(Collections.emptyList());
+        private static final ChannelOwnershipListeners EMPTY = new ChannelOwnershipListeners<>(Collections.emptyList());
 
         // ----- data members -----------------------------------------------
 

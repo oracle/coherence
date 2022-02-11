@@ -633,7 +633,7 @@ public class Subscription
     // because adding fields would affect the "equality"
     // of a key
     public static class Key
-            implements KeyPartitioningStrategy.PartitionAwareKey, PortableObject
+            implements KeyPartitioningStrategy.PartitionAwareKey, PortableObject, Comparable<Key>
         {
         // ----- constructors -----------------------------------------------
 
@@ -680,6 +680,26 @@ public class Subscription
             {
             return m_nChannel;
             }
+
+        // ----- Comparable methods -----------------------------------------
+
+        @Override
+        public int compareTo(Key other)
+            {
+            int i = m_groupId.compareTo(other.m_groupId);
+            if (i == 0)
+                {
+                i = Integer.compare(m_nChannel, other.m_nChannel);
+                }
+
+            if (i == 0)
+                {
+                i = Integer.compare(m_nPartition, other.m_nPartition);
+                }
+
+            return i;
+            }
+
 
         // ----- PartitionAwareKey methods ----------------------------------
 
