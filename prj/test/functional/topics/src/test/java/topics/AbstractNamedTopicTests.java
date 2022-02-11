@@ -78,6 +78,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -155,6 +156,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -4281,6 +4283,225 @@ public abstract class AbstractNamedTopicTests
             for (int nChannel : subscriberTwo.getChannels())
                 {
                 assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+            }
+        }
+
+    @Test
+    public void shouldCountRemainingMessagesAfterSeekToTailWithCommit() throws Exception
+        {
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
+        int                cTotal = 1000;
+
+        try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup));
+             Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup));
+             Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin()))
+            {
+            for (int i = 0; i < 1000; i++)
+                {
+                publisher.publish("Before-Messages-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            assertThat(topic.getRemainingMessages(sGroup), is(cTotal));
+
+            Map<Integer, Integer> mapCount = new HashMap<>();
+            int                   cMessage = 0;
+            for (int nChannel = 0; nChannel < topic.getChannelCount(); nChannel++)
+                {
+                int c = topic.getRemainingMessages(sGroup, nChannel);
+                cMessage += c;
+                mapCount.put(nChannel, c);
+                }
+
+            assertThat(cMessage, is(cTotal));
+
+            int cOne = subscriberOne.getRemainingMessages();
+            int cTwo = subscriberTwo.getRemainingMessages();
+            assertThat(cOne + cTwo, is(cTotal));
+
+            for (int nChannel : subscriberOne.getChannels())
+                {
+                assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            for (int nChannel : subscriberTwo.getChannels())
+                {
+                assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
+            CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
+
+            Map<Integer, Position> mapTailOne = subscriberOne.seekToTailAndCommit(subscriberOne.getChannels());
+            Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTailAndCommit(subscriberTwo.getChannels());
+
+            // We did seek and commit so the remaining count should be zero
+            assertThat(subscriberOne.getRemainingMessages(), is(0));
+            assertThat(subscriberTwo.getRemainingMessages(), is(0));
+
+            CompletableFuture<Element<String>> futureOne = subscriberOne.receive();
+            CompletableFuture<Element<String>> futureTwo = subscriberTwo.receive();
+
+            for (int i = 2000; i < 2100; i++)
+                {
+                publisher.publish("After-Messages-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            Element<String> elementOneBefore = futureOneBefore.get(1, TimeUnit.MINUTES);
+            Element<String> elementOneAfter  = futureOne.get(1, TimeUnit.MINUTES);
+            Element<String> elementTwoBefore = futureTwoBefore.get(1, TimeUnit.MINUTES);
+            Element<String> elementTwoAfter  = futureTwo.get(1, TimeUnit.MINUTES);
+
+            assertThat(elementOneBefore.getValue(), startsWith("Before-"));
+            assertThat(elementOneAfter.getValue(), startsWith("After-"));
+            assertThat(elementTwoBefore.getValue(), startsWith("Before-"));
+            assertThat(elementTwoAfter.getValue(), startsWith("After-"));
+            }
+        }
+
+    @Test
+    public void shouldCountRemainingMessagesAfterSeekToTailWithoutCommit() throws Exception
+        {
+        NamedTopic<String> topic  = ensureTopic();
+        String             sGroup = m_testName.getMethodName();
+        int                cTotal = 1000;
+
+        try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup));
+             Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup));
+             Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin()))
+            {
+            for (int i = 0; i < 1000; i++)
+                {
+                publisher.publish("Before-Messages-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            assertThat(topic.getRemainingMessages(sGroup), is(cTotal));
+
+            Map<Integer, Integer> mapCount = new HashMap<>();
+            int                   cMessage = 0;
+            for (int nChannel = 0; nChannel < topic.getChannelCount(); nChannel++)
+                {
+                int c = topic.getRemainingMessages(sGroup, nChannel);
+                cMessage += c;
+                mapCount.put(nChannel, c);
+                }
+
+            assertThat(cMessage, is(cTotal));
+
+            int cOne = subscriberOne.getRemainingMessages();
+            int cTwo = subscriberTwo.getRemainingMessages();
+            assertThat(cOne + cTwo, is(cTotal));
+
+            for (int nChannel : subscriberOne.getChannels())
+                {
+                assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            for (int nChannel : subscriberTwo.getChannels())
+                {
+                assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
+            CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
+
+            Map<Integer, Position> mapTailOne = subscriberOne.seekToTail(subscriberOne.getChannels());
+            Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTail(subscriberTwo.getChannels());
+
+            // We did not seek and commit so the remaining count should not have changed,
+            // If the subscribers were closed we would roll all the way back
+            assertThat(subscriberOne.getRemainingMessages(), is(cOne));
+            assertThat(subscriberTwo.getRemainingMessages(), is(cTwo));
+
+            CompletableFuture<Element<String>> futureOne = subscriberOne.receive();
+            CompletableFuture<Element<String>> futureTwo = subscriberTwo.receive();
+
+            for (int i = 2000; i < 2100; i++)
+                {
+                publisher.publish("After-Messages-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            Element<String> elementOneBefore = futureOneBefore.get(1, TimeUnit.MINUTES);
+            Element<String> elementOneAfter  = futureOne.get(1, TimeUnit.MINUTES);
+            Element<String> elementTwoBefore = futureTwoBefore.get(1, TimeUnit.MINUTES);
+            Element<String> elementTwoAfter  = futureTwo.get(1, TimeUnit.MINUTES);
+
+            assertThat(elementOneBefore.getValue(), startsWith("Before-"));
+            assertThat(elementOneAfter.getValue(), startsWith("After-"));
+            assertThat(elementTwoBefore.getValue(), startsWith("Before-"));
+            assertThat(elementTwoAfter.getValue(), startsWith("After-"));
+            }
+        }
+
+    @Test
+    public void shouldPurgeSubscriberGroup() throws Exception
+        {
+        NamedTopic<String> topic    = ensureTopic();
+        int                cChannel = topic.getChannelCount();
+        String             sGroup   = m_testName.getMethodName();
+        int                cTotal   = 1000;
+
+        topic.ensureSubscriberGroup(sGroup);
+
+        try (Publisher<String>  publisher = topic.createPublisher(OrderBy.roundRobin()))
+            {
+            for (int i = 0; i < 1000; i++)
+                {
+                publisher.publish("Before-Messages-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            assertThat(topic.getRemainingMessages(sGroup), is(cTotal));
+
+            Map<Integer, Integer> mapCount = new HashMap<>();
+            int                   cMessage = 0;
+            for (int nChannel = 0; nChannel < topic.getChannelCount(); nChannel++)
+                {
+                int c = topic.getRemainingMessages(sGroup, nChannel);
+                cMessage += c;
+                mapCount.put(nChannel, c);
+                }
+
+            assertThat(cMessage, is(cTotal));
+
+            try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup));
+                 Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup)))
+                {
+                Eventually.assertDeferred(() -> subscriberOne.getChannels().length + subscriberTwo.getChannels().length, is(cChannel));
+
+                int cOne = subscriberOne.getRemainingMessages();
+                int cTwo = subscriberTwo.getRemainingMessages();
+                assertThat(cOne + cTwo, is(cTotal));
+
+                for (int nChannel : subscriberOne.getChannels())
+                    {
+                    assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                    }
+
+                for (int nChannel : subscriberTwo.getChannels())
+                    {
+                    assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                    }
+                }
+
+            topic.destroySubscriberGroup(sGroup);
+            assertThat(topic.getRemainingMessages(sGroup), is(0));
+
+            try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup));
+                 Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup)))
+                {
+                assertThat(subscriberOne.getRemainingMessages(), is(0));
+                assertThat(subscriberTwo.getRemainingMessages(), is(0));
+
+                for (int nChannel : subscriberOne.getChannels())
+                    {
+                    assertThat(subscriberOne.getRemainingMessages(nChannel), is(0));
+                    }
+
+                for (int nChannel : subscriberTwo.getChannels())
+                    {
+                    assertThat(subscriberTwo.getRemainingMessages(nChannel), is(0));
+                    }
                 }
             }
         }

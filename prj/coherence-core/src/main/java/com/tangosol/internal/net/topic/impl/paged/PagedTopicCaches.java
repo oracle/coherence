@@ -48,12 +48,14 @@ import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.Base;
+import com.tangosol.util.Binary;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.HashHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapEvent;
+import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.aggregator.Count;
@@ -976,6 +978,7 @@ public class PagedTopicCaches
      *
      * @return  the number of remaining messages for the {@link SubscriberGroupId}
      */
+    @SuppressWarnings("unchecked")
     public int getRemainingMessages(SubscriberGroupId id, int... anChannel)
         {
         if (Subscriptions.containsKey(new Subscription.Key(0, 0, id)))
@@ -995,7 +998,10 @@ public class PagedTopicCaches
                 mapTails.keySet().retainAll(listChannel);
                 }
 
-            return Data.aggregate(new UnreadTopicContentFilter(mapHeads, mapTails), new Count<>());
+            InvocableMap.EntryAggregator counter = new Count();
+            Binary bin = (Binary) Data.aggregate(new UnreadTopicContentFilter(mapHeads, mapTails), counter);
+            return ((Number) f_cacheService.getBackingMapManager().getContext()
+                    .getValueFromInternalConverter().convert(bin)).intValue();
             }
         // subscriber group does not exist, return the total number of messages
         return Data.size();
@@ -1044,12 +1050,12 @@ public class PagedTopicCaches
 
         ClassLoader loader = f_cacheService.getContextClassLoader();
 
-        Pages               = f_functionCache.apply(Names.PAGES.cacheNameForTopicName(f_sTopicName), loader);
-        Data                = f_functionCache.apply(Names.CONTENT.cacheNameForTopicName(f_sTopicName), loader);
-        Subscribers         = f_functionCache.apply(Names.SUBSCRIBERS.cacheNameForTopicName(f_sTopicName), loader);
-        Notifications       = f_functionCache.apply(Names.NOTIFICATIONS.cacheNameForTopicName(f_sTopicName), loader);
-        Usages              = f_functionCache.apply(Names.USAGE.cacheNameForTopicName(f_sTopicName), loader);
-        Subscriptions       = f_functionCache.apply(Names.SUBSCRIPTIONS.cacheNameForTopicName(f_sTopicName), loader);
+        Pages         = f_functionCache.apply(Names.PAGES.cacheNameForTopicName(f_sTopicName), loader);
+        Subscribers   = f_functionCache.apply(Names.SUBSCRIBERS.cacheNameForTopicName(f_sTopicName), loader);
+        Notifications = f_functionCache.apply(Names.NOTIFICATIONS.cacheNameForTopicName(f_sTopicName), loader);
+        Usages        = f_functionCache.apply(Names.USAGE.cacheNameForTopicName(f_sTopicName), loader);
+        Subscriptions = f_functionCache.apply(Names.SUBSCRIPTIONS.cacheNameForTopicName(f_sTopicName), loader);
+        Data          = f_functionCache.apply(Names.CONTENT.cacheNameForTopicName(f_sTopicName), NullImplementation.getClassLoader());
 
         Set<NamedCache> setCaches = f_setCaches = new HashSet<>();
 
@@ -1617,7 +1623,7 @@ public class PagedTopicCaches
     /**
      * The cache that holds the topic elements.
      */
-    public NamedCache<ContentKey, Object> Data;
+    public NamedCache<Binary, Binary> Data;
 
     /**
      * The cache that holds the topic subscriber partitions.
