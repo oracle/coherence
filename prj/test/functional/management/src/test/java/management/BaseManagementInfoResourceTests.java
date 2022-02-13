@@ -1207,6 +1207,10 @@ public abstract class BaseManagementInfoResourceTests
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         Map mapPartitionResponse = readEntity(target, response);
+
+        // this timestamp could differ so just remove
+        mapPartitionResponse.remove("lastAnalysisTime");
+        mapResponse.remove("lastAnalysisTime");
         assertThat(mapPartitionResponse, is(mapResponse));
         }
 
@@ -1941,7 +1945,7 @@ public abstract class BaseManagementInfoResourceTests
             });
 
         // ensure async put has completed
-        long[] acTmp      = new long[1];
+        long[] acTmp = new long[1];
         do
             {
             WebTarget target      = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","units")
@@ -1955,9 +1959,23 @@ public abstract class BaseManagementInfoResourceTests
             }
         while (sleep(() -> acTmp[0] <= 0L, REMOTE_MODEL_PAUSE_DURATION));
 
+        long[] acTmp1 = new long[1];
+        do
+            {
+            WebTarget target      = getBaseTarget().path(CACHES).path(CACHE_NAME).queryParam("fields","totalPuts")
+                    .queryParam("role", "*");
+            Response  response    = target.request().get();
+            Map       mapResponse = readEntity(target, response);
+
+            System.out.println(mapResponse);
+
+            acTmp1[0] = ((Number) mapResponse.get("totalPuts")).longValue();
+            }
+        while (sleep(() -> acTmp1[0] <= 0L, REMOTE_MODEL_PAUSE_DURATION));
+
         WebTarget target   = getBaseTarget().path(CACHES);
         Response  response = target.request().get();
-        testCachesResponse(target, response);
+        testCachesResponse(target, response, CACHE_NAME);
         }
 
     @Test
@@ -2820,12 +2838,12 @@ public abstract class BaseManagementInfoResourceTests
             if (!sCacheName.equals("dist-persistence-test"))
                 {
                 Object size = mapCache.get("size");
-                assertThat(size, is(instanceOf(Number.class)));
-                assertThat(((Number) size).intValue(), greaterThan(0));
+                assertThat(sCacheName, size, is(instanceOf(Number.class)));
+                assertThat(sCacheName, ((Number) size).intValue(), greaterThan(0));
                 }
 
-            assertThat(mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
-            Assert.assertNotNull(mapCache.get(NODE_ID));
+            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            Assert.assertNotNull(NODE_ID, mapCache.get(NODE_ID));
             }
 
         WebTarget cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,totalPuts");
@@ -2839,7 +2857,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             if (!mapCache.get(NAME).equals("dist-persistence-test"))
                 {
-                assertThat(((Number) mapCache.get("totalPuts")).intValue(), greaterThan(0));
+                assertThat("Cache " + mapCache.get(NAME) + " failed assertion of totalPuts greater than 0", ((Number) mapCache.get("totalPuts")).intValue(), greaterThan(0));
                 }
             }
 
@@ -2855,14 +2873,14 @@ public abstract class BaseManagementInfoResourceTests
             if (mapCache.get(NAME).equals("dist-foo"))
                 {
                 Object cUnits = mapCache.get("units");
-                assertThat(cUnits, is(instanceOf(Number.class)));
-                assertThat(((Number) cUnits).intValue(), anyOf(is(1), is(20)));
+                assertThat("Cache " + NAME, cUnits, is(instanceOf(Number.class)));
+                assertThat("Cache " + NAME, ((Number) cUnits).intValue(), anyOf(is(1), is(20)));
                 }
             else
                 {
                 if (!mapCache.get(NAME).equals("dist-persistence-test"))
                     {
-                    assertThat(((Number) mapCache.get("units")).longValue(), is(1L));
+                    assertThat("Cache " + NAME + "assertion", ((Number) mapCache.get("units")).longValue(), is(1L));
                     }
                 }
             }
@@ -2881,6 +2899,83 @@ public abstract class BaseManagementInfoResourceTests
                 assertThat(((Number) mapCache.get("insertCount")).intValue(), greaterThan(0));
                 }
             }
+
+        cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", SERVICE);
+        cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        listCacheMaps = (List<Map>) mapResponse.get("items");
+        assertThat(listCacheMaps, notNullValue());
+
+        for (Map mapCache : listCacheMaps)
+            {
+            assertNull(mapCache.get(NAME));
+            assertThat(mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            }
+        }
+
+    // only validate response values agasint specified cache name
+    private void testCachesResponse(WebTarget target, Response response, String sCacheName)
+        {
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Map mapResponse = readEntity(target, response);
+        assertThat(mapResponse, notNullValue());
+        List<Map> listCacheMaps = (List<Map>) mapResponse.get("items");
+        assertThat(listCacheMaps, notNullValue());
+        assertThat(listCacheMaps.size(), greaterThan(1));
+
+        for (Map mapCache : listCacheMaps)
+            {
+            String sName = (String) mapCache.get(NAME);
+            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
+
+            if (sName.equals(sCacheName))
+                {
+                Object size = mapCache.get("size");
+                assertThat(sCacheName, size, is(instanceOf(Number.class)));
+                assertThat("Validating size of Cache: " + sCacheName, ((Number) size).intValue(), greaterThan(0));
+                }
+
+            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            Assert.assertNotNull(NODE_ID, mapCache.get(NODE_ID));
+            }
+
+        WebTarget cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,totalPuts");
+        Response cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        listCacheMaps = (List<Map>) mapResponse.get("items");
+        assertThat(listCacheMaps, notNullValue());
+        assertThat(listCacheMaps.size(), greaterThan(1));
+
+        for (Map mapCache : listCacheMaps)
+            {
+            if (mapCache.get(NAME).equals(sCacheName))
+                {
+                assertThat("Cache " + sCacheName + " failed assertion of totalPuts greater than 0", ((Number) mapCache.get("totalPuts")).intValue(), greaterThan(0));
+                }
+            }
+
+        cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,units");
+        cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        listCacheMaps = (List<Map>) mapResponse.get("items");
+        assertThat(listCacheMaps, notNullValue());
+
+        for (Map mapCache : listCacheMaps)
+            {
+            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
+            if (mapCache.get(NAME).equals(sCacheName))
+                {
+                Object cUnits = mapCache.get("units");
+                assertThat("Cache " + sCacheName, cUnits, is(instanceOf(Number.class)));
+                assertThat("Cache " + sCacheName, ((Number) cUnits).intValue(), anyOf(is(1), is(20)));
+                }
+            }
+
+        cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", "name,insertCount");
+        cachesResponse = cachesTarget.request().get();
+        mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
+        listCacheMaps = (List<Map>) mapResponse.get("items");
+        assertThat(listCacheMaps, notNullValue());
 
         cachesTarget = getBaseTarget().path(CACHES).queryParam("fields", SERVICE);
         cachesResponse = cachesTarget.request().get();
