@@ -96,7 +96,7 @@ public interface ExecutorMBean
      */
     @Description("The State of the executor. "
                  + "The value of 1 (JOINING) indicates executor is joining the orchestration."
-                 + "The value of 2 (RUNNING) indicates accepting and executing Tasks."
+                 + "The value of 2 (RUNNING) indicates executor is accepting and executing tasks."
                  + "The value of 3 (CLOSING_GRACEFULLY) has commenced graceful closing. No new tasks will be accepted, but existing ones will run to completion."
                  + "The value of 4 (CLOSING) indicates Executor has commenced closing."
                  + "The value of 5 indicates CLOSED."
