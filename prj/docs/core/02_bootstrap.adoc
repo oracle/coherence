@@ -268,8 +268,8 @@ CoherenceConfiguration cfg = CoherenceConfiguration.builder()
         .build();
 ----
 
-The configuration above will configure a `Coherence` instance with the default name and with a single `Sessions`
-that wil use the default configuration file.
+The configuration above will configure a `Coherence` instance with the default name and with a single `Session`
+that will use the default configuration file.
 
 The default session can also be explicitly added to the `CoherenceConfiguration`:
 [source,java]
