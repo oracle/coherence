@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -56,6 +56,7 @@ public class LegacyXmlGatewayHelper
             Logger.info("The \"management-config/service-name\" element value is ignored");
             }
         deps.setDefaultDomain(xml.getSafeElement("default-domain-name").getString(deps.getDefaultDomain()));
+        deps.setDomainNameSuffix(xml.getSafeElement("domain-name-suffix").getString(deps.getDomainNameSuffix()));
         deps.setExtendedMBeanName(xml.getSafeElement("extended-mbean-name").getBoolean(deps.isExtendedMBeanName()));
 
         XmlElement xmlFactory = xml.getSafeElement("server-factory");
