@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -33,9 +33,8 @@
     Image names MUST include a registry prefix (for example even Docker Hub images need a docker.io/
     prefix. This is because the images are NOT built using Docker.
     -->
-    <docker.base.image.name.amd>gcr.io/distroless/java:11</docker.base.image.name.amd>
-    <!-- There are currently no distroless ARM images so use the much bigger OpenJDK image -->
-    <docker.base.image.name.arm>docker.io/openjdk:11</docker.base.image.name.arm>
+    <docker.base.image.name.amd>gcr.io/distroless/java11</docker.base.image.name.amd>
+    <docker.base.image.name.arm>gcr.io/distroless/java11</docker.base.image.name.arm>
 
     <port.grpc>1408</port.grpc>
     <port.extend>20000</port.extend>
