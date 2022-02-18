@@ -6,19 +6,10 @@
  */
 package xsd;
 
-import static com.tangosol.util.Base.getContextClassLoader;
-import static com.tangosol.util.Base.read;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.tangosol.run.xml.SimpleParser;
-import com.tangosol.run.xml.XmlDocument;
-import com.tangosol.run.xml.XmlHelper;
-
-import com.tangosol.util.Resources;
-
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,8 +19,6 @@ import javax.xml.XMLConstants;
 
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
-
-import java.io.File;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -255,38 +244,6 @@ public class XsdValidationTests
             // expected exception
             System.out.println("handled expected exception: " + e.getMessage());
             }
-        }
-
-    /**
-     * Test for Bug 33801919 to make sure XmlHelper.overrideElement()
-     * maintains the order of the elements in the configuration and
-     * the result XML passes schema validation.
-     *
-     * @since 21.12.3
-     */
-    @Test
-    public void testOverrideElement()
-            throws Exception
-        {
-        ClassLoader  loader       = getContextClassLoader();
-        String       sBaseXml     = new String(read(new File(Resources.findFileOrResource("cluster-config-base.xml", loader).toURI())));
-        String       sOverrideXml = new String(read(new File(Resources.findFileOrResource("cluster-config-override.xml", loader).toURI())));
-
-        SimpleParser parser      = new SimpleParser(true);
-        XmlDocument  xmlBase     = parser.parseXml(sBaseXml);
-        XmlDocument  xmlOverride = parser.parseXml(sOverrideXml);
-
-        XmlHelper.overrideElement(xmlBase, xmlOverride);
-        parser.parseXml(xmlBase.toString());
-
-        // test adding to base XML
-        sOverrideXml = new String(read(new File(Resources.findFileOrResource("cluster-config-override-add.xml", loader).toURI())));
-        xmlOverride  = parser.parseXml(sOverrideXml);
-
-        Assert.assertFalse(xmlBase.toString().contains("interface"));
-
-        XmlHelper.overrideElement(xmlBase, xmlOverride);
-        Assert.assertTrue(xmlBase.toString().contains("interface"));
         }
 
     // ----- helpers --------------------------------------------------------
