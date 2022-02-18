@@ -71,6 +71,7 @@ import com.tangosol.util.Base;
 
 import executor.common.AbstractTaskExecutorServiceTests;
 import executor.common.ExtendClient;
+import executor.common.LogOutput;
 import executor.common.LongRunningTask;
 import executor.common.RepeatedTask;
 
@@ -549,6 +550,8 @@ public abstract class AbstractClusteredExecutorServiceTests
         // now close all proxy members
         cluster.filter(member -> member.getRoleName().equals(PROXY_MEMBER_ROLE)).close();
 
+        Eventually.assertDeferred(cluster::getClusterSize, Matchers.is(getInitialExecutorCount() - 1));
+
         try
             {
             properties.put("key2", "value2");
@@ -556,6 +559,14 @@ public abstract class AbstractClusteredExecutorServiceTests
             }
         catch (ConnectionException e)
             {
+            }
+        catch (IllegalStateException ise)
+            {
+            // connection not quite closed in time
+            if (!ise.getMessage().contains("SafeNamedCache was explicitly"))
+                {
+                throw ise;
+                }
             }
 
         // now start new proxy members (based on storage members)
@@ -1388,7 +1399,7 @@ public abstract class AbstractClusteredExecutorServiceTests
     public static void ensureExecutorProxyAvailable(CoherenceCluster cluster)
         {
         cluster.stream()
-                .filter(member -> "proxy".equals(member.getRoleName()))
+                .filter(member -> PROXY_MEMBER_ROLE.equals(member.getRoleName()))
                 .forEach(member ->
                              Eventually.assertDeferred(() -> member.isServiceRunning(CONCURRENT_PROXY_SERVICE_NAME), is(true)));
         }
