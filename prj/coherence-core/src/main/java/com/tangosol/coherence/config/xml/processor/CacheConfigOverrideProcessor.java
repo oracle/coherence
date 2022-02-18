@@ -43,6 +43,10 @@ public class CacheConfigOverrideProcessor
                 {
                 processCachingSchemes(xmlBase, xmlElement);
                 }
+            else if ("interceptors".equals(xmlElement.getName()))
+                {
+                processInterceptors(xmlBase, xmlElement);
+                }
             }
         }
 
@@ -55,7 +59,7 @@ public class CacheConfigOverrideProcessor
      */
     private void processCacheMappings(XmlElement xmlBase, XmlElement xmlOverrideCacheMappings)
         {
-        List<XmlElement> listElements = new ArrayList<XmlElement>();
+        List<XmlElement> listElements = new ArrayList<>();
 
         for (Object subElements : xmlOverrideCacheMappings.getElementList())
             {
@@ -248,6 +252,69 @@ public class CacheConfigOverrideProcessor
             {
             XmlHelper.addElements(xmlBase.getElement(xmlOverrideCachingSchemes.getName()), listElements.iterator());
             listElements = new ArrayList<XmlElement>();
+            }
+        }
+
+    /**
+     * Method that process interceptors element from provided
+     * cache config and override xml file.
+     *
+     * @param xmlBase                  parent cache config xml
+     * @param xmlOverrideInterceptors  interceptors element from cache config override file
+     */
+    private void processInterceptors(XmlElement xmlBase, XmlElement xmlOverrideInterceptors)
+        {
+        List<XmlElement> listElements = new ArrayList<>();
+
+        String xmlPathOverride = xmlOverrideInterceptors.getAbsolutePath();
+        String xmlPathBase     = xmlPathOverride.substring(("/" + TOP_LEVEL_ELEMENT_NAME + "/").length());
+
+        XmlElement xmlInterceptorsBase = xmlBase.getElement(xmlPathBase);
+
+        if (xmlInterceptorsBase == null)
+            {
+            listElements.add(xmlOverrideInterceptors);
+
+            XmlHelper.addElements(xmlBase, listElements.iterator());
+            }
+        else
+            {
+            for (Object xmlInterceptorsOverride : xmlOverrideInterceptors.getElementList())
+                {
+                XmlElement xmlInterceptorOverride   = (XmlElement) xmlInterceptorsOverride;
+
+                if (xmlInterceptorOverride.getElement("name") != null)
+                    {
+                    String sInterceptorNameOverride = xmlInterceptorOverride.getElement("name").getValue().toString();
+
+                    for (Object subElements : xmlInterceptorsBase.getElementList())
+                        {
+                        XmlElement xmlInterceptorBase = (XmlElement) subElements;
+
+                        if (xmlInterceptorBase.getElement("name") != null)
+                            {
+                            if (sInterceptorNameOverride.equals(xmlInterceptorBase.getElement("name").getValue().toString()))
+                                {
+                                XmlHelper.overrideElement(xmlInterceptorBase, xmlInterceptorOverride);
+                                }
+                            else if (!listElements.contains(xmlInterceptorOverride))
+                                {
+                                listElements.add(xmlInterceptorOverride);
+                                }
+                            }
+                        }
+                    }
+                else if (!listElements.contains(xmlInterceptorOverride))
+                    {
+                    listElements.add(xmlInterceptorOverride);
+                    }
+                }
+
+            if (!listElements.isEmpty())
+                {
+                XmlHelper.addElements(xmlInterceptorsBase, listElements.iterator());
+                listElements.clear();
+                }
             }
         }
     }

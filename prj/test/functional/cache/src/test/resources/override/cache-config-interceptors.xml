@@ -9,7 +9,7 @@
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
-              xml-override="{coherence.cacheconfig.override}">
+              xml-override="{coherence.cacheconfig.override /override/cache-config-override-interceptors-only.xml}">
 
   <defaults>
     <scope-name>$SYS</scope-name>
@@ -17,14 +17,9 @@
 
   <interceptors>
     <interceptor>
-      <instance>
-        <class-name>override.BaseInterceptor</class-name>
-      </instance>
-    </interceptor>
-    <interceptor>
       <name>test-interceptor</name>
       <instance>
-        <class-name>override.TestInterceptor</class-name>
+        <class-name>override.BaseInterceptor</class-name>
       </instance>
     </interceptor>
   </interceptors>
@@ -56,9 +51,6 @@
           <unit-calculator>BINARY</unit-calculator>
         </local-scheme>
       </backing-map-scheme>
-      <partitioned-quorum-policy-scheme>
-        <write-quorum>3</write-quorum>
-      </partitioned-quorum-policy-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
 

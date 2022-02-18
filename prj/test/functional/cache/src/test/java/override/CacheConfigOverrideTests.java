@@ -8,12 +8,23 @@ package override;
 
 import common.AbstractFunctionalTest;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.RequestPolicyException;
+
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.internal.InterceptorManager;
+
 import com.tangosol.net.management.MBeanHelper;
+
+import com.tangosol.run.xml.XmlHelper;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,6 +37,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -307,6 +319,149 @@ public class CacheConfigOverrideTests
             }
         }
 
+    @Test
+    public void testCacheConfigOverrideWithInterceptors()
+            throws Exception
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig.override",
+                    "override/cache-config-override-interceptors.xml");
+
+            AbstractFunctionalTest._startup();
+
+            ExtensibleConfigurableCacheFactory.Dependencies deps =
+                    ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
+                            XmlHelper.loadFileOrResource(FILE_CFG_CACHE, null, null));
+            ConfigurableCacheFactory ccf = new ExtensibleConfigurableCacheFactory(deps);
+
+            NamedCache myCacheOverride = ccf.ensureCache("my-cache-interceptor", null);
+            assertNotNull(myCacheOverride);
+
+            Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("my-cache-interceptor", cacheNames.nextElement());
+            assertEquals("$SYS:DistributedCacheWithInterceptor",
+                    myCacheOverride.getService().getInfo().getServiceName());
+
+            InterceptorRegistry iRegistry = deps.getResourceRegistry().getResource(InterceptorRegistry.class);
+            assertNotNull(iRegistry);
+
+            EventInterceptor overrideInterceptor = iRegistry.getEventInterceptor(OverrideInterceptor.class.getName());
+            assertNotNull(overrideInterceptor);
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig.override");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
+    public void testCacheConfigOverrideInterceptorWithName()
+            throws Exception
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig.override",
+                    "override/cache-config-override-interceptor-with-name.xml");
+
+            Cluster cluster = AbstractFunctionalTest.startCluster();
+            Eventually.assertDeferred(() -> cluster.isRunning(), is(true));
+
+            ExtensibleConfigurableCacheFactory.Dependencies deps =
+                    ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
+                            XmlHelper.loadFileOrResource(FILE_CFG_CACHE_NO_DEFAULT, null, null));
+
+            ConfigurableCacheFactory ccf = new ExtensibleConfigurableCacheFactory(deps);
+            NamedCache myCacheOverride = ccf.ensureCache("my-cache-interceptor", null);
+            assertNotNull(myCacheOverride);
+
+            Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("my-cache-interceptor", cacheNames.nextElement());
+            assertEquals("$SYS:DistributedCacheWithInterceptor",
+                    myCacheOverride.getService().getInfo().getServiceName());
+
+            CacheService service = myCacheOverride.getCacheService();
+            Eventually.assertDeferred(() -> service.isRunning(), is(true));
+
+            InterceptorManager iManager = deps.getResourceRegistry().getResource(InterceptorManager.class);
+            assertNotNull(iManager);
+
+            InterceptorRegistry iRegistry = deps.getResourceRegistry().getResource(InterceptorRegistry.class);
+            assertNotNull(iRegistry);
+
+            // Get interceptor by name
+            EventInterceptor testInterceptor = iRegistry.getEventInterceptor("test-interceptor");
+            assertNotNull(testInterceptor);
+            assertTrue(testInterceptor instanceof OverrideInterceptor);
+
+            EventInterceptor baseInterceptor = iRegistry.getEventInterceptor(BaseInterceptor.class.getName());
+            assertNotNull(baseInterceptor);
+
+            EventInterceptor newInterceptor = iRegistry.getEventInterceptor(NewInterceptor.class.getName());
+            assertNotNull(newInterceptor);
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig.override");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
+    public void testCacheConfigOverrideWithInterceptorsOnly()
+            throws Exception
+        {
+        try
+            {
+            Cluster cluster = AbstractFunctionalTest.startCluster();
+            Eventually.assertDeferred(() -> cluster.isRunning(), is(true));
+
+            ExtensibleConfigurableCacheFactory.Dependencies deps =
+                    ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
+                            XmlHelper.loadFileOrResource(FILE_CFG_CACHE_INTERCEPTORS, null, null));
+
+            ConfigurableCacheFactory ccf = new ExtensibleConfigurableCacheFactory(deps);
+            InterceptorManager iManager = deps.getResourceRegistry().getResource(InterceptorManager.class);
+            assertNotNull(iManager);
+
+            InterceptorRegistry iRegistry = deps.getResourceRegistry().getResource(InterceptorRegistry.class);
+            assertNotNull(iRegistry);
+
+            // Get interceptor by name
+            EventInterceptor testInterceptor = iRegistry.getEventInterceptor("test-interceptor");
+            assertNotNull(testInterceptor);
+            assertTrue(testInterceptor instanceof OverrideInterceptor);
+
+            EventInterceptor newInterceptor = iRegistry.getEventInterceptor("new-interceptor");
+            assertNotNull(newInterceptor);
+            assertTrue(newInterceptor instanceof NewInterceptor);
+
+            ccf.activate();
+            // assert that correct interceptor i.e OverrideInterceptor is already invoked by checking
+            // cache "my-cache-interceptor" which can only exist and active if OverrideInterceptor is
+            // fired when CCF is activated.
+            assertTrue(ccf.isCacheActive("my-cache-interceptor", null));
+
+            // Now assert the value in cache which is put when the interceptor was fired.
+            NamedCache<String, String> myCacheInterceptor = ccf.ensureCache("my-cache-interceptor", null);
+            assertEquals(testInterceptor.getClass().getName(), myCacheInterceptor.get("interceptor-name"));
+            Enumeration cacheNames = myCacheInterceptor.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("my-cache-interceptor", cacheNames.nextElement());
+            assertEquals("$SYS:MyCacheService", myCacheInterceptor.getService().getInfo().getServiceName());
+
+            CacheService service = myCacheInterceptor.getCacheService();
+            Eventually.assertDeferred(() -> service.isRunning(), is(true));
+            }
+        finally
+            {
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
     // ----- constants and data members -------------------------------------
 
     /**
@@ -318,6 +473,11 @@ public class CacheConfigOverrideTests
      * Cache configuration file with xml-override attribute specified without default.
      */
     public final static String FILE_CFG_CACHE_NO_DEFAULT = "override/cache-config-nodefault.xml";
+
+    /**
+     * Cache configuration file with an override file containing interceptors only.
+     */
+    public final static String FILE_CFG_CACHE_INTERCEPTORS = "override/cache-config-interceptors.xml";
 
     /**
      * Operational override file.
