@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -57,6 +57,7 @@ public class DefaultGatewayDependencies
             m_server                 = deps.getServer();
             m_fExtendedMBeanName     = deps.isExtendedMBeanName();
             m_mbeanServerFinder      = deps.getMBeanServerFinder();
+            m_sDomainNameSuffix      = deps.getDomainNameSuffix();
             }
         }
 
@@ -139,6 +140,15 @@ public class DefaultGatewayDependencies
         }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getDomainNameSuffix()
+        {
+        return m_sDomainNameSuffix;
+        }
+
+    /**
      * Set the MBeanServer default domain.
      *
      * @param sDefaultDomain  the MBean Server default domain
@@ -148,6 +158,19 @@ public class DefaultGatewayDependencies
     protected DefaultGatewayDependencies setDefaultDomain(String sDefaultDomain)
         {
         m_sDefaultDomain = sDefaultDomain;
+        return this;
+        }
+
+    /**
+     * Set a MBean domain name suffix.
+     *
+     * @param sDomainNameSuffix  the MBean domain name suffix
+     *
+     * @return this object
+     */
+    protected DefaultGatewayDependencies setDomainNameSuffix(String sDomainNameSuffix)
+        {
+        m_sDomainNameSuffix = sDomainNameSuffix;
         return this;
         }
 
@@ -436,6 +459,11 @@ public class DefaultGatewayDependencies
      * The MBeanServer Default Domain.
      */
     private String m_sDefaultDomain = "";
+
+    /**
+     * The MBean domain name suffix.
+     */
+    private String m_sDomainNameSuffix = "";
 
     /**
      * The Filter used to evaluate whether or not to register a model with the

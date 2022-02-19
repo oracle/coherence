@@ -187,6 +187,7 @@
                 <xsd:element ref="refresh-timeout" minOccurs="0" />
                 <xsd:element ref="read-only" minOccurs="0" />
                 <xsd:element ref="default-domain-name" minOccurs="0" />
+                <xsd:element ref="domain-name-suffix" minOccurs="0" />
                 <xsd:element ref="service-name" minOccurs="0" />
                 <xsd:element ref="server-factory" minOccurs="0" />
                 <xsd:element ref="mbeans" minOccurs="0" />
@@ -2177,6 +2178,24 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+
+  <xsd:element name="domain-name-suffix" type="coherence-string-type">
+    <xsd:annotation>
+      <xsd:documentation>
+        The domain-name-suffix element enables configuring an application meaningful
+        domain name suffix to append to domain name. When this element's value is a
+        non-empty string, the domain name is "Coherence@" appended with the value.
+
+        This value is only used by the cluster nodes that have in-process
+        MBeanServer and allow management of local or other node's managed
+        objects.
+
+        Defaults to empty string.
+
+        Used in: management-config
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
 
     <xsd:element name="service-name" type="coherence-string-type">
         <xsd:annotation>

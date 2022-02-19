@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.management.internal.resources;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.management.internal.Converter;
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 import com.tangosol.coherence.management.internal.MBeanResponse;
@@ -74,6 +75,7 @@ public abstract class AbstractManagementResource
      */
     public AbstractManagementResource()
         {
+        m_sClusterName = Config.getProperty("coherence.management.http.cluster");
         }
 
     /**
@@ -89,12 +91,6 @@ public abstract class AbstractManagementResource
         m_mBeanServerProxy      = resource.m_mBeanServerProxy;
         m_filterDomainPartition = resource.m_filterDomainPartition;
         m_sClusterName          = resource.m_sClusterName;
-        m_sMBeanDomainName      = resource.m_sMBeanDomainName;
-        if (m_sMBeanDomainName == null)
-            {
-            m_sMBeanDomainName = "*";
-            }
-
         }
 
     // ----- AbstractManagementResource methods -----------------------------
@@ -1206,16 +1202,6 @@ public abstract class AbstractManagementResource
         }
 
     /**
-     * Set the MBean domain name.
-     *
-     * @param sMBeanDomainName  the MBean domain name to use
-     */
-    public void setMBeanDomainName(String sMBeanDomainName)
-        {
-        m_sMBeanDomainName = sMBeanDomainName;
-        }
-
-    /**
      * Check for any attribute that must always converted to {@link Long}/{@link Integer}/{@link Float}.
      *
      * @param entity  {@link Map} to check
@@ -1343,10 +1329,30 @@ public abstract class AbstractManagementResource
      */
     protected String getMBeanDomainName()
         {
-        return m_sMBeanDomainName;
+        return ensureMBeanDomainName();
         }
 
     // ----- static helper methods ------------------------------------------
+
+    private static String ensureMBeanDomainName()
+        {
+        if (s_sMBeanDomainName == null)
+            {
+            synchronized (AbstractManagementResource.class)
+                {
+                if (s_sMBeanDomainName == null)
+                    {
+                    Registry registry    = CacheFactory.getCluster().getManagement();
+                    String   sDomainName = registry.getDomainName();
+
+                    s_sMBeanDomainName = sDomainName == null || sDomainName.isEmpty()
+                            ? "Coherence*"
+                            : sDomainName;
+                    }
+                }
+            }
+        return s_sMBeanDomainName;
+        }
 
     /**
      * Convert a name into a REST standards compatible name.
@@ -2039,12 +2045,12 @@ public abstract class AbstractManagementResource
     private String m_sClusterName;
 
     /**
-     * The domain MBean name to be used. This has to be set while
-     * creating the resource. In standalone Coherence, there is no
-     * need to set it as the MBean proxy will append the correct
-     * domain name.
+     * The Coherence MBean domain name to be used.
      */
-    private String m_sMBeanDomainName;
+    private static volatile String s_sMBeanDomainName = null;
 
+    /**
+     * The {@link MBeanAccessor} to use to access MBean information.
+     */
     protected MBeanAccessor m_accessor;
     }
