@@ -38,6 +38,8 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.io.json.genson.Genson;
+import com.oracle.coherence.io.json.genson.GensonBuilder;
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -68,6 +70,7 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -371,7 +374,54 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
-    public void testAllPlatformMbeans()
+    public void testPlatformMbeans()
+        {
+        for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_URL_TO_MBEAN_QUERY.keySet())
+            {
+            WebTarget target = getBaseTarget().path("platform").path(platformMBean);
+            Logger.info("Executing Management over REST request to URL: " + target.getUri().toString());
+
+            Response response = target.request().get();
+            assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            Map mapResponse = readEntity(target, response);
+            assertThat(mapResponse.size(), greaterThan(0));
+            }
+        }
+
+    @Test
+    public void testPlatformG1MemoryMbeans()
+        {
+        Assume.assumeThat("Skipping test, G1 GC is not enabled", isG1(), is(true));
+        for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_G1_URL_TO_MBEAN_QUERY.keySet())
+            {
+            WebTarget target = getBaseTarget().path("platform").path(platformMBean);
+            Logger.info("Executing Management over REST request to URL: " + target.getUri().toString());
+
+            Response response = target.request().get();
+            assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            Map mapResponse = readEntity(target, response);
+            assertThat(mapResponse.size(), greaterThan(0));
+            }
+        }
+
+    @Test
+    public void testPlatformCMSMemoryMbeans()
+        {
+        Assume.assumeThat("Skipping test, CMS GC is not enabled", isG1(), is(false));
+        for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_PS_URL_TO_MBEAN_QUERY.keySet())
+            {
+            WebTarget target = getBaseTarget().path("platform").path(platformMBean);
+            Logger.info("Executing Management over REST request to URL: " + target.getUri().toString());
+
+            Response response = target.request().get();
+            assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            Map mapResponse = readEntity(target, response);
+            assertThat(mapResponse.size(), greaterThan(0));
+            }
+        }
+
+    @Test
+    public void testMemberPlatformMbeans()
         {
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
@@ -387,46 +437,35 @@ public abstract class BaseManagementInfoResourceTests
 
         for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_URL_TO_MBEAN_QUERY.keySet())
             {
-            target = getBaseTarget().path("platform").path(platformMBean);
+            target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
 
             Logger.info(target.getUri().toString());
 
             response = target.request().get();
-            assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             mapResponse = readEntity(target, response);
             assertThat(mapResponse.size(), greaterThan(0));
             }
+        }
 
-        if (isG1())
-            {
-            for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_G1_URL_TO_MBEAN_QUERY.keySet())
-                {
-                target = getBaseTarget().path("platform").path(platformMBean);
+    @Test
+    public void testMemberPlatformG1MemoryMbeans()
+        {
+        Assume.assumeThat("Skipping test, G1 GC is not enabled", isG1(), is(true));
 
-                Logger.info(target.getUri().toString());
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
 
-                response = target.request().get();
-                assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = readEntity(target, response);
-                assertThat(mapResponse.size(), greaterThan(0));
-                }
-            }
-        else
-            {
-            for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_PS_URL_TO_MBEAN_QUERY.keySet())
-                {
-                target = getBaseTarget().path("platform").path(platformMBean);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
 
-                Logger.info(target.getUri().toString());
+        Object objListMemberIds = mapResponse.get("memberIds");
+        assertThat(objListMemberIds, instanceOf(List.class));
+        List listMemberIds = (List) objListMemberIds;
+        Object memberId = listMemberIds.get(0);
 
-                response = target.request().get();
-                assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = readEntity(target, response);
-                assertThat(mapResponse.size(), greaterThan(0));
-                }
-            }
-
-        for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_URL_TO_MBEAN_QUERY.keySet())
+        for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_G1_URL_TO_MBEAN_QUERY.keySet())
             {
             target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
 
@@ -437,34 +476,35 @@ public abstract class BaseManagementInfoResourceTests
             mapResponse = readEntity(target, response);
             assertThat(mapResponse.size(), greaterThan(0));
             }
+        }
 
-        if (isG1())
+    @Test
+    public void testMemberPlatformCMSMemoryMbeans()
+        {
+        Assume.assumeThat("Skipping test, CMS GC is not enabled", isG1(), is(false));
+
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        Object objListMemberIds = mapResponse.get("memberIds");
+        assertThat(objListMemberIds, instanceOf(List.class));
+        List listMemberIds = (List) objListMemberIds;
+        Object memberId = listMemberIds.get(0);
+
+        for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_PS_URL_TO_MBEAN_QUERY.keySet())
             {
-            for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_G1_URL_TO_MBEAN_QUERY.keySet())
-                {
-                target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
+            target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
 
-                Logger.info(target.getUri().toString());
+            Logger.info(target.getUri().toString());
 
-                response = target.request().get();
-                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = readEntity(target, response);
-                assertThat(mapResponse.size(), greaterThan(0));
-                }
-            }
-        else
-            {
-            for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_PS_URL_TO_MBEAN_QUERY.keySet())
-                {
-                target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
-
-                Logger.info(target.getUri().toString());
-
-                response = target.request().get();
-                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = readEntity(target, response);
-                assertThat(mapResponse.size(), greaterThan(0));
-                }
+            response = target.request().get();
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            mapResponse = readEntity(target, response);
+            assertThat(mapResponse.size(), greaterThan(0));
             }
         }
 
@@ -3218,23 +3258,33 @@ public abstract class BaseManagementInfoResourceTests
         int i = 0;
         while (true)
             {
+            String sJson = null;
             try
                 {
-                Map mapReturned = response.readEntity(Map.class);
-                if (mapReturned == null)
+                sJson = response.readEntity(String.class);
+
+                Map map = sJson != null ? f_genson.deserialize(sJson, LinkedHashMap.class) : null;
+                if (map == null)
                     {
                     Logger.info(getClass().getName() + ".readEntity() returned null"
                             + ", target: " + target + ", response: " + response);
                     }
                 else
                     {
-                    return mapReturned;
+                    return map;
                     }
                 }
             catch (ProcessingException | IllegalStateException e)
                 {
-                Logger.info(getClass().getName() + ".readEntity() got an exception: " + e
-                        + ", cause: " + e.getCause().getLocalizedMessage());
+                Logger.info(getClass().getName() + ".readEntity() got an error "
+                        + " from target " + target + " exception:"
+                        + e + ", cause: " + e.getCause().getLocalizedMessage());
+
+                if (sJson != null)
+                    {
+                    Logger.info("JSON response that caused error\n" + sJson);
+                    }
+
                 if (i > 1)
                     {
                     throw e;
@@ -3595,4 +3645,6 @@ public abstract class BaseManagementInfoResourceTests
     public static final TestLogs m_testLogs = new TestLogs();
 
     private final BiConsumer<String, RemoteCallable<Void>> f_inClusterInvoker;
+
+    private final Genson f_genson = new GensonBuilder().create();
     }
