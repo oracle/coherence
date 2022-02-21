@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,13 +7,12 @@
 package com.tangosol.coherence.management;
 
 import com.tangosol.coherence.management.internal.ClusterNameSupplier;
+import com.tangosol.coherence.management.internal.ManagementRootResource;
 import com.tangosol.coherence.management.internal.MapProvider;
 
-import com.tangosol.coherence.management.internal.filters.DenySniffResponseFilter;
+import com.tangosol.coherence.management.internal.DenySniffResponseFilter;
 
-import com.tangosol.coherence.management.internal.resources.ManagementRootResource;
-import com.tangosol.coherence.management.internal.resources.VersionsResource;
-
+import com.tangosol.coherence.management.internal.VersionedRootResource;
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.management.MBeanServerProxy;
@@ -35,7 +34,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * The entry point into Coherence Management over ReST that
+ * The entry point into Coherence Management over REST that
  * can be used by external applications that want to publish
  * the Coherence Management resources on a different endpoint.
  *
@@ -44,8 +43,8 @@ import java.util.function.Supplier;
 // --------------------------------------------------------------------------
 // IMPLEMENTATION NOTE:
 //
-// This class is the integration point between Coherence Management over ReST
-// and WebLogic's ReST management API. Changes to this class may impact WLS
+// This class is the integration point between Coherence Management over REST
+// and WebLogic's REST management API. Changes to this class may impact WLS
 // and should always be made in a backwards compatible way.
 // --------------------------------------------------------------------------
 public final class RestManagement
@@ -62,7 +61,7 @@ public final class RestManagement
     // ----- RestManagement methods -----------------------------------------
 
     /**
-     * Initialize the {@link ResourceConfig} to provide the management over ReST endpoints.
+     * Initialize the {@link ResourceConfig} to provide the management over REST endpoints.
      * <p>
      * This method will configure standard, single cluster, non-versioned endpoints.
      *
@@ -76,7 +75,7 @@ public final class RestManagement
         }
 
     /**
-     * Initialize the {@link ResourceConfig} to provide the management over ReST endpoints.
+     * Initialize the {@link ResourceConfig} to provide the management over REST endpoints.
      * <p>
      * This method will configure standard, single cluster, non-versioned endpoints.
      *
@@ -92,7 +91,7 @@ public final class RestManagement
         }
 
     /**
-     * Initialize the {@link ResourceConfig} to provide the management over ReST endpoints.
+     * Initialize the {@link ResourceConfig} to provide the management over REST endpoints.
      * <p>
      * This method will configure standard, single cluster, non-versioned endpoints.
      *
@@ -108,7 +107,7 @@ public final class RestManagement
         }
 
     /**
-     * Initialize the {@link ResourceConfig} to provide the management over ReST endpoints
+     * Initialize the {@link ResourceConfig} to provide the management over REST endpoints
      * for a multi-cluster environment.
      * <p>
      * This method will configure the {@link ResourceConfig} to use versioned multi-cluster
@@ -127,8 +126,8 @@ public final class RestManagement
     // --------------------------------------------------------------------------
     // IMPLEMENTATION NOTE:
     //
-    // This method the integration point between Coherence Management over ReST
-    // and WebLogic's ReST management API. Changes to this method may impact WLS
+    // This method the integration point between Coherence Management over REST
+    // and WebLogic's REST management API. Changes to this method may impact WLS
     // and should always be made in a backwards compatible way.
     // --------------------------------------------------------------------------
     public static void configure(ResourceConfig        resourceConfig,
@@ -141,14 +140,14 @@ public final class RestManagement
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Initialize the {@link ResourceConfig} to provide the management over ReST endpoints.
+     * Initialize the {@link ResourceConfig} to provide the management over REST endpoints.
      *
      * @param resourceConfig    the {@link ResourceConfig} to configure
      * @param factory           the {@link MBeanServerProxyFactory} that will supply
      *                          instances of {@link MBeanServerProxy}
      * @param supplierClusters  an optional supplier of available cluster names
      *
-     * @throws NullPointerException if the either of {@code resourceConfig} or
+     * @throws NullPointerException if either of {@code resourceConfig} or
      *         {@code factory} parameters are null
      */
     private static void configure(ResourceConfig          resourceConfig,
@@ -160,8 +159,8 @@ public final class RestManagement
         // --------------------------------------------------------------------------
         // IMPLEMENTATION NOTE:
         //
-        // This method an integration point between Coherence Management over ReST
-        // and WebLogic's ReST management API. Changes to this method may impact WLS
+        // This method an integration point between Coherence Management over REST
+        // and WebLogic's REST management API. Changes to this method may impact WLS
         // (for example registering providers or features that are incompatible with
         // the resource configuration used by WLS management framework).
         // --------------------------------------------------------------------------
@@ -181,7 +180,8 @@ public final class RestManagement
             {
             // we're running in a multi-cluster environment so use the versions resource
             resourceConfig.register(new ClusterNameSupplier.Binder(supplierClusters::get));
-            resourceConfig.register(VersionsResource.class);
+//            resourceConfig.register(VersionsResource.class);
+            resourceConfig.register(VersionedRootResource.class);
             }
         }
 

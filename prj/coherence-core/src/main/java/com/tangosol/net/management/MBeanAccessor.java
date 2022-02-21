@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.tangosol.net.management.MBeanAccessor.QueryBuilder.ParsedQuery;
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 
+import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.function.Remote;
 
 import java.io.Serializable;
@@ -541,13 +542,13 @@ public class MBeanAccessor
 
             private static Filter<ObjectName> instantiateObjectNameFilter(Map<String, Filter<String>> mapFilters)
                 {
+                if (mapFilters == null)
+                    {
+                    return AlwaysFilter.INSTANCE();
+                    }
+
                 return objectName ->
                     {
-                    if (mapFilters == null)
-                        {
-                        return true;
-                        }
-
                     for (Map.Entry<String, Filter<String>> entry : mapFilters.entrySet())
                         {
                         if (!entry.getValue().evaluate(objectName.getKeyProperty(entry.getKey())))

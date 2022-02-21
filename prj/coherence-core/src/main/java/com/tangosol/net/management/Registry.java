@@ -231,6 +231,12 @@ public interface Registry
      */
     public MBeanServerProxy getMBeanServerProxy();
 
+    /**
+     * Return true iff extended global MBean names are to be used.
+     *
+     * @return true iff extended global MBean names are to be used
+     */
+    public boolean isExtendedMBeanName();
 
     // ----- constants ------------------------------------------------------
 

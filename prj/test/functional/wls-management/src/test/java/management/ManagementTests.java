@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package management;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
+import com.oracle.coherence.io.json.genson.Genson;
+import com.oracle.coherence.io.json.genson.GensonBuilder;
 import com.tangosol.coherence.component.manageable.ModelAdapter;
 import com.tangosol.coherence.component.net.management.gateway.Local;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
 import com.tangosol.coherence.http.DefaultHttpServer;
 import com.tangosol.coherence.management.RestManagement;
-import com.tangosol.coherence.management.internal.VersionUtils;
+import com.tangosol.internal.management.VersionUtils;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.management.MBeanHelper;
@@ -67,7 +67,7 @@ public class ManagementTests
 
         s_server = new DefaultHttpServer();
         s_server.setLocalAddress("0.0.0.0");
-        s_server.setLocalPort(LocalPlatform.get().getAvailablePorts().next());
+        s_server.setLocalPort(0);
         s_server.setResourceConfig(mapConfig);
         s_server.start();
 
@@ -94,7 +94,7 @@ public class ManagementTests
 
         assertThat(response.getStatus(), is(200));
 
-        Map map = s_mapper.readValue(response.readEntity(String.class), Map.class);
+        Map<String, Object> map = s_genson.deserialize(response.readEntity(String.class), Map.class);
 
         assertThat(map, is(notNullValue()));
         assertThat(map.containsKey("links"), is(true));
@@ -116,7 +116,7 @@ public class ManagementTests
 
         assertThat(response.getStatus(), is(200));
 
-        Map map = s_mapper.readValue(response.readEntity(String.class), Map.class);
+        Map<String, Object> map = s_genson.deserialize(response.readEntity(String.class), Map.class);
 
         assertThat(map, is(notNullValue()));
         assertThat(map.containsKey("links"), is(true));
@@ -170,19 +170,19 @@ public class ManagementTests
                                     .request(MediaType.APPLICATION_JSON_TYPE)
                                     .get();
 
-        assertThat(response.getStatus(), is(200));
+        assertThat("Failed to get 200 response for cluster " + sName, response.getStatus(), is(200));
 
-        Map map = s_mapper.readValue(response.readEntity(String.class), Map.class);
+        Map<String, Object> map = s_genson.deserialize(response.readEntity(String.class), Map.class);
 
         assertThat(map, is(notNullValue()));
         assertThat(map.containsKey("links"), is(true));
         assertThat(map.containsKey("clusterSize"), is(true));
-        assertThat(map.get("clusterSize"), is(1));
+        assertThat(((Number) map.get("clusterSize")).intValue(), is(1));
         }
 
     // ----- helper methods -------------------------------------------------
 
-    private static void createFakeClusterMBean( String clusterName)
+    private static void createFakeClusterMBean(String clusterName)
         {
         Local        local = (Local) CacheFactory.ensureCluster().getManagement();
         String       sName = Registry.CLUSTER_TYPE + ",cluster=" + clusterName;
@@ -231,9 +231,9 @@ public class ManagementTests
 
     private static DefaultHttpServer s_server;
 
-    private static final ObjectMapper s_mapper = new ObjectMapper();
-
     private static Client s_client;
 
     private static URI s_baseURI;
+
+    private static final Genson s_genson = new GensonBuilder().create();
     }

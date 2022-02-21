@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -2101,61 +2101,73 @@ public class DefaultClusterDependencies
     protected void discoverSerializers()
         {
         ClassLoader clzLoader = Base.getContextClassLoader();
-        loadService(ServiceLoader.load(SerializerFactory.class, clzLoader));
-        loadService(ServiceLoader.load(Serializer.class, clzLoader));
+        loadService(SerializerFactory.class, clzLoader);
+        loadService(Serializer.class, clzLoader);
         }
 
     /**
      * Helper method for {@link #discoverSerializers()}.
      *
-     * @param loader the {@link ServiceLoader}
+     * @param clz     the service class
+     * @param loader  the {@link ClassLoader} to load the services
      * @param <T>     the service type
      *
      * @see #discoverSerializers()
      *
      * @since 20.12
      */
-    protected <T> void loadService(ServiceLoader<T> loader)
+    protected <T> void loadService(Class<T> clz, ClassLoader loader)
         {
-        for (T service : loader)
+        ServiceLoader<T> serviceLoader = ServiceLoader.load(clz, loader);
+        Iterator<T>      iterator      = serviceLoader.iterator();
+
+        while (iterator.hasNext())
             {
-            String            sName   = null;
-            SerializerFactory factory = null;
-
-            if (service instanceof SerializerFactory)
+            try
                 {
-                factory = (SerializerFactory) service;
-                sName   = factory.getName();
-                }
-            else
-                {
-                sName = ((Serializer) service).getName();
+                T                 service = iterator.next();
+                String            sName   = null;
+                SerializerFactory factory = null;
 
-                factory = clzLoader ->
+                if (service instanceof SerializerFactory)
                     {
-                    try
-                        {
-                        Serializer serializer = (Serializer) service.getClass().getConstructor().newInstance();
-                        if (serializer instanceof ClassLoaderAware)
-                            {
-                            ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
-                            }
-                        return serializer;
-                        }
-                    catch (Exception e)
-                        {
-                        throw Base.ensureRuntimeException(e,
-                                String.format("Unable to create serializer type [%s]",
-                                        service.getClass().getName()));
-                        }
-                    };
-                }
+                    factory = (SerializerFactory) service;
+                    sName   = factory.getName();
+                    }
+                else
+                    {
+                    sName = ((Serializer) service).getName();
 
-            if (m_mapSerializer.putIfAbsent(sName, factory) != null)
+                    factory = clzLoader ->
+                        {
+                        try
+                            {
+                            Serializer serializer = (Serializer) service.getClass().getConstructor().newInstance();
+                            if (serializer instanceof ClassLoaderAware)
+                                {
+                                ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
+                                }
+                            return serializer;
+                            }
+                        catch (Exception e)
+                            {
+                            throw Base.ensureRuntimeException(e,
+                                    String.format("Unable to create serializer type [%s]",
+                                            service.getClass().getName()));
+                            }
+                        };
+                    }
+
+                if (m_mapSerializer.putIfAbsent(sName, factory) != null)
+                    {
+                    Logger.warn(String.format("serializer factory already defined for %s, type [%s]; ignoring this"
+                                              + " discovered implementation",
+                                              sName, service.getClass().getName()));
+                    }
+                }
+            catch (Throwable t)
                 {
-                Logger.warn(String.format("serializer factory already defined for %s, type [%s]; ignoring this"
-                                          + " discovered implementation",
-                                          sName, service.getClass().getName()));
+                Logger.err("Failed to load service of type " + clz, t);
                 }
             }
         }

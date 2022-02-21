@@ -23,6 +23,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
+import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
@@ -43,11 +44,10 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.
 
 import com.tangosol.coherence.management.internal.MapProvider;
 
-import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
-import com.tangosol.coherence.management.internal.resources.ClusterMemberResource;
-
 import com.tangosol.discovery.NSLookup;
 
+import com.tangosol.internal.management.resources.AbstractManagementResource;
+import com.tangosol.internal.management.resources.ClusterMemberResource;
 import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
@@ -120,21 +120,21 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.CACHES;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MANAGEMENT;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBER;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBERS;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.METADATA_CATALOG;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.NAME;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.NODE_ID;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.OPTIONS;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.REPORTERS;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.ROLE_NAME;
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.SERVICE;
-import static com.tangosol.coherence.management.internal.resources.ClusterMemberResource.DIAGNOSTIC_CMD;
-import static com.tangosol.coherence.management.internal.resources.ClusterResource.DUMP_CLUSTER_HEAP;
-import static com.tangosol.coherence.management.internal.resources.ClusterResource.ROLE;
-import static com.tangosol.coherence.management.internal.resources.ClusterResource.TRACING_RATIO;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.MANAGEMENT;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBER;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBERS;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.METADATA_CATALOG;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.NAME;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.NODE_ID;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.OPTIONS;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.REPORTERS;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.ROLE_NAME;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.SERVICE;
+import static com.tangosol.internal.management.resources.ClusterMemberResource.DIAGNOSTIC_CMD;
+import static com.tangosol.internal.management.resources.ClusterResource.DUMP_CLUSTER_HEAP;
+import static com.tangosol.internal.management.resources.ClusterResource.ROLE;
+import static com.tangosol.internal.management.resources.ClusterResource.TRACING_RATIO;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -1328,13 +1328,16 @@ public abstract class BaseManagementInfoResourceTests
 
             Map mapResponse = readEntity(target, response);
             assertThat(mapResponse, notNullValue());
+            Object o = mapResponse.get(attribute);
             if (value instanceof Number)
                 {
-                assertThat(attribute + " should be " + value + ", but is " + ((Number) mapResponse.get(attribute)).intValue(), mapResponse.get(attribute), is(((Number) value).intValue()));
+                assertThat(o, is(instanceOf(Number.class)));
+                Number n = (Number) o;
+                assertThat(attribute + " should be " + value + ", but is " + n, n.intValue(), is(((Number) value).intValue()));
                 }
             else
                 {
-                assertThat(attribute + " should be " + value + ", but is " + mapResponse.get(attribute), mapResponse.get(attribute), is(value));
+                assertThat(attribute + " should be " + value + ", but is " + o, o, is(value));
                 }
             });
         }
@@ -2733,7 +2736,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         else if (result instanceof Long)
             {
-            return ((Long) result).longValue() == ((Long)value).longValue();
+            return ((Number) result).longValue() == ((Number)value).longValue();
             }
         else if (result instanceof Float)
             {
@@ -3262,6 +3265,16 @@ public abstract class BaseManagementInfoResourceTests
                          opts -> opts);
         }
 
+    public static void startTestCluster(Class<?> clsMain, String sClusterName, Option... options)
+        {
+        startTestCluster(clsMain,
+                         sClusterName,
+                         BaseManagementInfoResourceTests::assertClusterReady,
+                         BaseManagementInfoResourceTests::invokeInCluster,
+                         opts -> opts,
+                         options);
+        }
+
     public static void startTestCluster(Class<?> clsMain,
                                         String sClusterName,
                                         Consumer<CoherenceCluster> clusterReady,
@@ -3285,6 +3298,24 @@ public abstract class BaseManagementInfoResourceTests
 
         AbstractTestInfrastructure.addTestProperties(commonOptions);
         commonOptions.addAll(opts);
+
+        if (!commonOptions.contains(ClassPath.class))
+            {
+            // If the class path option has not been specifically set we set it here
+            // we remove any JAX-RS, Jersey, Jackson, Glassfish and other stuff
+            // that we do not want on the server classpath
+            ClassPath path = ClassPath.ofSystem()
+                    .excluding(".*apache.*")
+                    .excluding(".*commons-codec.*")
+                    .excluding(".*commons-logging.*")
+                    .excluding(".*fasterxml.*")
+                    .excluding(".*glassfish.*")
+                    .excluding(".*jakarta.*")
+                    .excluding(".*jersey.*")
+                    .excluding(".*jackson.*");
+
+            commonOptions.add(path);
+            }
 
         CoherenceClusterBuilder builder      = new CoherenceClusterBuilder();
         OptionsByType           propsServer1 = OptionsByType.of(commonOptions);
@@ -3511,7 +3542,7 @@ public abstract class BaseManagementInfoResourceTests
      * The list of services used by this test class.
      */
     private static final String[] SERVICES_LIST = {SERVICE_NAME, "ExtendHttpProxyService", "ExtendProxyService",
-            "DistributedCachePersistence", "ManagementHttpProxy"};
+            "DistributedCachePersistence", HttpHelper.getServiceName()};
 
     /**
      * The list of caches used by this test class.

@@ -18,7 +18,9 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.tangosol.internal.net.management.HttpHelper;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -32,6 +34,7 @@ import static org.hamcrest.CoreMatchers.is;
  * This is similar to environments like Web Servers or WLS where a single JVM may
  * contain more than one Coherence cluster, isolated by class loader.
  */
+//@Ignore
 public class MultiClusterInSingleProcessTests
         extends BaseManagementInfoResourceTests
     {
@@ -98,7 +101,7 @@ public class MultiClusterInSingleProcessTests
         MultiCluster.assertClusterStarted(cluster, "Foo");
 
         CoherenceClusterMember member = cluster.getAny();
-        Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus("ManagementHttpProxy")), is(ServiceStatus.RUNNING), Timeout.of(5, TimeUnit.MINUTES));
+        Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(HttpHelper.getServiceName())), is(ServiceStatus.RUNNING), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(SERVICE_NAME)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(ACTIVE_SERVICE)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new CalculateUnbalanced("dist-persistence-test")), is(0), within(5, TimeUnit.MINUTES));

@@ -7,8 +7,10 @@
 package executor;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 
+import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
@@ -25,6 +27,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
 
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
@@ -39,17 +43,16 @@ import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 
-import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
+import com.tangosol.coherence.management.internal.MapProvider;
 
 import com.tangosol.discovery.NSLookup;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.internal.management.resources.AbstractManagementResource;
+import com.tangosol.internal.net.management.HttpHelper;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
-
-import com.tangosol.util.Base;
 
 import executor.common.CoherenceClusterResource;
 import executor.common.LogOutput;
@@ -57,8 +60,6 @@ import executor.common.LongRunningTask;
 import executor.common.SingleClusterForAllTests;
 
 import java.util.concurrent.TimeUnit;
-
-import org.glassfish.jersey.jackson.JacksonFeature;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
@@ -99,8 +100,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBERS;
-
 import static com.tangosol.util.Base.ensureRuntimeException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -131,9 +130,14 @@ public class MBeanTests
     public static void setupClass()
         {
         // ensure the cluster service is running
-        s_coherence.getCluster();
+        CoherenceCluster cluster = s_coherence.getCluster();
+        Eventually.assertDeferred(cluster::getClusterSize, is(STORAGE_ENABLED_MEMBER_COUNT + STORAGE_DISABLED_MEMBER_COUNT));
+
+        Eventually.assertDeferred(() -> assertClusterReady(cluster), is(true));
+
         m_client = ClientBuilder.newBuilder()
-                .register(JacksonFeature.class).build();
+                .register(MapProvider.class).build();
+
         }
 
     @After
@@ -157,6 +161,7 @@ public class MBeanTests
     public void setup()
         {
         System.setProperty("coherence.cluster", "MBeanTests");
+        System.setProperty("coherence.distributed.localstorage", "false");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
         m_session = m_local.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
@@ -166,7 +171,6 @@ public class MBeanTests
 
         // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
         NamedCache executors = m_session.getCache(ClusteredExecutorInfo.CACHE_NAME);
-
 
         Eventually.assertDeferred(executors::size, is(getInitialExecutorCount()));
 
@@ -180,6 +184,7 @@ public class MBeanTests
     // ----- test methods ---------------------------------------------------
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testExecutors()
         {
         // run test to generate some activities
@@ -191,23 +196,23 @@ public class MBeanTests
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
         MatcherAssert.assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        Map mapResponse = response.readEntity(LinkedHashMap.class);
+        Map<String, Object> mapResponse = response.readEntity(LinkedHashMap.class);
         assertThat(mapResponse, notNullValue());
 
-        List<Map> listItems = (List<Map>) mapResponse.get("items");
+        List<Map<String, Object>> listItems = (List<Map<String, Object>>) mapResponse.get("items");
         assertThat(listItems, notNullValue());
         assertThat(listItems.size(), is(1));
 
-        String       sExecutorName = null;
-        List<String> sMemberIds    = null;
-        Map          mapItem       = listItems.get(0);
+        Map<String, Object> mapItem = listItems.get(0);
+        String              sExecutorName;
+        List<String>        sMemberIds;
 
         sMemberIds = (List<String>) mapItem.get("memberId");
         assertThat(sMemberIds.size(), is(4));
         sExecutorName = ((List<String>) mapItem.get("name")).get(0);
         assertThat(sExecutorName, is(RemoteExecutor.DEFAULT_EXECUTOR_NAME));
-        int count = ((Integer) ((LinkedHashMap) mapItem.get("tasksCompletedCount")).get("sum")).intValue()
-                    + ((Integer) ((LinkedHashMap) mapItem.get("tasksInProgressCount")).get("sum")).intValue();
+        int count = ((Number) ((Map<String, Object>) mapItem.get("tasksCompletedCount")).get("sum")).intValue()
+                    + ((Number) ((Map<String, Object>) mapItem.get("tasksInProgressCount")).get("sum")).intValue();
         assertThat(count, greaterThan(0));
 
         // .../executors/<executorName>
@@ -220,15 +225,15 @@ public class MBeanTests
         assertThat(((List<String>) mapResponse.get("name")).get(0), is(RemoteExecutor.DEFAULT_EXECUTOR_NAME));
 
         // .../executors/members
-        target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(MEMBERS);
+        target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(AbstractManagementResource.MEMBERS);
         response = target.request().get();
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
-        listItems   = (List<Map>) mapResponse.get("items");
+        listItems   = (List<Map<String, Object>>) mapResponse.get("items");
         assertThat(listItems.size(), is(4));
 
-        for (Map item : listItems)
+        for (Map<String, Object> item : listItems)
             {
             String sName = (String) item.get("name");
 
@@ -241,12 +246,12 @@ public class MBeanTests
             }
 
         // .../executors/members/<memberId>
-        target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(MEMBERS).path(sMemberIds.get(0));
+        target = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(AbstractManagementResource.MEMBERS).path(sMemberIds.get(0));
         response = target.request().get();
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
         mapResponse = response.readEntity(LinkedHashMap.class);
-        listItems   = (List<Map>) mapResponse.get("items");
+        listItems   = (List<Map<String, Object>>) mapResponse.get("items");
         assertThat(listItems.size(), greaterThan(0));
 
         response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).path("resetStatistics")
@@ -257,20 +262,30 @@ public class MBeanTests
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
         mapResponse = response.readEntity(LinkedHashMap.class);
 
-        LinkedHashMap tasksCompletedCount = (LinkedHashMap) mapResponse.get("tasksCompletedCount");
-        assertThat(((Integer) tasksCompletedCount.get("sum")).intValue(), is(0));
+        Map<String, Object> tasksCompletedCount = (Map<String, Object>) mapResponse.get("tasksCompletedCount");
+        assertThat(((Number) tasksCompletedCount.get("sum")).intValue(), is(0));
+
+        Map<String, Boolean> mapBody = new LinkedHashMap<>();
+        mapBody.put("traceLogging", false);
 
         response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().post(
-                    Entity.entity(new LinkedHashMap(){{put("traceLogging", false);}}, MediaType.APPLICATION_JSON_TYPE));
-        MatcherAssert.assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
-        Base.sleep(5000);        // wait for the change to take effect
+                    Entity.entity(mapBody, MediaType.APPLICATION_JSON_TYPE));
 
-        response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().get();
+        MatcherAssert.assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
+
+        Eventually.assertDeferred(() -> getTraceLoggingConfig(sExecutorName), is(false));
+        }
+
+    @SuppressWarnings("unchecked")
+    private Boolean getTraceLoggingConfig(String sExecutorName)
+        {
+        Response response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().get();
         MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
 
-        mapResponse = response.readEntity(LinkedHashMap.class);
+        Map<String, Object> mapResponse = response.readEntity(LinkedHashMap.class);
         List<Boolean> traceLogging = (List<Boolean>) mapResponse.get("traceLogging");
-        assertThat(traceLogging.get(0).booleanValue(), is(false));
+
+        return traceLogging != null && traceLogging.size() > 0 ? traceLogging.get(0) : false;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -281,8 +296,9 @@ public class MBeanTests
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
 
         // start a long-running task on a client member
-        final String taskName = "longRunningTask";
-        ClusteredTaskCoordinator coordinator = (ClusteredTaskCoordinator) m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
+        String taskName = "longRunningTask";
+        ClusteredTaskCoordinator<String> coordinator = (ClusteredTaskCoordinator<String>) m_taskExecutorService
+            .orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
             .as(taskName)
             .filter(Predicates.role("compute"))
             .limit(1)
@@ -309,6 +325,7 @@ public class MBeanTests
 
     // ----- helper methods -------------------------------------------------
 
+    @SuppressWarnings("unchecked")
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
         {
         return m_taskExecutorService.getCacheService().ensureCache(sName, null);
@@ -349,7 +366,7 @@ public class MBeanTests
                 int nPort = Integer.getInteger("test.multicast.port", 7777);
                 m_baseURI = NSLookup.lookupHTTPManagementURL(new InetSocketAddress("127.0.0.1", nPort)).iterator().next().toURI();
 
-                CacheFactory.log("Management HTTP Acceptor lookup returned: " + m_baseURI, CacheFactory.LOG_INFO);
+                Logger.info("Management HTTP Acceptor lookup returned: " + m_baseURI);
                 }
             return client.target(m_baseURI);
             }
@@ -359,23 +376,38 @@ public class MBeanTests
             }
         }
 
-    private String getSelfLink(Map mapResponse)
+    private String getSelfLink(Map<String, Object> mapResponse)
         {
         return getLink(mapResponse, "self");
         }
 
-    private String getLink(Map mapResponse, String sLinkName)
+    @SuppressWarnings("unchecked")
+    private String getLink(Map<String, Object> mapResponse, String sLinkName)
         {
-        List<LinkedHashMap> linksMap =  (List) mapResponse.get("links");
-        Assert.assertThat(linksMap, CoreMatchers.notNullValue());
-        LinkedHashMap selfLinkMap = linksMap.stream().filter(m -> m.get("rel").
+        List<Map<String, Object>> linksMap =  (List<Map<String, Object>>) mapResponse.get("links");
+
+        assertThat(linksMap, CoreMatchers.notNullValue());
+
+        Map<String, Object> selfLinkMap = linksMap.stream().filter(m -> m.get("rel").
                 equals(sLinkName))
                 .findFirst()
-                .orElse(new LinkedHashMap());
+                .orElse(new LinkedHashMap<>());
 
         String sSelfLink = (String) selfLinkMap.get("href");
         Assert.assertThat(sSelfLink, CoreMatchers.notNullValue());
         return sSelfLink;
+        }
+
+    private static boolean assertClusterReady(CoherenceCluster cluster)
+        {
+        for (CoherenceClusterMember member : cluster)
+            {
+            if (ServiceStatus.RUNNING.equals(member.getServiceStatus(HttpHelper.getServiceName())))
+                {
+                return true;
+                }
+            }
+        return false;
         }
 
     // ----- constants ------------------------------------------------------
@@ -392,11 +424,14 @@ public class MBeanTests
 
     // ----- data members ---------------------------------------------------
 
+    @ClassRule
+    public static final TestLogs s_testLogs = new TestLogs(MBeanTests.class);
+
     /**
      * The {@link CoherenceClusterResource} to establish a {@link CoherenceCluster} for testing.
      */
     @ClassRule
-    public static CoherenceClusterResource s_coherence =
+    public static final CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(ClassName.of(Coherence.class),
                           Multicast.ttl(0),
@@ -404,7 +439,8 @@ public class MBeanTests
                           Logging.at(9),
                           ClusterPort.of(7574),
                           ClusterName.of(MBeanTests.class.getSimpleName()),
-                          JmxFeature.enabled())
+                          JmxFeature.enabled(),
+                          s_testLogs)
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(MBeanTests.class.getSimpleName(), "CacheServer"),

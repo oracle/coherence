@@ -6,7 +6,6 @@
  */
 package management;
 
-import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
@@ -15,14 +14,12 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 
 import com.tangosol.net.management.MBeanAccessor;
-import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanServerProxy;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.management.MBeanServer;
-import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -37,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.SERVICES;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.SERVICES;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 

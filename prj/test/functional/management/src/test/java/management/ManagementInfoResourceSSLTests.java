@@ -9,7 +9,6 @@ package management;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 
 import com.tangosol.coherence.management.internal.MapProvider;
-
 import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
 
 import com.tangosol.run.xml.XmlDocument;

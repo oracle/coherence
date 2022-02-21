@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.tangosol.internal.net.management;
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.internal.management.MapJsonBodyHandler;
 
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;
@@ -44,7 +46,7 @@ public abstract class HttpHelper
      *
      * @return the Management over HTTP URL
      *
-     * @throws MalformedURLException
+     * @throws MalformedURLException if the URL cannot be created
      */
     public static URL composeURL(String sHost, int nPort)
             throws MalformedURLException
@@ -62,12 +64,12 @@ public abstract class HttpHelper
      *
      * @return the Management over HTTP/HTTPS URL
      *
-     * @throws MalformedURLException
+     * @throws MalformedURLException if the URL cannot be created
      */
     public static URL composeURL(String sHost, int nPort, String sProtocol)
             throws MalformedURLException
         {
-        return new URL(sProtocol, sHost, nPort, "/management/coherence/cluster");
+        return new URL(sProtocol, sHost, nPort, DEFAULT_CLUSTER_PATH);
         }
 
     /**
@@ -77,7 +79,7 @@ public abstract class HttpHelper
      */
     public static String getServiceName()
         {
-        return "ManagementHttpProxy";
+        return MANAGEMENT_SERVICE_NAME;
         }
 
     /**
@@ -85,18 +87,26 @@ public abstract class HttpHelper
      *
      * @return whether this Coherence node is capable of running the Management over HTTP service
      */
-    public static boolean isHttpCapable(ClassLoader classLoader)
+    public static boolean isHttpCapable(ClassLoader ignored)
         {
         try
             {
-            // check that the coherence-rest module is accessible
-            classLoader.loadClass("com.tangosol.coherence.management.internal.ManagementResourceConfig");
+            // The resources for Management over REST are now in coherence core.
+            // All we need to run Management over REST is an implementation of MapJsonBodyHandler
+            // discovered via the ServiceLoader (there is one in the Coherence JSON module)
+            MapJsonBodyHandler.ensureMapJsonBodyHandler();
             }
         catch (Throwable t)
             {
             // don't bother logging the stack trace as having a stack trace in the logs can be alarming to administrators
-            Logger.finest("One or more libraries are missing for management over HTTP: " + t);
-
+            StringBuilder sMsg = new StringBuilder(t.getMessage());
+            Throwable cause = t.getCause();
+            while (cause != null)
+                {
+                sMsg.append(", caused by: ").append(cause.getMessage());
+                cause = cause.getCause();
+                }
+            Logger.finest("One or more dependencies are missing for management over HTTP: " + sMsg);
             return false;
             }
 
@@ -122,18 +132,18 @@ public abstract class HttpHelper
             ProxyServiceDependencies deps = null;
             try
                 {
-                String sConfigFile = "management-http-config.xml";
-                URL    urlConfig   = classLoader.getResource(sConfigFile);
+                URL    urlConfig   = classLoader.getResource(MANAGEMENT_CONFIG);
 
                 if (urlConfig == null)
                     {
-                    throw new IllegalStateException("Unable to locate " + sConfigFile + " which should be"
+                    throw new IllegalStateException("Unable to locate " + MANAGEMENT_CONFIG + " which should be"
                         + " resolvable from the coherence-management module on the class path.");
                     }
 
                 XmlElement xml = XmlHelper.loadXml(urlConfig);
                 XmlHelper.replaceSystemProperties(xml, "system-property");
 
+                //noinspection deprecation
                 deps = LegacyXmlProxyServiceHelper.fromXml(
                     xml, new DefaultProxyServiceDependencies(), (OperationalContext) cluster, classLoader);
 
@@ -152,7 +162,6 @@ public abstract class HttpHelper
                     {
                     Logger.err("Management over HTTP is not available most likely due to this member missing "
                         + "the necessary libraries to run the service. Handled exception: " + tCause.getClass().getCanonicalName() + ": " + tCause.getLocalizedMessage());
-                    return false;
                     }
                 else
                     {
@@ -170,8 +179,9 @@ public abstract class HttpHelper
                     sb.append(" due to ").append(tCause.getClass().getSimpleName())
                       .append(" : ").append(tCause.getLocalizedMessage());
                     Logger.err(sb.toString());
-                    return false;
                     }
+
+                return false;
                 }
             }
         else
@@ -187,4 +197,20 @@ public abstract class HttpHelper
      * Default Management over REST HTTP port.
      */
     public static final int DEFAULT_MANAGEMENT_OVER_REST_PORT = 30000;
+
+    /**
+     * The name of the Management over REST proxy service.
+     */
+    // NOTE - this name MUST match the service name in management-http-config.xml
+    public static final String MANAGEMENT_SERVICE_NAME = "ManagementHttpProxy";
+
+    /**
+     * The default path to the Cluster endpoint.
+     */
+    public static final String DEFAULT_CLUSTER_PATH = "/management/coherence/cluster";
+
+    /**
+     * The name of the Management over REST proxy configuration file.
+     */
+    public static final String MANAGEMENT_CONFIG = "management-http-config.xml";
     }
