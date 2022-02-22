@@ -261,3 +261,4 @@ times a word appears in documents stored in Coherence.
 === See Also
 
 * {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-C9DF96E0-FAF2-4CD9-958E-4DC5CF06B18A[Performing Data Grid Operations]
+* <<examples/guides/125-streams/README.adoc,Streams>>

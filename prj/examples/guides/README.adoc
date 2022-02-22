@@ -31,11 +31,19 @@ This guide walks you through basic CRUD `put`, `get`, and `remove` operations on
 --
 This guide walks you through how to use built-in aggregators within Coherence.
 --
+
 [CARD]
 .Custom Aggregators
 [link=examples/guides/121-custom-aggregators/README.adoc]
 --
 This guide walks you through how to create custom aggregators within Coherence.
+--
+
+[CARD]
+.Streams
+[link=examples/guides/125-streams/README.adoc]
+--
+This guide walks you through how to use the Streams API with Coherence.
 --
 
 [CARD]

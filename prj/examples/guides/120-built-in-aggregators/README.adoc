@@ -206,3 +206,4 @@ You also used the `Aggregators` class and its helpers to simplify aggregator usa
 === See Also
 
 * {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-C9DF96E0-FAF2-4CD9-958E-4DC5CF06B18A[Performing Data Grid Operations]
+* <<examples/guides/125-streams/README.adoc,Streams>>
