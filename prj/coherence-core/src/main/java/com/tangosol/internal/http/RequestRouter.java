@@ -290,12 +290,14 @@ public class RequestRouter
                                                    .findFirst()
                                                    .orElse("");
 
+            // strip any trailing slashes from the path
             sPath = sPath.substring(sRoot.length());
             while(sPath.endsWith("/") && sPath.length() != 1)
                 {
-                sPath = sPath.substring(0, sPath.length() - 2);
+                sPath = sPath.substring(0, sPath.length() - 1);
                 }
 
+            // if the path is now empty then use a single slash as the path
             if (sPath.isEmpty())
                 {
                 sPath = "/";
