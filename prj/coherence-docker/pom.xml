@@ -26,7 +26,7 @@
     <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
 
     <!-- The base image for the Coherence image - usually a distroless OpenJDK image -->
-    <docker.base.image.name>gcr.io/distroless/java:11</docker.base.image.name>
+    <docker.base.image.name>gcr.io/distroless/java11</docker.base.image.name>
 
     <port.extend>20000</port.extend>
     <port.management>30000</port.management>
