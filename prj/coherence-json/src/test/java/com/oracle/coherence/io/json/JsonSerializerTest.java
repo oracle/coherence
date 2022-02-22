@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -720,6 +720,26 @@ class JsonSerializerTest
         assertRoundTrip(new SafeComparator(comparator), compare);
         assertRoundTrip(new SafeComparator(comparator, false), compare);
         }
+
+    @Test
+    public void shouldSerializeBackslash() throws Exception
+        {
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+
+        Genson              genson = serializer.underlying();
+        Map<String, Object> mapIn  = new LinkedHashMap<>();
+
+        mapIn.put("Foo", "\\");
+        mapIn.put("Bar", "Bar\\");
+
+        String                        sJson  = genson.serialize(mapIn);
+        LinkedHashMap<String, Object> mapOut = genson.deserialize(sJson, LinkedHashMap.class);
+
+        assertThat(mapOut, is(mapIn));
+        }
+
 
     // ----- inner class: Holder --------------------------------------------
 
