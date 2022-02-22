@@ -10,6 +10,8 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
@@ -22,8 +24,8 @@ import com.oracle.coherence.common.base.Reads;
 
 import com.oracle.coherence.io.json.JsonSerializer;
 
-import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
+import com.oracle.coherence.io.json.internal.GensonMapJsonBodyHandler;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
 import com.tangosol.net.Coherence;
@@ -64,6 +66,8 @@ public class ManagementMinimalDependenciesTests
                                            ClassPath.ofClass(JsonSerializer.class));
         
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class, classPath,
+                                    LocalHost.only(),
+                                    WellKnownAddress.of("127.0.0.1"),
                                     SystemProperty.of("coherence.management", "dynamic"),
                                     SystemProperty.of("coherence.cluster", "Storage"),
                                     SystemProperty.of("coherence.management.extendedmbeanname", true),
@@ -83,7 +87,7 @@ public class ManagementMinimalDependenciesTests
                 byte[] abBody = Reads.read(in);
                 assertThat(abBody.length, is(not(0)));
 
-                HashMap<String, Object> map = new GensonBuilder().create().deserialize(abBody, HashMap.class);
+                HashMap<String, Object> map = GensonMapJsonBodyHandler.s_genson.deserialize(abBody, HashMap.class);
                 assertThat(map.get("clusterName"), is(sCluster));
                 }
             }

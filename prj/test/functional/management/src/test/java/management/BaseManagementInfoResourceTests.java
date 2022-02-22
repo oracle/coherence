@@ -3255,7 +3255,9 @@ public abstract class BaseManagementInfoResourceTests
     protected Map readEntity(WebTarget target, Response response, Entity entity)
             throws ProcessingException
         {
-        int i = 0;
+        int cAttempt    = 0;
+        int cMaxAttempt = 2;
+
         while (true)
             {
             String sJson = null;
@@ -3274,18 +3276,17 @@ public abstract class BaseManagementInfoResourceTests
                     return map;
                     }
                 }
-            catch (ProcessingException | IllegalStateException e)
+            catch (Throwable e)
                 {
-                Logger.info(getClass().getName() + ".readEntity() got an error "
-                        + " from target " + target + " exception:"
-                        + e + ", cause: " + e.getCause().getLocalizedMessage());
+                Logger.err(getClass().getName() + ".readEntity() got an error "
+                        + " from target " + target, e);
 
                 if (sJson != null)
                     {
-                    Logger.info("JSON response that caused error\n" + sJson);
+                    Logger.err("JSON response that caused error\n" + sJson);
                     }
 
-                if (i > 1)
+                if (cAttempt >= cMaxAttempt)
                     {
                     throw e;
                     }
@@ -3302,7 +3303,7 @@ public abstract class BaseManagementInfoResourceTests
                 }
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            i++;
+            cAttempt++;
             }
         }
 
