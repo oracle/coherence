@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.io.json;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.io.json.genson.GenericType;
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
@@ -135,8 +136,6 @@ public class JsonSerializer
         GensonBuilder builder = new GensonBuilder()
                 .withBundle(new BundleProxy("com.fasterxml.jackson.annotation.JacksonAnnotation",
                                             "com.oracle.coherence.io.json.genson.ext.jackson.JacksonBundle"))
-                .withBundle(new JsonbBundle())
-                .withBundle(new JSR353Bundle())
                 .withBundle(new JavaDateTimeBundle())
                 .withBundle(new GensonServiceBundle())
                 .setDefaultType(ValueType.OBJECT, JsonObject.class)
@@ -147,7 +146,6 @@ public class JsonSerializer
                 .useFields(true, VisibilityFilter.PRIVATE)
                 .useMethods(false)
                 .useConstructorWithArguments(true)
-                .useUnknownPropertyHandler(new EvolvableHandler())
                 .setSkipNull(true)
                 .withSerializer(VersionableSerializer.INSTANCE, Versionable.class)
                 .withConverter(InetAddressConverter.INSTANCE, InetAddress.class)
@@ -155,6 +153,19 @@ public class JsonSerializer
                 .withConverter(InetAddressConverter.INSTANCE, Inet6Address.class)
                 .withConverter(InetSocketAddressConverter.INSTANCE, InetSocketAddress.class)
                 .withConverter(JsonObjectConverter.INSTANCE, JsonObject.class);
+
+        addSafeBundle(builder, JsonbBundle.class);
+        addSafeBundle(builder, JSR353Bundle.class);
+
+        try
+            {
+            builder.useUnknownPropertyHandler(new EvolvableHandler());
+            }
+        catch (Throwable t)
+            {
+            Logger.warn("Could not add JSON UnknownPropertyHandler " + EvolvableHandler.class + " " + t.getLocalizedMessage());
+            }
+
 
         if (!this.f_fCompatibleMode)
             {
@@ -279,7 +290,22 @@ public class JsonSerializer
         return f_genson;
         }
 
-    // ----- inner class: BundleProxy ------------------------------
+    // ----- helper methods -------------------------------------------------
+
+    private static void addSafeBundle(GensonBuilder builder, Class<? extends GensonBundle> clz)
+        {
+        try
+            {
+            GensonBundle bundle = clz.getDeclaredConstructor().newInstance();
+            builder.withBundle(bundle);
+            }
+        catch (Throwable t)
+            {
+            Logger.warn("Failed to add Genson bundle: " + clz + " - " + t.getLocalizedMessage());
+            }
+        }
+
+    // ----- inner class: BundleProxy ---------------------------------------
 
     /**
      * Proxies a {@link GensonBundle} by checking if the required

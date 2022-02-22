@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -465,7 +465,8 @@ public class JsonWriter implements ObjectWriter {
       char c = carray[i];
       char[] replacement;
       if (c < 128) {
-        if (c == '\\' && carray[i + 1] == 'u') {
+        int next = i + 1;
+        if (c == '\\' && carray.length > next && carray[next] == 'u') {
           continue;
         }
         replacement = replacements[c];
