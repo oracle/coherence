@@ -37,9 +37,11 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.base.Reads;
 
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
+
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -83,16 +85,17 @@ import test.CheckJDK;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -121,6 +124,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
@@ -1204,9 +1208,11 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testManagementRequestWithAcceptEncodingGzip()
         {
-        Response response = getBaseTarget().path(SERVICES)
+        WebTarget target = getBaseTarget().path(SERVICES)
                 .path("DistributedCache")
-                .path("members")
+                .path("members");
+
+        Response response = target
                 .request()
                 .header("Accept-Encoding", "gzip")
                 .get();
@@ -1214,6 +1220,10 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         assertThat(response.getHeaderString("Content-Encoding"), is("gzip"));
+
+        Map mapResponse = readEntity(target, response);
+        assertThat(mapResponse, is(notNullValue()));
+        assertThat(mapResponse.isEmpty(), is(false));
         }
 
     @Test
@@ -3247,13 +3257,11 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     protected Map readEntity(WebTarget target, Response response)
-            throws ProcessingException
         {
         return readEntity(target, response, null);
         }
 
     protected Map readEntity(WebTarget target, Response response, Entity entity)
-            throws ProcessingException
         {
         int cAttempt    = 0;
         int cMaxAttempt = 2;
@@ -3263,9 +3271,22 @@ public abstract class BaseManagementInfoResourceTests
             String sJson = null;
             try
                 {
-                sJson = response.readEntity(String.class);
+                InputStream inputStream = response.readEntity(InputStream.class);
+                if ("gzip".equalsIgnoreCase(response.getHeaderString("Content-Encoding")))
+                    {
+                    inputStream = new GZIPInputStream(inputStream);
+                    }
+                try
+                    {
+                    byte[] abData = Reads.read(inputStream);
+                    sJson = new String(abData, StandardCharsets.UTF_8);
+                    }
+                finally
+                    {
+                    inputStream.close();
+                    }
 
-                Map map = sJson != null ? f_genson.deserialize(sJson, LinkedHashMap.class) : null;
+                Map map = f_genson.deserialize(sJson, LinkedHashMap.class);
                 if (map == null)
                     {
                     Logger.info(getClass().getName() + ".readEntity() returned null"
@@ -3288,7 +3309,7 @@ public abstract class BaseManagementInfoResourceTests
 
                 if (cAttempt >= cMaxAttempt)
                     {
-                    throw e;
+                    throw Exceptions.ensureRuntimeException(e);
                     }
                 }
 
