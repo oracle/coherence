@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -15,7 +15,6 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.Daemon;
-import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SegmentedConcurrentMap;
 
 import java.util.ConcurrentModificationException;
@@ -24,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.function.Consumer;
 
 /**
 * An AsyncBinaryStore is a BinaryStore wrapper that performs the "O" (output)
@@ -222,7 +222,13 @@ public class AsyncBinaryStore
         try
             {
             // erase the underlying BinaryStore
-            getBinaryStore().eraseAll();
+            BinaryStore store = getBinaryStore();
+
+            if (store == null)
+                {
+                throw new IllegalStateException("BinaryStore has been closed");
+                }
+            store.eraseAll();
 
             // discard all pending writes
             mapPending.clear();
@@ -253,6 +259,12 @@ public class AsyncBinaryStore
             {
             // start with the keys from the underlying BinaryStore
             BinaryStore store = getBinaryStore();
+
+            if (store == null)
+                {
+                throw new IllegalStateException("BinaryStore has been closed");
+                }
+
             Iterator    iter  = store.keys();
 
             // check if there is anything pending that could change the keys
@@ -302,6 +314,19 @@ public class AsyncBinaryStore
     */
     public void close()
         {
+        internalClose(null);
+        }
+
+    /**
+    * Close the store.
+    * The wrapped store is closed either with the optional <code>onClose</code> consumer or
+    * by directly calling <code>close</code> on wrapped store when <code>onClose</code>
+    * consumer is null.
+    *
+    * @param onClose  optional close consumer to close wrapped {@link BinaryStore}
+    */
+    protected void internalClose(Consumer<? super BinaryStore> onClose)
+        {
         BinaryStore store = getBinaryStore();
         if (store == null)
             {
@@ -326,7 +351,14 @@ public class AsyncBinaryStore
                 // close the underlying store
                 try
                     {
-                    ClassHelper.invoke(store, "close", ClassHelper.VOID);
+                    if (onClose == null)
+                        {
+                        ClassHelper.invoke(store, "close", ClassHelper.VOID);
+                        }
+                    else
+                        {
+                        onClose.accept(store);
+                        }
                     }
                 catch (Throwable e) {}
 
@@ -814,7 +846,7 @@ public class AsyncBinaryStore
     /**
     * The wrapped BinaryStore.
     */
-    private BinaryStore m_store;
+    private volatile BinaryStore m_store;
 
     /**
     * The "write-behind" queue (which is not actually a queue, since it
