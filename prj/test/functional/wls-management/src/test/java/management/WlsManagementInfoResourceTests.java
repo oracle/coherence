@@ -6,17 +6,15 @@
  */
 package management;
 
-import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
-import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 
@@ -32,6 +30,8 @@ public class WlsManagementInfoResourceTests
     @BeforeClass
     public static void _startup()
         {
+        Assume.assumeThat(Boolean.getBoolean("test.security.enabled"), is(false));
+        
         startTestCluster(WLSManagementStub.class, CLUSTER_NAME, ClassPath.ofSystem());
 
         for (CoherenceClusterMember member : s_cluster)
