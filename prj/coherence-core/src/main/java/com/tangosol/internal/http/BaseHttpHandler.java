@@ -55,6 +55,7 @@ public abstract class BaseHttpHandler
      *
      * @throws NullPointerException if any parameter is {@code null}
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected BaseHttpHandler(RequestRouter router, BodyWriter bodyWriter)
         {
         f_router     = Objects.requireNonNull(router);
@@ -165,9 +166,8 @@ public abstract class BaseHttpHandler
 
         if (oEntity != null)
             {
-            try (OutputStream osBody = exchange.getResponseBody())
+            try (OutputStream out = fGzip ? new GZIPOutputStream(exchange.getResponseBody()) : exchange.getResponseBody())
                 {
-                OutputStream out = fGzip ? new GZIPOutputStream(osBody) : osBody;
                 if (oEntity instanceof InputStream)
                     {
                     InputStream in = (InputStream) oEntity;
@@ -493,5 +493,5 @@ public abstract class BaseHttpHandler
     /**
      * The writer to use to write response bodies.
      */
-    private final BodyWriter f_bodyWriter;
+    private final BodyWriter<Object> f_bodyWriter;
     }
