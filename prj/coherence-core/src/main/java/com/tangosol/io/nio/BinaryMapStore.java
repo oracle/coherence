@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -117,17 +117,25 @@ public class BinaryMapStore
     */
     public void dispose()
         {
-        try
-            {
-            ByteBufferManager mgr = m_map.getBufferManager();
-            if (mgr instanceof MappedBufferManager)
-                {
-                ((MappedBufferManager) mgr).close();
-                }
-            }
-        catch (Exception e) {}
+        BinaryMap map = m_map;
 
         m_map = null;
+
+        // only close MappedBufferManager once
+        if (map != null)
+            {
+            try
+                {
+                ByteBufferManager mgr = map.getBufferManager();
+                if (mgr instanceof MappedBufferManager)
+                    {
+                    ((MappedBufferManager) mgr).close();
+                    }
+                }
+            catch (Exception e)
+                {
+                }
+            }
         }
 
 
@@ -150,5 +158,5 @@ public class BinaryMapStore
     * The BinaryMap that provides the storage for this BinaryStore
     * implementation.
     */
-    private BinaryMap m_map;
+    private volatile BinaryMap m_map;
     }
