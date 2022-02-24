@@ -116,7 +116,7 @@ import static org.hamcrest.core.Is.is;
  * @since 21.12
  */
 @Category(SingleClusterForAllTests.class)
-public class MBeanTests
+public class ExecutorRESTManagementTests
     {
     // ----- test lifecycle -------------------------------------------------
 
@@ -160,7 +160,7 @@ public class MBeanTests
     @Before
     public void setup()
         {
-        System.setProperty("coherence.cluster", "MBeanTests");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
         System.setProperty("coherence.distributed.localstorage", "false");
         m_local = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         m_local.start().join();
@@ -415,17 +415,19 @@ public class MBeanTests
     /**
      * The number of storage enabled members in the {@link CoherenceCluster}.
      */
-    protected final static int STORAGE_ENABLED_MEMBER_COUNT = 2;
+    protected static final int STORAGE_ENABLED_MEMBER_COUNT = 2;
 
     /**
      * The number of storage disabled members in the {@link CoherenceCluster}.
      */
-    protected final static int STORAGE_DISABLED_MEMBER_COUNT = 1;
+    protected static final int STORAGE_DISABLED_MEMBER_COUNT = 1;
+
+    protected static final String CLUSTER_NAME = ExecutorRESTManagementTests.class.getSimpleName();
 
     // ----- data members ---------------------------------------------------
 
     @ClassRule
-    public static final TestLogs s_testLogs = new TestLogs(MBeanTests.class);
+    public static final TestLogs s_testLogs = new TestLogs(ExecutorRESTManagementTests.class);
 
     /**
      * The {@link CoherenceClusterResource} to establish a {@link CoherenceCluster} for testing.
@@ -438,12 +440,12 @@ public class MBeanTests
                           LocalHost.only(),
                           Logging.at(9),
                           ClusterPort.of(7574),
-                          ClusterName.of(MBeanTests.class.getSimpleName()),
+                          ClusterName.of(CLUSTER_NAME),
                           JmxFeature.enabled(),
                           s_testLogs)
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
-                             LogOutput.to(MBeanTests.class.getSimpleName(), "CacheServer"),
+                             LogOutput.to(CLUSTER_NAME, "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
                              JMXManagementMode.ALL,
@@ -453,7 +455,7 @@ public class MBeanTests
                              SystemProperty.of("coherence.management.http.port", "0"))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
-                             LogOutput.to(MBeanTests.class.getSimpleName(), "ComputeServer"),
+                             LogOutput.to(CLUSTER_NAME, "ComputeServer"),
                              RoleName.of("compute"),
                              LocalStorage.disabled(),
                              SystemProperty.of("coherence.executor.extend.enabled", false),

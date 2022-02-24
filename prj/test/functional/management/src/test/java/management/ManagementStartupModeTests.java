@@ -222,6 +222,7 @@ public class ManagementStartupModeTests
      * @param sHttpMgmt  the "http-managed-nodes" setting, may be null
      * @param nExpected  the number of expected Management over REST HTTP servers
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected void testCase(String sMgmt, String sHttpMgmt, int nExpected)
         {
         Objects.requireNonNull(sMgmt);

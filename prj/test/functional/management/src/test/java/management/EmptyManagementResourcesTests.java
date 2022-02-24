@@ -19,7 +19,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -120,7 +119,7 @@ public class EmptyManagementResourcesTests
             {
             try
                 {
-                LinkedHashMap mapReturned = response.readEntity(LinkedHashMap.class);
+                Map mapReturned = response.readEntity(Map.class);
                 if (mapReturned == null)
                     {
                     Logger.log(getClass().getName() + ".readEntity() returned null"

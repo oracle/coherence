@@ -26,6 +26,13 @@
       <artifactId>coherence-management</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <!-- WLS does not have coherence-json, so we exclude it for these tests -->
+        <exclusion>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-json</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
@@ -69,6 +76,10 @@
       <groupId>org.glassfish.jersey.connectors</groupId>
       <artifactId>jersey-apache-connector</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
   </dependencies>
 

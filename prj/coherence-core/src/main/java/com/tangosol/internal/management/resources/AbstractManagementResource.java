@@ -81,8 +81,8 @@ public abstract class AbstractManagementResource
      */
     protected Map<String, Object> getJsonBody(HttpRequest request)
         {
-        MapJsonBodyHandler jsonBodyHandler = ensureMapJsonBodyHandler();
-        Map<String, Object> map = request.getJsonBody(jsonBodyHandler::readMap);
+        MapJsonBodyHandler  jsonBodyHandler = ensureMapJsonBodyHandler();
+        Map<String, Object> map             = request.getJsonBody(jsonBodyHandler::readMap);
         for (Map.Entry<String, Object> entry : map.entrySet())
             {
             Object oValue = entry.getValue();

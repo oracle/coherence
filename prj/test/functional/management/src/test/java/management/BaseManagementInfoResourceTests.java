@@ -39,17 +39,14 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Reads;
 
-import com.oracle.coherence.io.json.genson.Genson;
-import com.oracle.coherence.io.json.genson.GensonBuilder;
-
 import com.tangosol.coherence.component.util.SafeService;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
 import com.tangosol.coherence.management.internal.MapProvider;
-
 import com.tangosol.discovery.NSLookup;
 
+import com.tangosol.internal.management.MapJsonBodyHandler;
 import com.tangosol.internal.management.resources.AbstractManagementResource;
 import com.tangosol.internal.management.resources.ClusterMemberResource;
 import com.tangosol.internal.net.management.HttpHelper;
@@ -93,6 +90,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,6 +102,7 @@ import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLEncoder;
 
 import java.nio.charset.StandardCharsets;
@@ -3054,9 +3053,13 @@ public abstract class BaseManagementInfoResourceTests
             {
             if (m_baseURI == null)
                 {
-                String sPort = s_cluster.getAny().getSystemProperties().getProperty("test.multicast.port", "7777");
-                int    nPort = Integer.parseInt(sPort);
-                m_baseURI = NSLookup.lookupHTTPManagementURL(f_sClusterName, new InetSocketAddress("127.0.0.1", nPort)).iterator().next().toURI();
+                String          sPort  = s_cluster.getAny().getSystemProperties().getProperty("test.multicast.port", "7777");
+                int             nPort  = Integer.parseInt(sPort);
+                Collection<URL> colURL = NSLookup.lookupHTTPManagementURL(f_sClusterName, new InetSocketAddress("127.0.0.1", nPort));
+
+                assertThat(colURL.isEmpty(), is(false));
+
+                m_baseURI = colURL.iterator().next().toURI();
 
                 Logger.info("Management HTTP Acceptor lookup returned: " + m_baseURI);
                 }
@@ -3286,7 +3289,7 @@ public abstract class BaseManagementInfoResourceTests
                     inputStream.close();
                     }
 
-                Map map = f_genson.deserialize(sJson, LinkedHashMap.class);
+                Map map = f_jsonHandler.readMap(new ByteArrayInputStream(sJson.getBytes(StandardCharsets.UTF_8)));
                 if (map == null)
                     {
                     Logger.info(getClass().getName() + ".readEntity() returned null"
@@ -3668,5 +3671,5 @@ public abstract class BaseManagementInfoResourceTests
 
     private final BiConsumer<String, RemoteCallable<Void>> f_inClusterInvoker;
 
-    private final Genson f_genson = new GensonBuilder().create();
+    private final MapJsonBodyHandler f_jsonHandler = MapJsonBodyHandler.ensureMapJsonBodyHandler();
     }

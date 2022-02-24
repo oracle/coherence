@@ -6,9 +6,9 @@
  */
 package com.tangosol.coherence.management.internal;
 
-import com.oracle.coherence.io.json.genson.Genson;
-import com.oracle.coherence.io.json.genson.GensonBuilder;
-import com.oracle.coherence.io.json.genson.stream.ValueType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.tangosol.internal.management.MapJsonBodyHandler;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -21,6 +21,7 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -60,15 +61,16 @@ public class MapProvider
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void writeTo(Map<?, ?>                      map,
                         Class<?>                       type,
                         Type                           genericType,
                         Annotation[]                   annotations,
                         MediaType                      mediaType,
                         MultivaluedMap<String, Object> httpHeaders,
-                        OutputStream                   entityStream) throws WebApplicationException
+                        OutputStream                   entityStream) throws IOException, WebApplicationException
         {
-        s_genson.serialize(map, entityStream);
+        f_handler.write((Map<String, Object>) map, entityStream);
         }
 
     // ----- MessageBodyReader methods --------------------------------------
@@ -85,17 +87,15 @@ public class MapProvider
                               Annotation[]                   annotations,
                               MediaType                      mediaType,
                               MultivaluedMap<String, String> httpHeaders,
-                              InputStream                    entityStream) throws WebApplicationException
+                              InputStream                    entityStream) throws IOException, WebApplicationException
         {
-        return s_genson.deserialize(entityStream, LinkedHashMap.class);
+        return f_handler.readMap(entityStream);
         }
 
     // ----- constants ------------------------------------------------------
 
     /**
-     * The {@link Genson} instance to use to marshall {@link Map}s to and from json.
+     * The {@link ObjectMapper} to use to marshall {@link Map}s to and from json.
      */
-    private static final Genson s_genson = new GensonBuilder()
-            .setDefaultType(ValueType.OBJECT, LinkedHashMap.class)
-            .create();
+    private static final MapJsonBodyHandler f_handler = MapJsonBodyHandler.ensureMapJsonBodyHandler();
     }

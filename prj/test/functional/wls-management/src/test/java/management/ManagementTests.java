@@ -8,13 +8,12 @@ package management;
 
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
-import com.oracle.coherence.io.json.genson.Genson;
-import com.oracle.coherence.io.json.genson.GensonBuilder;
 import com.tangosol.coherence.component.manageable.ModelAdapter;
 import com.tangosol.coherence.component.net.management.gateway.Local;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
 import com.tangosol.coherence.http.DefaultHttpServer;
 import com.tangosol.coherence.management.RestManagement;
+import com.tangosol.internal.management.MapJsonBodyHandler;
 import com.tangosol.internal.management.VersionUtils;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
@@ -34,6 +33,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -86,7 +86,7 @@ public class ManagementTests
         }
 
     @Test
-    public void shouldGetVersions() throws Exception
+    public void shouldGetVersions()
         {
         Response response = s_client.target(s_baseURI)
                                     .request(MediaType.APPLICATION_JSON_TYPE)
@@ -94,20 +94,20 @@ public class ManagementTests
 
         assertThat(response.getStatus(), is(200));
 
-        Map<String, Object> map = s_genson.deserialize(response.readEntity(String.class), Map.class);
+        Map<String, Object> map = s_mapJsonBodyHandler.readMap(response.readEntity(InputStream.class));
 
         assertThat(map, is(notNullValue()));
         assertThat(map.containsKey("links"), is(true));
         assertThat(map.containsKey("items"), is(true));
 
-        List<Map> list   = (List<Map>) map.get("items");
+        List<Map<String, Object>> list   = (List<Map<String, Object>>) map.get("items");
         boolean   fHasV1 = list.stream().anyMatch(m -> VersionUtils.V1.equals(m.get("version")));
 
         assertThat(fHasV1, is(true));
         }
 
     @Test
-    public void shouldGetClusters() throws Exception
+    public void shouldGetClusters()
         {
         Response response = s_client.target(s_baseURI)
                                     .path("latest/clusters")
@@ -116,13 +116,13 @@ public class ManagementTests
 
         assertThat(response.getStatus(), is(200));
 
-        Map<String, Object> map = s_genson.deserialize(response.readEntity(String.class), Map.class);
+        Map<String, Object> map = s_mapJsonBodyHandler.readMap(response.readEntity(InputStream.class));
 
         assertThat(map, is(notNullValue()));
         assertThat(map.containsKey("links"), is(true));
         assertThat(map.containsKey("items"), is(true));
 
-        List list = (List<Map<String, Object>>) map.get("items");
+        List<Map<String, Object>> list = (List<Map<String, Object>>) map.get("items");
         assertThat(list, is(notNullValue()));
         assertThat(list.size(), is(2));
         }
@@ -155,7 +155,7 @@ public class ManagementTests
         }
 
     @Test
-    public void shouldGetSpecificCluster() throws Exception
+    public void shouldGetSpecificCluster()
         {
         for (String sName : CLUSTER_NAMES)
             {
@@ -163,7 +163,7 @@ public class ManagementTests
             }
         }
 
-    private void shouldGetSpecificCluster(String sName) throws Exception
+    private void shouldGetSpecificCluster(String sName)
         {
         Response response = s_client.target(s_baseURI)
                                     .path("latest/clusters/" + sName)
@@ -172,7 +172,7 @@ public class ManagementTests
 
         assertThat("Failed to get 200 response for cluster " + sName, response.getStatus(), is(200));
 
-        Map<String, Object> map = s_genson.deserialize(response.readEntity(String.class), Map.class);
+        Map<String, Object> map = s_mapJsonBodyHandler.readMap(response.readEntity(InputStream.class));
 
         assertThat(map, is(notNullValue()));
         assertThat(map.containsKey("links"), is(true));
@@ -235,5 +235,5 @@ public class ManagementTests
 
     private static URI s_baseURI;
 
-    private static final Genson s_genson = new GensonBuilder().create();
+    private static final MapJsonBodyHandler s_mapJsonBodyHandler = MapJsonBodyHandler.ensureMapJsonBodyHandler();
     }

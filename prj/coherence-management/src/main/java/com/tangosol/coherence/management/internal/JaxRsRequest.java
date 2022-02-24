@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.net.URI;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -109,8 +110,15 @@ public class JaxRsRequest
         {
         if (m_mapBody == null)
             {
-            Map<String, Object> mapBody = fnParser.apply(getBody());
-            m_mapBody = mapBody == null ? Collections.emptyMap() : mapBody;
+            if (f_request.hasEntity())
+                {
+                Map<String, Object> mapBody = fnParser.apply(getBody());
+                m_mapBody = mapBody == null ? Collections.emptyMap() : mapBody;
+                }
+            else
+                {
+                m_mapBody = new LinkedHashMap<>();
+                }
             }
         return m_mapBody;
         }
