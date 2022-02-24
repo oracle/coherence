@@ -6,7 +6,7 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+CURRENT_VERSION=$(mvn --file prj/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
 
 if [ "${CURRENT_VERSION}" = "" ]; then
   echo "Could not find current version from Maven"
