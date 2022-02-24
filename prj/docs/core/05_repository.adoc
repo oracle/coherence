@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2021, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2022 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -574,8 +574,8 @@ For example, if we simply want to print out the people as they are streamed back
 
 [source,java]
 ----
-asyncPeople.getAll(person -> System.out.println(person.getName()));    // <1>
-    .thenApply(done -> System.out.println("DONE!"))                    // <2>
+asyncPeople.getAll(person -> System.out.println(person.getName()))     // <1>
+           .thenApply(done -> System.out.println("DONE!"))             // <2>
 ----
 <1> Print the name of each `Person` within the repository
 <2> Print `DONE!` when all people have been processed
@@ -584,8 +584,8 @@ Of course, you can also extract the name attribute only by providing a `ValueExt
 
 [source,java]
 ----
-asyncPeople.getAll(Person::getName, (id, name) -> System.out.println(name));    // <1>
-    .thenApply(done -> System.out.println("DONE!"))                             // <2>
+asyncPeople.getAll(Person::getName, (id, name) -> System.out.println(name))     // <1>
+           .thenApply(done -> System.out.println("DONE!"))                      // <2>
 ----
 <1> Print the name of each `Person` within the repository
 <2> Print `DONE!` when all people have been processed
