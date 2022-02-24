@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -63,35 +63,36 @@ public class MBeanQuery
     /**
     * Refresh the cached keyset with the filter.
     *
-    * @param filter a Filter object to limit the results
+    * @param filter  a Filter object to limit the results
     */
     protected void refreshKeys(Filter filter)
         {
-        if (m_setResults == null || m_setResults.size() == 0 || m_filter == null)
+        // COH-24823 - There used to be an if check here to determine if it was necessary to recalculate the set of
+        //             MBeans. It was determined that, for all cases, a recalculation is necessary to pick up that
+        //             MBeans had been removed or added (e.g. Coherence members entering and leaving the cluster).
+        try
             {
-            try
+            Set setResults = new TreeSet((o, o1) ->
                 {
-                Set setResults = new TreeSet((o, o1) ->
-                    {
-                    ObjectName on  = (ObjectName) ((Entry) o).getKey();
-                    ObjectName on1 = (ObjectName) ((Entry) o1).getKey();
-                    String     s   = on.getKeyPropertyListString();
-                    String     s1  = on1.getKeyPropertyListString();
-                    return s.compareTo(s1);
-                    });
+                ObjectName on  = (ObjectName) ((Entry) o).getKey();
+                ObjectName on1 = (ObjectName) ((Entry) o1).getKey();
+                String     s   = on.getKeyPropertyListString();
+                String     s1  = on1.getKeyPropertyListString();
 
-                Set setMBeans = f_mbs.queryNames(new ObjectName(m_sPattern), new QueryExpFilter(filter));
-                for (Iterator iter = setMBeans.iterator(); iter.hasNext();)
-                    {
-                    setResults.add(new Entry(iter.next()));
-                    }
-                m_setResults = setResults;
-                m_filter = filter;
-                }
-            catch (MalformedObjectNameException e)
+                return s.compareTo(s1);
+                });
+
+            Set setMBeans = f_mbs.queryNames(new ObjectName(m_sPattern), new QueryExpFilter(filter));
+            for (Iterator iter = setMBeans.iterator(); iter.hasNext(); )
                 {
-                throw Base.ensureRuntimeException(e);
+                setResults.add(new Entry(iter.next()));
                 }
+            m_setResults = setResults;
+            m_filter     = filter;
+            }
+        catch (MalformedObjectNameException e)
+            {
+            throw Base.ensureRuntimeException(e);
             }
         }
 
