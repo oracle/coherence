@@ -14,7 +14,7 @@ if [ "${CURRENT_VERSION}" = "" ]; then
   exit 1
 fi
 
-if [ -z $(echo $CURRENT_VERSION | grep SNAPSHOT) ] ; then
+if [ -z $(echo $CURRENT_VERSION | grep SNAPSHOT) ]; then
   echo "This job only deploys SNAPSHOT versions, skipping version ${CURRENT_VERSION}"
   exit 0
 fi
