@@ -14,6 +14,11 @@ if [ "${CURRENT_VERSION}" = "" ]; then
   exit 1
 fi
 
+if [ -z $(echo $CURRENT_VERSION | grep SNAPSHOT) ] ; then
+  echo "This job only deploys SNAPSHOT versions, skipping version ${CURRENT_VERSION}"
+  exit 0
+fi
+
 echo "Building version ${CURRENT_VERSION}"
 mvn -B clean install -Dproject.official=true -Pdocs --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
 
