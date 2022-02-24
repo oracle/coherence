@@ -6,15 +6,15 @@
 # http://oss.oracle.com/licenses/upl.
 #
 
-CURRENT_VERSION=$(mvn --file prj/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+REVISION_POM=prj/coherence-bom/pom.xml
+CURRENT_VERSION=$(grep -E "<revision>" ${REVISION_POM} | sed 's/.*<revision>\(.*\)<\/revision>/\1/')
 
 if [ "${CURRENT_VERSION}" = "" ]; then
   echo "Could not find current version from Maven"
   exit 1
 fi
 
-echo "${CURRENT_VERSION}" | grep -q "SNAPSHOT"
-if [ $? != 0 ] ; then
+if [ -z $(echo $CURRENT_VERSION | grep SNAPSHOT) ]; then
   echo "This job only deploys SNAPSHOT versions, skipping version ${CURRENT_VERSION}"
   exit 0
 fi
