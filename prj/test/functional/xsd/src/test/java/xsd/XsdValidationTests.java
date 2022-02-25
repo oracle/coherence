@@ -6,10 +6,21 @@
  */
 package xsd;
 
+import static com.tangosol.util.Base.getContextClassLoader;
+import static com.tangosol.util.Base.read;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import com.tangosol.run.xml.SimpleParser;
+import com.tangosol.run.xml.XmlDocument;
+import com.tangosol.run.xml.XmlElement;
+import com.tangosol.run.xml.XmlHelper;
+
+import com.tangosol.util.Resources;
+
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +30,8 @@ import javax.xml.XMLConstants;
 
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
+
+import java.io.File;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -244,6 +257,57 @@ public class XsdValidationTests
             // expected exception
             System.out.println("handled expected exception: " + e.getMessage());
             }
+        }
+
+    /**
+     * Test for Bug 33801919 to make sure XmlHelper.overrideElement()
+     * produces correct XML and passes schema validate after the merge
+     * with override.  If an element in a list is added from override
+     * to base, it is still added to the end of the list.
+     *
+     * @since 14.1.1.9
+     */
+    @Test
+    public void testOverrideElement()
+            throws Exception
+        {
+        ClassLoader  loader       = getContextClassLoader();
+        String       sBaseXml     = new String(read(new File(Resources.findFileOrResource("cluster-config-base.xml", loader).toURI())));
+        String       sOverrideXml = new String(read(new File(Resources.findFileOrResource("cluster-config-override.xml", loader).toURI())));
+
+        SimpleParser parser      = new SimpleParser(true);
+        XmlDocument  xmlBase     = parser.parseXml(sBaseXml);
+        XmlDocument  xmlOverride = parser.parseXml(sOverrideXml);
+
+        final String WKA_PATH = "unicast-listener/well-known-addresses";
+        XmlElement   xmlItem  = xmlBase.findElement(WKA_PATH);
+        Assert.assertEquals(xmlItem.getElementList().size(), 1);
+
+        XmlHelper.overrideElement(xmlBase, xmlOverride);
+        parser.parseXml(xmlBase.toString());
+
+        xmlItem = xmlBase.findElement("multicast-listener/time-to-live");
+        Assert.assertEquals(Integer.parseInt((String) xmlItem.getValue()), 3);
+
+        XmlElement xmlItemOverride = xmlOverride.findElement(WKA_PATH);
+        xmlItem = xmlBase.findElement(WKA_PATH);
+        Assert.assertEquals(xmlItem, xmlItemOverride);
+        sBaseXml = xmlBase.toString();
+        parser.parseXml(sBaseXml);
+
+        // Test adding to base XML.
+        // Element is still added to the end of the list.  So we only test
+        // that the element is added.
+        sOverrideXml = new String(read(new File(Resources.findFileOrResource("cluster-config-override-add.xml", loader).toURI())));
+        xmlOverride  = parser.parseXml(sOverrideXml);
+
+        Assert.assertFalse(sBaseXml.contains("interface"));
+
+        XmlHelper.overrideElement(xmlBase, xmlOverride);
+        final String INTERFACE_PATH = "multicast-listener/interface";
+        xmlItem = xmlBase.findElement(INTERFACE_PATH);
+        xmlItemOverride = xmlOverride.findElement(INTERFACE_PATH);
+        Assert.assertEquals(xmlItem, xmlItemOverride);
         }
 
     // ----- helpers --------------------------------------------------------
