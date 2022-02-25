@@ -1987,13 +1987,28 @@ public abstract class XmlHelper extends Base
                     if (isSimpleSequence(listChildren))
                         {
                         // replace all corresponding children with the override list
-                        String sChild = ((XmlElement) listChildren.get(0)).getName();
+                        String sChild       = ((XmlElement) listChildren.get(0)).getName();
+                        List   list         = xmlMatch.getElementList();
+                        List   listOverride = new ArrayList(listChildren);
+
                         for (Iterator iter = xmlMatch.getElements(sChild); iter.hasNext();)
                             {
-                            iter.next();
-                            iter.remove();
+                            if (listOverride.size() > 0)
+                                {
+                                list.set(list.indexOf(iter.next()), listOverride.get(0));
+                                listOverride.remove(0);
+                                }
+                            else
+                                {
+                                iter.next();
+                                iter.remove();
+                                }
                             }
-                        xmlMatch.getElementList().addAll(listChildren);
+
+                        if (listOverride.size() > 0)
+                            {
+                            xmlMatch.getElementList().addAll(listOverride);
+                            }
                         continue;
                         }
                     }
