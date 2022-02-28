@@ -52,6 +52,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.DataInput;
@@ -543,6 +544,7 @@ public class TopicsStorageRecoveryTests
         }
 
     @Test
+    @Ignore("skipped until a solution to non-clean shutdown with active persistence is discovered")
     @SuppressWarnings("unchecked")
     public void shouldRecoverWaitingSubscriberAfterStorageRestart() throws Exception
         {
