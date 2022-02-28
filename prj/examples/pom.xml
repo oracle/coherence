@@ -27,6 +27,7 @@
 
   <modules>
     <module>guides/100-put-get-remove</module>
+    <module>guides/110-queries</module>
     <module>guides/120-built-in-aggregators</module>
     <module>guides/121-custom-aggregators</module>
     <module>guides/125-streams</module>
