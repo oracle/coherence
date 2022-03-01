@@ -169,7 +169,7 @@ public class TopicsStorageRecoveryTests
                 {
                 try
                     {
-                    for (int i = 0; i < 50 && fPublish.get(); i++)
+                    for (int i = 0; i < 100 && fPublish.get(); i++)
                         {
                         publisher.publish(new Message(i, "Message-" + i))
                                 .handle((v, err) ->
@@ -207,7 +207,7 @@ public class TopicsStorageRecoveryTests
             // start the subscriber runnable
             Runnable runSubscriber = () ->
                 {
-                for (int i = 0; i < 10 && fSubscribe.get(); i++)
+                for (int i = 0; i < 20 && fSubscribe.get(); i++)
                     {
                     try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup)))
                         {
