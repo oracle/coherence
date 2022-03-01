@@ -2028,7 +2028,7 @@ public class PagedTopicSubscriber<V>
         {
         if (!cache.isActive())
             {
-            // cache is already inactive so we cannot do anything
+            // cache is already inactive, so we do not need to do anything
             return;
             }
 
@@ -2043,29 +2043,17 @@ public class PagedTopicSubscriber<V>
                 listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
                 }
 
-            // even though we should not be on a service thread at this point we still seem to need to do the
-            // invokeALl on the async cache, else we get errors in Coherence. COH-24851
-            cache.async().invokeAll(listSubParts, new CloseSubscriptionProcessor(nId))
-                     .handle((result, error) ->
-                             {
-                             if (error != null)
-                                 {
-                                 if (error instanceof RequestPolicyException
-                                     || error instanceof RequestIncompleteException
-                                     && !cache.isActive())
-                                     {
-                                     // cache became inactive during async execution, we can ignore the error
-                                     return null;
-                                     }
-                                 Logger.err("Caught exception closing subscription for subscriber "
-                                     + idToString(nId) + " in group " + subscriberGroupId.getGroupName(), error);
-                                 }
-                             return null;
-                             });
+            cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(nId));
             }
         catch (Throwable t)
             {
-            Logger.err(t);
+            // this could have been caused by the cache becoming inactive during clean-up, if so ignore the error
+            if (cache.isActive())
+                {
+                // cache is still active, so log the error
+                Logger.err("Caught exception closing subscription for subscriber "
+                    + idToString(nId) + " in group " + subscriberGroupId.getGroupName(), t);
+                }
             }
         }
     /**
