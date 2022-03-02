@@ -11,6 +11,7 @@ import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
+
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
 import java.util.LinkedHashMap;
@@ -36,6 +37,7 @@ public class JournalResource
         router.addGet(sPathRoot, this::get);
 
         router.addPost(sPathRoot + "/compact", this::compact);
+        router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
 
         // child resources
         router.addRoutes(sPathRoot + "/" + MEMBERS, new JournalMembersResource());
@@ -77,6 +79,19 @@ public class JournalResource
 
         return executeMBeanOperation(request, queryBuilder, "compact",
                 new Object[] {fRegular}, new String[] {boolean.class.getName()});
+        }
+
+    /**
+     * Call "resetStatistics" operation on a JournalMBean.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response resetStatistics(HttpRequest request)
+        {
+        String sJournalType = request.getFirstPathParameter(JOURNAL_TYPE);
+        return executeMBeanOperation(request, getQuery(request, sJournalType), RESET_STATS, null, null);
         }
 
     // ----- AbstractManagementResource methods -------------------------------------------

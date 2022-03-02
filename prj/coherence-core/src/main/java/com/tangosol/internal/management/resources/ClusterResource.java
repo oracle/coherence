@@ -5,16 +5,19 @@
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
-import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
+
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.Resources;
 
 import java.io.IOException;
@@ -50,6 +53,7 @@ public class ClusterResource
         router.addGet(sPathRoot + "/" + METADATA_CATALOG, this::getMetadataCatalog)
                 .produces(MEDIA_TYPE_JSON, MEDIA_TYPE_SWAGGER_JSON);
 
+        router.addPost(sPathRoot, this::updateNodes);
         router.addPost(sPathRoot + "/" + SHUTDOWN, this::shutdownCluster);
         router.addPost(sPathRoot + "/" + CLUSTER_STATE, this::logClusterState);
         router.addPost(sPathRoot + "/" + DUMP_CLUSTER_HEAP, this::dumpClusterHeap);
@@ -57,6 +61,8 @@ public class ClusterResource
         router.addPost(sPathRoot + "/" + MANAGEMENT, this::updateJMXManagement);
         router.addPost(sPathRoot + "/" + SEARCH, this::search);
         router.addPost(sPathRoot + "/" + DIAGNOSTIC_CMD + "/{" + JFR_CMD + "}", this::diagnosticCmd);
+        router.addPost(sPathRoot + "/{" + OPERATION_NAME + "}", this::executeOperation);
+        router.addPost(sPathRoot + "/" + NETWORK_STATS + "/trackWeakest", this::trackWeakestMember);
 
         // child resources
         router.addRoutes(sPathRoot + "/" + CACHES, new CachesResource());
@@ -93,15 +99,20 @@ public class ClusterResource
     /**
      * Return the attributes of a ClusterMBean.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      */
     public Response get(HttpRequest request)
         {
+        CacheFactory.log("In ClusterResource.get(), callstack: " + Base.printStackTrace(new Throwable()));
         return response(getResponseEntityForMbean(request, getQuery(request), CHILD_LINKS));
         }
 
     /**
      * Return the attributes of a ManagementMBean.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -113,6 +124,8 @@ public class ClusterResource
     /**
      * Return the response to a "journal" link for a cluster.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      */
     public Response getJournalResponse(HttpRequest request)
@@ -123,6 +136,8 @@ public class ClusterResource
 
     /**
      * Return aggregated metrics of a platform(JVM) MBean across cluster members.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -162,6 +177,8 @@ public class ClusterResource
     /**
      * Call "shutdown" operation on ClusterMBean.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      */
     public Response shutdownCluster(HttpRequest request)
@@ -171,6 +188,8 @@ public class ClusterResource
 
     /**
      * Call "logClusterState" operation on ClusterMBean.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -184,6 +203,8 @@ public class ClusterResource
 
     /**
      * Call "dumpClusterHeap" operation on ClusterMBean.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -206,6 +227,8 @@ public class ClusterResource
      * A value between {@code 0} (exclusively) and {@code 1.0} (inclusively) represents the percentage of tracing
      * spans that will be captured.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      *
      * @since 14.1.1.0
@@ -222,10 +245,49 @@ public class ClusterResource
                                      new String[] {String.class.getName(), Float.class.getName()});
         }
 
+    /**
+     * Call "shutdown/resetStatistics" operation on NodeMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response executeOperation(HttpRequest request)
+        {
+        String sOperationName = request.getFirstPathParameter(OPERATION_NAME);
+
+        if (sOperationName.equalsIgnoreCase("logMemberState"))
+            {
+            sOperationName = "logNodeState";
+            }
+        if ("shutdown".equals(sOperationName) || "resetStatistics".equals(sOperationName)
+             || "logNodeState".equals(sOperationName))
+            {
+            return executeMBeanOperation(request, getMembersQuery(request), sOperationName,
+                    null, null);
+            }
+        return Response.notFound().build();
+        }
+
+    /**
+     * Call "trackWeakest" operation on PointToPointMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response trackWeakestMember(HttpRequest request)
+        {
+        return executeMBeanOperation(request, getPointToPointMBeanQuery(request),
+                "trackWeakest", null, null);
+        }
+
     // ----- POST API(Update) -----------------------------------------------
 
     /**
      * Update a ManagementMBean with the parameters present in the input entity map.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -233,6 +295,22 @@ public class ClusterResource
         {
         Map<String, Object> mapParameters = getJsonBody(request);
         return update(request, mapParameters, getManagementQuery(request));
+        }
+
+    /**
+     * Update a ClusterNodeMBean with the parameters present in the input
+     * entity map for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response updateNodes(HttpRequest request)
+        {
+        Map<String, Object> entity       = getJsonBody(request);
+        QueryBuilder        queryBuilder = getMembersQuery(request);
+
+        return update(request, entity, queryBuilder);
         }
 
     // ----- POST API(Search) -----------------------------------------------
@@ -251,6 +329,8 @@ public class ClusterResource
      * Valid commands are jfrStart, jfrStop, jfrDump, and jfrCheck. See jcmd JFR
      * command for valid options.  E.g.
      * jfrStart?options=name=myJfr,duration=3s,filename=/tmp/myRecording.jfr
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -365,6 +445,8 @@ public class ClusterResource
     /**
      * The MBean query for ClusterMBean.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the MBean query
      */
     protected QueryBuilder getQuery(HttpRequest request)
@@ -375,12 +457,41 @@ public class ClusterResource
     /**
      * The MBean query for ManagementMBean.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the MBean query
      */
     protected QueryBuilder getManagementQuery(HttpRequest request)
         {
         return createQueryBuilder(request)
                 .withBaseQuery(MANAGEMENT_QUERY);
+        }
+
+    /**
+     * The MBean query for NodeMBean.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the MBean query
+     */
+    protected QueryBuilder getMembersQuery(HttpRequest request)
+        {
+        return createQueryBuilder(request)
+                .withBaseQuery(CLUSTER_MEMBERS_QUERY);
+        }
+
+    /**
+     * Return the PointToPoint MBean query for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the MBean query
+     */
+    protected QueryBuilder getPointToPointMBeanQuery(HttpRequest request)
+        {
+        return createQueryBuilder(request)
+                .withBaseQuery(POINT_TO_POINT_QUERY)
+                .withMember("*");
         }
 
     // ----- POST API (Operations) constants --------------------------------

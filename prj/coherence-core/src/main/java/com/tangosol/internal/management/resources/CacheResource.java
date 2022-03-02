@@ -5,11 +5,14 @@
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
+
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
+
 import com.tangosol.internal.management.Converter;
 import com.tangosol.internal.management.EntityMBeanResponse;
+
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
@@ -46,6 +49,9 @@ public class CacheResource extends AbstractManagementResource
         {
         router.addGet(sPathRoot, this::get);
 
+        router.addPost(sPathRoot, this::update);
+        router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
+
         // child resources
         router.addRoutes(sPathRoot + "/" + MEMBERS, new CacheMembersResource());
         }
@@ -54,6 +60,8 @@ public class CacheResource extends AbstractManagementResource
 
     /**
      * Return the aggregated metrics of CacheMBean's for a single cache belonging to a Service.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -84,6 +92,43 @@ public class CacheResource extends AbstractManagementResource
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, queryBuilder, mapResponse);
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, queryBuilderStorage, mapResponse);
         return response(mapResponse);
+        }
+
+    // ----- POST API(Operations) -------------------------------------------
+
+    /**
+     * Call "resetStatistics" operation on CacheMBean for all members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response resetStatistics(HttpRequest request)
+        {
+        String       sCacheName   = request.getFirstPathParameter(CACHE_NAME);
+        String       sServiceName = request.getPathParameters().getFirst(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sCacheName, sServiceName);
+
+        return executeMBeanOperation(request, queryBuilder, RESET_STATS, null, null);
+        }
+
+    // ----- POST API(Update) -----------------------------------------------
+
+    /**
+     * Update a CacheMBean with the parameters present in the input entity map
+     * for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response update(HttpRequest request)
+        {
+        String       sCacheName   = request.getFirstPathParameter(CACHE_NAME);
+        String       sServiceName = request.getPathParameters().getFirst(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sCacheName, sServiceName);
+
+        return update(request, getJsonBody(request), queryBuilder);
         }
 
     // ----- AbstractManagementResource methods -------------------------------------------

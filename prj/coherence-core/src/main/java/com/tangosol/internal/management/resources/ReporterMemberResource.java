@@ -11,6 +11,7 @@ import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
+
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
 import java.net.URI;
@@ -45,6 +46,8 @@ public class ReporterMemberResource
     /**
      * Return ReporterMBean attributes for a cluster member.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      */
     public Response get(HttpRequest request)
@@ -57,6 +60,8 @@ public class ReporterMemberResource
 
     /**
      * Update a ReporterMBean with the parameters present in the input entity map.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -72,6 +77,8 @@ public class ReporterMemberResource
     /**
      * Call start, stop or resetStatistics operation on ReporterMBean.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      */
     public Response start(HttpRequest request)
@@ -82,6 +89,8 @@ public class ReporterMemberResource
 
     /**
      * Call start, stop or resetStatistics operation on ReporterMBean.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -94,6 +103,8 @@ public class ReporterMemberResource
     /**
      * Call start, stop or resetStatistics operation on ReporterMBean.
      *
+     * @param request  the {@link HttpRequest}
+     *
      * @return the response object
      */
     public Response resetStatistics(HttpRequest request)
@@ -105,8 +116,9 @@ public class ReporterMemberResource
     // ----- ReporterMemberResource methods----------------------------------
 
     /**
-     * Return the NodeMBean query for the provided member.
+     * Return the ReporterMBean query for the provided member.
      *
+     * @param request     the {@link HttpRequest}
      * @param sMemberKey  the member key
      *
      * @return the MBean query

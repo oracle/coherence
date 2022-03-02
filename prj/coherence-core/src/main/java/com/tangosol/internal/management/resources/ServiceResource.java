@@ -11,6 +11,7 @@ import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
+
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
@@ -42,8 +43,14 @@ public class ServiceResource
         router.addGet(sPathRoot + "/" + PARTITION + "/" + SCHEDULED_DISTRIBUTIONS, this::getScheduledDistributions);
         router.addGet(sPathRoot + "/" + PROXY, this::getAggregatedProxyMetricsResponse);
 
+        router.addPost(sPathRoot, this::update);
         router.addPost(sPathRoot + "/suspend", this::suspendService);
         router.addPost(sPathRoot + "/resume", this::resumeService);
+        router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
+        router.addPost(sPathRoot + "/shutdown", this::shutdownService);
+        router.addPost(sPathRoot + "/start", this::startService);
+        router.addPost(sPathRoot + "/stop", this::stopService);
+
         // child resources
         router.addRoutes(sPathRoot + "/" + MEMBERS, new ServiceMembersResource());
         router.addRoutes(sPathRoot + "/" + CACHES, new CachesResource());
@@ -133,7 +140,24 @@ public class ServiceResource
     // ----- POST API(Operations) -------------------------------------------
 
     /**
-     * Call "suspendService" operation on ClusterMBean.
+     * Update a ServiceMBean with the parameters present in the input entity
+     * map for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response update(HttpRequest request)
+        {
+        String              sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        Map<String, Object> entity       = getJsonBody(request);
+        return update(request, entity, getQuery(request, sServiceName));
+        }
+
+    /**
+     * Call "suspendService" operation on ServiceMBean.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -146,7 +170,9 @@ public class ServiceResource
         }
 
     /**
-     * Call "resumeService" operation on ClusterMBean.
+     * Call "resumeService" operation on ServiceMBean.
+     *
+     * @param request  the {@link HttpRequest}
      *
      * @return the response object
      */
@@ -156,6 +182,63 @@ public class ServiceResource
         QueryBuilder queryBuilder = createQueryBuilder(request).withBaseQuery(CLUSTER_QUERY);
         return executeMBeanOperation(request, queryBuilder, "resumeService",
                                      new Object[]{sServiceName}, new String[]{String.class.getName()});
+        }
+
+    /**
+     * Call "shutdownService" operation on ServiceMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response resetStatistics(HttpRequest request)
+        {
+        String       sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sServiceName);
+        return executeMBeanOperation(request, queryBuilder, RESET_STATS, null, null);
+        }
+
+    /**
+     * Call "shutdownService" operation on ServiceMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response shutdownService(HttpRequest request)
+        {
+        String       sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sServiceName);
+        return executeMBeanOperation(request, queryBuilder, "shutdown",
+                new Object[]{sServiceName}, new String[]{String.class.getName()});
+        }
+
+    /**
+     * Call "startService" operation on ServiceMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response startService(HttpRequest request)
+        {
+        String       sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sServiceName);
+        return executeMBeanOperation(request, queryBuilder, "start", null, null);
+        }
+
+    /**
+     * Call "stopService" operation on ServiceMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response stopService(HttpRequest request)
+        {
+        String       sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sServiceName);
+        return executeMBeanOperation(request, queryBuilder, "stop", null, null);
         }
 
     // ----- AbstractManagementResource methods -------------------------------------------
@@ -173,7 +256,7 @@ public class ServiceResource
         String         sServiceName = MBeanHelper.safeUnquote(mapArguments.get(NAME));
         URI            uriSelf      = getSubUri(uriParent, sServiceName);
         Filter<String> filterLinks  = getLinksFilter(request, mapQuery);
-        QueryBuilder   queryBuilder    = getQuery(request, sServiceName);
+        QueryBuilder   queryBuilder = getQuery(request, sServiceName);
 
         Filter<String> filterAttributes =
                 getAttributesFilter(NAME + "," + TYPE + "," + DOMAIN_PARTITION, getExcludeList(request, mapQuery));
@@ -213,6 +296,7 @@ public class ServiceResource
     /**
      * MBean query to retrieve ServiceMBeans for the provided service.
      *
+     * @param request       the {@link HttpRequest}
      * @param sServiceName  the service name
      *
      * @return the MBean query builder
@@ -225,6 +309,7 @@ public class ServiceResource
     /**
      * MBean query to retrieve SimpleAssignmentStrategyMBean for the provided service.
      *
+     * @param request       the {@link HttpRequest}
      * @param sServiceName  the service name
      *
      * @return the MBean query builder

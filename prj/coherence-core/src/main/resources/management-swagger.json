@@ -96,6 +96,32 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Update cluster configuration parameters on all the Members.",
+        "description": "Use this endpoint to update the configuration parameters for all the members.",
+        "operationId": "/management/coherence/cluster POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/member"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that updates the configuration parameters on all the members"
+          }
+        }
       }
     },
     "/management/coherence/cluster/search": {
@@ -314,6 +340,60 @@
         }
       }
     },
+    "/management/coherence/cluster/logMemberState": {
+      "post": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Log Member State",
+        "description": "Use this endpoint to log a full thread dump and outstanding polls for the services that are running on all the members.",
+        "operationId": "/management/coherence/cluster/logMemberState POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/resetStatistics": {
+      "post": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Reset Member Statistics for all the members",
+        "description": "Use this endpoint to clear the current statistics for all the members.",
+        "operationId": "/management/coherence/cluster/resetStatististics POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/networkStats/trackWeakest": {
+      "post": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Track the Weakest Cluster Member for all the members",
+        "description": "Use this endpoint to begin tracking the weakest member of the cluster. A member is considered weak if either the corresponding publisher or receiver success rates are below 1.0.",
+        "operationId": "/management/coherence/cluster/networkStats/trackWeakest POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/members": {
       "get": {
         "tags": [
@@ -493,14 +573,14 @@
         }
       }
     },
-    "/management/coherence/cluster/members/{memberIdentifier}/networkStats/trackWeakestMember": {
+    "/management/coherence/cluster/members/{memberIdentifier}/networkStats/trackWeakest": {
       "post": {
         "tags": [
           "Cluster"
         ],
         "summary": "Track the Weakest Cluster Member",
         "description": "Use this endpoint to begin tracking the weakest member of the cluster. Specify a viewed member using the member ID. A viewed member is considered weak if either the corresponding publisher or receiver success rates are below 1.0.",
-        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/networkStats/trackWeakestMember POST",
+        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/networkStats/trackWeakest POST",
         "produces": [
           "application/json"
         ],
@@ -651,7 +731,7 @@
     "/management/coherence/cluster/reporters": {
       "get": {
         "tags": [
-          "Cluster"
+          "Reporter"
         ],
         "summary": "View Reporter Members",
         "description": "Use this endpoint to list all reporters of a Coherence cluster.",
@@ -675,12 +755,92 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Reporter"
+        ],
+        "summary": "Update Reporter configuration parameters on all the Members",
+        "description": "Use this endpoint to update the reporter configuration parameters for all the members.",
+        "operationId": "/management/coherence/cluster/reporters POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/reporter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that updates the reporter parameters for all the members"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/reporters/start": {
+      "post": {
+        "tags": [
+          "Reporter"
+        ],
+        "summary": "Start the Reporter on all cluster members",
+        "description": "Use this endpoint to force all reporters to start",
+        "operationId": "/management/coherence/cluster/reporters/start POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/reporters/stop": {
+      "post": {
+        "tags": [
+          "Reporter"
+        ],
+        "summary": "Stop the Reporter on all the cluster members",
+        "description": "Use this endpoint to force all the reporters to stop",
+        "operationId": "/management/coherence/cluster/reporters/stop POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/reporters/resetStatistics": {
+      "post": {
+        "tags": [
+          "Reporter"
+        ],
+        "summary": "Reset Reporter Statistics on all cluster members",
+        "description": "Use this endpoint to clear the current statistics for all reporters",
+        "operationId": "/management/coherence/cluster/reporters/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
       }
     },
     "/management/coherence/cluster/reporters/{memberIdentifier}": {
       "get": {
         "tags": [
-          "Cluster"
+          "Reporter"
         ],
         "summary": "View Reporter Information of a Member",
         "description": "Use this endpoint to view reporter information for a specific member of the cluster.",
@@ -699,6 +859,35 @@
             "schema": {
               "$ref": "#/definitions/reporter"
             }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reporter"
+        ],
+        "summary": "Update Reporter Information of a Member",
+        "description": "Use this endpoint to update the configuration parameters for a reporter member.",
+        "operationId": "/management/coherence/cluster/reporters/{memberIdentifier} POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/reporter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that updates the reporter parameters for a member"
           }
         }
       }
@@ -754,8 +943,8 @@
         "tags": [
           "Reporter"
         ],
-        "summary": "Start the Reporter",
-        "description": "Use this endpoint to clear the current statistics for a specific reporter",
+        "summary": "Reset Reporter Statistics of a member",
+        "description": "Use this endpoint to clear the current statistics for a specific reporter.",
         "operationId": "/management/coherence/cluster/reporters/{memberIdentifier}/resetStatistics POST",
         "produces": [
           "application/json"
@@ -1218,6 +1407,24 @@
         }
       }
     },
+    "/management/coherence/cluster/journal/flash/compact": {
+      "post": {
+        "tags": [
+          "Journal"
+        ],
+        "summary": "Compact Flash Journal",
+        "description": "Use this endpoint to compact (garbage collect) journal files on all the flash journal members in a cluster.",
+        "operationId": "/management/coherence/cluster/journal/flash/compact POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/journal/flash/members": {
       "get": {
         "tags": [
@@ -1296,6 +1503,24 @@
         }
       }
     },
+    "/management/coherence/cluster/journal/flash/resetStatistics": {
+      "post": {
+        "tags": [
+          "Journal"
+        ],
+        "summary": "Reset Flash Journal Statistics",
+        "description": "Use this endpoint to clear the current statistics for all the members.",
+        "operationId": "/management/coherence/cluster/journal/flash/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/journal/ram": {
       "get": {
         "tags": [
@@ -1318,6 +1543,24 @@
         "responses": {
           "200": {
             "description": "A successful request that returns information about the RAM journal"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/journal/ram/compact": {
+      "post": {
+        "tags": [
+          "Journal"
+        ],
+        "summary": "Compact RAM Journal",
+        "description": "Use this endpoint to compact (garbage collect) journal files on all the RAM journal members in a cluster.",
+        "operationId": "/management/coherence/cluster/journal/ram/compact POST",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
           }
         }
       }
@@ -1400,32 +1643,14 @@
         }
       }
     },
-    "/management/coherence/cluster/journal/ram/compact": {
+    "/management/coherence/cluster/journal/ram/resetStatistics": {
       "post": {
         "tags": [
           "Journal"
         ],
-        "summary": "Compact RAM Journal",
-        "description": "Use this endpoint to compact (garbage collect) journal files on all the RAM journal members in a cluster.",
-        "operationId": "/management/coherence/cluster/journal/ram/compact POST",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Command invocation is successful"
-          }
-        }
-      }
-    },
-    "/management/coherence/cluster/journal/flash/compact": {
-      "post": {
-        "tags": [
-          "Journal"
-        ],
-        "summary": "Compact Flash Journal",
-        "description": "Use this endpoint to compact (garbage collect) journal files on all the flash journal members in a cluster.",
-        "operationId": "/management/coherence/cluster/journal/flash/compact POST",
+        "summary": "Reset RAM Journal Statistics",
+        "description": "Use this endpoint to clear the current statistics for all the members.",
+        "operationId": "/management/coherence/cluster/journal/ram/resetStatistics POST",
         "produces": [
           "application/json"
         ],
@@ -1495,6 +1720,35 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Update Service Information",
+        "description": "Use this endpoint to update configuration information for a specific service on all the members in the cluster.",
+        "operationId": "/management/coherence/cluster/services/{serviceName} POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/service"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request updates the parameters for a service on all the members"
+          }
+        }
       }
     },
     "/management/coherence/cluster/services/{serviceName}/suspend": {
@@ -1528,6 +1782,98 @@
         "summary": "Resume a Service",
         "description": "Use this endpoint to resume a specified service in all the members of a cluster.",
         "operationId": "/management/coherence/cluster/services/{serviceName}/resume POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/resetStatistics": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Reset Service Statistics",
+        "description": "Use this endpoint to clear the current statistics for all the service members.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/start": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Start a Service",
+        "description": "Use this endpoint to start a specific service on a cluster member.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/start POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/stop": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Stop a Service on all the cluster members",
+        "description": "Use this endpoint to force a specific service to stop. Use the shutdown endpoint for normal service termination.",
+        "operationId": "management/coherence/cluster/services/{serviceName}/stop POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/shutdown": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Shutdown a Service on all the cluster members",
+        "description": "Use this endpoint to perform a controlled shut-down of a specific service. Shutting down a service is preferred over stopping a service.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/shutdown POST",
         "produces": [
           "application/json"
         ],
@@ -1911,6 +2257,64 @@
             "schema": {
               "$ref": "#/definitions/cacheAggregate"
             }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Update the cache configuration parameters on all the Members.",
+        "description": "Use this endpoint to update the configuration parameters for all the members that is managed by a specific service.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/caches/{cacheName}/ POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cacheMember"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that updates the cache parameters on all the members"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/caches/{cacheName}/resetStatistics": {
+      "post": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Reset Cache Statistics by Service",
+        "description": "Use this endpoint to clear the current statistics for a cache that is managed by a specific service.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/caches/{cacheName}/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
           }
         }
       }

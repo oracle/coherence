@@ -11,6 +11,7 @@ import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
+
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
 import java.net.URI;
@@ -35,6 +36,11 @@ public class ReportersResource
         {
         router.addGet(sPathRoot, this::get);
 
+        router.addPost(sPathRoot, this::update);
+        router.addPost(sPathRoot + "/start", this::start);
+        router.addPost(sPathRoot + "/stop", this::stop);
+        router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
+
         // child resources
         router.addRoutes(sPathRoot + "/{" + MEMBER_KEY + "}", new ReporterMemberResource());
         }
@@ -55,6 +61,60 @@ public class ReportersResource
                 null, null, getParentUri(request), uriCurrent, uriCurrent));
         }
 
+    // ----- POST API(Update) -----------------------------------------------
+
+    /**
+     * Update a ReporterMBean with the parameters present in the input entity
+     * map for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response update(HttpRequest request)
+        {
+        Map<String, Object> entity = getJsonBody(request);
+        return update(request, entity, getQuery(request));
+        }
+
+    // ----- POST API(Operations) -------------------------------------------
+
+    /**
+     * Call start operation on ReporterMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response start(HttpRequest request)
+        {
+        return executeMBeanOperation(request, getQuery(request), "start", null, null);
+        }
+
+    /**
+     * Call stop operation on ReporterMBean for all the members
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response stop(HttpRequest request)
+        {
+        return executeMBeanOperation(request, getQuery(request), "stop", null, null);
+        }
+
+    /**
+     * Call resetStatistics operation on ReporterMBean for all the members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response resetStatistics(HttpRequest request)
+        {
+        return executeMBeanOperation(request, getQuery(request), RESET_STATS, null, null);
+        }
+
     // ----- AbstractManagementResource methods -------------------------------------------
 
     @Override
@@ -68,5 +128,20 @@ public class ReportersResource
 
         return getResponseBodyForMBeanCollection(request, queryBuilder, new ReporterMemberResource(),
                 mapQuery, mapArguments, uriParent, getSubUri(uriParent, MEMBERS), uriCurrent);
+        }
+
+    /**
+     * Return the ReporterMBean query for all members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the MBean query
+     *
+     * @since 14.1.2.0
+     */
+    protected QueryBuilder getQuery(HttpRequest request)
+        {
+        return createQueryBuilder(request)
+                .withBaseQuery(REPORTER_MEMBERS_QUERY);
         }
     }
