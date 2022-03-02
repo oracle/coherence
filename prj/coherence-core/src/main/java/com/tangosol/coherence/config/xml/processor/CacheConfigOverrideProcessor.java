@@ -31,6 +31,8 @@ public class CacheConfigOverrideProcessor
     @Override
     public void process(XmlElement xmlBase, XmlElement xmlOverride)
         {
+        XmlHelper.mergeSchema(xmlBase, xmlOverride);
+
         for (Object overrideElements : xmlOverride.getElementList())
             {
             XmlElement xmlElement = (XmlElement) overrideElements;
@@ -46,6 +48,13 @@ public class CacheConfigOverrideProcessor
             else if ("interceptors".equals(xmlElement.getName()))
                 {
                 processInterceptors(xmlBase, xmlElement);
+                }
+            else
+                {
+                List<XmlElement> listElements = new ArrayList<>();
+
+                listElements.add(xmlElement);
+                XmlHelper.addElements(xmlBase, listElements.iterator());
                 }
             }
         }
@@ -160,7 +169,7 @@ public class CacheConfigOverrideProcessor
                 }
 
             XmlHelper.addElements(xmlBase.getElement(xmlOverrideCacheMappings.getName()), listElements.iterator());
-            listElements = new ArrayList<XmlElement>();
+            listElements.clear();
             }
         }
 
@@ -251,7 +260,7 @@ public class CacheConfigOverrideProcessor
         if (!listElements.isEmpty())
             {
             XmlHelper.addElements(xmlBase.getElement(xmlOverrideCachingSchemes.getName()), listElements.iterator());
-            listElements = new ArrayList<XmlElement>();
+            listElements.clear();
             }
         }
 

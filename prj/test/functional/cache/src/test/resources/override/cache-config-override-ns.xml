@@ -9,7 +9,7 @@
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
-              xmlns:test="class://override.TestNamesapceHandler">
+              xmlns:test="class://override.TestNamespaceHandler">
   <test:test>
     <test:name>test</test:name>
   </test:test>

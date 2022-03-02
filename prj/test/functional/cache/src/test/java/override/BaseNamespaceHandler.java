@@ -11,25 +11,27 @@ import com.tangosol.config.xml.AbstractNamespaceHandler;
 import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
+
 import com.tangosol.run.xml.XmlElement;
 
 /**
  * Class to handler custom test namespace handling.
  *
  */
-public class TestNamespaceHandler
+public class BaseNamespaceHandler
         extends AbstractNamespaceHandler
     {
+
     /**
-     * Constructs a {@link TestNamespaceHandler}.
+     * Constructs a {@link BaseNamespaceHandler}.
      */
-    public TestNamespaceHandler()
+    public BaseNamespaceHandler()
         {
-        registerProcessor(TestElementProcessor.class);
+        registerProcessor(CustomElementProcessor.class);
         }
 
-    @XmlSimpleName("test")
-    public static class TestElementProcessor<T>
+    @XmlSimpleName("custom")
+    public static class CustomElementProcessor<T>
              implements ElementProcessor<T>
         {
 
@@ -37,6 +39,7 @@ public class TestNamespaceHandler
         public T process(ProcessingContext context, XmlElement xmlElement)
                 throws ConfigurationException
             {
+            // TODO Auto-generated method stub
             return null;
             }
         }

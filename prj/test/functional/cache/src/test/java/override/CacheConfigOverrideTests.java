@@ -320,6 +320,44 @@ public class CacheConfigOverrideTests
         }
 
     @Test
+    public void testCacheConfigOverrideCustomeNSHandler()
+            throws Exception
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_NS_HANDLER);
+            System.setProperty("coherence.cacheconfig.override",
+                    "override/cache-config-override-ns.xml");
+
+            AbstractFunctionalTest._startup();
+
+            NamedCache myCacheOverride = CacheFactory.getCache("my-cache-override");
+            assertNotNull(myCacheOverride);
+            Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("my-cache-override", cacheNames.nextElement());
+            assertEquals("$SYS:MyCacheService", myCacheOverride.getService().getInfo().getServiceName());
+
+            // Check for correct QuorumStatus for service "$SYS:MyCacheService" with write
+            MBeanServer serverJMX        = MBeanHelper.findMBeanServer();
+            String      objectName       = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
+            Set<ObjectInstance> mbeanObj = serverJMX.queryMBeans(new ObjectName(objectName), null);
+            assertTrue(mbeanObj.size() == 1);
+
+            ObjectName  serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
+            String      quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
+            assertNotNull(quorumStatus);
+            assertEquals(quorumStatus, "allowed-actions=distribution, restore, read, write, recover");
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig");
+            System.clearProperty("coherence.cacheconfig.override");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
     public void testCacheConfigOverrideWithInterceptors()
             throws Exception
         {
@@ -473,6 +511,11 @@ public class CacheConfigOverrideTests
      * Cache configuration file with xml-override attribute specified without default.
      */
     public final static String FILE_CFG_CACHE_NO_DEFAULT = "override/cache-config-nodefault.xml";
+
+    /**
+     * Cache configuration file with xml-override attribute specified without default.
+     */
+    public final static String FILE_CFG_CACHE_NS_HANDLER = "override/cache-config-custom-ns-handler.xml";
 
     /**
      * Cache configuration file with an override file containing interceptors only.
