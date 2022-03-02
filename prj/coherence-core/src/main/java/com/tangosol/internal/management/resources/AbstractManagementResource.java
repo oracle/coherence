@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.management.resources;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.http.HttpException;
@@ -32,7 +33,12 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 
+import java.io.UnsupportedEncodingException;
+
 import java.net.URI;
+import java.net.URLEncoder;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1523,26 +1529,35 @@ public abstract class AbstractManagementResource
      */
     public static URI getSubUri(URI uriParent, String... asSegments)
         {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append(uriParent.getPath());
-        for (String segment : asSegments)
+        try
             {
-            int cSlash = segment.indexOf('/');
-            if (cSlash == -1)
+            StringBuilder builder = new StringBuilder();
+
+            builder.append(uriParent.getPath());
+            for (String segment : asSegments)
                 {
-                builder.append("/").append(segment);
-                }
-            else
-                {
-                for (String sPart : PATH_PATTERN.split(segment))
+                int cSlash = segment.indexOf('/');
+                if (cSlash == -1)
                     {
-                    builder.append("/").append(sPart);
+                    String sEncoded = URLEncoder.encode(segment, StandardCharsets.UTF_8.name());
+                    builder.append("/").append(sEncoded);
+                    }
+                else
+                    {
+                    for (String sPart : PATH_PATTERN.split(segment))
+                        {
+                        String sEncoded = URLEncoder.encode(sPart, StandardCharsets.UTF_8.name());
+                        builder.append("/").append(sEncoded);
+                        }
                     }
                 }
-            }
 
-        return uriParent.resolve(builder.toString());
+            return uriParent.resolve(builder.toString());
+            }
+        catch (UnsupportedEncodingException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
         }
 
     /**
