@@ -13,6 +13,7 @@ import com.oracle.bedrock.coverage.CoverageProfile;
 import com.oracle.bedrock.deferred.Deferred;
 import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.Application;
@@ -39,6 +40,7 @@ import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.util.Threads;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
@@ -732,8 +734,12 @@ public abstract class AbstractTestInfrastructure
                 {
                 waitForServer(member);
                 }
-            catch (AssertionError err)
+            catch (Throwable err)
                 {
+                // take a thread dump of the member that timed out
+                System.out.println("Thread dump on server: " + member.getRoleName());
+                System.out.println(member.invoke(new RemoteThreadDump()));
+
                 // show OS level port usage in case of port binding conflict
                 displayPortInfo();
                 throw err;
@@ -1695,6 +1701,24 @@ public abstract class AbstractTestInfrastructure
             }
 
         private final CacheService f_service;
+        }
+
+    // ----- inner class: RemoteThreadDump ----------------------------------
+
+    /**
+     * Return a thread dump of the invoking member.
+     */
+    protected static class RemoteThreadDump
+            implements RemoteCallable<String>
+        {
+
+        // ----- RemoteCallable methods -------------------------------------
+
+        @Override
+        public String call() throws Exception
+            {
+            return Threads.getThreadDump();
+            }
         }
 
     // ----- constants ------------------------------------------------------
