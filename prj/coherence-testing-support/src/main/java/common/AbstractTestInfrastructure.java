@@ -10,6 +10,7 @@ package common;
 
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.jacoco.Dump;
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.Application;
@@ -34,6 +35,7 @@ import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
+import com.oracle.coherence.common.util.Threads;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
@@ -728,8 +730,12 @@ public abstract class AbstractTestInfrastructure
                 {
                 waitForServer(member);
                 }
-            catch (AssertionError err)
+            catch (Throwable err)
                 {
+                // take a thread dump of the member that timed out
+                System.out.println("Thread dump on server: " + member.getRoleName());
+                System.out.println(member.invoke(new RemoteThreadDump()));
+
                 // show OS level port usage in case of port binding conflict
                 displayPortInfo();
                 throw err;
@@ -1651,6 +1657,24 @@ public abstract class AbstractTestInfrastructure
             }
 
         return m_ports;
+        }
+
+    // ----- inner class: RemoteThreadDump ----------------------------------
+
+    /**
+     * Return a thread dump of the invoking member.
+     */
+    protected static class RemoteThreadDump
+            implements RemoteCallable<String>
+        {
+
+        // ----- RemoteCallable methods -------------------------------------
+
+        @Override
+        public String call() throws Exception
+            {
+            return Threads.getThreadDump();
+            }
         }
 
     // ----- data members ---------------------------------------------------
