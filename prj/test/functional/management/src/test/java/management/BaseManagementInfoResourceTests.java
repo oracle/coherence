@@ -1723,7 +1723,7 @@ public abstract class BaseManagementInfoResourceTests
 
             for (Map mapMember : listMembers)
                 {
-                Eventually.assertDeferred(() -> assertAttribute((String) mapMember.get("memberName"), REPORTERS, "state", new String[]{"Sleeping", "Running"}), is(true));
+                Eventually.assertDeferred(() -> assertAttribute((String) mapMember.get("memberName"), REPORTERS, "state", new String[]{"Sleeping", "Running"}), is(true), within(2, TimeUnit.MINUTES));
                 }
 
             // stop the reporter
@@ -1848,7 +1848,7 @@ public abstract class BaseManagementInfoResourceTests
                             .path("stop").request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true));
+        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true), within(2, TimeUnit.MINUTES));
 
         // start the service
         Map mapEntity = new LinkedHashMap();
@@ -1857,7 +1857,7 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", true), is(true));
+        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", true), is(true), within(2, TimeUnit.MINUTES));
         }
 
     @Test
@@ -1875,7 +1875,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapMember : listMembers)
             {
             String sMember = (String) mapMember.get("memberName");
-            Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true));
+            Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true), within(2, TimeUnit.MINUTES));
             }
 
         // start the service
@@ -1888,7 +1888,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapMember : listMembers)
             {
             String sMember = (String) mapMember.get("memberName");
-            Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", true), is(true));
+            Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", true), is(true), within(2, TimeUnit.MINUTES));
             }
         }
 
