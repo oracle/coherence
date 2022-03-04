@@ -54,8 +54,6 @@ import com.tangosol.internal.management.resources.ClusterMemberResource;
 
 import com.tangosol.internal.net.management.HttpHelper;
 
-import com.tangosol.internal.net.metrics.MetricsHttpHelper;
-
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
@@ -110,6 +108,7 @@ import java.net.URLEncoder;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1147,9 +1146,9 @@ public abstract class BaseManagementInfoResourceTests
         Map    mapProxyScheme    = null;
         for (Map listItemMap : listItemMaps)
             {
-            if (((String) listItemMap.get(NAME)).compareToIgnoreCase(SERVICE_NAME) == 0)
+            if (((String) listItemMap.get(NAME)).compareToIgnoreCase(getQuotedScopedServiceName(SERVICE_NAME)) == 0)
                 {
-                sDistServiceName = SERVICE_NAME;
+                sDistServiceName = getScopedServiceName(SERVICE_NAME);
                 mapDistScheme    = listItemMap;
                 }
             else if (((String) listItemMap.get(NAME)).compareToIgnoreCase(sMoRESTProxy) == 0)
@@ -1167,7 +1166,7 @@ public abstract class BaseManagementInfoResourceTests
         assertNotNull(mapDistScheme);
         assertNotNull(mapProxyScheme);
 
-        assertThat(mapDistScheme.get(NAME), is(SERVICE_NAME));
+        assertThat(mapDistScheme.get(NAME), is(getQuotedScopedServiceName(SERVICE_NAME)));
         assert (((Collection) mapDistScheme.get("type")).contains(SERVICE_TYPE));
 
         target   = m_client.target(getSelfLink(mapDistScheme));
@@ -1203,7 +1202,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceMembers()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members");
         Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1218,7 +1217,7 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapEntry : items)
             {
-            assertThat(mapEntry.get(NAME), is(SERVICE_NAME));
+            assertThat(mapEntry.get(NAME), is(getQuotedScopedServiceName(SERVICE_NAME)));
             assertThat(mapEntry.get("type"), is(SERVICE_TYPE));
             assertThat(Integer.parseInt((String) mapEntry.get(NODE_ID)), greaterThan(0));
             assertThat(((Number) mapEntry.get("backupCount")).longValue(), is(1L));
@@ -1239,7 +1238,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testManagementRequestWithAcceptEncodingGzip()
         {
         WebTarget target = getBaseTarget().path(SERVICES)
-                .path("DistributedCache")
+                .path(getScopedServiceName(SERVICE_NAME))
                 .path("members");
 
         Response response = target
@@ -1271,7 +1270,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testPartitionInfo()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("partition");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("partition");
         Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1297,7 +1296,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMember()
         {
-        WebTarget membersTarget = getBaseTarget().path(SERVICES).path("DistributedCache").path("members");
+        WebTarget membersTarget = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members");
         WebTarget target        = membersTarget.path(SERVER_PREFIX + "-1");
         Response  response      = target.request().get();
 
@@ -1306,7 +1305,7 @@ public abstract class BaseManagementInfoResourceTests
         Map mapResponse = readEntity(target, response);
 
         assertThat(mapResponse, notNullValue());
-        assertThat(mapResponse.get(NAME), is(SERVICE_NAME));
+        assertThat(mapResponse.get(NAME), is(getQuotedScopedServiceName(SERVICE_NAME)));
         assertThat(mapResponse.get("type"), is(SERVICE_TYPE));
 
         assertThat(((Number) mapResponse.get("backupCount")).intValue(), is(1));
@@ -1325,7 +1324,7 @@ public abstract class BaseManagementInfoResourceTests
         mapEntity.put("taskHungThresholdMillis", 10);
         mapEntity.put("taskTimeoutMillis", 100000);
         mapEntity.put("requestTimeoutMillis", 200000);
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members").path(SERVER_PREFIX + "-1");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members").path(SERVER_PREFIX + "-1");
         Response  response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1352,14 +1351,15 @@ public abstract class BaseManagementInfoResourceTests
         mapEntity.put("taskTimeoutMillis", 100000);
         mapEntity.put("requestTimeoutMillis", 200000);
 
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME));
         Response  response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        final String sPath       = "services/DistributedCache/members";
+        final String sPath       = String.format("services/%s/members", getScopedServiceName(SERVICE_NAME));
         List<Map>    listMembers = getMemberList();
+
         for (Map mapMember : listMembers)
             {
             String sMember = (String) mapMember.get("memberName");
@@ -1384,7 +1384,7 @@ public abstract class BaseManagementInfoResourceTests
             System.err.println("Updating " + attribute + " to " + value);
             Map map = new LinkedHashMap();
             map.put(attribute, value);
-            WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
+            WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME)
                     .path("members").path(SERVER_PREFIX + "-1");
             Response response = target.request().post(Entity.entity(map, MediaType.APPLICATION_JSON_TYPE));
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1419,11 +1419,11 @@ public abstract class BaseManagementInfoResourceTests
             System.err.println("Updating " + attribute + " to " + value);
             Map map = new LinkedHashMap();
             map.put(attribute, value);
-            WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME);
+            WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME);
             Response response = target.request().post(Entity.entity(map, MediaType.APPLICATION_JSON_TYPE));
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            final String sPath       = SERVICES + "/" + SERVICE_NAME + "/" + CACHES + "/" + CACHE_NAME + "/members";
+            final String sPath       = SERVICES + "/" + getScopedServiceName(SERVICE_NAME) + "/" + CACHES + "/" + CACHE_NAME + "/members";
             List<Map>    listMembers = getMemberList();
             for (Map mapMember : listMembers)
                 {
@@ -1583,7 +1583,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         Map mapEntity = new LinkedHashMap();
         mapEntity.put("cacheHits", 100005L);
-        WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
+        WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME)
                             .path(MEMBERS).path(SERVER_PREFIX + "-1");
         Entity   entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
         Response response = target.request().post(entity);
@@ -1752,7 +1752,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCacheMemberResetStats()
         {
-        WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
+        WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME)
                 .path("members").path(SERVER_PREFIX + "-1").path("resetStatistics");
         Response response = target.request().post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1762,7 +1762,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCacheResetStats()
         {
-        WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
+        WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME)
                 .path("resetStatistics");
         Response response = target.request().post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1772,7 +1772,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceMemberResetStats()
         {
-        WebTarget membersTarget = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path("members");
+        WebTarget membersTarget = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members");
         Response response = membersTarget
                 .path(SERVER_PREFIX + "-1").path("resetStatistics").request().post(null);
 
@@ -1792,7 +1792,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceResetStats()
         {
-        WebTarget membersTarget = getBaseTarget().path(SERVICES).path(SERVICE_NAME);
+        WebTarget membersTarget = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME));
         Response  response      = membersTarget.path(RESET_STATS).request().post(null);
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1817,43 +1817,45 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testSuspendAndResume()
         {
-        Response response = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path("suspend")
+        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("suspend")
                 .request().post(null);
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertDeferred(() -> getAttributeValue(m_client, SERVICE_NAME, "quorumStatus"),
+        Eventually.assertDeferred(() -> getAttributeValue(m_client, getScopedServiceName(SERVICE_NAME), "quorumStatus"),
                 is("Suspended"));
 
-        response = getBaseTarget().path(SERVICES).path("DistributedCache").path("resume")
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("resume")
                 .request().post(null);
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        Eventually.assertDeferred(() -> getAttributeValue(m_client, SERVICE_NAME, "quorumStatus").toString(),
+        Eventually.assertDeferred(() -> getAttributeValue(m_client, getScopedServiceName(SERVICE_NAME), "quorumStatus").toString(),
                 containsString("allowed-actions"));
         }
 
     @Test
     public void testServiceMemberStartAndStop()
-            throws IOException
         {
         String       sMember  = SERVER_PREFIX + "-1";
-        final String sService = "ExtendProxyService";
+        final String sService = getScopedServiceName(PROXY_SERVICE_NAME);
         final String sPath    = SERVICES + "/" + sService + "/" + MEMBERS;
 
         // stop the service
         Response response = getBaseTarget().path(SERVICES).path(sService).path(MEMBERS).path(sMember)
-                            .path("stop").request(MediaType.APPLICATION_JSON_TYPE).post(null);
+                                    .path("stop").request(MediaType.APPLICATION_JSON_TYPE).post(null);
+
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
         Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true), within(2, TimeUnit.MINUTES));
 
         // start the service
         Map mapEntity = new LinkedHashMap();
+
         response = getBaseTarget().path(SERVICES).path(sService).path(MEMBERS).path(sMember).path("start").request(MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
@@ -1865,7 +1867,7 @@ public abstract class BaseManagementInfoResourceTests
             throws IOException
         {
         // stop the service
-        final String sService = "ExtendProxyService";
+        final String sService = getScopedServiceName(PROXY_SERVICE_NAME);
         Response     response = getBaseTarget().path(SERVICES).path(sService)
                                 .path("stop").request(MediaType.APPLICATION_JSON_TYPE).post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -1896,7 +1898,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testService()
         {
         // aggregate all attributes for a service across all nodes
-        WebTarget target      = getBaseTarget().path(SERVICES).path("DistributedCache");
+        WebTarget target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME));
         Response  response    = target.request().get();
         Map       mapResponse = readEntity(target, response);
 
@@ -1969,7 +1971,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         while (sleep(() -> acTmp[0] != 10L, REMOTE_MODEL_PAUSE_DURATION));
 
-        WebTarget target      = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
+        WebTarget target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME))
                                 .path(CACHES).path(CACHE_NAME).queryParam("fields", "size");
         Response  response    = target.request().get();
         Map       mapResponse = readEntity(target, response);
@@ -1977,7 +1979,7 @@ public abstract class BaseManagementInfoResourceTests
         // aggregate all attributes for a cache on a service across all nodes
         assertThat(((Number) mapResponse.get("size")).longValue(), is(10L));
 
-        target      = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
+        target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME))
                         .path(CACHES).path(CACHE_NAME).queryParam("fields", "units")
                         .queryParam("role", "*");
         response    = target.request().get();
@@ -1986,7 +1988,7 @@ public abstract class BaseManagementInfoResourceTests
         // aggregate Units attribute for a cache across all nodes
         assertThat(((Number) mapResponse.get("units")).longValue(), is(cEntrySize * 10));
 
-        target      = getBaseTarget().path(SERVICES).path(SERVICE_NAME)
+        target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME))
                         .path(CACHES).path(CACHE_NAME).queryParam("fields", "units")
                         .queryParam("role", "*")
                         .queryParam("collector", "list");
@@ -2051,7 +2053,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithIncludedFields()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1").queryParam("fields", "backupCount,joinTime");
         Response  response = target.request().get();
 
@@ -2070,7 +2072,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithExcludedFields()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1").queryParam("excludeFields", "backupCount,joinTime");
         Response  response = target.request().get();
 
@@ -2087,7 +2089,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithIncludedAndExcludedFields()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1")
                             .queryParam("fields", "name,joinTime")
                             .queryParam("excludeFields", "backupCount,joinTime");
@@ -2105,7 +2107,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithExcludedLinks()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1").queryParam("excludeLinks", "ownership");
         Response  response = target.request().get();
 
@@ -2124,7 +2126,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberWithIncludedAndExcludedLinks()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1")
                             .queryParam("links", "self,ownership")
                             .queryParam("excludeLinks", "ownership,parent");
@@ -2147,7 +2149,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testOwnershipState()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1").path("ownership");
         Response  response = target.request().get();
 
@@ -2162,7 +2164,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testOwnershipVerbose()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1").path("ownership").queryParam("verbose", true);
         Response  response = target.request().get();
 
@@ -2177,7 +2179,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDistributionState()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("members")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("members")
                             .path(SERVER_PREFIX + "-1").path("distributionState").queryParam("verbose", true);
         Response  response = target.request().get();
 
@@ -2192,7 +2194,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testPartitionScheduledDistributions()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").path("partition")
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("partition")
                             .path("scheduledDistributions").queryParam("verbose", true);
         Response  response = target.request().get();
 
@@ -2222,7 +2224,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testProxy()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("ExtendProxyService").path("members");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(PROXY_SERVICE_NAME)).path("members");
         Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -2237,7 +2239,7 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapEntry : listItems)
             {
-            assertThat(mapEntry.get(NAME), is("ExtendProxyService"));
+            assertThat(mapEntry.get(NAME), is(getQuotedScopedServiceName(PROXY_SERVICE_NAME)));
             target   = m_client.target(getLink(mapEntry, "proxy"));
             response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -2249,7 +2251,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testProxyConnections()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path("ExtendProxyService").path("members");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(PROXY_SERVICE_NAME)).path("members");
         Response  response = target.request().get();
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -2264,7 +2266,7 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapEntry : listItems)
             {
-            assertThat(mapEntry.get(NAME), is("ExtendProxyService"));
+            assertThat(mapEntry.get(NAME), is(getQuotedScopedServiceName(PROXY_SERVICE_NAME)));
 
             String sProxyUrl = getLink(mapEntry, "proxy");
             response = m_client.target(sProxyUrl).path("connections").request().get();
@@ -2357,7 +2359,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testNonExistentCacheInAService()
         {
-        Response response = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES)
+        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES)
                 .path("nonexistent").request().get();
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
@@ -2440,7 +2442,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCachesOfAService()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES);
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES);
         Response  response = target.request().get();
         testCachesResponse(target, response);
         }
@@ -2448,7 +2450,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDistCacheOfService()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME);
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME);
         Response  response = target.request().get();
         testBackCacheResponse(target, response);
         }
@@ -2588,7 +2590,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapService : listServices)
             {
             assertThat(mapService.size(), greaterThan(ATTRIBUTES_COUNT));
-            assertThat(mapService.get(NAME), isOneOf(SERVICES_LIST));
+            assertThat(mapService.get(NAME), isOneOf(getQuotedScopedServiceList()));
             assertThat(mapService.get("type"), notNullValue());
             assertThat(mapService.get("memberCount"), notNullValue());
             assertThat(((Map<String, Number>) mapService.get("running")).get("true").intValue(), greaterThanOrEqualTo(1));
@@ -2652,20 +2654,21 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapServiceMember : listMembers)
             {
-            assertThat(mapServiceMember.get(NAME), notNullValue());
-            assertThat(mapServiceMember.get("type"), notNullValue());
+            Object sName = mapServiceMember.get(NAME);
+            assertThat(sName, notNullValue());
+
+            Object oType = mapServiceMember.get("type");
+            assertThat(oType, is(instanceOf(List.class)));
+            String sType = (String) ((List) oType).get(0);
 
             // no need to test for proxy services
-            if (mapServiceMember.get(NAME).equals(HttpHelper.getServiceName()) ||
-                    mapServiceMember.get(NAME).equals("ExtendProxyService") ||
-                    mapServiceMember.get(NAME).equals(ACTIVE_SERVICE) ||
-                    mapServiceMember.get(NAME).equals(MetricsHttpHelper.getServiceName()))
+            if ("Proxy".equals(sType))
                 {
                 continue;
                 }
 
             Map mapCachesResponse = (Map) mapServiceMember.get(CACHES);
-            assertThat(mapCachesResponse, notNullValue());
+            assertThat("Failed for: " + sName, mapCachesResponse, notNullValue());
 
             List<Map> listCacheItems = (List<Map>) mapCachesResponse.get("items");
             assertThat(listCacheItems, notNullValue());
@@ -2729,20 +2732,21 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapService : listMembers)
             {
-            assertThat(mapService.get(NAME), notNullValue());
-            assertThat(mapService.get("type"), notNullValue());
+            Object oName = mapService.get(NAME);
+            assertThat(oName, notNullValue());
+
+            Object oType = mapService.get("type");
+            assertThat(oType, is(instanceOf(List.class)));
+            String sType = (String) ((List) oType).get(0);
 
             // no need to test for proxy services
-            if (mapService.get(NAME).equals(HttpHelper.getServiceName()) ||
-                    mapService.get(NAME).equals("ExtendProxyService") ||
-                    mapService.get(NAME).equals(ACTIVE_SERVICE) ||
-                    mapService.get(NAME).equals(MetricsHttpHelper.getServiceName()))
+            if ("Proxy".equals(sType) || getQuotedScopedServiceName(ACTIVE_SERVICE).equals(oName))
                 {
                 continue;
                 }
 
             Map cachesResponseMap = (Map) mapService.get(CACHES);
-            assertThat(cachesResponseMap, notNullValue());
+            assertThat("Failed for: " + oName, cachesResponseMap, notNullValue());
 
             List<Map> listCacheItems = (List<Map>) cachesResponseMap.get("items");
             assertThat(listCacheItems, notNullValue());
@@ -2773,39 +2777,39 @@ public abstract class BaseManagementInfoResourceTests
         // the following should fail with BAD REQUESTS
 
         // this service does not have an archiver
-        Response response = getBaseTarget().path(SERVICES).path("DistributedCache").path(PERSISTENCE)
+        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(PERSISTENCE)
                                            .path("archiveStores")
                                            .path("my-snapshot")
                                            .request().get();
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        response = getBaseTarget().path(SERVICES).path("DistributedCache").path(PERSISTENCE)
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(PERSISTENCE)
                                   .path(ARCHIVES)
                                   .request().get();
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
         // try to delete a snapshot that doesn't exist
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path("snapshot-that-doesnt-exist")
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("snapshot-that-doesnt-exist")
                 .request().delete();
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
         // try to recover a snapshot that doesn't exist
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path("2-entries").path("snapshot-that-doesnt-exist")
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("2-entries").path("snapshot-that-doesnt-exist")
                 .request().post(null);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
         // try to archive a snapshot that doesn't exist
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("snapshot-that-doesnt-exist")
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(ARCHIVES).path("snapshot-that-doesnt-exist")
                     .request().post(null);
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
         // try to delete an archived snapshot that doesn't exist
-        response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("snapshot-that-doesnt-exist")
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(ARCHIVES).path("snapshot-that-doesnt-exist")
                 .request().delete();
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
@@ -2848,7 +2852,7 @@ public abstract class BaseManagementInfoResourceTests
             Eventually.assertDeferred(() -> assertSnapshotExists("2-entries", SNAPSHOTS), is(true));
 
             // archive the snapshot
-            Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
+            Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
                     .request().post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             response.close();
@@ -2862,7 +2866,7 @@ public abstract class BaseManagementInfoResourceTests
             Eventually.assertDeferred(() -> assertSnapshotExists("2-entries", SNAPSHOTS), is(false));
 
             // retrieve the archived snapshot
-            response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries").path("retrieve")
+            response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(ARCHIVES).path("2-entries").path("retrieve")
                     .request().post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             response.close();
@@ -2872,7 +2876,7 @@ public abstract class BaseManagementInfoResourceTests
             Eventually.assertDeferred(() -> assertSnapshotExists("2-entries", SNAPSHOTS), is(true));
 
             // delete the archived snapshot
-            response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
+            response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(ARCHIVES).path("2-entries")
                     .request().delete();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             response.close();
@@ -2889,7 +2893,7 @@ public abstract class BaseManagementInfoResourceTests
                 return null;
                 });
 
-            response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path("2-entries").path("recover")
+            response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("2-entries").path("recover")
                     .request().post(null);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
@@ -2957,6 +2961,40 @@ public abstract class BaseManagementInfoResourceTests
     // ----- utility methods----------------------------------------------------
 
     /**
+     * Can be overridden by sub-classes that use scoped service names.
+     *
+     * @param sName the service name
+     *
+     * @return the scoped service name
+     */
+    protected String getScopedServiceName(String sName)
+        {
+        return sName;
+        }
+
+    /**
+     * Can be overridden by sub-classes that use scoped service names.
+     *
+     * @param sName the service name
+     *
+     * @return the scoped service name
+     */
+    protected String getQuotedScopedServiceName(String sName)
+        {
+        return sName;
+        }
+
+    protected String[] getScopedServiceList()
+        {
+        return Arrays.stream(SERVICES_LIST).map(this::getScopedServiceName).toArray(String[]::new);
+        }
+
+    protected String[] getQuotedScopedServiceList()
+        {
+        return Arrays.stream(SERVICES_LIST).map(this::getQuotedScopedServiceName).toArray(String[]::new);
+        }
+
+    /**
      * Ensure that the operationalStatus is Idle.
      */
     private void ensureServiceStatusIdle()
@@ -2972,7 +3010,7 @@ public abstract class BaseManagementInfoResourceTests
      */
     private void deleteSnapshot(String sSnapshotName)
         {
-        Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
+        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
                 .request().delete();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         response.close();
@@ -2985,7 +3023,7 @@ public abstract class BaseManagementInfoResourceTests
      */
     private void createSnapshot(String sSnapshotName)
         {
-        Response response = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
+        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
                             .request().post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         response.close();
@@ -2996,7 +3034,7 @@ public abstract class BaseManagementInfoResourceTests
      */
     public boolean assertServiceIdle()
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).queryParam("fields", "operationStatus");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).queryParam("fields", "operationStatus");
         Response  response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
@@ -3029,7 +3067,7 @@ public abstract class BaseManagementInfoResourceTests
      */
     private Set<String> getSnapshotsInternal(String sType)
         {
-        WebTarget target   = getBaseTarget().path(SERVICES).path(ACTIVE_SERVICE).path(PERSISTENCE).path(sType);
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(sType);
         Response  response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
@@ -3221,7 +3259,7 @@ public abstract class BaseManagementInfoResourceTests
                 assertThat(sCacheName, ((Number) size).intValue(), greaterThan(0));
                 }
 
-            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
             Assert.assertNotNull(NODE_ID, mapCache.get(NODE_ID));
             }
 
@@ -3288,7 +3326,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapCache : listCacheMaps)
             {
             assertNull(mapCache.get(NAME));
-            assertThat(mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            assertThat(mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
             }
         }
 
@@ -3314,7 +3352,7 @@ public abstract class BaseManagementInfoResourceTests
                 assertThat("Validating size of Cache: " + sCacheName, ((Number) size).intValue(), greaterThan(0));
                 }
 
-            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
             Assert.assertNotNull(NODE_ID, mapCache.get(NODE_ID));
             }
 
@@ -3365,7 +3403,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapCache : listCacheMaps)
             {
             assertNull(mapCache.get(NAME));
-            assertThat(mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
+            assertThat(mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
             }
         }
 
@@ -3497,13 +3535,13 @@ public abstract class BaseManagementInfoResourceTests
         // an uninitialized attribute should not be returned
         assertFalse(mapResponse.containsKey("persistenceActiveSpaceTotal"));
 
-        WebTarget target   = getBaseTarget().path(SERVICES).path("DistributedCache").queryParam("fields", "requestTotalCount");
+        WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).queryParam("fields", "requestTotalCount");
         Response  response = target.request().get();
         mapResponse = readEntity(target, response);
 
         assertThat(((Number) mapResponse.get("requestTotalCount")).intValue(), greaterThanOrEqualTo(0));
 
-        target      = getBaseTarget().path(SERVICES).path("DistributedCache").queryParam("fields", "partitionsAll")
+        target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).queryParam("fields", "partitionsAll")
                     .queryParam("role", "*");
         response    = target.request().get();
         mapResponse = readEntity(target, response);
@@ -3512,14 +3550,14 @@ public abstract class BaseManagementInfoResourceTests
         assertEquals(1, colPartCount.size());
         assertThat(colPartCount.iterator().next().longValue(), is(257L));
 
-        target      = getBaseTarget().path(SERVICES).path("DistributedCache").queryParam("fields", "statusHA")
+        target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).queryParam("fields", "statusHA")
                     .queryParam("role", "*");
         response    = target.request().get();
         mapResponse = readEntity(target, response);
 
         assertThat((Collection<String>) mapResponse.get("statusHA"), Matchers.hasItem("NODE-SAFE"));
 
-        target      = getBaseTarget().path(SERVICES).path("DistributedCache").queryParam("fields", "taskCount")
+        target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).queryParam("fields", "taskCount")
                     .queryParam("collector", "list")
                     .queryParam("role", "*");
         response    = target.request().get();
@@ -3528,7 +3566,7 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(((Collection) mapResponse.get("taskCount")).size(), greaterThan(1));
 
 
-        target      = getBaseTarget().path(SERVICES).path("DistributedCache").queryParam("fields", "taskCount")
+        target      = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).queryParam("fields", "taskCount")
                     .queryParam("collector", "list")
                     .queryParam("role", SERVER_PREFIX + "-1");
         response    = target.request().get();
@@ -3826,8 +3864,19 @@ public abstract class BaseManagementInfoResourceTests
         {
         for (CoherenceClusterMember member : cluster)
             {
-            Eventually.assertDeferred(() -> member.getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
-            Eventually.assertDeferred(() -> member.getServiceStatus(ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE));
+            String sScope = member.getSystemProperty("test.scope.name");
+            String sPrefix;
+            if (sScope == null || sScope.isEmpty())
+                {
+                sPrefix = "";
+                }
+            else
+                {
+                sPrefix = sScope + ":";
+                }
+
+            Eventually.assertDeferred(() -> member.getServiceStatus(sPrefix + SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
+            Eventually.assertDeferred(() -> member.getServiceStatus(sPrefix + ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE));
             Eventually.assertDeferred(() -> member.invoke(new CalculateUnbalanced("dist-persistence-test")),
                                       Matchers.is(0),
                                       within(3, TimeUnit.MINUTES));
@@ -3953,6 +4002,11 @@ public abstract class BaseManagementInfoResourceTests
     protected static final String ACTIVE_SERVICE = "DistributedCachePersistence";
 
     /**
+     * The name of the used Extend proxy service.
+     */
+    protected static final String PROXY_SERVICE_NAME = "ExtendProxyService";
+
+    /**
      * The name of the used PartitionedService.
      */
     protected static final String SERVICE_NAME = "DistributedCache";
@@ -3975,7 +4029,7 @@ public abstract class BaseManagementInfoResourceTests
     /**
      * The list of services used by this test class.
      */
-    private static final String[] SERVICES_LIST = {SERVICE_NAME, "ExtendHttpProxyService", "ExtendProxyService",
+    private static final String[] SERVICES_LIST = {SERVICE_NAME, "ExtendHttpProxyService", PROXY_SERVICE_NAME,
             "DistributedCachePersistence", HttpHelper.getServiceName()};
 
     /**

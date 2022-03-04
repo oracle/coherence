@@ -36,6 +36,7 @@ import com.tangosol.util.ValueExtractor;
 import java.io.UnsupportedEncodingException;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 
 import java.nio.charset.StandardCharsets;
@@ -1539,25 +1540,31 @@ public abstract class AbstractManagementResource
                 int cSlash = segment.indexOf('/');
                 if (cSlash == -1)
                     {
-                    String sEncoded = URLEncoder.encode(segment, StandardCharsets.UTF_8.name());
-                    builder.append("/").append(sEncoded);
+                    builder.append("/").append(segment);
                     }
                 else
                     {
                     for (String sPart : PATH_PATTERN.split(segment))
                         {
-                        String sEncoded = URLEncoder.encode(sPart, StandardCharsets.UTF_8.name());
-                        builder.append("/").append(sEncoded);
+                        builder.append("/").append(sPart);
                         }
                     }
                 }
 
-            return uriParent.resolve(builder.toString());
+            String sEncoded = encodePath(builder.toString());
+            return uriParent.resolve(sEncoded);
             }
-        catch (UnsupportedEncodingException e)
+        catch (URISyntaxException e)
             {
             throw Exceptions.ensureRuntimeException(e);
             }
+        }
+
+    private static String encodePath(String sPath) throws URISyntaxException
+        {
+        // We cannot use the JDK URLEncoder as it encodes spaces as "+", which is wrong.
+        // Instead we create a dummy URI, then use its raw path, which will be properly escaped
+        return new URI("http", "localhost", sPath, null).getRawPath();
         }
 
     /**
