@@ -977,10 +977,18 @@ public class MetricsSupportTests
     /**
      * List of optional metrics that are not reported as a missing metric assertion failure.
      *
-     * java.lang.OperatingSystem SystemCpuLoad - returns "recent cpu usage".
-     * Reasons for mbean attribute to intermittently be considered not set and corresponding metric not returned are detailed in Bug 33374653.
+     * THe MBean attribute documentation for jdk.management OperatingSystemMXBean document
+     * that these attributes can return a negative value. Metrics treats a negative value as not set
+     * and does not return the value. So consider all these values as optional to avoid nusance failures
+     * when running against JDK 17. See build bug 33374653 for details.
      */
-    private static final List<String> LIST_OPTIONAL = Collections.singletonList("Coherence.OS.SystemCpuLoad");
+    private static final List<String> LIST_OPTIONAL =
+            Arrays.asList("Coherence.OS.CpuLoad",
+                          "Coherence.OS.ProcessCpuLoad",
+                          "Coherence.OS.ProcessCpuTime",
+                          "Coherence.OS.SystemCpuLoad",
+                          "Coherence.OS.SystemLoadAverage"
+                         );
 
     /**
      * True iff JVM is for JDK 15 or greater.
