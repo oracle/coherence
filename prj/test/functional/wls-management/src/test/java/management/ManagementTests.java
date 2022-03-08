@@ -31,6 +31,7 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -38,6 +39,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +48,7 @@ import java.util.function.Supplier;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 
 /**
  * @author jk  2019.05.30
@@ -128,7 +131,28 @@ public class ManagementTests
         }
 
     @Test
-    public void shouldSearch()
+    public void shouldSearchClusters()
+        {
+        String sSearchJson = "{" +
+                "\"links\":[],"  +
+                "\"fields\":[]," +
+                  "\"children\":{" +
+                    "}" +
+                  "}";
+
+        Response response = s_client.target(s_baseURI)
+                                    .path("latest/clusters/search")
+                                    .request()
+                                    .post(Entity.entity(sSearchJson, MediaType.APPLICATION_JSON_TYPE));
+
+        assertThat(response.getStatus(), is(200));
+        Map<String, Object> map = s_mapJsonBodyHandler.readMap(response.readEntity(InputStream.class));
+        assertThat(map, is(notNullValue()));
+        assertThat(map.isEmpty(), is(false));
+        }
+
+    @Test
+    public void shouldSearchSpecificCluster()
         {
         String sSearchJson = "{" +
                 "\"links\":[],"  +

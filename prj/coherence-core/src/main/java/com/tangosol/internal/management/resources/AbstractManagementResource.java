@@ -1596,8 +1596,20 @@ public abstract class AbstractManagementResource
      */
     protected QueryBuilder createQueryBuilder(HttpRequest request)
         {
-        String sDomain  = getMBeanDomainName();
         String sCluster = getClusterName(request);
+        return createQueryBuilder(sCluster);
+        }
+
+    /**
+     * Create a QueryBuilder, also set the common parameters in the builder.
+     *
+     * @param sCluster  the Coherence cluster name
+     *
+     * @return the QueryBuilder
+     */
+    protected QueryBuilder createQueryBuilder(String sCluster)
+        {
+        String sDomain  = getMBeanDomainName();
 
         QueryBuilder queryBuilder = new QueryBuilder()
                 .withMBeanDomainName(sDomain)

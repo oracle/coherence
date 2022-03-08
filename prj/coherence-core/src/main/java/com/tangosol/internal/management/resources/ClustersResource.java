@@ -102,11 +102,18 @@ public class ClustersResource
         Filter<String>            filter        = getLinksFilter(request);
         EntityMBeanResponse       mBeanResponse = new EntityMBeanResponse(request, filter);
         Set<String>               setCluster    = f_supplierClusters.get();
+        ClusterResource           resource      = new ClusterResource();
         List<Map<String, Object>> items         = new ArrayList<>();
+        URI                       parentUri     = getParentUri(request);
+        URI                       currentUri    = getCurrentUri(request);
 
         for (String sCluster : setCluster)
             {
-            items.add(getSearchResponseObject(request, sCluster, entity));
+            URI                 subUri     = getSubUri(parentUri, sCluster);
+            Map<String, Object> mapQuery   = new LinkedHashMap<>(entity);
+            Map<String, Object> mapCluster = resource.getSearchResults(request, sCluster, mapQuery, parentUri, subUri, currentUri);
+
+            items.add(mapCluster);
             }
         mBeanResponse.setEntities(items);
 
@@ -121,15 +128,6 @@ public class ClustersResource
                 using(clusterName), RegistrationBehavior.REPLACE, null);
         
         return f_clusterResource.getClusterResponseMap(request, getCurrentUri(request), clusterName);
-        }
-
-    private Map<String, Object> getSearchResponseObject(HttpRequest request, String clusterName, Map<String, Object> entity)
-        {
-        ClusterResource resource = new ClusterResource();
-        // we need to pass the parent URI as current uri(which is /clusters)
-        URI parentUri = getParentUri(request);
-        return resource.getSearchResults(request, new LinkedHashMap<>(entity), getParentUri(request),
-                getSubUri(parentUri, clusterName), getCurrentUri(request));
         }
 
     // ----- data members ---------------------------------------------------

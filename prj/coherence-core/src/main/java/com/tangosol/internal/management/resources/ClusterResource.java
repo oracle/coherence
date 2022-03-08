@@ -317,8 +317,11 @@ public class ClusterResource
 
     public Response search(HttpRequest request)
         {
-        Map<String, Object> mapQuery = getJsonBody(request);
-        return response(getSearchResults(request, mapQuery, getParentUri(request), getCurrentUri(request)));
+        Map<String, Object> mapQuery   = getJsonBody(request);
+        URI                 uriParent  = getParentUri(request);
+        URI                 uriCurrent = getCurrentUri(request);
+        String              sCluster   = getClusterName(request);
+        return response(getSearchResults(request, sCluster, mapQuery, uriParent, uriCurrent, uriCurrent));
         }
 
     // ----- Child Resources ------------------------------------------------
@@ -371,21 +374,6 @@ public class ClusterResource
     /**
      * Return the search results for a Coherence Cluster.
      *
-     * @param request     the {@link HttpRequest}
-     * @param mapQuery    the Query map
-     * @param uriParent   the parent URI of the current resource
-     * @param uriCurrent  the current URI of the resource
-     *
-     * @return  the cluster search results
-     */
-    public Map<String, Object> getSearchResults(HttpRequest request, Map<String, Object> mapQuery, URI uriParent, URI uriCurrent)
-        {
-        return getSearchResults(request, mapQuery, uriParent, uriCurrent, uriCurrent);
-        }
-
-    /**
-     * Return the search results for a Coherence Cluster.
-     *
      *
      * @param request     the {@link HttpRequest}
      * @param mapQuery    the Query map
@@ -396,12 +384,12 @@ public class ClusterResource
      * @return  the cluster search results
      */
     @SuppressWarnings({"CollectionAddAllCanBeReplacedWithConstructor", "unchecked", "rawtypes"})
-    public Map<String, Object> getSearchResults(HttpRequest request, Map<String, Object> mapQuery, URI uriParent, URI uriCurrent, URI uriChild)
+    public Map<String, Object> getSearchResults(HttpRequest request, String sCluster, Map<String, Object> mapQuery, URI uriParent, URI uriCurrent, URI uriChild)
         {
         Map<String, Object> mapResponse = new LinkedHashMap<>();
 
         EntityMBeanResponse response =
-                getResponseEntityForMbean(request, getQuery(request), uriParent, uriCurrent, mapQuery);
+                getResponseEntityForMbean(request, getQuery(sCluster), uriParent, uriCurrent, mapQuery);
 
         mapResponse.putAll(response.toJson());
 
@@ -451,7 +439,19 @@ public class ClusterResource
      */
     protected QueryBuilder getQuery(HttpRequest request)
         {
-        return createQueryBuilder(request).withBaseQuery(CLUSTER_QUERY);
+        return getQuery(getClusterName(request));
+        }
+
+    /**
+     * The MBean query for ClusterMBean.
+     *
+     * @param sCluster  the Coherence cluster name
+     *
+     * @return the MBean query
+     */
+    protected QueryBuilder getQuery(String sCluster)
+        {
+        return createQueryBuilder(sCluster).withBaseQuery(CLUSTER_QUERY);
         }
 
     /**
