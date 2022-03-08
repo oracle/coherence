@@ -41,6 +41,7 @@ public class MultiClusterInSingleProcessTests
     public MultiClusterInSingleProcessTests()
         {
         super(CLUSTER_NAME, MultiClusterInSingleProcessTests::invokeInCluster);
+        super.EXPECTED_SERVICE_COUNT = 4;
         }
 
     @BeforeClass
@@ -60,6 +61,18 @@ public class MultiClusterInSingleProcessTests
 
     @Test
     public void testJmxJfr()
+        {
+        // skipped
+        }
+
+    @Test
+    public void testServiceStartAndStop()
+        {
+        // skipped
+        }
+
+    @Test
+    public void testServiceMemberStartAndStop()
         {
         // skipped
         }

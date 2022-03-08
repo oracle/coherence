@@ -22,6 +22,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
+import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
 import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
@@ -228,6 +229,12 @@ public abstract class BaseManagementInfoResourceTests
                     return null;
                     }).join();
                 }
+            }
+
+        if (!s_fInvocationServiceStarted)
+            {
+            startService(INVOCATION_SERVICE_NAME, INVOCATION_SERVICE_TYPE);
+            s_fInvocationServiceStarted = true;
             }
         }
 
@@ -1839,8 +1846,10 @@ public abstract class BaseManagementInfoResourceTests
     public void testServiceMemberStartAndStop()
         {
         String       sMember  = SERVER_PREFIX + "-1";
-        final String sService = getScopedServiceName(PROXY_SERVICE_NAME);
+        final String sService = getScopedServiceName(INVOCATION_SERVICE_NAME);
         final String sPath    = SERVICES + "/" + sService + "/" + MEMBERS;
+
+        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", true), is(true));
 
         // stop the service
         Response response = getBaseTarget().path(SERVICES).path(sService).path(MEMBERS).path(sMember)
@@ -1848,7 +1857,7 @@ public abstract class BaseManagementInfoResourceTests
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true), within(2, TimeUnit.MINUTES));
+        Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", false), is(true));
 
         // start the service
         Map mapEntity = new LinkedHashMap();
@@ -1866,14 +1875,21 @@ public abstract class BaseManagementInfoResourceTests
     public void testServiceStartAndStop()
             throws IOException
         {
-        // stop the service
-        final String sService = getScopedServiceName(PROXY_SERVICE_NAME);
-        Response     response = getBaseTarget().path(SERVICES).path(sService)
-                                .path("stop").request(MediaType.APPLICATION_JSON_TYPE).post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-
+        final String sService    = getScopedServiceName(INVOCATION_SERVICE_NAME);
         List<Map>    listMembers = getMemberList();
         final String sPath       = SERVICES + "/" + sService + "/" + MEMBERS;
+
+        for (Map mapMember : listMembers)
+            {
+            String sMember = (String) mapMember.get("memberName");
+            Eventually.assertDeferred(() -> assertAttribute(sMember, sPath, "running", true), is(true));
+            }
+
+        // stop the service
+        Response response = getBaseTarget().path(SERVICES).path(sService)
+                            .path("stop").request(MediaType.APPLICATION_JSON_TYPE).post(null);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
         for (Map mapMember : listMembers)
             {
             String sMember = (String) mapMember.get("memberName");
@@ -2662,7 +2678,7 @@ public abstract class BaseManagementInfoResourceTests
             String sType = (String) ((List) oType).get(0);
 
             // no need to test for proxy services
-            if ("Proxy".equals(sType))
+            if ("Proxy".equals(sType) || INVOCATION_SERVICE_TYPE.equals(sType))
                 {
                 continue;
                 }
@@ -2740,7 +2756,8 @@ public abstract class BaseManagementInfoResourceTests
             String sType = (String) ((List) oType).get(0);
 
             // no need to test for proxy services
-            if ("Proxy".equals(sType) || getQuotedScopedServiceName(ACTIVE_SERVICE).equals(oName))
+            if ("Proxy".equals(sType) || getQuotedScopedServiceName(ACTIVE_SERVICE).equals(oName)
+                || INVOCATION_SERVICE_TYPE.equals(sType))
                 {
                 continue;
                 }
@@ -3881,7 +3898,16 @@ public abstract class BaseManagementInfoResourceTests
                                       Matchers.is(0),
                                       within(3, TimeUnit.MINUTES));
             }
+        }
 
+    protected void startService(String sName, String sType)
+        {
+        String                       sScopedName = getScopedServiceName(sName);
+        List<CoherenceClusterMember> listMember  = s_cluster.stream().collect(Collectors.toList());
+        for(CoherenceClusterMember member :listMember)
+            {
+            member.submit(new RemoteStartService(sScopedName, sType));
+            }
         }
 
     //--------------------- helper classes ----------------------------
@@ -3919,6 +3945,24 @@ public abstract class BaseManagementInfoResourceTests
             }
 
         private final String f_sCacheName;
+        }
+
+
+    public static class RemoteStartService implements RemoteRunnable
+        {
+        public RemoteStartService(String sName, String sType)
+            {
+            m_sName = sName;
+            m_sType = sType;
+            }
+        @Override
+        public void run()
+            {
+            CacheFactory.getCluster().ensureService(m_sName, m_sType).start();
+            }
+
+        String m_sName;
+        String m_sType;
         }
 
     // ----- static helpers -------------------------------------------------
@@ -3974,6 +4018,11 @@ public abstract class BaseManagementInfoResourceTests
      */
     protected static File s_dirJFR;
 
+    /**
+     * A flag to indicate whetehr invocation service is started.
+     */
+    protected static boolean s_fInvocationServiceStarted = false;
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -4027,10 +4076,20 @@ public abstract class BaseManagementInfoResourceTests
     protected static final String NEAR_CACHE_NAME = "near-test";
 
     /**
+     * The name of the invocation service.
+     */
+    protected static final String INVOCATION_SERVICE_NAME = "TestInvocationService";
+
+    /**
+     * The type of the invocation service.
+     */
+    protected static final String INVOCATION_SERVICE_TYPE = "Invocation";
+
+    /**
      * The list of services used by this test class.
      */
     private static final String[] SERVICES_LIST = {SERVICE_NAME, "ExtendHttpProxyService", PROXY_SERVICE_NAME,
-            "DistributedCachePersistence", HttpHelper.getServiceName()};
+            "DistributedCachePersistence", HttpHelper.getServiceName(), INVOCATION_SERVICE_NAME};
 
     /**
      * The list of caches used by this test class.
@@ -4061,8 +4120,9 @@ public abstract class BaseManagementInfoResourceTests
 
     /**
      * The expected number of services on the server, this is very brittle!
+     * May be overriden.
      */
-    public static final int EXPECTED_SERVICE_COUNT = 4;
+    protected int EXPECTED_SERVICE_COUNT = 5;
 
     /**
      * Name of the Coherence cluster.

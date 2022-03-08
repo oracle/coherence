@@ -67,5 +67,10 @@
       <service-name>ExtendProxyService</service-name>
       <autostart system-property="test.dist.enabled">true</autostart>
     </proxy-scheme>
+
+    <invocation-scheme>
+      <scheme-name>invovacation</scheme-name>
+      <service-name>TestInvocationService</service-name>
+    </invocation-scheme>
   </caching-schemes>
 </cache-config>
