@@ -112,7 +112,7 @@ The {javadoc-root}com/tangosol/io/Serializer.html[Serializer] implementation use
 and Coherence comes with some out of the box `Serializer` implementations.
 The default is Java serialization, so all keys and values must be Java `Serializable` or implement Coherence
 {javadoc-root}com/tangosol/io/ExternalizableLite.html[ExternalizableLite] interface for more control of serialization.
-Alternatively Coherence can also be configured to use Portable Object Format for serialization and additionaly
+Alternatively Coherence can also be configured to use Portable Object Format for serialization and additionally
 there is a JSON Coherence module that provides a JSON serializer that may be used.
 
 To keep this guide simple we are going to stick with the default serializer, so all `NamedMap` operations will use

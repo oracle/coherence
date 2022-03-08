@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
 plugins {
-	id 'java'
+    id 'java'
 }
 
 group = 'com.oracle.coherence.guides'
@@ -14,19 +14,22 @@ version = '${coherenceVersion}'
 sourceCompatibility = '1.8'
 
 repositories {
-	mavenCentral()
-	mavenLocal()
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
 
-	implementation "${coherenceGroupId}:coherence"
+    implementation "${coherenceGroupId}:coherence"
 
-	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
 }
 
 test {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
