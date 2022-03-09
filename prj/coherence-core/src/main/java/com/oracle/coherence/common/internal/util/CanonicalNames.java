@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@ package com.oracle.coherence.common.internal.util;
  * Helper class for Canonical Name processing.
  *
  * @author mf/jf  12.15.2017
- * @since Coherence 19.1.0.0
+ * @since 12.2.1.4.0
  */
 public class CanonicalNames
     {

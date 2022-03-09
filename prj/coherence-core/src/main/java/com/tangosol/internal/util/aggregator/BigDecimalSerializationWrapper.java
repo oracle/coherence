@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 /**
  * Wrapper used to enable consistent serialization of {@link BigDecimal} instances across all currently used formats.
  *
- * @since Coherence 19.1.0.0
+ * @since 12.2.1.4.0
  */
 public final class BigDecimalSerializationWrapper
         implements ExternalizableLite, PortableObject
@@ -64,7 +64,7 @@ public final class BigDecimalSerializationWrapper
         m_bigDecimal = partialResult;
         }
 
-    // ----- accessors ==--------------------------------------------
+    // ----- accessors ----------------------------------------------
 
     /**
      * @return the count provided at construction time or {@link Integer#MIN_VALUE} (meaning no count set).

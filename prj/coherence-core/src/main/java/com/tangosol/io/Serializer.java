@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -86,7 +86,7 @@ public interface Serializer
      *
      * @throws IOException if an I/O error occurs
      *
-     * @since Coherence 19.1.0.0
+     * @since 12.2.1.4.0
      */
     @SuppressWarnings("unchecked")
     default <T> T deserialize(ReadBuffer.BufferInput in, Class<? extends T> clazz)
@@ -100,7 +100,7 @@ public interface Serializer
      *
      * @return the name of this serializer
      *
-     * @since Coherence 19.1.0.0
+     * @since 12.2.1.4.0
      */
     default String getName()
         {
