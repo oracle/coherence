@@ -817,7 +817,7 @@ public abstract class MBeanHelper
     *
     * @return the quoted string
     *
-    * @since 12.2.1.4.0
+    * @since 12.2.1.4
     */
     protected static String quote(String s, boolean fKey)
         {
@@ -856,7 +856,7 @@ public abstract class MBeanHelper
     *
     * @return the unquoted string
     *
-    * @since 12.2.1.4.0
+    * @since 12.2.1.4
     */
     public static String safeUnquote(String s)
         {

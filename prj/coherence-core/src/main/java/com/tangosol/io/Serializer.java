@@ -86,7 +86,7 @@ public interface Serializer
      *
      * @throws IOException if an I/O error occurs
      *
-     * @since 12.2.1.4.0
+     * @since 12.2.1.4
      */
     @SuppressWarnings("unchecked")
     default <T> T deserialize(ReadBuffer.BufferInput in, Class<? extends T> clazz)
@@ -100,7 +100,7 @@ public interface Serializer
      *
      * @return the name of this serializer
      *
-     * @since 12.2.1.4.0
+     * @since 12.2.1.4
      */
     default String getName()
         {

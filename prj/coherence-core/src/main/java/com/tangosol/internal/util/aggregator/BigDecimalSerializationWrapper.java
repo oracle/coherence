@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 /**
  * Wrapper used to enable consistent serialization of {@link BigDecimal} instances across all currently used formats.
  *
- * @since 12.2.1.4.0
+ * @since 12.2.1.4
  */
 public final class BigDecimalSerializationWrapper
         implements ExternalizableLite, PortableObject

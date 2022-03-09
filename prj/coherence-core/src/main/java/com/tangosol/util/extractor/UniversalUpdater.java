@@ -40,7 +40,7 @@ import javax.json.bind.annotation.JsonbProperty;
  *
  * @author gg 2005.10.27, jf 2017.11.28
  * @see CompositeUpdater
- * @since 12.2.1.4.0
+ * @since 12.2.1.4
  */
 public class UniversalUpdater
         extends    AbstractUpdater

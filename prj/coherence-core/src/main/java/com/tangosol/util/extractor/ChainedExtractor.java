@@ -304,7 +304,7 @@ public class ChainedExtractor<T, E>
     *
     * @return the target of the first extractor in CompositeExtractor.
     *
-    * @since 12.2.1.4.0
+    * @since 12.2.1.4
     */
     protected int computeTarget()
         {

@@ -10,7 +10,7 @@ package com.oracle.coherence.common.internal.util;
  * Helper class for Canonical Name processing.
  *
  * @author mf/jf  12.15.2017
- * @since 12.2.1.4.0
+ * @since 12.2.1.4
  */
 public class CanonicalNames
     {
