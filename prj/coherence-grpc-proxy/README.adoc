@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -217,7 +217,7 @@ setting the system property `coherence.grpc.enabled=false`
 ServerBuilder builder = ServerBuilder.forPort(port);
 
 // Obtain the Coherence gRPC services and add them to the builder
-List<BindableService> services = GrpcServerController.INSTANCE.createGrpcServices()
+List<BindableService> services = GrpcServerController.INSTANCE.createGrpcServices();
 services.forEach(serverBuilder::addService);
 
 // Build and start the server
