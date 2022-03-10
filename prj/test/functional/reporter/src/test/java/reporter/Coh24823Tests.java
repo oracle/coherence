@@ -13,6 +13,7 @@ import com.tangosol.coherence.reporter.ReportBatch;
 
 import com.tangosol.net.CacheFactory;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.Service;
 
 import common.AbstractFunctionalTest;
@@ -69,6 +70,12 @@ public class Coh24823Tests
 
         // stop Proxy2; the proxy report should be back to just one row
         proxy2.shutdown();
+        int i = 0;
+        while (proxy2.isRunning() && i < 10)
+            {
+            Base.sleep(1000);
+            i++;
+            }
         data = batch.runTabularReport(REPORT_PROXY);
         Assert.assertEquals(data.toString(), 1, data.keySet().size());
         }
