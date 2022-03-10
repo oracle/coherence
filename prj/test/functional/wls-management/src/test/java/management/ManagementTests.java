@@ -44,11 +44,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * @author jk  2019.05.30
@@ -59,7 +62,7 @@ public class ManagementTests
     @BeforeClass
     public static void startServer() throws Exception
         {
-        System.setProperty(ClusterName.PROPERTY, "foo");
+        System.setProperty(ClusterName.PROPERTY, CLUSTER_FOO);
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
 
         s_dcs = DefaultCacheServer.startServerDaemon();
@@ -135,7 +138,7 @@ public class ManagementTests
         {
         String sSearchJson = "{" +
                 "\"links\":[],"  +
-                "\"fields\":[]," +
+                "\"fields\":[\"clusterName\"]," +
                   "\"children\":{" +
                     "}" +
                   "}";
@@ -146,9 +149,22 @@ public class ManagementTests
                                     .post(Entity.entity(sSearchJson, MediaType.APPLICATION_JSON_TYPE));
 
         assertThat(response.getStatus(), is(200));
+
         Map<String, Object> map = s_mapJsonBodyHandler.readMap(response.readEntity(InputStream.class));
         assertThat(map, is(notNullValue()));
-        assertThat(map.isEmpty(), is(false));
+
+        List<Map<String, Object>> listItems = (List<Map<String, Object>>) map.get("items");
+        assertThat(listItems, is(notNullValue()));
+        assertThat(listItems.size(), is(2));
+
+        Set<String> setNames = new HashSet<>();
+        for (Map<String, Object> m : listItems)
+            {
+            String sName = (String) m.get("clusterName");
+            setNames.add(sName);
+            }
+
+        assertThat(setNames.contains(CLUSTER_FOO), is(true));
         }
 
     @Test
@@ -191,6 +207,32 @@ public class ManagementTests
         {
         Response response = s_client.target(s_baseURI)
                                     .path("latest/clusters/" + sName)
+                                    .request(MediaType.APPLICATION_JSON_TYPE)
+                                    .get();
+
+        assertThat("Failed to get 200 response for cluster " + sName, response.getStatus(), is(200));
+
+        Map<String, Object> map = s_mapJsonBodyHandler.readMap(response.readEntity(InputStream.class));
+
+        assertThat(map, is(notNullValue()));
+        assertThat(map.containsKey("links"), is(true));
+        assertThat(map.containsKey("clusterSize"), is(true));
+        assertThat(((Number) map.get("clusterSize")).intValue(), is(1));
+        }
+
+    @Test
+    public void shouldGetSpecificClusterServices()
+        {
+        for (String sName : CLUSTER_NAMES)
+            {
+            shouldGetSpecificCluster(sName);
+            }
+        }
+
+    private void shouldGetSpecificClusterServices(String sName)
+        {
+        Response response = s_client.target(s_baseURI)
+                                    .path("latest/clusters/" + sName + "/services")
                                     .request(MediaType.APPLICATION_JSON_TYPE)
                                     .get();
 
@@ -247,7 +289,9 @@ public class ManagementTests
 
     private static final String URI_ROOT = "/wls";
 
-    private static final Set<String> CLUSTER_NAMES = new HashSet<>(Arrays.asList("foo", "bar"));
+    private static final String CLUSTER_FOO = "foo";
+    
+    private static final Set<String> CLUSTER_NAMES = new HashSet<>(Arrays.asList(CLUSTER_FOO, "bar"));
 
     // ----- data members ---------------------------------------------------
 

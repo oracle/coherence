@@ -337,12 +337,11 @@ public class RequestRouter
                             List<Endpoint> listEndpoint = entry.getValue();
                             if (listEndpoint != null && !listEndpoint.isEmpty())
                                 {
-                                request.setPathParameters(new RegexPathParameters(matcher));
-
                                 // Get a list of handlers matching the requested media type
                                 List<RequestHandler> list = listEndpoint.stream()
                                         .filter(e -> matchesMediaTypes(request, e))
                                         .map(Endpoint::getHandler)
+                                        .map(h -> new RegExRequestHandler(h, matcher))
                                         .collect(Collectors.toList());
 
                                 if (list.size() > 0)
@@ -487,7 +486,7 @@ public class RequestRouter
         Response handle(HttpRequest request);
         }
 
-    // ----- inner interface: RequestHandler --------------------------------
+    // ----- inner interface: SimpleRequestHandler --------------------------
 
     /**
      * A simple {@link RequestHandler} implementation.
@@ -506,6 +505,32 @@ public class RequestRouter
             {
             return handle();
             }
+        }
+
+    // ----- inner interface: SimpleRequestHandler --------------------------
+
+    /**
+     * A simple reg-ex {@link RequestHandler} implementation.
+     */
+    public class RegExRequestHandler
+            implements RequestHandler
+        {
+        public RegExRequestHandler(RequestHandler handler, Matcher matcher)
+            {
+            m_handler = handler;
+            m_matcher = matcher;
+            }
+
+        @Override
+        public Response handle(HttpRequest request)
+            {
+            request.setPathParameters(new RegexPathParameters(m_matcher));
+            return m_handler.handle(request);
+            }
+
+        private final RequestHandler m_handler;
+
+        private final Matcher m_matcher;
         }
 
     // ----- inner class: Endpoint ------------------------------------------

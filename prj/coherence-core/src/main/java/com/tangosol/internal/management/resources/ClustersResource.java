@@ -14,6 +14,7 @@ import com.tangosol.internal.management.EntityMBeanResponse;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.RegistrationBehavior;
+import com.tangosol.util.ResourceRegistry;
 
 import java.net.URI;
 
@@ -106,9 +107,12 @@ public class ClustersResource
         List<Map<String, Object>> items         = new ArrayList<>();
         URI                       parentUri     = getParentUri(request);
         URI                       currentUri    = getCurrentUri(request);
+        ResourceRegistry          registry      = request.getResourceRegistry();
 
         for (String sCluster : setCluster)
             {
+            registry.registerResource(String.class, CLUSTER_NAME, using(sCluster), RegistrationBehavior.REPLACE, null);
+
             URI                 subUri     = getSubUri(parentUri, sCluster);
             Map<String, Object> mapQuery   = new LinkedHashMap<>(entity);
             Map<String, Object> mapCluster = resource.getSearchResults(request, sCluster, mapQuery, parentUri, subUri, currentUri);
