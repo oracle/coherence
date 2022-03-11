@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -10,7 +10,8 @@
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xmlns:executor="class://com.oracle.coherence.concurrent.config.NamespaceHandler"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd
-                                  class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd">
+                                  class://com.oracle.coherence.concurrent.config.NamespaceHandler concurrent.xsd"
+              xml-override="{coherence.concurrent.cacheconfig.override}">
 
   <executor:single>
     <executor:name>coherence-concurrent-default-executor</executor:name>
