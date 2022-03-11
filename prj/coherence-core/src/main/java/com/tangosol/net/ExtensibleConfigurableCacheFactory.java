@@ -1642,16 +1642,16 @@ public class ExtensibleConfigurableCacheFactory
             {
             String sAttr = xmlOverride.getString();
 
-            while (sAttr.startsWith("{") && sAttr.endsWith("}"))
+            if (sAttr.startsWith("{") && sAttr.endsWith("}"))
                 {
-                int ofDefault = sAttr.indexOf(' ');
-                int cchLength = sAttr.length();
-                String sDefault;
+                int ofDefault   = sAttr.indexOf(' ');
+                int cchLength   = sAttr.length();
+                String sDefault = "";
                 String sPropName;
+
                 if (ofDefault < 0)
                     {
                     sPropName = sAttr.substring(1, cchLength - 1);
-                    sDefault  = sPropName;
                     }
                 else
                     {
@@ -1659,25 +1659,29 @@ public class ExtensibleConfigurableCacheFactory
                     sDefault  = sAttr.substring(ofDefault + 1, cchLength - 1);
                     }
 
-                sAttr = Config.getProperty(sPropName, sDefault);
-                }
+                String sValue = Config.getProperty(sPropName, sDefault);
 
-            URL url = Resources.findFileOrResource(sAttr, loader);
-            if (url == null)
-                {
-                try
+                if (sValue != null && !sValue.isEmpty())
                     {
-                    url = new URL((sAttr.contains(":") ? "" : "file://") + sAttr);
-                    }
-                catch (MalformedURLException e)
-                    {
-                    throw ensureRuntimeException(e, "The configuration URI contains illegal characters for a URL " +
-                            sAttr);
+                    URL url = Resources.findFileOrResource(sValue, loader);
+
+                    if (url == null)
+                        {
+                        try
+                            {
+                            url = new URL((sValue.contains(":") ? "" : "file://") + sValue);
+                            }
+                        catch (MalformedURLException e)
+                            {
+                            throw ensureRuntimeException(e,
+                                    "The configuration URI contains illegal characters for a URL " +
+                                    sValue);
+                            }
+                        }
+                    
+                    return XmlHelper.loadResource(url, "cache configuration override", loader);
                     }
                 }
-            XmlElement xmlOverrideConfig = XmlHelper.loadResource(url, "cache configuration override", loader);
-
-            return xmlOverrideConfig;
             }
 
         return null;

@@ -500,6 +500,30 @@ public class CacheConfigOverrideTests
             }
         }
 
+    @Test
+    public void testCacheConfigWithNoOverrideValue()
+            throws Exception
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig", "override/test-cache-config.xml");
+
+            AbstractFunctionalTest._startup();
+
+            NamedCache myCacheOverride = CacheFactory.getCache("test-1");
+            assertNotNull(myCacheOverride);
+            Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("test-1", cacheNames.nextElement());
+            assertEquals("TestService", myCacheOverride.getService().getInfo().getServiceName());
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
     // ----- constants and data members -------------------------------------
 
     /**
