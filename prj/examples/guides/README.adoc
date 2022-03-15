@@ -47,6 +47,13 @@ This guide walks you through how to create custom aggregators within Coherence.
 --
 
 [CARD]
+.Views
+[link=examples/guides/124-views/README.adoc]
+--
+Learn about the basic concepts of working with views using the `ContinuousQueryCache`.
+--
+
+[CARD]
 .Streams
 [link=examples/guides/125-streams/README.adoc]
 --
