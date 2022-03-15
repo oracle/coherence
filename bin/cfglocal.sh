@@ -26,7 +26,11 @@ while [ -h "${SCRIPT_PATH}" ]; do
 done
 
 if [ -z "$SCRIPT_PATH" ]; then
-  SCRIPTS_DIR=`pwd`/bin
+  if [ -e `pwd`/cfglocal.sh ]; then
+    SCRIPTS_DIR=`pwd`
+  else
+    SCRIPTS_DIR=`pwd`/bin
+  fi
 else
   cd `dirname $SCRIPT_PATH`
   SCRIPTS_DIR=`pwd`
