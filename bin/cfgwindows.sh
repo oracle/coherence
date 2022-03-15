@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
@@ -14,6 +14,15 @@
 #     . ./cfgwindows.sh [-reset]
 #
 # see cfgcommon.sh
+
+#
+# This script by default uses JDK 11 and set JAVA_HOME pointing to
+# that JDK version.
+#
+# To use JDK 17 locally, use command: RBT_JV=17 ./bin/cfgwindows.sh
+#
+# And to run on RQ with JDK 17, specify -j option as shown below
+# enqueue -j 17 [-c changelist]
 
 #
 # Global Variables
@@ -45,8 +54,12 @@ while [ -h "${SCRIPT_PATH}" ]; do
   fi
 done
 
-cd `dirname $SCRIPT_PATH`
-SCRIPTS_DIR=`pwd`
+if [ -z "$SCRIPT_PATH" ]; then
+  SCRIPTS_DIR=`pwd`/bin
+else
+  cd `dirname $SCRIPT_PATH`
+  SCRIPTS_DIR=`pwd`
+fi
 cd - &>/dev/null
 
 if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfgwindows.sh ]; then

@@ -1,13 +1,20 @@
-# determine the scripts directory, assuming all scripts are in the same directory
+# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
 
 #
-#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+# This script by default uses JDK 11 and set JAVA_HOME pointing to
+# that JDK version.
 #
-#  Licensed under the Universal Permissive License v 1.0 as shown at
-#  http://oss.oracle.com/licenses/upl.
+# To use JDK 17 locally, use command: RBT_JV=17 ./bin/cfglocal.sh
 #
+# And to run on RQ with JDK 17, specify -j option as shown below
+# enqueue -j 17 [-c changelist]
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"
+JAVA_VERSION_TO_USE=${RBT_JV:-11}
+
 while [ -h "${SCRIPT_PATH}" ]; do
   LS=`ls -ld "${SCRIPT_PATH}"`
   LINK=`expr "${LS}" : '.*-> \(.*\)$'`
@@ -18,8 +25,12 @@ while [ -h "${SCRIPT_PATH}" ]; do
   fi
 done
 
-cd `dirname $SCRIPT_PATH`
-SCRIPTS_DIR=`pwd`
+if [ -z "$SCRIPT_PATH" ]; then
+  SCRIPTS_DIR=`pwd`/bin
+else
+  cd `dirname $SCRIPT_PATH`
+  SCRIPTS_DIR=`pwd`
+fi
 cd - &>/dev/null
 
 case $(uname) in
@@ -37,5 +48,6 @@ case $(uname) in
      ;;
 esac
 
+unset JAVA_VERSION_TO_USE
 unset SCRIPT_PATH
 unset SCRIPTS_DIR
