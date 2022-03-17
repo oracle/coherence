@@ -9,20 +9,20 @@ package reporter;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.coherence.reporter.ReportBatch;
 
 import com.tangosol.net.CacheFactory;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Service;
 
 import common.AbstractFunctionalTest;
 
-import javax.management.openmbean.TabularData;
-
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
 
 /**
  * A set of tests to verify the fix for COH-24823 where the number of rows in the
@@ -60,24 +60,15 @@ public class Coh24823Tests
 
         // start Proxy1; the proxy report should have one row
         CacheFactory.getService(PROXY1_SERVICE);
-        TabularData data = batch.runTabularReport(REPORT_PROXY);
-        Assert.assertEquals(data.toString(), 1, data.keySet().size());
+        Eventually.assertDeferred(batch.runTabularReport(REPORT_PROXY).toString(), () -> batch.runTabularReport(REPORT_PROXY).keySet().size(), is(1));
 
         // start Proxy2; the proxy report should have two rows
         Service proxy2 = CacheFactory.getService(PROXY2_SERVICE);
-        data = batch.runTabularReport(REPORT_PROXY);
-        Assert.assertEquals(data.toString(), 2, data.keySet().size());
+        Eventually.assertDeferred(batch.runTabularReport(REPORT_PROXY).toString(), () -> batch.runTabularReport(REPORT_PROXY).keySet().size(), is(2));
 
         // stop Proxy2; the proxy report should be back to just one row
         proxy2.shutdown();
-        int i = 0;
-        while (proxy2.isRunning() && i < 10)
-            {
-            Base.sleep(1000);
-            i++;
-            }
-        data = batch.runTabularReport(REPORT_PROXY);
-        Assert.assertEquals(data.toString(), 1, data.keySet().size());
+        Eventually.assertDeferred(batch.runTabularReport(REPORT_PROXY).toString(), () -> batch.runTabularReport(REPORT_PROXY).keySet().size(), is(1));
         }
 
     // ----- data members ---------------------------------------------------
