@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.is;
 public class LogLevelTests extends AbstractLoggerTests
     {
     @Test
-    public void testLogLevel()
+    public void testLogLevel() throws InterruptedException
         {
         String sMessage_info_1 = "This is a INFO message";
         String sMessage_info_2 = "This is a INFO message after Coherence level change";
@@ -76,6 +76,17 @@ public class LogLevelTests extends AbstractLoggerTests
                 return null;
                 });
 
+            for (int i = 0; !isLogged(console, sMessage_finest) && i < 10; i++)
+                {
+                // retry logic until observe transition to LOG_MAX enabled in logs, see COH-25184
+                Thread.sleep(500L);
+                member.invoke(() ->
+                    {
+                    Logger.finest(sMessage_finest);
+                    return null;
+                    });
+                }
+
             // INFO level message 2 should be logged
             member.invoke(() ->
                 {
@@ -85,8 +96,6 @@ public class LogLevelTests extends AbstractLoggerTests
 
             // wait for info message 2 to be logged
             Eventually.assertDeferred(() -> isLogged(console, sMessage_info_1), is(true));
-            // the finest message should have been logged
-            assertThat(isLogged(console, sMessage_finest), is(true));
             }
         }
 
