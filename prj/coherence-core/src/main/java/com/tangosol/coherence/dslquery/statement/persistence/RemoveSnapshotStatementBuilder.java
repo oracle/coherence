@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.statement.persistence;
+
+import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.ExecutionContext;
@@ -112,6 +114,12 @@ public class RemoveSnapshotStatementBuilder
                                 + "'");
                     out.flush();
                     helper.invokeOperationWithWait(PersistenceToolsHelper.REMOVE_ARCHIVED_SNAPSHOT, f_sSnapshotName, f_sServiceName);
+
+                    // post condition to prevent return until archived snapshot no longer visible
+                    while (helper.archivedSnapshotExists(f_sServiceName, f_sSnapshotName))
+                            {
+                            Blocking.sleep(SLEEP_TIME);
+                            }
                     }
                 else
                     {
@@ -122,6 +130,12 @@ public class RemoveSnapshotStatementBuilder
                     out.println("Removing snapshot '" + f_sSnapshotName + "' for service '" + f_sServiceName + "'");
                     out.flush();
                     helper.invokeOperationWithWait(PersistenceToolsHelper.REMOVE_SNAPSHOT, f_sSnapshotName, f_sServiceName);
+
+                    // post condition to prevent return until snapshot no longer visible
+                    while (helper.snapshotExists(f_sServiceName, f_sSnapshotName))
+                        {
+                        Blocking.sleep(SLEEP_TIME);
+                        }
                     }
 
                 }

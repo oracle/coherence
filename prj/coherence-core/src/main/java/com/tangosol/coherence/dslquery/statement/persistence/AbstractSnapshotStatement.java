@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -170,6 +170,11 @@ public abstract class AbstractSnapshotStatement
      * Format weekday name.
      */
     public static final SimpleDateFormat WEEKDAY_NAME = new SimpleDateFormat("E");
+
+    /**
+     * Sleep time between checking operation completion.
+     */
+    public static final long SLEEP_TIME = 500L;
 
     // ----- data members ---------------------------------------------------
 
