@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -1853,6 +1854,7 @@ public abstract class AbstractRestTests
         if (m_client == null)
             {
             m_client = createClient().build();
+            m_client.property(ClientProperties.READ_TIMEOUT, TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
             }
         return m_client;
         }
