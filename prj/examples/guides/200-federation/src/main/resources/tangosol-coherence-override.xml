@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ http://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+
+  <!-- To enable jmx connections -->
+  <management-config>
+    <managed-nodes system-property="coherence.management">all</managed-nodes>
+  </management-config>
+
+  <!--
+  Define a federation configuration for PrimaryCluster and SecondaryCluster
+  where the default topology is Active-Active, but we have specifically
+  defined this for clarity.
+  -->
+  <!-- tag::mapping[] -->
+  <federation-config>
+    <participants>
+      <participant>  <!--1-->
+        <name system-property="primary.cluster">PrimaryCluster</name>
+        <remote-addresses>
+          <socket-address>
+            <address system-property="primary.cluster.host">127.0.0.1</address>
+            <port system-property="primary.cluster.port">7574</port>
+          </socket-address>
+        </remote-addresses>
+      </participant>
+      <participant>  <!--2-->
+        <name system-property="primary.cluster">SecondaryCluster</name>
+        <remote-addresses>
+          <socket-address>
+            <address system-property="secondary.cluster.host">127.0.0.1</address>
+            <port system-property="secondary.cluster.port">7575</port>
+          </socket-address>
+        </remote-addresses>
+      </participant>
+    </participants>
+    <topology-definitions>  <!--3-->
+      <active-active>
+        <name>MyTopology</name>
+        <active system-property="primary.cluster">PrimaryCluster</active>
+        <active system-property="secondary.cluster">SecondaryCluster</active>
+      </active-active>
+    </topology-definitions>
+  </federation-config>
+  <!-- end::mapping[] -->
+</coherence>

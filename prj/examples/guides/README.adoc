@@ -54,6 +54,13 @@ This guide walks you through how to use the Streams API with Coherence.
 --
 
 [CARD]
+.Federation
+[link=examples/guides/200-federation/README.adoc]
+--
+This guide walks you through how to use Federation within Coherence
+--
+
+[CARD]
 .Topics
 [link=examples/guides/460-topics/README.adoc]
 --
