@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1236,7 +1236,14 @@ public abstract class PofHelper
                 break;
 
             case T_CHAR_STRING:            // char-string
-                in.skipBytes(in.readPackedInt());
+                int cb = in.readPackedInt();
+
+                if (cb == V_REFERENCE_NULL)
+                    {
+                    break;
+                    }
+
+                in.skipBytes(cb);
                 break;
 
             case T_DATETIME:               // datetime
