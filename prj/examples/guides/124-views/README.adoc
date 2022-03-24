@@ -144,15 +144,17 @@ We can use a `MapListener` to achieve that, as the `ContinuousQueryCache` does n
 
 [source,java,indent=0]
 ----
-include::src/test/java/com/oracle/coherence/guides/queries/ViewTests.java[tag=testContinuousQueryCacheWithListener]
+include::src/test/java/com/oracle/coherence/guides/queries/ViewTests.java[tag=testAggregate]
 ----
-<1> Create a counter to keep track of added countries
-<2> Instantiate a `MapListener` that will increment the counter for each new country being added
-<3> Add the `MapListener` to the `ContinuousQueryCache`
-<4> Assert that the `ContinuousQueryCache` contains 2 countries
-<5> Add a new country with a population larger than 60 million
-<6> Assert that the `ContinuousQueryCache` now contain 3 countries
-<7> The counter of the `MapListener` should have incremented by 1
+<1> Create a `BigDecimalSum` aggregator. The `IdentityExtractor` will use the actual value (does not actually extract
+    anything)
+<2> Create a holder for the aggregated population and trigger the initial aggregation explicitly
+<3> Instantiate a `MapListener` that will trigger the aggregation of the population for each new country being added
+<4> Add the `MapListener` to the `ContinuousQueryCache`
+<5> Assert that the aggregated population is initially 150.6 million
+<6> Add a new country with a population larger than 60 million
+<7> Assert that the `ContinuousQueryCache` now contain 3 countries
+<8> The aggregated population should now be 276.61 million
 
 [#summary]
 === Summary
