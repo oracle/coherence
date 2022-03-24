@@ -1726,4 +1726,54 @@ public interface Subscriber<V>
          */
         private final List<ChannelOwnershipListener> m_listListener;
         }
+
+    // ----- inner class SubscriberChannel ----------------------------------
+
+    /**
+     * A representation of a topic channel within subscriber.
+     */
+    interface Channel
+        {
+        /**
+         * Returns the identifier for this channel.
+         *
+         * @return the identifier for this channel
+         */
+        int getId();
+
+        /**
+         * Returns the current head position for the channel.
+         *
+         * @return the current head position for the channel
+         */
+        Position getHead();
+
+        /**
+         * Returns the last position committed by this subscriber.
+         *
+         * @return the last position committed by this subscriber
+         */
+        Position getLastCommit();
+
+        /**
+         * Returns the last position received by this subscriber.
+         *
+         * @return the last position received by this subscriber
+         */
+        Position getLastReceived();
+
+        /**
+         * Returns {@code true} if the channel is empty.
+         *
+         * @return  {@code true} if the channel is empty
+         */
+        boolean isEmpty();
+
+        /**
+         * Returns {@code true} if the channel is owned by this subscriber.
+         *
+         * @return  {@code true} if the channel is owned by this subscriber
+         */
+        boolean isOwned();
+        }
     }

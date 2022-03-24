@@ -16,6 +16,7 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
 
+import com.tangosol.internal.net.metrics.Meter;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.DestroySubscriptionProcessor;
@@ -44,14 +45,13 @@ import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 
-import com.tangosol.net.RequestIncompleteException;
-import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
+import com.tangosol.net.management.Registry;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
@@ -108,7 +108,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -189,15 +188,16 @@ public class PagedTopicSubscriber<V>
         f_setPolledChannels = new BitSet(cChannel);
         f_setHitChannels    = new BitSet(cChannel);
 
-        f_aChannel = new Channel[cChannel];
+        f_aChannel = new PagedTopicChannel[cChannel];
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
             {
-            f_aChannel[nChannel] = new Channel();
+            f_aChannel[nChannel] = new PagedTopicChannel();
             f_aChannel[nChannel].subscriberPartitionSync = Subscription.createSyncKey(f_subscriberGroupId, nChannel,  cPart);
             }
 
         registerChannelAllocationListener();
         registerDeactivationListener();
+        registerMBean();
 
         ensureConnected();
 
@@ -207,13 +207,23 @@ public class PagedTopicSubscriber<V>
     // ----- accessors ------------------------------------------------------
 
     /**
-     * Returns the subscribers unique identifier.
+     * Returns the subscriber's unique identifier.
      *
-     * @return the subscribers unique identifier
+     * @return the subscriber's unique identifier
      */
     public long getId()
         {
         return f_nId;
+        }
+
+    /**
+     * Returns the subscriber's notification identifier.
+     *
+     * @return the subscriber's notification identifier
+     */
+    public int getNotificationId()
+        {
+        return f_nNotificationId;
         }
 
     /**
@@ -236,6 +246,36 @@ public class PagedTopicSubscriber<V>
     public boolean isAnonymous()
         {
         return f_fAnonymous;
+        }
+
+    public long getBacklog()
+        {
+        return f_backlog.getBacklog();
+        }
+
+    public long getMaxBacklog()
+        {
+        return f_backlog.getExcessiveLimit();
+        }
+
+    public Filter<V> getFilter()
+        {
+        return f_filter;
+        }
+
+    public Function<V, ?> getConverter()
+        {
+        return f_fnConverter;
+        }
+
+    public Serializer getSerializer()
+        {
+        return f_serializer;
+        }
+
+    public boolean isCompleteOnEmpty()
+        {
+        return f_fCompleteOnEmpty;
         }
 
     // ----- Subscriber methods ---------------------------------------------
@@ -735,6 +775,61 @@ public class PagedTopicSubscriber<V>
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Returns the specified channel.
+     *
+     * @param nChannel  the channel to return
+     *
+     * @return the specified channel
+     */
+    public Channel getChannel(int nChannel)
+        {
+        return f_aChannel[nChannel];
+        }
+
+    /**
+     * Return the number of completed receive requests.
+     *
+     * @return the number of completed receive requests
+     */
+    public long getReceived()
+        {
+        return m_cReceived.getCount();
+        }
+
+    /**
+     * Return the number of receive requests completed empty.
+     * <p>
+     * This wil only apply to subscribers using the {@link com.tangosol.net.topic.Subscriber.CompleteOnEmpty}
+     * option.
+     *
+     * @return the number of receive requests completed empty
+     */
+    public long getReceivedEmpty()
+        {
+        return m_cReceivedEmpty.getCount();
+        }
+
+    /**
+     * Return the number of exceptionally completed receive requests.
+     *
+     * @return the number of exceptionally completed receive requests
+     */
+    public long getReceivedError()
+        {
+        return m_cReceivedError.getCount();
+        }
+
+    /**
+     * Return the number of disconnections.
+     *
+     * @return the number of disconnections
+     */
+    public long getDisconnectCount()
+        {
+        return m_cDisconnect.getCount();
+        }
+
+    /**
      * Returns the number of polls of the topic for messages.
      * <p>
      * This is typically larger than the number of messages received due to polling empty pages,
@@ -748,11 +843,11 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
-     * Returns the number of messages received.
+     * Returns the number of message elements received.
      *
-     * @return the number of messages received
+     * @return the number of message elements received
      */
-    public long getValues()
+    public long getElementsPolled()
         {
         return m_cValues;
         }
@@ -855,7 +950,7 @@ public class PagedTopicSubscriber<V>
 
             for (int nChannel = 0; nChannel < cChannel; ++nChannel)
                 {
-                Channel channel  = f_aChannel[nChannel];
+                PagedTopicChannel channel  = f_aChannel[nChannel];
                 channel.m_lHead  = alHead[nChannel];
                 channel.m_nNext  = -1; // unknown page position to start
                 channel.m_fEmpty = false; // even if we could infer emptiness here it is unsafe unless we've registered for events
@@ -934,7 +1029,7 @@ public class PagedTopicSubscriber<V>
             if (!queueRequest.isBatchComplete() && nChannel >= 0)
                 {
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
-                Channel channel  = f_aChannel[nChannel];
+                PagedTopicChannel channel  = f_aChannel[nChannel];
                 long    lHead    = channel.m_lHead;
                 long    lVersion = channel.m_lVersion;
 
@@ -1074,7 +1169,48 @@ public class PagedTopicSubscriber<V>
                         }
                     }
                 }
-            queueRequest.completeElements(cValues, aValues, (err, value) -> new TopicException(err));
+            queueRequest.completeElements(cValues, aValues, this::onReceiveError, this::onReceiveComplete);
+            }
+        }
+
+    private Throwable onReceiveError(Throwable err, Object o)
+        {
+        m_cReceived.mark();
+        m_cReceivedError.mark();
+        return new TopicException(err);
+        }
+
+    @SuppressWarnings("unchecked")
+    private void onReceiveComplete(Object o)
+        {
+        if (o == null)
+            {
+            m_cReceived.mark();
+            m_cReceivedEmpty.mark();
+            return;
+            }
+
+        if (o instanceof Element)
+            {
+            m_cReceived.mark();
+            onReceiveComplete((Element<?>) o);
+            }
+        else if (o instanceof Collection)
+            {
+            m_cReceived.mark();
+            for (Element<?> e : ((Collection<Element<?>>) o))
+                {
+                onReceiveComplete(e);
+                }
+            }
+        }
+
+    private void onReceiveComplete(Element<?> element)
+        {
+        int c = element.getChannel();
+        if (f_aChannel[c].m_fOwned)
+            {
+            f_aChannel[c].m_lastReceived = (PagedPosition) element.getPosition();
             }
         }
 
@@ -1125,6 +1261,8 @@ public class PagedTopicSubscriber<V>
                                 {
                                 mapResult.put(nChannel, result);
                                 }
+
+                            f_aChannel[nChannel].m_lastCommit = position;
                             return result;
                             });
             }
@@ -1262,6 +1400,16 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
+     * Returns the state of the subscriber.
+     *
+     * @return the state of the subscriber
+     */
+    public String getStateName()
+        {
+        return STATES[m_nState];
+        }
+
+    /**
      * Set the state of the subscriber.
      *
      * @param nState  the state of the subscriber
@@ -1360,6 +1508,7 @@ public class PagedTopicSubscriber<V>
         if (isActive() && m_nState != STATE_DISCONNECTED)
             {
             setState(STATE_DISCONNECTED);
+            m_cDisconnect.mark();
             if (!f_fAnonymous)
                 {
                 // reset the channel allocation for non-anonymous subscribers, channels
@@ -1387,7 +1536,7 @@ public class PagedTopicSubscriber<V>
      *
      * @param anChannel  the non-empty channels
      */
-    private void onChannelPopulatedNotification(int[] anChannel)
+    protected void onChannelPopulatedNotification(int[] anChannel)
         {
         if (anChannel == null || anChannel.length == 0)
             {
@@ -1460,7 +1609,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return a {@link CompletableFuture} that completes with the new head
      */
-    protected CompletableFuture<Long> scheduleHeadIncrement(Channel channel, long lHeadAssumed)
+    protected CompletableFuture<Long> scheduleHeadIncrement(PagedTopicChannel channel, long lHeadAssumed)
         {
         if (isActive())
             {
@@ -1561,9 +1710,10 @@ public class PagedTopicSubscriber<V>
                     // reset revoked channel heads - we'll re-sync if they are reallocated
                     setRevoked.forEach(c ->
                         {
-                        Channel channel      = f_aChannel[c];
+                        PagedTopicChannel channel      = f_aChannel[c];
                         channel.m_fContended = false;
                         channel.m_fOwned     = false;
+                        channel.m_lastCommit = null;
                         channel.setPopulated();
                         });
 
@@ -1571,16 +1721,17 @@ public class PagedTopicSubscriber<V>
                     // we'll update with the allocated ownership
                     if (m_nState == STATE_INITIAL)
                         {
-                        for (Channel channel : f_aChannel)
+                        for (PagedTopicChannel channel : f_aChannel)
                             {
                             channel.m_fOwned = false;
+                            channel.m_lastCommit = null;
                             }
                         }
 
                     // re-sync added channel heads and reset empty flag
                     setNew.forEach(c ->
                         {
-                        Channel channel      = f_aChannel[c];
+                        PagedTopicChannel channel      = f_aChannel[c];
                         channel.m_fContended = false;
                         channel.m_fOwned     = true;
                         channel.setPopulated();
@@ -1743,7 +1894,7 @@ public class PagedTopicSubscriber<V>
      * @param result   the result
      * @param e        and exception
      */
-    protected void onReceiveResult(Channel channel, long lVersion, long lPageId, PollProcessor.Result result, Throwable e)
+    protected void onReceiveResult(PagedTopicChannel channel, long lVersion, long lPageId, PollProcessor.Result result, Throwable e)
         {
         int nChannel = channel.subscriberPartitionSync.getChannelId();
 
@@ -1906,6 +2057,8 @@ public class PagedTopicSubscriber<V>
 
                 try
                     {
+                    unregisterMBean();
+
                     f_queueReceiveOrders.close();
                     f_queueReceiveOrders.cancelAllAndClose("Subscriber has been closed", null);
 
@@ -2192,6 +2345,28 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
+     * Register the subscriber MBean.
+     */
+    protected synchronized void registerMBean()
+        {
+        Registry registry = m_caches.getCacheService().getCluster().getManagement();
+        PagedTopicSubscriberMBean mBean = new PagedTopicSubscriberMBean(this);
+        m_sMBeanName = mBean.register(registry);
+        }
+
+    /**
+     * Register the subscriber MBean.
+     */
+    protected synchronized void unregisterMBean()
+        {
+        if (m_sMBeanName != null)
+            {
+            Registry registry = m_caches.getCacheService().getCluster().getManagement();
+            registry.unregister(m_sMBeanName);
+            }
+        }
+
+    /**
      * Returns an empty {@link CommittableElement}.
      *
      * @return an empty {@link CommittableElement}
@@ -2395,14 +2570,41 @@ public class PagedTopicSubscriber<V>
      * Channel is a data structure which represents the state of a channel as known
      * by this subscriber.
      */
-    protected static class Channel
+    protected static class PagedTopicChannel
+            implements Channel
         {
-        /**
-         * Returns the current head position for the channel.
-         *
-         * @return the current head position for the channel
-         */
-        protected PagedPosition getHead()
+        @Override
+        public int getId()
+            {
+            return subscriberPartitionSync.getChannelId();
+            }
+
+        @Override
+        public PagedPosition getLastCommit()
+            {
+            return m_lastCommit;
+            }
+
+        @Override
+        public PagedPosition getLastReceived()
+            {
+            return m_lastReceived;
+            }
+
+        @Override
+        public boolean isEmpty()
+            {
+            return m_fEmpty;
+            }
+
+        @Override
+        public boolean isOwned()
+            {
+            return m_fOwned;
+            }
+
+        @Override
+        public PagedPosition getHead()
             {
             if (m_lHead == Page.EMPTY)
                 {
@@ -2518,7 +2720,20 @@ public class PagedTopicSubscriber<V>
          */
         boolean m_fOwned = true;
 
+        /**
+         * The set of subscription keys.
+         */
         Set<Subscription.Key> m_setSubscriptionKeys;
+
+        /**
+         * The last position received by this subscriber
+         */
+        PagedPosition m_lastReceived;
+
+        /**
+         * The last position successfully committed by this subscriber
+         */
+        PagedPosition m_lastCommit;
         }
 
     // ----- inner class: FlushMode ----------------------------------------
@@ -2942,6 +3157,11 @@ public class PagedTopicSubscriber<V>
     public static final int STATE_CLOSED = 4;
 
     /**
+     * An array of state names. The indexes match the values of the state constants.
+     */
+    public static final String[] STATES = {"Initial", "Connected", "Disconnected", "CLosing", "Cloased"};
+
+    /**
      * Subscriber close timeout on first flush attempt. After this time is exceeded, all outstanding asynchronous operations will be completed exceptionally.
      */
     public static final long CLOSE_TIMEOUT_SECS = TimeUnit.MILLISECONDS.toSeconds(Base.parseTime(Config.getProperty("coherence.topic.subscriber.close.timeout", "30s"), Base.UNIT_S));
@@ -3042,7 +3262,7 @@ public class PagedTopicSubscriber<V>
     /**
      * The state for the channels.
      */
-    protected final Channel[] f_aChannel;
+    protected final PagedTopicChannel[] f_aChannel;
 
     /**
      * The owned channels.
@@ -3144,7 +3364,7 @@ public class PagedTopicSubscriber<V>
      * List of contended channels, ordered such that those checked longest ago are at the front of the list
      */
     @SuppressWarnings("unchecked")
-    protected final List<Channel> f_listChannelsContended = new CircularArrayList();
+    protected final List<PagedTopicChannel> f_listChannelsContended = new CircularArrayList();
 
     /**
      * BitSet of polled channels since last toString call.
@@ -3175,4 +3395,29 @@ public class PagedTopicSubscriber<V>
      * An empty committable element.
      */
     private CommittableElement m_elementEmpty;
+
+    /**
+     * The name of this subscriber's MBean.
+     */
+    private String m_sMBeanName;
+
+    /**
+     * The number of completed receive requests.
+     */
+    private final Meter m_cReceived = new Meter();
+
+    /**
+     * The number of completed receive requests.
+     */
+    private final Meter m_cReceivedEmpty = new Meter();
+
+    /**
+     * The number of exceptionally completed receive requests.
+     */
+    private final Meter m_cReceivedError = new Meter();
+
+    /**
+     * The number of disconnections.
+     */
+    private final Meter m_cDisconnect = new Meter();
     }

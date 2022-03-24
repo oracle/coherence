@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -244,7 +244,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(0, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
+        queue.completeElements(0, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null), null);
 
         assertThat(element1.isDone(), is(false));
         assertThat(element2.isDone(), is(false));
@@ -270,7 +270,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(2, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
+        queue.completeElements(2, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null), null);
 
         assertThat(element1.isDone(), is(true));
         assertThat(element2.isDone(), is(true));
@@ -296,7 +296,7 @@ public class BatchingOperationsQueueTest
         listBatch.add(element3);
         listPending.add(element4);
 
-        queue.completeElements(3, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
+        queue.completeElements(3, null, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null), null);
 
         assertThat(element1.isDone(), is(true));
         assertThat(element2.isDone(), is(true));
@@ -325,7 +325,7 @@ public class BatchingOperationsQueueTest
         aErrors.set(0, error1);
         aErrors.set(2, error3);
 
-        queue.completeElements(3, aErrors, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null));
+        queue.completeElements(3, aErrors, NullImplementation.getLongArray(), TopicPublisherException.createFactory(null), null);
 
         assertThat(element1.isDone(), is(true));
         assertThat(element1.getFuture().isCompletedExceptionally(), is(true));
@@ -700,7 +700,7 @@ public class BatchingOperationsQueueTest
         BatchingOperationsQueue<Binary, Void>         queue   = new BatchingOperationsQueue<>(FUNCTION_DUMMY, 1);
         BatchingOperationsQueue<Binary, Void>.Element element = queue.createElement(new Binary());
 
-        element.complete(null);
+        element.complete(null, null);
 
         assertThat(element.isDone(), is(true));
         assertThat(element.getFuture().isDone(), is(true));
@@ -745,16 +745,16 @@ public class BatchingOperationsQueueTest
 
         assertThat(future.isDone(), is(false));
 
-        element1.complete(null);
+        element1.complete(null, null);
         assertThat(future.isDone(), is(false));
 
-        element2.complete(null);
+        element2.complete(null, null);
         assertThat(future.isDone(), is(false));
 
-        element3.complete(null);
+        element3.complete(null, null);
         assertThat(future.isDone(), is(false));
 
-        element4.complete(null);
+        element4.complete(null, null);
         assertThat(future.isDone(), is(true));
         assertThat(future.isCancelled(), is(false));
         assertThat(future.isCompletedExceptionally(), is(false));
