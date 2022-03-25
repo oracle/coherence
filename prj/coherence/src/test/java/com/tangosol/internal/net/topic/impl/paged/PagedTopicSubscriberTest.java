@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.Channel;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.PagedTopicChannel;
 
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
@@ -51,7 +51,7 @@ public class PagedTopicSubscriberTest
         when(member.getTimestamp()).thenReturn(System.currentTimeMillis());
 
         SubscriberGroupId subscriberGroupId = new SubscriberGroupId(member);
-        Channel           channel           = new PagedTopicSubscriber.Channel();
+        PagedTopicChannel channel           = new PagedTopicChannel();
         int               nPart             = Math.abs((HashHelper.hash(subscriberGroupId.hashCode(), 3) % 257));
 
         channel.subscriberPartitionSync = new Subscription.Key(nPart, 0, subscriberGroupId);
@@ -61,7 +61,7 @@ public class PagedTopicSubscriberTest
     @Test
     public void shouldCreateChannelForGroupSubscriber()
         {
-        Channel           channel           = new PagedTopicSubscriber.Channel();
+        PagedTopicChannel channel           = new PagedTopicChannel();
         SubscriberGroupId subscriberGroupId = SubscriberGroupId.withName("durableSubscriber");
         int               nPart             = Math.abs((HashHelper.hash(subscriberGroupId.hashCode(), 3) % 257));
 

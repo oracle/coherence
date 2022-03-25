@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.NonBlocking;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
@@ -280,7 +281,7 @@ public class BatchingOperationsQueue<V, R>
                     fClose = true;
                 case Complete:
                     // Complete all of the futures
-                    doErrorAction(e -> e.complete(null), fClose);
+                    doErrorAction(e -> e.complete(null, null), fClose);
                     break;
 
                 case CompleteWithExceptionAndClose:
@@ -470,12 +471,13 @@ public class BatchingOperationsQueue<V, R>
     /**
      * Complete the first n {@link Element Elements} in the current batch.
      *
-     * @param cComplete  the number of {@link Element}s to complete
-     * @param aValues    the values to use to complete the elements
+     * @param cComplete   the number of {@link Element}s to complete
+     * @param aValues     the values to use to complete the elements
+     * @param onComplete  an optional {@link Consumer} to call when requests are completed
      */
-    public void completeElements(int cComplete, LongArray<R> aValues, BiFunction<Throwable, V, Throwable> function)
+    public void completeElements(int cComplete, LongArray<R> aValues, BiFunction<Throwable, V, Throwable> function, Consumer<R> onComplete)
         {
-        completeElements(cComplete, NullImplementation.getLongArray(), aValues, function);
+        completeElements(cComplete, NullImplementation.getLongArray(), aValues, function, onComplete);
         }
 
     /**
@@ -483,12 +485,12 @@ public class BatchingOperationsQueue<V, R>
      * <p>
      * If any element in the current batch has a corresponding error
      * in the errors array then it will be completed exceptionally.
-     *
-     * @param cComplete  the number of {@link Element}s to complete
-     * @param aErrors    the errors related to individual elements (may be null)
-     * @param aValues    the values to use to complete the elements
+     *  @param cComplete  the number of {@link Element}s to complete
+     * @param aErrors     the errors related to individual elements (could be null)
+     * @param aValues     the values to use to complete the elements
+     * @param onComplete  an optional {@link Consumer} to call when requests are completed
      */
-    public void completeElements(int cComplete, LongArray<Throwable> aErrors, LongArray<R> aValues, BiFunction<Throwable, V, Throwable> function)
+    public void completeElements(int cComplete, LongArray<Throwable> aErrors, LongArray<R> aValues, BiFunction<Throwable, V, Throwable> errFunction, Consumer<R> onComplete)
         {
         Queue<Element> queueCurrent = getCurrentBatch();
 
@@ -511,11 +513,11 @@ public class BatchingOperationsQueue<V, R>
                     if (error == null)
                         {
                         R oValue = aValues.get(i);
-                        element.complete(oValue);
+                        element.complete(oValue, onComplete);
                         }
                     else
                         {
-                        element.completeExceptionally(error, function);
+                        element.completeExceptionally(error, errFunction);
                         }
                     }
                 }
@@ -705,14 +707,15 @@ public class BatchingOperationsQueue<V, R>
         /**
          * Complete this element's {@link CompletableFuture}.
          *
-         * @param result  the value to use to complete the future
+         * @param result      the value to use to complete the future
+         * @param onComplete  an optional {@link Consumer} to call when the future is actually completed
          */
-        public void complete(R result)
+        public void complete(R result, Consumer<R> onComplete)
             {
             if (!m_fDone)
                 {
                 m_fDone = true;
-                f_executor.complete(f_future, result);
+                f_executor.complete(f_future, result, onComplete);
                 }
             }
 
@@ -841,13 +844,29 @@ public class BatchingOperationsQueue<V, R>
         /**
          * Complete the future with a value.
          *
-         * @param future  the {@link CompletableFuture} to complete
-         * @param oValue  the value to use to complete the future
+         * @param future      the {@link CompletableFuture} to complete
+         * @param oValue      the value to use to complete the future
+         * @param onComplete  an optional {@link Consumer} to call when the future is actually completed
+         *
          * @param <R>     the type of the future's value
          */
-        default <R> void complete(CompletableFuture<R> future, R oValue)
+        default <R> void complete(CompletableFuture<R> future, R oValue, Consumer<R> onComplete)
             {
-            execute(() -> future.complete(oValue));
+            execute(() ->
+                {
+                if (onComplete != null)
+                    {
+                    try
+                        {
+                        onComplete.accept(oValue);
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                future.complete(oValue);
+                });
             }
 
         /**
