@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -115,11 +115,41 @@ public class CacheEvent<K, V>
         {
         super(map, nId, oKey, oValueOld, oValueNew);
 
-        m_fSynthetic     = fSynthetic;
-        m_fPriming       = fPriming;
+        m_nFlags |= fSynthetic ? SYNTHETIC : 0;
+        m_nFlags |= fPriming ? PRIMING : 0;
         m_transformState = transformState;
         }
 
+    /**
+     * Constructs a new CacheEvent.
+     *
+     * @param map             the ObservableMap object that fired the event
+     * @param nId             this event's id, one of {@link #ENTRY_INSERTED},
+     *                        {@link #ENTRY_UPDATED} or {@link #ENTRY_DELETED}
+     * @param oKey            the key into the map
+     * @param oValueOld       the old value (for update and delete events)
+     * @param oValueNew       the new value (for insert and update events)
+     * @param fSynthetic      true iff the event is caused by the cache
+     *                        internal processing such as eviction or loading
+     * @param transformState  the {@link TransformationState state} describing how
+     *                        this event has been or should be transformed
+     * @param fPriming        a flag indicating whether or not the event is a priming event
+     * @param fExpired        true iff the event results from an eviction due to time
+     *
+     * @since 22.06
+     */
+    public CacheEvent(ObservableMap<K, V> map, int nId, K oKey,
+                      V oValueOld, V oValueNew,
+                      boolean fSynthetic, TransformationState transformState,
+                      boolean fPriming, boolean fExpired)
+        {
+        super(map, nId, oKey, oValueOld, oValueNew);
+
+        m_nFlags |= fSynthetic ? SYNTHETIC : 0;
+        m_nFlags |= fPriming ? PRIMING : 0;
+        m_nFlags |= fExpired ? EXPIRED : 0;
+        m_transformState = transformState;
+        }
 
     // ----- MapEvent methods -----------------------------------------------
 
@@ -150,7 +180,19 @@ public class CacheEvent<K, V>
     */
     public boolean isSynthetic()
         {
-        return m_fSynthetic;
+        return (m_nFlags & SYNTHETIC) != 0;
+        }
+
+    /**
+    * Return true iff this event is caused by an entry eviction due to time limit reached.
+    * In this case the event will also be synthetic (see {@link #isSynthetic()})
+    * @return true iff this event results from a timed eviction
+    *
+    * @since 22.06
+    */
+    public boolean isExpired()
+        {
+        return (m_nFlags & EXPIRED) != 0;
         }
 
     /**
@@ -160,7 +202,7 @@ public class CacheEvent<K, V>
     */
     public boolean isPriming()
         {
-        return m_fPriming;
+        return (m_nFlags & PRIMING) != 0;
         }
 
     /**
@@ -197,7 +239,8 @@ public class CacheEvent<K, V>
         {
         String sDescr = super.getDescription();
         return (isSynthetic() ? sDescr + ", synthetic" : sDescr) +
-               (isPriming()   ? ", priming" : "");
+               (isPriming()   ? ", priming" : "") +
+               (isExpired()   ? ", expired" : "");
         }
 
 
@@ -232,17 +275,29 @@ public class CacheEvent<K, V>
     // ----- data members ---------------------------------------------------
 
     /**
-    * Flag indicating whether or not the event is synthetic.
+    * Flags holder for event details such as whether the event is synthetic
     */
-    protected boolean m_fSynthetic;
-
-    /**
-    * Flag indicating whether or not the event is a priming event (NearCache).
-    */
-    protected boolean m_fPriming;
+    protected int m_nFlags;
 
     /**
     * The transformation state for this event.
     */
     protected TransformationState m_transformState = TransformationState.TRANSFORMABLE;
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+    * Flag indicating whether or not the event is synthetic.
+    */
+    protected static final int SYNTHETIC = 0x00000001;
+
+    /**
+    * Flag indicating whether or not the event is a priming event (NearCache).
+    */
+    protected static final int PRIMING   = 0x00000002;
+
+    /**
+    * Flag indicating whether the deletion event is a result of time expiration.
+    */
+    protected static final int EXPIRED   = 0x00000004;
     }

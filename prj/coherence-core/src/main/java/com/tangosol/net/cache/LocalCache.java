@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -547,8 +547,11 @@ public class LocalCache
     */
     protected synchronized boolean removeEvicted(OldCache.Entry entry)
         {
-        KeyMask mask  = getKeyMask();
-        boolean fPrev = mask.ensureSynthetic();
+        long    dtExpiry     = entry.getExpiryMillis();
+        boolean fExpired     = dtExpiry != 0 && (dtExpiry & ~0xFFL) < getCurrentTimeMillis();
+        KeyMask mask         = getKeyMask();
+        boolean fPrev        = mask.ensureSynthetic();
+        boolean fPrevExpired = fExpired ? mask.ensureExpired() : false;
         try
             {
             return super.removeEvicted(entry);
@@ -556,6 +559,7 @@ public class LocalCache
         finally
             {
             mask.setSynthetic(fPrev);
+            mask.setExpired(fPrevExpired);
             }
         }
 
@@ -567,7 +571,15 @@ public class LocalCache
     */
     protected MapEvent instantiateMapEvent(int nId, Object oKey, Object oValueOld, Object oValueNew)
         {
-        return new CacheEvent(this, nId, oKey, oValueOld, oValueNew, getKeyMask().isSynthetic());
+        return new CacheEvent(this,
+                              nId,
+                              oKey,
+                              oValueOld,
+                              oValueNew,
+                              getKeyMask().isSynthetic(),
+                              CacheEvent.TransformationState.TRANSFORMABLE,
+                              false,
+                              getKeyMask().isExpired());
         }
 
 
@@ -669,7 +681,7 @@ public class LocalCache
         * Check whether or not the currently performed operation is
         * internally initiated.
         *
-        * @return true iff the the current operation is internal
+        * @return true iff the current operation is internal
         */
         public boolean isSynthetic()
             {
@@ -687,6 +699,31 @@ public class LocalCache
             }
 
         /**
+        * Check whether or not the currently performed operation has been initiated
+        * because the entry expired.
+        *
+        * @return true iff the entry has expired
+        *
+        * @since 22.06
+        */
+        public boolean isExpired()
+            {
+            return true;
+            }
+
+        /**
+        * Specify whether or not the currently performed operation concerns an
+        * expired entry
+        *
+        * @param fExpired  true iff the current operation is an expiration one
+        *
+        * @since 22.06
+        */
+        public void setExpired(boolean fExpired)
+            {
+            }
+
+        /**
         * Ensure that the synthetic operation flag is set.
         *
         * @return the previous value of the flag
@@ -697,6 +734,23 @@ public class LocalCache
             if (!f)
                 {
                 setSynthetic(true);
+                }
+            return f;
+            }
+
+        /**
+        * Ensure that the expired operation flag is set.
+        *
+        * @return the previous value of the flag
+        *
+        * @since 22.06
+        */
+        public boolean ensureExpired()
+            {
+            boolean f = isExpired();
+            if (!f)
+                {
+                setExpired(true);
                 }
             return f;
             }
@@ -747,7 +801,16 @@ public class LocalCache
             {
             m_fSynthetic = fSynthetic;
             }
+        public boolean isExpired()
+            {
+            return m_fExpired;
+            }
+        public void setExpired(boolean fExpired)
+            {
+            m_fExpired = fExpired;
+            }
         private boolean m_fSynthetic = false;
+        private boolean m_fExpired   = false;
         };
 
 

@@ -2669,7 +2669,9 @@ public class ReadWriteBackingMap
                     getSyntheticEventsMap().containsKey(oKey);
 
                 MapEvent evtNew = new CacheEvent(ReadWriteBackingMap.this, evt.getId(),
-                        oKey, null, null, fSynthetic)
+                        oKey, null, null, fSynthetic,
+                        CacheEvent.TransformationState.TRANSFORMABLE, false,
+                        (evt instanceof CacheEvent && ((CacheEvent)evt).isExpired()))
                     {
                     public Object getOldValue()
                         {
