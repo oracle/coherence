@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package com.oracle.bedrock;
 
 
 import com.oracle.bedrock.illegalaccess.IllegalaccessProfile;
+
+import test.CheckJDK;
 
 
 /**
@@ -34,6 +36,16 @@ public class Jdk implements Option
         }
 
     /**
+     * Specify target remote Jdk when it differs from bedrock test client.
+     *
+     * @param sJavaHome  JAVA_HOME file path
+     */
+    private Jdk(String sJavaHome)
+        {
+        m_nVersion = CheckJDK.computeVersionFromJavaHome(sJavaHome);
+        }
+
+    /**
      * Return target jdk version
      *
      * @return jdk version
@@ -47,25 +59,25 @@ public class Jdk implements Option
     public static Jdk auto()
         {
         // lookup JDK version for current Jvm
-        return new Jdk(Integer.valueOf(System.getProperty("java.version").split("-|\\.")[0]));
+        return new Jdk(CheckJDK.computeVersion(System.getProperty("java.version")));
         }
 
     /**
      * Specify this option when target remote Jdk differs from bedrock test client.
      *
-     * @param version jdk version of 5, 6, 7, 8, 9, 11, 15, 16, 17, ...
+     * @param sJavaHome  JAVA_HOME file path
      *
      * @return Jdk option
      */
-    public static Jdk of(int version)
+    public static Jdk of(String sJavaHome)
         {
-        return new Jdk(version);
+        return new Jdk(sJavaHome);
         }
 
     // ----- data members ------------------------------------------------------
 
     /**
-     * Jdk version of 5-11, 15-17
+     * Jdk version of 5-11, 15 to latest version
      */
     private int m_nVersion;
     }

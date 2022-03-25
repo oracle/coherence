@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -42,7 +42,8 @@ public class AssumeJDKVersionLessThan
             public void evaluate() throws Throwable
                 {
                 // look up current JVM version
-                int nCurrentVersion = Integer.valueOf(System.getProperty("java.version").split("-|\\.")[0]);
+                int nCurrentVersion = CheckJDK.computeVersion(System.getProperty("java.version"));
+
                 if (nCurrentVersion >= f_nVersion)
                     {
                     throw new AssumptionViolatedException("Skipping test since detected JDK version "

@@ -8,6 +8,7 @@
 package common;
 
 
+import com.oracle.bedrock.Jdk;
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.coverage.CoverageProfile;
 import com.oracle.bedrock.deferred.Deferred;
@@ -814,6 +815,7 @@ public abstract class AbstractTestInfrastructure
         if (sJavaHome != null)
             {
             optionsByType.add(JavaHome.at(sJavaHome));
+            optionsByType.add(Jdk.of(sJavaHome));
             }
 
         CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class, optionsByType.asArray());
