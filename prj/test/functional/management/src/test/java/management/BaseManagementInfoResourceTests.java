@@ -2879,8 +2879,6 @@ public abstract class BaseManagementInfoResourceTests
 
             // remove the local snapshot
             deleteSnapshot("2-entries");
-            ensureServiceStatusIdle();
-            Eventually.assertDeferred(() -> assertSnapshotExists("2-entries", SNAPSHOTS), is(false));
 
             // retrieve the archived snapshot
             response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(ARCHIVES).path("2-entries").path("retrieve")
@@ -2927,12 +2925,7 @@ public abstract class BaseManagementInfoResourceTests
             // now delete the 2 snapshots
 
             deleteSnapshot("2-entries");
-            ensureServiceStatusIdle();
-            Eventually.assertDeferred(() -> assertSnapshotExists("2-entries", SNAPSHOTS), is(false));
-
             deleteSnapshot("empty");
-            ensureServiceStatusIdle();
-            Eventually.assertDeferred(() -> assertSnapshotExists("empty", SNAPSHOTS), is(false));
             }
         finally
             {
@@ -3029,8 +3022,18 @@ public abstract class BaseManagementInfoResourceTests
         {
         Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path(sSnapshotName)
                 .request().delete();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        // allow status code of 400 since if PersistentManagerMBean is not ready, it returns this code AND resubmits request.
+        // (for details search for "double delete" in COH-22169)
+        assertThat("validate remove snapshot " + sSnapshotName + " request status code is not NOT_FOUND (404)",
+                   response.getStatus(), isOneOf(Response.Status.OK.getStatusCode(),
+                                                 Response.Status.BAD_REQUEST.getStatusCode()));
+
         response.close();
+        ensureServiceStatusIdle();
+
+        // ensure post-condition is met
+        Eventually.assertDeferred(() -> assertSnapshotExists(sSnapshotName, SNAPSHOTS), is(false));
         }
 
     /**
