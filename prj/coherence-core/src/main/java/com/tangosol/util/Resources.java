@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
@@ -294,7 +295,15 @@ public abstract class Resources
             }
         else
             {
-            url = uri.toURL();
+            try
+                {
+                url = uri.toURL();
+                }
+            catch (MalformedURLException e)
+                {
+                // not a valid URL, assume it is just a file
+                url = Resources.findFileOrResource(s, null);
+                }
             }
 
         in = loader.getResourceAsStream(url.getFile());

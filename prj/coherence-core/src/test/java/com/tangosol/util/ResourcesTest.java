@@ -77,7 +77,7 @@ public class ResourcesTest
                 writer.print(sExpected);
                 }
 
-            String sFile = path.toFile().getAbsolutePath().replace("\\", "/");;
+            String sFile = path.toFile().getAbsolutePath().replace("\\", "/");
             try (InputStream inputStream = Resources.findInputStream(sFile))
                 {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
