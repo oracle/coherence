@@ -1572,7 +1572,21 @@ public class DefaultProcessingContext
      */
     private XmlElement getPropertyElement(XmlElement xmlElement, String sPath)
         {
-        return getElementAt(xmlElement, sPath, xmlElement.getQualifiedName().getPrefix());
+        String sPrefix = xmlElement.getQualifiedName().getPrefix();
+        XmlElement element = getElementAt(xmlElement, sPath, sPrefix);
+        if (element == null && sPrefix != null && !sPrefix.isEmpty())
+            {
+            // we didn't find the element with the parent's prefix, try with the empty prefix
+            // just in case the parent has is a custom namespace, but the child is from the
+            // default Coherence namespace
+            // e.g. a custom namespace with a Coherence instance (class-name) in it,
+            // we need to look up class-name with an empty prefix not the parent's "jk" prefix.
+            // <jk:foo>
+            //   <class-name>com.oracle.Foo</class-name>
+            // </jk:foo>
+            element = getElementAt(xmlElement, sPath, "");
+            }
+        return element;
         }
 
     /**

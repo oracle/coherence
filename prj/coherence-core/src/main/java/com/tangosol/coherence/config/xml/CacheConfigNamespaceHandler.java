@@ -88,10 +88,12 @@ import com.tangosol.coherence.config.xml.processor.ParamTypeProcessor;
 import com.tangosol.coherence.config.xml.processor.PartitionAssignmentStrategyProcessor;
 import com.tangosol.coherence.config.xml.processor.PartitionListenerProcessor;
 import com.tangosol.coherence.config.xml.processor.PartitionedQuorumPolicyProcessor;
+import com.tangosol.coherence.config.xml.processor.PasswordURLProcessor;
 import com.tangosol.coherence.config.xml.processor.PersistenceProcessor;
 import com.tangosol.coherence.config.xml.processor.ProviderProcessor;
 import com.tangosol.coherence.config.xml.processor.ProxyQuorumPolicyProcessor;
 import com.tangosol.coherence.config.xml.processor.ReadLocatorProcessor;
+import com.tangosol.coherence.config.xml.processor.ResourceBuilderProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLHostnameVerifierProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLManagerProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLNameListProcessor;
@@ -123,6 +125,7 @@ import com.tangosol.config.xml.DocumentElementPreprocessor;
 import com.tangosol.config.xml.OverrideProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 
+import com.tangosol.config.xml.SimpleElementProcessor;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultJmsAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultMemcachedAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
@@ -140,6 +143,9 @@ import com.tangosol.net.messaging.Codec;
 import com.tangosol.net.partition.KeyAssociator;
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 
+import com.tangosol.net.ssl.URLCertificateLoader;
+import com.tangosol.net.ssl.URLKeyStoreLoader;
+import com.tangosol.net.ssl.URLPrivateKeyLoader;
 import com.tangosol.run.xml.XmlElement;
 
 import static com.tangosol.coherence.config.xml.processor.AbstractEmptyElementProcessor.EmptyElementBehavior;
@@ -241,10 +247,12 @@ public class CacheConfigNamespaceHandler
         registerProcessor(PartitionAssignmentStrategyProcessor.class);
         registerProcessor(PartitionedQuorumPolicyProcessor.class);
         registerProcessor(PartitionListenerProcessor.class);
+        registerProcessor(PasswordURLProcessor.class);
         registerProcessor(PersistenceProcessor.class);
         registerProcessor(ProviderProcessor.class);
         registerProcessor(ProxyQuorumPolicyProcessor.class);
         registerProcessor(ReadLocatorProcessor.class);
+        registerProcessor(ResourceBuilderProcessor.class);
         registerProcessor(SchemesProcessor.class);
         registerProcessor(ScopeNameProcessor.class);
         registerProcessor(SerializerFactoryProcessor.class);
@@ -275,6 +283,8 @@ public class CacheConfigNamespaceHandler
         registerProcessor("buffer-size", new MemorySizeProcessor());
         registerProcessor("cachestore-scheme",
                           new CustomizableBuilderProcessor<>(CacheStoreScheme.class));
+        registerProcessor("cert", new SimpleElementProcessor<>(URLCertificateLoader.class));
+        registerProcessor("cert-loader", new InstanceProcessor());
         registerProcessor("class-scheme", new CustomizableBuilderProcessor<>(ClassScheme.class));
         registerProcessor("continuous-query-cache-scheme",
                           new ServiceBuilderProcessor<>(ContinuousQueryCacheScheme.class));
@@ -294,7 +304,9 @@ public class CacheConfigNamespaceHandler
         registerProcessor("heartbeat-interval", new MillisProcessor());
         registerProcessor("heartbeat-timeout", new MillisProcessor());
         registerProcessor("identity-manager", new SSLManagerProcessor());
-
+        registerProcessor("key", new SimpleElementProcessor<>(URLPrivateKeyLoader.class));
+        registerProcessor("key-loader", new InstanceProcessor());
+        registerProcessor("key-store-loader", new InstanceProcessor());
         registerProcessor("key-associator",
                           new SpecificInstanceProcessor<>(KeyAssociator.class,
                                                           EmptyElementBehavior.IGNORE));
@@ -343,6 +355,7 @@ public class CacheConfigNamespaceHandler
                           new ServiceBuilderProcessor<>(TransactionalScheme.class));
         registerProcessor("transfer-threshold", new MemorySizeProcessor());
         registerProcessor("trust-manager", new SSLManagerProcessor());
+        registerProcessor("url", new SimpleElementProcessor<>(URLKeyStoreLoader.class));
         registerProcessor("view-scheme", new CompositeSchemeProcessor<>(ViewScheme.class));
 
         // register injectable types (in alphabetical order)

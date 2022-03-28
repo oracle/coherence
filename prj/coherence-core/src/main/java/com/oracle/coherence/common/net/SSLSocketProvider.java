@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -37,6 +37,8 @@ import com.oracle.coherence.common.internal.security.SecurityProvider;
 
 import com.oracle.coherence.common.util.DaemonThreadFactory;
 
+import com.tangosol.coherence.config.unit.Seconds;
+import com.tangosol.net.ssl.RefreshPolicy;
 
 
 /**
@@ -172,7 +174,7 @@ public class SSLSocketProvider
      * @param session  the current SSLSession; must not be null
      * @param socket   the socket associated with the session
      *
-     * @throws SSLException if the session is unacceptible
+     * @throws SSLException if the session is unacceptable
      */
     public void ensureSessionValidity(SSLSession session, Socket socket)
             throws SSLException
@@ -191,7 +193,7 @@ public class SSLSocketProvider
             }
         else
             {
-            throw new SSLException("Unacceptible peer: " + socket);
+            throw new SSLException("Unacceptable peer: " + socket);
             }
         }
 
@@ -259,6 +261,15 @@ public class SSLSocketProvider
         public boolean isClientAuthenticationRequired();
 
         /**
+         * Specify if client authentication is required.
+         *
+         * @param fRequired  true iff client authentication is required
+         *
+         * @return this object
+         */
+        public DefaultDependencies setClientAuthenticationRequired(boolean fRequired);
+
+        /**
          * Return the SSL HostnameVerifier to be used to verify hostnames
          * once an SSL session has been established.
          *
@@ -293,16 +304,72 @@ public class SSLSocketProvider
          * @return the Logger
          */
         public Logger getLogger();
+
+        /**
+         * Set the description of these {@link Dependencies}.
+         *
+         * @param s  the description of these {@link Dependencies}
+         *
+         * @return  this {@link Dependencies}
+         */
+        public Dependencies setDescription(String s);
+
+        /**
+         * Return the period to use to auto-refresh keys and certs.
+         *
+         * @return the period to use to auto-refresh keys and certs
+         */
+        public Seconds getRefreshPeriod();
+
+        /**
+         * Return the {@link RefreshPolicy} to use to determine whether key and certs should be
+         * refreshed when the scheduled refresh time is reached.
+         *
+         * @return the {@link RefreshPolicy} to use to determine whether key and certs should be
+         *         refreshed when the scheduled refresh time is reached
+         */
+        public RefreshPolicy getRefreshPolicy();
+
+
+        /**
+        * The default SSL protocol.
+        */
+        String DEFAULT_SSL_PROTOCOL = "TLS";
+
+        /**
+        * The default identity management algorithm.
+        */
+        String DEFAULT_IDENTITY_ALGORITHM = "SunX509";
+
+        /**
+        * The default trust management algorithm.
+        */
+        String DEFAULT_TRUST_ALGORITHM = "SunX509";
+
+        /**
+        * The JKS keystore type.
+        */
+        String KEYSTORE_TYPE_JKS = "JKS";
+
+        /**
+        * The PKCS12 keystore type.
+        */
+        String KEYSTORE_TYPE_PKCS12 = "PKCS12";
+
+        /**
+        * The default keystore type.
+        */
+        String DEFAULT_KEYSTORE_TYPE = KEYSTORE_TYPE_JKS;
         }
 
 
-    // ----- inner class: DefaultDependenceis -------------------------------
+    // ----- inner class: DefaultDependencies -------------------------------
 
     /**
-     * DefaultDependenceis is a basic implementation of the Dependencies
-     * interface provding "setter" methods for each property.
+     * {@link DefaultDependencies} is a basic implementation of the Dependencies
+     * interface providing "setter" methods for each property.
      * <p>
-     * Additionally this class serves as a source of default dependency values.
+     * Additionally, this class serves as a source of default dependency values.
      */
     public static class DefaultDependencies
             implements Dependencies
@@ -393,7 +460,7 @@ public class SSLSocketProvider
             }
 
         /**
-         * Specify the SSLContex to utilize.
+         * Specify the SSLContext to utilize.
          *
          * @param ctx  the SSLContext
          *
@@ -445,6 +512,7 @@ public class SSLSocketProvider
          *
          * @return this object
          */
+        @Override
         public DefaultDependencies setClientAuthenticationRequired(boolean fRequired)
             {
             m_fClientAuthRequired = fRequired;
@@ -508,7 +576,7 @@ public class SSLSocketProvider
         /**
          * Specify the enabled cipher suites.
          *
-         * @param asCiphers  the enabled ciper suites
+         * @param asCiphers  the enabled cipher suites
          *
          * @return this object
          */
@@ -541,6 +609,45 @@ public class SSLSocketProvider
             }
 
         /**
+         * Set the auto-refresh period.
+         *
+         * @param refreshPeriod  the period to use to auto-refresh keys and certs
+         */
+        public DefaultDependencies setRefreshPeriod(Seconds refreshPeriod)
+            {
+            m_refreshPeriod = refreshPeriod == null ? NO_REFRESH : refreshPeriod;
+            return this;
+            }
+
+        /**
+         * Return the period to use to auto-refresh keys and certs.
+         *
+         * @return the period to use to auto-refresh keys and certs
+         */
+        public Seconds getRefreshPeriod()
+            {
+            return m_refreshPeriod;
+            }
+
+        @Override
+        public RefreshPolicy getRefreshPolicy()
+            {
+            return m_refreshPolicy;
+            }
+
+        /**
+         * Set the {@link RefreshPolicy} to use to determine whether keys and
+         * certs should be refreshed.
+         *
+         * @param policy  the {@link RefreshPolicy} to use
+         */
+        public DefaultDependencies setRefreshPolicy(RefreshPolicy policy)
+            {
+            m_refreshPolicy = policy == null ? RefreshPolicy.Always : policy;
+            return this;
+            }
+
+        /**
          * {@inheritDoc}
          */
         public Logger getLogger()
@@ -548,7 +655,6 @@ public class SSLSocketProvider
             Logger logger = m_logger;
             return logger == null ? LOGGER : logger;
             }
-
 
         /**
          * Specify the Logger to utilize.
@@ -563,6 +669,18 @@ public class SSLSocketProvider
             return this;
             }
 
+        /**
+         * Log description of instantiation of this.
+         *
+         * @param s  SSLSocketProviderDefaultDependencies instantiation log description
+         *
+         * @return this object
+         */
+        public DefaultDependencies setDescription(String s)
+            {
+            m_sDescription = s;
+            return this;
+            }
 
         /**
          * {@inheritDoc}
@@ -570,6 +688,11 @@ public class SSLSocketProvider
         @Override
         public String toString()
             {
+            if (m_sDescription != null && !m_sDescription.isEmpty())
+                {
+                return m_sDescription;
+                }
+
             StringBuilder sb = new StringBuilder();
             sb.append(getSSLContext());
 
@@ -663,9 +786,25 @@ public class SSLSocketProvider
          */
         protected Logger m_logger;
 
+        /**
+         * The description of the provider.
+         */
+        protected String m_sDescription = "SSLSocketProvider()";
+
+        /**
+         * The period to use to auto-refresh keys and certs.
+         */
+        protected Seconds m_refreshPeriod = NO_REFRESH;
+
+        /**
+         * The {@link RefreshPolicy} to use to determine whether keys and certs should be
+         * refreshed when the scheduled refresh time is reached.
+         */
+        protected RefreshPolicy m_refreshPolicy = RefreshPolicy.Always;
+
         static
             {
-            // make sure the commons security provider is loaded
+            // make sure the common security provider is loaded
             SecurityProvider.ensureRegistration();
             }
         }
@@ -684,8 +823,13 @@ public class SSLSocketProvider
     /**
      * The default Logger for all derivations of this class.
      */
-    private static Logger LOGGER = Logger.getLogger(
+    private static final Logger LOGGER = Logger.getLogger(
             SSLSocketProvider.class.getName());
+
+    /**
+     * The default auto-refresh period - no refresh.
+     */
+    public static final Seconds NO_REFRESH = new Seconds(0);
 
     /**
      * The default executor used by new SSLSocketProviders.

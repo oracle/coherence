@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,9 +7,13 @@
 
 package com.tangosol.util;
 
+import com.oracle.coherence.common.base.Classes;
+
 import java.io.File;
 import java.io.IOException;
 
+import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 
 import java.text.MessageFormat;
@@ -263,5 +267,43 @@ public abstract class Resources
         {
         URL url = getFileURL(sName);
         return url == null ? findResource(sName, loader) :  url;
+        }
+
+    /**
+     * Locate the specified resource and return its {@link InputStream}.
+     *
+     * @param s  the resource to find
+     *
+     * @return the resources {@link InputStream} or {@code null} if the resource does not exist
+     *
+     * @throws IOException  if an {@link InputStream} cannot be opened
+     */
+
+    public static InputStream findInputStream(String s) throws IOException
+        {
+        ClassLoader loader  = Classes.getContextClassLoader();
+        URI         uri     = URI.create(s);
+        String      sScheme = uri.getScheme();
+        URL         url;
+        InputStream in;
+
+        if (sScheme == null || sScheme.isEmpty())
+            {
+            // no scheme so try looking up as a file or classpath resource
+            url = Resources.findFileOrResource(s, null);
+            }
+        else
+            {
+            url = uri.toURL();
+            }
+
+        in = loader.getResourceAsStream(url.getFile());
+
+        if (in == null)
+            {
+            in = url.openStream();
+            }
+
+        return in;
         }
     }

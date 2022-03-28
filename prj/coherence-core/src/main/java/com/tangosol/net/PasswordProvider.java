@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import java.util.Arrays;
+
 /**
- * PasswordProvider allows Coherence users to plugin their own mechanism to determine the appropriate password.
+ * PasswordProvider allows Coherence users to plug in their own mechanism to determine the appropriate password.
  *
  * @author spuneet
  * @since 12.2.1.4
@@ -23,4 +25,25 @@ public interface PasswordProvider
      * @return password as char[]
      */
     char[] get();
+
+    /**
+     * Resets the contents of a password array
+     *
+     * @param arrays  an array of character arrays to reset
+     */
+    static void reset(char[]... arrays)
+        {
+        for (char[] ac : arrays)
+            {
+            if (ac != null)
+                {
+                Arrays.fill(ac, '0');
+                }
+            }
+        }
+
+    /**
+     * A singleton implementation of a {@link PasswordProvider} that always returns an empty array.
+     */
+    PasswordProvider NullImplementation = () -> new char[0];
     }

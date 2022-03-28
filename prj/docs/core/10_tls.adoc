@@ -1,0 +1,727 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence TLS Enhancements
+:description: Coherence TLS Enhancements
+:keywords: coherence, SSL, TLS, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// they both serve a purpose, and the docs will look wrong if it is removed.
+== Coherence TLS Enhancements
+
+Coherence has supported using SSL/TLS to secure communication between cluster members and Extend client for a long time.
+From Coherence version 22.06, this functionality has been enhanced to allow a more flexible configuration and allow customisation via extensions.
+
+- Coherence no longer relies on Java keystore files, but now also supports the use of key and certificate files.
+- By default, keystores, keys and files are loaded from a configured URL, but this can be extended with custom code to allow any source to be used. For example keys and certs could be pulled from a third-party certificate service.
+- A refresh period can be configured to periodically refresh the keystores, keys or certs being used to support expiring keys and certs without the need for a server restart.
+
+[NOTE]
+====
+The documentation here only covers the changes made in Coherence 22.06.
+There are a number of additional configuration options, for example hostname verifiers, algorithms,
+black lists, etc. The use of these remains unchanged and are documented in the main Coherence documentation.
+====
+
+== Configuration
+
+To use TLS in Coherence an SSL socket provider must be configured. This is documented in the main Coherence documentation. An SSL socket provider is made up of two parts, an identity manager and a trust manager (either or both of these can be configured, depending on the functionality required). The identity manager is used to configure the key and certificates used to identify the specific process. The trust manager is configured with the certificates and CA certificates used to verify a connection from a remote process.
+
+=== Configure an Identity Manager
+
+An identity manager is configured in the `<identity-manager>` child element of the `<ssl>` element.
+There are two different ways to configure an identity manager, depending on whether a Java keystore file is being used, or individual key and certificate files.
+
+==== Using a KeyStore
+
+Previous versions of Coherence only supported configuring a Java keystore as an identity manager.
+The keystore is configured in the `<key-store>` child element of the `<identity-manager>` element.
+
+The following xml configures an identity manager using a keystore file.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <url>file:/coherence/security/client.jks</url>  <1>
+        <password>secret</password>                     <2>
+      </key-store>
+      <password>private</password>                      <3>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+<1> The keystore is named `client.jks` located in the directory `/coherence/security`.
+<2> The keystore is protected with a password, in this case the password is `secret`
+<3> The private key in the keystore is also protected with a password, in this case `private`
+
+[IMPORTANT]
+====
+Hard coded passwords, such as in the example above, are not very secure.
+Configuring a `PasswordProvider` to read a password from an external source is a better, and more secure, option.
+====
+
+==== Using a Private Key and Certificate
+
+From Coherence 22.06, instead of providing a keystore, a private key and certificates can be used.
+A private key is specified using the `<key>` element.
+A certificates are specified using the `<cert>` element.
+By default, the values of both the `<key>` element and `cert>` element should be URLs to load the key or certificate data from (this can be extended as described <<extending, Extensions>> section).
+
+Instead of using the `<key-store>` element, the `<key>` and `<cert>` elements are used, as shown below:
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>file:/coherence/security/client.pem</key>    <1>
+      <cert>file:/coherence/security/client.cert</cert> <2>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+<1> The key file is named `client.pem` located in the directory `/coherence/security`.
+<2> The certificate file is named `client.cert` located in the directory `/coherence/security`.
+
+If required, multiple `<cert>` elements can be used to provide multiple certificates.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>file:/coherence/security/client.pem</key>
+      <cert>file:/coherence/security/client1.cert</cert>
+      <cert>file:/coherence/security/client2.cert</cert>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+
+==== Using an Encrypted Private Key
+
+If the key file is encrypted and protected with a password, this can be configured in the same way as the keystore example, by providing the private key password in a child element of the `<identity-manager>` element.
+
+In this example the password is specified using the `<password-url>` element, so the password will be read from the data returned from reading the URL (in this case that is a file).
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>file:/coherence/security/client.pem</key>    <1>
+      <cert>file:/coherence/security/client.cert</cert> <2>
+      <password-url>file:/coherence/security/key-pass.txt</password-url> <3>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+<1> The encrypted private key file is named `client.pem` located in the directory `/coherence/security`.
+<2> The certificate file is named `client.cert` located in the directory `/coherence/security`.
+<3> The password for the private key will be read from the URL `file:/coherence/security/key-pass.txt`
+
+
+=== Configure a Trust Manager
+
+A trust manager is configured to verify the certificates provided by a remote connection can be trusted.
+Typically this means using a CA Certificate to verify the client certificate.
+
+==== Using a KeyStore
+
+Previous versions of Coherence,  prior to 22.06, only supported configuring a Java keystore as a trust manager.
+The keystore is configured in the `<key-store>` child element of the `<trust-manager>` element.
+
+In the example below, the keystore `file:/coherence/security/server-ca.jks` is used to provide the certificates to verify clients.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <key-store>
+        <url>file:/coherence/security/server-ca.jks</url>
+      </key-store>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+==== Using CA Certificates
+
+From Coherence 22.06 certificates can be used instead of a keystore.
+In the example below, the certificate file `/coherence/security/server-ca.cert` is used.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <cert>/coherence/security/server-ca.cert</cert>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+Multiple certificates can be added using multiple `<cert>` elements.
+For example, the configuration below configures peer authentication using three certificates, `server-ca.cert`, and `client-ca.cert`.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <cert>server-ca.cert</cert>
+      <cert>client-ca.cert</cert>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+
+
+== Refreshable KeyStores, Keys and Certificates
+
+In some environments, keys and certs used for TLS are created with relatively short lifetimes.
+This means that a process needs to be able to renew the keys and certs, ideally without having to restart the process. In versions of Coherence prior to 22.06, this was not possible, as a Keystore was loaded once when the socket provider was instantiated. From version 22.06 it is possible to specify a refresh period, which will then schedule a refresh.
+
+The `<refresh-period>` element is used to configure the refresh time.
+This is a child element of the `ssl` element, meaning it applies to both the identity manager and trust manager.
+
+The example below configures a refresh schedule of `24h`, so the keys and certs will be refreshed every 24 hours.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>server.pem</key>
+      <cert>server.cert</cert>
+    </identity-manager>
+    <refresh-period>24h</refresh-period>
+  </ssl>
+</socket-provider>
+----
+
+Refreshable keystores, keys and certs can easily be combined with the extensions documented below so that new versions of the required files can be pulled from an external source.
+
+
+=== Configuring a Refresh Policy
+
+When using refreshable keys and certs it may sometimes be useful to have an additional check to determine whether a refresh should occur. This can be achieved by configuring a `<refresh-policy>` as well as a `<refresh-period>`.
+
+The `<refresh-policy>` element is a standard Coherence `instance` configuration and should resolve to an instance
+of a `com.tangosol.net.ssl.RefreshPolicy`.
+When a scheduled refresh time is reached the policy is checked first (by calling the `RefreshPolicy.shouldRefresh()` method) to determine whether the refresh should go ahead.
+
+For example a custom policy might look like this:
+
+[source,java]
+.CustomRefreshPolicy.java
+----
+package com.acme.coherence;
+
+public class CustomRefreshPolicy
+        implements RefreshPolicy
+    {
+    @Override
+    public boolean shouldRefresh(Dependencies deps, ManagerDependencies depsIdMgr, ManagerDependencies depsTrustMgr)
+        {
+        // perform some custom logic to determine whether it is time to refresh
+        return true;
+        }
+    }
+----
+
+The policy can then be configured as part of the `<ssl>` element alongside the `<refresh-period>`
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>server.pem</key>
+      <cert>server.cert</cert>
+    </identity-manager>
+    <refresh-period>24h</refresh-period>
+    <refresh-policy>
+      <class-name>com.acme.coherence.CustomRefreshPolicy</class-name>
+    </refresh-policy>
+  </ssl>
+</socket-provider>
+----
+
+For some policies, it may be useful to know what keystores, keys or certs are currently in use to determine whether they need to be refreshed. There are a number of default methods on `RefreshPolicy` that can be overridden for this purpose.
+
+For example, certificates used by a trust store configuration can be captured and then used to verify whether they are close to expiry. In the `CustomRefreshPolicy` below, the `trustStoreLoaded` method is called when the trust store is created to notify the policy of the certificates used by the trust store. In the `shouldRefresh` method the certificates can then be checked to determine whether they will still be valid at the next refresh interval.
+
+[source,java]
+.CustomRefreshPolicy.java
+----
+import com.oracle.coherence.common.net.SSLSocketProvider.Dependencies;
+import com.oracle.coherence.common.util.Duration;
+import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder.ManagerDependencies;
+import com.tangosol.coherence.config.unit.Seconds;
+import com.tangosol.net.ssl.RefreshPolicy;
+
+import java.security.cert.Certificate;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+
+public class CustomRefreshPolicy
+        implements RefreshPolicy
+    {
+    private Certificate[] certs;
+
+    @Override
+    public void trustStoreLoaded(Certificate[] certs)
+        {
+        this.certs = certs;
+        }
+
+    @Override
+    public boolean shouldRefresh(Dependencies deps, ManagerDependencies depsIdMgr, ManagerDependencies depsTrustMgr)
+        {
+        if (certs == null)
+            {
+            return true;
+            }
+
+        // get the refresh period from the dependencies
+        Seconds secs = deps.getRefreshPeriod();
+        // calculate the next refresh time as a Date
+        Date nextRefresh = new Date(System.currentTimeMillis() + secs.as(Duration.Magnitude.MILLI));
+
+        for (Certificate certificate : certs)
+            {
+            try
+                {
+                // The certs are all X509 certs, so check their validity on the next refresh date
+                ((X509Certificate) certificate).checkValidity(nextRefresh);
+                }
+            catch (CertificateExpiredException | CertificateNotYetValidException e)
+                {
+                // a cert will have expired, so we need to update now
+                return true;
+                }
+            }
+
+        // no certs should have expired at the next refresh check
+        return false;
+        }
+    }
+----
+
+The `CustomRefreshPolicy` class can then be configured in the `<ssl>` configuration as shown below.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <ca-cert>server-ca.cert</ca-cert>
+      <ca-cert>client-ca.cert</ca-cert>
+    </trust-manager>
+    <refresh-period>24h</refresh-period>
+    <refresh-policy>
+      <class-name>com.acme.coherence.CustomRefreshPolicy</class-name>
+    </refresh-policy>
+  </ssl>
+</socket-provider>
+----
+
+
+== Configuring KeyStore and Private Key Passwords
+
+When configuring the identity manager and trust manager there are elements in the configuration to provide optional passwords for the private key and the keystores. Prior to Coherence 12.2.1.4 the only way to configure a password was to use the `<password>` element. This would then use either a hard coded password, or a password from a System property. This is not particularly secure so in Coherence 12.2.1.4 the `<password-provider>` element was introduced where a custom `PasswordProvider` implementation could be configured, which can obtain a password from anywhere.
+Although `PasswordProvider` was introduced in 12.2.1.4, Coherence did not include any out of the box implementations.
+
+=== Configure a Password From a URL
+
+Starting with Coherence 22.06 a new password configuration element was introduced, `<password-url>`.
+The `<password-url>` configures a `com.tangosol.net.URLPasswordProvider`, which is a `PasswordProvider` implementation that obtains a password by reading data from a specified URL.
+
+For example, an identity manager could be configured with a private key password like this:
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>server.pem</key>
+      <cert>server.cert</cert>
+      <password-url>file:/secrets/key-pass.txt</password-url>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+The password for the private key will be obtained from the URL `file:/secrets/key-pass.txt`, which in this case is a file, but could be any simple URL. The `URLPasswordProvider` will effectively read all the data returned by `new URL("file:/secrets/key-pass.txt").openStream()` and use that as the password.
+
+
+By default, the `URLPasswordProvider` will use all the data returned from the URL as the password.
+This behaviour can be changed to only use the first line of data returned as the password by setting the `first-line-only` attribute of the `password-url` to `true`.
+
+For example:
+
+[source,xml]
+----
+<password-url first-line-only="true">file:/secret.txt</password-url>
+----
+
+The above configuration will use only the first line of the file `/secret.txt` as the password.
+
+=== Read a Password From an InputStream
+
+The super class of the `URLPasswordProvider` mentioned above is `com.tangosol.net.InputStreamPasswordProvider` which reads a password from an `InputStream`.
+This class is abstract, but is a useful base class to extend when writing custom `PasswordProvider` implementations.
+The only method to implement is 'protected InputStream getInputStream()` which returns the `InputStream` to read the password from.
+
+For example:
+
+[source,java]
+.CustomPasswordProvider.java
+----
+package com.acme.coherence;
+
+public class CustomPasswordProvider
+        extends InputStreamPasswordProvider
+    {
+    protected InputStream getInputStream() throws IOException
+        {
+        InputStream in; // get the password data as an InputStream...
+        return in;
+        }
+    }
+----
+
+Now the `CustomPasswordProvider` can be used in configuration.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <key>server.pem</key>
+        <cert>server.cert</cert>
+      </key-store>
+      <password-provider>
+        <class-name>com.acme.coherence.CustomPasswordProvider</class-name>
+      </password-provider>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+
+
+[#extending]
+== Extending TLS Configuration
+
+The core Coherence library only supports loading keystores, keys and certificates from the file system, or from a basic URL. The types of private key and certificate that can be loaded are also restricted to those supported by the JVM. To be able to load data from other sources and support different types of keys and certificates, Coherence provides some extension points in the configuration.
+
+
+=== Custom KeyStore Loader
+
+If using Java Keystores, an instance of a `com.tangosol.net.ssl.KeyStoreLoader` can be implemented in application code and configured in the `<key-store-loader>` element, which is a child of the `<key-store>` element.
+This class can load the contents of a Java KeyStore from any desired location.
+
+[source,java]
+.CustomKeyStoreLoader.java
+----
+package com.acme.coherence;
+
+public class CustomKeyStoreLoader
+        implements KeyStoreLoader
+    {
+    @Override
+    public KeyStore load(String sType, PasswordProvider password)
+            throws GeneralSecurityException, IOException
+        {
+        // return a KeyStore of the required type, based on the value of the sName parameter
+        }
+    }
+----
+
+For example, the `CustomKeyStoreLoader` class above could be configured in the identity manager configuration as shown below.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <key-store-loader>
+          <class-name>com.acme.coherence.CustomKeyStoreLoader</class-name>
+        </key-store-loader>
+      </key-store>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+Or the `CustomKeyStoreLoader` class above could be configured in the trust manager configuration as shown below.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <key-store>
+        <key-store-loader>
+          <class-name>com.acme.coherence.CustomKeyStoreLoader</class-name>
+        </key-store-loader>
+      </key-store>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+As with other extension points in Coherence, the `<key-store-loader>` is an "instance" configuration that takes a `class-name` or a `class-factory-name` and `method-name` parameter. Optionally the configuration can also use `<init-params>` to pass parameters to the class constructor or factory method.
+
+The `CustomKeyStoreLoader` can be refactored to add constructor arguments.
+These can then be passed in from configuration.
+
+[source,java]
+.CustomKeyStoreLoader.java
+----
+package com.acme.coherence;
+
+public class CustomKeyStoreLoader
+        implements KeyStoreLoader
+    {
+    private final String param1;
+
+    private final String param2;
+
+    public CustomKeyStoreLoader(String param1, String param2)
+        {
+        this.param1 = param1;
+        this.param2 = param2;
+        }
+
+    @Override
+    public KeyStore load(String sType, PasswordProvider password)
+            throws GeneralSecurityException, IOException
+        {
+        // return a KeyStore of the required type, based on the value of the sName parameter
+        }
+    }
+----
+
+The parameter can now be added to the configuration:
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <key-store-loader>
+          <class-name>com.acme.coherence.CustomKeyStoreLoader</class-name>
+          <init-params>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>foo</param-value>
+            </init-param>
+            <init-param>
+              <param-type>string</param-type>
+              <param-value>bar</param-value>
+            </init-param>
+          </init-params>
+        </key-store-loader>
+      </key-store>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+With the above configuration the `CustomKeyStoreLoader` constructor will be called with the parameters `foo` and `bar`.
+
+
+At runtime the `CustomKeyStoreLoader` class's `load` method will be called to load the keystore.
+In the configurations above the `type` parameter passed to the load method will be the default keystore type ("JKS").
+The `PasswordProvider` passed to the load method will be the default null implementation that returns an empty password.
+
+Optionally, a keystore type and password may also be configured, which will be passed as parameters
+to the custom `KeyStoreLoader.load()` method:
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-store>
+        <key-store-loader>
+          <class-name>com.acme.coherence.CustomKeyStoreLoader</class-name>
+        </key-store-loader>
+        <password>secret</password>
+        <type>PKCS12</type>
+      </key-store>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+
+=== Custom PrivateKey Loader
+
+If using keys and certs, an instance of a `com.tangosol.net.ssl.PrivateKeyLoader` can be implemented in application code and configured in the `<key-loader>` element.
+This class can load a `PrivateKey` from any desired location in the required format.
+
+As with other extension points in Coherence, the `<key-loader>` is an "instance" configuration that takes a `class-name` or a `class-factory-name` and `method-name` parameter. Optionally the configuration can also use `<init-params>` to pass parameters to the class constructor or factory method.
+
+[source,java]
+.CustomKeyStoreLoader.java
+----
+package com.acme.coherence;
+
+public class CustomPrivateKeyLoader
+        implements PrivateKeyLoader
+    {
+    @Override
+    public PrivateKey load(PasswordProvider password)
+            throws GeneralSecurityException, IOException
+        {
+        // return a PrivateKey
+        }
+    }
+----
+
+The custom loader can then be added to the configuration using the `<key-loader>` element, which is a child of the
+For example, the `CustomPrivateKeyLoader` class above could be configured in the identity manager configuration as shown below.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+        <key-loader>
+           <class-name>com.acme.coherence.CustomPrivateKeyLoader</class-name>
+        </key-loader>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+At runtime the `CustomPrivateKeyLoader` class's `load` method will be called to create the `PrivateKey` instance.
+
+In the example above there was no password configured for the key, so the `PasswordProvider` passed to the `load` method will return an empty password (`new char[0]`).
+
+A password can be added using one of the password elements allowed in the `<identity-manager>` elements.
+
+An example configuration with a password might look like the XML below.
+In this example, the `PasswordProvider` will return the contents fetched from the URL `file:/coherence/security/key-pass.txt` as the key password.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key-loader>
+        <class-name>com.acme.coherence.CustomPrivateKeyLoader</class-name>
+      </key-loader>
+      <password-url>file:/coherence/security/key-pass.txt</password-url>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+=== Custom Certificate Loader
+
+If using certificate files in the identity manager or trust manager, an instance of a `com.tangosol.net.ssl.CertificateLoader` can be implemented in application code and configured in the `<cert-loader>` element.
+This class can load an array of `Certificate` instances from any desired location in the required format.
+
+As with other extension points in Coherence, the `<cert-loader>` is an "instance" configuration that takes a `class-name` or a `class-factory-name` and `method-name` parameter. Optionally the configuration can also use `<init-params>` to pass parameters to the class constructor or factory method.
+
+[source,java]
+.CustomKeyStoreLoader.java
+----
+package com.acme.coherence;
+
+public class CustomCertificateLoader
+        implements CertificateLoader
+    {
+    @Override
+    public Certificate[] load()
+            throws GeneralSecurityException, IOException
+        {
+        // return a Certificate array based on the value of the sName parameter
+        }
+    }
+----
+
+For example, the `CustomCertificateLoader` class above could be configured in the identity manager configuration as shown below.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <identity-manager>
+      <key>server.pem</key>
+      <cert-loader>
+        <class-name>com.acme.coherence.CustomCertificateLoader</class-name>
+      </cert-loader>
+    </identity-manager>
+  </ssl>
+</socket-provider>
+----
+
+Or it can be used in a `<trust-manager>` configuration:
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <cert-loader>
+        <class-name>com.acme.coherence.CustomCertificateLoader</class-name>
+      </cert-loader>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+The `load()` method of the `CertificateLoader` returns an array of certificates, so it can load multiple certificates.
+It is also possible to configure multiple `<cert-loader>` elements to use multiple custom loaders.
+All the certificates provided by all the `<cert>` or `<cert-loader>` elements will be combined into a single set of certificates for the SSL context to use.
+
+[source,xml]
+----
+<socket-provider>
+  <ssl>
+    <trust-manager>
+      <cert>server-ca.cert</cert>
+      <cert-loader>
+        <class-name>com.acme.coherence.CustomCertificateLoader</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>foo</param-value>
+          </init-param>
+        </init-params>
+      </cert-loader>
+      <cert-loader>
+        <class-name>com.acme.coherence.CustomCertificateLoader</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>bar</param-value>
+          </init-param>
+        </init-params>
+      </cert-loader>
+    </trust-manager>
+  </ssl>
+</socket-provider>
+----
+
+The configuration above will use the `server-ca.cert` certificate, as well as the certificates provided by the two instances of the `CustomCertificateLoader`.

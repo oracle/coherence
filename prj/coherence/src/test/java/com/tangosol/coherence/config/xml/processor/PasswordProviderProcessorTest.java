@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -28,18 +28,26 @@ import com.tangosol.util.AssertionException;
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.SimpleResourceRegistry;
 import com.tangosol.util.WrapperException;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.StringDescription;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.rules.ExpectedException;
+import util.SSLSocketProviderBuilderHelper;
 
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Unit test of the {@link PasswordProviderBuilderProcessor} class.
@@ -698,7 +706,7 @@ public class PasswordProviderProcessorTest
         DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(m_ctxClusterConfig, sslXml);
         SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxSocketProviders.processDocument(sslXml);
         assertNotNull(sock_builder);
-        assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
+        assertThat(sock_builder.getId(), is(SocketProviderBuilder.UNNAMED_PROVIDER_ID));
         SSLSettings sslSettings = sock_builder.getSSLSettings();
         SocketProvider sockProvider = sock_builder.realize(new NullParameterResolver(), null, null);
         SocketProvider sockDelegate = ((SSLSocketProvider) sockProvider).getDependencies().getDelegateSocketProvider();
@@ -805,100 +813,109 @@ public class PasswordProviderProcessorTest
     @Test
     public void whenPasswordProvidersWithSSLConfigProvidesInvalidPassTheThrowEx()
         {
-        thrown.expect(WrapperException.class);
-        thrown.expectMessage("Password verification failed");
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            {
+            XmlElement xml = getPasswordProviderXML(PASSWORD_PROVIDER_XML.PROVIDERS_HAVE_REQUIRED_INFO);
+            // Password Provider Config Load
+            DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
+            ctxPasswordProviders.processDocument(xml);
 
-        XmlElement xml = getPasswordProviderXML(PASSWORD_PROVIDER_XML.PROVIDERS_HAVE_REQUIRED_INFO);
-        // Password Provider Config Load
-        DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
-        ctxPasswordProviders.processDocument(xml);
+            ParameterizedBuilderRegistry bldrReg = m_ctxClusterConfig.getCookie(ParameterizedBuilderRegistry.class);
+            assertNotNull(bldrReg);
 
-        ParameterizedBuilderRegistry bldrReg = m_ctxClusterConfig.getCookie(ParameterizedBuilderRegistry.class);
-        assertNotNull(bldrReg);
+            // Using "id" to get the pwd-provider
+            ParameterizedBuilder<PasswordProvider> builder = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "trustMgrPass");
 
-        // Using "id" to get the pwd-provider
-        ParameterizedBuilder<PasswordProvider> builder = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "trustMgrPass");
+            PasswordProvider provider = builder.realize(null, null, null);
+            assertArrayEquals("storepassword".toCharArray(), provider.get());
 
-        PasswordProvider provider = builder.realize(null, null, null);
-        assertArrayEquals("storepassword".toCharArray(), provider.get());
+            // Using "id" to get the pwd-provider
+            ParameterizedBuilder<PasswordProvider> builder2 = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "identityMgrPass");
+            PasswordProvider provider2 = builder2.realize(null, null, null);
+            assertArrayEquals("keypassword".toCharArray(), provider2.get());
 
-        // Using "id" to get the pwd-provider
-        ParameterizedBuilder<PasswordProvider> builder2 = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "identityMgrPass");
-        PasswordProvider provider2 = builder2.realize(null, null, null);
-        assertArrayEquals("keypassword".toCharArray(), provider2.get());
+            // SSL Config Load
+            XmlElement sslXml = getSocketProviderXml(SSL_PASSWORD_TYPE.USE_PASSWORD_WITH_INCORRECT_VALUE);
+            SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxPasswordProviders.processDocument(sslXml);
+            assertNotNull(sock_builder);
+            assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
+            SSLSettings sslSettings = sock_builder.getSSLSettings();
+            });
 
-        // SSL Config Load
-        XmlElement sslXml = getSocketProviderXml(SSL_PASSWORD_TYPE.USE_PASSWORD_WITH_INCORRECT_VALUE);
-        SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxPasswordProviders.processDocument(sslXml);
-        assertNotNull(sock_builder);
-        assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
-        SSLSettings sslSettings = sock_builder.getSSLSettings();
+        assertCauseMessage(ex, is("Password verification failed"));
         }
 
     @Test
     public void whenPasswordProvidersWithSSLConfigUsingOverridesProvidesInvalidPassThenThrowEx()
         {
-        thrown.expectMessage("Password verification failed");
-        thrown.expect(WrapperException.class);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            {
+            XmlElement xml = getPasswordProviderXML(PASSWORD_PROVIDER_XML.PROVIDERS_HAVE_REQUIRED_INFO);
+            // Password Provider Config Load
+            DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
+            ctxPasswordProviders.processDocument(xml);
 
-        XmlElement xml = getPasswordProviderXML(PASSWORD_PROVIDER_XML.PROVIDERS_HAVE_REQUIRED_INFO);
-        // Password Provider Config Load
-        DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
-        ctxPasswordProviders.processDocument(xml);
+            ParameterizedBuilderRegistry bldrReg = m_ctxClusterConfig.getCookie(ParameterizedBuilderRegistry.class);
+            assertNotNull(bldrReg);
 
-        ParameterizedBuilderRegistry bldrReg = m_ctxClusterConfig.getCookie(ParameterizedBuilderRegistry.class);
-        assertNotNull(bldrReg);
+            // Using "id" to get the pwd-provider
+            ParameterizedBuilder<PasswordProvider> builder = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "trustMgrPass");
 
-        // Using "id" to get the pwd-provider
-        ParameterizedBuilder<PasswordProvider> builder = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "trustMgrPass");
+            PasswordProvider provider = builder.realize(null, null, null);
+            assertArrayEquals("storepassword".toCharArray(), provider.get());
 
-        PasswordProvider provider = builder.realize(null, null, null);
-        assertArrayEquals("storepassword".toCharArray(), provider.get());
+            // Using "id" to get the pwd-provider
+            ParameterizedBuilder<PasswordProvider> builder2 = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "identityMgrPass");
+            PasswordProvider provider2 = builder2.realize(null, null, null);
+            assertArrayEquals("keypassword".toCharArray(), provider2.get());
 
-        // Using "id" to get the pwd-provider
-        ParameterizedBuilder<PasswordProvider> builder2 = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "identityMgrPass");
-        PasswordProvider provider2 = builder2.realize(null, null, null);
-        assertArrayEquals("keypassword".toCharArray(), provider2.get());
+            // SSL Config Load
+            XmlElement sslXml = getSocketProviderXml(SSL_PASSWORD_TYPE.USE_PASSWORD_PROVIDER_WITH_OVERRIDES_WITH_INCORRECT_VALUE);
+            //        SocketProvider socketProvider = SSLSocketProviderBuilderHelper.loadSocketProvider(sslXml);
 
-        // SSL Config Load
-        XmlElement sslXml = getSocketProviderXml(SSL_PASSWORD_TYPE.USE_PASSWORD_PROVIDER_WITH_OVERRIDES_WITH_INCORRECT_VALUE);
-        SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxPasswordProviders.processDocument(sslXml);
-        assertNotNull(sock_builder);
-        assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
-        SSLSettings sslSettings = sock_builder.getSSLSettings(); // This line results in exception
+            SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxPasswordProviders.processDocument(sslXml);
+            assertNotNull(sock_builder);
+            assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
+            sock_builder.getSSLSettings(); // This line results in exception
+            });
+
+        assertCauseMessage(ex, is("Password verification failed"));
         }
 
     @Test
     public void whenPasswordProvidersWithSSLConfigUsingMultiParamsHavingInvalidPassThenThrowEx()
         {
-        thrown.expectMessage("Password verification failed");
-        thrown.expect(WrapperException.class);
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            {
+            XmlElement xml = getPasswordProviderXML(PASSWORD_PROVIDER_XML.PROVIDERS_HAVE_REQUIRED_INFO);
+            // Password Provider Config Load
+            DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
+            ctxPasswordProviders.processDocument(xml);
 
-        XmlElement xml = getPasswordProviderXML(PASSWORD_PROVIDER_XML.PROVIDERS_HAVE_REQUIRED_INFO);
-        // Password Provider Config Load
-        DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
-        ctxPasswordProviders.processDocument(xml);
+            ParameterizedBuilderRegistry bldrReg = m_ctxClusterConfig.getCookie(ParameterizedBuilderRegistry.class);
+            assertNotNull(bldrReg);
 
-        ParameterizedBuilderRegistry bldrReg = m_ctxClusterConfig.getCookie(ParameterizedBuilderRegistry.class);
-        assertNotNull(bldrReg);
+            // Using "id" to get the pwd-provider
+            ParameterizedBuilder<PasswordProvider> builder = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "trustMgrPass");
 
-        // Using "id" to get the pwd-provider
-        ParameterizedBuilder<PasswordProvider> builder = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "trustMgrPass");
+            PasswordProvider provider = builder.realize(null, null, null);
+            assertArrayEquals("storepassword".toCharArray(), provider.get());
 
-        PasswordProvider provider = builder.realize(null, null, null);
-        assertArrayEquals("storepassword".toCharArray(), provider.get());
+            // Using "id" to get the pwd-provider
+            ParameterizedBuilder<PasswordProvider> builder2 = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "identityMgrPass");
+            PasswordProvider provider2 = builder2.realize(null, null, null);
+            assertArrayEquals("keypassword".toCharArray(), provider2.get());
 
-        // Using "id" to get the pwd-provider
-        ParameterizedBuilder<PasswordProvider> builder2 = (ParameterizedBuilder) bldrReg.getBuilder(PasswordProvider.class, "identityMgrPass");
-        PasswordProvider provider2 = builder2.realize(null, null, null);
-        assertArrayEquals("keypassword".toCharArray(), provider2.get());
+            // SSL Config Load
+            XmlElement sslXml = getSocketProviderXml(SSL_PASSWORD_TYPE.USE_PASSWORD_PROVIDER_WITH_MULTIPLE_PARAMS_WITH_INCORRECT_VALUE);
+            SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxPasswordProviders.processDocument(sslXml);
+            assertNotNull(sock_builder);
+            assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
 
-        // SSL Config Load
-        XmlElement sslXml = getSocketProviderXml(SSL_PASSWORD_TYPE.USE_PASSWORD_PROVIDER_WITH_MULTIPLE_PARAMS_WITH_INCORRECT_VALUE);
-        SocketProviderBuilder sock_builder = (SocketProviderBuilder) ctxPasswordProviders.processDocument(sslXml);
-        assertNotNull(sock_builder);
-        assertTrue(SocketProviderBuilder.UNNAMED_PROVIDER_ID.equals(sock_builder.getId()));
-        SSLSettings sslSettings = sock_builder.getSSLSettings(); // This line results in exception
+            sock_builder.getSSLSettings(); // This line results in exception
+            });
+        
+        assertCauseMessage(ex, is("Password verification failed"));
         }
 
     @Test
@@ -978,47 +995,69 @@ public class PasswordProviderProcessorTest
         return mPassProvider;
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    void assertCauseMessage(Throwable throwable, Matcher<String> matcher)
+        {
+        while (throwable != null)
+            {
+            String sMessage = throwable.getMessage();
+            if (matcher.matches(sMessage))
+                {
+                return;
+                }
+            throwable = throwable.getCause();
+            }
+        Description description = new StringDescription();
+        matcher.describeMismatch(throwable, description);
+        fail(description.toString());
+        }
+
+    // ----- inner enums ----------------------------------------------------
+
+    /*
+     * Various combinations that are tested for <password-provider> in context of <ssl>
+     */
+    public enum SSL_PASSWORD_TYPE
+        {
+        USE_PASSWORD,
+        USE_PASSWORD_PROVIDER_INLINE,
+        USE_PASSWORD_PROVIDER_WITH_DEFAULTS,
+        USE_NO_PASSWORD_PROVIDER_OR_PASSWORD,
+        USE_PASSWORD_PROVIDER_WITH_DEFAULTS_WITH_INVALID_ID,
+        USE_PASSWORD_PROVIDER_WITH_OVERRIDES,
+        USE_PASSWORD_PROVIDER_WITH_MULTIPLE_PARAMS,
+        USE_PASSWORD_PROVIDER_WITH_ADDITIONAL_PARAMS,
+        USE_PASSWORD_WITH_INCORRECT_VALUE,
+        USE_PASSWORD_PROVIDER_WITH_OVERRIDES_WITH_INCORRECT_VALUE,
+        USE_PASSWORD_PROVIDER_WITH_MULTIPLE_PARAMS_WITH_INCORRECT_VALUE,
+        USE_PASSWORD_PROVIDER_WITH_BLANK_ID,
+        }
+
+    /*
+     * Various combinations that are tested for <password-provider>
+     */
+    public enum PASSWORD_PROVIDER_XML
+        {
+        NO_PROVIDER_ENCLOSED,
+        PROVIDER_IS_EMPTY,
+        PROVIDER_HAS_NO_ID,
+        PROVIDER_HAS_PARAMS_BUT_NO_ID,
+        PROVIDER_HAS_EMPTY_CLASS_NAME,
+        PROVIDER_HAS_NO_CLASS_NAME,
+        PROVIDER_HAS_NO_INIT_PARAMS,
+        PROVIDER_HAS_NO_INIT_PARAM,
+        PROVIDER_HAS_REQUIRED_INFO,
+        PROVIDERS_HAVE_REQUIRED_INFO,
+        PROVIDER_HAS_STRING_CLASS,
+        }
+
+    // ----- data members ---------------------------------------------------
+
     // local variables
     private DefaultClusterDependencies m_deps;
     private DefaultProcessingContext   m_ctxClusterConfig;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-    }
-
-/*
- * Various combinations that are tested for <password-provider> in context of <ssl>
- */
-enum SSL_PASSWORD_TYPE
-    {
-    USE_PASSWORD,
-    USE_PASSWORD_PROVIDER_INLINE,
-    USE_PASSWORD_PROVIDER_WITH_DEFAULTS,
-    USE_NO_PASSWORD_PROVIDER_OR_PASSWORD,
-    USE_PASSWORD_PROVIDER_WITH_DEFAULTS_WITH_INVALID_ID,
-    USE_PASSWORD_PROVIDER_WITH_OVERRIDES,
-    USE_PASSWORD_PROVIDER_WITH_MULTIPLE_PARAMS,
-    USE_PASSWORD_PROVIDER_WITH_ADDITIONAL_PARAMS,
-    USE_PASSWORD_WITH_INCORRECT_VALUE,
-    USE_PASSWORD_PROVIDER_WITH_OVERRIDES_WITH_INCORRECT_VALUE,
-    USE_PASSWORD_PROVIDER_WITH_MULTIPLE_PARAMS_WITH_INCORRECT_VALUE,
-    USE_PASSWORD_PROVIDER_WITH_BLANK_ID,
-    }
-
-/*
- * Various combinations that are tested for <password-provider>
- */
-enum PASSWORD_PROVIDER_XML
-    {
-    NO_PROVIDER_ENCLOSED,
-    PROVIDER_IS_EMPTY,
-    PROVIDER_HAS_NO_ID,
-    PROVIDER_HAS_PARAMS_BUT_NO_ID,
-    PROVIDER_HAS_EMPTY_CLASS_NAME,
-    PROVIDER_HAS_NO_CLASS_NAME,
-    PROVIDER_HAS_NO_INIT_PARAMS,
-    PROVIDER_HAS_NO_INIT_PARAM,
-    PROVIDER_HAS_REQUIRED_INFO,
-    PROVIDERS_HAVE_REQUIRED_INFO,
-    PROVIDER_HAS_STRING_CLASS,
     }

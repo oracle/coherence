@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,32 +7,33 @@
 package com.tangosol.net.ssl;
 
 import com.oracle.coherence.common.internal.net.WrapperSocket;
+
 import com.oracle.coherence.common.net.SSLSocketProvider;
-import com.tangosol.coherence.config.ParameterMacroExpressionParser;
-import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder;
-import com.tangosol.coherence.config.xml.OperationalConfigNamespaceHandler;
-import com.tangosol.coherence.config.xml.processor.SSLProcessor;
-import com.tangosol.config.xml.DefaultProcessingContext;
-import com.tangosol.config.xml.DocumentProcessor;
-import com.tangosol.config.xml.NamespaceHandler;
-import com.tangosol.internal.net.cluster.DefaultClusterDependencies;
+
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
-import com.tangosol.run.xml.XmlDocument;
-import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
-import com.tangosol.util.ResourceRegistry;
-import com.tangosol.util.SimpleResourceRegistry;
+
 import org.junit.Test;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+
 import java.io.IOException;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsArrayContainingInAnyOrder.arrayContainingInAnyOrder;
+import static org.hamcrest.collection.IsArrayContaining.hasItemInArray;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.Assert.fail;
+import static util.SSLSocketProviderBuilderHelper.loadDependencies;
 
 
 /**
@@ -42,55 +43,24 @@ import static org.junit.Assert.*;
 */
 public class SSLSocketProviderProcessorTest
     {
-
     @Test
     public void testConstructor()
         {
         new SSLSocketProvider();
         }
 
-
     @Test
     public void testSimpleClientConfiguration()
             throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-client.xml", null);
-
-        ResourceRegistry resourceRegistry = new SimpleResourceRegistry();
-
-        DocumentProcessor.DefaultDependencies dep = new DocumentProcessor.DefaultDependencies(new OperationalConfigNamespaceHandler());
-
-        dep.setExpressionParser(ParameterMacroExpressionParser.INSTANCE);
-        dep.setResourceRegistry(resourceRegistry);
-
-        // establish the cluster-config processing context
-        DefaultProcessingContext sslContext = new DefaultProcessingContext(dep, xml);
-
-        // add the default namespace handler
-        NamespaceHandler handler = dep.getDefaultNamespaceHandler();
-        if (handler != null)
-            {
-            sslContext.ensureNamespaceHandler("", handler);
-            }
-
-        XmlElement xmlSSL = xml.getSafeElement("ssl");
-        DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(sslContext, xmlSSL);
-
-        SSLSocketProviderDefaultDependencies depsSSL = new SSLSocketProviderDefaultDependencies(null);
-
-        ctxSocketProviders.addCookie(SSLSocketProviderDefaultDependencies.class, depsSSL);
-        ctxSocketProviders.addCookie(DefaultClusterDependencies.class, new DefaultClusterDependencies());
-
-        SSLSocketProviderDependenciesBuilder bldr = new SSLProcessor().process(ctxSocketProviders, xmlSSL);
-
-        SSLSocketProviderDefaultDependencies sslDeps  = bldr.realize();
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-client.xml");
         SSLSocketProvider                    provider = new SSLSocketProvider(sslDeps);
 
         SSLContext ctx = sslDeps.getSSLContext();
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(sslDeps.getExecutor());
-        assertNull(sslDeps.getHostnameVerifier());
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
 
         try
             {
@@ -121,48 +91,19 @@ public class SSLSocketProviderProcessorTest
     public void testSimpleServerConfiguration()
             throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-server.xml", null);
-
-        ResourceRegistry resourceRegistry = new SimpleResourceRegistry();
-
-        DocumentProcessor.DefaultDependencies dep = new DocumentProcessor.DefaultDependencies(new OperationalConfigNamespaceHandler());
-
-        dep.setExpressionParser(ParameterMacroExpressionParser.INSTANCE);
-        dep.setResourceRegistry(resourceRegistry);
-
-        // establish the cluster-config processing context
-        DefaultProcessingContext sslContext = new DefaultProcessingContext(dep, xml);
-
-        // add the default namespace handler
-        NamespaceHandler handler = dep.getDefaultNamespaceHandler();
-        if (handler != null)
-            {
-            sslContext.ensureNamespaceHandler("", handler);
-            }
-
-
-        XmlElement xmlSSL = xml.getSafeElement("ssl");
-        DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(sslContext, xmlSSL);
-
-        SSLSocketProviderDefaultDependencies depsSSL = new SSLSocketProviderDefaultDependencies(null);
-
-        ctxSocketProviders.addCookie(SSLSocketProviderDefaultDependencies.class, depsSSL);
-        ctxSocketProviders.addCookie(DefaultClusterDependencies.class, new DefaultClusterDependencies());
-
-        SSLSocketProviderDependenciesBuilder bldr = new SSLProcessor().process(ctxSocketProviders, xmlSSL);
-        SSLSocketProviderDefaultDependencies sslDeps = bldr.realize();
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-server.xml");
         SSLSocketProvider                    provider = new SSLSocketProvider(sslDeps);
 
         SSLContext ctx = sslDeps.getSSLContext();
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(ctx.getProvider());
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(ctx.getProvider(), is(notNullValue()));
 
-        assertNotNull(sslDeps.getExecutor());
-        assertNull(sslDeps.getHostnameVerifier());
-        assertNull(sslDeps.getEnabledCipherSuites());
-        assertNull(sslDeps.getEnabledProtocolVersions());
-        assertFalse(sslDeps.isClientAuthenticationRequired());
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
+        assertThat(sslDeps.getEnabledCipherSuites(), is(nullValue()));
+        assertThat(sslDeps.getEnabledProtocolVersions(), is(nullValue()));
+        assertThat(sslDeps.isClientAuthenticationRequired(), is(true));
 
         try
             {
@@ -193,49 +134,21 @@ public class SSLSocketProviderProcessorTest
     public void testServerConfigurationUsingBlacklist()
             throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-server-blacklist.xml", null);
-
-        ResourceRegistry resourceRegistry = new SimpleResourceRegistry();
-
-        DocumentProcessor.DefaultDependencies dep = new DocumentProcessor.DefaultDependencies(new OperationalConfigNamespaceHandler());
-
-        dep.setExpressionParser(ParameterMacroExpressionParser.INSTANCE);
-        dep.setResourceRegistry(resourceRegistry);
-
-        // establish the cluster-config processing context
-        DefaultProcessingContext sslContext = new DefaultProcessingContext(dep, xml);
-
-        // add the default namespace handler
-        NamespaceHandler handler = dep.getDefaultNamespaceHandler();
-        if (handler != null)
-            {
-            sslContext.ensureNamespaceHandler("", handler);
-            }
-
-        DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(sslContext, xml);
-
-        SSLSocketProviderDefaultDependencies depsSSL = new SSLSocketProviderDefaultDependencies(null);
-
-        ctxSocketProviders.addCookie(SSLSocketProviderDefaultDependencies.class, depsSSL);
-        ctxSocketProviders.addCookie(DefaultClusterDependencies.class, new DefaultClusterDependencies());
-
-        SSLSocketProviderDependenciesBuilder bldr    = new SSLProcessor().process(ctxSocketProviders, xml);
-        SSLSocketProviderDefaultDependencies sslDeps = bldr.realize();
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-server-blacklist.xml");
         SSLContext                           ctx     = sslDeps.getSSLContext();
 
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(sslDeps.getExecutor());
-        assertNull(sslDeps.getHostnameVerifier());
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
         String[] versions = sslDeps.getEnabledProtocolVersions();
-        assertNotNull(versions);
-        assertFalse(Arrays.asList(versions).contains("SSLv3"));
+        assertThat(versions, is(notNullValue()));
+        assertThat(versions, not(hasItemInArray("SSLv3")));
 
-        List ciphers = Arrays.asList(sslDeps.getEnabledCipherSuites());
-        assertNotNull(ciphers);
-        assertTrue(ciphers.size() > 0);
-        String BLACK_LISTED_CIPHER = "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256";
-        assertFalse(ciphers.contains(BLACK_LISTED_CIPHER));
+        String[] ciphers = sslDeps.getEnabledCipherSuites();
+        assertThat(ciphers, is(notNullValue()));
+        assertThat(ciphers.length, is(greaterThan(0)));
+        assertThat(ciphers, not(hasItemInArray("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256")));
 
         SSLSocketProvider provider = new SSLSocketProvider(sslDeps);
         try
@@ -268,54 +181,22 @@ public class SSLSocketProviderProcessorTest
     public void testCustomConfiguration()
             throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-custom.xml", null);
-
-        ResourceRegistry resourceRegistry = new SimpleResourceRegistry();
-
-        DocumentProcessor.DefaultDependencies dep = new DocumentProcessor.DefaultDependencies(new OperationalConfigNamespaceHandler());
-
-        dep.setExpressionParser(ParameterMacroExpressionParser.INSTANCE);
-        dep.setResourceRegistry(resourceRegistry);
-
-        // establish the cluster-config processing context
-        DefaultProcessingContext sslContext = new DefaultProcessingContext(dep, xml);
-
-        // add the default namespace handler
-        NamespaceHandler handler = dep.getDefaultNamespaceHandler();
-        if (handler != null)
-            {
-            sslContext.ensureNamespaceHandler("", handler);
-            }
-
-        DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(sslContext, xml);
-        SSLSocketProviderDefaultDependencies depsSSL = new SSLSocketProviderDefaultDependencies(null);
-
-        ctxSocketProviders.addCookie(SSLSocketProviderDefaultDependencies.class, depsSSL);
-
-
-        SSLSocketProviderDependenciesBuilder bldr = new SSLProcessor().process(ctxSocketProviders, xml);
-
-        SSLSocketProviderDefaultDependencies sslDeps  = bldr.realize();
+        SSLSocketProviderDefaultDependencies sslDeps  = loadDependencies("ssl-config-custom.xml");
         SSLSocketProvider                    provider = new SSLSocketProvider(sslDeps);
 
         SSLContext ctx = sslDeps.getSSLContext();
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), sslDeps.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(sslDeps.getExecutor());
-        assertNotNull(sslDeps.getHostnameVerifier());
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(notNullValue()));
 
-        assertEquals(CustomHostnameVerifier.class, sslDeps.getHostnameVerifier().getClass());
-        CustomHostnameVerifier verifier = (CustomHostnameVerifier) sslDeps.getHostnameVerifier();
-        assertTrue(verifier.isAllowed());
+        HostnameVerifier verifier = sslDeps.getHostnameVerifier();
+        assertThat(verifier, instanceOf(CustomHostnameVerifier.class));
+        assertThat(((CustomHostnameVerifier) verifier).isAllowed(), is(true));
 
-        List<String> protocolVersions = Arrays.asList(sslDeps.getEnabledProtocolVersions());
-        assertTrue(protocolVersions.contains("knockknock"));
-        assertTrue(protocolVersions.contains("slowboat"));
-        assertTrue(protocolVersions.contains("jet"));
+        assertThat(sslDeps.getEnabledProtocolVersions(), is(arrayContainingInAnyOrder("knockknock", "slowboat", "jet")));
 
-        List<String> cipherSuites     = Arrays.asList(sslDeps.getEnabledCipherSuites());
-        assertTrue(cipherSuites.contains("twizzlers"));
-        assertTrue(cipherSuites.contains("snickers"));
+        assertThat(sslDeps.getEnabledCipherSuites(), is(arrayContainingInAnyOrder("twizzlers", "snickers")));
 
         try 
             {

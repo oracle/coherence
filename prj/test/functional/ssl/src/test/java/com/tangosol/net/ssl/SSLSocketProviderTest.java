@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,25 +8,30 @@
 package com.tangosol.net.ssl;
 
 import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
-
-import com.tangosol.run.xml.XmlDocument;
-import com.tangosol.run.xml.XmlHelper;
-import com.tangosol.run.xml.SimpleDocument;
+import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 
 import com.oracle.coherence.common.internal.net.WrapperSocket;
+
 import com.oracle.coherence.common.net.SSLSocketProvider;
 
 import org.junit.Test;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-
-import static org.junit.Assert.*;
 
 import java.io.IOException;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
+import static util.SSLSocketProviderBuilderHelper.loadDependencies;
 
 
 /**
@@ -47,20 +52,8 @@ public class SSLSocketProviderTest
         {
         try
             {
-            LegacyXmlSSLSocketProviderDependencies sslDeps = new LegacyXmlSSLSocketProviderDependencies(null);
-            fail("Expected IllegalArgumentException");
-            }
-        catch (IllegalArgumentException e)
-            {
-            // expected
-            }
-
-        SimpleDocument xml = new SimpleDocument("foo");
-        try
-            {
-            LegacyXmlSSLSocketProviderDependencies sslDeps = new LegacyXmlSSLSocketProviderDependencies(null);
-            SSLSocketProvider provider = new SSLSocketProvider(sslDeps);
-            
+            //noinspection deprecation
+            new LegacyXmlSSLSocketProviderDependencies(null);
             fail("Expected IllegalArgumentException");
             }
         catch (IllegalArgumentException e)
@@ -71,48 +64,43 @@ public class SSLSocketProviderTest
 
     @Test
     public void testSimpleClientConfiguration()
-            throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-client.xml", null);
-        LegacyXmlSSLSocketProviderDependencies sslDeps = new LegacyXmlSSLSocketProviderDependencies(xml);
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-client.xml");
         SSLContext ctx = sslDeps.getSSLContext();
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), LegacyXmlSSLSocketProviderDependencies.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(sslDeps.getExecutor());
-        assertNull(sslDeps.getHostnameVerifier());
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
         }
 
     @Test
     public void testSimpleServerConfiguration()
-            throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-server.xml", null);
-        LegacyXmlSSLSocketProviderDependencies sslDeps = new LegacyXmlSSLSocketProviderDependencies(xml);
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-server.xml");
         SSLContext ctx = sslDeps.getSSLContext();
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), LegacyXmlSSLSocketProviderDependencies.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(sslDeps.getExecutor());
-        assertNull(sslDeps.getHostnameVerifier());
-        SSLSocketProvider provider = new SSLSocketProvider();
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
         }
 
     @Test
     public void testCustomConfiguration()
             throws IOException
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-custom.xml", null);
-        LegacyXmlSSLSocketProviderDependencies sslDeps = new LegacyXmlSSLSocketProviderDependencies(xml);
+        SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-custom.xml");
         SSLSocketProvider provider = new SSLSocketProvider(sslDeps);
         SSLContext ctx = sslDeps.getSSLContext();
-        assertNotNull(ctx);
-        assertEquals(ctx.getProtocol(), sslDeps.DEFAULT_SSL_PROTOCOL);
-        assertNotNull(sslDeps.getExecutor());
-        assertNotNull(sslDeps.getHostnameVerifier());
+        assertThat(ctx, is(notNullValue()));
+        assertThat(ctx.getProtocol(), is(SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL));
+        assertThat(sslDeps.getExecutor(), is(notNullValue()));
+        assertThat(sslDeps.getHostnameVerifier(), is(notNullValue()));
 
-        assertEquals(CustomHostnameVerifier.class, sslDeps.getHostnameVerifier().getClass());
-        CustomHostnameVerifier verifier = (CustomHostnameVerifier) sslDeps.getHostnameVerifier();
-        assertTrue(verifier.isAllowed());
-        try 
+        HostnameVerifier verifier = sslDeps.getHostnameVerifier();
+        assertThat(verifier, instanceOf(CustomHostnameVerifier.class));
+        assertThat(((CustomHostnameVerifier) verifier).isAllowed(), is(true));
+
+        try
             {
             provider.ensureSessionValidity(
                 sslDeps.getSSLContext().createSSLEngine().getSession(),

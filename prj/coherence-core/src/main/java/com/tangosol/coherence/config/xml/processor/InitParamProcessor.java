@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
+import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.CacheMappingRegistry;
@@ -13,7 +14,11 @@ import com.tangosol.coherence.config.ResourceMapping;
 import com.tangosol.coherence.config.ResourceMappingRegistry;
 import com.tangosol.coherence.config.ServiceSchemeRegistry;
 import com.tangosol.coherence.config.TopicMapping;
+
 import com.tangosol.coherence.config.builder.MapBuilder;
+import com.tangosol.coherence.config.builder.NamedResourceBuilder;
+import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
+
 import com.tangosol.coherence.config.scheme.CachingScheme;
 import com.tangosol.coherence.config.scheme.ClassScheme;
 import com.tangosol.coherence.config.scheme.ExternalScheme;
@@ -43,11 +48,11 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.NamedCollection;
+import com.tangosol.net.OperationalContext;
 import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.run.xml.XmlElement;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.UUID;
 
 import java.util.Map;
@@ -107,6 +112,26 @@ public class InitParamProcessor
             clzType   = Object.class;
             exprValue = new SchemeRefExpression(exprSchemeName, registry);
             }
+        else if (sType != null && sType.equals("{resource}"))
+            {
+            Expression<?>                exprResourceName = exprValue;
+            ParameterizedBuilderRegistry registry         = context.getCookie(ParameterizedBuilderRegistry.class);
+
+            if (registry == null)
+                {
+                // grab the operational context from which we can look up the serializer
+                OperationalContext ctxOperational = context.getCookie(OperationalContext.class);
+                if (ctxOperational == null)
+                    {
+                    throw new ConfigurationException("Attempted to resolve the OperationalContext in [" + element
+                        + "] but it was not defined", "The registered ElementHandler for the <" + element.getName()
+                        + "> element is not operating in an OperationalContext");
+                    }
+                registry = ctxOperational.getBuilderRegistry();
+                }
+
+            exprValue = new ResourceRefExpression(exprResourceName, registry);
+            }
         else
             {
             // attempt to load the specified class
@@ -158,13 +183,14 @@ public class InitParamProcessor
 
         // ----- DataStructureRefExpression methods -------------------------
 
+        @SuppressWarnings("StatementWithEmptyBody")
         public String evaluateName(ParameterResolver                resolver,
                                    Class<? extends ResourceMapping> clsType,
                                    String                           sElementName)
             {
             String sDesiredName = new Value(m_exprCacheName.evaluate(resolver)).as(String.class);
 
-            if (sDesiredName.contains("*"))
+            if (sDesiredName != null && sDesiredName.contains("*"))
                 {
                 // the desired name contains a wildcard * and as
                 // such we need to replace that with the string that
@@ -221,17 +247,17 @@ public class InitParamProcessor
         /**
          * The Expression that specifies the Cache Name to resolve.
          */
-        private Expression<?> m_exprCacheName;
+        private final Expression<?> m_exprCacheName;
 
         /**
          * The ClassLoader to use to resolve/load the underlying Cache.
          */
-        private ClassLoader m_classLoader;
+        private final ClassLoader m_classLoader;
 
         /**
          * The ResourceMappingRegistry to use to lookup CacheMapping/TopicMapping definitions.
          */
-        private ResourceMappingRegistry m_registryResourceMappings;
+        private final ResourceMappingRegistry m_registryResourceMappings;
         }
 
     // ----- inner class: CacheRefExpression --------------------------------
@@ -241,7 +267,7 @@ public class InitParamProcessor
      * a {cache-ref} macro in a Configuration File.
      */
     public static class CacheRefExpression
-            extends DataStructureRefExpression<NamedCache>
+            extends DataStructureRefExpression<NamedCache<?, ?>>
         {
         // ----- constructors -----------------------------------------------
 
@@ -279,7 +305,7 @@ public class InitParamProcessor
          * {@inheritDoc}
          */
         @Override
-        public NamedCache evaluate(ParameterResolver resolver)
+        public NamedCache<?, ?> evaluate(ParameterResolver resolver)
             {
             String                   sName     = evaluateName(resolver, CacheMapping.class, "cache-name");
             ClassLoader              loader    = getClassLoader();
@@ -374,12 +400,16 @@ public class InitParamProcessor
             // the parameter resolver will have the classloader
             Parameter paramClassLoader = resolver.resolve("class-loader");
             ClassLoader classLoader = paramClassLoader == null
-                                      ? Base.getContextClassLoader()
+                                      ? Classes.getContextClassLoader()
                                       : paramClassLoader.evaluate(resolver).as(ClassLoader.class);
 
-            if (scheme instanceof InvocationScheme || scheme instanceof RemoteInvocationScheme)
+            if (scheme instanceof InvocationScheme)
                 {
                 return ((InvocationScheme) scheme).realizeService(resolver, classLoader, CacheFactory.getCluster());
+                }
+            if (scheme instanceof RemoteInvocationScheme)
+                {
+                return ((RemoteInvocationScheme) scheme).realizeService(resolver, classLoader, CacheFactory.getCluster());
                 }
             else if (scheme instanceof ClassScheme)
                 {
@@ -406,7 +436,7 @@ public class InitParamProcessor
                                                            cachingScheme.getServiceType());
 
                 // the resulting map/cache
-                Map map;
+                Map<?, ?> map;
 
                 if (scheme instanceof LocalScheme || scheme instanceof OverflowScheme
                     || scheme instanceof ExternalScheme || scheme instanceof ReadWriteBackingMapScheme
@@ -456,11 +486,81 @@ public class InitParamProcessor
         /**
          * The Expression that specifies the Scheme Name to resolve.
          */
-        private Expression<?> m_exprSchemeName;
+        private final Expression<?> m_exprSchemeName;
 
         /**
          * The ServiceSchemeRegistry to use to lookup ServiceSchemes.
          */
-        private ServiceSchemeRegistry m_registry;
+        private final ServiceSchemeRegistry m_registry;
+        }
+
+    // ----- inner class: ResourceRefExpression -----------------------------
+
+    /**
+     * An {@link Expression} implementation that represents the use of
+     * a {resource} macro in a configuration File.
+     */
+    public static class ResourceRefExpression
+            implements Expression<Object>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Constructs a SchemeRefExpression.
+         *
+         * @param exprResourceName  the name of the ServiceScheme to resolve
+         * @param registry        the ServiceSchemeRegistry to lookup ServiceSchemes
+         */
+        public ResourceRefExpression(Expression<?> exprResourceName, ParameterizedBuilderRegistry registry)
+            {
+            m_exprResourceName = exprResourceName;
+            m_registry         = registry;
+            }
+
+        // ----- Expression interface ---------------------------------------
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Object evaluate(ParameterResolver resolver)
+            {
+            String                  sName        = new Value(m_exprResourceName.evaluate(resolver)).as(String.class);
+            NamedResourceBuilder<?> namedBuilder = (NamedResourceBuilder<?>) m_registry.getBuilder(NamedResourceBuilder.class, sName);
+
+            if (namedBuilder == null)
+                {
+                throw new ConfigurationException("No cluster resource has been configured with the name " + sName,
+                        "Please define a valid named {resource} parameter");
+                }
+
+            // the parameter resolver will have the classloader
+            Parameter paramClassLoader = resolver.resolve("class-loader");
+            ClassLoader classLoader = paramClassLoader == null
+                                      ? Classes.getContextClassLoader()
+                                      : paramClassLoader.evaluate(resolver).as(ClassLoader.class);
+
+            return namedBuilder.realize(resolver, classLoader, null);
+            }
+
+        // ----- Object interface -------------------------------------------
+
+        @Override
+        public String toString()
+            {
+            return String.format("ResourceRefExpression{exprResourceName=%s}", m_exprResourceName);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The Expression that specifies the resource name to resolve.
+         */
+        private final Expression<?> m_exprResourceName;
+
+        /**
+         * The {@link ParameterizedBuilderRegistry} to use to lookup ServiceSchemes.
+         */
+        private final ParameterizedBuilderRegistry m_registry;
         }
     }

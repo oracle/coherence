@@ -776,6 +776,42 @@ to find specific notes on changes suggested for production use.
       </socket-provider>
 
       <!--
+       The tls-files socket provider is a socket provider which only produces SSL
+       protected sockets. Just as with the tcp socket provider this includes
+       a SSL/TCP based DatagramSocket. The difference between this socket-provider
+       and the plain ssl socket provider is that this provider uses plain key and
+       cert files instead of Java KeyStore files.
+
+       This basic configuration allows for easy configuration of two-way
+       SSL connections, based on peer trust where every trusted peer resides
+       within a single CA cert file. More elaborate configuration can be
+       defined with alternate identity and trust managers to allow for CA
+       based trust validation.
+
+       Note: Unlike the TCP socket-provider, multicast sockets are not
+       supported, and thus well-known-addresses must be enabled for TCMP to
+       function with this provider.  Similarly, if SSL is enabled then
+       the cluster will not support sharing of its cluster port with other
+       clusters running on the same machine.
+      -->
+      <socket-provider id="tls-files">
+        <ssl>
+          <identity-manager>
+            <key system-property="coherence.security.key"/>
+            <cert system-property="coherence.security.cert"/>
+          </identity-manager>
+          <trust-manager>
+            <algorithm>PeerX509</algorithm>
+            <cert system-property="coherence.security.ca.cert"/>
+          </trust-manager>
+          <protocol-versions usage="black-list">
+            <name>SSLv3</name>
+          </protocol-versions>
+          <socket-provider>tcp</socket-provider>
+        </ssl>
+      </socket-provider>
+
+      <!--
       The sdp socket provider is a socket provider which will produce SDP based
       sockets provided the JVM and underlying network stack supports SDP. Of specific
       interest is its ability to create instances of DatagramSocket which are

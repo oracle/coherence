@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,10 +8,17 @@ package com.tangosol.internal.net.ssl;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.SocketProvider;
+
+import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
+import com.tangosol.coherence.config.unit.Seconds;
+
 import com.tangosol.config.annotation.Injectable;
+
 import com.tangosol.net.SocketProviderFactory;
 
+import com.tangosol.net.ssl.RefreshPolicy;
 import com.tangosol.util.DaemonThreadFactory;
 
 import javax.net.ssl.HostnameVerifier;
@@ -19,6 +26,7 @@ import javax.net.ssl.SSLContext;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 import java.util.logging.Logger;
 
 /**
@@ -190,41 +198,7 @@ public class SSLSocketProviderDefaultDependencies
         return super.setEnabledProtocolVersions(asProtocols);
         }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public SSLSocketProvider.DefaultDependencies setLogger(Logger logger)
-        {
-        return super.setLogger(logger);
-        }
-
-    /**
-     * Log decription of instantiation of this.
-     *
-     * @param s  SSLSocketProviderDefaultDependencies instantiation log description
-     */
-    public void setDescription(String s)
-        {
-        m_sDescription = s;
-        }
-
-    // ----- Object methods ----------------------------------------------
-
-   /**
-    * {@inheritDoc}
-    */
-    public String toString()
-        {
-        return m_sDescription;
-        }
-
     // ----- data members ------------------------------------------------
-    /**
-     * The description of the provider.
-     */
-    protected String m_sDescription = "SSLSocketProvider()";
-
 
     /**
      * SocketProviderFactory dependencies
@@ -232,26 +206,6 @@ public class SSLSocketProviderDefaultDependencies
     protected SocketProviderFactory.Dependencies m_DependenciesProviderFactory;
 
     // ----- constants ------------------------------------------------------
-
-     /**
-     * The default SSL protocol.
-     */
-     public static final String DEFAULT_SSL_PROTOCOL = "TLS";
-
-     /**
-     * The default identity management algorithm.
-     */
-     public static final String DEFAULT_IDENTITY_ALGORITHM = "SunX509";
-
-     /**
-     * The default trust management algorithm.
-     */
-     public static final String DEFAULT_TRUST_ALGORITHM = "SunX509";
-
-     /**
-     * The default keystore type.
-     */
-     public static final String DEFAULT_KEYSTORE_TYPE = "JKS";
 
     /**
      * The default executor used by new SSLSocketProviders.

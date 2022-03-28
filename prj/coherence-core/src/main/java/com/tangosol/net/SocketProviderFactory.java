@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import java.net.MulticastSocket;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -729,10 +730,14 @@ public class SocketProviderFactory
             m_mapTCPDatagramDependencies.put(sId, deps);
             }
 
-
         public void addNamedSSLDependenciesBuilder(String sId, SSLSocketProviderDependenciesBuilder bldr)
             {
             m_mapSSLDependenciesBuilder.put(sId, bldr);
+            }
+
+        public Map getSSLDependenciesBuilderMap()
+            {
+            return Collections.unmodifiableMap(m_mapSSLDependenciesBuilder);
             }
 
         // ----- data members ---------------------------------------------------

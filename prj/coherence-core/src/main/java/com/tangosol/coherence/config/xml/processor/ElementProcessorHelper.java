@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.coherence.config.xml.processor;
 
 import com.tangosol.coherence.config.builder.InstanceBuilder;
+import com.tangosol.coherence.config.builder.NamedResourceBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.StaticFactoryInstanceBuilder;
 import com.tangosol.config.ConfigurationException;
@@ -91,44 +92,59 @@ public class ElementProcessorHelper
                         }
                     else
                         {
-                        // when there's only a single child element and it's from a foreign namespace,
-                        // assume that it produces a builder and return it if it is
-                        List<XmlElement> listChildren = element.getElementList();
+                        // does this element define a "resource" element?
+                        qName = new QualifiedName(sPrefix, "resource");
+                        xml   = element.getElement(qName.getName());
 
-                        if (listChildren.size() == 1
-                            && !listChildren.get(0).getQualifiedName().getPrefix().equals(sPrefix))
+                        if (xml != null)
                             {
-                            bldr = ensureBuilderOrNull(context.processOnlyElementOf(element));
-                            }
-                        else if (listChildren.size() == 2)
-                            {
-                            // or there may be a scheme-name element and a foreign namespace
-                            qName = new QualifiedName(sPrefix, "scheme-name");
-
-                            XmlElement elementOne = listChildren.get(0);
-                            XmlElement elementTwo = listChildren.get(1);
-
-                            if (elementOne.getQualifiedName().equals(qName)
-                                    && !elementTwo.getQualifiedName().getPrefix().equals(sPrefix))
+                            bldr = (ParameterizedBuilder<?>) context.processElement(xml);
+                            if (bldr instanceof NamedResourceBuilder)
                                 {
-                                // first element is scheme-name and second element is a foreign namespace
-                                bldr = ensureBuilderOrNull(context.processElement(elementTwo));
-                                }
-                            else if (!elementOne.getQualifiedName().getPrefix().equals(sPrefix)
-                                        && elementTwo.getQualifiedName().equals(qName))
-                                {
-                                // second element is scheme-name and first element is a foreign namespace
-                                bldr = ensureBuilderOrNull(context.processElement(elementOne));
-                                }
-                            else
-                                {
-                                bldr = null;
+                                bldr = ((NamedResourceBuilder) bldr).getDelegate();
                                 }
                             }
                         else
                             {
-                            // no custom builder is available
-                            bldr = null;
+                            // when there's only a single child element and it's from a foreign namespace,
+                            // assume that it produces a builder and return it if it is
+                            List<XmlElement> listChildren = element.getElementList();
+
+                            if (listChildren.size() == 1
+                                    && !listChildren.get(0).getQualifiedName().getPrefix().equals(sPrefix))
+                                {
+                                bldr = ensureBuilderOrNull(context.processOnlyElementOf(element));
+                                }
+                            else if (listChildren.size() == 2)
+                                {
+                                // or there may be a scheme-name element and a foreign namespace
+                                qName = new QualifiedName(sPrefix, "scheme-name");
+
+                                XmlElement elementOne = listChildren.get(0);
+                                XmlElement elementTwo = listChildren.get(1);
+
+                                if (elementOne.getQualifiedName().equals(qName)
+                                        && !elementTwo.getQualifiedName().getPrefix().equals(sPrefix))
+                                    {
+                                    // first element is scheme-name and second element is a foreign namespace
+                                    bldr = ensureBuilderOrNull(context.processElement(elementTwo));
+                                    }
+                                else if (!elementOne.getQualifiedName().getPrefix().equals(sPrefix)
+                                        && elementTwo.getQualifiedName().equals(qName))
+                                    {
+                                    // second element is scheme-name and first element is a foreign namespace
+                                    bldr = ensureBuilderOrNull(context.processElement(elementOne));
+                                    }
+                                else
+                                    {
+                                    bldr = null;
+                                    }
+                                }
+                            else
+                                {
+                                // no custom builder is available
+                                bldr = null;
+                                }
                             }
                         }
                     }
