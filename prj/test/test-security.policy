@@ -63,6 +63,7 @@ grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.j
   permission java.security.SecurityPermission "insertProvider";
   permission java.security.SecurityPermission "putProviderProperty.CoherenceSecurityProvider";
   permission java.security.SecurityPermission "putProviderProperty.OracleCommonsSecurityProvider";
+  permission java.security.SecurityPermission "putProviderProperty.CoherenceSSLContextProvider";
   permission java.util.logging.LoggingPermission "control";
   permission java.util.PropertyPermission "java.net.preferIPv4Stack", "read";
   permission java.util.PropertyPermission "java.net.preferIPv6Addresses", "read";
