@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -1336,7 +1336,34 @@ public class MapListenerSupport
                            boolean fPriming,
                            Filter[] aFilter)
             {
-            super(map, nId, oKey, oValueOld, oValueNew, fSynthetic, transformState, fPriming);
+            this(map, nId, oKey, oValueOld, oValueNew, fSynthetic, transformState, fPriming, false, aFilter);
+            }
+
+        /**
+        * Constructs a new FilterEvent.
+        *
+        * @param map             the ObservableMap object that fired the event
+        * @param nId             this event's id
+        * @param oKey            the key into the map
+        * @param oValueOld       the old value
+        * @param oValueNew       the new value
+        * @param fSynthetic      true iff the event is caused by the cache
+        *                        internal processing such as eviction or loading
+        * @param transformState  the {@link TransformationState state} describing
+        *                        how this event has been or should be transformed
+        * @param fPriming        a flag indicating whether or not the event is a priming event
+        * @param fExpired        true iff the event results from an eviction due to time
+        * @param aFilter         an array of filters that caused this event
+        *
+        * @since 22.06
+        */
+        public FilterEvent(ObservableMap map, int nId, Object oKey,
+                           Object oValueOld, Object oValueNew,
+                           boolean fSynthetic, TransformationState transformState,
+                           boolean fPriming, boolean fExpired,
+                           Filter[] aFilter)
+            {
+            super(map, nId, oKey, oValueOld, oValueNew, fSynthetic, transformState, fPriming, fExpired);
 
             azzert(aFilter != null);
             f_aFilter = aFilter;
@@ -1356,7 +1383,8 @@ public class MapListenerSupport
                     event instanceof CacheEvent
                             ? ((CacheEvent) event).getTransformationState()
                             : TransformationState.TRANSFORMABLE,
-                    event instanceof CacheEvent && ((CacheEvent) event).isPriming());
+                  event instanceof CacheEvent && ((CacheEvent) event).isPriming(),
+                  event instanceof CacheEvent && ((CacheEvent) event).isExpired());
 
             with(event.getPartition(), event.getVersion());
 

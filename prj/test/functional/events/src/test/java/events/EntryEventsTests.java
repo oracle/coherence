@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,8 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
+
+import com.tangosol.net.cache.CacheEvent;
 
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.MapEvent;
@@ -393,6 +395,86 @@ public class EntryEventsTests
         }
 
     /**
+     * Ensure synthetic delete is received, resulting from eviction
+     */
+    @Test
+    public void testExpiringDeleted()
+            throws InterruptedException
+        {
+        NamedCache cache = getNamedCache("dist-exp");
+
+        try
+            {
+            ResultsListener listener = new ResultsListener();
+            cache.addMapListener(listener, 1, false);
+
+            putAndCheckEvent(cache, listener, 1);
+            // wait for synthetic delete
+            listener.reset();
+            listener.waitForResult();
+
+            assertEquals(true, ((CacheEvent) listener.getLastEvent()).isSynthetic());
+            assertEquals(true, ((CacheEvent) listener.getLastEvent()).isExpired());
+            }
+        finally
+            {
+            cache.clear();
+            }
+        }
+
+    @Test
+    public void testExpiringDeletedRWBM()
+        {
+        NamedCache cache = getNamedCache("dist-rwbm-exp");
+
+        try
+            {
+            ResultsListener listener = new ResultsListener();
+            cache.addMapListener(listener, 1, false);
+
+            putAndCheckEvent(cache, listener, 1);
+            // wait for synthetic delete
+            listener.reset();
+            listener.waitForResult();
+
+            assertEquals(true, ((CacheEvent) listener.getLastEvent()).isSynthetic());
+            assertEquals(true, ((CacheEvent) listener.getLastEvent()).isExpired());
+            }
+        finally
+            {
+            cache.clear();
+            }
+        }
+
+    @Test
+    public void testExpiringDeletedLocal()
+        throws InterruptedException
+        {
+        NamedCache cache = getNamedCache("local-exp");
+
+        try
+            {
+            ResultsListener listener = new ResultsListener();
+            cache.addMapListener(listener, 1, false);
+
+            putAndCheckEvent(cache, listener, 1);
+            listener.reset();
+
+            sleep(5000);
+            // wait for synthetic delete
+            cache.get(1); // Force eviction
+            listener.waitForResult();
+
+            assertEquals(true, ((CacheEvent) listener.getLastEvent()).isSynthetic());
+            assertEquals(true, ((CacheEvent) listener.getLastEvent()).isExpired());
+            }
+        finally
+            {
+            cache.clear();
+            }
+        }
+
+    /**
      * Helper.
      */
     protected void putAndCheckEvent(NamedCache cache, ResultsListener listener, Object oPut)
@@ -464,8 +546,10 @@ public class EntryEventsTests
             {
             synchronized (this)
                 {
+                out("onMapEvent: " + evt);
                 m_oValue  = evt.getNewValue();
                 m_fResult = true;
+                m_oEvt    = evt;
                 notify();
                 }
             }
@@ -492,6 +576,11 @@ public class EntryEventsTests
             m_oValue  = null;
             }
 
+        public MapEvent getLastEvent()
+            {
+            return m_oEvt;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -502,7 +591,12 @@ public class EntryEventsTests
         /**
          * Used as a signal to know when the results cache has been updated.
          */
-        protected boolean m_fResult;
+        protected volatile boolean m_fResult;
+
+        /**
+         * Actual event received.
+         */
+        protected volatile MapEvent m_oEvt;
         }
 
 
