@@ -12,7 +12,6 @@ import com.oracle.bedrock.runtime.SimpleApplication;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.Executable;
-import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import org.junit.Assume;
 import org.junit.AssumptionViolatedException;
 
@@ -25,9 +24,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * A simple utility to create test self-signed private keys, certificates and keystores.
+ *
+ * @author Jonathan Knight  2022.01.25
+ * @since 22.06
  */
 public class KeyTool
     {
+    /**
+     * Assert that openssl and Java keytool can be used to create test keys and certs.
+     *
+     * @throws AssumptionViolatedException if the check fails
+     */
     public static void assertCanCreateKeys()
         {
         try (Application application = LocalPlatform.get().launch(SimpleApplication.class,
@@ -41,6 +48,11 @@ public class KeyTool
         Assume.assumeTrue("Java keytool does not exist", new File(KEY_TOOL).exists());
         }
 
+    /**
+     * Return {@code true} if openssl and Java keytool can be used to create test keys and certs.
+     *
+     * @return {@code true} if openssl and Java keytool can be used to create test keys and certs
+     */
     public static boolean canCreateKeys()
         {
         try
@@ -54,9 +66,19 @@ public class KeyTool
             }
         }
 
-    public static KeyAndCert createCACert(String sName, String sStoreType) throws IOException
+    /**
+     * Create a self-signed CA cert.
+     *
+     * @param fileBuild   the build target directory below which the certificate directory will be created
+     * @param sName       the name for the CA cert and cert CN
+     * @param sStoreType  they type of the keystore to create
+     *
+     * @return the {@link KeyAndCert} holder containing the CA cert details
+     *
+     * @throws IOException if the cert creation fails
+     */
+    public static KeyAndCert createCACert(File fileBuild, String sName, String sStoreType) throws IOException
         {
-        File   fileBuild    = MavenProjectFileUtils.locateBuildFolder(KeyTool.class);
         File   fileClasses  = new File(fileBuild, "test-classes");
         File   fileCerts    = new File(fileClasses, "certs");
         File   fileKey      = new File(fileCerts, sName + "-ca.key");
@@ -93,9 +115,19 @@ public class KeyTool
         return new KeyAndCert(fileKey, null, null, fileCert, sKeyPass, null, fileKeystore, sStorePass);
         }
 
-    public static KeyAndCert createKeyCertPair(KeyAndCert keyAndCertCA, String sName) throws IOException
+    /**
+     * Create a self-signed private key and cert.
+     *
+     * @param fileBuild     the build target directory below which the key and cert directory will be created
+     * @param keyAndCertCA  the {@link KeyAndCert} holder containing the CA cert to use to sign the key and cert
+     * @param sName         the name for the CA cert and cert CN
+     *
+     * @return the {@link KeyAndCert} holder containing the CA cert details
+     *
+     * @throws IOException if the cert creation fails
+     */
+    public static KeyAndCert createKeyCertPair(File fileBuild, KeyAndCert keyAndCertCA, String sName) throws IOException
         {
-        File  fileBuild     = MavenProjectFileUtils.locateBuildFolder(KeyTool.class);
         File  fileClasses   = new File(fileBuild, "test-classes");
         File  fileCerts     = new File(fileClasses, "certs");
         File  fileSign      = new File(fileCerts, sName + "-signing.key");
@@ -167,6 +199,8 @@ public class KeyTool
         return new KeyAndCert(fileKey, filePEM, filePEMNoPwd, fileCert, sKeyPass, fileP12, fileKeystore, sStorePass);
         }
 
+    // ----- helper methods -------------------------------------------------
+
     private static void toPem(File fileKey, File filePEM, String sKeyPass)
         {
         Arguments arguments = Arguments.of("pkcs8", "-topk8", "-outform", "pem", "-v1", "PBE-MD5-DES",
@@ -209,6 +243,9 @@ public class KeyTool
 
     // ----- inner class: KeyAndCert ----------------------------------------
 
+    /**
+     * A simple holder for a key and cert.
+     */
     public static class KeyAndCert
         {
         public KeyAndCert(File fileKey, File fileKeyPEM, File fileKeyPEMNoPass, File fileCert, String sKeyPass,
@@ -258,5 +295,8 @@ public class KeyTool
 
     // ----- constants ---------------------------------------------------------------
 
+    /**
+     * The location of the JDK keytool executable.
+     */
     private static final String KEY_TOOL = System.getProperty("java.home") + File.separator + "bin" + File.separator + "keytool";
     }

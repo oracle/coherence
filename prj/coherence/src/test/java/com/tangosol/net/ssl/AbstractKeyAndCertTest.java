@@ -6,8 +6,11 @@
  */
 package com.tangosol.net.ssl;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import org.junit.BeforeClass;
 import util.KeyTool;
+
+import java.io.File;
 
 /**
  * A base class for tests requiring a simple self-signed key and cert.
@@ -18,8 +21,9 @@ public class AbstractKeyAndCertTest
     public static void setup() throws Exception
         {
         KeyTool.assertCanCreateKeys();
-        s_caCert     = KeyTool.createCACert("test-ca", "PKCS12");
-        s_keyAndCert = KeyTool.createKeyCertPair(s_caCert, "test");
+        File fileBuild = MavenProjectFileUtils.locateBuildFolder(AbstractKeyAndCertTest.class);
+        s_caCert     = KeyTool.createCACert(fileBuild,"test-ca", "PKCS12");
+        s_keyAndCert = KeyTool.createKeyCertPair(fileBuild, s_caCert, "test");
         }
 
     // ----- data members ---------------------------------------------------

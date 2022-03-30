@@ -6,6 +6,7 @@
  */
 package ssl;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.net.SocketProvider;
@@ -38,12 +39,15 @@ public class SSLKeysAndCertsTests
     public static void _setup() throws Exception
         {
         KeyTool.assertCanCreateKeys();
-        s_serverCACert     = KeyTool.createCACert("server-ca", "PKCS12");
-        s_serverKeyAndCert = KeyTool.createKeyCertPair(s_serverCACert, "server");
-        s_clientCACert     = KeyTool.createCACert("client-ca", "PKCS12");
-        s_clientKeyAndCert = KeyTool.createKeyCertPair(s_clientCACert, "client");
-        s_badCACert        = KeyTool.createCACert("bad-ca", "PKCS12");
-        s_badKeyAndCert    = KeyTool.createKeyCertPair(s_badCACert, "bad");
+
+        File fileBuild = MavenProjectFileUtils.locateBuildFolder(SSLKeysAndCertsTests.class);
+
+        s_serverCACert     = KeyTool.createCACert(fileBuild,"server-ca", "PKCS12");
+        s_serverKeyAndCert = KeyTool.createKeyCertPair(fileBuild, s_serverCACert, "server");
+        s_clientCACert     = KeyTool.createCACert(fileBuild,"client-ca", "PKCS12");
+        s_clientKeyAndCert = KeyTool.createKeyCertPair(fileBuild, s_clientCACert, "client");
+        s_badCACert        = KeyTool.createCACert(fileBuild,"bad-ca", "PKCS12");
+        s_badKeyAndCert    = KeyTool.createKeyCertPair(fileBuild, s_badCACert, "bad");
         }
 
     @Before
