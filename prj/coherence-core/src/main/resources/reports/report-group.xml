@@ -35,6 +35,9 @@
       <location>reports/report-proxy.xml</location>
     </report-config>
     <report-config>
+      <location>reports/report-proxy-connections.xml</location>
+    </report-config>
+    <report-config>
       <location>reports/report-proxy-http.xml</location>
     </report-config>
     <report-config>
