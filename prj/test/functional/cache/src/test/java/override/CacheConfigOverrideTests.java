@@ -13,6 +13,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.CoherenceSession;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -23,7 +24,7 @@ import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.internal.InterceptorManager;
 
 import com.tangosol.net.management.MBeanHelper;
-
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.run.xml.XmlHelper;
 
 import org.junit.AfterClass;
@@ -506,7 +507,7 @@ public class CacheConfigOverrideTests
         {
         try
             {
-            System.setProperty("coherence.cacheconfig", "override/test-cache-config.xml");
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TEST);
 
             AbstractFunctionalTest._startup();
 
@@ -516,6 +517,64 @@ public class CacheConfigOverrideTests
             assertTrue(cacheNames.hasMoreElements());
             assertEquals("test-1", cacheNames.nextElement());
             assertEquals("TestService", myCacheOverride.getService().getInfo().getServiceName());
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
+    public void testCacheConfigOverrideTopics()
+            throws Exception
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TEST);
+            System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-topics.xml");
+
+            AbstractFunctionalTest._startup();
+
+            NamedCache myCachePrepend = CacheFactory.getCache("test-cache");
+            assertNotNull(myCachePrepend);
+            Enumeration cacheNames = myCachePrepend.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("test-cache", cacheNames.nextElement());
+            assertEquals("TestService", myCachePrepend.getService().getInfo().getServiceName());
+
+            NamedTopic topic = new CoherenceSession().getTopic("topic-override");
+            assertNotNull(topic);
+            assertEquals("MyTopicOverrideService", topic.getService().getInfo().getServiceName());
+            }
+        finally
+            {
+            System.clearProperty("coherence.cacheconfig");
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    @Test
+    public void testCacheConfigWithExistingTopicsMappingAndOverride()
+            throws Exception
+        {
+        try
+            {
+            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TOPICS);
+            System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-topics.xml");
+
+            AbstractFunctionalTest._startup();
+
+            NamedCache myCachePrepend = CacheFactory.getCache("test-cache");
+            assertNotNull(myCachePrepend);
+            Enumeration cacheNames = myCachePrepend.getCacheService().getCacheNames();
+            assertTrue(cacheNames.hasMoreElements());
+            assertEquals("test-cache", cacheNames.nextElement());
+            assertEquals("TestService", myCachePrepend.getService().getInfo().getServiceName());
+
+            NamedTopic topic = new CoherenceSession().getTopic("topic-override");
+            assertNotNull(topic);
+            assertEquals("MyTopicOverrideService", topic.getService().getInfo().getServiceName());
             }
         finally
             {
@@ -545,6 +604,16 @@ public class CacheConfigOverrideTests
      * Cache configuration file with an override file containing interceptors only.
      */
     public final static String FILE_CFG_CACHE_INTERCEPTORS = "override/cache-config-interceptors.xml";
+
+    /**
+     * Simple cache configuration file for test.
+     */
+    public final static String FILE_CFG_CACHE_TEST = "override/test-cache-config.xml";
+
+    /**
+     * coherence cache configuration with topics.
+     */
+    public final static String FILE_CFG_CACHE_TOPICS = "override/cache-config-with-topics.xml";
 
     /**
      * Operational override file.

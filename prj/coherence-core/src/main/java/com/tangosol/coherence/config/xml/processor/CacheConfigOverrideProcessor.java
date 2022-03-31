@@ -39,7 +39,11 @@ public class CacheConfigOverrideProcessor
 
             if ("caching-scheme-mapping".equals(xmlElement.getName()))
                 {
-                processCacheMappings(xmlBase, xmlElement);
+                processSchemeMappings(xmlBase, xmlElement, "cache-name");
+                }
+            else if ("topic-scheme-mapping".equals(xmlElement.getName()))
+                {
+                processSchemeMappings(xmlBase, xmlElement, "topic-name");
                 }
             else if ("caching-schemes".equals(xmlElement.getName()))
                 {
@@ -64,13 +68,25 @@ public class CacheConfigOverrideProcessor
      * caching-scheme-mapping declared in the override xml file.
      *
      * @param xmlBase                   parent cache config xml
-     * @param xmlOverrideCacheMappings  overriding caching-scheme-mapping element
+     * @param xmlOverrideSchemeMappings  overriding caching-scheme-mapping element
+     * @param sMappingSubElementName    Scheme mapping sub element name e.g cache-name for cache-scheme-mapping
+     *                                  or topic-name for topic-scheme-mapping
      */
-    private void processCacheMappings(XmlElement xmlBase, XmlElement xmlOverrideCacheMappings)
+    private void processSchemeMappings(XmlElement xmlBase,
+            XmlElement xmlOverrideSchemeMappings, String sMappingSubElementName)
         {
         List<XmlElement> listElements = new ArrayList<>();
 
-        for (Object subElements : xmlOverrideCacheMappings.getElementList())
+        XmlElement xmlCurrentElement = xmlBase.getElement(xmlOverrideSchemeMappings.getName());
+        if (xmlCurrentElement == null)
+            {
+            listElements.add(xmlOverrideSchemeMappings);
+            XmlHelper.addElements(xmlBase, listElements.iterator());
+            listElements.clear();
+            return;
+            }
+
+        for (Object subElements : xmlOverrideSchemeMappings.getElementList())
             {
             XmlElement xmlElementOverride = (XmlElement) subElements;
             String     absXmlPath         = xmlElementOverride.getAbsolutePath();
@@ -81,7 +97,7 @@ public class CacheConfigOverrideProcessor
             XmlElement xmlSchemeOverride  = xmlElementOverride.getElement("scheme-name");
             String     sSubElementName    = xmlElementOverride.getName();
 
-            if (xmlSchemeOverride != null)
+            if (xmlElementParent != null && xmlSchemeOverride != null)
                 {
                 String sOverrideSchemeName = xmlSchemeOverride.getValue().toString();
 
@@ -94,8 +110,8 @@ public class CacheConfigOverrideProcessor
                     if (xmlElementScheme != null)
                         {
                         String sSchemeName        = xmlElementScheme.getValue().toString();
-                        String sCacheNameBase     = xmlElementBase.getElement("cache-name").toString();
-                        String sCacheNameOverride = xmlElementOverride.getElement("cache-name").toString();
+                        String sCacheNameBase     = xmlElementBase.getElement(sMappingSubElementName).toString();
+                        String sCacheNameOverride = xmlElementOverride.getElement(sMappingSubElementName).toString();
 
                         if (sCacheNameOverride.equals(sCacheNameBase))
                             {
@@ -139,7 +155,7 @@ public class CacheConfigOverrideProcessor
                         }
                     }
                 }
-            else if (!xmlElementParent.getElementList().isEmpty())
+            else if (xmlElementParent != null && !xmlElementParent.getElementList().isEmpty())
                 {
                 for (Object oBaseElement: xmlElementParent.getElementList())
                     {
@@ -155,9 +171,7 @@ public class CacheConfigOverrideProcessor
 
         if (!listElements.isEmpty())
             {
-            XmlElement currentElement = xmlBase.getElement(xmlOverrideCacheMappings.getName());
-
-            for (Object subElements : currentElement.getElementList())
+            for (Object subElements : xmlCurrentElement.getElementList())
                 {
                 XmlElement subElement = (XmlElement) subElements;
                 listElements.add(subElement);
@@ -165,10 +179,10 @@ public class CacheConfigOverrideProcessor
 
             for (XmlElement subElement : listElements)
                 {
-                XmlHelper.removeElement(currentElement, subElement.getName());
+                XmlHelper.removeElement(xmlCurrentElement, subElement.getName());
                 }
 
-            XmlHelper.addElements(xmlBase.getElement(xmlOverrideCacheMappings.getName()), listElements.iterator());
+            XmlHelper.addElements(xmlCurrentElement, listElements.iterator());
             listElements.clear();
             }
         }

@@ -81,8 +81,6 @@ public class DocumentProcessor
                     {
                     handler.getOverrideProcessor().process(xmlDocument, xmlOverride);
                     }
-
-                Logger.finer("Effective cache configuration after applying override:\n" + xmlDocument);
                 }
 
             context.ensureNamespaceHandler("", handler);

@@ -18,6 +18,13 @@
     </cache-mapping>
   </caching-scheme-mapping>
 
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>topic-*</topic-name>
+      <scheme-name>my-topics</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
   <caching-schemes>
     <distributed-scheme>
       <scheme-name>test-scheme</scheme-name>
