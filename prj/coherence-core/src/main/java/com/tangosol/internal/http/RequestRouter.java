@@ -290,6 +290,20 @@ public class RequestRouter
                                                    .findFirst()
                                                    .orElse("");
 
+            if (sRoot == null || sRoot.length() == 0)
+                {
+                // strip the base and try again
+                int nBase = request.getBaseURI().getPath().length();
+                if (nBase > 1)
+                    {
+                    sPath = uri.getPath().substring(nBase - 1);
+                    sRoot = f_listRootPaths.stream()
+                            .filter(sPath::startsWith)
+                            .findFirst()
+                            .orElse("");
+                    }
+                }
+
             // strip any trailing slashes from the path
             sPath = sPath.substring(sRoot.length());
             while(sPath.endsWith("/") && sPath.length() != 1)
