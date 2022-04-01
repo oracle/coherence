@@ -2,7 +2,7 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 <!-- For information see https://jeremylong.github.io/DependencyCheck/general/suppression.html -->
 
-   <!-- Berkeley DB - suppress the CVE's for the C version of BDB -->
+  <!-- Berkeley DB - suppress the CVEs for the C version of BDB; these generate false positives as we only use JE -->
   <suppress>
      <notes><![CDATA[
      file name: je-6.2.31.jar
