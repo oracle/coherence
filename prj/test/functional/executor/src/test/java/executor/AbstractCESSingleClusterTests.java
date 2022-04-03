@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,18 +8,13 @@ package executor;
 
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
+
 import executor.common.SingleClusterForAllTests;
 
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.junit.experimental.categories.Category;
-
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-
-import org.junit.runner.Description;
 
 /**
  * Abstract class providing tests that may share a single test cluster.
@@ -388,30 +383,4 @@ public abstract class AbstractCESSingleClusterTests
         {
         super.shouldSetRoleFromMember();
         }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * Rule to demarcate tests in a single-log test run.
-     */
-    @Rule
-    public final TestRule f_watcher = new TestWatcher()
-        {
-        protected void starting(Description description)
-            {
-            System.out.println("### Starting test: " + description.getMethodName());
-            }
-
-        protected void failed(Throwable e, Description description)
-            {
-            System.out.println("### Failed test: " + description.getMethodName());
-            System.out.println("### Cause: " + e);
-            e.printStackTrace();
-            }
-
-        protected void finished(Description description)
-            {
-            System.out.println("### Completed test: " + description.getMethodName());
-            }
-        };
     }

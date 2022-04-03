@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -86,18 +86,27 @@ public class LogOutput
             {
             // include the discriminator in the name
             Discriminator discriminator = optionsByType.get(Discriminator.class);
+            String sDiscriminatedName   = (discriminator != null ? '-' + discriminator.getValue() : "");
 
-            String sLogName = f_sLogName + (discriminator != null ? '-' + discriminator.getValue() : "") + ".log";
+            String sLogName = f_sLogName + sDiscriminatedName + ".log";
             File   logDest  = new File(getBaseLoggingDirectory(), sLogName);
 
             try
                 {
-                if (!logDest.exists())
+                if (logDest.exists())
                     {
-                    if (!logDest.createNewFile())
+                    int nCount = 1;
+                    do
                         {
-                        throw new IllegalStateException("Unable to create log file [" + logDest.getAbsolutePath() + ']');
+                        sLogName = f_sLogName + sDiscriminatedName + "-restart-" + nCount++ + ".log";
+                        logDest  = new File(getBaseLoggingDirectory(), sLogName);
                         }
+                    while (logDest.exists());
+                    }
+
+                if (!logDest.createNewFile())
+                    {
+                    throw new IllegalStateException("Unable to create log file [" + logDest.getAbsolutePath() + ']');
                     }
 
                 FileWriter         writer  = new FileWriter(logDest, false);

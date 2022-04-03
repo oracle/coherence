@@ -13,16 +13,23 @@ import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.deferred.Repetitively;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.AbstractCollector;
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
+import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
+import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
+import com.oracle.coherence.concurrent.executor.ClusteredProperties;
+import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
+
+import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 import com.oracle.coherence.concurrent.executor.options.Role;
@@ -31,6 +38,8 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
+
+import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.ExternalizableHelper;
 
@@ -129,6 +138,19 @@ public abstract class AbstractTaskExecutorServiceTests
      * @return a new {@link TaskExecutorService}
      */
     protected abstract ClusteredExecutorService createExecutorService();
+
+    /**
+     * Obtain the specified {@link NamedCache}.
+     *
+     * @param sName  the cache name
+     * @param <K>    the key type
+     * @param <V>    the value type
+     *
+     * @return the specified {@link NamedCache} or {@code null} if not found
+     */
+    public abstract <K, V> NamedCache<K, V> getNamedCache(String sName);
+
+    // ----- test methods ---------------------------------------------------
 
     public void shouldCreateExecutorService()
         {
@@ -729,7 +751,7 @@ public abstract class AbstractTaskExecutorServiceTests
             m_taskExecutorService.deregister(executorService3);
 
             // not enough executors initially.  Count should be higher than initial executors + 3
-            // as executors are deregistered asynchronously and the above deregisters may not have
+            // as executors are de-registered asynchronously and the above de-registers may not have
             // completed yet.
             subscriber = new RecordingSubscriber<>();
             coordinator =
@@ -1415,19 +1437,19 @@ public abstract class AbstractTaskExecutorServiceTests
 
         Eventually.assertDeferred(subscriber2::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber2.isCompleted(), is(true));
-        Eventually.assertDeferred(() -> (coordinator2.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator2.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator2.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator2.getProperties().get("key2"), is(Matchers.nullValue()));
 
         MatcherAssert.assertThat(coordinator.cancel(true), is(true));
         Eventually.assertDeferred(coordinator::isCancelled, is(true));
         Eventually.assertDeferred(coordinator::isDone, is(true));
         Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
         Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
-        Eventually.assertDeferred(() -> (coordinator.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator.getProperties().get("key2"), is(Matchers.nullValue()));
 
-        RecordingSubscriber<String> subscriber3 = new RecordingSubscriber<>();
-        Task.Coordinator<String> coordinator3 =
+        RecordingSubscriber<String> subscriber3  = new RecordingSubscriber<>();
+        Task.Coordinator<String>    coordinator3 =
             m_taskExecutorService.orchestrate(new UpdatePropertiesTask())
                 .define("key1", "value1")
                 .define("key2", "value2")
@@ -1436,25 +1458,25 @@ public abstract class AbstractTaskExecutorServiceTests
                 .subscribe(subscriber3).submit();
 
         Eventually.assertDeferred(() -> subscriber3.received("started"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key1"), is("newValue1"));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key2"), is("newValue2"));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key1"), is("newValue1"));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key2"), is("newValue2"));
         Eventually.assertDeferred(() -> subscriber3.received("finished"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key2"), is(Matchers.nullValue()));
 
-        RecordingSubscriber<String> subscriber4 = new RecordingSubscriber<>();
-        Task.Coordinator<String> coordinator4 =
+        RecordingSubscriber<String> subscriber4  = new RecordingSubscriber<>();
+        Task.Coordinator<String>    coordinator4 =
             m_taskExecutorService.orchestrate(new UpdatePropertiesTask())
                 .collect(TaskCollectors.lastOf())
                 .until(new Predicates.EqualToPredicate("finished"))
                 .subscribe(subscriber4).submit();
 
         Eventually.assertDeferred(() -> subscriber4.received("started"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator4.getProperties()).get("key1"), is("newValue1"));
-        Eventually.assertDeferred(()-> (coordinator4.getProperties()).get("key2"), is("newValue2"));
+        Eventually.assertDeferred(() -> coordinator4.getProperties().get("key1"), is("newValue1"));
+        Eventually.assertDeferred(()-> coordinator4.getProperties().get("key2"), is("newValue2"));
         Eventually.assertDeferred(()-> subscriber4.received("finished"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator4.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator4.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator4.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator4.getProperties().get("key2"), is(Matchers.nullValue()));
         }
 
     public void shouldUseScheduledExecutor() throws Exception
@@ -1740,7 +1762,7 @@ public abstract class AbstractTaskExecutorServiceTests
      *
      * @param graceful           whether to call shutdown(), or shutdownNow()
      * @param registerExecutors  whether a new "local" Executor should be registered
-     *                           (which will need to be deregistered by the shutdown process)
+     *                           (which will need to be de-registered by the shutdown process)
      * @param withTasks          whether to have a long-running task executing during the shutdown process
      */
     private void testShutdown(boolean graceful, boolean registerExecutors, boolean withTasks)
@@ -1754,7 +1776,7 @@ public abstract class AbstractTaskExecutorServiceTests
             {
             if (registerExecutors)
                 {
-                // register an ES to verify that it is deregistered during the shutdown process
+                // register an ES to verify that it is de-registered during the shutdown process
                 testTaskExecutorService.register(localES, Role.of("localOnly"));
                 }
 
@@ -1837,7 +1859,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
             if (registerExecutors)
                 {
-                // verify that localES has been deregistered
+                // verify that localES has been de-registered
                 MatcherAssert.assertThat(testTaskExecutorService.deregister(localES), is(nullValue()));
                 }
 
@@ -2071,6 +2093,17 @@ public abstract class AbstractTaskExecutorServiceTests
     // ----- helper methods -------------------------------------------------
 
     abstract protected boolean isCompletionCalled(Task.CompletionRunnable completionRunnable, String taskId);
+
+    /**
+     * Dump current executor cache states.
+     */
+    protected void dumpExecutorCacheStates()
+        {
+        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
+                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
+                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
+                                      getNamedCache(ClusteredProperties.CACHE_NAME));
+        }
 
     // ----- inner class: SleeperTask ---------------------------------------
 
@@ -2469,12 +2502,17 @@ public abstract class AbstractTaskExecutorServiceTests
         @Override
         public String execute(Context<String> context) throws Exception
             {
+            ExecutorTrace.entering(UpdatePropertiesTask.class, "execute", context);
+
             context.setResult("started");
+
             Properties properties = context.getProperties();
             properties.put("key1", "newValue1");
             properties.put("key2", "newValue2");
 
-            Thread.sleep(5000);
+            Blocking.sleep(5000);
+
+            ExecutorTrace.exiting(UpdatePropertiesTask.class, "execute", "finished");
 
             return "finished";
             }

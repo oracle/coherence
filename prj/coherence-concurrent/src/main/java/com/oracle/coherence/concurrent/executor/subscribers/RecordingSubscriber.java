@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,8 +7,9 @@
 
 package com.oracle.coherence.concurrent.executor.subscribers;
 
-import com.oracle.coherence.concurrent.executor.Result;
 import com.oracle.coherence.concurrent.executor.Task;
+
+import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -35,7 +36,7 @@ public class RecordingSubscriber<T>
         f_fCompleted   = new AtomicBoolean(false);
         f_fErrored     = new AtomicBoolean(false);
         f_throwable    = new AtomicReference<>();
-        f_listItems    = new CopyOnWriteArrayList<T>();
+        f_listItems    = new CopyOnWriteArrayList<>();
         f_subscription = new AtomicReference<>();
         f_fUsed        = new AtomicBoolean(false);
         }
@@ -45,51 +46,56 @@ public class RecordingSubscriber<T>
     @Override
     public void onComplete()
         {
-        //LOGGER.entering(Logging.within(RecordingSubscriber.class), "onComplete");
+        ExecutorTrace.entering(RecordingSubscriber.class, "onComplete");
 
         f_fCompleted.compareAndSet(false, true);
         f_subscription.set(null);
 
-        //LOGGER.exiting(Logging.within(RecordingSubscriber.class), "onComplete");
+        ExecutorTrace.exiting(RecordingSubscriber.class, "onComplete");
         }
 
     @Override
     public void onError(Throwable throwable)
         {
-        //LOGGER.entering(Logging.within(RecordingSubscriber.class), "onError", throwable);
+        ExecutorTrace.entering(RecordingSubscriber.class, "onError", throwable);
 
         f_fErrored.compareAndSet(false, true);
         f_subscription.set(null);
         f_throwable.set(throwable);
 
-        //LOGGER.exiting(Logging.within(RecordingSubscriber.class), "onError");
+        ExecutorTrace.exiting(RecordingSubscriber.class, "onError");
         }
 
     @Override
     public void onNext(T item)
         {
-        //LOGGER.entering(Logging.within(RecordingSubscriber.class), "onNext", item);
+        ExecutorTrace.entering(RecordingSubscriber.class, "onNext", item);
 
         f_listItems.add(item);
 
-        //LOGGER.exiting(Logging.within(RecordingSubscriber.class), "onNext");
+        ExecutorTrace.exiting(RecordingSubscriber.class, "onNext");
         }
 
     @Override
-    public void onSubscribe(Task.Subscription subscription)
+    public void onSubscribe(Task.Subscription<? extends T> subscription)
         {
-        //LOGGER.entering(Logging.within(RecordingSubscriber.class), "onSubscribe", subscription);
+        ExecutorTrace.entering(RecordingSubscriber.class, "onSubscribe", subscription);
 
-        if (f_fUsed.compareAndSet(false, true))
+        try
             {
-            f_subscription.set(subscription);
+            if (f_fUsed.compareAndSet(false, true))
+                {
+                f_subscription.set(subscription);
+                }
+            else
+                {
+                throw new UnsupportedOperationException("RecordingSubscriber reuse is not supported.");
+                }
             }
-        else
-            {
-            throw new UnsupportedOperationException("RecordingSubscriber reuse is not supported.");
-            }
-
-        //LOGGER.exiting(Logging.within(RecordingSubscriber.class), "onSubscribe");
+            finally
+                {
+                ExecutorTrace.exiting(RecordingSubscriber.class, "onSubscribe");
+                }
         }
 
     // ----- accessors ------------------------------------------------------
@@ -214,5 +220,5 @@ public class RecordingSubscriber<T>
     /**
      * The {@link Task.Subscription}.
      */
-    protected final AtomicReference<Task.Subscription> f_subscription;
+    protected final AtomicReference<Task.Subscription<? extends T>> f_subscription;
     }

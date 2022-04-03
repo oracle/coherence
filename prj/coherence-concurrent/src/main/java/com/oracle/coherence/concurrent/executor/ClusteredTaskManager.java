@@ -11,13 +11,13 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService.ExecutorInfo;
 
 import com.oracle.coherence.concurrent.executor.internal.Cause;
+import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.internal.LiveObject;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 
 import com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor;
 
-import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.util.FilteringIterable;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
@@ -55,6 +55,8 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import java.util.Objects;
 
 import java.util.concurrent.Executor;
 
@@ -145,15 +147,17 @@ public class ClusteredTaskManager<T, A, R>
      * @param service  the associated {@link CacheService}
      * @param entry    the cache {@link Entry} for the task being processed
      * @param cause    the {@link Cause} triggered an update
-     * @return
+     *
+     * @return a {@link ComposableContinuation} to invoke based on the current state or
+     *         {@code null} if no continuation is needed
      */
     public ComposableContinuation onProcess(final CacheService service,
                                             final Entry        entry,
                                             final Cause        cause)
         {
-        //LOGGER.entering(Logging.within(ClusteredTaskManager.class),
-        //                "onProcess",
-        //                Logging.parameters(service, entry, cause));
+        String sTaskId = getTaskId();
+
+        ExecutorTrace.entering(ClusteredTaskManager.class, "onProcess", service, sTaskId, entry, cause, m_state);
 
         ComposableContinuation continuation = null;
 
@@ -171,7 +175,7 @@ public class ClusteredTaskManager<T, A, R>
                 break;
             }
 
-        //LOGGER.exiting(Logging.within(ClusteredTaskManager.class), "onProcess", continuation);
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "onProcess", sTaskId, continuation);
 
         return continuation;
         }
@@ -284,9 +288,7 @@ public class ClusteredTaskManager<T, A, R>
                                     String       key,
                                     Cause        cause)
         {
-        //LOGGER.entering(Logging.within(ClusteredTaskManager.class),
-        //                "asyncProcessChanges",
-        //                Logging.parameters(service, key, cause));
+        ExecutorTrace.entering(ClusteredTaskManager.class, "asyncProcessChanges", service, key, cause);
 
         long newResultCount = m_lCurrentResultGeneration - m_lProcessedResultGeneration;
 
@@ -411,7 +413,7 @@ public class ClusteredTaskManager<T, A, R>
             isLocal = result.isPresent();
             }
 
-        // we'll only perform updates if the task is still local or we're recovering (which means we're local)
+        // we'll only perform updates if the task is still local, or we're recovering (which means we're local)
         if (isLocal || cause == Cause.PARTITIONING)
             {
             // ensure the executors are updated with the current execution plan (when we're not already completed)
@@ -463,7 +465,7 @@ public class ClusteredTaskManager<T, A, R>
                                            m_sTaskId), debug);
             }
 
-        //LOGGER.exiting(Logging.within(ClusteredTaskManager.class), "asyncProcessChanges");
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "asyncProcessChanges");
         }
 
     // ----- accessors ------------------------------------------------------
@@ -536,11 +538,9 @@ public class ClusteredTaskManager<T, A, R>
     /**
      * Updates the {@link Result} for the specified {@link Executor}.
      *
-     * @param sExecutorId  the identity of the {@link Executor}
-     * @param result       the {@link Result} for the {@link Executor}
+     * @param result  the {@link Result} for the {@link Executor}
      */
-    public void setResult(String sExecutorId,
-                          Result<T> result)
+    public void setResult(Result<T> result)
         {
         if (m_collector == null)
             {
@@ -554,17 +554,6 @@ public class ClusteredTaskManager<T, A, R>
 
         // increase the result update count since our last result evaluation
         m_lCurrentResultGeneration++;
-        }
-
-    /**
-     * Sets the {@link ExecutionPlan} for the {@link Task}, replacing any previous plan,
-     * without updating any other related state.
-     *
-     * @param executionPlan  the {@link ExecutionPlan}
-     */
-    public void setExecutionPlan(ExecutionPlan executionPlan)
-        {
-        m_executionPlan = executionPlan;
         }
 
     /**
@@ -768,8 +757,9 @@ public class ClusteredTaskManager<T, A, R>
      */
     protected boolean asyncEvaluateResult(Result<R> originalResult)
         {
-        //LOGGER.entering(Logging.within(ClusteredTaskManager.class), "asyncEvaluateResult",
-        //        Logging.parameters(originalResult));
+        String sTaskId = getTaskId();
+
+        ExecutorTrace.entering(ClusteredTaskManager.class, "asyncEvaluateResult", sTaskId, originalResult);
 
         Debugging debug = m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : m_debugging;
 
@@ -878,7 +868,7 @@ public class ClusteredTaskManager<T, A, R>
                 }
             }
 
-        //LOGGER.exiting(Logging.within(ClusteredTaskManager.class), "asyncEvaluateResult", resultChanged);
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "asyncEvaluateResult", sTaskId, resultChanged);
 
         return resultChanged;
         }
@@ -901,8 +891,7 @@ public class ClusteredTaskManager<T, A, R>
         // assume there is no change in the ExecutionPlan
         boolean fExecutionPlanUpdated;
 
-        //LOGGER.entering(Logging.within(ClusteredTaskManager.class), "asyncEvaluateExecutionStrategy",
-        //        Logging.parameters(service, rationales));
+        ExecutorTrace.entering(ClusteredTaskManager.class, "asyncEvaluateExecutionStrategy", service, m_sTaskId, rationales);
 
         ExecutorTrace.log(() -> String.format("Evaluating the Execution Plan for Task [%s] due to [%s]",
                                        m_sTaskId, rationales), debug);
@@ -954,7 +943,7 @@ public class ClusteredTaskManager<T, A, R>
             }
         catch (Exception e)
             {
-            //LOGGER.throwing(Logging.within(ClusteredTaskManager.class), "asyncEvaluateExecutionStrategy", e);
+            ExecutorTrace.throwing(ClusteredTaskManager.class, "asyncEvaluateExecutionStrategy", e);
 
             throw Base.ensureRuntimeException(e);
             }
@@ -962,8 +951,7 @@ public class ClusteredTaskManager<T, A, R>
         // reset the pending execution strategy update as we've now evaluated the execution strategy
         m_cPendingExecutionStrategyUpdateCount = 0;
 
-        //LOGGER.exiting(Logging.within(ClusteredTaskManager.class), "asyncEvaluateExecutionStrategy",
-        //        fExecutionPlanUpdated);
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "asyncEvaluateExecutionStrategy", m_sTaskId, fExecutionPlanUpdated);
 
         return fExecutionPlanUpdated;
         }
@@ -976,10 +964,10 @@ public class ClusteredTaskManager<T, A, R>
      */
     protected void cleanup(CacheService service, String sKey)
         {
-        //LOGGER.entering(Logging.within(ClusteredTaskManager.class), "cleanup", Logging.parameters(service, sKey));
-
         String sTaskId  = getTaskId();
         Duration retain = m_retainDuration;
+
+        ExecutorTrace.entering(ClusteredTaskManager.class, "cleanup", service, sKey, sTaskId, retain);
 
         ClusteredAssignment.removeAssignments(sTaskId, service);
 
@@ -1000,7 +988,7 @@ public class ClusteredTaskManager<T, A, R>
         // clean up the task properties
         cleanProperties(service);
 
-        //LOGGER.exiting(Logging.within(ClusteredTaskManager.class), "cleanup");
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "cleanup", sTaskId);
         }
 
     /**
@@ -1013,8 +1001,12 @@ public class ClusteredTaskManager<T, A, R>
         String sTaskId   = getTaskId();
         Filter filterAsc = new KeyAssociatedFilter(new EqualsFilter("getTaskId", sTaskId), sTaskId);
 
+        ExecutorTrace.entering(ClusteredTaskManager.class, "cleanProperties", sTaskId);
+
         service.ensureCache(ClusteredProperties.CACHE_NAME, null)
                 .invokeAll(filterAsc, new ConditionalRemove(PresentFilter.INSTANCE, false));
+
+        ExecutorTrace.exiting(ClusteredTaskManager.class, "cleanProperties", sTaskId);
         }
 
     // ----- LiveObject interface --------------------------------------------
@@ -1154,7 +1146,7 @@ public class ClusteredTaskManager<T, A, R>
         // ----- constructors -----------------------------------------------
 
         /**
-         * Constructs an empty {@link ChainedProcessor}.
+         * Constructs an empty {@link ChainedProcessor}
          */
         public ChainedProcessor()
             {
@@ -1366,7 +1358,7 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            //LOGGER.entering(Logging.within(OptimizeExecutionPlanProcessor.class), "process", Logging.parameters(entry));
+            ExecutorTrace.entering(OptimizeExecutionPlanProcessor.class, "process", entry);
 
             if (entry.isPresent())
                 {
@@ -1411,7 +1403,7 @@ public class ClusteredTaskManager<T, A, R>
                     }
                 }
 
-            //LOGGER.exiting(Logging.within(OptimizeExecutionPlanProcessor.class), "process");
+            ExecutorTrace.exiting(OptimizeExecutionPlanProcessor.class, "process");
 
             return null;
             }
@@ -1515,7 +1507,7 @@ public class ClusteredTaskManager<T, A, R>
             // assume the action was not set
             boolean result = false;
 
-            //LOGGER.entering(Logging.within(SetActionProcessor.class), "process", Logging.parameters(entry));
+            ExecutorTrace.entering(SetActionProcessor.class, "process", entry);
 
             if (entry.isPresent())
                 {
@@ -1542,7 +1534,7 @@ public class ClusteredTaskManager<T, A, R>
                     }
                 }
 
-            //LOGGER.exiting(Logging.within(SetActionProcessor.class), "process", result);
+            ExecutorTrace.exiting(SetActionProcessor.class, "process", result);
 
             return result;
             }
@@ -1706,7 +1698,7 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            //LOGGER.entering(Logging.within(UpdateCollectedResultProcessor.class), "process", Logging.parameters(entry));
+            ExecutorTrace.entering(UpdateCollectedResultProcessor.class, "process", entry);
 
             if (entry.isPresent())
                 {
@@ -1729,7 +1721,7 @@ public class ClusteredTaskManager<T, A, R>
 
                     if (manager.m_lastResult == null &&
                             m_newResult != null ||
-                            !manager.m_lastResult.equals(m_newResult))
+                            !Objects.equals(manager.m_lastResult, m_newResult))
                         {
                         manager.m_lastResult = m_newResult;
                         manager.m_nResultVersion++;
@@ -1748,7 +1740,7 @@ public class ClusteredTaskManager<T, A, R>
                 // update if the result completed the task (iff completed)
                 if (!manager.m_fCompleted && m_fCompleted)
                     {
-                    manager.m_fCompleted = m_fCompleted;
+                    manager.m_fCompleted = true;
                     manager.m_state      = State.TERMINATING;
                     }
 
@@ -1765,7 +1757,7 @@ public class ClusteredTaskManager<T, A, R>
                                                 entry.getKey()));
                 }
 
-            //LOGGER.exiting(Logging.within(UpdateCollectedResultProcessor.class), "process");
+            ExecutorTrace.exiting(UpdateCollectedResultProcessor.class, "process");
 
             return null;
             }
@@ -1841,7 +1833,7 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            //LOGGER.entering(Logging.within(UpdateContributedResultProcessor.class), "process", Logging.parameters(entry));
+            ExecutorTrace.entering(UpdateContributedResultProcessor.class, "process", entry);
 
             try
                 {
@@ -1852,7 +1844,7 @@ public class ClusteredTaskManager<T, A, R>
 
                     if (taskManager.isOwner(m_sExecutorId))
                         {
-                        taskManager.setResult(m_sExecutorId, m_result);
+                        taskManager.setResult(m_result);
 
                         entry.setValue(taskManager);
 
@@ -1889,7 +1881,7 @@ public class ClusteredTaskManager<T, A, R>
                 }
             finally
                 {
-                //LOGGER.exiting(Logging.within(UpdateContributedResultProcessor.class), "process");
+                ExecutorTrace.exiting(UpdateContributedResultProcessor.class, "process");
                 }
             }
 
@@ -1954,7 +1946,7 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            //LOGGER.entering(Logging.within(UpdateExecutionPlanProcessor.class), "process", Logging.parameters(entry));
+            ExecutorTrace.entering(UpdateExecutionPlanProcessor.class, "process", entry);
 
             if (entry.isPresent())
                 {
@@ -1985,7 +1977,7 @@ public class ClusteredTaskManager<T, A, R>
                     }
                 }
 
-            //LOGGER.exiting(Logging.within(UpdateExecutionPlanProcessor.class), "process");
+            ExecutorTrace.exiting(UpdateExecutionPlanProcessor.class, "process");
 
             return null;
             }

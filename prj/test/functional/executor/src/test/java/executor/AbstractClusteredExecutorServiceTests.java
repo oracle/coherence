@@ -40,7 +40,6 @@ import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
-import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.RecoveringTask;
@@ -70,10 +69,11 @@ import com.tangosol.net.messaging.ConnectionException;
 import com.tangosol.util.Base;
 
 import executor.common.AbstractTaskExecutorServiceTests;
-import executor.common.ExtendClient;
-import executor.common.LogOutput;
 import executor.common.LongRunningTask;
 import executor.common.RepeatedTask;
+
+import executor.common.Utils;
+import executor.common.Watcher;
 
 import java.time.Duration;
 
@@ -95,6 +95,7 @@ import org.hamcrest.core.Is;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.ensure;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -119,6 +120,7 @@ import static org.junit.Assert.fail;
  * @author lh
  * @since 21.12
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class AbstractClusteredExecutorServiceTests
         extends AbstractTaskExecutorServiceTests
     {
@@ -153,11 +155,39 @@ public abstract class AbstractClusteredExecutorServiceTests
             Eventually.assertDeferred(() -> this.getExecutorServiceInfo(executors, key).getState(),
                                   Is.is(TaskExecutorService.ExecutorInfo.State.RUNNING));
             }
+
+        String sMsg = ">>>>> Starting test: " + f_watcher.getMethodName();
+        for (CoherenceClusterMember member : getCoherence().getCluster())
+            {
+            if (member != null)
+                {
+                member.submit(() ->
+                              {
+                              System.err.println(sMsg);
+                              System.err.flush();
+                              return null;
+                              }).join();
+                }
+            }
         }
 
     @After
     public void cleanup()
         {
+        String sMsg = ">>>>> Finished test: " + f_watcher.getMethodName();
+        for (CoherenceClusterMember member : getCoherence().getCluster())
+            {
+            if (member != null)
+                {
+                member.submit(() ->
+                              {
+                              System.err.println(sMsg);
+                              System.err.flush();
+                              return null;
+                              }).join();
+                }
+            }
+
         if (m_taskExecutorService != null)
             {
             m_taskExecutorService.shutdown();
@@ -181,7 +211,8 @@ public abstract class AbstractClusteredExecutorServiceTests
         clusterResource.getCluster();
 
         // connect as an *Extend client
-        m_cacheFactory = clusterResource.createSession(new ExtendClient(m_extendConfig, getLabel()));
+        m_cacheFactory = clusterResource.createSession((
+                SessionBuilders.extendClient(m_extendConfig, SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"))));
         }
 
     // ----- test methods ---------------------------------------------------
@@ -237,8 +268,8 @@ public abstract class AbstractClusteredExecutorServiceTests
      */
     public void shouldRemoveCacheEntriesOnCancel()
         {
-        NamedCache       taskManagers = getNamedCache(ClusteredTaskManager.CACHE_NAME);
-        NamedCache       assignments  = getNamedCache(ClusteredAssignment.CACHE_NAME);
+        NamedCache taskManagers = getNamedCache(ClusteredTaskManager.CACHE_NAME);
+        NamedCache assignments  = getNamedCache(ClusteredAssignment.CACHE_NAME);
 
         MatcherAssert.assertThat(taskManagers.size(), is(0));
         MatcherAssert.assertThat(assignments.size(), is(0));
@@ -259,7 +290,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         MatcherAssert.assertThat(coordinator.cancel(true), is(true));
 
-        Eventually.assertDeferred(() -> subscriber.isSubscribed(), is(false));
+        Eventually.assertDeferred(subscriber::isSubscribed, is(false));
 
         Eventually.assertDeferred(taskManagers::size, is(0));
         Eventually.assertDeferred(assignments::size, is(0));
@@ -267,7 +298,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
     /**
      * Ensure that when {@link Executor} information is not updated, the {@link Executor}
-     * is automatically deregistered.
+     * is automatically de-registered.
      */
     public void shouldAutomaticallyDeregisterExecutor()
         {
@@ -286,7 +317,7 @@ public abstract class AbstractClusteredExecutorServiceTests
                                   is(false),
                                   InitialDelay.of(10, TimeUnit.SECONDS));
 
-            // ensure that the executor has been deregistered locally
+            // ensure that the executor has been de-registered locally
             Eventually.assertDeferred(() -> m_taskExecutorService.deregister(executorService), is(nullValue()));
             }
         finally
@@ -375,15 +406,21 @@ public abstract class AbstractClusteredExecutorServiceTests
             cluster.filter(member -> !member.getRoleName().equals(PROXY_MEMBER_ROLE)).limit(1).close();
             Eventually.assertDeferred(cluster::getClusterSize, is(clusterSize - 1));
 
-            // refresh in case connected member was stopped
-            cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            Utils.assertWithFailureAction(
+                    () ->
+                        {
+                        // refresh in case connected member was stopped
+                        NamedCache cacheExecutorServiceInternal = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
 
-            // ensure the executor information is eventually cleaned up
-            Eventually.assertDeferred(cacheExecutorService::size,
-                                  is(getInitialExecutorCount() + 1),
-                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 15000, TimeUnit.MILLISECONDS));
+                        // ensure the executor information is eventually cleaned up
+                        Eventually.assertDeferred(cacheExecutorServiceInternal::size,
+                                                  is(getInitialExecutorCount() + 1),
+                                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 15000, TimeUnit.MILLISECONDS));
 
-            Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
+                        Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
+                        },
+                    this::dumpExecutorCacheStates
+            );
             }
         finally
             {
@@ -429,10 +466,16 @@ public abstract class AbstractClusteredExecutorServiceTests
                    SystemProperty.of(EXTEND_ENABLED_PROPERTY, false));
         ensureConcurrentServiceRunning(cluster);
 
-        // ensure that we are eventually done! (ie: a new compute member picks up the task)
-        Eventually.assertDeferred(() -> subscriber.received("DONE"),
-                                  Matchers.is(true),
-                                  Eventually.within(3, TimeUnit.MINUTES));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    // ensure that we are eventually done! (ie: a new compute member picks up the task)
+                    Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                              Matchers.is(true),
+                                              Eventually.within(3, TimeUnit.MINUTES));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldCallRunnableAfterFailOverLongRunning()
@@ -473,16 +516,22 @@ public abstract class AbstractClusteredExecutorServiceTests
                    LocalStorage.disabled(),
                    SystemProperty.of(EXTEND_ENABLED_PROPERTY, false));
 
-        // ensure that we are eventually done! (ie: a new compute member picks up the task)
-        coordinator = m_taskExecutorService.acquire(sTaskId);
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
-        coordinator.cancel(true);
-        Eventually.assertDeferred(() -> isCompletionCalled(myCompletion, sTaskId), Matchers.is(true));
-        Eventually.assertDeferred(coordinator::isCancelled, Matchers.is(true));
-        Eventually.assertDeferred(() -> m_taskExecutorService.acquire(sTaskId),
-                              is(nullValue()),
-                              within(75, TimeUnit.SECONDS),
-                              delayedBy(1, TimeUnit.MINUTES)); // don't bother checking until after retain period
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    // ensure that we are eventually done! (ie: a new compute member picks up the task)
+                    Task.Coordinator<String> coordinatorInternal = m_taskExecutorService.acquire(sTaskId);
+                    Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+                    coordinatorInternal.cancel(true);
+                    Eventually.assertDeferred(() -> isCompletionCalled(myCompletion, sTaskId), Matchers.is(true));
+                    Eventually.assertDeferred(coordinatorInternal::isCancelled, Matchers.is(true));
+                    Eventually.assertDeferred(() -> m_taskExecutorService.acquire(sTaskId),
+                                              is(nullValue()),
+                                              within(75, TimeUnit.SECONDS),
+                                              delayedBy(1, TimeUnit.MINUTES)); // don't bother checking until after retain period
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldFailOverRecoveringTest()
@@ -518,8 +567,15 @@ public abstract class AbstractClusteredExecutorServiceTests
                    LocalStorage.disabled(),
                    SystemProperty.of(EXTEND_ENABLED_PROPERTY, false));
 
-        // ensure that we are eventually done! (ie: a new compute member picks up the task)
-        Eventually.assertDeferred(() -> subscriber.received(true), Matchers.is(true));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    // make sure we can reconnect to the new proxy server and failover the task
+                    // ensure that we are eventually done! (ie: a new compute member picks up the task)
+                    Eventually.assertDeferred(() -> subscriber.received(true), Matchers.is(true));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldAllowProxyRestartLongRunningTest()
@@ -557,7 +613,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             properties.put("key2", "value2");
             fail("Expect ConnectionException");
             }
-        catch (ConnectionException e)
+        catch (ConnectionException expected)
             {
             }
         catch (IllegalStateException ise)
@@ -579,17 +635,23 @@ public abstract class AbstractClusteredExecutorServiceTests
                    SystemProperty.of(EXTEND_ENABLED_PROPERTY, true));
         ensureExecutorProxyAvailable(cluster);
 
-        MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
 
-        // re-subscribe
-        ClusteredTaskCoordinator coordinator2 = (ClusteredTaskCoordinator) m_taskExecutorService.acquire(sTaskName);
-        RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
-        coordinator2.subscribe(subscriber2);
+                    // re-subscribe
+                    ClusteredTaskCoordinator coordinator2 = (ClusteredTaskCoordinator) m_taskExecutorService.acquire(sTaskName);
+                    RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
+                    coordinator2.subscribe(subscriber2);
 
-        // ensure that both the existing subscriber and new subscriber
-        // are done! (ie: we are able to reconnect and receive the result)
-        Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
-        Eventually.assertDeferred(() -> subscriber2.received("DONE"), Matchers.is(true));
+                    // ensure that both the existing subscriber and new subscriber
+                    // are done! (ie: we are able to reconnect and receive the result)
+                    Eventually.assertDeferred(() -> subscriber.received("DONE"), Matchers.is(true));
+                    Eventually.assertDeferred(() -> subscriber2.received("DONE"), Matchers.is(true));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldAllowProxyFailoverLongRunningTest()
@@ -621,12 +683,18 @@ public abstract class AbstractClusteredExecutorServiceTests
         cluster.filter(member -> member.getRoleName().equals(PROXY_MEMBER_ROLE)).relaunch();
         ensureExecutorProxyAvailable(cluster);
 
-        // make sure we can reconnect to the new proxy server and failover the task
-        MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    // make sure we can reconnect to the new proxy server and failover the task
+                    MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
 
-        Eventually.assertDeferred(() -> subscriber.received("DONE"),
-                                  Matchers.is(true),
-                                  Eventually.within(3, TimeUnit.MINUTES));
+                    Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                              Matchers.is(true),
+                                              Eventually.within(3, TimeUnit.MINUTES));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldAllowClientFailoverLongRunningTest()
@@ -659,12 +727,18 @@ public abstract class AbstractClusteredExecutorServiceTests
         ensureConcurrentServiceRunning(cluster);
         ensureExecutorProxyAvailable(cluster);
 
-        // make sure we can reconnect to the new proxy server and failover the task
-        MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    // make sure we can reconnect to the new proxy server and failover the task
+                    MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
 
-        Eventually.assertDeferred(() -> subscriber.received("DONE"),
-                                  Matchers.is(true),
-                                  Eventually.within(3, TimeUnit.MINUTES));
+                    Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                              Matchers.is(true),
+                                              Eventually.within(3, TimeUnit.MINUTES));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldWorkWithRollingRestart1()
@@ -689,6 +763,16 @@ public abstract class AbstractClusteredExecutorServiceTests
             cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
             ensureConcurrentServiceRunning(cluster);
 
+            Utils.assertWithFailureAction(
+                    () ->
+                        {
+                        Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
+                        Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(true));
+                        Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
+                        },
+                    this::dumpExecutorCacheStates
+            );
+
             Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
             Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(true));
             Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
@@ -706,7 +790,7 @@ public abstract class AbstractClusteredExecutorServiceTests
     public void shouldWorkWithRollingRestart2()
         {
         CoherenceCluster cluster              = getCoherence().getCluster();
-        final int        CLUSTER_SIZE         = cluster.getClusterSize();
+        final int         CLUSTER_SIZE         = cluster.getClusterSize();
         NamedCache       cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
 
         ExecutorService executorService1 = Executors.newSingleThreadExecutor();
@@ -731,21 +815,27 @@ public abstract class AbstractClusteredExecutorServiceTests
             cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
             ensureConcurrentServiceRunning(cluster);
 
-            Eventually.assertDeferred(cluster::getClusterSize, is(CLUSTER_SIZE));
+            Utils.assertWithFailureAction(
+                    () ->
+                        {
+                        Eventually.assertDeferred(cluster::getClusterSize, is(CLUSTER_SIZE));
 
-            // refresh in case connected member was stopped
-            cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+                        // refresh in case connected member was stopped
+                        NamedCache cacheExecutorServiceInner = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
 
-            // ensure the executor information is eventually cleaned up
-            Eventually.assertDeferred(cacheExecutorService::size,
-                                  is(getInitialExecutorCount() + 2),
-                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 5000, TimeUnit.MILLISECONDS));
+                        // ensure the executor information is eventually cleaned up
+                        Eventually.assertDeferred(cacheExecutorServiceInner::size,
+                                                  is(getInitialExecutorCount() + 2),
+                                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 5000, TimeUnit.MILLISECONDS));
 
-            m_taskExecutorService.register(executorService3);
+                        m_taskExecutorService.register(executorService3);
 
-            Eventually.assertDeferred(cacheExecutorService::size, is(getInitialExecutorCount() + 3));
+                        Eventually.assertDeferred(cacheExecutorService::size, is(getInitialExecutorCount() + 3));
 
-            Eventually.assertDeferred(() -> subscriber.received(getInitialExecutorCount() + 3), Matchers.is(true));
+                        Eventually.assertDeferred(() -> subscriber.received(getInitialExecutorCount() + 3), Matchers.is(true));
+                        },
+                    this::dumpExecutorCacheStates
+            );
             }
         finally
             {
@@ -844,17 +934,24 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         // Verify that the task is recovered from rolling restart and is executed at lease 1 time in the 2 minutes interval
         int cReceived = subscriber.size() + 1;
-        Repetitively.assertThat(invoking(subscriber).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
-        MatcherAssert.assertThat(subscriber.received(cReceived), Matchers.is(true));
 
-        MatcherAssert.assertThat(coordinator.cancel(true), Matchers.is(true));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    Repetitively.assertThat(invoking(subscriber).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
+                    MatcherAssert.assertThat(subscriber.received(cReceived), Matchers.is(true));
 
-        Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
-        Eventually.assertDeferred(() -> subscriber.isCompleted(), Matchers.is(false));
+                    MatcherAssert.assertThat(coordinator.cancel(true), Matchers.is(true));
 
-        MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), Matchers.is(false));
-        MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(true));
-        MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
+                    Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
+                    Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(false));
+
+                    MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), Matchers.is(false));
+                    MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(true));
+                    MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldHandleRemoveServerWithCronTask()
@@ -904,21 +1001,28 @@ public abstract class AbstractClusteredExecutorServiceTests
         int cReceived1 = subscriber1.size();
         int cReceived2 = subscriber2.size();
         int cReceived3 = subscriber3.size();
-        Repetitively.assertThat(invoking(subscriber1).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
-        MatcherAssert.assertThat(subscriber1.size(), Matchers.greaterThan(cReceived1));
-        MatcherAssert.assertThat(subscriber2.size(), Matchers.greaterThan(cReceived2));
-        MatcherAssert.assertThat(subscriber3.size(), Matchers.greaterThan(cReceived3));
 
-        MatcherAssert.assertThat(coordinator1.cancel(true), Matchers.is(true));
-        MatcherAssert.assertThat(coordinator2.cancel(true), Matchers.is(true));
-        MatcherAssert.assertThat(coordinator3.cancel(true), Matchers.is(true));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    Repetitively.assertThat(invoking(subscriber1).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
+                    MatcherAssert.assertThat(subscriber1.size(), Matchers.greaterThan(cReceived1));
+                    MatcherAssert.assertThat(subscriber2.size(), Matchers.greaterThan(cReceived2));
+                    MatcherAssert.assertThat(subscriber3.size(), Matchers.greaterThan(cReceived3));
 
-        Eventually.assertDeferred(subscriber1::isSubscribed, Matchers.is(false));
-        Eventually.assertDeferred(() -> subscriber1.isCompleted(), Matchers.is(false));
+                    MatcherAssert.assertThat(coordinator1.cancel(true), Matchers.is(true));
+                    MatcherAssert.assertThat(coordinator2.cancel(true), Matchers.is(true));
+                    MatcherAssert.assertThat(coordinator3.cancel(true), Matchers.is(true));
 
-        MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator1).hasSubscribers(), Matchers.is(false));
-        MatcherAssert.assertThat(coordinator1.isCancelled(), Matchers.is(true));
-        MatcherAssert.assertThat(coordinator1.isDone(), Matchers.is(true));
+                    Eventually.assertDeferred(subscriber1::isSubscribed, Matchers.is(false));
+                    Eventually.assertDeferred(subscriber1::isCompleted, Matchers.is(false));
+
+                    MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator1).hasSubscribers(), Matchers.is(false));
+                    MatcherAssert.assertThat(coordinator1.isCancelled(), Matchers.is(true));
+                    MatcherAssert.assertThat(coordinator1.isDone(), Matchers.is(true));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldHandleFailoverWithCronTask()
@@ -950,17 +1054,24 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         // Verify that the task is recovered from rolling restart and is executed at lease 1 time in the 2 minutes interval
         int cReceived = subscriber.size();
-        Repetitively.assertThat(invoking(subscriber).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
-        MatcherAssert.assertThat(subscriber.size(), Matchers.greaterThan(cReceived));
 
-        MatcherAssert.assertThat(coordinator.cancel(true), Matchers.is(true));
+        Utils.assertWithFailureAction(
+                () ->
+                    {
+                    Repetitively.assertThat(invoking(subscriber).isCompleted(), Matchers.is(false), Timeout.of(2, TimeUnit.MINUTES));
+                    MatcherAssert.assertThat(subscriber.size(), Matchers.greaterThan(cReceived));
 
-        Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
-        Eventually.assertDeferred(() -> subscriber.isCompleted(), Matchers.is(false));
+                    MatcherAssert.assertThat(coordinator.cancel(true), Matchers.is(true));
 
-        MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), Matchers.is(false));
-        MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(true));
-        MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
+                    Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
+                    Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(false));
+
+                    MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), Matchers.is(false));
+                    MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(true));
+                    MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
+                    },
+                this::dumpExecutorCacheStates
+        );
         }
 
     public void shouldNotExpireRunningExecutors()
@@ -971,8 +1082,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         try
             {
             final int        EXPECTED_EXECUTORS   = getInitialExecutorCount() + 2;
-            CoherenceCluster cluster              = getCoherence().getCluster();
-            NamedCache       cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            NamedCache      cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
 
             Eventually.assertDeferred(cacheExecutorService::size, is(getInitialExecutorCount()), Timeout.of(5, TimeUnit.SECONDS));
 
@@ -995,40 +1105,19 @@ public abstract class AbstractClusteredExecutorServiceTests
                     .until(Predicates.is(EXPECTED_EXECUTORS))
                     .subscribe(subscriber).submit();
 
-            try
-                {
-                Eventually.assertDeferred(() -> subscriber.isCompleted(), Matchers.is(true), Eventually.within(3, TimeUnit.MINUTES));
-                }
-            catch (Throwable t)
-                {
-                final StringBuilder builder = new StringBuilder(1024);
-                builder.append("### Dumping Cache States ...\n");
-                NamedCache<?, ?> executors = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
-                builder.append("=== Executors [count=").append(executors.size()).append("] ===\n");
-                executors.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
+            Utils.assertWithFailureAction(
+                    () ->
+                        {
+                        Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(true), Eventually.within(3, TimeUnit.MINUTES));
+                        MatcherAssert.assertThat(subscriber.isSubscribed(), Matchers.is(false));
+                        MatcherAssert.assertThat(subscriber.received(EXPECTED_EXECUTORS), Matchers.is(true));
 
-                NamedCache<?, ?> assignments = getNamedCache(ClusteredAssignment.CACHE_NAME);
-                builder.append("\n\n=== Assignments [count=").append(assignments.size()).append("] ===\n");
-                assignments.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-
-                NamedCache<?, ?> tasks = getNamedCache(ClusteredTaskManager.CACHE_NAME);
-                builder.append("\n\n=== Tasks [count=").append(tasks.size()).append("] ===\n");
-                tasks.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-
-                NamedCache<?, ClusteredProperties> properties = getNamedCache(ClusteredProperties.CACHE_NAME);
-                builder.append("\n\n=== Properties [count=").append(properties.size()).append("] ===\n");
-                properties.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-                builder.append("\n\n");
-                System.out.print(builder);
-                throw t;
-                }
-
-            MatcherAssert.assertThat(subscriber.isSubscribed(), Matchers.is(false));
-            MatcherAssert.assertThat(subscriber.received(EXPECTED_EXECUTORS), Matchers.is(true));
-
-            MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), Matchers.is(false));
-            MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(false));
-            MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
+                        MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), Matchers.is(false));
+                        MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(false));
+                        MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
+                        },
+                    this::dumpExecutorCacheStates
+            );
             }
         finally
             {
@@ -1208,7 +1297,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         try
             {
             String                   sId   = m_taskExecutorService.register(executorService, Role.of("foo")).getId();
-            ClusteredExecutorService clsES = (ClusteredExecutorService) m_taskExecutorService;
+            ClusteredExecutorService clsES = m_taskExecutorService;
 
             NamedCache<String, ClusteredExecutorInfo> executorCache =
                     clsES.getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME,null);
@@ -1286,7 +1375,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         }
 
     /**
-     * A terminated ExecutorService should be automatically deregistered by the lease checker.
+     * A terminated ExecutorService should be automatically de-registered by the lease checker.
      */
     public void shouldDeregisterTerminatedExecutorService()
         {
@@ -1297,7 +1386,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             {
             // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
             NamedCache<String, ClusteredExecutorInfo> executorsCache =
-                ((ClusteredExecutorService) m_taskExecutorService)
+                m_taskExecutorService
                     .getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
 
             Eventually.assertDeferred(executorsCache::size, is(cExpectedExecutors));
@@ -1320,7 +1409,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             // verify that it has been removed
             Eventually.assertDeferred(executorsCache::size, is(cExpectedExecutors));
 
-            // can't check whether the executor has been deregistered as its removal from the map of
+            // can't check whether the executor has been de-registered as its removal from the map of
             // locally registered Executors may lag behind its removal from the Executors cache
             }
         finally
@@ -1428,6 +1517,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         {
         try
             {
+            //noinspection OptionalGetWithoutIsPresent
             JmxFeature jmxFeature = getCoherence().getCluster().findFirst().get().get(JmxFeature.class);
 
             if (jmxFeature != null)
@@ -1583,4 +1673,10 @@ public abstract class AbstractClusteredExecutorServiceTests
      * Extend cache factory.
      */
     protected ConfigurableCacheFactory m_cacheFactory;
+
+    /**
+     * JUnit TestWatcher.
+     */
+    @Rule
+    public final Watcher f_watcher = new Watcher();
     }

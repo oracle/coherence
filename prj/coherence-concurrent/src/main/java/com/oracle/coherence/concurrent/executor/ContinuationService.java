@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -243,9 +243,7 @@ public class ContinuationService<T>
         @Override
         public void run()
             {
-            //LOGGER.entering(Logging.within(ContinuationRunnable.class),
-            //                "run",
-            //                Logging.parameters(m_object, m_nServiceIndex));
+            ExecutorTrace.entering(ContinuationRunnable.class, "run", m_object, m_nServiceIndex);
 
             ComposableContinuation continuation;
 
@@ -278,7 +276,7 @@ public class ContinuationService<T>
                     }
                 }
 
-            //LOGGER.exiting(Logging.within(ContinuationRunnable.class), "run");
+            ExecutorTrace.exiting(ContinuationRunnable.class, "run");
             }
 
         // ----- data members -----------------------------------------------
