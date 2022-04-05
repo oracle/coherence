@@ -276,11 +276,23 @@
             <groupId>${coherence.group.id}</groupId>
             <artifactId>coherence-core</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
           </dependency>
           <dependency>
             <groupId>${coherence.group.id}</groupId>
             <artifactId>coherence-core-components</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
           </dependency>
         </dependencies>
 
