@@ -378,6 +378,12 @@
             <artifactId>coherence-core</artifactId>
             <version>${project.version}</version>
             <classifier>sources</classifier>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
           </dependency>
         </dependencies>
         <executions>
