@@ -218,6 +218,9 @@ public class MutableExecutionPlan
         builder.append("satisfied=");
         builder.append(m_fSatisfied);
 
+        builder.append(", pendingRecoveryCount=");
+        builder.append(m_cPendingRecoveryCount);
+
         builder.append(", actions=[");
 
         boolean first = true;

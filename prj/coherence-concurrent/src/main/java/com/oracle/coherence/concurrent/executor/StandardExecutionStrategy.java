@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.concurrent.executor;
 
+import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -22,9 +24,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * An {@link ExecutionStrategy} that creates {@link ExecutionPlan}s for executing a
@@ -75,7 +77,7 @@ public class StandardExecutionStrategy
             EnumSet<EvaluationRationale> rationales)
         {
         // we'll be randomly choosing execution services
-        Random random = new Random();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
 
         // establish a map of candidate executors based on ExecutorInfo
         HashMap<String, TaskExecutorService.ExecutorInfo> mapCandidates = new HashMap<>();
@@ -92,11 +94,16 @@ public class StandardExecutionStrategy
         // remember the number of candidates
         int cCandidateCount = mapCandidates.size();
 
+        ExecutorTrace.log(() -> String.format("Executor candidates [%s]; current desired count [%s]",
+                                              mapCandidates, m_cDesiredExecutors));
+
         // the new plan will be based on the current plan
         MutableExecutionPlan newPlan = new MutableExecutionPlan(currentPlan);
 
         // determine the current recovery count
         int cPendingRecoveries = newPlan.getPendingRecoveryCount();
+
+        ExecutorTrace.log(() -> String.format("Recovery count [%s]", newPlan.getPendingRecoveryCount()));
 
         // remove executors from the candidate map that are already ASSIGNed in the plan,
         // remove executors from the candidate map that are REASSIGNed and
@@ -132,9 +139,14 @@ public class StandardExecutionStrategy
         // determine how many executors we currently have effectively assigned
         int cEffectivelyAssigned = newPlan.count(ExecutionPlan.Action::isEffectivelyAssigned);
 
+        ExecutorTrace.log(() -> String.format("Current effective assignment count [%s]",
+                                              newPlan.count(ExecutionPlan.Action::isEffectivelyAssigned)));
+
         // determine how many executors are desired
         // (which is either all candidates or the specified number)
         int cDesired = m_cDesiredExecutors < 0 ? cCandidateCount : m_cDesiredExecutors;
+
+        ExecutorTrace.log(() -> String.format("Desired executor count (calculated) [%s]", cDesired));
 
         // determine how many additional executors we need (based on the concurrency)
         // (assume none)
@@ -161,8 +173,13 @@ public class StandardExecutionStrategy
                 }
             }
 
+        int cExtraFinal = cExtra;
+        ExecutorTrace.log(() -> String.format("Additional executor required count [%s]", cExtraFinal));
+
         // determine how many remaining candidates there are to choose from
         int cRemaining = mapCandidates.size();
+
+        ExecutorTrace.log(() -> String.format("Remaining executor candidates [%s]", mapCandidates));
 
         // randomly choose the required number from the candidates from those remaining
         while (cRemaining > 0 && cExtra > 0)
@@ -192,6 +209,8 @@ public class StandardExecutionStrategy
 
         // re-determine the number of effectively assigned executors
         cEffectivelyAssigned = newPlan.count(ExecutionPlan.Action::isEffectivelyAssigned);
+
+        ExecutorTrace.log(() -> String.format("Effective candidate count [%s]", newPlan.count(ExecutionPlan.Action::isEffectivelyAssigned)));
 
         // the plan is only satisfied when the number of effectively assigned executors reaches the required number
         newPlan.setSatisfied(cEffectivelyAssigned == cDesired && cEffectivelyAssigned > 0);

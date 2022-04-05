@@ -924,6 +924,9 @@ public class ClusteredTaskManager<T, A, R>
                                     (executionPlan != null && m_executionPlan == null) ||
                                     (executionPlan != null && !executionPlan.equals(m_executionPlan));
 
+            ExecutorTrace.log(() -> String.format("Current execution plan [%s]",    m_executionPlan));
+            ExecutorTrace.log(() -> String.format("Updated(?) execution plan [%s]", executionPlan));
+
             if (fExecutionPlanUpdated)
                 {
                 // remember the updated plan
@@ -998,7 +1001,7 @@ public class ClusteredTaskManager<T, A, R>
      */
     protected void cleanProperties(CacheService service)
         {
-        String sTaskId   = getTaskId();
+        String sTaskId  = getTaskId();
         Filter filterAsc = new KeyAssociatedFilter(new EqualsFilter("getTaskId", sTaskId), sTaskId);
 
         ExecutorTrace.entering(ClusteredTaskManager.class, "cleanProperties", sTaskId);

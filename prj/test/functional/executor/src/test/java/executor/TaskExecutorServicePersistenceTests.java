@@ -31,6 +31,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Blocking;
+
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
@@ -42,6 +44,8 @@ import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
+
+import com.tangosol.util.Base;
 
 import executor.common.CoherenceClusterResource;
 import executor.common.LogOutput;
@@ -188,9 +192,23 @@ public class TaskExecutorServicePersistenceTests
 
     // ----- test methods ---------------------------------------------------
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void shouldPersistLongRunningTest() throws Throwable
+    public void shouldPersistLongRunningTest()
+        {
+        Utils.assertWithFailureAction(this::doShouldPersistLongRunningTest, this::dumpExecutorCacheStates);
+        }
+
+    @Test
+    @Ignore
+    public void shouldPersistLongRunningTaskAfterRollingRestartCluster()
+        {
+        Utils.assertWithFailureAction(this::doShouldPersistLongRunningTaskAfterRollingRestartCluster, this::dumpExecutorCacheStates);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void doShouldPersistLongRunningTest()
         {
         CoherenceCluster cluster = s_coherence.getCluster();
 
@@ -198,68 +216,74 @@ public class TaskExecutorServicePersistenceTests
 
         // start a long running task on a storage member
         Task.Coordinator coordinator = m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
-            .filter(Predicates.role("storage"))
-            .limit(1)
-            .collect(TaskCollectors.lastOf())
-            .subscribe(subscriber)
-            .submit();
+                .filter(Predicates.role("storage"))
+                .limit(1)
+                .collect(TaskCollectors.lastOf())
+                .subscribe(subscriber)
+                .submit();
 
         String taskId = coordinator.getTaskId();
 
-        // wait a little bit for the task to start
-        Thread.sleep(2000);
+        // wait a bit for the task to start
+        try
+            {
+            Blocking.sleep(2000);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
 
         // ensure that we haven't completed or cancelled
         MatcherAssert.assertThat(subscriber.isCompleted(), is(false));
 
-        // now close all of the storage members
+        // now close all storage members
         cluster.filter(member -> member.getRoleName().equals("storage")).close();
 
         // now start new storage members (based on compute members)
         cluster.filter(member -> member.getRoleName().equals("compute"))
-            .limit(1)
-            .clone(STORAGE_ENABLED_MEMBER_COUNT,
-                   DisplayName.of("CacheServer"),
-                   RoleName.of("storage"),
-                   LocalStorage.enabled(),
-                   SystemProperty.of("coherence.extend.enabled", false));
+                .limit(1)
+                .clone(STORAGE_ENABLED_MEMBER_COUNT,
+                       DisplayName.of("CacheServer"),
+                       RoleName.of("storage"),
+                       LocalStorage.enabled(),
+                       SystemProperty.of("coherence.extend.enabled", false));
 
         coordinator = m_taskExecutorService.acquire(taskId);
         RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
         coordinator.subscribe(subscriber2);
 
-        Utils.assertWithFailureAction(
-                () ->
-                    {
-                    // ensure that we are eventually done! (ie: a new compute member picks up the task)
-                    Eventually.assertDeferred(() -> subscriber2.received("DONE"),
-                                              Matchers.is(true),
-                                              Eventually.within(3, TimeUnit.MINUTES));
-                    },
-                this::dumpExecutorCacheStates);
+        // ensure that we are eventually done! (ie: a new compute member picks up the task)
+        Eventually.assertDeferred(() -> subscriber2.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    @Ignore
-    public void shouldPersistLongRunningTaskAfterRollingRestartCluster()
-            throws Exception
+    protected void doShouldPersistLongRunningTaskAfterRollingRestartCluster()
         {
         CoherenceCluster            cluster    = s_coherence.getCluster();
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
 
         // start a long running task on a compute member
         Task.Coordinator coordinator = m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
-            .filter(Predicates.role("compute"))
-            .limit(1)
-            .collect(TaskCollectors.lastOf())
-            .subscribe(subscriber)
-            .submit();
+                .filter(Predicates.role("compute"))
+                .limit(1)
+                .collect(TaskCollectors.lastOf())
+                .subscribe(subscriber)
+                .submit();
 
         String taskId = coordinator.getTaskId();
 
         // wait for the task to start
-        Thread.sleep(2000);
+        try
+            {
+            Blocking.sleep(2000);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
 
         // ensure that we haven't completed or cancelled
         MatcherAssert.assertThat(subscriber.isCompleted(), is(false));
@@ -269,24 +293,16 @@ public class TaskExecutorServicePersistenceTests
         cluster.relaunch();
         AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
 
-
         setup();
         coordinator = m_taskExecutorService.acquire(taskId);
         RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
         coordinator.subscribe(subscriber2);
 
-        Utils.assertWithFailureAction(
-                () ->
-                    {
-                    // ensure that we are eventually done! (ie: a new compute member picks up the task)
-                    Eventually.assertDeferred(() -> subscriber.received("DONE"),
-                                                    Matchers.is(true),
-                                                    Eventually.within(3, TimeUnit.MINUTES));
-                    },
-                    this::dumpExecutorCacheStates);
+        // ensure that we are eventually done! (ie: a new compute member picks up the task)
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
-
-    // ----- helper methods -------------------------------------------------
 
     /**
      * Dump current executor cache states.
@@ -297,6 +313,7 @@ public class TaskExecutorServicePersistenceTests
                                       getNamedCache(ClusteredAssignment.CACHE_NAME),
                                       getNamedCache(ClusteredTaskManager.CACHE_NAME),
                                       getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(s_coherence.getCluster());
         }
 
     @SuppressWarnings("unchecked")

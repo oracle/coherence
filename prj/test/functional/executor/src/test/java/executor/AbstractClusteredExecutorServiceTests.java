@@ -198,10 +198,30 @@ public abstract class AbstractClusteredExecutorServiceTests
 
     // ----- contract -------------------------------------------------------
 
+
+    @Override
+    public CoherenceCluster getCluster()
+        {
+        return getCoherence().getCluster();
+        }
+
+    /**
+     * Return the {@link CoherenceClusterResource} under test.
+     *
+     * @return the {@link CoherenceClusterResource} under test.
+     */
     public abstract CoherenceClusterResource getCoherence();
 
+    /**
+     * Return the logging label.
+     *
+     * @return the logging label
+     */
     public abstract String getLabel();
 
+    /**
+     * Initialize the cluster and create an extend client.
+     */
     protected void initCluster()
         {
         COUNTER.incrementAndGet();

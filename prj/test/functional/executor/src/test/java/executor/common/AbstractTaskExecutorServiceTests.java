@@ -10,6 +10,8 @@ import com.oracle.bedrock.deferred.DeferredHelper;
 
 import com.oracle.bedrock.options.Timeout;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.deferred.Repetitively;
 
@@ -41,6 +43,7 @@ import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 
 import com.tangosol.util.function.Remote;
@@ -149,6 +152,13 @@ public abstract class AbstractTaskExecutorServiceTests
      * @return the specified {@link NamedCache} or {@code null} if not found
      */
     public abstract <K, V> NamedCache<K, V> getNamedCache(String sName);
+
+    /**
+     * Obtain the {@link CoherenceCluster} under test.
+     *
+     * @return the {@link CoherenceCluster} under test.
+     */
+    public abstract CoherenceCluster getCluster();
 
     // ----- test methods ---------------------------------------------------
 
@@ -1042,7 +1052,7 @@ public abstract class AbstractTaskExecutorServiceTests
         Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
         }
 
-    public void shouldHandleExecutorServiceShutdown() throws Exception
+    public void shouldHandleExecutorServiceShutdown()
         {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -1062,7 +1072,17 @@ public abstract class AbstractTaskExecutorServiceTests
             Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
 
             executorService.shutdownNow();
-            boolean fTerminated = executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+            boolean fTerminated;
+            try
+                {
+                fTerminated = executorService.awaitTermination(1, TimeUnit.MINUTES);
+                }
+            catch (InterruptedException e)
+                {
+                throw Base.ensureRuntimeException(e);
+                }
+
             MatcherAssert.assertThat(fTerminated, Matchers.is(true));
             MatcherAssert.assertThat(executorService.isTerminated(), Matchers.is(true));
 
@@ -1326,83 +1346,90 @@ public abstract class AbstractTaskExecutorServiceTests
             }
         }
 
-    public void shouldUseDefaultExecutor() throws Exception
+    public void shouldUseDefaultExecutor()
         {
-        TaskExecutorService executorService = m_taskExecutorService;
-
-        executorService.execute(new MyRunnable("hello"));
-
-        Future<String> result = executorService.submit(new MyCallable(5, "MyCallable result"));
-
-        assertEquals(result.get(), "MyCallable result");
-        result = executorService.submit(new MyCallable(5));
-        assertEquals(result.get(), "This is the result");
-
-        Future<String> result2 = executorService.submit(new MyRunnable("submit hello"), "submit result");
-
-        assertEquals(result2.get(), "submit result");
-
-        Collection colCallables = new ArrayList<>(10);
-
-        colCallables.add(new MyCallable(5));
-        colCallables.add(new MyCallable(10, "MyCallable result for invokeAll"));
-
-        List<Future<String>> results = executorService.invokeAll(colCallables);
-
-        assertEquals(results.size(), 2);
-        for (int i = 0; i < 2; ++i)
-            {
-            Eventually.assertThat(valueOf(future(String.class, results.get(i))),
-                                  either(is("This is the result")).or(is("MyCallable result for invokeAll")));
-            }
-
-        colCallables.add(new MyCallable(10, "MyCallable result for invokeAny"));
-
-        String result3 = (String) executorService.invokeAny(colCallables);
-
-        assertTrue(result3.equals("This is the result")
-                          || result3.equals("MyCallable result for invokeAny")
-                          || result3.equals("MyCallable result for invokeAll"));
-
-        for (int i = 3; i < 10; i++)
-            {
-            colCallables.add(new MyCallable(i, "MyCallable result for invokeAny " + i));
-            }
-
-        results = executorService.invokeAll(colCallables, 1, TimeUnit.MILLISECONDS);
-        assertEquals(results.size(), 10);
-
         try
             {
-            for (Future<String> r : results)
+            TaskExecutorService executorService = m_taskExecutorService;
+
+            executorService.execute(new MyRunnable("hello"));
+
+            Future<String> result = executorService.submit(new MyCallable(5, "MyCallable result"));
+
+            assertEquals(result.get(), "MyCallable result");
+            result = executorService.submit(new MyCallable(5));
+            assertEquals(result.get(), "This is the result");
+
+            Future<String> result2 = executorService.submit(new MyRunnable("submit hello"), "submit result");
+
+            assertEquals(result2.get(), "submit result");
+
+            Collection colCallables = new ArrayList<>(10);
+
+            colCallables.add(new MyCallable(5));
+            colCallables.add(new MyCallable(10, "MyCallable result for invokeAll"));
+
+            List<Future<String>> results = executorService.invokeAll(colCallables);
+
+            assertEquals(results.size(), 2);
+            for (int i = 0; i < 2; ++i)
                 {
-                r.get(0, TimeUnit.MILLISECONDS);
+                Eventually.assertThat(valueOf(future(String.class, results.get(i))),
+                                      either(is("This is the result")).or(is("MyCallable result for invokeAll")));
                 }
-            fail("Should fail with Exception.");
-            }
-        catch (ExecutionException | InterruptedException | NoSuchElementException | CancellationException e)
-            {
-            // success
-            }
 
-        System.out.println("Calling invokeAny() with a short timeout.");
-        try
-            {
-            executorService.invokeAny(colCallables, 1, TimeUnit.MILLISECONDS);
-            System.out.println("invokeAny() failed to timeout.");
-            fail("Should fail with TimeoutException.");
-            }
-        catch (TimeoutException e)
-            {
-            // success
-            }
+            colCallables.add(new MyCallable(10, "MyCallable result for invokeAny"));
 
-        colCallables.clear();
-        colCallables.add(new MyCallable(5, "null"));
-        colCallables.add(new MyCallable(10, "null"));
-        colCallables.add(new MyCallable(15, "null"));
-        results = executorService.invokeAll(colCallables);
-        assertEquals(3, results.size());
+            String result3 = (String) executorService.invokeAny(colCallables);
+
+            assertTrue(result3.equals("This is the result")
+                              || result3.equals("MyCallable result for invokeAny")
+                              || result3.equals("MyCallable result for invokeAll"));
+
+            for (int i = 3; i < 10; i++)
+                {
+                colCallables.add(new MyCallable(i, "MyCallable result for invokeAny " + i));
+                }
+
+            results = executorService.invokeAll(colCallables, 1, TimeUnit.MILLISECONDS);
+            assertEquals(results.size(), 10);
+
+            try
+                {
+                for (Future<String> r : results)
+                    {
+                    r.get(0, TimeUnit.MILLISECONDS);
+                    }
+                fail("Should fail with Exception.");
+                }
+            catch (ExecutionException | InterruptedException | NoSuchElementException | CancellationException e)
+                {
+                // success
+                }
+
+            System.out.println("Calling invokeAny() with a short timeout.");
+            try
+                {
+                executorService.invokeAny(colCallables, 1, TimeUnit.MILLISECONDS);
+                System.out.println("invokeAny() failed to timeout.");
+                fail("Should fail with TimeoutException.");
+                }
+            catch (TimeoutException e)
+                {
+                // success
+                }
+
+            colCallables.clear();
+            colCallables.add(new MyCallable(5, "null"));
+            colCallables.add(new MyCallable(10, "null"));
+            colCallables.add(new MyCallable(15, "null"));
+            results = executorService.invokeAll(colCallables);
+            assertEquals(3, results.size());
+            }
+        catch (Throwable t)
+            {
+            throw Base.ensureRuntimeException(t);
+            }
         }
 
     public void shouldHandleProperties()
@@ -1479,7 +1506,7 @@ public abstract class AbstractTaskExecutorServiceTests
         Eventually.assertDeferred(() -> coordinator4.getProperties().get("key2"), is(Matchers.nullValue()));
         }
 
-    public void shouldUseScheduledExecutor() throws Exception
+    public void shouldUseScheduledExecutor()
         {
         TaskExecutorService executorService = m_taskExecutorService;
 
@@ -1514,7 +1541,15 @@ public abstract class AbstractTaskExecutorServiceTests
                     }
                 },
                 is("MyCallable result"));
-        assertEquals(result2.get(), "MyCallable result");
+
+        try
+            {
+            assertEquals(result2.get(), "MyCallable result");
+            }
+        catch (Throwable t)
+            {
+            throw Base.ensureRuntimeException(t);
+            }
 
         ScheduledFuture<?> result3 = executorService.schedule(new MyCallable(5), 20, TimeUnit.SECONDS);
         Repetitively.assertThat(invoking(result3).isDone(), Matchers.is(false), within(18, TimeUnit.SECONDS));
@@ -1531,16 +1566,25 @@ public abstract class AbstractTaskExecutorServiceTests
                     }
                 },
                 is("This is the result"));
-        assertEquals(result3.get(), "This is the result");
+
+
+        try
+            {
+            assertEquals(result3.get(), "This is the result");
+            }
+        catch (Throwable t)
+            {
+            throw Base.ensureRuntimeException(t);
+            }
 
         ScheduledFuture<?> result = executorService.scheduleAtFixedRate(new MyRunnable("counter"), 15, 10, TimeUnit.SECONDS);
         assertThat(result.getDelay(TimeUnit.SECONDS), is(15L));
-        Thread.sleep(30000);
+        Base.sleep(30000);
         result.cancel(true);
         Eventually.assertDeferred(result::isCancelled, is(true));
 
         result = executorService.scheduleWithFixedDelay(new MyRunnable("counter"), 15, 10, TimeUnit.SECONDS);
-        Thread.sleep(30000);
+        Base.sleep(30000);
         result.cancel(true);
         Eventually.assertDeferred(result::isCancelled, is(true));
         }
@@ -1946,7 +1990,7 @@ public abstract class AbstractTaskExecutorServiceTests
             }
         }
 
-    public void shouldRetainTask() throws InterruptedException
+    public void shouldRetainTask()
         {
         int remainingMillis = 30000;
 
@@ -1969,7 +2013,15 @@ public abstract class AbstractTaskExecutorServiceTests
         MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(false));
         MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
 
-        Thread.sleep(10000);
+        try
+            {
+            Blocking.sleep(10000);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+
         remainingMillis -= 10000;
 
         // subscribe after completed
@@ -1993,7 +2045,15 @@ public abstract class AbstractTaskExecutorServiceTests
         try
             {
             // sleep a bit longer than expiry time
-            Thread.sleep(remainingMillis + 12000);
+            try
+                {
+                Blocking.sleep(remainingMillis + 12000);
+                }
+            catch (InterruptedException e)
+                {
+                throw Base.ensureRuntimeException(e);
+                }
+
             subscriber = new RecordingSubscriber<>();
             coordinator.subscribe(subscriber);
             fail("Should fail with IllegalStateException.");
@@ -2103,6 +2163,7 @@ public abstract class AbstractTaskExecutorServiceTests
                                       getNamedCache(ClusteredAssignment.CACHE_NAME),
                                       getNamedCache(ClusteredTaskManager.CACHE_NAME),
                                       getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(getCluster());
         }
 
     // ----- inner class: SleeperTask ---------------------------------------

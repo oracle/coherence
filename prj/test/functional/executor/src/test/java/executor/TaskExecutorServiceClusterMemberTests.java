@@ -185,18 +185,31 @@ public class TaskExecutorServiceClusterMemberTests
 
     // ----- test methods ---------------------------------------------------
 
-    @SuppressWarnings("rawtypes")
     @Test
     public void shouldExecuteAndCompleteTask()
+        {
+        Utils.assertWithFailureAction(this::doShouldExecuteAndCompleteTask, this::dumpExecutorCacheStates);
+        }
+
+    @Test
+    public void shouldAllowFailoverLongRunningTest()
+        {
+        Utils.assertWithFailureAction(this::doShouldAllowFailoverLongRunningTest, this::dumpExecutorCacheStates);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    @SuppressWarnings("rawtypes")
+    protected void doShouldExecuteAndCompleteTask()
         {
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
 
         Task.Coordinator<String> coordinator =
-            m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
-                .collect(TaskCollectors.lastOf())
-                .until(Predicates.notNullValue())
-                .subscribe(subscriber)
-                .submit();
+                m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
+                        .collect(TaskCollectors.lastOf())
+                        .until(Predicates.notNullValue())
+                        .subscribe(subscriber)
+                        .submit();
 
         Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(true));
         MatcherAssert.assertThat(subscriber.isSubscribed(), Matchers.is(false));
@@ -212,8 +225,7 @@ public class TaskExecutorServiceClusterMemberTests
         }
 
     @SuppressWarnings("rawtypes")
-    @Test
-    public void shouldAllowFailoverLongRunningTest()
+    protected void doShouldAllowFailoverLongRunningTest()
         {
         CoherenceCluster            cluster    = s_coherence.getCluster();
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
@@ -221,12 +233,12 @@ public class TaskExecutorServiceClusterMemberTests
         // start a long-running task on a client member
         final String taskName = "longRunningTask";
         ClusteredTaskCoordinator coordinator = (ClusteredTaskCoordinator) m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
-            .as(taskName)
-            .filter(Predicates.role(STORAGE_DISABLED_MEMBER_ROLE))
-            .limit(1)
-            .collect(TaskCollectors.lastOf())
-            .subscribe(subscriber)
-            .submit();
+                .as(taskName)
+                .filter(Predicates.role(STORAGE_DISABLED_MEMBER_ROLE))
+                .limit(1)
+                .collect(TaskCollectors.lastOf())
+                .subscribe(subscriber)
+                .submit();
 
         // verify that the task has started
         ClusteredProperties properties = (ClusteredProperties) coordinator.getProperties();
@@ -238,20 +250,12 @@ public class TaskExecutorServiceClusterMemberTests
         cluster.filter(member -> member.getRoleName().equals(STORAGE_DISABLED_MEMBER_ROLE)).relaunch();
         AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
 
-        Utils.assertWithFailureAction(
-                () ->
-                    {
-                    // make sure the task is failed over to the new member and the subscriber received the result
-                    MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
-                    Eventually.assertDeferred(() -> subscriber.received("DONE"),
-                                              Matchers.is(true),
-                                              Eventually.within(3, TimeUnit.MINUTES));
-                    },
-                this::dumpExecutorCacheStates
-        );
+        // make sure the task is failed over to the new member and the subscriber received the result
+        MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
+        Eventually.assertDeferred(() -> subscriber.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
-
-    // ----- helper methods -------------------------------------------------
 
     /**
      * Dump current executor cache states.
@@ -262,6 +266,7 @@ public class TaskExecutorServiceClusterMemberTests
                                       getNamedCache(ClusteredAssignment.CACHE_NAME),
                                       getNamedCache(ClusteredTaskManager.CACHE_NAME),
                                       getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(s_coherence.getCluster());
         }
 
     @SuppressWarnings("unchecked")

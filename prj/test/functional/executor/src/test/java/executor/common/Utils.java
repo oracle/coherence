@@ -6,14 +6,23 @@
  */
 package executor.common;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
 import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.common.internal.util.HeapDump;
 
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+
+import java.io.File;
+import java.io.IOException;
 
 import java.util.Objects;
 
@@ -94,6 +103,36 @@ public final class Utils
                 Logger.err("Unexpected error invoking onFailure action", tInner);
                 }
             throw t;
+            }
+        }
+
+    /**
+     * Initiates a heap dump across all members of the cluster.
+     *
+     * @param cluster  the {@link CoherenceCluster}
+     */
+    public static void heapdump(CoherenceCluster cluster)
+        {
+        for (CoherenceClusterMember member : cluster)
+            {
+            if (member != null && member.getLocalMemberId() > 0)
+                {
+                String sDir = System.getProperty("test.project.dir");
+
+                if (sDir == null || sDir.isEmpty())
+                    {
+                    try
+                        {
+                        sDir = new java.io.File(".").getCanonicalPath();
+                        }
+                    catch (IOException e)
+                        {
+                        }
+                    }
+                final String sPath = sDir;
+                member.submit(()-> CacheFactory.log("Dumping heap for analysis here : \n" +
+                                                    HeapDump.dumpHeap(sPath + File.separatorChar + "target", true)));
+                }
             }
         }
     }

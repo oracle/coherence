@@ -10,6 +10,7 @@ import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 
 import executor.common.SingleClusterForAllTests;
+import executor.common.Utils;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -50,210 +51,210 @@ public abstract class AbstractCESSingleClusterTests
     @Test
     public void shouldCreateExecutorService()
         {
-        super.shouldCreateExecutorService();
+        Utils.assertWithFailureAction(super::shouldCreateExecutorService, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldExecuteAndCompleteTask()
         {
-        super.shouldExecuteAndCompleteTask();
+        Utils.assertWithFailureAction(super::shouldExecuteAndCompleteTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldExecuteAndCompleteTaskWithNoCollector()
         {
-        super.shouldExecuteAndCompleteTaskWithNoCollector();
+        Utils.assertWithFailureAction(super::shouldExecuteAndCompleteTaskWithNoCollector, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldExecuteAndCompleteTaskWithMultipleResults()
         {
-        super.shouldExecuteAndCompleteTaskWithMultipleResults();
+        Utils.assertWithFailureAction(super::shouldExecuteAndCompleteTaskWithMultipleResults, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldExecuteAndCompleteTaskSequentially()
         {
-        super.shouldExecuteAndCompleteTaskSequentially();
+        Utils.assertWithFailureAction(super::shouldExecuteAndCompleteTaskSequentially, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldGetTaskIdFromContext()
         {
-        super.shouldGetTaskIdFromContext();
+        Utils.assertWithFailureAction(super::shouldGetTaskIdFromContext, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldGetExecutorIdFromContext()
         {
-        super.shouldGetExecutorIdFromContext();
+        Utils.assertWithFailureAction(super::shouldGetExecutorIdFromContext, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldExecuteAndCompleteNullTask()
         {
-        super.shouldExecuteAndCompleteNullTask();
+        Utils.assertWithFailureAction(super::shouldExecuteAndCompleteNullTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldExecuteAndNotCompleteTask()
         {
-        super.shouldExecuteAndNotCompleteTask();
+        Utils.assertWithFailureAction(super::shouldExecuteAndNotCompleteTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldCancelTask()
         {
-        super.shouldCancelTask();
+        Utils.assertWithFailureAction(super::shouldCancelTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAcquireCoordinatorForSubmittedTask()
         {
-        super.shouldAcquireCoordinatorForSubmittedTask();
+        Utils.assertWithFailureAction(super::shouldAcquireCoordinatorForSubmittedTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldRegisterAndDeRegisterExecutor()
         {
-        super.shouldRegisterAndDeRegisterExecutor();
+        Utils.assertWithFailureAction(super::shouldRegisterAndDeRegisterExecutor, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAutomaticallyRemoveTaskWhenCompleted()
         {
-        super.shouldAutomaticallyRemoveTaskWhenCompleted();
+        Utils.assertWithFailureAction(super::shouldAutomaticallyRemoveTaskWhenCompleted, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAutomaticallySubscribe()
         {
-        super.shouldAutomaticallySubscribe();
+        Utils.assertWithFailureAction(super::shouldAutomaticallySubscribe, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldPublishResultWithMultipleExecutors()
         {
-        super.shouldPublishResultWithMultipleExecutors();
+        Utils.assertWithFailureAction(super::shouldPublishResultWithMultipleExecutors, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldCollectFirstResultWithMultipleExecutors()
         {
-        super.shouldCollectFirstResultWithMultipleExecutors();
+        Utils.assertWithFailureAction(super::shouldCollectFirstResultWithMultipleExecutors, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldCollectFirstResultWithAnyOf()
         {
-        super.shouldCollectFirstResultWithAnyOf();
+        Utils.assertWithFailureAction(super::shouldCollectFirstResultWithAnyOf, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldCollectResultsInOrder()
         {
-        super.shouldCollectResultsInOrder();
+        Utils.assertWithFailureAction(super::shouldCollectResultsInOrder, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldSupportMultipleSubscribers()
         {
-        super.shouldSupportMultipleSubscribers();
+        Utils.assertWithFailureAction(super::shouldSupportMultipleSubscribers, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleExceptionTask()
         {
-        super.shouldHandleExceptionTask();
+        Utils.assertWithFailureAction(super::shouldHandleExceptionTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleDuplicateTaskId()
         {
-        super.shouldHandleDuplicateTaskId();
+        Utils.assertWithFailureAction(super::shouldHandleDuplicateTaskId, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
-    public void shouldHandleExecutorServiceShutdown() throws Exception
+    public void shouldHandleExecutorServiceShutdown()
         {
-        super.shouldHandleExecutorServiceShutdown();
+        Utils.assertWithFailureAction(super::shouldHandleExecutorServiceShutdown, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleSubscriberException()
         {
-        super.shouldHandleSubscriberException();
+        Utils.assertWithFailureAction(super::shouldHandleSubscriberException, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldYieldTask()
         {
-        super.shouldYieldTask();
+        Utils.assertWithFailureAction(super::shouldYieldTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleExceptionsInCallableFutures()
         {
-        super.shouldHandleExceptionsInCallableFutures();
+        Utils.assertWithFailureAction(super::shouldHandleExceptionsInCallableFutures, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleExceptionsInRunnableFutures()
         {
-        super.shouldHandleExceptionsInRunnableFutures();
+        Utils.assertWithFailureAction(super::shouldHandleExceptionsInRunnableFutures, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleTasksFailingInInvokeAny()
         {
-        super.shouldHandleTasksFailingInInvokeAny();
+        Utils.assertWithFailureAction(super::shouldHandleTasksFailingInInvokeAny, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
-    public void shouldUseDefaultExecutor() throws Exception
+    public void shouldUseDefaultExecutor()
         {
-        super.shouldUseDefaultExecutor();
+        Utils.assertWithFailureAction(super::shouldUseDefaultExecutor, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleProperties()
         {
-        super.shouldHandleProperties();
+        Utils.assertWithFailureAction(super::shouldHandleProperties, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldCallRunnableAfterTaskComplete()
         {
-        super.shouldCallRunnableAfterTaskComplete();
+        Utils.assertWithFailureAction(super::shouldCallRunnableAfterTaskComplete, this::dumpExecutorCacheStates);
         }
 
     @Override
@@ -261,126 +262,126 @@ public abstract class AbstractCESSingleClusterTests
     @Ignore("disabled as completion no longer runs if task throws an exception")
     public void shouldCallRunnableAfterTaskCompleteWithException()
         {
-        super.shouldCallRunnableAfterTaskCompleteWithException();
+        Utils.assertWithFailureAction(super::shouldCallRunnableAfterTaskCompleteWithException, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldChangeLogLevelWithDebugging()
         {
-        super.shouldChangeLogLevelWithDebugging();
+        Utils.assertWithFailureAction(super::shouldChangeLogLevelWithDebugging, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldRejectTaskSubmissionsAfterShutdown()
         {
-        super.shouldRejectTaskSubmissionsAfterShutdown();
+        Utils.assertWithFailureAction(super::shouldRejectTaskSubmissionsAfterShutdown, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldRejectRegisterAfterShutdown()
         {
-        super.shouldRejectRegisterAfterShutdown();
+        Utils.assertWithFailureAction(super::shouldRejectRegisterAfterShutdown, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownGracefullyWithNoExecutorsNoTasks()
         {
-        super.shouldShutdownGracefullyWithNoExecutorsNoTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownGracefullyWithNoExecutorsNoTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownGracefullyWithNoExecutorsWithTasks()
         {
-        super.shouldShutdownGracefullyWithNoExecutorsWithTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownGracefullyWithNoExecutorsWithTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownGracefullyWithExecutorsNoTasks()
         {
-        super.shouldShutdownGracefullyWithExecutorsNoTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownGracefullyWithExecutorsNoTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownGracefullyWithExecutorsWithTasks()
         {
-        super.shouldShutdownGracefullyWithExecutorsWithTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownGracefullyWithExecutorsWithTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownNowWithNoExecutorsNoTasks()
         {
-        super.shouldShutdownNowWithNoExecutorsNoTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownNowWithNoExecutorsNoTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownNowWithNoExecutorsWithTasks()
         {
-        super.shouldShutdownNowWithNoExecutorsWithTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownNowWithNoExecutorsWithTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownNowWithExecutorsNoTasks()
         {
-        super.shouldShutdownNowWithExecutorsNoTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownNowWithExecutorsNoTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldShutdownNowWithExecutorsWithTasks()
         {
-        super.shouldShutdownNowWithExecutorsWithTasks();
+        Utils.assertWithFailureAction(super::shouldShutdownNowWithExecutorsWithTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23998")
-    public void shouldRetainTask() throws InterruptedException
+    public void shouldRetainTask()
         {
-        super.shouldRetainTask();
+        Utils.assertWithFailureAction(super::shouldRetainTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldNotAssignNewTasksDuringGracefulShutdown()
         {
-        super.shouldNotAssignNewTasksDuringGracefulShutdown();
+        Utils.assertWithFailureAction(super::shouldNotAssignNewTasksDuringGracefulShutdown, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldRemoveCacheEntriesOnCancel()
         {
-        super.shouldRemoveCacheEntriesOnCancel();
+        Utils.assertWithFailureAction(super::shouldRemoveCacheEntriesOnCancel, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAutomaticallyDeregisterExecutor()
         {
-        super.shouldAutomaticallyDeregisterExecutor();
+        Utils.assertWithFailureAction(super::shouldAutomaticallyDeregisterExecutor, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldNotExpireRunningExecutors()
         {
-        super.shouldNotExpireRunningExecutors();
+        Utils.assertWithFailureAction(super::shouldNotExpireRunningExecutors, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldSetRoleFromMember()
         {
-        super.shouldSetRoleFromMember();
+        Utils.assertWithFailureAction(super::shouldSetRoleFromMember, this::dumpExecutorCacheStates);
         }
     }
