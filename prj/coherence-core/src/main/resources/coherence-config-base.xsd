@@ -1569,10 +1569,10 @@
     <xsd:complexType name="ssl-refresh-policy-type">
         <xsd:annotation>
             <xsd:documentation>
-                The refresh-policy element contains the configuration info for a security
-                provider that extends the java.security.Provider class.
+                The `refresh-policy` element contains the configuration info for a refresh
+                policy that extends the `com.tangosol.net.ssl.RefreshPolicy` class
 
-                Used in: ssl, identity-manager, trust-manager
+                Used in: ssl
             </xsd:documentation>
         </xsd:annotation>
         <xsd:choice>
