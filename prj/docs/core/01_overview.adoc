@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -70,6 +70,15 @@ Integration with data sources with non-blocking APIs.
 [icon=fa-cubes,link=docs/core/09_backup.adoc]
 --
 Changes to partition backup management.
+--
+
+[CARD]
+.TLS/SSL Enhancements
+[icon=https,link=docs/core/10_tls.adoc]
+--
+TLS & SSL enhancements to use key and certificate files as an alternative to Java keystores.
+Supports refreshable keystores, keys and certificates.
+Adds extension points to allow custom keystore, key and certificate loaders.
 --
 
 ====

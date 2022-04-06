@@ -41,7 +41,10 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.LiteMap;
+import com.tangosol.util.RegistrationBehavior;
+import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SafeLinkedList;
+import com.tangosol.util.SimpleResourceRegistry;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -157,6 +160,9 @@ public class DefaultClusterDependencies
             m_localAddress                   = deps.getLocalAddress();
             m_builderRegistry                = new SimpleParameterizedBuilderRegistry(deps.getBuilderRegistry());
             m_builderUnicastSocketProvider   = deps.getUnicastSocketProviderBuilder();
+
+            m_customResources = new SimpleResourceRegistry();
+            deps.registerResources(m_customResources);
 
             setMemberIdentity(deps.getMemberIdentity()); // setMemberIdentity clones the identity
             }
@@ -1951,6 +1957,28 @@ public class DefaultClusterDependencies
         return m_builderRegistry;
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void registerResources(ResourceRegistry registry)
+        {
+        if (m_customResources != null)
+            {
+            m_customResources.registerResources(registry, RegistrationBehavior.FAIL);
+            }
+        }
+
+    /**
+     * Set the registry of custom resources.
+     *
+     * @param registry  the registry of custom resources
+     */
+    public void setCustomResourcesRegistry(SimpleResourceRegistry registry)
+        {
+        m_customResources = registry;
+        }
+
     // ----- DefaultClusterDependencies methods -----------------------------
 
     /**
@@ -2656,4 +2684,9 @@ public class DefaultClusterDependencies
      * The unicast {@link SocketProviderBuilder}
      */
     private SocketProviderBuilder m_builderUnicastSocketProvider;
+
+    /**
+     * The registry of custom resources.
+     */
+    private SimpleResourceRegistry m_customResources;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -188,9 +188,7 @@ public abstract class AbstractTaskCoordinator<T>
     protected void closeSubscriber(Task.Subscriber<? super T> subscriber,
                                    boolean fRemove)
         {
-        //logger.entering(Logging.within(AbstractTaskCoordinator.class),
-        //                "closeSubscriber",
-        //                Logging.parameters(subscriber, getTaskId()));
+        ExecutorTrace.entering(AbstractTaskCoordinator.class, "closeSubscriber", subscriber, getTaskId());
 
         if (fRemove)
             {
@@ -217,7 +215,7 @@ public abstract class AbstractTaskCoordinator<T>
         catch (Throwable throwable)
             {
             Logger.warn(() -> String.format("Failed to close subscriber %s", subscriber));
-            //logger.throwing(Logging.within(AbstractTaskCoordinator.class), "closeSubscriber", throwable);
+            ExecutorTrace.throwing(AbstractTaskCoordinator.class, "closeSubscriber", throwable);
 
             // we always remove when an error occurs
             m_setSubscribers.remove(subscriber);
@@ -232,7 +230,7 @@ public abstract class AbstractTaskCoordinator<T>
                 }
             }
 
-        //logger.exiting(Logging.within(AbstractTaskCoordinator.class), "closeSubscriber");
+        ExecutorTrace.exiting(AbstractTaskCoordinator.class, "closeSubscriber");
         }
 
     /**
@@ -290,8 +288,7 @@ public abstract class AbstractTaskCoordinator<T>
      */
     public void offer(final Result<T> item)
         {
-        //logger.entering(Logging.within(AbstractTaskCoordinator.class),
-        //                "offer", item);
+        ExecutorTrace.entering(AbstractTaskCoordinator.class, "offer", item);
 
         if (f_closed.get())
             {
@@ -357,7 +354,7 @@ public abstract class AbstractTaskCoordinator<T>
                 }
             }
 
-        //logger.exiting(Logging.within(AbstractTaskCoordinator.class), "offer");
+        ExecutorTrace.exiting(AbstractTaskCoordinator.class, "offer");
         }
 
     // ----- abstract methods -----------------------------------------------

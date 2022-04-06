@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -113,24 +113,22 @@
     </profile>
 
     <!--
-        The 'shell' profile is for building Coherence using a Continuous
-        Integration system (CI) and/or command-line shell (SHELL).
+        The 'modules' profile builds modules that depend on the main com.oracle.coherence module.
 
-        It is specifically designed for building and assembling the entire product
-        including artifacts that can't readily be built or understood by
-        Integrated Development Environments (IDE), like IntelliJ.
-
-        Consequently this profile MUST NOT be used when working inside an IDE.
-
-        WARNING: Any attempts to use this profile with in an IDE and/or with the
-                 'ide' profile is not supported.
+        It must be performed as a second stage of every build, regardless of the environment.
       -->
     <profile>
-      <id>shell</id>
+      <id>modules</id>
 
       <activation>
         <property>
-          <name>!ide</name>
+          <!--
+              Automatically disabled when inside IntelliJ.
+              IntelliJ sets the idea.version property when importing Maven projects.
+              The IntelliJ profile will be enabled instead, which excluded modules
+              we do not want in the IDE.
+          -->
+          <name>!idea.version</name>
         </property>
       </activation>
 
@@ -138,35 +136,6 @@
       <modules>
         <module>jcache-compliance</module>
         <module>osgi</module>
-      </modules>
-    </profile>
-
-    <!--
-        The 'ide' profile is for working with the Coherence project inside an
-        Integrated Development Environment (IDE), like IntelliJ.
-
-        It is specifically designed to exclude artifacts and modules containing
-        build instructions typically unsupported or unrecognizable by IDEs.
-
-        For example: compiling, building and assembling native libraries and
-        TDE-based/CDB-based artifacts is not supported by IntelliJ.
-
-        Consequently this profile MAY ONLY be used once a local 'shell'
-        build has occurred or after the native/TDE/CDB-based artifacts have
-        been build or made available (via Maven).
-      -->
-    <profile>
-      <id>ide</id>
-
-      <activation>
-        <property>
-          <name>ide</name>
-        </property>
-      </activation>
-
-      <!-- the following additional modules are buildable by this profile -->
-      <modules>
-        <!-- (none) -->
       </modules>
     </profile>
 

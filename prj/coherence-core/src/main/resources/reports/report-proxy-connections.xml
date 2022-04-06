@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>{date}-report-proxy-connections.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Connection,*</pattern>
+      </query>
+
+      <row>
+        <column id="BatchCounter">
+          <type>global</type>
+          <name>{batch-counter}</name>
+          <header>Batch Counter</header>
+        </column>
+
+        <column id ="ReportTime">
+          <type>global</type>
+          <name>{report-time}</name>
+          <header>Report Time</header>
+        </column>
+
+        <column id="RefreshTime">
+          <name>RefreshTime</name>
+        </column>
+
+        <column id="Name">
+          <type>key</type>
+          <name>name</name>
+          <header>Service Name</header>
+        </column>
+
+        <column id ="NodeId">
+          <type>key</type>
+          <name>nodeId</name>
+          <header>NodeId</header>
+        </column>
+
+        <column id ="UUID">
+          <type>key</type>
+          <name>UUID</name>
+          <header>UUID</header>
+        </column>
+
+        <column id ="RemoteAddress">
+          <name>RemoteAddress</name>
+        </column>
+
+        <column id ="RemotePort">
+          <name>RemotePort</name>
+        </column>
+        
+        <column id ="ClientAddress">
+          <name>ClientAddress</name>
+        </column>
+
+        <column id ="ClientProcessId">
+          <name>ClientProcessName</name>
+        </column>
+
+        <column id ="ClientRole">
+          <name>ClientRole</name>
+        </column>
+
+        <column id ="ConnectionTimeMillis">
+          <name>ConnectionTimeMillis</name>
+        </column>
+
+        <column id ="OutgoingByteBacklog">
+          <name>OutgoingByteBacklog</name>
+        </column>
+
+        <column id ="OutgoingMessageBacklog">
+          <name>OutgoingMessageBacklog</name>
+        </column>
+
+        <!-- Delta calculations using Service Name, Node ID, UUID and Node TS
+             to determine prior value  -->
+
+        <column id ="BytesSent">
+          <type>function</type>
+          <header>Bytes Sent</header>
+          <column-ref>TotalBytesSent</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Name</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>UUID</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id ="BytesReceived">
+          <type>function</type>
+          <header>Bytes Received</header>
+          <column-ref>TotalBytesReceived</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Name</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>UUID</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id ="MessagesSent">
+          <type>function</type>
+          <header>Messages Sent</header>
+          <column-ref>TotalMessagesSent</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Name</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>UUID</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <column id ="MessagesReceived">
+          <type>function</type>
+          <header>Messages Received</header>
+          <column-ref>TotalMessagesReceived</column-ref>
+          <function-name>delta</function-name>
+          <params>
+             <column-ref>Name</column-ref>
+             <column-ref>NodeId</column-ref>
+             <column-ref>UUID</column-ref>
+             <column-ref>NodeTS</column-ref>
+          </params>
+        </column>
+
+        <!-- Raw Data -->
+        <column id ="NodeTS">
+          <name>Timestamp</name>
+          <header>Timestamp</header>
+            <query>
+              <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+          </query>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="TotalBytesSent">
+          <name>TotalBytesSent</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="TotalBytesReceived">
+          <name>TotalBytesReceived</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="TotalMessagesSent">
+          <name>TotalMessagesSent</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="TotalMessagesReceived">
+          <name>TotalMessagesReceived</name>
+          <hidden>true</hidden>
+        </column>
+
+        <column id ="Member">
+          <name>Member</name>
+        </column>
+      </row>
+    </report>
+</report-config>

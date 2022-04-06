@@ -6,9 +6,12 @@
  */
 package executor;
 
+import com.oracle.bedrock.junit.ExtendClient;
+
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
@@ -28,6 +31,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Blocking;
+
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
@@ -37,10 +42,12 @@ import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 
+import com.tangosol.util.Base;
+
 import executor.common.CoherenceClusterResource;
-import executor.common.ExtendClient;
 import executor.common.LogOutput;
 import executor.common.SingleClusterForAllTests;
 import executor.common.LongRunningTask;
@@ -53,6 +60,9 @@ import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+
+import executor.common.Utils;
+import executor.common.Watcher;
 
 import java.util.concurrent.TimeUnit;
 
@@ -77,11 +87,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import org.junit.experimental.categories.Category;
-
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-
-import org.junit.runner.Description;
 
 import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ADDRESS_PROPERTY;
@@ -127,8 +132,7 @@ public class TaskExecutorServicePersistenceTests
     public void setup()
         {
         // connect as an *Extend client
-        m_cacheFactory = s_coherence.createSession(new ExtendClient(EXTEND_CONFIG,
-                TaskExecutorServicePersistenceTests.class.getSimpleName()));
+        m_cacheFactory = s_coherence.createSession(new ExtendClient(EXTEND_CONFIG, SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true")));
 
         // establish an ExecutorService based on the *Extend client
         m_taskExecutorService = createExecutorService();
@@ -143,11 +147,39 @@ public class TaskExecutorServicePersistenceTests
             Eventually.assertDeferred(() -> getExecutorServiceInfo(executors, (String) key).getState(),
                                       is(TaskExecutorService.ExecutorInfo.State.RUNNING));
             }
+
+        String sMsg = ">>>>> Starting test: " + f_watcher.getMethodName();
+        for (CoherenceClusterMember member : s_coherence.getCluster())
+            {
+            if (member != null)
+                {
+                member.submit(() ->
+                              {
+                              System.err.println(sMsg);
+                              System.err.flush();
+                              return null;
+                              }).join();
+                }
+            }
         }
 
     @After
     public void cleanup()
         {
+        String sMsg = ">>>>> Finished test: " + f_watcher.getMethodName();
+        for (CoherenceClusterMember member : s_coherence.getCluster())
+            {
+            if (member != null)
+                {
+                member.submit(() ->
+                              {
+                              System.err.println(sMsg);
+                              System.err.flush();
+                              return null;
+                              }).join();
+                }
+            }
+
         if (m_taskExecutorService != null)
             {
             m_taskExecutorService.shutdown();
@@ -160,9 +192,23 @@ public class TaskExecutorServicePersistenceTests
 
     // ----- test methods ---------------------------------------------------
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void shouldPersistLongRunningTest() throws Throwable
+    public void shouldPersistLongRunningTest()
+        {
+        Utils.assertWithFailureAction(this::doShouldPersistLongRunningTest, this::dumpExecutorCacheStates);
+        }
+
+    @Test
+    @Ignore
+    public void shouldPersistLongRunningTaskAfterRollingRestartCluster()
+        {
+        Utils.assertWithFailureAction(this::doShouldPersistLongRunningTaskAfterRollingRestartCluster, this::dumpExecutorCacheStates);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void doShouldPersistLongRunningTest()
         {
         CoherenceCluster cluster = s_coherence.getCluster();
 
@@ -170,87 +216,74 @@ public class TaskExecutorServicePersistenceTests
 
         // start a long running task on a storage member
         Task.Coordinator coordinator = m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
-            .filter(Predicates.role("storage"))
-            .limit(1)
-            .collect(TaskCollectors.lastOf())
-            .subscribe(subscriber)
-            .submit();
+                .filter(Predicates.role("storage"))
+                .limit(1)
+                .collect(TaskCollectors.lastOf())
+                .subscribe(subscriber)
+                .submit();
 
         String taskId = coordinator.getTaskId();
 
-        // wait a little bit for the task to start
-        Thread.sleep(2000);
+        // wait a bit for the task to start
+        try
+            {
+            Blocking.sleep(2000);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
 
         // ensure that we haven't completed or cancelled
         MatcherAssert.assertThat(subscriber.isCompleted(), is(false));
 
-        // now close all of the storage members
+        // now close all storage members
         cluster.filter(member -> member.getRoleName().equals("storage")).close();
 
         // now start new storage members (based on compute members)
         cluster.filter(member -> member.getRoleName().equals("compute"))
-            .limit(1)
-            .clone(STORAGE_ENABLED_MEMBER_COUNT,
-                   DisplayName.of("CacheServer"),
-                   RoleName.of("storage"),
-                   LocalStorage.enabled(),
-                   SystemProperty.of("coherence.extend.enabled", false));
+                .limit(1)
+                .clone(STORAGE_ENABLED_MEMBER_COUNT,
+                       DisplayName.of("CacheServer"),
+                       RoleName.of("storage"),
+                       LocalStorage.enabled(),
+                       SystemProperty.of("coherence.extend.enabled", false));
 
         coordinator = m_taskExecutorService.acquire(taskId);
         RecordingSubscriber<String> subscriber2 = new RecordingSubscriber<>();
         coordinator.subscribe(subscriber2);
 
-        try
-            {
-            // ensure that we are eventually done! (ie: a new compute member picks up the task)
-            Eventually.assertDeferred(() -> subscriber2.received("DONE"), Matchers.is(true), Eventually.within(3, TimeUnit.MINUTES));
-            }
-        catch (Throwable t)
-            {
-            final StringBuilder builder = new StringBuilder(1024);
-            builder.append("### Dumping Cache States ...\n");
-            NamedCache<?, ?> executors = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
-            builder.append("=== Executors [count=").append(executors.size()).append("] ===\n");
-            executors.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-
-            NamedCache<?, ?> assignments = getNamedCache(ClusteredAssignment.CACHE_NAME);
-            builder.append("\n\n=== Assignments [count=").append(assignments.size()).append("] ===\n");
-            assignments.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-
-            NamedCache<?, ?> tasks = getNamedCache(ClusteredTaskManager.CACHE_NAME);
-            builder.append("\n\n=== Tasks [count=").append(tasks.size()).append("] ===\n");
-            tasks.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-
-            NamedCache<?, ClusteredProperties> properties = getNamedCache(ClusteredProperties.CACHE_NAME);
-            builder.append("\n\n=== Properties [count=").append(properties.size()).append("] ===\n");
-            properties.entrySet().forEach(o -> builder.append('\t').append(o).append('\n'));
-            builder.append("\n\n");
-            System.out.print(builder);
-            throw t;
-            }
+        // ensure that we are eventually done! (ie: a new compute member picks up the task)
+        Eventually.assertDeferred(() -> subscriber2.received("DONE"),
+                                  Matchers.is(true),
+                                  Eventually.within(3, TimeUnit.MINUTES));
         }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    @Ignore
-    public void shouldPersistLongRunningTaskAfterRollingRestartCluster()
-            throws Exception
+    protected void doShouldPersistLongRunningTaskAfterRollingRestartCluster()
         {
         CoherenceCluster            cluster    = s_coherence.getCluster();
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
 
         // start a long running task on a compute member
         Task.Coordinator coordinator = m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
-            .filter(Predicates.role("compute"))
-            .limit(1)
-            .collect(TaskCollectors.lastOf())
-            .subscribe(subscriber)
-            .submit();
+                .filter(Predicates.role("compute"))
+                .limit(1)
+                .collect(TaskCollectors.lastOf())
+                .subscribe(subscriber)
+                .submit();
 
         String taskId = coordinator.getTaskId();
 
         // wait for the task to start
-        Thread.sleep(2000);
+        try
+            {
+            Blocking.sleep(2000);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
 
         // ensure that we haven't completed or cancelled
         MatcherAssert.assertThat(subscriber.isCompleted(), is(false));
@@ -259,7 +292,6 @@ public class TaskExecutorServicePersistenceTests
         m_taskExecutorService.shutdown();
         cluster.relaunch();
         AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
-
 
         setup();
         coordinator = m_taskExecutorService.acquire(taskId);
@@ -272,7 +304,17 @@ public class TaskExecutorServicePersistenceTests
                                   Eventually.within(3, TimeUnit.MINUTES));
         }
 
-    // ----- helper methods -------------------------------------------------
+    /**
+     * Dump current executor cache states.
+     */
+    protected void dumpExecutorCacheStates()
+        {
+        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
+                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
+                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
+                                      getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(s_coherence.getCluster());
+        }
 
     @SuppressWarnings("unchecked")
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
@@ -411,29 +453,14 @@ public class TaskExecutorServicePersistenceTests
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true));
 
     /**
-     * Rule to demarcate tests in a single-log test run.
+     * JUnit TestWatcher.
      */
     @Rule
-    public TestRule watcher = new TestWatcher()
-        {
-        protected void starting(Description description)
-            {
-            System.out.println("### Starting test: " + description.getMethodName());
-            }
+    public final Watcher f_watcher = new Watcher();
 
-        protected void failed(Throwable e, Description description)
-            {
-            System.out.printf("### Failed test: %s\n", description.getMethodName());
-            System.out.printf("### Cause: %s\n\n", e);
-            e.printStackTrace();
-            }
-
-        protected void finished(Description description)
-            {
-            System.out.println("### Completed test: " + description.getMethodName());
-            }
-        };
-
+    /**
+     * The {@link CacheFactory}.
+     */
     protected ConfigurableCacheFactory m_cacheFactory;
 
     /**

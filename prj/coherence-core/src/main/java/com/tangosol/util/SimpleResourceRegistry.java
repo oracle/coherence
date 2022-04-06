@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -45,6 +45,35 @@ public class SimpleResourceRegistry
     public boolean isEmpty()
         {
         return m_mapResource.isEmpty();
+        }
+
+    /**
+     * Register all the resources contained in this registry with the target registry.
+     *
+     * @param registry  the target {@link ResourceRegistry} to register resources with
+     */
+    public void registerResources(ResourceRegistry registry)
+        {
+        registerResources(registry, RegistrationBehavior.FAIL);
+        }
+
+    /**
+     * Register all the resources contained in this registry with the target registry.
+     *
+     * @param registry  the target {@link ResourceRegistry} to register resources with
+     * @param behavior  the {@link RegistrationBehavior} to use
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void registerResources(ResourceRegistry registry, RegistrationBehavior behavior)
+        {
+        for (Map.Entry<RegistryKey, RegistryValue> entry : m_mapResource.entrySet())
+            {
+            RegistryKey   key   = entry.getKey();
+            RegistryValue value = entry.getValue();
+            Class         clz   = key.getResourceClass();
+
+            registry.registerResource(clz, key.getName(), using(value.getResource()), behavior, value.getObserver());
+            }
         }
 
     // ----- ResourceRegistry interface -------------------------------------

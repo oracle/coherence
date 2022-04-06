@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 import com.tangosol.coherence.config.xml.OperationalConfigNamespaceHandler;
+import com.tangosol.coherence.config.xml.processor.PasswordProviderProcessorTest.PASSWORD_PROVIDER_XML;
 
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.Parameter;

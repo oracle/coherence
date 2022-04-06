@@ -771,6 +771,19 @@ public class ClusteredRegistration
             return ClusteredRegistration.this.getId();
             }
 
+        // ----- object methods ---------------------------------------------
+
+        @Override
+        public String toString()
+            {
+            return "TaskExecutor{" +
+                   "taskId='" + f_sTaskId + '\'' +
+                   ", task=" + m_task +
+                   ", yieldCount=" + m_cYield +
+                   ", recovered=" + f_fRecovered +
+                   '}';
+            }
+
         // ----- data members -----------------------------------------------
 
         /**

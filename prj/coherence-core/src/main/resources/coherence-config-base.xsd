@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -726,6 +726,7 @@
                   <xsd:element ref="class-factory-name" />
                   <xsd:element ref="method-name" minOccurs="0" />
                 </xsd:sequence>
+                <xsd:element name="resource" type="named-resource-type"/>
                 <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
             </xsd:choice>
             <xsd:element ref="init-params" minOccurs="0" />
@@ -1083,6 +1084,8 @@
             <xsd:element ref="cipher-suites" minOccurs="0" />
             <xsd:element ref="protocol-versions" minOccurs="0" />
             <xsd:element ref="socket-provider" minOccurs="0"/>
+            <xsd:element ref="refresh-period" minOccurs="0" />
+            <xsd:element name="refresh-policy" type="ssl-refresh-policy-type" minOccurs="0" />
             <xsd:any namespace="##other" processContents="lax"  minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
         <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
@@ -1173,11 +1176,11 @@
             <xsd:sequence>
                 <xsd:element ref="algorithm" minOccurs="0" />
                 <xsd:element ref="provider" minOccurs="0" />
-                <xsd:element ref="key-store" minOccurs="0" />
-                <xsd:choice minOccurs="0">
-                    <xsd:element ref="password" minOccurs="0" />
-                    <xsd:element ref="password-provider" minOccurs="0"/>
+                <xsd:choice>
+                    <xsd:element ref="key-store" minOccurs="0" />
+                    <xsd:group ref="key-and-cert-group" minOccurs="0" />
                 </xsd:choice>
+                <xsd:group ref="password-group" minOccurs="0"/>
                 <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
             <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
@@ -1209,21 +1212,93 @@
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element ref="url" />
-                <xsd:choice minOccurs="0">
-                    <xsd:element ref="password" minOccurs="0" />
-                    <xsd:element ref="password-provider" minOccurs="0"/>
+                <xsd:choice>
+                    <xsd:element ref="url" />
+                    <xsd:element ref="key-store-loader" minOccurs="0" />
                 </xsd:choice>
+                <xsd:group ref="password-group" minOccurs="0"/>
                 <xsd:element ref="type" minOccurs="0" />
-                <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
             <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="key-store-loader">
+        <xsd:annotation>
+            <xsd:documentation>
+                The key-store-loader element defines an implementation class
+                or class-factory name and init-params for an implementation
+                of a com.tangosol.net.ssl.KeyStoreLoader.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:group ref="instance" />
+            </xsd:sequence>
             <xsd:anyAttribute namespace="##other" processContents="lax"/>
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:group name="password-group">
+        <xsd:choice>
+            <xsd:element ref="password" minOccurs="0"/>
+            <xsd:element ref="password-url" minOccurs="0"/>
+            <xsd:element ref="password-provider" minOccurs="0"/>
+        </xsd:choice>
+    </xsd:group>
+
     <xsd:element name="type" type="coherence-string-type">
+        <xsd:annotation>
+          <xsd:documentation>
+              The KeyStore type.
+          </xsd:documentation>
+        </xsd:annotation>
     </xsd:element>
+
+    <xsd:group name="key-store-group">
+      <xsd:annotation>
+        <xsd:documentation>
+            The key-store-group defines keystore url or custom loader
+            and optional keystore password.
+
+            Used in: key-store
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+          <xsd:element ref="url" minOccurs="0"/>
+          <xsd:group ref="password-group" minOccurs="0"/>
+      </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="key-and-cert-group">
+      <xsd:annotation>
+        <xsd:documentation>
+            The key-and-cert-group defines a TLS key and cert.
+
+            Used in: key-store within identity-manager
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+          <xsd:element ref="key" minOccurs="0"/>
+          <xsd:element ref="key-loader" minOccurs="0"/>
+          <xsd:element ref="cert" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element ref="cert-loader" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="ca-cert-group">
+      <xsd:annotation>
+        <xsd:documentation>
+            The ca-cert-group defines a CA certificate.
+
+            Used in: key-store within identity-manager
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+          <xsd:element ref="cert" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element ref="cert-loader" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:group>
 
     <xsd:element name="url" type="coherence-string-type">
         <xsd:annotation>
@@ -1233,6 +1308,52 @@
                 Used in: key-store
              </xsd:documentation>
         </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="key" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The key element contains the name of a TLS key.
+
+                Used in: key-store
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="key-loader">
+        <xsd:annotation>
+            <xsd:documentation>
+                The key-loader element defines an implementation class
+                or class-factory name and init-params for an implementation
+                of a com.tangosol.net.ssl.PrivateKeyLoader.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="cert" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cert element contains the name of a TLS certificate.
+
+                Used in: key-store
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="cert-loader">
+        <xsd:annotation>
+            <xsd:documentation>
+                The cert-loader element defines an implementation class
+                or class-factory name and init-params for an implementation
+                of a com.tangosol.net.ssl.CertificateLoader.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:group ref="instance" />
+        </xsd:complexType>
     </xsd:element>
 
     <xsd:element name="password" type="coherence-string-type">
@@ -1245,6 +1366,25 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:element name="password-url" type="password-url-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The password-url element specifies a URL to use to load the
+                password of a private key or key store.
+
+                Used in: identity-manager, key-store
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="password-url-type">
+        <xsd:simpleContent>
+            <xsd:extension base="coherence-string-type">
+                <xsd:attribute name="first-line-only" type="xsd:boolean" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
 
     <xsd:element name="trust-manager">
         <xsd:annotation>
@@ -1266,7 +1406,10 @@
             <xsd:sequence>
                 <xsd:element minOccurs="0" ref="algorithm" />
                 <xsd:element minOccurs="0" ref="provider" />
-                <xsd:element minOccurs="0" ref="key-store" />
+                <xsd:choice>
+                    <xsd:element minOccurs="0" ref="key-store" />
+                    <xsd:group minOccurs="0" ref="ca-cert-group" />
+                </xsd:choice>
                 <xsd:any namespace="##other" processContents="lax"  minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
             <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
@@ -1387,6 +1530,58 @@
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
       </xsd:complexType>
     </xsd:element>
+
+    <xsd:element name="refresh-period" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The refresh-period element specifies the period to use
+                to attempt to refresh keys and certs. This is used in
+                cases where keys or certs have a short lifetime and
+                need to be refreshed at runtime.
+
+                If this element is omitted or is set to a value less than
+                or equal to zero, then keys and certs will not be refreshed.
+
+                The value of this element must be in the following
+                format:
+
+                (\d)+((.)(\d)+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+                where the first
+                non-digits (from left to right) indicate the unit of time
+                duration:
+
+                -MS or ms (milliseconds)
+                -S or s (seconds)
+                -M or m (minutes)
+                -H or h
+                (hours)
+                -D or d (days)
+
+                If the value does not contain a unit, a unit of
+                seconds is assumed.
+
+                Used in: ssl
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="ssl-refresh-policy-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The `refresh-policy` element contains the configuration info for a refresh
+                policy that extends the `com.tangosol.net.ssl.RefreshPolicy` class
+
+                Used in: ssl
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element ref="name" />
+            <xsd:group ref="instance" />
+        </xsd:choice>
+        <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
 
     <xsd:element name="directory" type="coherence-string-type">
         <xsd:annotation>
@@ -1828,4 +2023,56 @@
             <xsd:element ref="init-params" minOccurs="0" />
         </xsd:sequence>
     </xsd:group>
+
+    <xsd:element name="resources">
+        <xsd:annotation>
+            <xsd:documentation>
+                The resources element contains the definition of
+                one or more resource elements. The resources configured
+                by the resource elements will be added to the
+                ResourceRegistry for the Cluster or Service where they
+                are configured.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="resource" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="resource">
+        <xsd:annotation>
+            <xsd:documentation>
+                The resource element defines a named resource instance.
+
+                Multiple “resource” elements can be configured and
+                referenced using the appropriate “id” attribute.
+
+                Used in: resources
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:group ref="instance" />
+            </xsd:choice>
+            <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional"/>
+            <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="named-resource-type" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                The named-resource element is a reference to another resource.
+
+                Used in: resource
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="init-params" minOccurs="0" />
+        </xsd:sequence>
+        <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional"/>
+        <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
+    </xsd:complexType>
 </xsd:schema>

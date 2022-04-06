@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package executor;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
@@ -54,6 +55,9 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import executor.common.Utils;
+import executor.common.Watcher;
+
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.MatcherAssert;
@@ -77,9 +81,6 @@ import java.util.concurrent.ExecutorService;
 import org.junit.experimental.categories.Category;
 
 import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-
-import org.junit.runner.Description;
 
 import static executor.AbstractClusteredExecutorServiceTests.EXECUTOR_LOGGING_PROPERTY;
 import static executor.AbstractClusteredExecutorServiceTests.EXTEND_ENABLED_PROPERTY;
@@ -117,6 +118,20 @@ public class TaskExecutorServiceClusterMemberTests
     public void cleanup()
             throws Exception
         {
+        String sMsg = ">>>>> Finished test: " + f_watcher.getMethodName();
+        for (CoherenceClusterMember member : s_coherence.getCluster())
+            {
+            if (member != null)
+                {
+                member.submit(() ->
+                              {
+                              System.err.println(sMsg);
+                              System.err.flush();
+                              return null;
+                              }).join();
+                }
+            }
+
         if (m_taskExecutorService != null)
             {
             m_taskExecutorService.shutdown();
@@ -152,22 +167,49 @@ public class TaskExecutorServiceClusterMemberTests
             Eventually.assertDeferred(() -> getExecutorServiceInfo(executors, (String) key).getState(),
                                       Is.is(TaskExecutorService.ExecutorInfo.State.RUNNING));
             }
+
+        String sMsg = ">>>>> Starting test: " + f_watcher.getMethodName();
+        for (CoherenceClusterMember member : s_coherence.getCluster())
+            {
+            if (member != null)
+                {
+                member.submit(() ->
+                              {
+                              System.err.println(sMsg);
+                              System.err.flush();
+                              return null;
+                              }).join();
+                }
+            }
         }
 
     // ----- test methods ---------------------------------------------------
 
-    @SuppressWarnings("rawtypes")
     @Test
     public void shouldExecuteAndCompleteTask()
+        {
+        Utils.assertWithFailureAction(this::doShouldExecuteAndCompleteTask, this::dumpExecutorCacheStates);
+        }
+
+    @Test
+    public void shouldAllowFailoverLongRunningTest()
+        {
+        Utils.assertWithFailureAction(this::doShouldAllowFailoverLongRunningTest, this::dumpExecutorCacheStates);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    @SuppressWarnings("rawtypes")
+    protected void doShouldExecuteAndCompleteTask()
         {
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
 
         Task.Coordinator<String> coordinator =
-            m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
-                .collect(TaskCollectors.lastOf())
-                .until(Predicates.notNullValue())
-                .subscribe(subscriber)
-                .submit();
+                m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
+                        .collect(TaskCollectors.lastOf())
+                        .until(Predicates.notNullValue())
+                        .subscribe(subscriber)
+                        .submit();
 
         Eventually.assertDeferred(subscriber::isCompleted, Matchers.is(true));
         MatcherAssert.assertThat(subscriber.isSubscribed(), Matchers.is(false));
@@ -183,8 +225,7 @@ public class TaskExecutorServiceClusterMemberTests
         }
 
     @SuppressWarnings("rawtypes")
-    @Test
-    public void shouldAllowFailoverLongRunningTest()
+    protected void doShouldAllowFailoverLongRunningTest()
         {
         CoherenceCluster            cluster    = s_coherence.getCluster();
         RecordingSubscriber<String> subscriber = new RecordingSubscriber<>();
@@ -192,12 +233,12 @@ public class TaskExecutorServiceClusterMemberTests
         // start a long-running task on a client member
         final String taskName = "longRunningTask";
         ClusteredTaskCoordinator coordinator = (ClusteredTaskCoordinator) m_taskExecutorService.orchestrate(new LongRunningTask(Duration.ofSeconds(30)))
-            .as(taskName)
-            .filter(Predicates.role(STORAGE_DISABLED_MEMBER_ROLE))
-            .limit(1)
-            .collect(TaskCollectors.lastOf())
-            .subscribe(subscriber)
-            .submit();
+                .as(taskName)
+                .filter(Predicates.role(STORAGE_DISABLED_MEMBER_ROLE))
+                .limit(1)
+                .collect(TaskCollectors.lastOf())
+                .subscribe(subscriber)
+                .submit();
 
         // verify that the task has started
         ClusteredProperties properties = (ClusteredProperties) coordinator.getProperties();
@@ -209,7 +250,6 @@ public class TaskExecutorServiceClusterMemberTests
         cluster.filter(member -> member.getRoleName().equals(STORAGE_DISABLED_MEMBER_ROLE)).relaunch();
         AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(cluster);
 
-
         // make sure the task is failed over to the new member and the subscriber received the result
         MatcherAssert.assertThat(properties.get("key1"), Matchers.is("value1"));
         Eventually.assertDeferred(() -> subscriber.received("DONE"),
@@ -217,7 +257,17 @@ public class TaskExecutorServiceClusterMemberTests
                                   Eventually.within(3, TimeUnit.MINUTES));
         }
 
-    // ----- helper methods -------------------------------------------------
+    /**
+     * Dump current executor cache states.
+     */
+    protected void dumpExecutorCacheStates()
+        {
+        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
+                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
+                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
+                                      getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(s_coherence.getCluster());
+        }
 
     @SuppressWarnings("unchecked")
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
@@ -245,7 +295,6 @@ public class TaskExecutorServiceClusterMemberTests
         {
         return (ClusteredExecutorInfo) executorInfoCache.get(executorId);
         }
-
 
     // ----- constants ------------------------------------------------------
 
@@ -293,32 +342,26 @@ public class TaskExecutorServiceClusterMemberTests
      * Rule to demarcate tests in a single-log test run.
      */
     @Rule
-    public TestRule watcher = new TestWatcher()
-        {
-        protected void starting(Description description)
-            {
-            System.out.println("### Starting test: " + description.getMethodName());
-            }
+    public TestRule watcher = new Watcher();
 
-        protected void failed(Throwable e, Description description)
-            {
-            System.out.println("### Failed test: " + description.getMethodName());
-            System.out.println("### Cause: " + e);
-            e.printStackTrace();
-            }
-
-        protected void finished(Description description)
-            {
-            System.out.println("### Completed test: " + description.getMethodName());
-            }
-        };
-
-    //protected ConfigurableCacheFactory m_cacheFactory;
+    /**
+     * The local Coherence reference.
+     */
     protected Coherence m_local;
+
+    /**
+     * Coherence session.
+     */
     protected Session m_session;
 
     /**
      * The {@link TaskExecutorService}.
      */
     protected ClusteredExecutorService m_taskExecutorService;
+
+    /**
+     * JUnit TestWatcher.
+     */
+    @Rule
+    public final Watcher f_watcher = new Watcher();
     }

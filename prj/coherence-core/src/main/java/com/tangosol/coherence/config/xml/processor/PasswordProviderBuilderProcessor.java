@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -54,7 +54,7 @@ public class PasswordProviderBuilderProcessor
             throws ConfigurationException
         {
         // assume the <password-provider> contains a builder definition
-        ParameterizedBuilder bldr = ElementProcessorHelper.processParameterizedBuilder(context, xmlElement);
+        ParameterizedBuilder<?> bldr = ElementProcessorHelper.processParameterizedBuilder(context, xmlElement);
 
         if (bldr == null)
             {
@@ -64,7 +64,7 @@ public class PasswordProviderBuilderProcessor
             String name =  getNameFromXML(xmlElement);
             Base.azzert(name != null , "<name>valid-id</name> is missing/empty. Failed to lookup a builder for PasswordProvider");
 
-            ParameterizedBuilder bldrFound = registry.getBuilder(PasswordProvider.class, name);
+            ParameterizedBuilder<?> bldrFound = registry.getBuilder(PasswordProvider.class, name);
 
             if (bldrFound != null && bldrFound instanceof InstanceBuilder)
                 {
@@ -167,7 +167,7 @@ public class PasswordProviderBuilderProcessor
      */
     public static ParameterizedBuilder<PasswordProvider> getNullPasswordProviderBuilder()
         {
-        return getPasswordProviderBuilderForPasswordStr(null);
+        return ((resolver, loader, listParameters) -> PasswordProvider.NullImplementation);
         }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -140,6 +140,13 @@ public class LegacyXmlClusterDependencies
         ctxClusterConfig.addCookie(ParameterizedBuilderRegistry.class, getBuilderRegistry());
         ctxClusterConfig.addCookie(DefaultClusterDependencies.class, this);
 
+        // process custom resources
+        XmlElement xmlResources = xml.getSafeElement("resources");
+        SimpleResourceRegistry customResources = new SimpleResourceRegistry();
+        DefaultProcessingContext ctxResources = new DefaultProcessingContext(ctxClusterConfig, xmlResources);
+        ctxResources.processDocument(xmlResources);
+        setCustomResourcesRegistry(customResources);
+
         // process the <password-providers> definitions. Could be referenced socket-provider.
         XmlElement xmlPasswordProviders = xml.getSafeElement("password-providers");
         DefaultProcessingContext ctxPasswordProviders = new DefaultProcessingContext(ctxClusterConfig, xmlPasswordProviders);
@@ -215,6 +222,7 @@ public class LegacyXmlClusterDependencies
 
         // close the contexts we created
         ctxUnicastSocketProvider.close();
+        ctxResources.close();
         ctxSerializers.close();
         ctxStorageAuthorizers.close();
         ctxPersistenceEnvironments.close();

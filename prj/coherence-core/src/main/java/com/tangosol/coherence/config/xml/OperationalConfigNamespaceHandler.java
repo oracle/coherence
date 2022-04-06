@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,8 +18,11 @@ import com.tangosol.coherence.config.xml.processor.KeystoreProcessor;
 import com.tangosol.coherence.config.xml.processor.ParamTypeProcessor;
 import com.tangosol.coherence.config.xml.processor.PasswordProviderBuilderProcessor;
 import com.tangosol.coherence.config.xml.processor.PasswordProvidersProcessor;
+import com.tangosol.coherence.config.xml.processor.PasswordURLProcessor;
 import com.tangosol.coherence.config.xml.processor.PersistenceEnvironmentsProcessor;
 import com.tangosol.coherence.config.xml.processor.ProviderProcessor;
+import com.tangosol.coherence.config.xml.processor.ResourceBuilderProcessor;
+import com.tangosol.coherence.config.xml.processor.ResourcesProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLHostnameVerifierProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLManagerProcessor;
 import com.tangosol.coherence.config.xml.processor.SSLNameListProcessor;
@@ -36,6 +39,11 @@ import com.tangosol.config.xml.AbstractNamespaceHandler;
 import com.tangosol.config.xml.DocumentElementPreprocessor;
 import com.tangosol.config.xml.ProcessingContext;
 
+import com.tangosol.config.xml.SimpleElementProcessor;
+
+import com.tangosol.net.ssl.URLCertificateLoader;
+import com.tangosol.net.ssl.URLKeyStoreLoader;
+import com.tangosol.net.ssl.URLPrivateKeyLoader;
 import com.tangosol.run.xml.XmlElement;
 
 import java.net.URI;
@@ -78,9 +86,12 @@ public class OperationalConfigNamespaceHandler
         registerProcessor(ParamTypeProcessor.class);
         registerProcessor(PasswordProviderBuilderProcessor.class);
         registerProcessor(PasswordProvidersProcessor.class);
+        registerProcessor(PasswordURLProcessor.class);
         registerProcessor(PersistenceEnvironmentsProcessor.class);
         registerProcessor(PersistenceEnvironmentsProcessor.PersistenceEnvironmentProcessor.class);
         registerProcessor(ProviderProcessor.class);
+        registerProcessor(ResourceBuilderProcessor.class);
+        registerProcessor(ResourcesProcessor.class);
         registerProcessor(SerializerBuilderProcessor.class);
         registerProcessor(SerializersProcessor.class);
         registerProcessor(SocketProviderProcessor.class);
@@ -92,13 +103,19 @@ public class OperationalConfigNamespaceHandler
 
         // register customized ElementProcessors
         registerProcessor("address-provider", new AddressProviderBuilderProcessor());
+        registerProcessor("cert", new SimpleElementProcessor<>(URLCertificateLoader.class));
+        registerProcessor("cert-loader", new InstanceProcessor());
         registerProcessor("cipher-suites", new SSLNameListProcessor("cipher-suites"));
         registerProcessor("identity-manager", new SSLManagerProcessor());
+        registerProcessor("key", new SimpleElementProcessor<>(URLPrivateKeyLoader.class));
+        registerProcessor("key-loader", new InstanceProcessor());
+        registerProcessor("key-store-loader", new InstanceProcessor());
         registerProcessor("name-service-addresses", new AddressProviderBuilderProcessor());
         registerProcessor("protocol-versions", new SSLNameListProcessor("protocol-versions"));
         registerProcessor("remote-addresses", new AddressProviderBuilderProcessor());
         registerProcessor("socket-provider", new SocketProviderProcessor());
         registerProcessor("trust-manager", new SSLManagerProcessor());
+        registerProcessor("url", new SimpleElementProcessor<>(URLKeyStoreLoader.class));
 
         // register injectable types (in alphabetical order)
         registerProcessor("federation-config", new UnsupportedFeatureProcessor("Federated Caching"));

@@ -9,15 +9,13 @@
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
-              xml-override="{coherence.test.cacheconfig.override}">
+              xml-override="{coherence.cacheconfig.override}">
 
   <caching-scheme-mapping>
-
     <cache-mapping>
       <cache-name>test-*</cache-name>
       <scheme-name>test-scheme</scheme-name>
     </cache-mapping>
-
   </caching-scheme-mapping>
 
   <caching-schemes>

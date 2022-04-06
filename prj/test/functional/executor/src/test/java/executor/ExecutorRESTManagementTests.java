@@ -59,6 +59,8 @@ import executor.common.LogOutput;
 import executor.common.LongRunningTask;
 import executor.common.SingleClusterForAllTests;
 
+import executor.common.Utils;
+
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.CoreMatchers;
@@ -69,7 +71,6 @@ import org.hamcrest.core.Is;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -184,8 +185,27 @@ public class ExecutorRESTManagementTests
     // ----- test methods ---------------------------------------------------
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testExecutors()
+        {
+        Utils.assertWithFailureAction(this::doTestExecutors, this::dumpExecutorCacheStates);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    protected Boolean getTraceLoggingConfig(String sExecutorName)
+        {
+        Response response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().get();
+        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
+
+        Map<String, Object> mapResponse = response.readEntity(LinkedHashMap.class);
+        List<Boolean> traceLogging = (List<Boolean>) mapResponse.get("traceLogging");
+
+        return traceLogging != null && traceLogging.size() > 0 ? traceLogging.get(0) : false;
+        }
+
+    @SuppressWarnings("unchecked")
+    protected void doTestExecutors()
         {
         // run test to generate some activities
         failoverLongRunningTest();
@@ -269,26 +289,12 @@ public class ExecutorRESTManagementTests
         mapBody.put("traceLogging", false);
 
         response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().post(
-                    Entity.entity(mapBody, MediaType.APPLICATION_JSON_TYPE));
+                Entity.entity(mapBody, MediaType.APPLICATION_JSON_TYPE));
 
         MatcherAssert.assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
         Eventually.assertDeferred(() -> getTraceLoggingConfig(sExecutorName), is(false));
         }
-
-    @SuppressWarnings("unchecked")
-    private Boolean getTraceLoggingConfig(String sExecutorName)
-        {
-        Response response = getBaseTarget().path(AbstractManagementResource.EXECUTORS).path(sExecutorName).request().get();
-        MatcherAssert.assertThat(response.getStatus(), Is.is(Response.Status.OK.getStatusCode()));
-
-        Map<String, Object> mapResponse = response.readEntity(LinkedHashMap.class);
-        List<Boolean> traceLogging = (List<Boolean>) mapResponse.get("traceLogging");
-
-        return traceLogging != null && traceLogging.size() > 0 ? traceLogging.get(0) : false;
-        }
-
-    // ----- helper methods -------------------------------------------------
 
     public void failoverLongRunningTest()
         {
@@ -324,6 +330,18 @@ public class ExecutorRESTManagementTests
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Dump current executor cache states.
+     */
+    protected void dumpExecutorCacheStates()
+        {
+        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
+                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
+                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
+                                      getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(s_coherence.getCluster());
+        }
 
     @SuppressWarnings("unchecked")
     public <K, V> NamedCache<K, V> getNamedCache(String sName)
@@ -394,7 +412,7 @@ public class ExecutorRESTManagementTests
                 .orElse(new LinkedHashMap<>());
 
         String sSelfLink = (String) selfLinkMap.get("href");
-        Assert.assertThat(sSelfLink, CoreMatchers.notNullValue());
+        assertThat(sSelfLink, CoreMatchers.notNullValue());
         return sSelfLink;
         }
 

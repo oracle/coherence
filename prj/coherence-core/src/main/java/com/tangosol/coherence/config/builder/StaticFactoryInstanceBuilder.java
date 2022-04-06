@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -62,6 +62,18 @@ public class StaticFactoryInstanceBuilder<T>
     // ----- StaticFactoryInstanceBuilder methods ---------------------------
 
     /**
+     * Return the {@link Expression} that when evaluated will produce the name of the class
+     * containing a <strong>static</strong> factory method that will realize instances
+     * for this {@link ParameterizedBuilder}.
+     *
+     * @return the factory class name {@link Expression}
+     */
+    public Expression<String> getFactoryClassName()
+        {
+        return m_exprFactoryClassName;
+        }
+
+    /**
      * Sets the {@link Expression} that when evaluated will produce the name of the class
      * containing a <strong>static</strong> factory method that will realize instances
      * for this {@link ParameterizedBuilder}.
@@ -75,6 +87,17 @@ public class StaticFactoryInstanceBuilder<T>
         }
 
     /**
+     * Return the {@link Expression} that when evaluated will produce the name of the factory class
+     * <strong>static</strong>  method that will realize instances for this {@link ParameterizedBuilder}.
+     *
+     * @return the factory method name {@link Expression}
+     */
+    public Expression<String> getFactoryMethodName()
+        {
+        return m_exprFactoryMethodName;
+        }
+
+    /**
      * Set the {@link Expression} that when evaluated will produce the name of the factory class
      * <strong>static</strong>  method that will realize instances for this {@link ParameterizedBuilder}.
      *
@@ -84,6 +107,16 @@ public class StaticFactoryInstanceBuilder<T>
     public void setFactoryMethodName(Expression<String> exprFactoryMethodName)
         {
         m_exprFactoryMethodName = exprFactoryMethodName;
+        }
+
+    /**
+     * Returns the {@link ParameterList} to use to resolve factory method parameters when realizing the class.
+     *
+     * @return  the {@link ParameterList} for method parameters
+     */
+    public ParameterList getFactoryMethodParameters()
+        {
+        return m_listMethodParameters;
         }
 
     /**

@@ -10,19 +10,28 @@ import com.oracle.bedrock.deferred.DeferredHelper;
 
 import com.oracle.bedrock.options.Timeout;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.deferred.Repetitively;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.AbstractCollector;
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
+import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
+import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
+import com.oracle.coherence.concurrent.executor.ClusteredProperties;
+import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
+
+import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 import com.oracle.coherence.concurrent.executor.options.Role;
@@ -32,6 +41,9 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import com.tangosol.net.NamedCache;
+
+import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 
 import com.tangosol.util.function.Remote;
@@ -129,6 +141,26 @@ public abstract class AbstractTaskExecutorServiceTests
      * @return a new {@link TaskExecutorService}
      */
     protected abstract ClusteredExecutorService createExecutorService();
+
+    /**
+     * Obtain the specified {@link NamedCache}.
+     *
+     * @param sName  the cache name
+     * @param <K>    the key type
+     * @param <V>    the value type
+     *
+     * @return the specified {@link NamedCache} or {@code null} if not found
+     */
+    public abstract <K, V> NamedCache<K, V> getNamedCache(String sName);
+
+    /**
+     * Obtain the {@link CoherenceCluster} under test.
+     *
+     * @return the {@link CoherenceCluster} under test.
+     */
+    public abstract CoherenceCluster getCluster();
+
+    // ----- test methods ---------------------------------------------------
 
     public void shouldCreateExecutorService()
         {
@@ -729,7 +761,7 @@ public abstract class AbstractTaskExecutorServiceTests
             m_taskExecutorService.deregister(executorService3);
 
             // not enough executors initially.  Count should be higher than initial executors + 3
-            // as executors are deregistered asynchronously and the above deregisters may not have
+            // as executors are de-registered asynchronously and the above de-registers may not have
             // completed yet.
             subscriber = new RecordingSubscriber<>();
             coordinator =
@@ -1020,7 +1052,7 @@ public abstract class AbstractTaskExecutorServiceTests
         Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
         }
 
-    public void shouldHandleExecutorServiceShutdown() throws Exception
+    public void shouldHandleExecutorServiceShutdown()
         {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -1040,7 +1072,17 @@ public abstract class AbstractTaskExecutorServiceTests
             Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
 
             executorService.shutdownNow();
-            boolean fTerminated = executorService.awaitTermination(1, TimeUnit.MINUTES);
+
+            boolean fTerminated;
+            try
+                {
+                fTerminated = executorService.awaitTermination(1, TimeUnit.MINUTES);
+                }
+            catch (InterruptedException e)
+                {
+                throw Base.ensureRuntimeException(e);
+                }
+
             MatcherAssert.assertThat(fTerminated, Matchers.is(true));
             MatcherAssert.assertThat(executorService.isTerminated(), Matchers.is(true));
 
@@ -1304,83 +1346,90 @@ public abstract class AbstractTaskExecutorServiceTests
             }
         }
 
-    public void shouldUseDefaultExecutor() throws Exception
+    public void shouldUseDefaultExecutor()
         {
-        TaskExecutorService executorService = m_taskExecutorService;
-
-        executorService.execute(new MyRunnable("hello"));
-
-        Future<String> result = executorService.submit(new MyCallable(5, "MyCallable result"));
-
-        assertEquals(result.get(), "MyCallable result");
-        result = executorService.submit(new MyCallable(5));
-        assertEquals(result.get(), "This is the result");
-
-        Future<String> result2 = executorService.submit(new MyRunnable("submit hello"), "submit result");
-
-        assertEquals(result2.get(), "submit result");
-
-        Collection colCallables = new ArrayList<>(10);
-
-        colCallables.add(new MyCallable(5));
-        colCallables.add(new MyCallable(10, "MyCallable result for invokeAll"));
-
-        List<Future<String>> results = executorService.invokeAll(colCallables);
-
-        assertEquals(results.size(), 2);
-        for (int i = 0; i < 2; ++i)
-            {
-            Eventually.assertThat(valueOf(future(String.class, results.get(i))),
-                                  either(is("This is the result")).or(is("MyCallable result for invokeAll")));
-            }
-
-        colCallables.add(new MyCallable(10, "MyCallable result for invokeAny"));
-
-        String result3 = (String) executorService.invokeAny(colCallables);
-
-        assertTrue(result3.equals("This is the result")
-                          || result3.equals("MyCallable result for invokeAny")
-                          || result3.equals("MyCallable result for invokeAll"));
-
-        for (int i = 3; i < 10; i++)
-            {
-            colCallables.add(new MyCallable(i, "MyCallable result for invokeAny " + i));
-            }
-
-        results = executorService.invokeAll(colCallables, 1, TimeUnit.MILLISECONDS);
-        assertEquals(results.size(), 10);
-
         try
             {
-            for (Future<String> r : results)
+            TaskExecutorService executorService = m_taskExecutorService;
+
+            executorService.execute(new MyRunnable("hello"));
+
+            Future<String> result = executorService.submit(new MyCallable(5, "MyCallable result"));
+
+            assertEquals(result.get(), "MyCallable result");
+            result = executorService.submit(new MyCallable(5));
+            assertEquals(result.get(), "This is the result");
+
+            Future<String> result2 = executorService.submit(new MyRunnable("submit hello"), "submit result");
+
+            assertEquals(result2.get(), "submit result");
+
+            Collection colCallables = new ArrayList<>(10);
+
+            colCallables.add(new MyCallable(5));
+            colCallables.add(new MyCallable(10, "MyCallable result for invokeAll"));
+
+            List<Future<String>> results = executorService.invokeAll(colCallables);
+
+            assertEquals(results.size(), 2);
+            for (int i = 0; i < 2; ++i)
                 {
-                r.get(0, TimeUnit.MILLISECONDS);
+                Eventually.assertThat(valueOf(future(String.class, results.get(i))),
+                                      either(is("This is the result")).or(is("MyCallable result for invokeAll")));
                 }
-            fail("Should fail with Exception.");
-            }
-        catch (ExecutionException | InterruptedException | NoSuchElementException | CancellationException e)
-            {
-            // success
-            }
 
-        System.out.println("Calling invokeAny() with a short timeout.");
-        try
-            {
-            executorService.invokeAny(colCallables, 1, TimeUnit.MILLISECONDS);
-            System.out.println("invokeAny() failed to timeout.");
-            fail("Should fail with TimeoutException.");
-            }
-        catch (TimeoutException e)
-            {
-            // success
-            }
+            colCallables.add(new MyCallable(10, "MyCallable result for invokeAny"));
 
-        colCallables.clear();
-        colCallables.add(new MyCallable(5, "null"));
-        colCallables.add(new MyCallable(10, "null"));
-        colCallables.add(new MyCallable(15, "null"));
-        results = executorService.invokeAll(colCallables);
-        assertEquals(3, results.size());
+            String result3 = (String) executorService.invokeAny(colCallables);
+
+            assertTrue(result3.equals("This is the result")
+                              || result3.equals("MyCallable result for invokeAny")
+                              || result3.equals("MyCallable result for invokeAll"));
+
+            for (int i = 3; i < 10; i++)
+                {
+                colCallables.add(new MyCallable(i, "MyCallable result for invokeAny " + i));
+                }
+
+            results = executorService.invokeAll(colCallables, 1, TimeUnit.MILLISECONDS);
+            assertEquals(results.size(), 10);
+
+            try
+                {
+                for (Future<String> r : results)
+                    {
+                    r.get(0, TimeUnit.MILLISECONDS);
+                    }
+                fail("Should fail with Exception.");
+                }
+            catch (ExecutionException | InterruptedException | NoSuchElementException | CancellationException e)
+                {
+                // success
+                }
+
+            System.out.println("Calling invokeAny() with a short timeout.");
+            try
+                {
+                executorService.invokeAny(colCallables, 1, TimeUnit.MILLISECONDS);
+                System.out.println("invokeAny() failed to timeout.");
+                fail("Should fail with TimeoutException.");
+                }
+            catch (TimeoutException e)
+                {
+                // success
+                }
+
+            colCallables.clear();
+            colCallables.add(new MyCallable(5, "null"));
+            colCallables.add(new MyCallable(10, "null"));
+            colCallables.add(new MyCallable(15, "null"));
+            results = executorService.invokeAll(colCallables);
+            assertEquals(3, results.size());
+            }
+        catch (Throwable t)
+            {
+            throw Base.ensureRuntimeException(t);
+            }
         }
 
     public void shouldHandleProperties()
@@ -1415,19 +1464,19 @@ public abstract class AbstractTaskExecutorServiceTests
 
         Eventually.assertDeferred(subscriber2::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber2.isCompleted(), is(true));
-        Eventually.assertDeferred(() -> (coordinator2.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator2.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator2.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator2.getProperties().get("key2"), is(Matchers.nullValue()));
 
         MatcherAssert.assertThat(coordinator.cancel(true), is(true));
         Eventually.assertDeferred(coordinator::isCancelled, is(true));
         Eventually.assertDeferred(coordinator::isDone, is(true));
         Eventually.assertDeferred(() -> subscriber.received("Hello World"), Matchers.is(true));
         Eventually.assertDeferred(subscriber::isSubscribed, Matchers.is(false));
-        Eventually.assertDeferred(() -> (coordinator.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator.getProperties().get("key2"), is(Matchers.nullValue()));
 
-        RecordingSubscriber<String> subscriber3 = new RecordingSubscriber<>();
-        Task.Coordinator<String> coordinator3 =
+        RecordingSubscriber<String> subscriber3  = new RecordingSubscriber<>();
+        Task.Coordinator<String>    coordinator3 =
             m_taskExecutorService.orchestrate(new UpdatePropertiesTask())
                 .define("key1", "value1")
                 .define("key2", "value2")
@@ -1436,28 +1485,28 @@ public abstract class AbstractTaskExecutorServiceTests
                 .subscribe(subscriber3).submit();
 
         Eventually.assertDeferred(() -> subscriber3.received("started"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key1"), is("newValue1"));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key2"), is("newValue2"));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key1"), is("newValue1"));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key2"), is("newValue2"));
         Eventually.assertDeferred(() -> subscriber3.received("finished"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator3.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator3.getProperties().get("key2"), is(Matchers.nullValue()));
 
-        RecordingSubscriber<String> subscriber4 = new RecordingSubscriber<>();
-        Task.Coordinator<String> coordinator4 =
+        RecordingSubscriber<String> subscriber4  = new RecordingSubscriber<>();
+        Task.Coordinator<String>    coordinator4 =
             m_taskExecutorService.orchestrate(new UpdatePropertiesTask())
                 .collect(TaskCollectors.lastOf())
                 .until(new Predicates.EqualToPredicate("finished"))
                 .subscribe(subscriber4).submit();
 
         Eventually.assertDeferred(() -> subscriber4.received("started"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator4.getProperties()).get("key1"), is("newValue1"));
-        Eventually.assertDeferred(()-> (coordinator4.getProperties()).get("key2"), is("newValue2"));
+        Eventually.assertDeferred(() -> coordinator4.getProperties().get("key1"), is("newValue1"));
+        Eventually.assertDeferred(()-> coordinator4.getProperties().get("key2"), is("newValue2"));
         Eventually.assertDeferred(()-> subscriber4.received("finished"), Matchers.is(true));
-        Eventually.assertDeferred(() -> (coordinator4.getProperties()).get("key1"), is(Matchers.nullValue()));
-        Eventually.assertDeferred(() -> (coordinator4.getProperties()).get("key2"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator4.getProperties().get("key1"), is(Matchers.nullValue()));
+        Eventually.assertDeferred(() -> coordinator4.getProperties().get("key2"), is(Matchers.nullValue()));
         }
 
-    public void shouldUseScheduledExecutor() throws Exception
+    public void shouldUseScheduledExecutor()
         {
         TaskExecutorService executorService = m_taskExecutorService;
 
@@ -1492,7 +1541,15 @@ public abstract class AbstractTaskExecutorServiceTests
                     }
                 },
                 is("MyCallable result"));
-        assertEquals(result2.get(), "MyCallable result");
+
+        try
+            {
+            assertEquals(result2.get(), "MyCallable result");
+            }
+        catch (Throwable t)
+            {
+            throw Base.ensureRuntimeException(t);
+            }
 
         ScheduledFuture<?> result3 = executorService.schedule(new MyCallable(5), 20, TimeUnit.SECONDS);
         Repetitively.assertThat(invoking(result3).isDone(), Matchers.is(false), within(18, TimeUnit.SECONDS));
@@ -1509,16 +1566,25 @@ public abstract class AbstractTaskExecutorServiceTests
                     }
                 },
                 is("This is the result"));
-        assertEquals(result3.get(), "This is the result");
+
+
+        try
+            {
+            assertEquals(result3.get(), "This is the result");
+            }
+        catch (Throwable t)
+            {
+            throw Base.ensureRuntimeException(t);
+            }
 
         ScheduledFuture<?> result = executorService.scheduleAtFixedRate(new MyRunnable("counter"), 15, 10, TimeUnit.SECONDS);
         assertThat(result.getDelay(TimeUnit.SECONDS), is(15L));
-        Thread.sleep(30000);
+        Base.sleep(30000);
         result.cancel(true);
         Eventually.assertDeferred(result::isCancelled, is(true));
 
         result = executorService.scheduleWithFixedDelay(new MyRunnable("counter"), 15, 10, TimeUnit.SECONDS);
-        Thread.sleep(30000);
+        Base.sleep(30000);
         result.cancel(true);
         Eventually.assertDeferred(result::isCancelled, is(true));
         }
@@ -1740,7 +1806,7 @@ public abstract class AbstractTaskExecutorServiceTests
      *
      * @param graceful           whether to call shutdown(), or shutdownNow()
      * @param registerExecutors  whether a new "local" Executor should be registered
-     *                           (which will need to be deregistered by the shutdown process)
+     *                           (which will need to be de-registered by the shutdown process)
      * @param withTasks          whether to have a long-running task executing during the shutdown process
      */
     private void testShutdown(boolean graceful, boolean registerExecutors, boolean withTasks)
@@ -1754,7 +1820,7 @@ public abstract class AbstractTaskExecutorServiceTests
             {
             if (registerExecutors)
                 {
-                // register an ES to verify that it is deregistered during the shutdown process
+                // register an ES to verify that it is de-registered during the shutdown process
                 testTaskExecutorService.register(localES, Role.of("localOnly"));
                 }
 
@@ -1837,7 +1903,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
             if (registerExecutors)
                 {
-                // verify that localES has been deregistered
+                // verify that localES has been de-registered
                 MatcherAssert.assertThat(testTaskExecutorService.deregister(localES), is(nullValue()));
                 }
 
@@ -1924,7 +1990,7 @@ public abstract class AbstractTaskExecutorServiceTests
             }
         }
 
-    public void shouldRetainTask() throws InterruptedException
+    public void shouldRetainTask()
         {
         int remainingMillis = 30000;
 
@@ -1947,7 +2013,15 @@ public abstract class AbstractTaskExecutorServiceTests
         MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(false));
         MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
 
-        Thread.sleep(10000);
+        try
+            {
+            Blocking.sleep(10000);
+            }
+        catch (InterruptedException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+
         remainingMillis -= 10000;
 
         // subscribe after completed
@@ -1971,7 +2045,15 @@ public abstract class AbstractTaskExecutorServiceTests
         try
             {
             // sleep a bit longer than expiry time
-            Thread.sleep(remainingMillis + 12000);
+            try
+                {
+                Blocking.sleep(remainingMillis + 12000);
+                }
+            catch (InterruptedException e)
+                {
+                throw Base.ensureRuntimeException(e);
+                }
+
             subscriber = new RecordingSubscriber<>();
             coordinator.subscribe(subscriber);
             fail("Should fail with IllegalStateException.");
@@ -2071,6 +2153,18 @@ public abstract class AbstractTaskExecutorServiceTests
     // ----- helper methods -------------------------------------------------
 
     abstract protected boolean isCompletionCalled(Task.CompletionRunnable completionRunnable, String taskId);
+
+    /**
+     * Dump current executor cache states.
+     */
+    protected void dumpExecutorCacheStates()
+        {
+        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
+                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
+                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
+                                      getNamedCache(ClusteredProperties.CACHE_NAME));
+        Utils.heapdump(getCluster());
+        }
 
     // ----- inner class: SleeperTask ---------------------------------------
 
@@ -2469,12 +2563,17 @@ public abstract class AbstractTaskExecutorServiceTests
         @Override
         public String execute(Context<String> context) throws Exception
             {
+            ExecutorTrace.entering(UpdatePropertiesTask.class, "execute", context);
+
             context.setResult("started");
+
             Properties properties = context.getProperties();
             properties.put("key1", "newValue1");
             properties.put("key2", "newValue2");
 
-            Thread.sleep(5000);
+            Blocking.sleep(5000);
+
+            ExecutorTrace.exiting(UpdatePropertiesTask.class, "execute", "finished");
 
             return "finished";
             }

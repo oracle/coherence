@@ -6,7 +6,6 @@
  */
 package com.tangosol.config.xml;
 
-import com.oracle.coherence.common.base.Logger;
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.ExpressionParser;
@@ -81,8 +80,6 @@ public class DocumentProcessor
                     {
                     handler.getOverrideProcessor().process(xmlDocument, xmlOverride);
                     }
-
-                Logger.finer("Effective cache configuration after applying override:\n" + xmlDocument);
                 }
 
             context.ensureNamespaceHandler("", handler);

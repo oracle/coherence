@@ -19,7 +19,7 @@ import com.tangosol.coherence.rest.util.JsonMap;
 import com.tangosol.coherence.rest.util.StaticContent;
 
 import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
-
+import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -30,8 +30,8 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
 
+import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
@@ -57,6 +57,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -83,6 +84,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import util.SSLSocketProviderBuilderHelper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -130,10 +133,8 @@ public abstract class AbstractRestTests
     @BeforeClass
     public static void setupSSL()
         {
-        XmlDocument xml = XmlHelper.loadFileOrResource("ssl-config-client.xml", null);
-
-        s_sslProviderClient = new SSLSocketProvider(
-                new LegacyXmlSSLSocketProviderDependencies(xml));
+        SSLSocketProviderDefaultDependencies deps = SSLSocketProviderBuilderHelper.loadDependencies("ssl-config-client.xml");
+        s_sslProviderClient = new SSLSocketProvider(deps);
         }
 
     @BeforeClass

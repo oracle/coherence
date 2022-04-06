@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -104,7 +104,7 @@ public class LifecycleEventInterceptor
                 }
             catch (Exception e)
                 {
-                //LOGGER.throwing(Logging.within(LifecycleEventInterceptor.class), "onEvent", e);
+                ExecutorTrace.throwing(LifecycleEventInterceptor.class, "onEvent", e);
 
                 throw Base.ensureRuntimeException(e);
                 }

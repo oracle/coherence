@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,16 +8,12 @@ package executor;
 
 import executor.common.NewClusterPerTest;
 
+import executor.common.Utils;
+
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.junit.experimental.categories.Category;
-
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-
-import org.junit.runner.Description;
 
 /**
  * Abstract class providing tests that require a new cluster for each test.
@@ -42,28 +38,28 @@ public abstract class AbstractCESClusterPerTests
     @Test
     public void shouldExecuteAfterExecutorIsAdded()
         {
-        super.shouldExecuteAfterExecutorIsAdded();
+        Utils.assertWithFailureAction(super::shouldExecuteAfterExecutorIsAdded, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldCreateClusteredExecutor()
         {
-        super.shouldCreateClusteredExecutor();
+        Utils.assertWithFailureAction(super::shouldCreateClusteredExecutor, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldWorkWithServerAdded()
         {
-        super.shouldWorkWithServerAdded();
+        Utils.assertWithFailureAction(super::shouldWorkWithServerAdded, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldWorkWithServerRemoved()
         {
-        super.shouldWorkWithServerRemoved();
+        Utils.assertWithFailureAction(super::shouldWorkWithServerRemoved, this::dumpExecutorCacheStates);
         }
 
     @Override
@@ -71,7 +67,7 @@ public abstract class AbstractCESClusterPerTests
     @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
     public void shouldFailOverLongRunningTest()
         {
-        super.shouldFailOverLongRunningTest();
+        Utils.assertWithFailureAction(super::shouldFailOverLongRunningTest, this::dumpExecutorCacheStates);
         }
 
     @Override
@@ -79,133 +75,133 @@ public abstract class AbstractCESClusterPerTests
     @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
     public void shouldCallRunnableAfterFailOverLongRunning()
         {
-        super.shouldCallRunnableAfterFailOverLongRunning();
+        Utils.assertWithFailureAction(super::shouldCallRunnableAfterFailOverLongRunning, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldFailOverRecoveringTest()
         {
-        super.shouldFailOverRecoveringTest();
+        Utils.assertWithFailureAction(super::shouldFailOverRecoveringTest, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAllowProxyRestartLongRunningTest()
         {
-        super.shouldAllowProxyRestartLongRunningTest();
+        Utils.assertWithFailureAction(super::shouldAllowProxyRestartLongRunningTest, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAllowProxyFailoverLongRunningTest()
         {
-        super.shouldAllowProxyFailoverLongRunningTest();
+        Utils.assertWithFailureAction(super::shouldAllowProxyFailoverLongRunningTest, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldAllowClientFailoverLongRunningTest()
         {
-        super.shouldAllowClientFailoverLongRunningTest();
+        Utils.assertWithFailureAction(super::shouldAllowClientFailoverLongRunningTest, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldWorkWithRollingRestart1()
         {
-        super.shouldWorkWithRollingRestart1();
+        Utils.assertWithFailureAction(super::shouldWorkWithRollingRestart1, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldWorkWithRollingRestart2()
         {
-        super.shouldWorkWithRollingRestart2();
+        Utils.assertWithFailureAction(super::shouldWorkWithRollingRestart2, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleRollingRestartWithCronTask()
         {
-        super.shouldHandleRollingRestartWithCronTask();
+        Utils.assertWithFailureAction(super::shouldHandleRollingRestartWithCronTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleRemoveServerWithCronTask()
         {
-        super.shouldHandleRemoveServerWithCronTask();
+        Utils.assertWithFailureAction(super::shouldHandleRemoveServerWithCronTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldHandleFailoverWithCronTask()
         {
-        super.shouldHandleFailoverWithCronTask();
+        Utils.assertWithFailureAction(super::shouldHandleFailoverWithCronTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldNotExpireExecutorsWithRollingRestart()
         {
-        super.shouldNotExpireExecutorsWithRollingRestart();
+        Utils.assertWithFailureAction(super::shouldNotExpireExecutorsWithRollingRestart, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldSetStorageOption()
         {
-        super.shouldSetStorageOption();
+        Utils.assertWithFailureAction(super::shouldSetStorageOption, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldUnregisterExecutorAfterReject()
         {
-        super.shouldUnregisterExecutorAfterReject();
+        Utils.assertWithFailureAction(super::shouldUnregisterExecutorAfterReject, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldDeregisterTerminatedExecutorService()
         {
-        super.shouldDeregisterTerminatedExecutorService();
+        Utils.assertWithFailureAction(super::shouldDeregisterTerminatedExecutorService, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldScheduleYieldTask()
         {
-        super.shouldScheduleYieldTask();
+        Utils.assertWithFailureAction(super::shouldScheduleYieldTask, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
-    public void shouldUseScheduledExecutor() throws Exception
+    public void shouldUseScheduledExecutor()
         {
-        super.shouldUseScheduledExecutor();
+        Utils.assertWithFailureAction(super::shouldUseScheduledExecutor, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldScheduleTaskToOneExecutor()
         {
-        super.shouldScheduleTaskToOneExecutor();
+        Utils.assertWithFailureAction(super::shouldScheduleTaskToOneExecutor, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldScheduleCronTaskToMultipleExecutors()
         {
-        super.shouldScheduleCronTaskToMultipleExecutors();
+        Utils.assertWithFailureAction(super::shouldScheduleCronTaskToMultipleExecutors, this::dumpExecutorCacheStates);
         }
 
     @Override
     @Test
     public void shouldRunMultiLongRunningCronTasks()
         {
-        super.shouldRunMultiLongRunningCronTasks();
+        Utils.assertWithFailureAction(super::shouldRunMultiLongRunningCronTasks, this::dumpExecutorCacheStates);
         }
 
     @Override
@@ -213,32 +209,6 @@ public abstract class AbstractCESClusterPerTests
     @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
     public void shouldRunMultipleTasks()
         {
-        super.shouldRunMultipleTasks();
+        Utils.assertWithFailureAction(super::shouldRunMultipleTasks, this::dumpExecutorCacheStates);
         }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * Rule to demarcate tests in a single-log test run.
-     */
-    @Rule
-    public final TestRule f_watcher = new TestWatcher()
-        {
-        protected void starting(Description description)
-            {
-            System.out.println("### Starting test: " + description.getMethodName());
-            }
-
-        protected void failed(Throwable e, Description description)
-            {
-            System.out.println("### Failed test: " + description.getMethodName());
-            System.out.println("### Cause: " + e);
-            e.printStackTrace();
-            }
-
-        protected void finished(Description description)
-            {
-            System.out.println("### Completed test: " + description.getMethodName());
-            }
-        };
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -276,11 +276,23 @@
             <groupId>${coherence.group.id}</groupId>
             <artifactId>coherence-core</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
           </dependency>
           <dependency>
             <groupId>${coherence.group.id}</groupId>
             <artifactId>coherence-core-components</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
           </dependency>
         </dependencies>
 
@@ -366,6 +378,12 @@
             <artifactId>coherence-core</artifactId>
             <version>${project.version}</version>
             <classifier>sources</classifier>
+            <exclusions>
+              <exclusion>
+                <groupId>com.sleepycat</groupId>
+                <artifactId>je</artifactId>
+              </exclusion>
+            </exclusions>
           </dependency>
         </dependencies>
         <executions>
@@ -411,7 +429,7 @@
                 <Build-Timestamp>${project.timestamp}</Build-Timestamp>
                 <Bundle-SymbolicName>${coherence.group.id}.${project.artifactId}</Bundle-SymbolicName>
                 <Implementation-GroupId>${coherence.group.id}</Implementation-GroupId>
-                <Automatic-Module-Name>${coherence.group.id}</Automatic-Module-Name>
+                <Automatic-Module-Name>com.oracle.coherence</Automatic-Module-Name>
                 <Coherence-Version-Prefix>${project.version.prefix}</Coherence-Version-Prefix>
                 <Export-Package>
                   !*.internal.*,com.oracle.coherence.common.*,com.oracle.common.*,com.tangosol.application.*,com.tangosol.coherence.config.*,com.tangosol.coherence.transaction.*,com.tangosol.config.*,com.tangosol.net.*,com.tangosol.io.*,com.tangosol.persistence.*,com.tangosol.util.*,com.tangosol.run.xml.*,com.tangosol.run.component.*
@@ -707,7 +725,7 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>release-coherence</id>
       <build>
         <plugins>
           <plugin>

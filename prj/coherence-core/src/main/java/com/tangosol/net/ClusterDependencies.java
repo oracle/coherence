@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -22,6 +22,8 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Filter;
 
 import com.oracle.coherence.common.base.Disposable;
+
+import com.tangosol.util.ResourceRegistry;
 
 import java.net.InetAddress;
 import java.net.SocketOptions;
@@ -643,6 +645,14 @@ public interface ClusterDependencies
      * @return true if TcpRing is enabled
      */
     public boolean isTcpRingEnabled();
+
+    /**
+     * Register all the custom resources contained in this {@link com.tangosol.internal.net.cluster.ClusterDependencies}
+     * with the target registry.
+     *
+     * @param registry  the target {@link ResourceRegistry} to register resources with
+     */
+    public void registerResources(ResourceRegistry registry);
 
     // ----- constants ------------------------------------------------------
 
