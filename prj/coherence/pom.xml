@@ -725,7 +725,7 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>release-coherence</id>
       <build>
         <plugins>
           <plugin>

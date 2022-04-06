@@ -158,7 +158,7 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>release-modules</id>
       <build>
         <plugins>
           <plugin>

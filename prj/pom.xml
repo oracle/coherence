@@ -354,12 +354,12 @@
   <!-- ================================================================== -->
   <profiles>
     <!--
-        The 'default' profile is shared by all other profiles.
+        The 'coherence' profile is shared by all other profiles.
 
-        It must be included with every build, regardless of the environment.
+        It builds main com.oracle.coherence module and must be included with every build, regardless of the environment.
       -->
     <profile>
-      <id>default</id>
+      <id>coherence</id>
 
       <activation>
         <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
@@ -368,27 +368,55 @@
 
       <!-- the following modules are buildable by this profile -->
       <modules>
-        <!-- internal modules -->
         <module>coherence-dependencies</module>
+
+        <!-- internal/shaded modules -->
         <module>coherence-core</module>
+        <module>coherence-core-components</module>
         <module>coherence-discovery</module>
+        <module>coherence-tracing</module>
 
         <module>coherence-testing-support</module>
 
-        <!-- coherence-json is distributed, but must be built before tests -->
-        <module>coherence-json</module>
+        <!-- distributed modules -->
+        <module>coherence-bom</module>
+        <module>coherence</module>
+      </modules>
+    </profile>
 
-        <module>coherence-tracing</module>
-        <module>coherence-docker</module>
+    <!--
+        The 'modules' profile builds modules that depend on the main com.oracle.coherence module.
 
-        <module>test/functional</module>
-        <module>test/endurance</module>
-        <module>test/performance</module>
+        It must be performed as a second stage of every build, regardless of the environment.
+      -->
+    <profile>
+      <id>modules</id>
+
+      <activation>
+        <property>
+          <!--
+              Automatically disabled when inside IntelliJ.
+              IntelliJ sets the idea.version property when importing Maven projects.
+              The IntelliJ profile will be enabled instead, which excluded modules
+              we do not want in the IDE.
+          -->
+          <name>!idea.version</name>
+        </property>
+      </activation>
+
+      <!-- the following modules are buildable by this profile -->
+      <modules>
+        <!-- internal modules -->
+        <module>coherence-dependencies</module>
+
+        <module>coherence-testing-support</module>
 
         <!-- distributed modules -->
-        <module>coherence</module>
         <module>coherence-bom</module>
+        <module>coherence-docker</module>
+        <module>coherence-javadoc</module>
         <module>coherence-jcache</module>
+        <module>coherence-json</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -406,47 +434,20 @@
         <module>coherence-helidon-client</module>
         <module>coherence-concurrent</module>
         <module>plugins</module>
-      </modules>
-    </profile>
 
-    <!--
-        The 'shell' profile is for building Coherence using a Continuous
-        Integration system (CI) and/or command-line shell (SHELL).
+        <module>examples</module>
 
-        It is specifically designed for building and assembling the entire product
-        including artifacts that can't readily be built or understood by
-        Integrated Development Environments (IDE), like IntelliJ.
-
-        Consequently this profile MUST NOT be used when working inside an IDE.
-
-        WARNING: Any attempts to use this profile with in an IDE and/or with the
-                 'ide' profile is not supported.
-      -->
-    <profile>
-      <id>shell</id>
-
-      <activation>
-        <property>
-          <name>!ide</name>
-        </property>
-      </activation>
-
-      <!-- the following additional modules are buildable by this profile -->
-      <modules>
-        <!-- internal modules -->
-        <module>coherence-core-components</module>
-
-        <!-- distributed modules -->
-        <module>coherence-javadoc</module>
-
-        <!-- functional tests that require a full distribution to have been built -->
         <module>test/distribution</module>
+        <module>test/functional</module>
+        <module>test/endurance</module>
+        <module>test/performance</module>
       </modules>
     </profile>
 
+
     <!--
-        The 'ide' profile is for working with the Coherence project inside an
-        Integrated Development Environment (IDE), like IntelliJ.
+        The 'IntelliJ' profile is for working with the Coherence project inside
+        the IntelliJ IDE.
 
         It is specifically designed to exclude artifacts and modules containing
         build instructions typically unsupported or unrecognizable by IDEs.
@@ -454,29 +455,57 @@
         For example: compiling, building and assembling native libraries and
         TDE-based/CDB-based artifacts is not supported by IntelliJ.
 
-        Consequently this profile MAY ONLY be used once a local 'shell'
+        Consequently, this profile MAY ONLY be used once a local 'coherence'
         build has occurred or after the native/TDE/CDB-based artifacts have
-        been build or made available (via Maven).
+        been built or made available (via Maven).
       -->
     <profile>
-      <id>ide</id>
+      <id>IntelliJ</id>
 
       <activation>
         <property>
-          <name>ide</name>
+          <!--
+              Automatically enabled when inside IntelliJ.
+              IntelliJ sets the idea.version property when importing Maven projects.
+          -->
+          <name>idea.version</name>
         </property>
       </activation>
 
       <!-- the following additional modules are buildable by this profile -->
       <modules>
         <!-- internal modules -->
-        <!-- (none) -->
+        <module>coherence-dependencies</module>
 
         <!-- distributed modules -->
-        <!-- (none) -->
+        <module>coherence-bom</module>
+        <module>coherence-docker</module>
+        <module>coherence-jcache</module>
+        <module>coherence-json</module>
+        <module>coherence-loadbalancer</module>
+        <module>coherence-login</module>
+        <module>coherence-management</module>
+        <module>coherence-metrics</module>
+        <module>coherence-micrometer</module>
+        <module>coherence-mock</module>
+        <module>coherence-http-netty</module>
+        <module>coherence-rest</module>
+        <module>coherence-cdi</module>
+        <module>coherence-cdi-server</module>
+        <module>coherence-mp</module>
+        <module>coherence-grpc</module>
+        <module>coherence-grpc-proxy</module>
+        <module>coherence-java-client</module>
+        <module>coherence-helidon-client</module>
+        <module>coherence-concurrent</module>
+        <module>plugins</module>
 
-        <!-- build system modules -->
-        <!-- (none) -->
+        <module>examples</module>
+
+        <!-- test modules -->
+        <module>test/functional</module>
+        <module>test/endurance</module>
+        <module>test/performance</module>
       </modules>
     </profile>
 
@@ -556,16 +585,63 @@
       </build>
     </profile>
 
+    <!--
+    The release-coherence is used to select the modules to release to Maven central for coherence.jar
+    -->
     <profile>
-      <id>release</id>
+      <id>release-coherence</id>
 
       <modules>
         <!-- distributed modules -->
-        <module>coherence-discovery</module>
         <module>coherence-core</module>
-        <module>coherence-testing-support</module>
+        <module>coherence-discovery</module>
         <module>coherence-tracing</module>
+
+        <module>coherence-testing-support</module>
+
+        <module>coherence-bom</module>
         <module>coherence</module>
+      </modules>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!--
+    The release-coherence is used to select the modules to release to Maven central
+    that depend on coherence.jar
+    -->
+    <profile>
+      <id>release-modules</id>
+
+      <modules>
+        <!-- distributed modules -->
         <module>coherence-jcache</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
@@ -743,17 +819,6 @@
       <properties>
         <project.build.number>${env.P4_CHANGELIST}</project.build.number>
       </properties>
-    </profile>
-
-    <profile>
-      <id>examples</id>
-      <activation>
-        <!-- This is a work-around for the fact that activeByDefault does not do what you'd think it should -->
-        <file><exists>.</exists></file>
-      </activation>
-      <modules>
-        <module>examples</module>
-      </modules>
     </profile>
 
     <profile>
