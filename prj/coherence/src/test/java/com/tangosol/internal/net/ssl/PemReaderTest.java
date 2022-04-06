@@ -35,7 +35,6 @@ public class PemReaderTest
         }
 
     @Test
-    @Ignore("Disabled until we fix on GitHub")
     public void shouldReadEncodedPrivateKey() throws Exception
         {
         try (InputStream in = new FileInputStream(s_keyAndCert.m_fileKeyPEM))

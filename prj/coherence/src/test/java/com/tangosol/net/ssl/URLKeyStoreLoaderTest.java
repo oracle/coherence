@@ -62,7 +62,6 @@ public class URLKeyStoreLoaderTest
         }
 
     @Test
-    @Ignore("Disabled until we fix on GitHub")
     public void shouldLoadKeyStoreWithEncryptedKeyAndCert() throws Exception
         {
         KeyStoreLoader       keyStoreLoader = EmptyKeyStoreLoader.INSTANCE;

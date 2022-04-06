@@ -161,7 +161,6 @@ public class SSLKeysAndCertsTests
         }
 
     @Test
-    @Ignore("Disabled until we fix on GitHub")
     public void testTrustedServerConfigEncryptedKeys()
             throws IOException
         {

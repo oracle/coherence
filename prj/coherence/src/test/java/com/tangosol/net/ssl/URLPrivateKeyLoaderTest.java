@@ -33,7 +33,6 @@ public class URLPrivateKeyLoaderTest
         }
 
     @Test
-    @Ignore("Disabled until we fix on GitHub")
     public void shouldLoadEncryptedPrivateKey() throws Exception
         {
         URL                 url    = s_keyAndCert.m_fileKeyPEM.toURI().toURL();
