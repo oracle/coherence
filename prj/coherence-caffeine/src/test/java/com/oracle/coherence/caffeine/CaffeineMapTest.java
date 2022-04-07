@@ -1,19 +1,21 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.ce.caffeine;
+package com.oracle.coherence.caffeine;
 
 import com.google.common.collect.testing.ConcurrentMapTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringMapGenerator;
 import com.google.common.collect.testing.features.CollectionFeature;
 import com.google.common.collect.testing.features.CollectionSize;
 import com.google.common.collect.testing.features.MapFeature;
+
 import java.util.Map;
 import java.util.Map.Entry;
+
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 

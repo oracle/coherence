@@ -1,0 +1,1273 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+
+package com.oracle.coherence.caffeine;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.Policy;
+import com.github.benmanes.caffeine.cache.Policy.Eviction;
+import com.github.benmanes.caffeine.cache.Policy.VarExpiration;
+import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import com.github.benmanes.caffeine.cache.stats.StatsCounter;
+
+import com.tangosol.net.cache.CacheEvent;
+import com.tangosol.net.cache.CacheEvent.TransformationState;
+import com.tangosol.net.cache.CacheStatistics;
+import com.tangosol.net.cache.ConfigurableCacheMap;
+import com.tangosol.net.cache.OldCache.InternalUnitCalculator;
+import com.tangosol.net.cache.SimpleCacheStatistics;
+
+import com.tangosol.util.Base;
+import com.tangosol.util.Filter;
+import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapListener;
+import com.tangosol.util.MapListenerSupport;
+
+import java.time.Duration;
+
+import java.util.AbstractCollection;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.Spliterator;
+
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNull;
+
+/**
+ * A {@link ConfigurableCacheMap} backed by Caffeine. This implementation
+ * provides high read and write concurrency, a near optimal hit rate, and
+ * amortized {@code O(1)} expiration.
+ * <p>
+ * This implementation does not support providing an {@link EvictionPolicy} or
+ * {@link EvictionApprover}. The maximum size is set by {@link
+ * #setHighUnits(int)} and the low watermark, {@link #setLowUnits(int)}, has no
+ * effect. Cache entries do not support {@code touch()}, {@code getTouchCount()},
+ * {@code getLastTouchMillis()}, or {@code setUnits(c)}. By default, the cache 
+ * is unbounded and will not be limited by size or expiration until set.
+ * <p>
+ * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code OldCache}, 
+ * this cache does not support {@code null} keys or values.
+ */
+@SuppressWarnings({"rawtypes", "unchecked", "NullableProblems"})
+public final class CaffeineCache
+        implements ConfigurableCacheMap, ConcurrentMap
+    {
+    // ---- constructors ----------------------------------------------------
+
+    /**
+     * Create {@code CaffeineCache} instance.
+     */
+    public CaffeineCache()
+        {
+        f_cache = Caffeine.newBuilder()
+                .evictionListener(this::notifyEvicted)
+                .recordStats(SimpleStatsCounter::new)
+                .expireAfter(new ExpireAfterWrite())
+                .maximumWeight(Long.MAX_VALUE)
+                .executor(Runnable::run)
+                .weigher(this::weight)
+                .build();
+        
+        f_expiration     = f_cache.policy().expireVariably().orElseThrow();
+        f_eviction       = f_cache.policy().eviction().orElseThrow();
+        f_listeners      = new MapListenerSupport();
+        f_stats          = new SimpleCacheStatistics();
+        m_unitCalculator = InternalUnitCalculator.INSTANCE;
+        m_cExpireAfterWriteNanos = Long.MAX_VALUE;
+        m_nUnitFactor    = 1;
+        }
+
+    /**
+     * Returns the statistics for this cache.
+     */
+    public CacheStatistics getCacheStatistics()
+        {
+        return f_stats;
+        }
+
+    // ---- CacheMap interface ----------------------------------------------
+
+    @Override
+    public Map getAll(Collection colKeys)
+        {
+        return f_cache.getAllPresent(colKeys);
+        }
+
+    @Override
+    public Object put(Object oKey, Object oValue, long cMillis)
+        {
+        requireNonNull(oValue);
+
+        Duration duration;
+        if (cMillis == EXPIRY_NEVER)
+            {
+            duration = Duration.ofNanos(Long.MAX_VALUE);
+            }
+        else if (cMillis == EXPIRY_DEFAULT)
+            {
+            duration = Duration.ofNanos(m_cExpireAfterWriteNanos);
+            }
+        else
+            {
+            duration = Duration.ofMillis(cMillis);
+            }
+
+        Object[] aoPrevious = { null };
+        f_expiration.compute(oKey, (k, oValueOld) ->
+            {
+            if (oValueOld == null)
+                {
+                notifyCreate(oKey, oValue);
+                }
+            else
+                {
+                notifyUpdate(oKey, oValueOld, oValue);
+                aoPrevious[0] = oValueOld;
+                }
+            return oValue;
+            }, duration);
+
+        f_stats.registerPut(0L);
+        return aoPrevious[0];
+        }
+
+    @Override
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public int getUnits()
+        {
+        return (int) Math.min(f_eviction.weightedSize().getAsLong(), Integer.MAX_VALUE);
+        }
+
+    // ---- ConfigurableCacheMap interface ----------------------------------
+
+    @Override
+    public int getHighUnits()
+        {
+        return (int) Math.min(f_eviction.getMaximum(), Integer.MAX_VALUE);
+        }
+
+    @Override
+    public synchronized void setHighUnits(int units)
+        {
+        f_eviction.setMaximum(units);
+        }
+
+    @Override
+    public int getLowUnits()
+        {
+        return getHighUnits();
+        }
+
+    @Override
+    public void setLowUnits(int units)
+        {
+        }
+
+    @Override
+    public int getUnitFactor()
+        {
+        return m_nUnitFactor;
+        }
+
+    @Override
+    public synchronized void setUnitFactor(int nUnitFactor)
+        {
+        if (nUnitFactor <= 0)
+            {
+            throw new IllegalArgumentException();
+            }
+        else if (!isEmpty())
+            {
+            throw new IllegalStateException(
+                    "The unit factor cannot be set after the cache has been populated");
+            }
+        this.m_nUnitFactor = nUnitFactor;
+        }
+
+    @Override
+    public UnitCalculator getUnitCalculator()
+        {
+        return m_unitCalculator;
+        }
+
+    @Override
+    public void setUnitCalculator(UnitCalculator calculator)
+        {
+        m_unitCalculator = requireNonNull(calculator);
+
+        for (Object oKey : f_cache.asMap().keySet())
+            {
+            f_expiration.getExpiresAfter(oKey).ifPresent(duration ->
+                                                              f_expiration.compute(oKey, (k, oValue) -> oValue, duration));
+            }
+        }
+
+    @Override
+    public void evict(Object oKey)
+        {
+        f_expiration.setExpiresAfter(oKey, Duration.ZERO);
+        }
+
+    @Override
+    public void evictAll(Collection colKeys)
+        {
+        colKeys.forEach(this::evict);
+        }
+
+    @Override
+    public void evict()
+        {
+        f_cache.cleanUp();
+        }
+
+    @Override
+    public int getExpiryDelay()
+        {
+        long cNanos = m_cExpireAfterWriteNanos;
+        if (cNanos == Long.MAX_VALUE)
+            {
+            return 0;
+            }
+        return (int) Math.min(TimeUnit.NANOSECONDS.toMillis(cNanos), Integer.MAX_VALUE);
+        }
+
+    @Override
+    public void setExpiryDelay(int cMillis)
+        {
+        if (cMillis < 0)
+            {
+            throw new IllegalArgumentException();
+            }
+        m_cExpireAfterWriteNanos = (cMillis == 0)
+                                ? Long.MAX_VALUE
+                                : TimeUnit.MILLISECONDS.toNanos(cMillis);
+        }
+
+    @Override
+    public long getNextExpiryTime()
+        {
+        if (isEmpty())
+            {
+            return 0;
+            }
+        return f_expiration.oldest(Stream::findFirst)
+                .map(entry -> Base.getSafeTimeMillis() + entry.expiresAfter().toMillis())
+                .orElse(0L);
+        }
+
+    @Override
+    public ConfigurableCacheMap.Entry getCacheEntry(Object oKey)
+        {
+        Policy.CacheEntry entry = f_cache.policy().getEntryIfPresentQuietly(oKey);
+        if (entry == null)
+            {
+            return null;
+            }
+        long lExpiresAt = Base.getSafeTimeMillis() + entry.expiresAfter().toMillis();
+        return new CacheEntry(oKey, entry.getValue(), entry.weight(), lExpiresAt);
+        }
+
+    @Override
+    public EvictionApprover getEvictionApprover()
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public void setEvictionApprover(EvictionApprover approver)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public EvictionPolicy getEvictionPolicy()
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public void setEvictionPolicy(EvictionPolicy policy)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    // ---- ObservableMap interface -----------------------------------------
+
+    @Override
+    public void addMapListener(MapListener listener)
+        {
+        f_listeners.addListener(listener, (Filter) null, false);
+        }
+
+    @Override
+    public void removeMapListener(MapListener listener)
+        {
+        f_listeners.removeListener(listener, (Filter) null);
+        }
+
+    @Override
+    public void addMapListener(MapListener listener, Filter filter, boolean fLite)
+        {
+        f_listeners.addListener(listener, filter, fLite);
+        }
+
+    @Override
+    public void removeMapListener(MapListener listener, Filter filter)
+        {
+        f_listeners.removeListener(listener, filter);
+        }
+
+    @Override
+    public void addMapListener(MapListener listener, Object oKey, boolean fLite)
+        {
+        f_listeners.addListener(listener, oKey, fLite);
+        }
+
+    @Override
+    public void removeMapListener(MapListener listener, Object oKey)
+        {
+        f_listeners.removeListener(listener, oKey);
+        }
+
+    // ---- ConcurrentMap interface -----------------------------------------
+
+    @Override
+    public boolean isEmpty()
+        {
+        return f_cache.asMap().isEmpty();
+        }
+
+    @Override
+    public int size()
+        {
+        return f_cache.asMap().size();
+        }
+
+    @Override
+    public void clear()
+        {
+        f_cache.asMap().keySet().forEach(this::remove);
+        }
+
+    @Override
+    public boolean containsKey(Object oKey)
+        {
+        return f_cache.asMap().containsKey(oKey);
+        }
+
+    @Override
+    public boolean containsValue(Object oValue)
+        {
+        return f_cache.asMap().containsValue(oValue);
+        }
+
+    @Override
+    public Object get(Object oKey)
+        {
+        return f_cache.getIfPresent(oKey);
+        }
+
+    @Override
+    public Object put(Object oKey, Object oValue)
+        {
+        return put(oKey, oValue, EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public void putAll(Map map)
+        {
+        map.forEach(this::put);
+        }
+
+    @Override
+    public Object putIfAbsent(Object oKey, Object oValue)
+        {
+        requireNonNull(oValue);
+        
+        boolean[] afAdded = { false };
+        Object oResult = f_cache.get(oKey, k ->
+            {
+            notifyCreate(oKey, oValue);
+            afAdded[0] = true;
+            return oValue;
+            });
+        return afAdded[0] ? null : oResult;
+        }
+
+    @Override
+    public Object replace(Object oKey, Object oValue)
+        {
+        requireNonNull(oValue);
+        
+        Object[] aoReplaced = { null };
+        f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
+            {
+            notifyUpdate(oKey, oldValue, oValue);
+            aoReplaced[0] = oldValue;
+            return oValue;
+            });
+        return aoReplaced[0];
+        }
+
+    @Override
+    public boolean replace(Object oKey, Object oValueOld, Object oValueNew)
+        {
+        requireNonNull(oValueOld);
+        requireNonNull(oValueNew);
+        
+        boolean[] afReplaced = { false };
+        f_cache.asMap().computeIfPresent(oKey, (k, v) ->
+            {
+            if (oValueOld.equals(v))
+                {
+                notifyUpdate(oKey, oValueOld, oValueNew);
+                afReplaced[0] = true;
+                return oValueNew;
+                }
+            return v;
+            });
+        return afReplaced[0];
+        }
+
+    @Override
+    public void replaceAll(BiFunction function)
+        {
+        requireNonNull(function);
+        
+        f_cache.asMap().replaceAll((oKey, oValueOld) ->
+                                     {
+                                     Object oValueNew = function.apply(oKey, oValueOld);
+                                     notifyUpdate(oKey, oValueOld, oValueNew);
+                                     return oValueNew;
+                                     });
+        }
+
+    @Override
+    public Object remove(Object oKey)
+        {
+        Object[] removed = {null};
+        f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
+            {
+            notifyDelete(k, oldValue);
+            removed[0] = oldValue;
+            return null;
+            });
+        return removed[0];
+        }
+
+    @Override
+    public boolean remove(Object oKey, Object oValue)
+        {
+        requireNonNull(oValue);
+        boolean[] removed = {false};
+        f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
+            {
+            if (oValue.equals(oldValue))
+                {
+                notifyDelete(k, oldValue);
+                removed[0] = true;
+                return null;
+                }
+            return oldValue;
+            });
+        return removed[0];
+        }
+
+    @Override
+    public Object computeIfAbsent(Object oKey, Function mappingFunction)
+        {
+        requireNonNull(mappingFunction);
+        return f_cache.asMap().computeIfAbsent(oKey, k ->
+            {
+            Object oValue = mappingFunction.apply(oKey);
+            if (oValue != null)
+                {
+                notifyCreate(oKey, oValue);
+                }
+            return oValue;
+            });
+        }
+
+    @Override
+    public Object computeIfPresent(Object oKey, BiFunction remappingFunction)
+        {
+        requireNonNull(remappingFunction);
+
+        return f_cache.asMap().computeIfPresent(oKey, (k, oValueOld) ->
+            {
+            Object oValueNew = remappingFunction.apply(oKey, oValueOld);
+            if (oValueNew == null)
+                {
+                notifyDelete(oKey, oValueOld);
+                return null;
+                }
+            notifyUpdate(oKey, oValueOld, oValueNew);
+            return oValueNew;
+            });
+        }
+
+    @Override
+    public Object compute(Object oKey, BiFunction remappingFunction)
+        {
+        requireNonNull(remappingFunction);
+
+        return f_cache.asMap().compute(oKey, (k, oValueOld) ->
+            {
+            Object oValueNew = remappingFunction.apply(oKey, oValueOld);
+            if (oValueOld == null)
+                {
+                if (oValueNew == null)
+                    {
+                    return null;
+                    }
+                notifyCreate(oKey, oValueNew);
+                return oValueNew;
+                }
+            else if (oValueNew == null)
+                {
+                notifyDelete(oKey, oValueOld);
+                return null;
+                }
+
+            notifyUpdate(oKey, oValueOld, oValueNew);
+            return oValueNew;
+            });
+        }
+
+    @Override
+    public Object merge(Object oKey, Object oValue, BiFunction remappingFunction)
+        {
+        requireNonNull(oValue);
+        requireNonNull(remappingFunction);
+
+        return f_cache.asMap().compute(oKey, (k, oValueOld) ->
+            {
+            if (oValueOld == null)
+                {
+                notifyCreate(oKey, oValue);
+                return oValue;
+                }
+
+            Object oValueNew = remappingFunction.apply(oValueOld, oValue);
+            if (oValueNew == null)
+                {
+                notifyDelete(oKey, oValueOld);
+                return null;
+                }
+
+            notifyUpdate(oKey, oValueOld, oValueNew);
+            return oValueNew;
+            });
+        }
+
+    @Override
+    public Set keySet()
+        {
+        Set<Object> setKeys = m_setKeys;
+        return setKeys == null
+               ? m_setKeys = new KeySetView()
+               : setKeys;
+        }
+
+    @Override
+    public Collection values()
+        {
+        Collection<Object> colValues = m_colValues;
+        return colValues == null
+               ? m_colValues = new ValuesView()
+               : colValues;
+        }
+
+    @Override
+    public Set<Map.Entry> entrySet()
+        {
+        Set<Map.Entry> setEntries = m_setEntries;
+        return setEntries == null
+               ? m_setEntries = new EntrySetView()
+               : setEntries;
+        }
+
+    // ---- Object methods --------------------------------------------------
+
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    @Override
+    public boolean equals(Object o)
+        {
+        return f_cache.asMap().equals(o);
+        }
+
+    @Override
+    public int hashCode()
+        {
+        return f_cache.asMap().hashCode();
+        }
+
+    @Override
+    public String toString()
+        {
+        return f_cache.asMap().toString();
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     *
+     * @param oKey
+     * @param oValue
+     * 
+     * @return
+     */
+    private int weight(Object oKey, Object oValue)
+        {
+        int cUnits = m_unitCalculator.calculateUnits(oKey, oValue);
+        if (cUnits < 0)
+            {
+            throw new IllegalStateException(String.format(
+                    "Negative unit (%s) for %s=%s", cUnits, oKey, oValue));
+            }
+        return (cUnits / m_nUnitFactor);
+        }
+
+    /**
+     *
+     * @param oKey
+     * @param oValueNew
+     */
+    private void notifyCreate(Object oKey, Object oValueNew)
+        {
+        fireEvent(new CacheEvent(this, MapEvent.ENTRY_INSERTED,
+                                 oKey, null, oValueNew, false));
+        }
+
+    /**
+     *
+     * @param oKey
+     * @param oValueOld
+     * @param oValueNew
+     */
+    private void notifyUpdate(Object oKey, Object oValueOld, Object oValueNew)
+        {
+        fireEvent(new CacheEvent(this, MapEvent.ENTRY_UPDATED,
+                                 oKey, oValueOld, oValueNew, false));
+        }
+
+    /**
+     *
+     * @param oKey
+     * @param oValueOld
+     */
+    private void notifyDelete(Object oKey, Object oValueOld)
+        {
+        fireEvent(new CacheEvent(this, MapEvent.ENTRY_DELETED,
+                                 oKey, oValueOld, null, /* synthetic */ false));
+        }
+
+    /**
+     *
+     * @param oKey
+     * @param oValueOld
+     * @param removalCause
+     */
+    private void notifyEvicted(Object oKey, Object oValueOld, RemovalCause removalCause)
+        {
+        boolean fExpired = removalCause == RemovalCause.EXPIRED;
+        fireEvent(new CacheEvent(this, MapEvent.ENTRY_DELETED,
+                                 oKey, oValueOld, null, true,
+                                 TransformationState.TRANSFORMABLE, false, fExpired));
+        }
+
+    /**
+     * Fire the specified cache event.
+     *
+     * @param event  the cache event to fire
+     */
+    private void fireEvent(CacheEvent event)
+        {
+        if (!f_listeners.isEmpty())
+            {
+            f_listeners.fireEvent(event, false);
+            }
+        }
+
+    // ---- inner class: KeySetView -----------------------------------------
+
+    /**
+     * An adapter to safely externalize the keys.
+     */
+    final class KeySetView
+            extends AbstractSet<Object>
+        {
+        @Override
+        public int size()
+            {
+            return CaffeineCache.this.size();
+            }
+
+        @Override
+        public void clear()
+            {
+            CaffeineCache.this.clear();
+            }
+
+        @Override
+        public boolean contains(Object o)
+            {
+            return f_cache.asMap().containsKey(o);
+            }
+
+        @Override
+        public boolean remove(Object o)
+            {
+            return CaffeineCache.this.remove(o) != null;
+            }
+
+        @Override
+        public Iterator<Object> iterator()
+            {
+            return new KeyIterator();
+            }
+
+        @Override
+        public Spliterator<Object> spliterator()
+            {
+            return f_cache.asMap().keySet().spliterator();
+            }
+
+        @Override
+        public Object[] toArray()
+            {
+            return f_cache.asMap().keySet().toArray();
+            }
+
+        @Override
+        public <T> T[] toArray(T[] array)
+            {
+            //noinspection SuspiciousToArrayCall
+            return f_cache.asMap().keySet().toArray(array);
+            }
+        }
+
+    // ---- inner class: KeyIterator ----------------------------------------
+
+    /**
+     * An adapter to safely externalize the key iterator.
+     */
+    final class KeyIterator
+            implements Iterator<Object>
+        {
+        /**
+         * Construct {@code KeyIterator} instance.
+         */
+        KeyIterator()
+            {
+            this.iterator = new EntryIterator();
+            }
+
+        @Override
+        public boolean hasNext()
+            {
+            return iterator.hasNext();
+            }
+
+        @Override
+        public Object next()
+            {
+            return iterator.nextKey();
+            }
+
+        @Override
+        public void remove()
+            {
+            iterator.remove();
+            }
+
+        private final EntryIterator iterator;
+        }
+
+    // ---- inner class: ValuesView -----------------------------------------
+
+    /**
+     * An adapter to safely externalize the values.
+     */
+    final class ValuesView
+            extends AbstractCollection<Object>
+        {
+        @Override
+        public int size()
+            {
+            return CaffeineCache.this.size();
+            }
+
+        @Override
+        public void clear()
+            {
+            CaffeineCache.this.clear();
+            }
+
+        @Override
+        public boolean contains(Object o)
+            {
+            return f_cache.asMap().containsValue(o);
+            }
+
+        @Override
+        public boolean removeIf(Predicate<? super Object> filter)
+            {
+            requireNonNull(filter);
+            boolean fRemoved = false;
+            for (Map.Entry entry : f_cache.asMap().entrySet())
+                {
+                if (filter.test(entry.getValue()))
+                    {
+                    fRemoved |= CaffeineCache.this.remove(entry.getKey(), entry.getValue());
+                    }
+                }
+            return fRemoved;
+            }
+
+        @Override
+        public Iterator iterator()
+            {
+            return new ValueIterator();
+            }
+
+        @Override
+        public Spliterator spliterator()
+            {
+            return f_cache.asMap().values().spliterator();
+            }
+        }
+
+    // ---- inner class: ValueIterator --------------------------------------
+
+    /**
+     * An adapter to safely externalize the value iterator.
+     */
+    final class ValueIterator
+            implements Iterator<Object>
+        {
+        /**
+         * Construct {@code ValueIterator} instance.
+         */
+        ValueIterator()
+            {
+            this.iterator = new EntryIterator();
+            }
+
+        @Override
+        public boolean hasNext()
+            {
+            return iterator.hasNext();
+            }
+
+        @Override
+        public Object next()
+            {
+            return iterator.nextValue();
+            }
+
+        @Override
+        public void remove()
+            {
+            iterator.remove();
+            }
+
+        private final EntryIterator iterator;
+        }
+
+    // ---- inner class: EntrySetView ---------------------------------------
+
+    /**
+     * An adapter to safely externalize the entries.
+     */
+    final class EntrySetView
+            extends AbstractSet<Map.Entry>
+        {
+        @Override
+        public int size()
+            {
+            return CaffeineCache.this.size();
+            }
+
+        @Override
+        public void clear()
+            {
+            CaffeineCache.this.clear();
+            }
+
+        @Override
+        public boolean contains(Object obj)
+            {
+            return f_cache.asMap().entrySet().contains(obj);
+            }
+
+        @Override
+        public boolean remove(Object obj)
+            {
+            if (!(obj instanceof Map.Entry))
+                {
+                return false;
+                }
+            Map.Entry entry = (Map.Entry) obj;
+            return CaffeineCache.this.remove(entry.getKey(), entry.getValue());
+            }
+
+        @Override
+        public boolean removeIf(Predicate<? super Map.Entry> filter)
+            {
+            requireNonNull(filter);
+            boolean fRemoved = false;
+            for (Map.Entry entry : this)
+                {
+                if (filter.test(entry))
+                    {
+                    fRemoved |= CaffeineCache.this.remove(entry.getKey(), entry.getValue());
+                    }
+                }
+            return fRemoved;
+            }
+
+        @Override
+        public Iterator<Map.Entry> iterator()
+            {
+            return new EntryIterator();
+            }
+
+        @Override
+        public Spliterator<Map.Entry> spliterator()
+            {
+            return (Spliterator) f_cache.asMap().entrySet().spliterator();
+            }
+        }
+
+    // ---- inner class: EntryIterator --------------------------------------
+
+    /**
+     * An adapter to safely externalize the entry iterator.
+     */
+    final class EntryIterator
+            implements Iterator<Map.Entry>
+        {
+        EntryIterator()
+            {
+            this.iterator = f_cache.asMap().entrySet().iterator();
+            }
+
+        @Override
+        public boolean hasNext()
+            {
+            return iterator.hasNext();
+            }
+
+        Object nextKey()
+            {
+            if (!hasNext())
+                {
+                throw new NoSuchElementException();
+                }
+            oRemovalKey = iterator.next().getKey();
+            return oRemovalKey;
+            }
+
+        Object nextValue()
+            {
+            if (!hasNext())
+                {
+                throw new NoSuchElementException();
+                }
+            Map.Entry entry = iterator.next();
+            oRemovalKey = entry.getKey();
+            return entry.getValue();
+            }
+
+        @Override
+        public Map.Entry next()
+            {
+            if (!hasNext())
+                {
+                throw new NoSuchElementException();
+                }
+            Map.Entry entry = iterator.next();
+            oRemovalKey = entry.getKey();
+            return new WriteThroughEntry(entry.getKey(), entry.getValue());
+            }
+
+        @Override
+        public void remove()
+            {
+            if (oRemovalKey == null)
+                {
+                throw new IllegalStateException();
+                }
+            CaffeineCache.this.remove(oRemovalKey);
+            oRemovalKey = null;
+            }
+
+        private final Iterator<Map.Entry<Object, Object>> iterator;
+
+        private Object oRemovalKey;
+        }
+
+    // ---- inner class: ExpireAfterWrite -----------------------------------
+
+    /**
+     *
+     */
+    private final class ExpireAfterWrite
+            implements Expiry<Object, Object>
+        {
+        // ---- Expiry interface --------------------------------------------
+
+        @Override
+        public long expireAfterCreate(Object oKey, Object oValue, long lCurrentTime)
+            {
+            return m_cExpireAfterWriteNanos;
+            }
+
+        @Override
+        public long expireAfterUpdate(Object oKey, Object oValue,
+                                      long lCurrentTime, long lCurrentDuration)
+            {
+            return m_cExpireAfterWriteNanos;
+            }
+
+        @Override
+        public long expireAfterRead(Object oKey, Object oValue,
+                                    long lCurrentTime, long lCurrentDuration)
+            {
+            return lCurrentDuration;
+            }
+        }
+
+    // ---- inner class: SimpleStatsCounter ---------------------------------
+
+    /**
+     * 
+     */
+    private final class SimpleStatsCounter
+            implements StatsCounter
+        {
+        // ---- StatsCounter interface --------------------------------------
+        
+        @Override
+        public void recordHits(int count)
+            {
+            f_stats.registerHits(count, 0);
+            }
+
+        @Override
+        public void recordMisses(int count)
+            {
+            f_stats.registerMisses(count, 0);
+            }
+
+        @Override
+        public void recordLoadSuccess(long lLoadTime)
+            {
+            }
+
+        @Override
+        public void recordLoadFailure(long lLoadTime)
+            {
+            }
+
+        @Override
+        public void recordEviction(int nWeight, RemovalCause removalCause)
+            {
+            }
+
+        @Override
+        public CacheStats snapshot()
+            {
+            return CacheStats.empty();
+            }
+        }
+
+    // ---- inner class: CacheEntry -----------------------------------------
+
+    /**
+     * 
+     */
+    private class WriteThroughEntry
+            extends AbstractMap.SimpleEntry
+        {
+        /**
+         * 
+         * @param oKey
+         * @param oValue
+         */
+        WriteThroughEntry(Object oKey, Object oValue)
+            {
+            super(oKey, oValue);
+            }
+
+        @Override
+        public Object setValue(Object oValue)
+            {
+            put(getKey(), oValue);
+            return super.setValue(oValue);
+            }
+        }
+
+    // ---- inner class: CacheEntry -----------------------------------------
+
+    /**
+     * 
+     */
+    private final class CacheEntry
+            extends WriteThroughEntry
+            implements ConfigurableCacheMap.Entry
+        {
+        // ---- constructors ------------------------------------------------
+
+        /**
+         * 
+         * @param oKey
+         * @param oValue
+         * @param nWeight
+         * @param lExpiresAt
+         */
+        CacheEntry(Object oKey, Object oValue, int nWeight, long lExpiresAt)
+            {
+            super(oKey, oValue);
+
+            f_nWeight = nWeight;
+            f_lExpiresAt = lExpiresAt;
+            }
+
+        // ---- ConfigurableCacheMap.Entry interface ------------------------
+        
+        @Override
+        public void touch()
+            {
+            }
+
+        @Override
+        public int getTouchCount()
+            {
+            return 0;
+            }
+
+        @Override
+        public long getLastTouchMillis()
+            {
+            return 0;
+            }
+
+        @Override
+        public long getExpiryMillis()
+            {
+            return f_lExpiresAt;
+            }
+
+        @Override
+        public void setExpiryMillis(long cMillis)
+            {
+            if (cMillis < 0)
+                {
+                throw new IllegalArgumentException();
+                }
+            put(getKey(), getValue(), cMillis);
+            }
+
+        @Override
+        public int getUnits()
+            {
+            return f_nWeight * m_nUnitFactor;
+            }
+
+        @Override
+        public void setUnits(int cUnits)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        // ---- data members ------------------------------------------------
+
+        /**
+         * 
+         */        
+        private final long f_lExpiresAt;
+
+        /**
+         * 
+         */
+        private final int f_nWeight;
+        }
+    
+    // ---- data members ----------------------------------------------------
+
+    /**
+     * 
+     */
+    private final VarExpiration<Object, Object> f_expiration;
+
+    /**
+     * 
+     */
+    private final Eviction<Object, Object> f_eviction;
+
+    /**
+     * 
+     */
+    private final MapListenerSupport f_listeners;
+
+    /**
+     * 
+     */
+    private final Cache<Object, Object> f_cache;
+
+    /**
+     * 
+     */
+    private final SimpleCacheStatistics f_stats;
+
+    /**
+     * 
+     */
+    private volatile long m_cExpireAfterWriteNanos;
+
+    /**
+     * 
+     */
+    private volatile UnitCalculator m_unitCalculator;
+
+    /**
+     * 
+     */
+    private volatile int m_nUnitFactor;
+
+    /**
+     * 
+     */
+    private Collection m_colValues;
+
+    /**
+     * 
+     */
+    private Set m_setEntries;
+
+    /**
+     * 
+     */
+    private Set m_setKeys;
+    }
