@@ -61,10 +61,10 @@ import static java.util.Objects.requireNonNull;
  * {@link EvictionApprover}. The maximum size is set by {@link
  * #setHighUnits(int)} and the low watermark, {@link #setLowUnits(int)}, has no
  * effect. Cache entries do not support {@code touch()}, {@code getTouchCount()},
- * {@code getLastTouchMillis()}, or {@code setUnits(c)}. By default, the cache 
+ * {@code getLastTouchMillis()}, or {@code setUnits(c)}. By default, the cache
  * is unbounded and will not be limited by size or expiration until set.
  * <p>
- * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code OldCache}, 
+ * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code OldCache},
  * this cache does not support {@code null} keys or values.
  */
 @SuppressWarnings({"rawtypes", "unchecked", "NullableProblems"})
@@ -84,9 +84,9 @@ public final class CaffeineCache
                 .expireAfter(new ExpireAfterWrite())
                 .maximumWeight(Long.MAX_VALUE)
                 .executor(Runnable::run)
-                .weigher(this::weight)
+                .weigher(this::weigh)
                 .build();
-        
+
         f_expiration     = f_cache.policy().expireVariably().orElseThrow();
         f_eviction       = f_cache.policy().eviction().orElseThrow();
         f_listeners      = new MapListenerSupport();
@@ -402,7 +402,7 @@ public final class CaffeineCache
     public Object putIfAbsent(Object oKey, Object oValue)
         {
         requireNonNull(oValue);
-        
+
         boolean[] afAdded = { false };
         Object oResult = f_cache.get(oKey, k ->
             {
@@ -417,7 +417,7 @@ public final class CaffeineCache
     public Object replace(Object oKey, Object oValue)
         {
         requireNonNull(oValue);
-        
+
         Object[] aoReplaced = { null };
         f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
             {
@@ -433,7 +433,7 @@ public final class CaffeineCache
         {
         requireNonNull(oValueOld);
         requireNonNull(oValueNew);
-        
+
         boolean[] afReplaced = { false };
         f_cache.asMap().computeIfPresent(oKey, (k, v) ->
             {
@@ -452,7 +452,7 @@ public final class CaffeineCache
     public void replaceAll(BiFunction function)
         {
         requireNonNull(function);
-        
+
         f_cache.asMap().replaceAll((oKey, oValueOld) ->
                                      {
                                      Object oValueNew = function.apply(oKey, oValueOld);
@@ -630,13 +630,15 @@ public final class CaffeineCache
     // ---- helpers ---------------------------------------------------------
 
     /**
+     * Returns the weight of a cache entry. There is no unit for entry weights; rather they are
+     * simply relative to each other.
      *
-     * @param oKey
-     * @param oValue
-     * 
-     * @return
+     * @param oKey    the key to weigh
+     * @param oValue  the value to weigh
+     *
+     * @return the weight of the entry; must be non-negative
      */
-    private int weight(Object oKey, Object oValue)
+    private int weigh(Object oKey, Object oValue)
         {
         int cUnits = m_unitCalculator.calculateUnits(oKey, oValue);
         if (cUnits < 0)
@@ -648,9 +650,10 @@ public final class CaffeineCache
         }
 
     /**
+     * Fires a cache event to notify listeners that the entry was inserted.
      *
-     * @param oKey
-     * @param oValueNew
+     * @param oKey       the key
+     * @param oValueNew  the new value
      */
     private void notifyCreate(Object oKey, Object oValueNew)
         {
@@ -659,10 +662,11 @@ public final class CaffeineCache
         }
 
     /**
+     * Fires a cache event to notify listeners that the entry was updated.
      *
-     * @param oKey
-     * @param oValueOld
-     * @param oValueNew
+     * @param oKey       the key
+     * @param oValueOld  the old value
+     * @param oValueNew  the new value
      */
     private void notifyUpdate(Object oKey, Object oValueOld, Object oValueNew)
         {
@@ -671,21 +675,23 @@ public final class CaffeineCache
         }
 
     /**
+     * Fires a cache event to notify listeners that the entry was explicitly removed.
      *
-     * @param oKey
-     * @param oValueOld
+     * @param oKey       the key
+     * @param oValueOld  the old value
      */
     private void notifyDelete(Object oKey, Object oValueOld)
         {
         fireEvent(new CacheEvent(this, MapEvent.ENTRY_DELETED,
-                                 oKey, oValueOld, null, /* synthetic */ false));
+                                 oKey, oValueOld, null, false));
         }
 
     /**
+     * Fires a cache event to notify listeners that the entry was automatically removed.
      *
-     * @param oKey
-     * @param oValueOld
-     * @param removalCause
+     * @param oKey          the key
+     * @param oValueOld     the old value
+     * @param removalCause  the eviction type (size, expired)
      */
     private void notifyEvicted(Object oKey, Object oValueOld, RemovalCause removalCause)
         {
@@ -800,6 +806,11 @@ public final class CaffeineCache
             iterator.remove();
             }
 
+        // ---- data members ------------------------------------------------
+
+        /**
+         * An iterator instance for the cache entries.
+         */
         private final EntryIterator iterator;
         }
 
@@ -891,6 +902,11 @@ public final class CaffeineCache
             iterator.remove();
             }
 
+        // ---- data members ------------------------------------------------
+
+        /**
+         * An iterator instance for the cache entries.
+         */
         private final EntryIterator iterator;
         }
 
@@ -1022,15 +1038,25 @@ public final class CaffeineCache
             oRemovalKey = null;
             }
 
+        // ---- data members ------------------------------------------------
+
+        /**
+         * An iterator instance for the underyling cache's entries.
+         */
         private final Iterator<Map.Entry<Object, Object>> iterator;
 
+        /**
+         * The current entry's key if a removal is requested.
+         */
         private Object oRemovalKey;
         }
 
     // ---- inner class: ExpireAfterWrite -----------------------------------
 
     /**
-     *
+     * An expiration policy that sets the entry's lifetime after every write (create, update) to
+     * the fixed duration specified by {@link #setExpiryDelay}. This policy is used except when an
+     * explicit duration is provided by the caller, e.g. {@link #put(Object, Object, long)}.
      */
     private final class ExpireAfterWrite
             implements Expiry<Object, Object>
@@ -1061,13 +1087,13 @@ public final class CaffeineCache
     // ---- inner class: SimpleStatsCounter ---------------------------------
 
     /**
-     * 
+     * An adapter to forward statistics to {@link SimpleCacheStatistics}.
      */
     private final class SimpleStatsCounter
             implements StatsCounter
         {
         // ---- StatsCounter interface --------------------------------------
-        
+
         @Override
         public void recordHits(int count)
             {
@@ -1105,15 +1131,16 @@ public final class CaffeineCache
     // ---- inner class: CacheEntry -----------------------------------------
 
     /**
-     * 
+     * A {@link Map.Entry} where {@link Entry#setValue(Object)} writes into the cache.
      */
     private class WriteThroughEntry
             extends AbstractMap.SimpleEntry
         {
         /**
-         * 
-         * @param oKey
-         * @param oValue
+         * Construct {@code WriteThroughEntry} instance.
+         *
+         * @param oKey    the key
+         * @param oValue  the value
          */
         WriteThroughEntry(Object oKey, Object oValue)
             {
@@ -1131,7 +1158,7 @@ public final class CaffeineCache
     // ---- inner class: CacheEntry -----------------------------------------
 
     /**
-     * 
+     * A {@link ConfigurableCacheMap.Entry} that has only partial support for metadata operations.
      */
     private final class CacheEntry
             extends WriteThroughEntry
@@ -1140,11 +1167,12 @@ public final class CaffeineCache
         // ---- constructors ------------------------------------------------
 
         /**
-         * 
-         * @param oKey
-         * @param oValue
-         * @param nWeight
-         * @param lExpiresAt
+         * Construct {@code WriteThroughEntry} instance.
+         *
+         * @param oKey        the key
+         * @param oValue      the value
+         * @param nWeight     the number of units used by this entry
+         * @param lExpiresAt  the remaining milliseconds until this entry will expire
          */
         CacheEntry(Object oKey, Object oValue, int nWeight, long lExpiresAt)
             {
@@ -1155,7 +1183,7 @@ public final class CaffeineCache
             }
 
         // ---- ConfigurableCacheMap.Entry interface ------------------------
-        
+
         @Override
         public void touch()
             {
@@ -1204,70 +1232,70 @@ public final class CaffeineCache
         // ---- data members ------------------------------------------------
 
         /**
-         * 
-         */        
+         * The remaining milliseconds until this entry expires.
+         */
         private final long f_lExpiresAt;
 
         /**
-         * 
+         * The number of units used by this entry.
          */
         private final int f_nWeight;
         }
-    
+
     // ---- data members ----------------------------------------------------
 
     /**
-     * 
+     * Additional low-level operations a cache that supports an expiration policy.
      */
     private final VarExpiration<Object, Object> f_expiration;
 
     /**
-     * 
+     * Additional low-level operations a cache that supports a size-based eviction policy.
      */
     private final Eviction<Object, Object> f_eviction;
 
     /**
-     * 
+     * An aggregate of the listeners for advanced functionality.
      */
     private final MapListenerSupport f_listeners;
 
     /**
-     * 
+     * The underlying cache instance.
      */
     private final Cache<Object, Object> f_cache;
 
     /**
-     * 
+     * The accumulated cache statistics.
      */
     private final SimpleCacheStatistics f_stats;
 
     /**
-     * 
+     * The number of nanoseconds that a value will live in the cache.
      */
     private volatile long m_cExpireAfterWriteNanos;
 
     /**
-     * 
+     * The unit calculator to determine the weight of a cache entry.
      */
     private volatile UnitCalculator m_unitCalculator;
 
     /**
-     * 
+     * The unit factor.
      */
     private volatile int m_nUnitFactor;
 
     /**
-     * 
+     * The {@link Map#values()} view.
      */
     private Collection m_colValues;
 
     /**
-     * 
+     * The {@link Map#entrySet()} view.
      */
     private Set m_setEntries;
 
     /**
-     * 
+     * The {@link Map#keySet()} view.
      */
     private Set m_setKeys;
     }
