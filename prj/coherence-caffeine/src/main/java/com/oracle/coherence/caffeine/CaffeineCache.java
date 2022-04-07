@@ -1172,7 +1172,7 @@ public final class CaffeineCache
          * @param oKey        the key
          * @param oValue      the value
          * @param nWeight     the number of units used by this entry
-         * @param lExpiresAt  the remaining milliseconds until this entry will expire
+         * @param lExpiresAt  the date/time, in milliseconds, when the entry will expire
          */
         CacheEntry(Object oKey, Object oValue, int nWeight, long lExpiresAt)
             {
@@ -1232,7 +1232,7 @@ public final class CaffeineCache
         // ---- data members ------------------------------------------------
 
         /**
-         * The remaining milliseconds until this entry expires.
+         * The date/time, in milliseconds, when the entry will expire.
          */
         private final long f_lExpiresAt;
 
