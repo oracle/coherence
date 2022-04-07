@@ -435,8 +435,6 @@
         <module>coherence-concurrent</module>
         <module>plugins</module>
 
-        <module>examples</module>
-
         <module>test/distribution</module>
         <module>test/functional</module>
         <module>test/endurance</module>
@@ -506,6 +504,17 @@
         <module>test/functional</module>
         <module>test/endurance</module>
         <module>test/performance</module>
+      </modules>
+    </profile>
+
+    <!--
+      The examples profile builds the Coherence examples and guides
+    -->
+    <profile>
+      <id>examples</id>
+
+      <modules>
+        <module>examples</module>
       </modules>
     </profile>
 
