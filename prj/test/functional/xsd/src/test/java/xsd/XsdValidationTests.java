@@ -120,6 +120,7 @@ public class XsdValidationTests
         XmlValidator.validate("system-property-coherence-cache-config.xml");
         XmlValidator.validate("system-property-tangosol-coherence.xml");
         XmlValidator.validate("system-property-tangosol-coherence-override.xml");
+        XmlValidator.validate("system-property-federation.xml");
         }
 
     /**

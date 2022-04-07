@@ -1717,7 +1717,23 @@
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name="initial-action">
+    <xsd:simpleType name="initial-action-base-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="start" />
+            <xsd:enumeration value="stop" />
+            <xsd:enumeration value="pause" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="initial-action-type">
+        <xsd:simpleContent>
+            <xsd:extension base="initial-action-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="initial-action" type="initial-action-type">
         <xsd:annotation>
             <xsd:documentation>
                 The initial-action element specifies the startup action for the remote participant. The action is taken
@@ -1726,13 +1742,6 @@
                 Used in: participant
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:simpleType>
-            <xsd:restriction base="xsd:normalizedString">
-                <xsd:enumeration value="start" />
-                <xsd:enumeration value="stop" />
-                <xsd:enumeration value="pause" />
-            </xsd:restriction>
-        </xsd:simpleType>
     </xsd:element>
 
     <xsd:element name="connect-timeout" type="coherence-time-type">
@@ -1891,7 +1900,22 @@
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name="participant-type">
+    <xsd:simpleType name="participant-type-base-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="cluster" />
+            <xsd:enumeration value="interceptor" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="participant-type-type">
+        <xsd:simpleContent>
+            <xsd:extension base="participant-type-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="participant-type" type="participant-type-type">
         <xsd:annotation>
             <xsd:documentation>
                 The participant-type element specifies the type of the participant. If not specified,
@@ -1900,12 +1924,6 @@
                 Used in: participant
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:simpleType>
-            <xsd:restriction base="xsd:normalizedString">
-                <xsd:enumeration value="cluster" />
-                <xsd:enumeration value="interceptor" />
-            </xsd:restriction>
-        </xsd:simpleType>
     </xsd:element>
 
     <xsd:element name="topology-definitions">
