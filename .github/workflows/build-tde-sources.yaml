@@ -86,7 +86,7 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P-modules${{ matrix.stage }},-javadoc -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P-modules,${{ matrix.stage }},-javadoc -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence,${{ matrix.stage }},-javadoc -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
 
     # Upload build artifacts for diagnosing failures
