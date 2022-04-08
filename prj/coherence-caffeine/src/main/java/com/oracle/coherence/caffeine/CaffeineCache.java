@@ -15,7 +15,6 @@ import com.github.benmanes.caffeine.cache.Policy.Eviction;
 import com.github.benmanes.caffeine.cache.Policy.VarExpiration;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
-import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
@@ -80,7 +79,6 @@ public final class CaffeineCache
         {
         f_cache = Caffeine.newBuilder()
                 .evictionListener(this::notifyEvicted)
-                .recordStats(SimpleStatsCounter::new)
                 .expireAfter(new ExpireAfterWrite())
                 .maximumWeight(Long.MAX_VALUE)
                 .executor(Runnable::run)
@@ -109,7 +107,13 @@ public final class CaffeineCache
     @Override
     public Map getAll(Collection colKeys)
         {
-        return f_cache.getAllPresent(colKeys);
+        Map map = f_cache.getAllPresent(colKeys);
+        f_stats.registerHits(map.size(), 0);
+        if (map.size() != colKeys.size())
+            {
+            f_stats.registerMisses(Set.copyOf(colKeys).size() - map.size(), 0);
+            }
+        return map;
         }
 
     @Override
@@ -383,7 +387,16 @@ public final class CaffeineCache
     @Override
     public Object get(Object oKey)
         {
-        return f_cache.getIfPresent(oKey);
+        Object oValue = f_cache.getIfPresent(oKey);
+        if (oValue == null)
+            {
+            f_stats.registerMiss();
+            }
+        else
+            {
+            f_stats.registerHit();
+            }
+        return oValue;
         }
 
     @Override
@@ -464,47 +477,58 @@ public final class CaffeineCache
     @Override
     public Object remove(Object oKey)
         {
-        Object[] removed = {null};
+        Object[] aoRemoved = {null};
         f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
             {
             notifyDelete(k, oldValue);
-            removed[0] = oldValue;
+            aoRemoved[0] = oldValue;
             return null;
             });
-        return removed[0];
+        return aoRemoved[0];
         }
 
     @Override
     public boolean remove(Object oKey, Object oValue)
         {
         requireNonNull(oValue);
-        boolean[] removed = {false};
+        boolean[] afRemoved = {false};
         f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
             {
             if (oValue.equals(oldValue))
                 {
                 notifyDelete(k, oldValue);
-                removed[0] = true;
+                afRemoved[0] = true;
                 return null;
                 }
             return oldValue;
             });
-        return removed[0];
+        return afRemoved[0];
         }
 
     @Override
     public Object computeIfAbsent(Object oKey, Function mappingFunction)
         {
         requireNonNull(mappingFunction);
-        return f_cache.asMap().computeIfAbsent(oKey, k ->
+        boolean[] afComputed = {false};
+        Object oResult = f_cache.asMap().computeIfAbsent(oKey, k ->
             {
             Object oValue = mappingFunction.apply(oKey);
             if (oValue != null)
-                {
-                notifyCreate(oKey, oValue);
-                }
+            {
+              notifyCreate(oKey, oValue);
+            }
+            afComputed[0] = true;
             return oValue;
             });
+        if (afComputed[0])
+            {
+            f_stats.registerMiss();
+            }
+        else
+            {
+            f_stats.registerHit();
+            }
+        return oResult;
         }
 
     @Override
@@ -1081,50 +1105,6 @@ public final class CaffeineCache
                                     long lCurrentTime, long lCurrentDuration)
             {
             return lCurrentDuration;
-            }
-        }
-
-    // ---- inner class: SimpleStatsCounter ---------------------------------
-
-    /**
-     * An adapter to forward statistics to {@link SimpleCacheStatistics}.
-     */
-    private final class SimpleStatsCounter
-            implements StatsCounter
-        {
-        // ---- StatsCounter interface --------------------------------------
-
-        @Override
-        public void recordHits(int count)
-            {
-            f_stats.registerHits(count, 0);
-            }
-
-        @Override
-        public void recordMisses(int count)
-            {
-            f_stats.registerMisses(count, 0);
-            }
-
-        @Override
-        public void recordLoadSuccess(long lLoadTime)
-            {
-            }
-
-        @Override
-        public void recordLoadFailure(long lLoadTime)
-            {
-            }
-
-        @Override
-        public void recordEviction(int nWeight, RemovalCause removalCause)
-            {
-            }
-
-        @Override
-        public CacheStats snapshot()
-            {
-            return CacheStats.empty();
             }
         }
 
