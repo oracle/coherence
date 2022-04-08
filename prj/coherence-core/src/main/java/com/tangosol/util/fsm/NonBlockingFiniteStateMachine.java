@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -605,10 +605,10 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
     @SuppressWarnings("unchecked")
     private void processEvent(Event<S> event)
         {
-        // we keep processing events on this thread until we run out of events
+        // loop through to handle subsequent events, if any
         while (event != null && m_fAllowTransitions)
             {
-            // notify the a lifecycle aware event of the commencement of processing
+            // notify the lifecycle aware event of the commencement of processing
             if (event instanceof LifecycleAwareEvent)
                 {
                 LifecycleAwareEvent<S> lifecycleAwareEvent = (LifecycleAwareEvent<S>) event;
@@ -725,7 +725,7 @@ public class NonBlockingFiniteStateMachine<S extends Enum<S>>
                 // now perform exit and entry actions
                 if (event != null)
                     {
-                    // notify the a lifecycle aware event of the completion of transition is caused
+                    // notify the lifecycle aware event of the completion of processing
                     if (event instanceof LifecycleAwareEvent)
                         {
                         LifecycleAwareEvent<S> lifecycleAwareEvent = (LifecycleAwareEvent<S>) event;
