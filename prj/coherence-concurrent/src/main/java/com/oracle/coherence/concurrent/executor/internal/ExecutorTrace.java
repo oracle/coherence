@@ -13,9 +13,6 @@ import com.oracle.coherence.concurrent.executor.ClusteredRegistration;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 
-import com.tangosol.util.Base;
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -31,13 +28,11 @@ public class ExecutorTrace
     /**
      * Return true if executor trace logging is enabled; false otherwise.
      *
-     * @param nSeverity  the severity level
-     *
      * @return true if executor trace logging is enabled
      */
-    public static boolean isEnabled(int nSeverity)
+    public static boolean isEnabled()
         {
-        return ClusteredRegistration.s_fTraceLogging && Logger.isEnabled(nSeverity);
+        return ClusteredRegistration.s_fTraceLogging;
         }
 
     /**
@@ -48,7 +43,10 @@ public class ExecutorTrace
      */
     public static void log(String message)
         {
-        log(message, LOGLEVEL);
+        if (isEnabled())
+            {
+            Logger.log(message, LOGLEVEL);
+            }
         }
 
     /**
@@ -60,20 +58,6 @@ public class ExecutorTrace
     public static void log(String message, Debugging debugging)
         {
         Logger.log(message, debugging.getLogLevel());
-        }
-
-    /**
-     * Log the specified message at the specified severity level.
-     *
-     * @param message    the message to log
-     * @param nSeverity  the severity level
-     */
-    public static void log(String message, int nSeverity)
-        {
-        if (isEnabled(nSeverity))
-            {
-            Logger.log(message, nSeverity);
-            }
         }
 
     /**
@@ -90,7 +74,10 @@ public class ExecutorTrace
      */
     public static void log(Supplier<String> supplierMessage)
         {
-        log(supplierMessage, LOGLEVEL);
+        if (isEnabled())
+            {
+            Logger.log(supplierMessage, LOGLEVEL);
+            }
         }
 
     /**
@@ -111,26 +98,6 @@ public class ExecutorTrace
         }
 
     /**
-     * Log the specified message at the specified severity level.
-     *
-     * The message is provided by the {@link Supplier}, which will only be
-     * evaluated if the messages should be logged at the specified severity
-     * level. This avoids potentially expensive message construction if the
-     * message isn't going to be logged.
-     *
-     * @param supplierMessage  the supplier of the message to log; only evaluated
-     *                         if the specified severity level should be logged
-     * @param nSeverity        the severity level
-     */
-    public static void log(Supplier<String> supplierMessage, int nSeverity)
-        {
-        if (isEnabled(nSeverity))
-            {
-            Logger.log(supplierMessage, nSeverity);
-            }
-        }
-
-    /**
      * Entry logging.
      *
      * @param clz      the source {@link Class}
@@ -142,13 +109,10 @@ public class ExecutorTrace
      */
     public static void entering(Class<?> clz, String sMethod, Object... params)
         {
-        ensureRequirements(clz, sMethod);
-
-        ExecutorTrace.log(() ->
-                                  (params == null || params.length == 0)
-                                  ? String.format("ENTRY [%s.%s]", clz.getName(), sMethod)
-                                  : String.format("ENTRY [%s.%s] params=%s", clz.getName(), sMethod, Arrays.toString(params)),
-                          Logger.FINEST);
+        if (isEnabled())
+            {
+            Logger.entering(clz, sMethod, params);
+            }
         }
 
     /**
@@ -162,9 +126,10 @@ public class ExecutorTrace
      */
     public static void exiting(Class<?> clz, String sMethod)
         {
-        ensureRequirements(clz, sMethod);
-
-        ExecutorTrace.log(() -> String.format("EXIT [%s.%s]", clz.getName(), sMethod), Logger.FINEST);
+        if (isEnabled())
+            {
+            Logger.exiting(clz, sMethod);
+            }
         }
 
     /**
@@ -180,14 +145,10 @@ public class ExecutorTrace
      */
     public static void exiting(Class<?> clz, String sMethod, Object result, Object... additionalInfo)
         {
-        ensureRequirements(clz, sMethod);
-
-        ExecutorTrace.log(() -> (additionalInfo == null || additionalInfo.length == 0)
-                                ? String.format("EXIT [%s.%s] returning=%s", clz.getName(), sMethod, result)
-                                : String.format("EXIT [%s.%s] returning=%s, additional-info=%s",
-                                                clz.getName(), sMethod, result, Arrays.toString(additionalInfo)),
-                          Logger.FINEST);
-
+        if (isEnabled())
+            {
+            Logger.exiting(clz, sMethod, result, additionalInfo);
+            }
         }
 
     /**
@@ -202,30 +163,13 @@ public class ExecutorTrace
      */
     public static void throwing(Class<?> clz, String sMethod, Throwable throwable, Object... additionalInfo)
         {
-        Objects.requireNonNull(throwable, "A throwable must be specified");
-        ensureRequirements(clz, sMethod);
-
-        ExecutorTrace.log(() ->
-                                  String.format("THROWING [%s.%s] exception=%s, additional-info=%s",
-                                                clz.getName(), sMethod, Base.getStackTrace(throwable), Arrays.toString(additionalInfo)),
-                          Logger.FINEST);
+       if (isEnabled())
+           {
+           Logger.throwing(clz, sMethod, throwable, additionalInfo);
+           }
         }
 
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Ensures the provided arguments are not {@code null}.
-     *
-     * @param clz      the source {@link Class}
-     * @param sMethod  the source method
-     */
-    private static void ensureRequirements(Class<?> clz, String sMethod)
-        {
-        Objects.requireNonNull(clz,     "A class must be specified");
-        Objects.requireNonNull(sMethod, "A method name must be specified");
-        }
-
-    // ----- static data members ---------------------------------------------
+    // ----- static data members --------------------------------------------
 
     /**
      * Log level for ExecutorTrace messages

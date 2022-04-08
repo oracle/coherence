@@ -196,7 +196,7 @@ public abstract class AbstractTaskCoordinator<T>
 
             m_setSubscribers.remove(subscriber);
 
-            Logger.fine(() -> String.format("Removed Subscriber %s", subscriber));
+            ExecutorTrace.log(() -> String.format("Removed Subscriber %s", subscriber));
             }
 
         // notify the subscriber that it's closed.
