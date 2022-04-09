@@ -78,6 +78,7 @@ public final class CaffeineCache
     public CaffeineCache()
         {
         f_cache = Caffeine.newBuilder()
+                .ticker(() -> TimeUnit.MILLISECONDS.toNanos(getCurrentTimeMillis()))
                 .evictionListener(this::notifyEvicted)
                 .expireAfter(new ExpireAfterWrite())
                 .maximumWeight(Long.MAX_VALUE)
@@ -100,6 +101,32 @@ public final class CaffeineCache
     public CacheStatistics getCacheStatistics()
         {
         return f_stats;
+        }
+
+   /**
+    * Specify whether or not this cache is used in the environment,
+    * where the {@link Base#getSafeTimeMillis()} is used very frequently and
+    * as a result, the {@link Base#getLastSafeTimeMillis} could be used
+    * without sacrificing the clock precision. By default, the optimization
+    * is off.
+    *
+    * @param fOptimize  pass true to turn the "last safe time" optimization on
+    */
+    public void setOptimizeGetTime(boolean fOptimize)
+        {
+        m_fOptimizeGetTime = fOptimize;
+        }
+
+    /**
+    * Return the current {@link Base#getSafeTimeMillis() safe time} or
+    * {@link Base#getLastSafeTimeMillis last safe time}
+    * depending on the optimization flag.
+    *
+    * @return the current time
+    */
+    private long getCurrentTimeMillis()
+        {
+        return m_fOptimizeGetTime ? Base.getLastSafeTimeMillis() : Base.getSafeTimeMillis();
         }
 
     // ---- CacheMap interface ----------------------------------------------
@@ -274,7 +301,7 @@ public final class CaffeineCache
             return 0;
             }
         return f_expiration.oldest(Stream::findFirst)
-                .map(entry -> Base.getSafeTimeMillis() + entry.expiresAfter().toMillis())
+                .map(entry -> getCurrentTimeMillis() + entry.expiresAfter().toMillis())
                 .orElse(0L);
         }
 
@@ -286,7 +313,7 @@ public final class CaffeineCache
             {
             return null;
             }
-        long lExpiresAt = Base.getSafeTimeMillis() + entry.expiresAfter().toMillis();
+        long lExpiresAt = getCurrentTimeMillis() + entry.expiresAfter().toMillis();
         return new CacheEntry(oKey, entry.getValue(), entry.weight(), lExpiresAt);
         }
 
@@ -654,8 +681,7 @@ public final class CaffeineCache
     // ---- helpers ---------------------------------------------------------
 
     /**
-     * Returns the weight of a cache entry. There is no unit for entry weights; rather they are
-     * simply relative to each other.
+     * Returns the weight of a cache entry.
      *
      * @param oKey    the key to weigh
      * @param oValue  the value to weigh
@@ -699,7 +725,8 @@ public final class CaffeineCache
         }
 
     /**
-     * Fires a cache event to notify listeners that the entry was explicitly removed.
+     * Fires a cache event to notify listeners that the entry was explicitly
+     * removed.
      *
      * @param oKey       the key
      * @param oValueOld  the old value
@@ -711,7 +738,8 @@ public final class CaffeineCache
         }
 
     /**
-     * Fires a cache event to notify listeners that the entry was automatically removed.
+     * Fires a cache event to notify listeners that the entry was automatically
+     * removed.
      *
      * @param oKey          the key
      * @param oValueOld     the old value
@@ -1078,9 +1106,11 @@ public final class CaffeineCache
     // ---- inner class: ExpireAfterWrite -----------------------------------
 
     /**
-     * An expiration policy that sets the entry's lifetime after every write (create, update) to
-     * the fixed duration specified by {@link #setExpiryDelay}. This policy is used except when an
-     * explicit duration is provided by the caller, e.g. {@link #put(Object, Object, long)}.
+     * An expiration policy that sets the entry's lifetime after every write
+     * (create, update) to the fixed duration specified by
+     * {@link #setExpiryDelay}. This policy is used except when an explicit
+     * duration is provided by the caller, e.g.
+     * {@link #put(Object, Object, long)}.
      */
     private final class ExpireAfterWrite
             implements Expiry<Object, Object>
@@ -1111,7 +1141,8 @@ public final class CaffeineCache
     // ---- inner class: CacheEntry -----------------------------------------
 
     /**
-     * A {@link Map.Entry} where {@link Entry#setValue(Object)} writes into the cache.
+     * A {@link Map.Entry} where {@link Entry#setValue(Object)} writes into the
+     * cache.
      */
     private class WriteThroughEntry
             extends AbstractMap.SimpleEntry
@@ -1138,7 +1169,8 @@ public final class CaffeineCache
     // ---- inner class: CacheEntry -----------------------------------------
 
     /**
-     * A {@link ConfigurableCacheMap.Entry} that has only partial support for metadata operations.
+     * A {@link ConfigurableCacheMap.Entry} that has only partial support for
+     * metadata operations.
      */
     private final class CacheEntry
             extends WriteThroughEntry
@@ -1152,7 +1184,8 @@ public final class CaffeineCache
          * @param oKey        the key
          * @param oValue      the value
          * @param nWeight     the number of units used by this entry
-         * @param lExpiresAt  the date/time, in milliseconds, when the entry will expire
+         * @param lExpiresAt  the date/time, in milliseconds, when the entry
+         *                    will expire
          */
         CacheEntry(Object oKey, Object oValue, int nWeight, long lExpiresAt)
             {
@@ -1224,13 +1257,24 @@ public final class CaffeineCache
 
     // ---- data members ----------------------------------------------------
 
+   /**
+    * Specifies whether or not this cache is used in the environment,
+    * where the {@link Base#getSafeTimeMillis()} is used very frequently and
+    * as a result, the {@link Base#getLastSafeTimeMillis} could be used
+    * without sacrificing the clock precision. By default, the optimization
+    * is off.
+    */
+    private boolean m_fOptimizeGetTime;
+
     /**
-     * Additional low-level operations a cache that supports an expiration policy.
+     * Additional low-level operations a cache that supports an expiration
+     * policy.
      */
     private final VarExpiration<Object, Object> f_expiration;
 
     /**
-     * Additional low-level operations a cache that supports a size-based eviction policy.
+     * Additional low-level operations a cache that supports a size-based
+     * eviction policy.
      */
     private final Eviction<Object, Object> f_eviction;
 
