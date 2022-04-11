@@ -692,6 +692,7 @@ public class GuardianTests
             serverSocket = ((NameService.TcpAcceptor) nameService.getAcceptor())
                 .getProcessor().getServerSocket();
             assertTrue(serverSocket.isClosed());
+            Eventually.assertDeferred(() -> service.isRunning(), is(false));
             }
         finally
             {
