@@ -1561,7 +1561,7 @@ public class PagedTopicSubscriber<V>
             fWasEmpty = nChannelCurrent < 0 || f_aChannel[nChannelCurrent].m_fEmpty;
             for (int nChannel : anChannel)
                 {
-                f_aChannel[nChannel].setPopulated();
+                f_aChannel[nChannel].onChannelPopulatedNotification();
                 }
             }
 
@@ -1735,7 +1735,6 @@ public class PagedTopicSubscriber<V>
                         channel.m_fContended = false;
                         channel.m_fOwned     = true;
                         channel.setPopulated();
-                        //scheduleHeadIncrement(channel, Page.NULL_PAGE);
                         });
                     }
 
@@ -2570,7 +2569,7 @@ public class PagedTopicSubscriber<V>
      * Channel is a data structure which represents the state of a channel as known
      * by this subscriber.
      */
-    protected static class PagedTopicChannel
+    public static class PagedTopicChannel
             implements Channel
         {
         @Override
@@ -2631,12 +2630,31 @@ public class PagedTopicSubscriber<V>
             }
 
         /**
+         * Called to notify the channel that a populated notification was received.
+         */
+        protected synchronized void onChannelPopulatedNotification()
+            {
+            m_cNotify++;
+            setPopulated();
+            }
+
+        /**
          * Set this channel as populated an bump the version up by one.
          */
         protected synchronized void setPopulated()
             {
             m_lVersion++;
             m_fEmpty = false;
+            }
+
+        /**
+         * Return number of channel populated notifications received.
+         *
+         * @return number of channel populated notifications received
+         */
+        public long getNotify()
+            {
+            return m_cNotify;
             }
 
         /**
@@ -2693,6 +2711,11 @@ public class PagedTopicSubscriber<V>
          * This is used for CAS operations on the empty flag.
          */
         volatile long m_lVersion;
+
+        /**
+         * The number of channel populated notifications received.
+         */
+        volatile long m_cNotify;
 
         /**
          * The index of the next item in the page, or -1 for unknown

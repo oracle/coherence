@@ -47,6 +47,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -541,14 +542,16 @@ public class PagedTopicSubscriberMBeanTests
                     assertThat(channel.isEmpty(), is(true));
                     }
 
-                int    nChannel = 5;
+                int    nChannel       = 5;
+                long   cNotify        = subscriber.getNotify();
+                long   cChannelNotify = ((PagedTopicSubscriber.PagedTopicChannel) subscriber.getChannel(nChannel)).getNotify();
+
                 Object oValue   = m_proxy.invoke(sMBeanName, ManagedSubscriber.SubscriberOperation.NotifyPopulated.name(), new Object[]{nChannel}, new String[]{Integer.class.getName()});
 
                 assertThat(oValue, is(nullValue()));
 
-                Subscriber.Channel channel = subscriber.getChannel(nChannel);
-                assertThat(channel, is(notNullValue()));
-                assertThat(channel.isEmpty(), is(false));
+                Eventually.assertDeferred(subscriber::getNotify, is(greaterThan(cNotify)));
+                Eventually.assertDeferred(() -> ((PagedTopicSubscriber.PagedTopicChannel) subscriber.getChannel(nChannel)).getNotify(), is(greaterThan(cChannelNotify)));
 
                 Eventually.assertDeferred(subscriber::getPolls, is(cPollsBefore + 1));
                 }
