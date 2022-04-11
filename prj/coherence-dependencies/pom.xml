@@ -147,7 +147,7 @@
     <felix.version>6.0.4</felix.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
-    <grpc.version>1.41.2</grpc.version>
+    <grpc.version>1.44.0</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -156,14 +156,14 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.4.2</helidon.version>
+    <helidon.version>2.5.0</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <inject.version>1.0</inject.version>
-    <jackson.version>2.12.1</jackson.version>
+    <jackson.version>2.13.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
-    <jaeger.version>1.1.0</jaeger.version>
+    <jaeger.version>1.6.0</jaeger.version>
     <javaee.version>5</javaee.version>
     <javax.cache.version>1.1.1</javax.cache.version>
     <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
