@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,12 +25,12 @@ import com.tangosol.util.processor.NumberIncrementor;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import common.AbstractFunctionalTest;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 
@@ -129,7 +129,8 @@ public abstract class AbstractMapTriggerTests
         cache.addMapListener(listener);
 
         cache.put("2", Integer.valueOf(2));
-        Eventually.assertThat("Failed remove-trigger", cache.containsKey("2"), CoreMatchers.is(false));
+        Eventually.assertDeferred(() -> cache.containsKey("2"), is(false));
+
 
         cache.removeMapListener(listener);
         }
@@ -181,7 +182,7 @@ public abstract class AbstractMapTriggerTests
         cache.addMapListener(listener);
 
         cache.putAll(map);
-        Eventually.assertThat("Failed remove-trigger", cache.containsKey("2"), CoreMatchers.is(false));
+        Eventually.assertDeferred(() -> cache.containsKey("2"), is(false));
 
         cache.removeMapListener(listener);
         }
@@ -261,7 +262,7 @@ public abstract class AbstractMapTriggerTests
         IValue = (Integer) cache.invoke("0", agent); // 2 -> 3
         assertTrue("returned " + IValue, IValue != null && IValue.intValue() == 3);
 
-        Eventually.assertThat("Failed remove-trigger", cache.containsKey("0"), CoreMatchers.is(false));
+        Eventually.assertDeferred(() -> cache.containsKey("0"), is(false));
 
         cache.removeMapListener(listener);
         }
