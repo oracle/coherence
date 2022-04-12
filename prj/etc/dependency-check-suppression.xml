@@ -206,6 +206,13 @@
      <packageUrl regex="true">^pkg:maven/org\.apache\.thrift/libthrift@.*$</packageUrl>
      <cve>CVE-2020-13949</cve>
   </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: kotlin-stdlib-common-1.4.0.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-stdlib\-common@.*$</packageUrl>
+     <cve>CVE-2020-15824</cve>
+  </suppress>
 
   <!-- CVE references API not used by Coherence; referenced by GraphQL tutorial -->
   <suppress>
@@ -272,6 +279,13 @@
      <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
      <vulnerabilityName>CVE-2021-44228</vulnerabilityName>
   </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: log4j-1.2.17.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
+     <vulnerabilityName>CVE-2021-4104</vulnerabilityName>
+  </suppress>
 
   <!-- Commons IO pulled in by Maven Plugin API - not shipped by us and no later version available -->
   <suppress>
@@ -337,5 +351,38 @@
     <cve>CVE-2021-2344</cve>
     <cve>CVE-2021-2371</cve>
     <cve>CVE-2021-2428</cve>
+  </suppress>
+
+  <!-- ICU4J - pulled in by org.graalvm.js -->
+  <suppress>
+     <notes><![CDATA[
+     file name: icu4j-64.2.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.ibm\.icu/icu4j@.*$</packageUrl>
+     <cve>CVE-2020-21913</cve>
+  </suppress>
+
+  <!-- Tomcat - for testing -->
+  <suppress>
+     <notes><![CDATA[
+     file name: tomcat-embed-core-8.5.46.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat\-embed\-core@.*$</packageUrl>
+     <cve>CVE-2019-12418</cve>
+     <cve>CVE-2019-17563</cve>
+     <cve>CVE-2020-11996</cve>
+     <cve>CVE-2020-13934</cve>
+     <cve>CVE-2020-13935</cve>
+     <cve>CVE-2020-13943</cve>
+     <cve>CVE-2020-17527</cve>
+     <cve>CVE-2020-1935</cve>
+     <cve>CVE-2020-1938</cve>
+     <cve>CVE-2020-9484</cve>
+     <cve>CVE-2021-24122</cve>
+     <cve>CVE-2021-25122</cve>
+     <cve>CVE-2021-25329</cve>
+     <cve>CVE-2021-30640</cve>
+     <cve>CVE-2021-33037</cve>
+     <cve>CVE-2021-41079</cve>
   </suppress>
 </suppressions>
