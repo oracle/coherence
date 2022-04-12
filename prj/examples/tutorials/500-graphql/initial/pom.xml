@@ -14,14 +14,14 @@
   <groupId>com.oracle.coherence.guides</groupId>
   <artifactId>graphql-initial</artifactId>
   <version>${revision}</version>
-  <name>Coherence Tutorial - GraphQL Initial</name>
+  <name>Coherence Tutorials - GraphQL Initial</name>
 
   <properties>
     <revision>22.06-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
-    <helidon.version>2.4.2</helidon.version>
+    <helidon.version>2.5.0</helidon.version>
 
     <java.version>11</java.version>
     <java.version.release>11</java.version.release>
