@@ -2052,7 +2052,7 @@ public class ClusteredTaskManager<T, A, R>
     /**
      * The partition based sequence number of the {@link Task}.
      */
-    protected long m_lTaskSequence;
+    protected volatile long m_lTaskSequence;
 
     /**
      * The partition ID of the {@link Task}.
@@ -2120,7 +2120,7 @@ public class ClusteredTaskManager<T, A, R>
     /**
      * The last collected result for the {@link Task}.
      */
-    protected Result<R> m_lastResult;
+    protected volatile Result<R> m_lastResult;
 
     /**
      * The lastResult version represented by a monotonically increasing integer value.
@@ -2147,16 +2147,16 @@ public class ClusteredTaskManager<T, A, R>
      * A flag to indicate if the {@link Task} is now completed, in which case no further results will be accepted and no
      * future updates will be published.
      */
-    protected boolean m_fCompleted;
+    protected volatile boolean m_fCompleted;
 
     /**
      * A flag to indicate if the {@link Task} is now cancelled, in which case no further results will be accepted and no
      * future updates will be published.
      */
-    protected boolean m_fCancelled;
+    protected volatile boolean m_fCancelled;
 
     /**
      * The current state of the {@link ClusteredTaskManager}.
      */
-    protected State m_state;
+    protected volatile State m_state;
     }
