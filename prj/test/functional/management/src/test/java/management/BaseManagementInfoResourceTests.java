@@ -199,6 +199,9 @@ public abstract class BaseManagementInfoResourceTests
     @AfterClass
     public static void tearDown()
         {
+        // allow server to clean up before being stopped
+        Base.sleep(3000);
+
         if (m_client != null)
             {
             m_client.close();
