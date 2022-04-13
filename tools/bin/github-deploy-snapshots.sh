@@ -25,8 +25,8 @@ mvn -B clean install -Dproject.official=true -P-modules --file prj/pom.xml -Dski
 mvn -B clean install -Dproject.official=true -Pmodules,-coherence,docs -nsu --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
 
 echo "Deploying version ${CURRENT_VERSION}"
-mvn -B deploy --file prj/pom.xml -nsu -DskipTests -s .github/maven/settings.xml -P-modules
-mvn -B deploy --file prj/pom.xml -nsu -DskipTests -s .github/maven/settings.xml -Pmodules,-coherence
+mvn -B clean deploy --file prj/pom.xml -nsu -DskipTests -s .github/maven/settings.xml -P-modules
+mvn -B clean deploy --file prj/pom.xml -nsu -DskipTests -s .github/maven/settings.xml -Pmodules,-coherence
 
 echo "Deploying docs for version ${CURRENT_VERSION}"
 git stash save --keep-index --include-untracked || true
