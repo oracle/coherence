@@ -7,6 +7,7 @@
 package topics;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
@@ -46,6 +47,7 @@ import com.tangosol.util.Base;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.junit.Test;
@@ -122,6 +124,15 @@ public class NamedTopicTests
             // disable extend testing since not currently supported
             //, {"pof", true}, {"java", true}
             });
+        }
+
+    @BeforeClass
+    public static void setup() throws Exception
+        {
+        System.setProperty("coherence.topic.publisher.close.timeout", "2s");
+
+        String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
+        System.setProperty("coherence.localhost", sHost);
         }
 
     // ----- test methods ---------------------------------------------------
@@ -289,16 +300,16 @@ public class NamedTopicTests
     public static CoherenceClusterResource cluster =
             new CoherenceClusterResource()
                     .with(ClusterName.of("TopicTests"),
-                            Logging.at(9),
-                            CacheConfig.of(CACHE_CONFIG_FILE),
-                            LocalHost.only(),
-                            JMXManagementMode.ALL,
-                            IPv4Preferred.yes(),
-                            SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
-                            SystemProperty.of("coherence.management.remote", "true"),
-                            SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
-                            SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                            Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
+                          Logging.at(9),
+                          CacheConfig.of(CACHE_CONFIG_FILE),
+                          LocalHost.only(),
+                          JMXManagementMode.ALL,
+                          IPv4Preferred.yes(),
+                          SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
+                          SystemProperty.of("coherence.management.remote", "true"),
+                          SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
+                          SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
+                                            Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
                     .include(STORAGE_MEMBER_COUNT,
                              CoherenceClusterMember.class,
                              DisplayName.of("NamedTopicTests"),
