@@ -313,6 +313,21 @@ public class XsdValidationTests
         Assert.assertEquals(xmlItem, xmlItemOverride);
         }
 
+    /**
+     * Test to ensure that the cluster configuration returned by Coherence
+     * passes schema validation.
+     *
+     * @since 14.1.2.0
+     */
+    @Test
+    public void testGetClusterConfig()
+            throws Exception
+        {
+        XmlElement xmlCluster = CacheFactory.getClusterConfig();
+
+        new SimpleParser().parseXml(xmlCluster.toString());
+        }
+
     // ----- helpers --------------------------------------------------------
 
     private static boolean supportJAXP15Property(String property)
