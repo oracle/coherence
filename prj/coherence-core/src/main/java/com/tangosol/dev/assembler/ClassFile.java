@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
-
 package com.tangosol.dev.assembler;
-
 
 import java.io.IOException;
 import java.io.EOFException;
@@ -26,7 +24,6 @@ import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.util.StringTable;
-
 
 /**
 * Represents a Java .class structure (the JVM Class file format).  For
@@ -662,6 +659,8 @@ public class ClassFile extends VMStructure implements Constants
                     case CONSTANT_CLASS:
                     case CONSTANT_STRING:
                     case CONSTANT_METHODTYPE:
+                    case CONSTANT_MODULE:
+                    case CONSTANT_PACKAGE:
                         streamOut.writeByte(nTag);
                         streamOut.writeShort(streamIn.readUnsignedShort());
                         break;

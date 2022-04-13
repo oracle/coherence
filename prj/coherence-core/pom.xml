@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -22,6 +22,7 @@
   <packaging>jar</packaging>
 
   <properties>
+    <module.name>com.oracle.coherence.core</module.name>
     <skip.sources>false</skip.sources>
   </properties>
 
@@ -31,6 +32,7 @@
       <artifactId>coherence-discovery</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- asm -->
@@ -38,37 +40,46 @@
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- bdb -->
     <dependency>
       <groupId>com.sleepycat</groupId>
       <artifactId>je</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- codemodel -->
     <dependency>
       <groupId>com.sun.codemodel</groupId>
       <artifactId>codemodel</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
+
+    <!-- jandex for searching for PortableType -->
+    <dependency>
+      <groupId>org.jboss</groupId>
+      <artifactId>jandex</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- optional dependencies -->
 
     <!-- graal -->
     <dependency>
       <groupId>org.graalvm.sdk</groupId>
       <artifactId>graal-sdk</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <!-- CDI annotations -->
-    <dependency>
-      <groupId>jakarta.enterprise</groupId>
-      <artifactId>jakarta.enterprise.cdi-api</artifactId>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -77,18 +88,21 @@
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-launcher</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- hamcrest -->
@@ -98,18 +112,17 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- javaee -->
+    <!-- CDI annotations -->
     <dependency>
-      <groupId>javaee</groupId>
-      <artifactId>javaee-api</artifactId>
-      <scope>provided</scope>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <!-- Jakarta Inject API -->
     <dependency>
       <groupId>jakarta.inject</groupId>
       <artifactId>jakarta.inject-api</artifactId>
-      <scope>provided</scope>
       <optional>true</optional>
     </dependency>
 
@@ -117,7 +130,6 @@
     <dependency>
       <groupId>jakarta.json.bind</groupId>
       <artifactId>jakarta.json.bind-api</artifactId>
-      <scope>provided</scope>
       <optional>true</optional>
     </dependency>
 
@@ -125,13 +137,46 @@
     <dependency>
       <groupId>jakarta.json</groupId>
       <artifactId>jakarta.json-api</artifactId>
-      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAXB -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JMS -->
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JCA -->
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAX-RS -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jersey (optional dependency for http server) -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>jakarta.json</artifactId>
-      <scope>provided</scope>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
       <optional>true</optional>
     </dependency>
 
@@ -154,31 +199,18 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Jersey (optional dependency for http server) -->
-    <dependency>
-      <groupId>org.glassfish.jersey.core</groupId>
-      <artifactId>jersey-server</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.inject</groupId>
-      <artifactId>jersey-hk2</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    
-    <!-- jandex for searching for PortableType -->
-    <dependency>
-        <groupId>org.jboss</groupId>
-        <artifactId>jandex</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
   </dependencies>
 
   <build>
@@ -234,6 +266,50 @@
     </resources>
 
     <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>flatten</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>flatten</goal>
+                </goals>
+            </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    !*.internal;
+                    !com.oracle.coherence.common.internal*;
+                    !com.tangosol.coherence.transaction.internal*;
+                    *;
+                  </exports>
+                  <addServiceUses>false</addServiceUses>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- produce test-jar for this module -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

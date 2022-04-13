@@ -1,18 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 
-
 package com.tangosol.dev.assembler;
-
 
 import java.io.IOException;
 import java.io.DataInput;
 import java.io.DataOutput;
-
 
 /**
 * Represent a Java Virtual Machine constant.
@@ -97,6 +94,12 @@ public abstract class Constant extends VMStructure implements Constants, Compara
                 break;
             case CONSTANT_INVOKEDYNAMIC:
                 constant = new InvokeDynamicConstant();
+                break;
+            case CONSTANT_MODULE:
+                constant = new ModuleConstant();
+                break;
+            case CONSTANT_PACKAGE:
+                constant = new PackageConstant();
                 break;
             default:
                 throw new IOException("Invalid constant tag " + nTag);

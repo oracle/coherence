@@ -22,6 +22,10 @@
     Coherence CDI Extension and Producers
   </description>
 
+  <properties>
+    <module.name>com.oracle.coherence.cdi</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -37,6 +41,11 @@
     <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
       <scope>provided</scope>
     </dependency>
 
@@ -91,6 +100,11 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
       <!-- run integration tests *Tests.java and *IT.java -->

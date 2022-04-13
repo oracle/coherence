@@ -23,6 +23,7 @@
   <properties>
     <!-- override java.version so that the javadoc plugin doesn't complain when it hits this module -->
     <java.version>${java.version.eight}</java.version>
+    <module.name>com.oracle.coherence.discovery</module.name>
   </properties>
 
   <dependencies/>
@@ -70,6 +71,11 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
       <plugin>

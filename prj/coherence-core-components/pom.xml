@@ -68,10 +68,18 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- JMS -->
     <dependency>
-      <groupId>javaee</groupId>
-      <artifactId>javaee-api</artifactId>
-      <scope>provided</scope>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JCA -->
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <dependency>

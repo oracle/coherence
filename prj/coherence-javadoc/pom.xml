@@ -172,8 +172,7 @@
       </exclusions>
     </dependency>
 
-
-    <!-- jackson -->
+    <!-- Jackson -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
@@ -191,10 +190,33 @@
       <artifactId>jackson-module-jaxb-annotations</artifactId>
     </dependency>
 
-    <!-- javaee -->
+    <!-- Jakarta EE -->
+
+    <!-- Servlet -->
     <dependency>
-      <groupId>javaee</groupId>
-      <artifactId>javaee-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>${jakarta.servlet.version}</version>
+    </dependency>
+
+    <!-- JMS -->
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <version>${jakarta.jms.version}</version>
+    </dependency>
+
+    <!-- JCA -->
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <version>${jakarta.resource.version}</version>
+    </dependency>
+
+    <!-- JSON-B -->
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
     </dependency>
 
     <!-- jersey -->
@@ -209,12 +231,6 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
-    </dependency>
-
-    <!-- JSON-B -->
-    <dependency>
-      <groupId>jakarta.json.bind</groupId>
-      <artifactId>jakarta.json.bind-api</artifactId>
     </dependency>
 
     <!-- JSON-P -->

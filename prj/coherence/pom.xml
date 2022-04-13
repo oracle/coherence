@@ -21,7 +21,8 @@
   <name>Coherence</name>
 
   <dependencies>
-    <!-- module dependencies -->
+    <!-- shaded dependencies -->
+
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-discovery</artifactId>
@@ -96,10 +97,111 @@
       <artifactId>codemodel</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.jboss</groupId>
+      <artifactId>jandex</artifactId>
+    </dependency>
+
     <!-- optional dependencies -->
+
+    <!-- Jakarta Inject API -->
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-B -->
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-P -->
     <dependency>
       <groupId>jakarta.json</groupId>
       <artifactId>jakarta.json-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAXB -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JMS -->
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JCA -->
+    <dependency>
+      <groupId>jakarta.resource</groupId>
+      <artifactId>jakarta.resource-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAX-RS -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jersey (optional dependency for http server) -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- GraalVM JS -->
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Log4J 2 -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Log4J -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- SLF4J -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- OpenTracing -->
+    <dependency>
+      <groupId>io.opentracing</groupId>
+      <artifactId>opentracing-util</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentracing.contrib</groupId>
+      <artifactId>opentracing-tracerresolver</artifactId>
       <optional>true</optional>
     </dependency>
 
@@ -113,6 +215,8 @@
   </dependencies>
 
   <properties>
+    <module.name>com.oracle.coherence</module.name>
+
     <!-- the path containing artifact classes and resources (to be packaged into the coherence.jar artifact) -->
     <artifact.classes.path>${project.build.directory}/artifact-classes</artifact.classes.path>
   </properties>
@@ -178,6 +282,7 @@
             <configuration>
               <shadedArtifactAttached>false</shadedArtifactAttached>
               <createDependencyReducedPom>true</createDependencyReducedPom>
+              <useDependencyReducedPomInJar>true</useDependencyReducedPomInJar>
               <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
               <artifactSet>
                 <includes>
@@ -193,7 +298,6 @@
                   <include>${coherence.group.id}:coherence-core</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
                   <include>${coherence.group.id}:opentracing-common</include>
-                  <!-- META-INF/services order for opentracing should be newest to oldest -->
                   <include>${coherence.group.id}:opentracing-0.33</include>
                 </includes>
                 <excludes>
@@ -206,6 +310,19 @@
                   <excludes>
                     <exclude>module-info*</exclude>
                     <exclude>META-INF/maven/**/*</exclude>
+                    <exclude>META-INF/versions/11/module-info*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.jboss:jandex</artifact>
+                  <excludes>
+                    <exclude>org/jboss/jandex/JandexAntTask*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.sleepycat:je</artifact>
+                  <excludes>
+                    <exclude>com/sleepycat/persist/model/ClassEnhancerTask*</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -263,6 +380,38 @@
                     <goal>flatten</goal>
                 </goals>
             </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    !*.internal;
+                    !com.oracle.coherence.common.internal*;
+                    !com.tangosol.coherence.transaction.internal*;
+                    !com.tangosol.internal.*;
+                    !com.tangosol.coherence.component*;
+                    !com.tangosol.coherence;
+                    *;
+                  </exports>
+                  <addServiceUses>false</addServiceUses>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 

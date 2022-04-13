@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -150,7 +150,7 @@ public interface Constants
     /**
     * The maximum supported major version of the class structure.
     */
-    public static final int VERSION_MAJOR_MAX = 52;
+    public static final int VERSION_MAJOR_MAX = 53;
     /**
     * The maximum supported minor version of the class structure.
     */
@@ -222,6 +222,14 @@ public interface Constants
     */
     public static final int CONSTANT_INVOKEDYNAMIC      = 18;
     /**
+    * Constant pool: Module Info.
+    */
+    public static final int CONSTANT_MODULE             = 19;
+    /**
+    * Constant pool: Package info.
+    */
+    public static final int CONSTANT_PACKAGE            = 20;
+    /**
     * Constant pool:  Not legal in this version of the JVM.
     */
     public static final int CONSTANT_UNICODE            = 2;
@@ -229,7 +237,7 @@ public interface Constants
     * The number of constant pool elements used by the constant, indexed by
     * JVM constant classification tag.
     */
-    public static final int[] CONSTANT_SIZE  = {0,1,0,1,1,2,2,1,1,1,1,1,1,0,0,1,1,0,1};
+    public static final int[] CONSTANT_SIZE  = {0,1,0,1,1,2,2,1,1,1,1,1,1,0,0,1,1,0,1,1,1};
     /**
     * The desired order (in an assembled constant pool) of the constant
     * types.
@@ -242,6 +250,8 @@ public interface Constants
         CONSTANT_DOUBLE,
         CONSTANT_UTF8,
         CONSTANT_STRING,
+        CONSTANT_MODULE,
+        CONSTANT_PACKAGE,
         CONSTANT_CLASS,
         CONSTANT_NAMEANDTYPE,
         CONSTANT_FIELDREF,

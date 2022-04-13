@@ -24,6 +24,7 @@
 
   <properties>
     <java.version.release>11</java.version.release>
+    <module.name>com.oracle.coherence.concurrent</module.name>
   </properties>
 
   <dependencies>
@@ -36,6 +37,13 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-cdi</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -118,6 +126,33 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <!-- create module descriptor (module-info) -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    !*.internal*;
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- run integration tests *Tests.java and *IT.java -->

@@ -52,10 +52,6 @@
 
   <developers>
     <developer>
-      <name>Harvey Raja</name>
-      <url>https://github.com/harveyraja</url>
-    </developer>
-    <developer>
       <name>Aleks Seovic</name>
       <url>https://github.com/aseovic</url>
     </developer>
@@ -68,8 +64,8 @@
       <url>https://github.com/fryp</url>
     </developer>
     <developer>
-      <name>Bin Chen</name>
-      <url>https://github.com/bbcadela</url>
+      <name>Maurice Gamanho</name>
+      <url>https://github.com/mgamanho</url>
     </developer>
     <developer>
       <name>Ryan Lubke</name>
@@ -91,9 +87,17 @@
       <name>Chinmay Patel</name>
       <url>https://github.com/chpatel3</url>
     </developer>
+    <developer>
+      <name>Vaso Putica</name>
+      <url>https://github.com/vasac</url>
+    </developer>
   </developers>
 
   <properties>
+    <!-- set to true within the child POM or on the command line,
+         in order to use module path for unit and integration tests -->
+    <useModulePath>false</useModulePath>
+
     <!-- plugin dependency versions -->
      <maven.antrun.plugin.version>1.8</maven.antrun.plugin.version>
      <maven.assembly.plugin.version>3.0.0</maven.assembly.plugin.version>
@@ -117,11 +121,12 @@
      <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
      <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
+     <maven.moditect.plugin.version>1.0.0.Beta2</maven.moditect.plugin.version>
      <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
      <maven.release.plugin.version>2.4</maven.release.plugin.version>
      <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
      <maven.resources.plugin.version>2.7</maven.resources.plugin.version>
-     <maven.shade.plugin.version>3.2.0</maven.shade.plugin.version>
+     <maven.shade.plugin.version>3.3.0</maven.shade.plugin.version>
      <maven.site.plugin.version>3.9.0</maven.site.plugin.version>
      <maven.source.plugin.version>2.2.1</maven.source.plugin.version>
      <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
@@ -131,13 +136,10 @@
      <maven.groovy.plugin.version>2.1.1</maven.groovy.plugin.version>
 
     <!-- library dependency versions -->
-    <activation-api.version>1.2.2</activation-api.version>
-    <annotation-api.version>1.3.5</annotation-api.version>
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
     <asm.version>9.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>5.2.0</bnd.version>
-    <cdi-api.version>2.0.2</cdi-api.version>
     <codemodel.version>2.6</codemodel.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
@@ -159,26 +161,32 @@
     <helidon.version>2.5.0</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
-    <inject.version>1.0</inject.version>
     <jackson.version>2.13.2</jackson.version>
     <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
     <jaeger.version>1.6.0</jaeger.version>
-    <javaee.version>5</javaee.version>
+    <jakarta.activation.version>1.2.2</jakarta.activation.version>
+    <jakarta.annotation.version>1.3.5</jakarta.annotation.version>
+    <jakarta.enterprise.cdi.version>2.0.2</jakarta.enterprise.cdi.version>
+    <jakarta.inject.version>1.0.4</jakarta.inject.version>
+    <jakarta.jms.version>2.0.3</jakarta.jms.version>
+    <jakarta.json.version>1.1.6</jakarta.json.version>
+    <jakarta.json.bind.version>1.0.2</jakarta.json.bind.version>
+    <jakarta.json.impl.version>1.1.6</jakarta.json.impl.version>
+    <jakarta.resource.version>1.7.4</jakarta.resource.version>
+    <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
+    <jakarta.servlet.jsp.version>2.3.6</jakarta.servlet.jsp.version>
+    <jakarta.ws.rs.version>2.1.6</jakarta.ws.rs.version>
+    <jakarta.xml.bind.version>2.3.3</jakarta.xml.bind.version>
     <javax.cache.version>1.1.1</javax.cache.version>
     <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
-    <jaxb-api.version>2.3.3</jaxb-api.version>
     <jaxb-core.version>2.3.0.1</jaxb-core.version>
     <jaxb-impl.version>2.3.5</jaxb-impl.version>
-    <jaxrs-api.version>2.1.6</jaxrs-api.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <jersey.version>2.35</jersey.version>
     <jettison.version>1.4.1</jettison.version>
     <jline.version>3.20.0</jline.version>
-    <jsonb.version>1.0.2</jsonb.version>
-    <jsonp.version>1.1.6</jsonp.version>
-    <jsonp-impl.version>1.1.6</jsonp-impl.version>
     <log4j.version>1.2.17</log4j.version>
     <log4j2.version>2.17.1</log4j2.version>
     <micrometer.version>1.6.6</micrometer.version>
@@ -195,13 +203,13 @@
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
-    <servlet.version>3.1.0</servlet.version>
     <slf4j.version>1.7.32</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
     <weld.version>3.1.6.Final</weld.version>
     <weld-junit.version>2.0.1.Final</weld-junit.version>
 
     <!-- test dependency versions -->
+    <guava.testlib.version>31.0.1-jre</guava.testlib.version>
     <hamcrest.version>1.3</hamcrest.version>
     <hamcrest-2.version>2.2</hamcrest-2.version>
     <junit.version>4.13.1</junit.version>
@@ -411,11 +419,32 @@
         </exclusions>
       </dependency>
 
-      <!-- javaee -->
+      <!-- Servlet -->
       <dependency>
-        <groupId>javaee</groupId>
-        <artifactId>javaee-api</artifactId>
-        <version>${javaee.version}</version>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>${jakarta.servlet.version}</version>
+      </dependency>
+
+      <!-- JSP -->
+      <dependency>
+        <groupId>jakarta.servlet.jsp</groupId>
+        <artifactId>jakarta.servlet.jsp-api</artifactId>
+        <version>${jakarta.servlet.jsp.version}</version>
+      </dependency>
+
+      <!-- JMS -->
+      <dependency>
+        <groupId>jakarta.jms</groupId>
+        <artifactId>jakarta.jms-api</artifactId>
+        <version>${jakarta.jms.version}</version>
+      </dependency>
+
+      <!-- JCA -->
+      <dependency>
+        <groupId>jakarta.resource</groupId>
+        <artifactId>jakarta.resource-api</artifactId>
+        <version>${jakarta.resource.version}</version>
       </dependency>
 
       <!-- javax.cache -->
@@ -429,7 +458,7 @@
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
-        <version>${jaxrs-api.version}</version>
+        <version>${jakarta.ws.rs.version}</version>
       </dependency>
 
       <!-- jersey -->
@@ -437,11 +466,25 @@
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-client</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <!-- brings repackaged jakarta.inject in, which doesn't have module-info -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-common</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <!-- brings repackaged jakarta.inject in, which doesn't have module-info -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
@@ -485,6 +528,13 @@
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <!-- brings repackaged jakarta.inject in, which doesn't have module-info -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
@@ -505,6 +555,13 @@
         <groupId>org.glassfish.jersey.inject</groupId>
         <artifactId>jersey-hk2</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <!-- brings repackaged jakarta.inject in, which doesn't have module-info -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- jettison -->
@@ -518,7 +575,7 @@
       <dependency>
           <groupId>jakarta.inject</groupId>
           <artifactId>jakarta.inject-api</artifactId>
-          <version>${inject.version}</version>
+          <version>${jakarta.inject.version}</version>
       </dependency>
 
       <!-- jline -->
@@ -532,19 +589,19 @@
       <dependency>
         <groupId>jakarta.json.bind</groupId>
         <artifactId>jakarta.json.bind-api</artifactId>
-        <version>${jsonb.version}</version>
+        <version>${jakarta.json.bind.version}</version>
       </dependency>
 
       <!-- JSON-P -->
       <dependency>
         <groupId>jakarta.json</groupId>
         <artifactId>jakarta.json-api</artifactId>
-        <version>${jsonp.version}</version>
+        <version>${jakarta.json.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish</groupId>
         <artifactId>jakarta.json</artifactId>
-        <version>${jsonp-impl.version}</version>
+        <version>${jakarta.json.impl.version}</version>
       </dependency>
 
       <!-- log4j -->
@@ -575,13 +632,6 @@
         <version>${netty.version}</version>
       </dependency>
 
-      <!-- servlet -->
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>${servlet.version}</version>
-      </dependency>
-
       <!-- slf4j -->
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -602,33 +652,41 @@
       </dependency>
 
       <dependency>
-          <groupId>jakarta.annotation</groupId>
-          <artifactId>jakarta.annotation-api</artifactId>
-          <version>${annotation-api.version}</version>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta.annotation.version}</version>
       </dependency>
 
       <!-- CDI and Weld -->
       <dependency>
-          <groupId>jakarta.enterprise</groupId>
-          <artifactId>jakarta.enterprise.cdi-api</artifactId>
-          <version>${cdi-api.version}</version>
+        <groupId>jakarta.enterprise</groupId>
+        <artifactId>jakarta.enterprise.cdi-api</artifactId>
+        <version>${jakarta.enterprise.cdi.version}</version>
+        <exclusions>
+          <!-- brings old 1.0 version in, which doesn't have module-info -->
+          <exclusion>
+            <groupId>jakarta.inject</groupId>
+            <artifactId>jakarta.inject-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.jboss.weld.se</groupId>
+        <artifactId>weld-se-core</artifactId>
+        <version>${weld.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
-          <groupId>org.jboss.weld.se</groupId>
-          <artifactId>weld-se-core</artifactId>
-          <version>${weld.version}</version>
-          <exclusions>
-              <exclusion>
-                  <groupId>org.codehaus.groovy</groupId>
-                  <artifactId>groovy-all</artifactId>
-              </exclusion>
-          </exclusions>
-      </dependency>
-      <dependency>
-          <groupId>org.jboss.weld</groupId>
-          <artifactId>weld-junit5</artifactId>
-          <version>${weld-junit.version}</version>
-          <scope>test</scope>
+        <groupId>org.jboss.weld</groupId>
+        <artifactId>weld-junit5</artifactId>
+        <version>${weld-junit.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <!-- jandex -->
@@ -663,6 +721,13 @@
         <artifactId>org.jacoco.agent</artifactId>
         <classifier>runtime</classifier>
         <version>${jacoco.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava-testlib</artifactId>
+        <version>${guava.testlib.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -771,7 +836,7 @@
       <dependency>
         <groupId>jakarta.activation</groupId>
         <artifactId>jakarta.activation-api</artifactId>
-        <version>${activation-api.version}</version>
+        <version>${jakarta.activation.version}</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -786,7 +851,7 @@
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>${jaxb-api.version}</version>
+        <version>${jakarta.xml.bind.version}</version>
       </dependency>
 
       <!-- gRPC -->
@@ -912,6 +977,38 @@
                     </goals>
                     <phase>process-classes</phase>
                 </execution>
+            </executions>
+        </plugin>
+
+        <plugin>
+            <groupId>org.moditect</groupId>
+            <artifactId>moditect-maven-plugin</artifactId>
+            <version>${maven.moditect.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>add-module-info</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>add-module-info</goal>
+                </goals>
+                <configuration>
+                  <jvmVersion>11</jvmVersion>
+                  <module>
+                    <moduleInfo>
+                      <name>${module.name}</name>
+                      <open>true</open>
+                      <exports>
+                        *;
+                      </exports>
+                    </moduleInfo>
+                  </module>
+                  <jdepsExtraArgs>
+                    <extraArg>--multi-release=11</extraArg>
+                  </jdepsExtraArgs>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                  <overwriteExistingFiles>true</overwriteExistingFiles>
+                </configuration>
+              </execution>
             </executions>
         </plugin>
 
@@ -1261,7 +1358,7 @@
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
-            <useModulePath>false</useModulePath>
+            <useModulePath>${useModulePath}</useModulePath>
           </configuration>
           <dependencies>
             <dependency>
@@ -1424,7 +1521,7 @@
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
-            <useModulePath>false</useModulePath>
+            <useModulePath>${useModulePath}</useModulePath>
           </configuration>
           <dependencies>
             <dependency>

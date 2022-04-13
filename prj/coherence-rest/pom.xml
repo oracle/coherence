@@ -123,7 +123,7 @@
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>${jaxb-api.version}</version>
+      <version>${jakarta.xml.bind.version}</version>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
@@ -210,8 +210,8 @@
 
     <!-- servlet -->
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
     </dependency>
 
