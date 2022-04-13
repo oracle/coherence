@@ -121,7 +121,7 @@
      <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
      <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
-     <maven.moditect.plugin.version>1.0.0.Beta2</maven.moditect.plugin.version>
+     <maven.moditect.plugin.version>1.0.0.RC2</maven.moditect.plugin.version>
      <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
      <maven.release.plugin.version>2.4</maven.release.plugin.version>
      <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
