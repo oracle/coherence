@@ -105,7 +105,6 @@ public class ClusterResource
      */
     public Response get(HttpRequest request)
         {
-        CacheFactory.log("In ClusterResource.get(), callstack: " + Base.printStackTrace(new Throwable()));
         return response(getResponseEntityForMbean(request, getQuery(request), CHILD_LINKS));
         }
 

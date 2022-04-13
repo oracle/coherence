@@ -55,7 +55,7 @@ public class ClustersResource
     public void addRoutes(RequestRouter router, String sPathRoot)
         {
         router.addGet(sPathRoot, this::get);
-        router.addPost(sPathRoot + "/" + SEARCH, this::get);
+        router.addPost(sPathRoot + "/" + SEARCH, this::search);
 
         router.addRoutes(sPathRoot + "/{" + CLUSTER_NAME + "}", f_clusterResource);
         }
