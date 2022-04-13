@@ -21,6 +21,10 @@
   <artifactId>coherence-login</artifactId>
   <name>Coherence Login</name>
 
+  <properties>
+    <module.name>com.oracle.coherence.login</module.name>
+  </properties>
+
   <dependencies>
     <!-- module dependencies -->
     <dependency>
@@ -32,6 +36,12 @@
 
   <build>
     <plugins>
+      <!-- generate module-info.java -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+      </plugin>
+
       <!-- we deploy this module to a repository -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
