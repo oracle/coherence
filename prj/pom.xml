@@ -393,15 +393,7 @@
       <id>modules</id>
 
       <activation>
-        <property>
-          <!--
-              Automatically disabled when inside IntelliJ.
-              IntelliJ sets the idea.version property when importing Maven projects.
-              The IntelliJ profile will be enabled instead, which excluded modules
-              we do not want in the IDE.
-          -->
-          <name>!idea.version</name>
-        </property>
+        <activeByDefault>false</activeByDefault>
       </activation>
 
       <!-- the following modules are buildable by this profile -->
