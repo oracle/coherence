@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -317,6 +317,87 @@ public class MBeanServerProxyTests
             propsMain.forEach((key, value) -> propsSys.remove(key));
             }
         }
+
+    /**
+     * Test the reportEnvironment operation on the Node MBean.
+     */
+    @Test
+    public void testReportEnvironment()
+    {
+        Properties propsMain = new Properties();
+        propsMain.put("coherence.distributed.localstorage","true");
+        propsMain.put("coherence.distributed.threads", "2");
+        propsMain.put("coherence.management", "all");
+        propsMain.put("coherence.management.remote", "true");
+
+        // set the following JVM args to ensure the waiting Poll is considered
+        // 'outstanding'
+        propsMain.put("coherence.guard.timeout", "10000");
+        propsMain.put("coherence.service.startuptimeout", "10000");
+        System.getProperties().putAll(propsMain);
+
+        AbstractFunctionalTest._startup();
+
+        try
+        {
+            Cluster     cluster   = CacheFactory.ensureCluster();
+            Registry    registry  = cluster.getManagement();
+
+            assertTrue(cluster.isRunning());
+            assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
+
+            NamedCache cache          = CacheFactory.getCache("foo");
+            MBeanServerProxy mbsProxy = registry.getMBeanServerProxy();
+
+            CompletableFuture future = cache.async().invoke(1, entry ->
+            {
+                Base.sleep(10000L);
+                return null;
+            });
+
+            Base.sleep(6000L);
+
+            String sResult = (String) mbsProxy.invoke("type=Node,nodeId=" + CacheFactory.getCluster().getLocalMember().getId()
+                    , "reportEnvironment", new Object[0], new String[0]);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("Java Vendor:") > 0);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("Java Virtual Machine:") > 0);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("Java Runtime Environment:") > 0);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("System Properties:") > 0);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("coherence.distributed.threads : 2") > 0);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("coherence.management.remote : true") > 0);
+
+            assertTrue("Result does not contain correct string value, as it contains: " + sResult
+                    , sResult != null && sResult.indexOf("coherence.guard.timeout : 1000") > 0);
+
+            try
+            {
+                future.get();
+            }
+            catch (InterruptedException | ExecutionException e)
+            {
+                // expected - ignore
+            }
+        }
+        finally
+        {
+            AbstractFunctionalTest._shutdown();
+
+            Properties propsSys = System.getProperties();
+            propsMain.forEach((key, value) -> propsSys.remove(key));
+        }
+    }
 
     // ---- helper methods --------------------------------------------------
 
