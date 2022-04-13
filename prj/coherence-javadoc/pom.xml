@@ -43,13 +43,7 @@
     <!-- module dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core-components</artifactId>
+      <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -114,6 +108,33 @@
     <dependency>
       <groupId>com.sleepycat</groupId>
       <artifactId>je</artifactId>
+    </dependency>
+
+    <!-- codemodel -->
+    <dependency>
+      <groupId>com.sun.codemodel</groupId>
+      <artifactId>codemodel</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- jandex for searching for PortableType -->
+    <dependency>
+      <groupId>org.jboss</groupId>
+      <artifactId>jandex</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- IMPORTANT: intentional dependency on old versions of Servlet and JSP specs,
+                    as that's what Coherence*Web currently supports -->
+    <!-- TODO: upgrade to Java EE 8 spec versions -->
+    <dependency>
+      <groupId>javax.servlet.jsp</groupId>
+      <artifactId>jsp-api</artifactId>
+      <version>2.1</version>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- graal -->
