@@ -14,7 +14,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
             http://oss.oracle.com/licenses/upl.
@@ -1602,9 +1602,9 @@
 
                 Note: for internal use only and can not be overridden.
 
-                DO NOT MODIFY                
+                DO NOT MODIFY
 
-                Used in: license-config            
+                Used in: license-config
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
