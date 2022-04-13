@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -172,7 +173,7 @@ public class OldCache
     public boolean containsKey(Object key)
         {
         // check if the cache needs flushing
-        evict();
+        tryEvict();
 
         return getEntryInternal(key) != null;
         }
@@ -192,7 +193,7 @@ public class OldCache
     public SafeHashMap.Entry getEntry(Object oKey)
         {
         // check if the cache needs flushing
-        evict();
+        tryEvict();
 
         Entry entry = (Entry) getEntryInternal(oKey);
         if (entry == null)
@@ -230,7 +231,7 @@ public class OldCache
     public Object put(Object oKey, Object oValue, long cMillis)
         {
         // check if the cache needs flushing
-        evict();
+        tryEvict();
 
         Entry  entry;
         Object oOrig;
@@ -288,7 +289,7 @@ public class OldCache
     public Object remove(Object oKey)
         {
         // check if the cache needs flushing
-        evict();
+        tryEvict();
 
         synchronized (this)
             {
@@ -508,6 +509,30 @@ public class OldCache
         }
 
     /**
+    * Attempt to call evict() when no one else is, to avoid contention on
+    * opportunistic attempts at evicting.
+    */
+    public void tryEvict()
+        {
+        long lCurrent = getCurrentTimeMillis();
+
+        if (lCurrent > m_lNextFlush &&
+            m_apprvrEvict != EvictionApprover.DISAPPROVER &&
+            f_evictLock.getAndSet(false))
+            {
+            try
+                {
+                // only one thread calling tryEvict() is going to contend inside evict()
+                evict();
+                }
+            finally
+                {
+                f_evictLock.lazySet(true);
+                }
+            }
+        }
+
+    /**
     * Evict all entries from the cache that are no longer valid, and
     * potentially prune the cache size if the cache is size-limited
     * and its size is above the caching low water mark.
@@ -533,31 +558,29 @@ public class OldCache
                         {
                         Set       setEvict    = null;
                         LongArray arrayExpiry = m_arrayExpiry;
-                        synchronized (arrayExpiry)
-                            {
-                            if (!arrayExpiry.isEmpty() && lCurrent > arrayExpiry.getFirstIndex())
-                                {
-                                for (LongArray.Iterator iterKeySets = arrayExpiry.iterator();
-                                        iterKeySets.hasNext(); )
-                                    {
-                                    Set setKeys = (Set) iterKeySets.next();
-                                    if (setKeys != null && lCurrent > iterKeySets.getIndex())
-                                        {
-                                        iterKeySets.remove();
 
-                                        if (setEvict == null)
-                                            {
-                                            setEvict = setKeys;
-                                            }
-                                        else
-                                            {
-                                            setEvict.addAll(setKeys);
-                                            }
+                        if (!arrayExpiry.isEmpty() && lCurrent > arrayExpiry.getFirstIndex())
+                            {
+                            for (LongArray.Iterator iterKeySets = arrayExpiry.iterator();
+                                    iterKeySets.hasNext(); )
+                                {
+                                Set setKeys = (Set) iterKeySets.next();
+                                if (setKeys != null && lCurrent > iterKeySets.getIndex())
+                                    {
+                                    iterKeySets.remove();
+
+                                    if (setEvict == null)
+                                        {
+                                        setEvict = setKeys;
                                         }
                                     else
                                         {
-                                        break;
+                                        setEvict.addAll(setKeys);
                                         }
+                                    }
+                                else
+                                    {
+                                    break;
                                     }
                                 }
                             }
@@ -617,7 +640,7 @@ public class OldCache
         public Iterator iterator()
             {
             // optimization
-            if (OldCache.this.isEmpty())
+            if (OldCache.super.isEmpty())
                 {
                 return NullImplementation.getIterator();
                 }
@@ -773,7 +796,7 @@ public class OldCache
             synchronized (map)
                 {
                 // create the array to store the map keys
-                int c = map.size();
+                int c = size();
                 aoAll = new Object[c];
                 if (c > 0)
                     {
@@ -895,7 +918,7 @@ public class OldCache
             synchronized (map)
                 {
                 // create the array to store the map values
-                int c = map.size();
+                int c = size();
                 aoAll = new Object[c];
                 if (c > 0)
                     {
@@ -949,8 +972,17 @@ public class OldCache
                 }
             return ao;
             }
-        }
 
+        /**
+         * {@inheritDoc}
+         */
+        public int size()
+            {
+            // COH-1089: get the size value without causing any eviction
+            //           (see SafeHashMap#size)
+            return OldCache.super.size();
+            }
+        }
 
     // ----- Object methods -------------------------------------------------
 
@@ -2279,50 +2311,47 @@ public class OldCache
         *                 0 is passed to indicate that the entry needs to be
         *                 removed from the items queued for expiry
         */
-        protected void registerExpiry(long lMillis)
+        protected synchronized void registerExpiry(long lMillis)
             {
             LongArray arrayExpiry = m_arrayExpiry;
-            synchronized (arrayExpiry)
-                {
-                boolean fWasEmpty = arrayExpiry.isEmpty();
+            boolean   fWasEmpty   = arrayExpiry.isEmpty();
 
-                // dequeue previous expiry
-                long lMillisOld = m_dtExpiry;
-                if (lMillisOld > 0L)
+            // dequeue previous expiry
+            long lMillisOld = m_dtExpiry;
+            if (lMillisOld > 0L)
+                {
+                // resolution is 1/4 second (to more efficiently lump
+                // keys into sets)
+                lMillisOld &= ~0xFFL;
+                Set setKeys = (Set) arrayExpiry.get(lMillisOld);
+                if (setKeys != null)
                     {
-                    // resolution is 1/4 second (to more efficiently lump
-                    // keys into sets)
-                    lMillisOld &= ~0xFFL;
-                    Set setKeys = (Set) arrayExpiry.get(lMillisOld);
-                    if (setKeys != null)
+                    setKeys.remove(getKey());
+                    if (setKeys.isEmpty())
                         {
-                        setKeys.remove(getKey());
-                        if (setKeys.isEmpty())
-                            {
-                            arrayExpiry.remove(lMillisOld);
-                            }
+                        arrayExpiry.remove(lMillisOld);
                         }
                     }
+                }
 
-                // enqueue new expiry
-                if (lMillis > 0L)
+            // enqueue new expiry
+            if (lMillis > 0L)
+                {
+                lMillis &= ~0xFFL;
+                Set setKeys = (Set) arrayExpiry.get(lMillis);
+                if (setKeys == null)
                     {
-                    lMillis &= ~0xFFL;
-                    Set setKeys = (Set) arrayExpiry.get(lMillis);
-                    if (setKeys == null)
-                        {
-                        setKeys = new LiteSet();
-                        arrayExpiry.set(lMillis, setKeys);
-                        }
-                    setKeys.add(getKey());
+                    setKeys = new LiteSet();
+                    arrayExpiry.set(lMillis, setKeys);
+                    }
+                setKeys.add(getKey());
 
-                    // the "next flush" is initially set to "never" (max long)
-                    // to avoid any attempts to flush; now that something is
-                    // scheduled to expire, make sure that flushes are enabled
-                    if (fWasEmpty && m_lNextFlush == Long.MAX_VALUE)
-                        {
-                        m_lNextFlush = 0L;
-                        }
+                // the "next flush" is set to "never" (max long) to avoid
+                // any attempts to flush; now that something is scheduled
+                // to expire, make sure that flushes are enabled
+                if (fWasEmpty && m_lNextFlush == Long.MAX_VALUE)
+                    {
+                    m_lNextFlush = 0L;
                     }
                 }
             }
@@ -2930,7 +2959,7 @@ public class OldCache
     /**
     * The EvictionApprover.
     */
-    protected ConfigurableCacheMap.EvictionApprover m_apprvrEvict;
+    protected volatile ConfigurableCacheMap.EvictionApprover m_apprvrEvict;
 
     /**
     * Specifies whether or not this cache is used in the environment,
@@ -2940,4 +2969,10 @@ public class OldCache
     * is off.
     */
     protected  boolean m_fOptimizeGetTime;
+
+    /**
+    * Lock for limiting concurrent eviction, allows for relaxing contention
+    * when eviction is done opportunistically.
+    */
+    private final AtomicBoolean f_evictLock = new AtomicBoolean(true);
     }

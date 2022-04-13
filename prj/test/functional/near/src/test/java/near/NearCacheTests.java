@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import com.tangosol.net.events.partition.cache.EntryEvent;
 
 import com.tangosol.net.management.MBeanHelper;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 
 import com.tangosol.util.processor.NumberIncrementor;
@@ -46,12 +47,17 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.hamcrest.Matchers;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -505,6 +511,44 @@ public class NearCacheTests
             new Person("5678", "a", "b", 1980, null, new String[0]));
         // 2 misses in getOrDefault(), frontMap is checked twice
         assertEquals(cacheStats.getCacheMisses(), cInitialMisses + 3);
+        }
+
+    @Test
+    public void testCoh24641()
+        {
+        NamedCache<Integer, Person> cache = getNamedCache("near-coh-24641");
+
+        ExecutorService executor = Executors.newFixedThreadPool(10);
+        for (int x = 0; x < 10; x++)
+            {
+            executor.submit(() ->
+                {
+                for (int j = 0; j < 10000; j++)
+                    {
+                    cache.put(j, new Person("4321" + j, "first" + j, "last", 2000, null, new String[0]), 300L);
+                    cache.get(j);
+                    }
+
+                // force eviction
+                Base.sleep(300);
+
+                return null;
+                });
+            }
+
+        executor.shutdown();
+
+        try
+            {
+            executor.awaitTermination(60, TimeUnit.SECONDS);
+            }
+        catch (InterruptedException ie)
+            {
+            Assert.fail("Test timed out");
+            }
+
+        // eventually front cache should be empty
+        Eventually.assertThat(invoking(((NearCache) cache).getFrontMap()).size(), is(0));
         }
 
     /**
