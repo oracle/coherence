@@ -697,24 +697,24 @@
                   <version>${graal.version}</version>
                 </additionalDependency>
                 <additionalDependency>
-                  <groupId>javaee</groupId>
-                  <artifactId>javaee-api</artifactId>
-                  <version>${javaee.version}</version>
+                  <groupId>jakarta.enterprise</groupId>
+                  <artifactId>jakarta.enterprise.cdi-api</artifactId>
+                  <version>${jakarta.enterprise.cdi.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>jakarta.inject</groupId>
                   <artifactId>jakarta.inject-api</artifactId>
-                  <version>${inject.version}</version>
+                  <version>${jakarta.inject.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>jakarta.json.bind</groupId>
                   <artifactId>jakarta.json.bind-api</artifactId>
-                  <version>${jsonb.version}</version>
+                  <version>${jakarta.json.bind.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>jakarta.json</groupId>
                   <artifactId>jakarta.json-api</artifactId>
-                  <version>${jsonp.version}</version>
+                  <version>${jakarta.json.version}</version>
                 </additionalDependency>
                 <additionalDependency>
                   <groupId>jakarta.ws.rs</groupId>
