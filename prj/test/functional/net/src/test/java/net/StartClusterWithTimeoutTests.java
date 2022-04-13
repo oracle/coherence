@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -174,7 +174,7 @@ public class StartClusterWithTimeoutTests
 
             // ensure task1 is the lock winner
             latch1.countDown();
-            Base.sleep(500);
+            Base.sleep(1000);
             latch2.countDown();
 
             Exception exception = future1.get();
@@ -248,7 +248,7 @@ public class StartClusterWithTimeoutTests
 
             // ensure task1 is the lock winner
             latch1.countDown();
-            Base.sleep(500);
+            Base.sleep(1000);
             latch2.countDown();
 
             Exception exception = future1.get();
