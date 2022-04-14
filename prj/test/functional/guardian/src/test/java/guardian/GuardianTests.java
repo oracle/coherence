@@ -931,6 +931,11 @@ public class GuardianTests
                     //       flag, as we simulate "handling" the interrupt
                     }
                 cWait -= ((ldtNow = Base.getSafeTimeMillis()) - ldtLast);
+                if (cWait > 120000L)        // make sure wait does not exceed 2 minutes.
+                    {
+                    System.out.println("GuardianTests.LoserTask.process(), cWait: " + cWait + ", ldtNow: " + ldtNow + ", ldtLast: " + ldtLast + ", cInterrupt: " + cInterrupt);
+                    cWait = 120000L;
+                    }
                 }
 
             // return the number of times this thread was interrupted
@@ -940,8 +945,8 @@ public class GuardianTests
         // ----- data members ---------------------------------------------
 
         /**
-        * Is this task interruptible?
-        */
+         * The amount of time the task should take to run.
+         */
         protected long m_cDelay;
 
         /**
