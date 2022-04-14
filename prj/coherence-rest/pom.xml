@@ -20,6 +20,10 @@
   <artifactId>coherence-rest</artifactId>
   <name>Coherence REST</name>
 
+  <properties>
+    <module.name>com.oracle.coherence.rest</module.name>
+  </properties>
+
   <dependencies>
     <!-- module dependencies -->
     <dependency>
@@ -38,6 +42,11 @@
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-analysis</artifactId>
     </dependency>
 
     <dependency>
@@ -213,6 +222,7 @@
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
@@ -300,6 +310,7 @@
                 <includes>
                   <include>org.mvel:mvel2</include>
                   <include>org.ow2.asm:asm</include>
+                  <include>org.ow2.asm:asm-analysis</include>
                   <include>org.ow2.asm:asm-commons</include>
                   <include>org.ow2.asm:asm-tree</include>
                   <include>org.ow2.asm:asm-util</include>
@@ -318,23 +329,23 @@
               <relocations>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
-                  <shadedPattern>com.tangosol.coherence.asm</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.commons</pattern>
-                  <shadedPattern>com.tangosol.coherence.asm.commons</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm.commons</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.tree</pattern>
-                  <shadedPattern>com.tangosol.coherence.asm.tree</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm.tree</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.util</pattern>
-                  <shadedPattern>com.tangosol.coherence.asm.util</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm.util</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.mvel2</pattern>
-                  <shadedPattern>com.tangosol.coherence.mvel2</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.mvel2</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -359,6 +370,33 @@
       </plugin>
 
       <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    !*.internal.*;
+                    *;
+                  </exports>
+                  <addServiceUses>true</addServiceUses>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <executions>
@@ -372,7 +410,7 @@
               <instructions>
                 <Class-Path>coherence.jar ../../oracle_common/modules/thirdparty/features/jackson-annotations.jar ../../oracle_common/modules/thirdparty/features/jackson-core.jar ../../oracle_common/modules/thirdparty/features/jackson-databind.jar ../../oracle_common/modules/thirdparty/features/jackson-jaxrs-base.jar ../../oracle_common/modules/thirdparty/features/jackson-jaxrs-json-provider.jar ../../oracle_common/modules/thirdparty/features/jackson-module-jaxb-annotations.jar ../../oracle_common/modules/org.glassfish.jersey.core.jersey-common.jar ../../oracle_common/modules/org.glassfish.jersey.core.jersey-server.jar ../../oracle_common/modules/org.glassfish.jersey.inject.jersey-hk2.jar ../../oracle_common/modules/org.glassfish.jersey.media.jersey-media-json-jackson.jar ../../oracle_common/modules/org.glassfish.jersey.media.jersey-media-sse.jar ../../oracle_common/modules/org.glassfish.jersey.containers.jersey-container-servlet.jar</Class-Path>
                 <Export-Package>!*.internal.*,com.tangosol.coherence.rest.*</Export-Package>
-                <Private-Package>*.internal.*,com.tangosol.coherence.asm.*,com.tangosol.coherence.mvel2.*
+                <Private-Package>*.internal.*
                 </Private-Package>
                 <Import-Package>
                   !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,!com.oracle.coherence.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.*;version=${jackson.version},org.glassfish.grizzly.*;version=${grizzly.version};resolution:=optional,org.simpleframework.*;version=${simpleframework.version};resolution:=optional,*;resolution:=optional

@@ -407,7 +407,7 @@
                     !com.tangosol.coherence;
                     *;
                   </exports>
-                  <addServiceUses>false</addServiceUses>
+                  <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>
             </configuration>
