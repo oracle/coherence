@@ -686,7 +686,7 @@ public class GuardianTests
             cache.put("key", "value");
 
             cluster.getCluster().halt();
-            NameService   nameService  = cluster.getCluster().getNameService();
+            NameService           nameService  = cluster.getCluster().getNameService();
             ServerSocket          serverSocket = nameService.getClusterSocket();
             assertTrue(serverSocket.isClosed());
             serverSocket = ((NameService.TcpAcceptor) nameService.getAcceptor())
