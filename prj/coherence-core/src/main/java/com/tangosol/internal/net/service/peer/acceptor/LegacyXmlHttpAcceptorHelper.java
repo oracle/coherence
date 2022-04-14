@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.internal.net.service.peer.acceptor;
 
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
+import com.tangosol.coherence.http.HttpApplication;
 import com.tangosol.coherence.http.HttpServer;
 import com.tangosol.coherence.http.GenericHttpServer;
 
@@ -23,6 +24,8 @@ import java.util.ServiceLoader;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
+import org.glassfish.jersey.server.ResourceConfig;
+
 
 /**
  * LegacyXmlHttpAcceptorHelper parses XML to populate a DefaultHttpAcceptorDependencies
@@ -106,19 +109,10 @@ public class LegacyXmlHttpAcceptorHelper
 
         if (mapConfig.isEmpty())
             {
-            ServiceLoader<Application> loaderApps = ServiceLoader.load(Application.class);
-
-            for (Application application : loaderApps)
+            ServiceLoader<HttpApplication> loaderApps = ServiceLoader.load(HttpApplication.class);
+            for (HttpApplication app : loaderApps)
                 {
-                ApplicationPath annotation = application.getClass().getAnnotation(ApplicationPath.class);
-                String sPath = annotation == null ? "/" : annotation.value();
-
-                if (sPath.charAt(0) != '/')
-                    {
-                    sPath = '/' + sPath;
-                    }
-
-                mapConfig.put(sPath, application);
+                mapConfig.put(app.getPath(), app.configure());
                 }
             }
 

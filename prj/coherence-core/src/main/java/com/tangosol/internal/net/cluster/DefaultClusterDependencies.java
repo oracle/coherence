@@ -2129,26 +2129,23 @@ public class DefaultClusterDependencies
     protected void discoverSerializers()
         {
         ClassLoader clzLoader = Base.getContextClassLoader();
-        loadService(SerializerFactory.class, clzLoader);
-        loadService(Serializer.class, clzLoader);
+        loadService(ServiceLoader.load(SerializerFactory.class, clzLoader), SerializerFactory.class);
+        loadService(ServiceLoader.load(Serializer.class, clzLoader), Serializer.class);
         }
 
     /**
      * Helper method for {@link #discoverSerializers()}.
      *
-     * @param clz     the service class
-     * @param loader  the {@link ClassLoader} to load the services
+     * @param loader  the {@link ServiceLoader} to load the services from
      * @param <T>     the service type
      *
      * @see #discoverSerializers()
      *
      * @since 20.12
      */
-    protected <T> void loadService(Class<T> clz, ClassLoader loader)
+    protected <T> void loadService(ServiceLoader<T> serviceLoader, Class<T> clz)
         {
-        ServiceLoader<T> serviceLoader = ServiceLoader.load(clz, loader);
-        Iterator<T>      iterator      = serviceLoader.iterator();
-
+        Iterator<T> iterator = serviceLoader.iterator();
         while (iterator.hasNext())
             {
             try

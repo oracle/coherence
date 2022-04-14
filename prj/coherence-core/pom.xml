@@ -302,7 +302,7 @@
                     !com.tangosol.coherence.transaction.internal*;
                     *;
                   </exports>
-                  <addServiceUses>false</addServiceUses>
+                  <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>
             </configuration>
