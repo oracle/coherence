@@ -59,6 +59,8 @@ to find specific notes on changes suggested for production use.
         <address system-property="coherence.wka"></address>
       </well-known-addresses>
 
+      <discovery-address system-property="coherence.discovery.address"/>
+
       <address system-property="coherence.localhost"></address>
 
       <!--
