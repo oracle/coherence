@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.internal.management;
+package com.tangosol.net.management;
 
 import com.tangosol.internal.http.BaseHttpHandler;
 

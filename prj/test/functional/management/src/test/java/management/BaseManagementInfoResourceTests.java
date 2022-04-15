@@ -48,7 +48,7 @@ import com.tangosol.coherence.management.internal.MapProvider;
 
 import com.tangosol.discovery.NSLookup;
 
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 
 import com.tangosol.internal.management.resources.AbstractManagementResource;
 import com.tangosol.internal.management.resources.ClusterMemberResource;

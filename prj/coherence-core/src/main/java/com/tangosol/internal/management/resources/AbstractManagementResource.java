@@ -18,7 +18,7 @@ import com.tangosol.internal.http.Response;
 import com.tangosol.internal.management.Converter;
 import com.tangosol.internal.management.EntityMBeanResponse;
 import com.tangosol.internal.management.MBeanResponse;
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.Cluster;
@@ -33,13 +33,8 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 
-import java.io.UnsupportedEncodingException;
-
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-
-import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;

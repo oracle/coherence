@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 
 import java.io.IOException;
 import java.io.InputStream;

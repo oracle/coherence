@@ -8,7 +8,7 @@ package com.tangosol.coherence.management.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;

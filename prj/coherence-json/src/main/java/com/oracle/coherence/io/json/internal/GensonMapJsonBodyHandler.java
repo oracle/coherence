@@ -9,7 +9,7 @@ package com.oracle.coherence.io.json.internal;
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
 
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;

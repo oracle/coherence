@@ -8,7 +8,7 @@ package com.tangosol.internal.net.management;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;

@@ -12,6 +12,8 @@ import com.sun.net.httpserver.HttpHandler;
 
 import com.tangosol.internal.http.BaseHttpHandler;
 import com.tangosol.internal.http.HttpRequest;
+import com.tangosol.net.management.MapJsonBodyHandler;
+
 
 /**
  * A {@link HttpHandler} for serving Coherence management over REST

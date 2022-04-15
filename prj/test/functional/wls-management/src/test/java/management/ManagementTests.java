@@ -13,7 +13,7 @@ import com.tangosol.coherence.component.net.management.gateway.Local;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
 import com.tangosol.coherence.http.DefaultHttpServer;
 import com.tangosol.coherence.management.RestManagement;
-import com.tangosol.internal.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MapJsonBodyHandler;
 import com.tangosol.internal.management.VersionUtils;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
@@ -31,7 +31,6 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -39,19 +38,16 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+
 
 /**
  * @author jk  2019.05.30

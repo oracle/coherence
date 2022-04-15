@@ -19,6 +19,11 @@
   <artifactId>coherence-json</artifactId>
   <name>Coherence JSON Library</name>
 
+  <properties>
+    <java.version.release>11</java.version.release>
+    <module.name>com.oracle.coherence.json</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -147,6 +152,7 @@
             <configuration>
               <shadedArtifactAttached>false</shadedArtifactAttached>
               <createDependencyReducedPom>true</createDependencyReducedPom>
+              <useDependencyReducedPomInJar>true</useDependencyReducedPomInJar>
               <artifactSet>
                 <includes>
                   <include>org.ow2.asm:asm</include>
@@ -168,21 +174,53 @@
               <relocations>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
-                  <shadedPattern>com.oracle.coherence.io.json.asm</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.commons</pattern>
-                  <shadedPattern>com.oracle.coherence.io.json.asm.commons</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm.commons</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.tree</pattern>
-                  <shadedPattern>com.oracle.coherence.io.json.asm.tree</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm.tree</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.util</pattern>
-                  <shadedPattern>com.oracle.coherence.io.json.asm.util</shadedPattern>
+                  <shadedPattern>com.tangosol.internal.asm.util</shadedPattern>
                 </relocation>
               </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    !*.internal.*;
+                    !com.oracle.coherence.io.json.internal;
+                    *;
+                  </exports>
+                  <addServiceUses>true</addServiceUses>
+                </moduleInfo>
+              </module>
+              <jdepsExtraArgs>
+                <arg>--multi-release=11</arg>
+              </jdepsExtraArgs>
+              <overwriteExistingFiles>true</overwriteExistingFiles>
             </configuration>
           </execution>
         </executions>
