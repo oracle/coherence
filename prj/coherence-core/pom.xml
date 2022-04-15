@@ -282,7 +282,7 @@
       </plugin>
 
       <plugin>
-        <groupId>org.moditect</groupId>
+        <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
         <executions>
           <execution>

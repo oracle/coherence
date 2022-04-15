@@ -21,8 +21,6 @@
   <name>Coherence Discovery</name>
 
   <properties>
-    <!-- override java.version so that the javadoc plugin doesn't complain when it hits this module -->
-    <java.version>${java.version.eight}</java.version>
     <module.name>com.oracle.coherence.discovery</module.name>
   </properties>
 
@@ -74,28 +72,10 @@
       </plugin>
 
       <plugin>
-        <groupId>org.moditect</groupId>
+        <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <!-- maintain JDK 8 compatibility -->
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-          <includes>
-            <include>com/tangosol/discovery/**/*.java</include>
-          </includes>
-        </configuration>
-      </plugin>
-
-      <!-- make sure that only JDK 8 API's are used -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>animal-sniffer-maven-plugin</artifactId>
-      </plugin>
     </plugins>
   </build>
 

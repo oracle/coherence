@@ -150,7 +150,7 @@ public interface Constants
     /**
     * The maximum supported major version of the class structure.
     */
-    public static final int VERSION_MAJOR_MAX = 53;
+    public static final int VERSION_MAJOR_MAX = 55;
     /**
     * The maximum supported minor version of the class structure.
     */

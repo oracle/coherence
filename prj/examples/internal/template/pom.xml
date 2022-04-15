@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021 Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -22,8 +22,7 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
 
-    <java.version>1.8</java.version>
-    <java.version.release>8</java.version.release>
+    <java.version>11</java.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -31,7 +30,7 @@
     <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
-    <junit.jupiter.version>5.7.0</junit.version>
+    <junit.jupiter.version>5.7.0</junit.jupiter.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

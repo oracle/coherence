@@ -218,7 +218,10 @@
     <module.name>com.oracle.coherence</module.name>
 
     <!-- the path containing artifact classes and resources (to be packaged into the coherence.jar artifact) -->
-    <artifact.classes.path>${project.build.directory}/artifact-classes</artifact.classes.path>
+    <artifact.classes.path>${project.build.directory}/classes</artifact.classes.path>
+
+    <!-- the main class that will be set both within manifest and as module main class -->
+    <main.class>com.tangosol.net.Coherence</main.class>
   </properties>
 
   <build>
@@ -237,41 +240,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <!--
-          Note: we intentionally override the version of ASM to be used by the
-                shade plugin to be higher than the ASM version in the shade plugin's
-                pom (5.0.2). This used to be the same ASM version embedded into
-                Coherence however JDK 9 requires a higher version of ASM (COH-16087)
-                that causes incompatibility with the shade plugin. Hence the
-                explicit use of version 5.1 below.
-          -->
-        <dependencies>
-          <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>5.1</version>
-          </dependency>
-          <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-analysis</artifactId>
-            <version>5.1</version>
-          </dependency>
-          <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-commons</artifactId>
-            <version>5.1</version>
-          </dependency>
-          <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-tree</artifactId>
-            <version>5.1</version>
-          </dependency>
-          <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-util</artifactId>
-            <version>5.1</version>
-          </dependency>
-        </dependencies>
         <executions>
           <execution>
             <id>shade</id>
@@ -309,8 +277,9 @@
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>module-info*</exclude>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
                     <exclude>META-INF/maven/**/*</exclude>
-                    <exclude>META-INF/versions/11/module-info*</exclude>
+                    <exclude>META-INF/versions/**/*</exclude>
                   </excludes>
                 </filter>
                 <filter>
@@ -384,7 +353,7 @@
       </plugin>
 
       <plugin>
-        <groupId>org.moditect</groupId>
+        <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
         <executions>
           <execution>
@@ -395,6 +364,7 @@
             </goals>
             <configuration>
               <module>
+                <mainClass>${main.class}</mainClass>
                 <moduleInfo>
                   <name>${module.name}</name>
                   <open>true</open>
@@ -574,11 +544,10 @@
               <manifestLocation>${artifact.classes.path}/META-INF</manifestLocation>
               <outputDirectory>${artifact.classes.path}</outputDirectory>
               <instructions>
-                <Main-Class>com.tangosol.net.DefaultCacheServer</Main-Class>
+                <Main-Class>${main.class}</Main-Class>
                 <Build-Timestamp>${project.timestamp}</Build-Timestamp>
                 <Bundle-SymbolicName>${coherence.group.id}.${project.artifactId}</Bundle-SymbolicName>
                 <Implementation-GroupId>${coherence.group.id}</Implementation-GroupId>
-                <Automatic-Module-Name>com.oracle.coherence</Automatic-Module-Name>
                 <Coherence-Version-Prefix>${project.version.prefix}</Coherence-Version-Prefix>
                 <Export-Package>
                   !*.internal.*,com.oracle.coherence.common.*,com.oracle.common.*,com.tangosol.application.*,com.tangosol.coherence.config.*,com.tangosol.coherence.transaction.*,com.tangosol.config.*,com.tangosol.net.*,com.tangosol.io.*,com.tangosol.persistence.*,com.tangosol.util.*,com.tangosol.run.xml.*,com.tangosol.run.component.*
@@ -603,7 +572,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>coherence-jar</id>
+            <id>update-manifest</id>
             <phase>package</phase>
             <goals>
               <goal>exec</goal>
@@ -613,6 +582,17 @@
               <commandlineArgs>uMf ${project.build.directory}/${project.build.finalName}.jar -C ${artifact.classes.path} META-INF/MANIFEST.MF</commandlineArgs>
             </configuration>
           </execution>
+<!--          <execution>-->
+<!--            <id>set-module-main</id>-->
+<!--            <phase>package</phase>-->
+<!--            <goals>-->
+<!--              <goal>exec</goal>-->
+<!--            </goals>-->
+<!--            <configuration>-->
+<!--              <executable>${jar.executable}</executable>-->
+<!--              <commandlineArgs>-u -f ${project.build.directory}/${project.build.finalName}.jar &#45;&#45;main-class ${main.class}</commandlineArgs>-->
+<!--            </configuration>-->
+<!--          </execution>-->
         </executions>
       </plugin>
 

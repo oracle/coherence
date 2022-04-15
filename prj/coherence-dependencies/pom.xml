@@ -121,7 +121,7 @@
      <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
      <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
-     <maven.moditect.plugin.version>1.0.0.RC2</maven.moditect.plugin.version>
+     <maven.moditect.plugin.version>1.0.0-SNAPSHOT</maven.moditect.plugin.version>
      <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
      <maven.release.plugin.version>2.4</maven.release.plugin.version>
      <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
@@ -137,7 +137,7 @@
 
     <!-- library dependency versions -->
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
-    <asm.version>9.2</asm.version>
+    <asm.version>9.3</asm.version>
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>5.2.0</bnd.version>
     <codemodel.version>2.6</codemodel.version>
@@ -981,7 +981,7 @@
         </plugin>
 
         <plugin>
-            <groupId>org.moditect</groupId>
+            <groupId>com.oracle.coherence.moditect</groupId>
             <artifactId>moditect-maven-plugin</artifactId>
             <version>${maven.moditect.plugin.version}</version>
             <executions>
@@ -992,7 +992,6 @@
                   <goal>add-module-info</goal>
                 </goals>
                 <configuration>
-                  <jvmVersion>11</jvmVersion>
                   <module>
                     <moduleInfo>
                       <name>${module.name}</name>
@@ -1000,6 +999,7 @@
                       <exports>
                         *;
                       </exports>
+                      <addServiceUses>true</addServiceUses>
                     </moduleInfo>
                   </module>
                   <jdepsExtraArgs>
@@ -1542,30 +1542,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>nbm-maven-plugin</artifactId>
           <version>${maven.nbm.plugin.version}</version>
-        </plugin>
-
-        <!-- maven animal sniffer plugin to check for JDK 7 compatibility -->
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <version>${maven.animalsniffer.plugin.version}</version>
-          <executions>
-            <execution>
-              <id>check-java-api</id>
-              <phase>test</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-              <configuration>
-                <skip>${skip.animal.sniffer.plugin}</skip>
-                <signature>
-                  <groupId>org.codehaus.mojo.signature</groupId>
-                  <artifactId>java18</artifactId>
-                  <version>1.0</version>
-                </signature>
-              </configuration>
-            </execution>
-          </executions>
         </plugin>
 
         <!-- OWASP dependency CVE checker -->
