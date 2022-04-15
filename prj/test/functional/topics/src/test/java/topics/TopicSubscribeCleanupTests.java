@@ -118,12 +118,14 @@ public class TopicSubscribeCleanupTests
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
 
                 // create some more subscribers on the remote member
-                int cNewSubscriber = member.invoke(new CreateSubscriber(topic.getName()));
+                int cExistingSubscriber = caches.Subscribers.size();
+                int cNewSubscriber      = member.invoke(new CreateSubscriber(topic.getName()));
+                int cSubscriber         = cExistingSubscriber + cNewSubscriber;
 
                 // there should eventually be the correct number of subscribers
                 // and the local subscriber should not own all the channels
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(not(cChannel)));
-                Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1 + cNewSubscriber));
+                Eventually.assertDeferred(() -> caches.Subscribers.size(), is(cSubscriber));
 
                 // close the remote member, which should trigger subscriber clean-up
                 member.close();
