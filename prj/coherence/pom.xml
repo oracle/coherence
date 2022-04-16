@@ -380,6 +380,25 @@
                   <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>
+              <exclusions>
+                <exclusion>
+                  <groupId>${coherence.group.id}</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>com.sleepycat</groupId>
+                  <artifactId>je</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>com.sun.codemodel</groupId>
+                  <artifactId>codemodel</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>org.jboss</groupId>
+                  <artifactId>jandex</artifactId>
+                </exclusion>
+                <!-- can't exclude ASM, because it's required by org.graalvm.js -->
+              </exclusions>
             </configuration>
           </execution>
         </executions>
