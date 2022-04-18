@@ -20,6 +20,10 @@
   <artifactId>coherence-http-netty</artifactId>
   <name>Coherence Netty Integration</name>
 
+  <properties>
+    <module.name>com.oracle.coherence.http.netty</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -29,7 +33,7 @@
 
     <dependency>
       <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
+      <artifactId>netty-codec-http</artifactId>
     </dependency>
 
     <dependency>
@@ -40,6 +44,11 @@
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
       <scope>provided</scope>
     </dependency>
 
@@ -116,6 +125,34 @@
             <goals>
               <goal>report-only</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+              <jdepsExtraArgs>
+                <extraArg>--multi-release=11</extraArg>
+              </jdepsExtraArgs>
+            </configuration>
           </execution>
         </executions>
       </plugin>
