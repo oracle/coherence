@@ -24,6 +24,12 @@
     Coherence gRPC Common Functionality
   </description>
 
+  <properties>
+    <module.name>com.oracle.coherence.grpc</module.name>
+    <!-- override dependent version -->
+    <jakarta.inject.version>1.0</jakarta.inject.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -40,28 +46,56 @@
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-netty</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-context</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Override the version of Netty   -->
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http2</artifactId>
-      <version>${netty.version}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler-proxy</artifactId>
-      <version>${netty.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.helidon.grpc</groupId>
       <artifactId>helidon-grpc-core</artifactId>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.grpc</groupId>
+      <artifactId>io.grpc</artifactId>
     </dependency>
 
     <dependency>
@@ -152,6 +186,40 @@
         <configuration>
           <reuseForks>false</reuseForks>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+              <jdepsExtraArgs>
+                <extraArg>--multi-release=11</extraArg>
+              </jdepsExtraArgs>
+              <exclusions>
+                <exclusion>
+                  <groupId>com.google.code.findbugs</groupId>
+                  <artifactId>jsr305</artifactId>
+                </exclusion>
+              </exclusions>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

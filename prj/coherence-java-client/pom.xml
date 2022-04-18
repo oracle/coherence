@@ -19,6 +19,12 @@
   <artifactId>coherence-java-client</artifactId>
   <name>Coherence Java gRPC Client</name>
 
+  <properties>
+    <module.name>com.oracle.coherence.client</module.name>
+    <!-- override dependent version -->
+    <jakarta.inject.version>1.0</jakarta.inject.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -116,6 +122,40 @@
         <configuration>
           <reuseForks>false</reuseForks>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+              <jdepsExtraArgs>
+                <extraArg>--multi-release=11</extraArg>
+              </jdepsExtraArgs>
+              <exclusions>
+                <exclusion>
+                  <groupId>com.google.code.findbugs</groupId>
+                  <artifactId>jsr305</artifactId>
+                </exclusion>
+              </exclusions>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
