@@ -9,10 +9,13 @@ package rest;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.tangosol.coherence.rest.util.MvelHelper;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+
 import java.util.Properties;
 
 import org.junit.AfterClass;
@@ -53,14 +56,18 @@ public class PofMisconfiguredRestTests
         stopCacheServer("PofMisconfiguredRestTests", true);
 
         // validate in server log that there are large number of "unknown user type" for rest types
-        validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out", "unknown user type", 70);
+        validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
+                            "unknown user type", 20);
 
+        if (MvelHelper.isEnabled())
+            {
+            validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
+                                "unknown user type: com.tangosol.coherence.rest.util.extractor.MvelExtractor", 6);
+            validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
+                                "unknown user type: com.tangosol.coherence.rest.util.MvelManipulator", 2);
+            }
         validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                            "unknown user type: com.tangosol.coherence.rest.util.extractor.MvelExtractor", 20);
-        validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                            "unknown user type: com.tangosol.coherence.rest.util.MvelManipulator", 15);
-        validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                            "unknown user type: com.tangosol.coherence.rest.util.StaticContent", 10);
+                            "unknown user type: com.tangosol.coherence.rest.util.StaticContent", 4);
         }
 
     // ----- test methods ---------------------------------------------------

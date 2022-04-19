@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util.aggregator;
 
+import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
+
+import com.tangosol.coherence.rest.util.MvelHelper;
 import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
 
 import com.tangosol.util.Base;
@@ -17,6 +20,8 @@ import com.tangosol.util.extractor.IdentityExtractor;
 import java.lang.reflect.Constructor;
 
 import java.util.Arrays;
+
+import static com.tangosol.util.extractor.AbstractExtractor.VALUE;
 
 /**
  * The default implementation of {@link AggregatorFactory}.
@@ -98,7 +103,9 @@ public class DefaultAggregatorFactory
                     }
                 break;
             case 1:
-                extractor = new MvelExtractor(asArgs[0]);
+                extractor = MvelHelper.isEnabled()
+                                ? new MvelExtractor(asArgs[0])
+                                : new UniversalExtractorBuilder().realize("", VALUE, asArgs[0]);
                 break;
             default:
                 throw new IllegalArgumentException("DefaultAggregatorFactory "

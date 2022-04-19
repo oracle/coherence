@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,8 +7,7 @@
 package com.tangosol.coherence.rest.util.extractor;
 
 
-import com.tangosol.coherence.rest.util.RestHelper;
-import com.tangosol.coherence.rest.util.JsonMap;
+import com.tangosol.coherence.rest.util.MvelHelper;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -26,18 +25,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.io.Serializable;
-
-import org.mvel2.MVEL;
-import org.mvel2.ParserContext;
-
-import org.mvel2.asm.MethodVisitor;
-import org.mvel2.asm.Opcodes;
-
-import org.mvel2.integration.PropertyHandler;
-import org.mvel2.integration.PropertyHandlerFactory;
-import org.mvel2.integration.VariableResolverFactory;
-
-import org.mvel2.optimizers.impl.asm.ProducesBytecode;
 
 
 /**
@@ -103,7 +90,7 @@ public class MvelExtractor
             return null;
             }
 
-        return MVEL.executeExpression(getCompiledExpression(), oTarget);
+        return MvelHelper.executeExpression(getCompiledExpression(), oTarget);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -118,8 +105,9 @@ public class MvelExtractor
         Serializable oExpr = m_oExpr;
         if (oExpr == null)
             {
-            ParserContext ctx = RestHelper.getMvelParserContext();
-            m_oExpr = oExpr = MVEL.compileExpression(m_sExpr, ctx);
+            Object ctx = MvelHelper.getMvelParserContext();
+
+            m_oExpr = oExpr = MvelHelper.compileExpression(m_sExpr, ctx);
             }
         return oExpr;
         }
@@ -215,52 +203,6 @@ public class MvelExtractor
         {
         out.writeInt   (0, m_nTarget);
         out.writeString(1, m_sExpr);
-        }
-
-    // ----- inner class: JsonMapPropertyHandler ----------------------------
-
-    private static class JsonMapPropertyHandler
-            implements PropertyHandler, ProducesBytecode
-        {
-        @Override
-        public Object getProperty(String name, Object contextObj, VariableResolverFactory variableFactory)
-            {
-            return ((JsonMap) contextObj).get(name);
-            }
-
-        @Override
-        public Object setProperty(String name, Object contextObj, VariableResolverFactory variableFactory, Object value)
-            {
-            ((JsonMap) contextObj).put(name, value);
-            return value;
-            }
-
-        @Override
-        public void produceBytecodeGet(MethodVisitor mv, String propertyName, VariableResolverFactory factory)
-            {
-            mv.visitVarInsn(Opcodes.ALOAD, 1);
-            mv.visitTypeInsn(Opcodes.CHECKCAST, "com/tangosol/coherence/rest/util/JsonMap");
-            mv.visitLdcInsn(propertyName);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/tangosol/coherence/rest/util/JsonMap", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
-            }
-
-        @Override
-        public void produceBytecodePut(MethodVisitor mv, String propertyName, VariableResolverFactory factory)
-            {
-            mv.visitVarInsn(Opcodes.ALOAD, 1);
-            mv.visitTypeInsn(Opcodes.CHECKCAST, "com/tangosol/coherence/rest/util/JsonMap");
-            mv.visitLdcInsn(propertyName);
-            mv.visitVarInsn(Opcodes.ALOAD, 2);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/tangosol/coherence/rest/util/JsonMap", "put", "(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;", false);
-            }
-        }
-
-
-    // ----- static initialization ------------------------------------------
-
-    static
-        {
-        MVEL.COMPILER_OPT_ALLOW_OVERRIDE_ALL_PROPHANDLING = true;
         }
 
     // ----- data members ---------------------------------------------------

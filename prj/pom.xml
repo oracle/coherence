@@ -463,13 +463,6 @@
         <version>${log4j2.version}</version>
       </dependency>
 
-      <!-- mvel -->
-      <dependency>
-        <groupId>org.mvel</groupId>
-        <artifactId>mvel2</artifactId>
-        <version>${mvel.version}</version>
-      </dependency>
-
       <!-- netty -->
       <dependency>
         <groupId>io.netty</groupId>
