@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -433,7 +433,8 @@ public abstract class BufferedSocketBus
             long    cbHeartbeat = m_cbWrite;
             boolean fResult     = false;
             if (cbHeartbeat == m_cbHeartbeatLast && // we've sent nothing since the last check
-                f_cbQueued.get() == 0)              // we have no outbound traffic queued up
+                f_cbQueued.get() == 0 &&            // we have no outbound traffic queued up
+                m_state == ConnectionState.ACTIVE)  // COH-25350 - messages can be sent on the connection
                 {
                 // prevent the network infrastructure from closing the idle socket
 
