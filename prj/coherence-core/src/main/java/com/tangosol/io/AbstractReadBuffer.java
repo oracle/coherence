@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.UTFDataFormatException;
 
+import java.util.function.BinaryOperator;
 
 /**
 * Abstract base implementation of the ReadBuffer interface.
@@ -236,9 +237,24 @@ public abstract class AbstractReadBuffer
 
         /**
         * Default constructor.
+        *
+        * @implSpec
+        * Initialize serial filter as it done for ObjectInputStream constructor.
+        * <p>
+        * In Java versions prior to 17, the deserialization filter is initialized to JVM-wide ObjectInputFilter.
+        * <p>
+        * In Java version 17 and greater, the deserialization filter is initialized to the filter returned
+        * by invoking {@link ExternalizableHelper#getConfigSerialFilterFactory() serial filter factory}
+        * with {@code null} for the current filter and the
+        * {@linkplain ExternalizableHelper#getConfigSerialFilter() static JVM-wide filter} for the requested filter.
         */
         public AbstractBufferInput()
             {
+            BinaryOperator factorySerialFilter = ExternalizableHelper.getConfigSerialFilterFactory();
+
+            m_oInputFilter = factorySerialFilter == null
+                                ? ExternalizableHelper.getConfigSerialFilter()
+                                : factorySerialFilter.apply(null, ExternalizableHelper.getConfigSerialFilter());
             }
 
         // ----- InputStreaming methods ---------------------------------
@@ -663,6 +679,35 @@ public abstract class AbstractReadBuffer
             setOffsetInternal(of);
             }
 
+        @Override
+        public final Object getObjectInputFilter()
+            {
+            return m_oInputFilter;
+            }
+
+        @Override
+        public final synchronized void setObjectInputFilter(Object oInputFilter)
+            {
+            Object         oInputFilterCurrent = m_oInputFilter;
+            BinaryOperator factorySerialFilter = ExternalizableHelper.getConfigSerialFilterFactory();
+
+            if (m_fInputFilterSet)
+                {
+                throw new IllegalStateException("filter can not be set more than once");
+                }
+
+            // delegate to factory to compute stream serial filter in Java version 17 and greater
+            Object oInputFilterNext = factorySerialFilter == null
+                                        ? oInputFilter
+                                        : factorySerialFilter.apply(oInputFilterCurrent, oInputFilter);
+
+            if (oInputFilterCurrent != null && oInputFilterNext == null)
+                {
+                throw new IllegalStateException("filter can not be replaced by null filter");
+                }
+            m_oInputFilter = oInputFilterNext;
+            m_fInputFilterSet = true;
+            }
 
         // ----- internal -----------------------------------------------
 
@@ -766,6 +811,8 @@ public abstract class AbstractReadBuffer
                 setOffsetInternal(of + cb);
                 }
 
+            // validating UTF byte size read from stream by caller
+            ExternalizableHelper.validateLoadArray(byte[].class, cb, this);
             return convertUTF(of, cb);
             }
 
@@ -804,6 +851,18 @@ public abstract class AbstractReadBuffer
         * building Strings from UTF binaries.
         */
         private transient char[] m_achBuf;
+
+        /**
+        * When not null, filter to validate that an instance of a class can be deserialized from
+        * this {@link BufferInput}.
+        */
+        private volatile Object m_oInputFilter;
+
+        /**
+        * True if the stream-specific {@link BufferInput this} {@link #getObjectInputFilter() serial filter}
+        * has been {@link #setObjectInputFilter(Object) set}; initially false.
+        */
+        private volatile boolean m_fInputFilterSet = false;
         }
 
 
