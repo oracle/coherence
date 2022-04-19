@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,6 +10,8 @@ import com.tangosol.net.NamedCache;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
+
 
 /**
  * A collection of functional tests for {@code Coherence*Extend} that use the
@@ -50,6 +52,15 @@ public class ViewExtendDirectTests
     public static void shutdown()
         {
         stopCacheServer(ViewExtendDirectTests.class.getName());
+        }
+
+    // ----- test methods ---------------------------------------------------
+
+    // synthetic events not relayed to view cache
+    @Test
+    public void testExpiry()
+        {
+        // no-op
         }
 
     // ----- helper methods -------------------------------------------------

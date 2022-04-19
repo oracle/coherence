@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -3201,6 +3201,58 @@ public abstract class AbstractExtendTests
         assertNull(listener.waitForEvent(2000L));
         }
 
+    @Test
+    public void testExpiry()
+        {
+        NamedCache cache = getNamedCache();
+
+        TestMapListener listener = new TestMapListener();
+        cache.addMapListener(listener, 1, false);
+
+        cache.put(1, 1);
+        listener.waitForEvent();
+
+        // synthetic event
+        cache.invoke(1, new TestEntryProcessor(true));
+        MapEvent evt = listener.waitForEvent();
+
+        // COH-25041
+        if (!CACHE_LOCAL_EXTEND_DIRECT.equals(getCacheName()))
+            {
+            assertEquals(true, ((CacheEvent) evt).isSynthetic());
+            assertEquals(false, ((CacheEvent) evt).isExpired());
+            }
+
+        cache.put(1, 1, 2000);
+        listener.waitForEvent();
+
+        // wait for synthetic delete due to expiry
+        listener.clearEvent();
+        if (CACHE_DIST_EXTEND_LOCAL.equals(getCacheName()) ||
+            CACHE_LOCAL_EXTEND_DIRECT.equals(getCacheName()))
+            {
+            // LocalCache does not have an eviction daemon thread
+            sleep(3000);
+            cache.get(1);
+            }
+        evt = listener.waitForEvent(3000);
+
+        assertEquals(true, ((CacheEvent) evt).isSynthetic());
+        assertEquals(true, ((CacheEvent) evt).isExpired());
+
+        cache.put(1, 1);
+        listener.waitForEvent();
+        listener.clearEvent();
+
+        cache.remove(1);
+
+        // regular event
+        evt = listener.waitForEvent();
+
+        assertEquals(false, ((CacheEvent) evt).isSynthetic());
+        assertEquals(false, ((CacheEvent) evt).isExpired());
+        }
+
     // ----- helpers --------------------------------------------------------
 
     /**
@@ -3480,11 +3532,28 @@ public abstract class AbstractExtendTests
 
     public static class TestEntryProcessor extends AbstractProcessor implements PortableObject, ExternalizableLite
         {
+        public TestEntryProcessor()
+            {
+            this(false);
+            }
+
+        public TestEntryProcessor(boolean fRemove)
+            {
+            f_fRemoveSynthetic = fRemove;
+            }
+
         @Override
         public Object process(InvocableMap.Entry entry)
             {
             CacheFactory.log("entrytype is " + entry.getClass().getName());
-            entry.setValue("EPSetValue", true);
+            if (f_fRemoveSynthetic)
+                {
+                entry.remove(true);
+                }
+            else
+                {
+                entry.setValue("EPSetValue", true);
+                }
             return "OK";
             }
 
@@ -3523,5 +3592,8 @@ public abstract class AbstractExtendTests
                 throws IOException
             {
             }
+
+        // data members
+        protected final boolean f_fRemoveSynthetic;
         }
     }

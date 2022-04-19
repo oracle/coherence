@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -4088,7 +4088,8 @@ public abstract class ConverterCollections
             super(map, event.getId(), NO_VALUE, NO_VALUE, NO_VALUE,
                   event instanceof CacheEvent && ((CacheEvent) event).isSynthetic(),
                   event instanceof CacheEvent ? ((CacheEvent) event).getTransformationState() : TransformationState.TRANSFORMABLE,
-                  event instanceof CacheEvent && ((CacheEvent) event).isPriming());
+                  event instanceof CacheEvent && ((CacheEvent) event).isPriming(),
+                  event instanceof CacheEvent && ((CacheEvent) event).isExpired());
 
             m_event   = event;
             m_convKey = convKey;
