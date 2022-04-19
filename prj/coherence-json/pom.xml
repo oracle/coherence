@@ -20,8 +20,10 @@
   <name>Coherence JSON Library</name>
 
   <properties>
-    <java.version.release>11</java.version.release>
     <module.name>com.oracle.coherence.json</module.name>
+
+    <!-- TODO: enable once Java 11-related javadoc issues are resolved -->
+    <skip.docs>true</skip.docs>
   </properties>
 
   <dependencies>
