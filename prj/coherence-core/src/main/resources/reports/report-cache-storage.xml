@@ -90,6 +90,11 @@
         <name>NonOptimizedQueryTotalMillis</name>
         <hidden>true</hidden>
       </column>
+      
+      <column id="IndexingTotalMillis">
+        <name>IndexingTotalMillis</name>
+        <hidden>true</hidden>
+      </column>
 
       <column id="TotalQueryContentionCount">
         <name>QueryContentionCount</name>
@@ -228,7 +233,26 @@
         </params>
       </column>
 
+      <column id="IndexingMillis">
+        <type>function</type>
+        <name>deltaIndexingTotalMillis</name>
+        <header>Indexing Total Millis</header>
+        <column-ref>IndexingTotalMillis</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>Service</column-ref>
+          <column-ref>NodeId</column-ref>
+          <column-ref>Cache</column-ref>
+          <column-ref>NodeTimestamp</column-ref>
+        </params>
+      </column>
+
       <!-- instant values -->
+      <column id="IndexTotalUnits">
+        <name>IndexTotalUnits</name>
+        <header>Index Total Units</header>
+      </column>
+
       <column id="MaxQueryThresholdMillis">
         <name>MaxQueryThresholdMillis</name>
         <header>Max Query Threshold Millis</header>
@@ -262,11 +286,6 @@
       <column id="LocksPending">
         <name>LocksPending</name>
         <header>Locks Pending</header>
-      </column>
-
-      <column id="IndexTotalUnits">
-        <name>IndexTotalUnits</name>
-        <header>Index Total Units</header>
       </column>
     </row>
   </report>
