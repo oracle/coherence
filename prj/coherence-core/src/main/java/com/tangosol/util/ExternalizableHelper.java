@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -90,6 +90,7 @@ import java.io.UTFDataFormatException;
 import java.lang.Math;
 import java.lang.ref.WeakReference;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -123,6 +124,8 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.WeakHashMap;
+
+import java.util.function.BinaryOperator;
 
 /**
 * Helpers for the Serializable, Externalizable and the ExternalizableLite
@@ -1087,6 +1090,8 @@ public abstract class ExternalizableHelper
         else
             {
             int c = readInt(in);
+
+            validateLoadArray(boolean[].class, c, in);
             af = c < CHUNK_THRESHOLD
                     ? readBooleanArray(in, c)
                     : readLargeBooleanArray(in, c);
@@ -1152,6 +1157,8 @@ public abstract class ExternalizableHelper
         else
             {
             int cb = readInt(in);
+
+            validateLoadArray(byte[].class, cb, in);
             if (cb < CHUNK_THRESHOLD)
                 {
                 ab = new byte[cb];
@@ -1229,6 +1236,7 @@ public abstract class ExternalizableHelper
                 {
                 return "";
                 }
+            validateLoadArray(byte[].class, cb, in);
 
             // get the "UTF binary"
             byte[] ab;
@@ -1548,6 +1556,8 @@ public abstract class ExternalizableHelper
         else
             {
             int c = readInt(in);
+
+            validateLoadArray(String[].class, c, in);
             as = c < CHUNK_THRESHOLD >> 3
                     ? readStringArray(in, c)
                     : readLargeStringArray(in, c);
@@ -1856,6 +1866,7 @@ public abstract class ExternalizableHelper
             {
             int cfl = in.readInt();
 
+            validateLoadArray(float[].class, cfl, in);
             afl = cfl < CHUNK_THRESHOLD >> 2
                     ? readFloatArray(in, cfl)
                     : readLargeFloatArray(in, cfl);
@@ -1924,6 +1935,7 @@ public abstract class ExternalizableHelper
             {
             int c = in.readInt();
 
+            validateLoadArray(float[].class, c, in);
             adbl = c <= 0 ? new double[0] :
                         c < CHUNK_THRESHOLD >> 3
                             ? readDoubleArray(in, c)
@@ -2345,15 +2357,7 @@ public abstract class ExternalizableHelper
                 Class<?> clz = loadClass(sClass, loader,
                         inWrapper == null ? null : inWrapper.getClassLoader());
 
-                if (in instanceof ObjectInputStream)
-                    {
-                    ObjectInputStream ois = (ObjectInputStream) in;
-                    if (!checkObjectInputFilter(clz, ois))
-                        {
-                        throw new InvalidClassException("Deserialization of class " + sClass + " was rejected");
-                        }
-                    }
-
+                validateLoadClass(clz, in);
                 value = (ExternalizableLite) clz.newInstance();
                 }
             catch (InstantiationException e)
@@ -2397,6 +2401,45 @@ public abstract class ExternalizableHelper
             }
 
         return value;
+        }
+
+    /**
+     * Validate that the given class is permitted to be deserialized by
+     * consulting any associated ObjectInputFilters.
+     *
+     * @param clz  the class to be validated
+     * @param in   input context to use to validate if class is allowed to be loaded
+     *
+     * @throws InvalidClassException if ObjectInputFilter associated with
+     *         <code>in</code> rejects class <code>clz</code>
+     */
+    protected static void validateLoadClass(Class clz, DataInput in)
+            throws InvalidClassException
+        {
+        if (!checkObjectInputFilter(clz, in))
+            {
+            throw new InvalidClassException("Deserialization of class " + clz.getName() + " was rejected");
+            }
+        }
+
+    /**
+     * Validate that the given class and array length is permitted to be deserialized by
+     * consulting any associated ObjectInputFilters.
+     *
+     * @param clz      the array type to be validated
+     * @param cLength  the array length to be validated
+     * @param in       input context to use to validate if class is allowed to be loaded
+     *
+     * @throws InvalidClassException if ObjectInputFilter associated with
+     *         <code>in</code> rejects array length
+     */
+    public static void validateLoadArray(Class clz, int cLength, DataInput in)
+            throws InvalidClassException
+        {
+        if (!checkObjectInputFilter(clz, cLength, in))
+            {
+            throw new InvalidClassException("Deserialization of class " + clz.getName() + " with array length " + cLength + " was rejected");
+            }
         }
 
     /**
@@ -2454,6 +2497,7 @@ public abstract class ExternalizableHelper
                 try
                     {
                     Class clz = XMLBEAN_CLASS_CACHE.getClass(nBeanId, loader);
+                    validateLoadClass(clz, in);
                     bean = (XmlBean) clz.newInstance();
                     }
                 catch (Exception e)
@@ -2651,7 +2695,41 @@ public abstract class ExternalizableHelper
             }
 
         Object o = readObjectInternal(in, in.readUnsignedByte(), loader);
-        return (T) realize(o, ensureSerializer(loader));
+        return (T) safeRealize(o, ensureSerializer(loader), in);
+        }
+
+    /**
+     * {@link #realize(Object, Serializer) Realize} deserialized instance <code>o</code> for possible replacement.
+     * If replacement occurs, the replacement's class is validated against {@link DataInput} <code>in</code>'s ObjectInputFilter.
+     *
+     * @param o           deserialized instance
+     * @param serializer  the serializer
+     * @param in          DataInput context
+     * @param <T>         replacement type
+     *
+     * @return            either deserialized instance <code>o</code> or its {@link SerializationSupport#readResolve} replacement.
+     *
+     * @throws IOException if ObjectInputFilter associated with <code>in</code> rejects a replacements class
+     */
+    private static <T> T safeRealize(Object o, Serializer serializer, DataInput in)
+            throws IOException
+        {
+        T oReplace = (T) realize(o, serializer);
+
+        if (o != oReplace && oReplace != null && o.getClass() != oReplace.getClass())
+            {
+            // validate the replacement against the ObjectInputFilter
+            if (oReplace.getClass().isArray())
+                {
+                validateLoadArray(oReplace.getClass(),
+                                                       Array.getLength(oReplace), in);
+                }
+            else
+                {
+                validateLoadClass(oReplace.getClass(), in);
+                }
+            }
+        return oReplace;
         }
 
     /**
@@ -3232,7 +3310,7 @@ public abstract class ExternalizableHelper
                    : readObjectInternal(in, nType,
                                         ((ClassLoaderAware) serializer).getContextClassLoader());
 
-        return realize(o, serializer);
+        return safeRealize(o, serializer, in);
         }
 
 
@@ -5786,6 +5864,8 @@ public abstract class ExternalizableHelper
         {
         int cch = in.readInt();
 
+        validateLoadArray(char[].class, cch, in);
+
         Utf8Reader reader = new Utf8Reader((InputStream) in);
 
         return cch < CHUNK_THRESHOLD >> 1
@@ -5808,6 +5888,7 @@ public abstract class ExternalizableHelper
         {
         int c = in.readInt();
 
+        validateLoadArray(long[].class, c, in);
         return c <= 0 ? new long[0] :
                     c < CHUNK_THRESHOLD >> 3
                             ? readLongArray(in, c)
@@ -5829,6 +5910,7 @@ public abstract class ExternalizableHelper
         {
         int c = in.readInt();
 
+        validateLoadArray(int[].class, c, in);
         return c <= 0 ?  new int[0] :
                     c < CHUNK_THRESHOLD >> 2
                         ? readIntArray(in, c)
@@ -5849,6 +5931,7 @@ public abstract class ExternalizableHelper
         {
         int c = in.readInt();
 
+        validateLoadArray(Object[].class, c, in);
         return c <= 0 ? new Object[0] :
                     c < CHUNK_THRESHOLD >> 4
                         ? readObjectArray(in, c)
@@ -5865,34 +5948,194 @@ public abstract class ExternalizableHelper
      */
     protected static boolean checkObjectInputFilter(Class<?> clz, ObjectInputStream ois)
         {
+        return checkObjectInputFilter(clz, -1, (DataInput) ois);
+        }
+
+    /**
+     * Return true if the provided class is allowed to be deserialized.
+     *
+     * @param clz  the class to be checked
+     * @param in   input context containing ObjectInputFilter
+     *
+     * @return true if the provided class is allowed to be deserialized from <code>in</code>
+     */
+    protected static boolean checkObjectInputFilter(Class<?> clz, DataInput in)
+        {
+        return checkObjectInputFilter(clz, -1, in);
+        }
+
+    /**
+     * Return true if the provided class is allowed to be deserialized.
+     *
+     * @param clz      the class to be checked
+     * @param cLength  array length to be checked
+     * @param in       input context containing ObjectInputFilter
+     *
+     * @return true if the provided class is allowed to be deserialized from <code>in</code>
+     */
+    protected static boolean checkObjectInputFilter(Class<?> clz,  int cLength, DataInput in)
+        {
+        Object oFilter = getObjectInputFilter(in);
+
         try
             {
-            Object filter = HANDLE_GET_FILTER == null ? null : HANDLE_GET_FILTER.invoke(ois);
-
-            if (filter == null)
+            if (oFilter == null)
                 {
                 return true;
                 }
 
             DynamicFilterInfo dynamic = s_tloHandler.get();
             dynamic.setClass(clz);
+            dynamic.setArrayLength(cLength);
 
             Object oFilterInfo = dynamic.getFilterInfo();
 
-            Enum status = (Enum) HANDLE_CHECKINPUT.invoke(filter, oFilterInfo);
+            Enum status = (Enum) HANDLE_CHECKINPUT.invoke(oFilter, oFilterInfo);
 
             dynamic.setClass(null);
+            dynamic.setArrayLength(-1);
 
-            return status != null && !status.name().equals("REJECTED");
+            // TODO: we would like this to be programmatically enabled/disabled thus will
+            //       introduce a mechanism to do so which will remove the necessity for a single JVM arg.
+            if (SERIAL_FILTER_LOGGING)
+                {
+                // similar to ObjectInputStream serialfilter logging,
+                // only log status ACCEPTED(1)/REJECTED(2) when logging enabled
+                // and FINE logging, UNDECIDED(0) is logged at FINER
+                Logger.log(() -> String.format("ExternalizableHelper checkInput %-9s %s, array length: %s",
+                                               status, clz, cLength),
+                           status.ordinal() > 0 ? Logger.FINE : Logger.FINER);
+                }
+
+            return !status.name().equals("REJECTED");
             }
         catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException e)
             {
-            err("Unable to invoke checkInput on objectInputFilter ");
-            err(e);
+            err("Unable to invoke checkInput on " + oFilter.getClass().getName() +
+                " due to exception " + e.getClass().getName() + " : " + e.getMessage());
             }
-        catch (Throwable t) {};
+        catch (Throwable t) {}
 
         return false;
+        }
+
+    /**
+     * Return ObjectInputFilter associated with {@link DataInput}.
+     *
+     * @param in  DataInput that may or may not have a ObjectInputFilter associated with it
+     *
+     * @return ObjectInputFilter associated with {@link DataInput in} or null when one does not exist
+     */
+    protected static Object getObjectInputFilter(DataInput in)
+        {
+        try
+            {
+            while (in instanceof WrapperDataInputStream)
+                {
+                in = ((WrapperDataInputStream) in).getDataInput();
+                }
+
+            return in instanceof BufferInput
+                       ? ((BufferInput) in).getObjectInputFilter()
+                       : HANDLE_GET_FILTER != null && in instanceof ObjectInputStream
+                           ? HANDLE_GET_FILTER.invoke((ObjectInputStream) in)
+                           : null;
+            }
+        catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException e)
+            {
+            err("Unable to invoke method handle " + HANDLE_GET_FILTER + " on " + in.getClass().getName() +
+                " due to exception " + e.getClass().getName() + ": " + e.getMessage());
+            }
+        catch (Throwable t) {}
+
+        return null;
+        }
+
+    /**
+     * Return the static JVM-wide serial filter or {@code null} if not configured.
+     *
+     * @return ObjectInputFilter as an Object to enable working with Java versions before 9 or
+     *         null if no filter has been configured.
+     */
+    public static Object getConfigSerialFilter()
+        {
+        Object oFilter = m_oFilterSerial;
+
+        if (oFilter != null || HANDLE_CONFIG_GET_FILTER == null)
+            {
+            return oFilter;
+            }
+        else
+            {
+            try
+                {
+                oFilter = HANDLE_CONFIG_GET_FILTER.invoke();
+                if (oFilter != null)
+                    {
+                    synchronized (HANDLE_CONFIG_GET_FILTER)
+                        {
+                        if (m_oFilterSerial == null)
+                            {
+                            m_oFilterSerial = oFilter;
+                            }
+                        }
+                    if (SERIAL_FILTER_LOGGING)
+                        {
+                        Logger.info("JVM wide ObjectInputFilter=" + oFilter);
+                        }
+                    }
+                return oFilter;
+                }
+            catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException e)
+                {
+                err("Unable to invoke getSerialFilter on ObjectInputFilter$Config" +
+                    " due to exception " + e.getClass().getName() + ": " + e.getMessage());
+                }
+            catch (Throwable t)
+                {}
+            }
+        return null;
+        }
+
+    /**
+     * Return the static JVM-wide serial filter factory.
+     *
+     * @return deserialization filter factory for Java version 17 and greater, null otherwise.
+     */
+    public static BinaryOperator getConfigSerialFilterFactory()
+        {
+        BinaryOperator factory = m_serialFilterFactory;
+
+        if (HANDLE_CONFIG_GET_FILTER_FACTORY == null || factory != null)
+            {
+            return factory;
+            }
+        else
+            {
+            try
+                {
+                factory = (BinaryOperator) HANDLE_CONFIG_GET_FILTER_FACTORY.invoke();
+
+                synchronized (HANDLE_CONFIG_GET_FILTER_FACTORY)
+                    {
+                    if (m_serialFilterFactory == null)
+                        {
+                        m_serialFilterFactory = factory;
+                        }
+                    }
+
+                return factory;
+                }
+            catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | IllegalStateException e)
+                {
+                err("Unable to invoke getSerialFilterFactory on ObjectInputFilter$Config" +
+                    " due to exception " + e.getClass().getName() + ": " + e.getMessage());
+                }
+            catch (Throwable t)
+                {
+                }
+            }
+        return null;
         }
 
     /**
@@ -6770,6 +7013,16 @@ public abstract class ExternalizableHelper
             m_clz = clz;
             }
 
+        /**
+         * Set the array length to be checked
+         *
+         * @param cLength  array length to check, -1 indicates not an array
+         */
+        public void setArrayLength(int cLength)
+            {
+            m_cArrayLength = cLength;
+            }
+
         // ----- InvocationHandler interface --------------------------------
 
         @Override
@@ -6781,7 +7034,7 @@ public abstract class ExternalizableHelper
                 }
             else if (method.getName().equals("arrayLength"))
                 {
-                return (long) -1;
+                return (long) m_cArrayLength;
                 }
             else if (method.getName().equals("depth"))
                 {
@@ -6804,6 +7057,11 @@ public abstract class ExternalizableHelper
          * The class to be checked by ObjectInputFilter.
          */
         private Class m_clz;
+
+        /**
+         * The array length, -1 indicates not an array.
+         */
+        private int   m_cArrayLength = -1;
 
         /**
          * The dynamic proxy.
@@ -6862,14 +7120,25 @@ public abstract class ExternalizableHelper
     public static ObjectStreamFactory s_streamfactory;
 
     /**
-     * MethodHandle for getfilter from ObjectInputStream
+     * MethodHandle for getfilter from ObjectInputStream.
      */
     private static final MethodHandle HANDLE_GET_FILTER;
 
     /**
-     * MethodHandle for checkInput from ObjectInputFilter
+     * MethodHandle for checkInput from ObjectInputFilter.
      */
     private static final MethodHandle HANDLE_CHECKINPUT;
+
+    /**
+     * MethodHandle for method getSerialFilter from ObjectInputFilter$Config.
+     */
+    private static final MethodHandle HANDLE_CONFIG_GET_FILTER;
+
+
+    /**
+     * MethodHandle for method getSerialFilterFactory from ObjectInputFilter$Config.
+     */
+    private static final MethodHandle HANDLE_CONFIG_GET_FILTER_FACTORY;
 
     /**
      * Filter info class.
@@ -7011,29 +7280,37 @@ public abstract class ExternalizableHelper
 
         //  initialize method handles for potential JEP-290 checks
 
-        Class<?>     clzFilterInfo    = null;
-        MethodHandle handleGetFilter  = null;
-        MethodHandle handleCheckInput = null;
+        Class<?>     clzFilterInfo                = null;
+        MethodHandle handleGetFilter              = null;
+        MethodHandle handleCheckInput             = null;
+        MethodHandle handleConfigGetSerialFilter  = null;
+        MethodHandle handleConfigGetFilterFactory = null;
+        Method       methodConfigGetSerialFilter  = null;
+        Method       methodConfigGetFilterFactory = null;
+
 
         // find ObjectInputFilter class; depending on jdk version
         try
             {
-            Class<?>              clzFilter        = null;
-            Class<? extends Enum> clzFilterStatus  = null;
-            String                sFilterMethod    = null;
-            Method                methodGet        = null;
+            Class<?>              clzFilter       = null;
+            Class<? extends Enum> clzFilterStatus = null;
+            Class<?>              clzConfig       = null;
+            String                sFilterMethod   = null;
+            Method                methodGet       = null;
 
             if ((clzFilter = getClass("java.io.ObjectInputFilter")) != null)
                 {
-                clzFilterInfo   = Class.forName("java.io.ObjectInputFilter$FilterInfo");
-                clzFilterStatus = (Class<? extends Enum>) Class.forName("java.io.ObjectInputFilter$Status");
-                sFilterMethod   = "getObjectInputFilter";
+                clzFilterInfo       = Class.forName("java.io.ObjectInputFilter$FilterInfo");
+                clzFilterStatus     = (Class<? extends Enum>) Class.forName("java.io.ObjectInputFilter$Status");
+                sFilterMethod       = "getObjectInputFilter";
+                clzConfig           = Class.forName("java.io.ObjectInputFilter$Config");
                 }
             else if ((clzFilter = getClass("sun.misc.ObjectInputFilter")) != null)
                 {
                 clzFilterInfo   = Class.forName("sun.misc.ObjectInputFilter$FilterInfo");
                 clzFilterStatus = (Class<? extends Enum>) Class.forName("sun.misc.ObjectInputFilter$Status");
                 sFilterMethod   = "getInternalObjectInputFilter";
+                clzConfig       = Class.forName("sun.misc.ObjectInputFilter$Config");
                 }
 
             if (sFilterMethod != null)
@@ -7043,23 +7320,44 @@ public abstract class ExternalizableHelper
                 methodGet = clzObjectInputStream.getDeclaredMethod(sFilterMethod);
                 methodGet.setAccessible(true);
 
+                methodConfigGetSerialFilter = clzConfig.getDeclaredMethod("getSerialFilter");
+                methodConfigGetSerialFilter.setAccessible(true);
+
+                try
+                    {
+                    methodConfigGetFilterFactory = clzConfig.getDeclaredMethod("getSerialFilterFactory");
+                    }
+                catch (NoSuchMethodException e)
+                    {
+                    // ignore when not defined in java version less than 17
+                    }
+                catch (Throwable t)
+                    {
+                    Logger.warn("Failed to find method ObjectInputFilter$Config.getSerialFilterFactory() in java version "
+                                + System.getProperty("java.version") +  " due to: " + t.getMessage());
+                    }
+
                 MethodType mtCheckInput = MethodType.methodType(clzFilterStatus, clzFilterInfo);
 
                 MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-                handleGetFilter = lookup.unreflect(methodGet);
-                handleCheckInput = lookup.findVirtual(clzFilter, "checkInput", mtCheckInput);
+                handleGetFilter              = lookup.unreflect(methodGet);
+                handleCheckInput             = lookup.findVirtual(clzFilter, "checkInput", mtCheckInput);
+                handleConfigGetSerialFilter  = lookup.unreflect(methodConfigGetSerialFilter);
+                handleConfigGetFilterFactory = methodConfigGetFilterFactory == null ? null : lookup.unreflect(methodConfigGetFilterFactory);
                 }
             }
         catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException e)
             {
-            CacheFactory.log("ObjectInputFilter will not be honored due to: "
-                    + e.getMessage() + '\n' + Base.printStackTrace(e), CacheFactory.LOG_INFO);
+            Logger.warn("ObjectInputFilter will not be honored due to: "
+                    + e.getMessage() + '\n' + Base.printStackTrace(e));
             }
 
-        s_clzFilterInfo   = clzFilterInfo;
-        HANDLE_GET_FILTER = handleGetFilter;
-        HANDLE_CHECKINPUT = handleCheckInput;
+        s_clzFilterInfo                  = clzFilterInfo;
+        HANDLE_GET_FILTER                = handleGetFilter;
+        HANDLE_CHECKINPUT                = handleCheckInput;
+        HANDLE_CONFIG_GET_FILTER         = handleConfigGetSerialFilter;
+        HANDLE_CONFIG_GET_FILTER_FACTORY = handleConfigGetFilterFactory;
         }
 
 
@@ -7087,4 +7385,20 @@ public abstract class ExternalizableHelper
      */
     private static final Map<ClassLoader, Serializer> s_mapSerializerByClassLoader
             = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * Enable tracing of {@link ExternalizableHelper#checkObjectInputFilter(Class, DataInput) ExternalizableLite serial filtering}.
+     * Log level must by FINE or higher to get detailed tracing.
+     */
+    private static final boolean SERIAL_FILTER_LOGGING = Config.getBoolean("coherence.serialfilter.logging", false);
+
+    /**
+     * Cache of JVM-wide serial filter.
+     */
+    private static Object m_oFilterSerial;
+
+    /**
+     * Cache of JVM-wide serial filter factory.
+     */
+    private static BinaryOperator m_serialFilterFactory;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package com.tangosol.io;
 
+
+import com.tangosol.util.ExternalizableHelper;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -698,5 +700,54 @@ public interface ReadBuffer
         *             <code>of &gt; getBuffer().length()</code>
         */
         public void setOffset(int of);
+
+        /**
+        * Returns an ObjectInputFilter (or null) that should be used by the caller
+        * to confirm / deny deserialization of a class encoded in this input stream.
+        * <p>
+        * Note: the return type is agnostic of the ObjectInputFilter to support various JDK versions.
+        *
+        * @return null or an ObjectInputFilter that will permit (or not) the constructor
+        *         of a class encoded in this stream.
+        *
+        * @see #setObjectInputFilter(Object)
+        */
+        public default Object getObjectInputFilter()
+            {
+            return null;
+            }
+
+        /**
+        * Set the {@link #getObjectInputFilter() ObjectInputFilter} for this stream.
+        * <p>
+        * The filter's checkInput method is expected to be called for each class
+        * and reference deserialized in the stream.
+        *
+        * @implSpec
+        * This method can set the ObjectInputFilter once.
+        * <p>
+        * In Java version 17 and greater, the stream's ObjectInputFilter is set
+        * to the filter returned by invoking the
+        * {@link ExternalizableHelper#getConfigSerialFilterFactory() JVM-wide filter factory}
+        * with the {@link #getObjectInputFilter()} current filter} and the{@code filter} parameter.
+        *
+        * <p>
+        * It is not permitted to replace a {@code non-null} filter with a
+        * {@code null} filter.
+        * If the {@linkplain #getObjectInputFilter() current filter} is {@code non-null},
+        * the value returned from the filter factory (or provided filter) must
+        * be {@code non-null}.
+        *
+        * @param oInputFilter  an ObjectInputFilter instance as an Object to enable
+        *                running with Java version 8 or higher, may be null
+        *
+        * @throws IllegalStateException if the filter factory returns {@code null}
+        *       when the {@linkplain #getObjectInputFilter() current filter} is
+        *       non-null, or if the filter has already been set.
+        */
+        public default void setObjectInputFilter(Object oInputFilter)
+            {
+            // no-op
+            }
         }
     }

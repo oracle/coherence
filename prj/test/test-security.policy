@@ -921,6 +921,10 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/transaction/t
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/io/target/-" {
   // allow shaded bdb to access its log files in tmp directory.
   permission java.io.FilePermission "${test.bdb.directory}${/}-", "read, write, delete, execute";
+  permission java.lang.RuntimePermission "getenv.*";
+
+  // The following is required to support serialization of lambdas
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-examples/examples-java/target/-" {

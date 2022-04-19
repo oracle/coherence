@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -144,6 +144,24 @@ public class WrapperBufferInput
         bufIn.setOffset(of);
         }
 
+    @Override
+    public Object getObjectInputFilter()
+        {
+        BufferInput bufIn = m_bufIn;
+
+        return bufIn == null ? null : bufIn.getObjectInputFilter();
+        }
+
+    @Override
+    public void setObjectInputFilter(Object filter)
+        {
+        BufferInput bufIn = m_bufIn;
+
+        if (bufIn != null)
+            {
+            bufIn.setObjectInputFilter(filter);
+            }
+        }
 
     // ----- accessors ------------------------------------------------------
 
