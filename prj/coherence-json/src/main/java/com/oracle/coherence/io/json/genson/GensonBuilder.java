@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -130,7 +130,6 @@ public class GensonBuilder {
   private boolean failOnNullPrimitive = false;
   private RuntimePropertyFilter runtimePropertyFilter = RuntimePropertyFilter.noFilter;
   private UnknownPropertyHandler unknownPropertyHandler;
-  private ClassFilter classFilter;
 
   public GensonBuilder() {
     defaultValues.put(int.class, 0);
@@ -223,17 +222,6 @@ public class GensonBuilder {
     }
     withClassMetadata = true;
     withPackageAliases.put(alias, forPackage);
-    return this;
-  }
-
-  /**
-   * Register the {@link ClassFilter} that will evaluate if a class may be serialized/deserialized.
-   *
-   * @param classFilter the {@link ClassFilter}
-   * @return a reference to this builder
-   */
-  public GensonBuilder withClassFilter(ClassFilter classFilter) {
-    this.classFilter = classFilter;
     return this;
   }
 
@@ -997,7 +985,7 @@ public class GensonBuilder {
     return new Genson(converterFactory, getBeanDescriptorProvider(),
       isSkipNull(), isHtmlSafe(), classAliases, packageAliases, compatibilityAliases, withClassMetadata,
       strictDoubleParse, indent, metadata, failOnMissingProperty, enforceTypeAliases,
-      defaultValues, defaultTypes, runtimePropertyFilter, unknownPropertyHandler, classFilter, classLoader);
+      defaultValues, defaultTypes, runtimePropertyFilter, unknownPropertyHandler, classLoader);
   }
 
   /**

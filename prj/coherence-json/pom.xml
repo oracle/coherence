@@ -21,9 +21,6 @@
 
   <properties>
     <module.name>com.oracle.coherence.json</module.name>
-
-    <!-- TODO: enable once Java 11-related javadoc issues are resolved -->
-    <skip.docs>true</skip.docs>
   </properties>
 
   <dependencies>
@@ -197,6 +194,15 @@
       </plugin>
 
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven.javadoc.plugin.version}</version>
+        <configuration>
+          <excludePackageNames>com.oracle.coherence.io.json.internal.*:com.oracle.coherence.io.json.genson.reflect.*</excludePackageNames>
+        </configuration>
+      </plugin>
+
+      <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
         <executions>
@@ -214,6 +220,7 @@
                   <exports>
                     !*.internal.*;
                     !com.oracle.coherence.io.json.internal;
+                    !com.oracle.coherence.io.json.genson.reflect;
                     *;
                   </exports>
                   <addServiceUses>true</addServiceUses>

@@ -15,6 +15,8 @@ import com.oracle.coherence.common.base.SimpleHolder;
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.JsonBindingException;
 
+import com.oracle.coherence.io.json.genson.bean.Image;
+import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
 
 import com.tangosol.util.Base;
@@ -34,8 +36,10 @@ import common.data.PutAll;
 
 import java.io.IOException;
 
+import java.io.ObjectInputFilter;
 import java.math.BigInteger;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import java.time.Duration;
@@ -69,12 +73,11 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-
 /**
  * JSON serialization tests.
  *
  * @author Aleks Seovic  2017.10.02
-* @author jf  2018.03.09
+ * @author jf  2018.03.09
  * @since 20.06
  */
 @SuppressWarnings("unchecked")
@@ -586,43 +589,6 @@ class JsonSerializerTest
         assertThrows(JsonBindingException.class, () -> genson.aliasFor(SafeJsonSerializer[].class));
         assertThrows(JsonBindingException.class, () -> genson.classFor(SafeJsonSerializer.class.getName()));
         assertThrows(JsonBindingException.class, () -> genson.classFor(SafeJsonSerializer[].class.getName()));
-        }
-
-    @Test
-    void testClassFilteringDisabledByDefault()
-        {
-
-        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
-                                                       false);
-        assertThat(serializer.underlying().classFilter(), nullValue());
-        }
-
-    @Test
-    void testClassFilteringEnabledWhenPropPresent()
-        {
-        System.setProperty("jdk.serialFilter", "!java.util.Date");
-        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
-                                                       false);
-        try
-            {
-            assertThat(serializer.underlying().classFilter(), notNullValue());
-            }
-        finally
-            {
-            System.setProperty("jdk.serialFilter", "");
-            }
-        }
-
-    @Test
-    void testSanityBasicClassFilter()
-        {
-        System.setProperty("jdk.serialFilter", "!java.util.Date;java.lang.String");
-        ClassFilter filter = new ClassFilter();
-
-        assertThat(filter.evaluate(Date.class),   is(false));
-        assertThat(filter.evaluate(String.class), is(true));
         }
 
     @Test

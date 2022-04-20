@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.io.json.genson.GenericType;
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
+import com.oracle.coherence.io.json.genson.JsonBindingException;
 import com.oracle.coherence.io.json.genson.Modifier;
 
 import com.oracle.coherence.io.json.genson.convert.NullConverterFactory;
@@ -37,6 +38,7 @@ import com.oracle.coherence.io.json.internal.InetSocketAddressConverter;
 import com.oracle.coherence.io.json.internal.JsonObjectConverter;
 import com.oracle.coherence.io.json.internal.MapConverter;
 import com.oracle.coherence.io.json.internal.MissingClassConverter;
+import com.oracle.coherence.io.json.internal.SerializationGate;
 import com.oracle.coherence.io.json.internal.SerializationSupportConverter;
 import com.oracle.coherence.io.json.internal.ThrowableConverter;
 import com.oracle.coherence.io.json.internal.VersionableSerializer;
@@ -220,6 +222,13 @@ public class JsonSerializer
         GenericType type = OBJECT_TYPE;
         if (oValue != null)
             {
+            Class<?> clazz = oValue.getClass();
+
+            if (!SerializationGate.isValid(clazz))
+                {
+                throw new JsonBindingException("Unable to serialize " + clazz.getName());
+                }
+
             for (Class<?> c : JSON_TYPES)
                 {
                 if (c.isInstance(oValue))
@@ -247,6 +256,11 @@ public class JsonSerializer
         if (in.available() == 0)
             {
             return null;
+            }
+
+        if (!SerializationGate.isValid(clazz))
+            {
+            throw new JsonBindingException("Unable to de-sererialize " + clazz.getName());
             }
 
         WrapperDataInputStream stream = new WrapperDataInputStream(in);

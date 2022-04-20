@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -15,15 +15,18 @@
 package com.oracle.coherence.io.json.genson.convert;
 
 
-import java.lang.reflect.Type;
-
-import com.oracle.coherence.io.json.genson.*;
+import com.oracle.coherence.io.json.genson.Context;
+import com.oracle.coherence.io.json.genson.Converter;
+import com.oracle.coherence.io.json.genson.Genson;
+import com.oracle.coherence.io.json.genson.JsonBindingException;
+import com.oracle.coherence.io.json.genson.Wrapper;
 import com.oracle.coherence.io.json.genson.annotation.HandleClassMetadata;
 import com.oracle.coherence.io.json.genson.reflect.TypeUtil;
 import com.oracle.coherence.io.json.genson.stream.ObjectReader;
 import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
 import com.oracle.coherence.io.json.genson.stream.ValueType;
-
+import com.oracle.coherence.io.json.internal.SerializationGate;
+import java.lang.reflect.Type;
 import javax.json.JsonValue;
 
 /**
@@ -89,16 +92,12 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
   }
 
   public void serialize(T obj, ObjectWriter writer, Context ctx) throws Exception {
-    Class clz = obj.getClass();
-    ClassFilter filter = ctx.genson.classFilter();
-    if (filter != null && !filter.evaluate(clz)) {
-      throw new JsonBindingException("Unable to serialize " + clz.getName());
-    }
     if (obj != null && !isDefaultObjectType(obj, ctx) && !isJsonValue(obj.getClass()) &&
-      (classMetadataWithStaticType || !tClass.equals(obj.getClass()))) {
-      writer.beginNextObjectMetadata()
-        .writeMetadata("class", ctx.genson.aliasFor(obj.getClass()));
+        (classMetadataWithStaticType || !tClass.equals(obj.getClass()))) {
+          writer.beginNextObjectMetadata()
+                  .writeMetadata("class", ctx.genson.aliasFor(obj.getClass()));
     }
+
     wrapped.serialize(obj, writer, ctx);
   }
 
@@ -108,10 +107,11 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
       if (className != null) {
         try {
           Class<?> classFromMetadata = ctx.genson.classFor(className);
-          ClassFilter filter = ctx.genson.classFilter();
-          if (filter != null && !filter.evaluate(classFromMetadata)) {
-            throw new JsonBindingException("Unable to deserialize " + classFromMetadata.getName());
+
+          if (!SerializationGate.isValid(classFromMetadata)) {
+            throw new JsonBindingException("Unable to de-serialize " + classFromMetadata.getName());
           }
+
           if (!classFromMetadata.equals(tClass)) {
             Converter<T> deser = ctx.genson.provideConverter(classFromMetadata);
             return deser.deserialize(reader, ctx);

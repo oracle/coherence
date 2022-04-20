@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -130,12 +130,6 @@ public class CoherenceBundleProvider
 
             pkgAliases.forEach((properties, url) ->
                     processProperties(properties, url, currentBuilder::addPackageAlias));
-
-            String sFilters = System.getProperty("jdk.serialFilter");
-            if (sFilters != null && !sFilters.isEmpty())
-                {
-                currentBuilder.withClassFilter(new ClassFilter());
-                }
 
             return currentBuilder;
             }

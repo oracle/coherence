@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -92,7 +92,6 @@ public final class Genson {
   private final DefaultTypes defaultTypes;
   private final RuntimePropertyFilter runtimePropertyFilter;
   private final UnknownPropertyHandler unknownPropertyHandler;
-  private final ClassFilter classFilter;
   private volatile ClassLoader loader;
 
   /**
@@ -104,7 +103,7 @@ public final class Genson {
       _default.skipNull, _default.htmlSafe, _default.aliasClassMap, _default.aliasPackageMap, _default.compatibilityAliasMap,
       _default.withClassMetadata, _default.strictDoubleParse, _default.indent,
       _default.withMetadata, _default.failOnMissingProperty, _default.enforceTypeAliases, _default.defaultValues,
-      _default.defaultTypes, _default.runtimePropertyFilter, _default.unknownPropertyHandler, _default.classFilter,
+      _default.defaultTypes, _default.runtimePropertyFilter, _default.unknownPropertyHandler,
         Genson.class.getClassLoader());
   }
 
@@ -135,8 +134,7 @@ public final class Genson {
    * @param defaultValues contains a mapping from the raw class to the default value that should be used when the property is missing.
    * @param defaultValues contains a mapping from the raw class to the default value that should be used when the property is missing.
    * @param runtimePropertyFilter is used to define what bean properties should be excluded from ser/de at runtime.
-   * @param unknownPropertyHandler is used to handle unknown properties during ser/de.
-   * @param classFilter the {@link ClassFilter} to check before ser/deser operations
+   * @param unknownPropertyHandler is used to handle unknown properties during ser/deser.
    */
   public Genson(Factory<Converter<?>> converterFactory, BeanDescriptorProvider beanDescProvider,
                 boolean skipNull, boolean htmlSafe, Map<String, Class<?>> classAliases,
@@ -144,7 +142,7 @@ public final class Genson {
                 boolean strictDoubleParse, boolean indent, boolean withMetadata, boolean failOnMissingProperty,
                 boolean enforceTypeAliases, Map<Class<?>, Object> defaultValues, DefaultTypes defaultTypes,
                 RuntimePropertyFilter runtimePropertyFilter, UnknownPropertyHandler unknownPropertyHandler,
-                ClassFilter classFilter, ClassLoader classLoader) {
+                ClassLoader classLoader) {
     this.converterFactory = converterFactory;
     this.beanDescriptorFactory = beanDescProvider;
     this.skipNull = skipNull;
@@ -166,7 +164,6 @@ public final class Genson {
     this.withMetadata = withClassMetadata || withMetadata;
     this.failOnMissingProperty = failOnMissingProperty;
     this.unknownPropertyHandler = unknownPropertyHandler;
-    this.classFilter = classFilter;
     this.loader = classLoader;
   }
 
@@ -745,10 +742,6 @@ public final class Genson {
 
   public UnknownPropertyHandler unknownPropertyHandler() {
     return unknownPropertyHandler;
-  }
-
-  public ClassFilter classFilter() {
-    return classFilter;
   }
 
   public ClassLoader getClassLoader() {
