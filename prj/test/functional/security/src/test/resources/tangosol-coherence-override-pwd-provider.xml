@@ -33,7 +33,7 @@
         </init-param>
       </init-params>
       <password-provider>
-        <class-name>com.tangosol.net.FileBasedPasswordProvider</class-name>
+        <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
         <init-params>
           <init-param>
             <param-type>String</param-type>

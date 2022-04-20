@@ -6,8 +6,8 @@
  */
 package ssl;
 
-import net.EchoClient;
-import net.EchoServer;
+import com.oracle.coherence.testing.net.EchoClient;
+import com.oracle.coherence.testing.net.EchoServer;
 
 import org.junit.Before;
 import org.junit.Test;

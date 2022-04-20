@@ -97,8 +97,8 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
-import common.AbstractFunctionalTest;
-import common.AbstractRollingRestartTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractRollingRestartTest;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

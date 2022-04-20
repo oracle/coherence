@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -327,7 +327,7 @@
     
     <class-scheme>
      <scheme-name>custom-named-cache-scheme</scheme-name>
-       <class-name>com.tangosol.coherence.config.CustomClasses$CustomNamedCache</class-name>
+       <class-name>com.oracle.coherence.testing.CustomClasses$CustomNamedCache</class-name>
        <init-params>
          <init-param>
            <param-type>java.lang.String</param-type>
@@ -341,7 +341,7 @@
      <service-name>dist-backing-class-service</service-name>
      <backing-map-scheme>
        <class-scheme>
-         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+         <class-name>com.oracle.coherence.testing.CustomClasses$CustomLocalCache</class-name>
        </class-scheme>
      </backing-map-scheme>
    </distributed-scheme>
@@ -403,7 +403,7 @@
         <read-write-backing-map-scheme>
           <internal-cache-scheme>
             <class-scheme>
-              <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+              <class-name>com.oracle.coherence.testing.CustomClasses$CustomLocalCache</class-name>
             </class-scheme>
           </internal-cache-scheme>
         </read-write-backing-map-scheme>
@@ -449,7 +449,7 @@
      <scheme-name>external-async-custom-scheme</scheme-name>
      <async-store-manager>
        <custom-store-manager>
-         <class-name>common.CustomStoreManager</class-name>
+         <class-name>com.oracle.coherence.testing.CustomStoreManager</class-name>
        </custom-store-manager>
      </async-store-manager>
    </external-scheme>
@@ -469,7 +469,7 @@
    <external-scheme>
      <scheme-name>external-custom-scheme</scheme-name>
      <custom-store-manager>
-       <class-name>common.CustomStoreManager</class-name>
+       <class-name>com.oracle.coherence.testing.CustomStoreManager</class-name>
      </custom-store-manager>
    </external-scheme>
 
@@ -484,7 +484,7 @@
 
     <local-scheme>
       <scheme-name>local-class-scheme</scheme-name>
-      <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+      <class-name>com.oracle.coherence.testing.CustomClasses$CustomLocalCache</class-name>
     </local-scheme>
 
     <near-scheme>
@@ -501,7 +501,7 @@
      <scheme-name>near-front-class-scheme</scheme-name>
      <front-scheme>
        <class-scheme>
-         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+         <class-name>com.oracle.coherence.testing.CustomClasses$CustomLocalCache</class-name>
        </class-scheme>
      </front-scheme>
      <back-scheme>
@@ -516,7 +516,7 @@
      </front-scheme>
      <back-scheme>
        <class-scheme>
-         <class-name>com.tangosol.coherence.config.CustomClasses$CustomNamedCache</class-name>
+         <class-name>com.oracle.coherence.testing.CustomClasses$CustomNamedCache</class-name>
          <init-params>
            <init-param>
              <param-type>java.lang.String</param-type>
@@ -628,7 +628,7 @@
      <scheme-name>paged-external-async-custom-scheme</scheme-name>
      <async-store-manager>
        <custom-store-manager>
-         <class-name>common.CustomStoreManager</class-name>
+         <class-name>com.oracle.coherence.testing.CustomStoreManager</class-name>
        </custom-store-manager>
      </async-store-manager>
      <page-limit>100</page-limit>
@@ -651,7 +651,7 @@
    <paged-external-scheme>
      <scheme-name>paged-external-custom-scheme</scheme-name>
      <custom-store-manager>
-       <class-name>common.CustomStoreManager</class-name>
+       <class-name>com.oracle.coherence.testing.CustomStoreManager</class-name>
      </custom-store-manager>
      <page-limit>100</page-limit>
    </paged-external-scheme>
@@ -665,7 +665,7 @@
    <paged-external-scheme>
      <scheme-name>paged-external-scheme</scheme-name>
      <custom-store-manager>
-       <class-name>common.CustomStoreManager</class-name>
+       <class-name>com.oracle.coherence.testing.CustomStoreManager</class-name>
      </custom-store-manager>
      <page-limit>100</page-limit>
    </paged-external-scheme>
@@ -681,7 +681,7 @@
      <scheme-name>rwbm-internal-class-scheme</scheme-name>
      <internal-cache-scheme>
        <class-scheme>
-         <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+         <class-name>com.oracle.coherence.testing.CustomClasses$CustomLocalCache</class-name>
        </class-scheme>
      </internal-cache-scheme>
    </read-write-backing-map-scheme>

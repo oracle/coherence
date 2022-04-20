@@ -14,7 +14,7 @@ import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Resources;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;

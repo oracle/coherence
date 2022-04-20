@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -35,7 +35,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import processors.HasIndexProcessor;
+import com.oracle.coherence.testing.processors.HasIndexProcessor;
 
 import java.util.Date;
 import java.util.List;
@@ -45,7 +45,7 @@ import static org.hamcrest.CoreMatchers.hasItem;
 
 import static org.junit.Assert.assertThat;
 
-import static util.CollectionUtils.asList;
+import static com.oracle.coherence.testing.util.CollectionUtils.asList;
 
 
 /**

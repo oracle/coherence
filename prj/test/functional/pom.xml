@@ -112,6 +112,7 @@
         <module>bundler</module>
         <module>cache</module>
         <module>config</module>
+        <module>core</module>
         <module>dependencies</module>
         <module>discovery</module>
         <module>dslquery</module>
@@ -124,6 +125,7 @@
         <module>graal</module>
         <module>guardian</module>
         <module>http</module>
+        <module>http-config</module>
         <module>http-netty</module>
         <module>io</module>
         <module>jcache</module>
@@ -241,6 +243,7 @@
       <id>stage9</id>
       <modules>
         <module>http</module>
+        <module>http-config</module>
         <module>http-netty</module>
         <module>management</module>
         <module>wls-management</module>

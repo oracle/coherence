@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@
 
     <user-type>
       <type-id>1000</type-id>
-      <class-name>common.CaseInsensitiveComparator</class-name>
+      <class-name>com.oracle.coherence.testing.CaseInsensitiveComparator</class-name>
     </user-type>
 
     <user-type>
@@ -76,12 +76,12 @@
 
     <user-type>
       <type-id>1013</type-id>
-        <class-name>common.AirDealComparator</class-name>
+        <class-name>com.oracle.coherence.testing.AirDealComparator</class-name>
     </user-type>
 
     <user-type>
       <type-id>1014</type-id>
-        <class-name>common.AirDealComparator$AirDeal</class-name>
+        <class-name>com.oracle.coherence.testing.AirDealComparator$AirDeal</class-name>
     </user-type>
 
     <user-type>
@@ -131,17 +131,17 @@
 
     <user-type>
       <type-id>3004</type-id>
-      <class-name>common.TestContact</class-name>
+      <class-name>com.oracle.coherence.testing.TestContact</class-name>
     </user-type>
 
     <user-type>
       <type-id>3005</type-id>
-      <class-name>common.FilterFetcher</class-name>
+      <class-name>com.oracle.coherence.testing.FilterFetcher</class-name>
     </user-type>
 
     <user-type>
       <type-id>3006</type-id>
-      <class-name>common.ExampleAddress</class-name>
+      <class-name>com.oracle.coherence.testing.ExampleAddress</class-name>
     </user-type>
 
     <user-type>
@@ -161,7 +161,7 @@
 
     <user-type>
       <type-id>3011</type-id>
-      <class-name>common.TestObject</class-name>
+      <class-name>com.oracle.coherence.testing.TestObject</class-name>
     </user-type>
 
     <user-type>

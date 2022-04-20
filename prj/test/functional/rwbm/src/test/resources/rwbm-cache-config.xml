@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -26,7 +26,7 @@
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -55,7 +55,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -77,7 +77,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -91,7 +91,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -105,7 +105,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -119,7 +119,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
         <init-param>
           <param-name>bin-entry-expiry</param-name>
@@ -173,7 +173,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestNonBlockingStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestNonBlockingStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -183,7 +183,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
       <init-param>
         <param-name>store</param-name>
-        <param-value>common.TestNonBlockingStore</param-value>
+        <param-value>com.oracle.coherence.testing.TestNonBlockingStore</param-value>
       </init-param>
       </init-params>
     </cache-mapping>
@@ -193,7 +193,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestNonBlockingStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestNonBlockingStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -203,7 +203,7 @@ dist-rwbm-wb-bin</cache-name>
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestNonBlockingStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestNonBlockingStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -225,7 +225,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -249,7 +249,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -287,7 +287,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestBinaryCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -304,7 +304,7 @@ dist-rwbm-wb-bin</cache-name>
 
       <backing-map-scheme>
         <read-write-backing-map-scheme>
-          <class-name>rwbm.EvictingRWBM</class-name>
+          <class-name>com.oracle.coherence.testing.rwbm.EvictingRWBM</class-name>
           <internal-cache-scheme>
             <local-scheme>
               <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
@@ -313,7 +313,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
         </read-write-backing-map-scheme>
@@ -347,7 +347,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestBinaryCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
         </read-write-backing-map-scheme>
@@ -369,7 +369,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
           <write-delay-seconds>{write-delay-seconds 1}</write-delay-seconds>
@@ -395,7 +395,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
                 <init-params>
                   <init-param>
                     <param-type>long</param-type>
@@ -423,7 +423,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
         </read-write-backing-map-scheme>
@@ -467,7 +467,7 @@ dist-rwbm-wb-bin</cache-name>
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
           <listener>
@@ -497,7 +497,7 @@ dist-rwbm-wb-bin</cache-name>
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
         </read-write-backing-map-scheme>
@@ -516,7 +516,7 @@ dist-rwbm-wb-bin</cache-name>
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
           
@@ -535,7 +535,7 @@ dist-rwbm-wb-bin</cache-name>
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
           <read-only>true</read-only>
@@ -559,13 +559,13 @@ dist-rwbm-wb-bin</cache-name>
           <write-max-batch-size>200</write-max-batch-size>
           <miss-cache-scheme>
             <local-scheme>
-                <class-name>com.tangosol.coherence.config.CustomClasses$CustomLocalCache</class-name>
+                <class-name>com.oracle.coherence.testing.CustomClasses$CustomLocalCache</class-name>
             </local-scheme>
           </miss-cache-scheme>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
           
@@ -594,7 +594,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>common.TestCacheStore</class-name>
+              <class-name>com.oracle.coherence.testing.TestCacheStore</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -617,7 +617,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -638,7 +638,7 @@ dist-rwbm-wb-bin</cache-name>
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
         </read-write-backing-map-scheme>
@@ -668,7 +668,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -693,7 +693,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>common.TestNonBlockingStore</class-name>
+              <class-name>com.oracle.coherence.testing.TestNonBlockingStore</class-name>
             </class-scheme>
           </cachestore-scheme>
 
@@ -729,7 +729,7 @@ dist-rwbm-wb-bin</cache-name>
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
           </cachestore-scheme>
 

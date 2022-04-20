@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,14 +8,14 @@ package rwbm;
 
 
 import com.oracle.coherence.common.base.StackTrace;
-import common.TestCacheStore;
+import com.oracle.coherence.testing.TestCacheStore;
 
 import java.util.HashSet;
 import java.util.Set;
 
 
 /**
- * Subclass of {@link common.TestCacheStore} which conditionally delays its
+ * Subclass of {@link TestCacheStore} which conditionally delays its
  * operations based on the contents of the call stack.
  */
 public class ConditionalDelayCacheStore extends TestCacheStore

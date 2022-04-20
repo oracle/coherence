@@ -63,7 +63,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
-import common.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
@@ -79,7 +79,7 @@ import org.junit.Test;
 
 import org.junit.rules.TestName;
 
-import test.CheckJDK;
+import com.oracle.coherence.testing.CheckJDK;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;

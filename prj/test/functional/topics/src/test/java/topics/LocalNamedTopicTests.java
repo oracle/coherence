@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -47,7 +47,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
-import common.SystemPropertyIsolation;
+import com.oracle.coherence.testing.SystemPropertyIsolation;
 
 import org.hamcrest.Matchers;
 
@@ -70,9 +70,7 @@ import java.util.List;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;

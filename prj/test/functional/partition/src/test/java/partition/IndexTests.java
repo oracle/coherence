@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,14 +13,13 @@ import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.SimpleMemoryCalculator;
 
-import com.tangosol.util.ClassHelper;
 import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.DataInput;
 import java.io.DataOutput;

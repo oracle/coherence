@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -54,7 +54,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import util.EventsHelper;
+import com.oracle.coherence.testing.util.EventsHelper;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;

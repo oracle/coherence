@@ -24,7 +24,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.EqualsFilter;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.After;
 import org.junit.AfterClass;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,7 +8,7 @@ package config;
 
 import com.tangosol.coherence.component.util.SafeNamedCache;
 
-import com.tangosol.coherence.config.CustomClasses;
+import com.oracle.coherence.testing.CustomClasses;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.LocalCache;
@@ -17,8 +17,8 @@ import com.tangosol.net.cache.OverflowMap;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 import com.tangosol.net.partition.ObservableSplittingBackingCache;
 
-import common.AbstractFunctionalTest;
-import common.TestHelper;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.TestHelper;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

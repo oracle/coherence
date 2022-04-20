@@ -205,11 +205,24 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- test dependencies -->
+    <!--
+    Bedrock is temporarily here to force a download of snapshot dependencies,
+    which the two-step Coherence CI builds will not do.
+    Once Bedrock 6.0.0 is release, this can be removed.
+    -->
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-testing-support</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-runtime-windows</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -612,32 +625,6 @@
           <execution>
             <id>default-install</id>
             <phase>install</phase>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven.surefire.plugin.version}</version>
-        <configuration>
-          <reuseForks>true</reuseForks>
-          <excludes>
-            <!-- Excluded Cache Tests -->
-            <exclude>com/tangosol/net/cache/LocalCacheTest.*</exclude>
-            <!-- Excluded IO Tests -->
-            <exclude>com/tangosol/io/BufferManagerTest.*</exclude>
-            <exclude>com/tangosol/io/BufferPerfTest.*</exclude>
-            <exclude>com/tangosol/io/BufferTest.*</exclude>
-            <exclude>com/tangosol/io/ExternalizableTest.*</exclude>
-            <!-- Excluded Util Tests -->
-            <exclude>com/tangosol/util/DaemonTest.*</exclude>
-          </excludes>
-        </configuration>
-        <executions>
-          <execution>
-            <id>default-test</id>
-            <phase>test</phase>
           </execution>
         </executions>
       </plugin>

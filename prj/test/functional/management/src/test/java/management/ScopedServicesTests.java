@@ -14,7 +14,7 @@ import com.tangosol.coherence.management.internal.MapProvider;
 import com.tangosol.discovery.NSLookup;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

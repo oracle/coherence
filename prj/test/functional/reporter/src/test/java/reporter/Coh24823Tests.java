@@ -17,7 +17,7 @@ import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Service;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+<xml-bean>
+  <name>NarrowBean</name>
+  <property>
+    <name>IntegerArray</name>
+    <!-- should really be java.lang.Integer[] -->
+    <type>java.lang.Object[]</type>
+    <class>java.lang.Integer[]</class>
+    <empty-is-null>false</empty-is-null>
+    <element>
+      <type>java.lang.Integer</type>
+    </element>
+  </property>
+
+  <property>
+    <name>List</name>
+    <!-- should really be java.util.List -->
+    <type>java.util.Collection</type>
+    <class>java.util.ArrayList</class>
+    <empty-is-null>false</empty-is-null>
+    <element>
+      <type>java.lang.Boolean</type>
+    </element>
+  </property>
+
+  <property>
+    <name>SafeHashMap</name>
+    <!-- should really be com.tangosol.util.SafeHashMap -->
+    <type>java.util.Map</type>
+    <class>com.tangosol.util.SafeHashMap</class>
+    <empty-is-null>false</empty-is-null>
+    <element>
+      <key>
+        <type>java.lang.String</type>
+      </key>
+      <value>
+        <type>java.lang.String</type>
+      </value>
+    </element>
+  </property>
+</xml-bean>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -17,9 +17,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.coherence.repository.AbstractAsyncRepository;
-import com.oracle.coherence.repository.AbstractAsyncRepositoryTest;
 import com.oracle.coherence.repository.AbstractRepository;
-import com.oracle.coherence.repository.AsyncPeopleRepository;
 
 import com.tangosol.coherence.component.util.SafeNamedCache;
 
@@ -54,7 +52,7 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(Parameterized.class)
 public class AsyncRepositoryTests
-        extends AbstractAsyncRepositoryTest
+        extends AbstractAsyncRepositoryTests
     {
     @ClassRule
     public static CoherenceClusterResource cluster = new CoherenceClusterResource()

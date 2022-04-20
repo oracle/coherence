@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * http://oss.oracle.com/licenses/upl.
+ */
+package com.oracle.coherence.testing.tests.map;
+
+import com.tangosol.net.cache.WrapperNamedCache;
+import com.tangosol.util.QueryMap;
+import com.tangosol.util.comparator.InverseComparator;
+import com.tangosol.util.extractor.IdentityExtractor;
+import com.tangosol.util.filter.GreaterFilter;
+import org.junit.Test;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Unit tests for QueryMap.
+ *
+ * @author as  2014.08.05
+ */
+@SuppressWarnings("unchecked")
+public abstract class AbstractQueryMapTest
+    {
+    protected QueryMap<String, Integer> getMap()
+        {
+        return new WrapperNamedCache<>(new HashMap<>(), "test");
+        }
+
+    @Test
+    public void testValues()
+        {
+        QueryMap<String, Integer> map = getMap();
+        map.put("1", 1);
+        map.put("2", 2);
+        map.put("3", 3);
+
+        Collection<Integer> values = map.values(GREATER_THAN_1);
+        assertEquals(2, values.size());
+        assertTrue(values.contains(2));
+        assertTrue(values.contains(3));
+        }
+
+    @Test
+    public void testValuesWithNullComparator()
+        {
+        QueryMap<String, Integer> map = getMap();
+        map.put("1", 1);
+        map.put("2", 2);
+        map.put("3", 3);
+
+        List<Integer> values = (List<Integer>) map.values(GREATER_THAN_1, null);
+        assertEquals(2, values.size());
+        assertEquals(2, (int) values.get(0));
+        assertEquals(3, (int) values.get(1));
+        }
+
+    @Test
+    public void testValuesWithComparator()
+        {
+        QueryMap<String, Integer> map = getMap();
+        map.put("1", 1);
+        map.put("2", 2);
+        map.put("3", 3);
+
+        List<Integer> values = (List<Integer>) map.values(GREATER_THAN_1, new InverseComparator());
+        assertEquals(2, values.size());
+        assertEquals(3, (int) values.get(0));
+        assertEquals(2, (int) values.get(1));
+        }
+
+    @Test
+    public void testForEach()
+        {
+        QueryMap<String, Integer> map = getMap();
+        map.put("1", 1);
+        map.put("2", 2);
+        map.put("3", 3);
+
+        Map<String, Integer> squares = new HashMap<>();
+        int[] c = new int[1];
+
+        map.forEach((k, v) -> { squares.put(k, v * v); c[0]++; });
+
+        assertEquals(3, squares.size());
+        assertEquals(3, c[0]);
+        assertEquals(1, (int) squares.get("1"));
+        assertEquals(4, (int) squares.get("2"));
+        assertEquals(9, (int) squares.get("3"));
+        }
+
+    @Test
+    public void testForEachWithFilter()
+        {
+        QueryMap<String, Integer> map = getMap();
+        map.put("1", 1);
+        map.put("2", 2);
+        map.put("3", 3);
+
+        Map<String, Integer> squares = new HashMap<>();
+        int[] c = new int[1];
+
+        map.forEach(GREATER_THAN_2, (k, v) -> { squares.put(k, v * v); c[0]++; });
+
+        assertEquals(1, squares.size());
+        assertEquals(1, c[0]);
+        assertEquals(9, (int) squares.get("3"));
+        }
+
+    public static final GreaterFilter GREATER_THAN_1 = new GreaterFilter<>(IdentityExtractor.INSTANCE, 1);
+    public static final GreaterFilter GREATER_THAN_2 = new GreaterFilter<>(IdentityExtractor.INSTANCE, 2);
+    }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,7 +18,7 @@ import com.tangosol.util.filter.BetweenFilter;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.OrFilter;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.persistence.Person;
 
@@ -43,7 +43,6 @@ import javax.management.ObjectName;
  * @author aag 2012.12.11
  */
 
-@SuppressWarnings("serial")
 public class StorageManagerMBeanTests
         extends AbstractFunctionalTest
         implements Serializable

@@ -135,7 +135,7 @@
     <skip-sign-artifacts>true</skip-sign-artifacts>
     <skip-code-coverage>true</skip-code-coverage>
 
-    <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --illegal-access=permit</surefire.argLine>
+    <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --illegal-access=permit</surefire.argLine>
     <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --illegal-access=permit</failsafe.argLine>
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
@@ -376,8 +376,6 @@
         <module>coherence-discovery</module>
         <module>coherence-tracing</module>
 
-        <module>coherence-testing-support</module>
-
         <!-- distributed modules -->
         <module>coherence-bom</module>
         <module>coherence</module>
@@ -401,9 +399,11 @@
         <!-- internal modules -->
         <module>coherence-dependencies</module>
 
+        <module>coherence-testing-data</module>
         <module>coherence-testing-support</module>
 
         <!-- distributed modules -->
+        <module>coherence-bedrock</module>
         <module>coherence-bom</module>
         <module>coherence-docker</module>
         <module>coherence-javadoc</module>
@@ -427,6 +427,7 @@
         <module>coherence-concurrent</module>
         <module>plugins</module>
 
+        <module>test/unit</module>
         <module>test/distribution</module>
         <module>test/functional</module>
         <module>test/endurance</module>
@@ -467,7 +468,11 @@
         <!-- internal modules -->
         <module>coherence-dependencies</module>
 
+        <module>coherence-testing-data</module>
+        <module>coherence-testing-support</module>
+
         <!-- distributed modules -->
+        <module>coherence-bedrock</module>
         <module>coherence-bom</module>
         <module>coherence-docker</module>
         <module>coherence-jcache</module>
@@ -493,6 +498,7 @@
         <module>examples</module>
 
         <!-- test modules -->
+        <module>test/unit</module>
         <module>test/functional</module>
         <module>test/endurance</module>
         <module>test/performance</module>
@@ -910,6 +916,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.coverage>auto</bedrock.profile.coverage>
+                  <bedrock.profile.coverage.classname>com.oracle.coherence.testing.bedrock.CoverageProfile</bedrock.profile.coverage.classname>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-ut.exec</jacoco-agent.destfile>
                   <coherence.lambdas>static</coherence.lambdas>
                 </systemPropertyVariables>
@@ -930,6 +937,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.coverage>auto</bedrock.profile.coverage>
+                  <bedrock.profile.coverage.classname>com.oracle.coherence.testing.bedrock.CoverageProfile</bedrock.profile.coverage.classname>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-it.exec</jacoco-agent.destfile>
                   <coherence.lambdas>static</coherence.lambdas>
                 </systemPropertyVariables>
@@ -1019,7 +1027,7 @@
     <profile>
       <id>test-jdk8</id>
       <properties>
-        <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
+        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
         <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -XX:+UnlockCommercialFeatures -Dfile.encoding=UTF-8</failsafe.argLine>
       </properties>
     </profile>
@@ -1027,7 +1035,7 @@
     <profile>
       <id>test-jdk16</id>
       <properties>
-        <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
+        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
         <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
       </properties>
       <build>
@@ -1040,8 +1048,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <!-- below allows the profile to not be in package com.oracle.bedrock.  need to wait for bedrock update for this to work. -->
-                  <!--bedrock.profile.illegalaccess.classname>com.oracle.coherence.test.IllegalAccessProfile</bedrock.profile.illegalaccess.classname-->
+                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                 </systemPropertyVariables>
               </configuration>
             </plugin>
@@ -1052,8 +1059,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <!-- below allows the profile to not be in package com.oracle.bedrock.  need to wait for bedrock update for this to work. -->
-                  <!--bedrock.profile.illegalaccess.classname>com.oracle.coherence.test.IllegalAccessProfile</bedrock.profile.illegalaccess.classname-->
+                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                 </systemPropertyVariables>
               </configuration>
             </plugin>
@@ -1065,7 +1071,7 @@
     <profile>
       <id>test-jdk17</id>
       <properties>
-        <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
+        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
         <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
       </properties>
       <build>
@@ -1078,8 +1084,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <!-- below allows the profile to not be in package com.oracle.bedrock.  need to wait for bedrock update for this to work. -->
-                  <!--bedrock.profile.illegalaccess.classname>com.oracle.coherence.test.IllegalAccessProfile</bedrock.profile.illegalaccess.classname-->
+                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                 </systemPropertyVariables>
               </configuration>
             </plugin>
@@ -1090,8 +1095,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <!-- below allows the profile to not be in package com.oracle.bedrock.  need to wait for bedrock update for this to work. -->
-                  <!--bedrock.profile.illegalaccess.classname>com.oracle.coherence.test.IllegalAccessProfile</bedrock.profile.illegalaccess.classname-->
+                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                 </systemPropertyVariables>
               </configuration>
             </plugin>
@@ -1103,7 +1107,7 @@
     <profile>
       <id>test-production-mode</id>
       <properties>
-        <surefire.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</surefire.argLine>
+        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</surefire.argLine>
         <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</failsafe.argLine>
       </properties>
       <build>
@@ -1116,6 +1120,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.productionmode>prod</bedrock.profile.productionmode>
+                  <bedrock.profile.productionmode.classname>com.oracle.coherence.testing.bedrock.ProductionmodeProfile</bedrock.profile.productionmode.classname>
                 </systemPropertyVariables>
               </configuration>
             </plugin>
@@ -1126,6 +1131,7 @@
               <configuration>
                 <systemPropertyVariables>
                   <bedrock.profile.productionmode>prod</bedrock.profile.productionmode>
+                  <bedrock.profile.productionmode.classname>com.oracle.coherence.testing.bedrock.ProductionmodeProfile</bedrock.profile.productionmode.classname>
                 </systemPropertyVariables>
               </configuration>
             </plugin>

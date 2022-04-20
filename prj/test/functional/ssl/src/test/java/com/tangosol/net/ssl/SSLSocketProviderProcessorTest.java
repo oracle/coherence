@@ -29,11 +29,11 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsArrayContainingInAnyOrder.arrayContainingInAnyOrder;
-import static org.hamcrest.collection.IsArrayContaining.hasItemInArray;
+import static org.hamcrest.collection.ArrayMatching.arrayContainingInAnyOrder;
+import static org.hamcrest.collection.ArrayMatching.hasItemInArray;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.fail;
-import static util.SSLSocketProviderBuilderHelper.loadDependencies;
+import static com.oracle.coherence.testing.util.SSLSocketProviderBuilderHelper.loadDependencies;
 
 
 /**

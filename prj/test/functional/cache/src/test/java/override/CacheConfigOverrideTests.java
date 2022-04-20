@@ -6,7 +6,7 @@
  */
 package override;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 

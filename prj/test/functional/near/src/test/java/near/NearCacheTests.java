@@ -33,8 +33,8 @@ import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.processor.NumberIncrementor;
 import com.tangosol.util.processor.PropertyManipulator;
 
-import common.AbstractFunctionalTest;
-import common.TestCoh15021;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.TestCoh15021;
 
 import data.Person;
 
@@ -49,7 +49,6 @@ import java.util.Set;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;

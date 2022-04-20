@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@ import com.oracle.coherence.common.base.Converter;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
@@ -33,18 +33,15 @@ import org.junit.Test;
 
 import com.tangosol.net.partition.KeyAssociator;
 
-import com.tangosol.util.aggregator.Count;
 import com.tangosol.util.aggregator.DistinctValues;
 
 import com.tangosol.util.filter.AlwaysFilter;
 
 import com.tangosol.util.processor.AbstractProcessor;
 import data.Person;
-import data.Person.*;
 
 import com.tangosol.util.extractor.ReflectionExtractor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

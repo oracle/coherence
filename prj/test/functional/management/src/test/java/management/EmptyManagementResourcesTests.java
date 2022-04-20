@@ -42,7 +42,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.discovery.NSLookup;
 import com.tangosol.net.CacheFactory;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 /**
  * Tests for verifying REST resources with no response returns 

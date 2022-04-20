@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,14 +10,13 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.coherence.testing.tests.invoke.AbstractRemotableTest;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.TypeAssertion;
-
-import com.tangosol.internal.util.invoke.RemotableTest;
 
 import data.Trade;
 
@@ -37,7 +36,7 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(Parameterized.class)
 public class RemotableTests
-        extends RemotableTest
+        extends AbstractRemotableTest
     {
     @ClassRule
     public static CoherenceClusterResource cluster = new LambdaTestCluster();
@@ -56,9 +55,9 @@ public class RemotableTests
             });
         }
 
-    private SessionBuilder m_bldrSession;
+    private final SessionBuilder m_bldrSession;
 
-    private String m_sSerializer;
+    private final String m_sSerializer;
 
     public RemotableTests(SessionBuilder bldrSession, String sSerializer)
         {
@@ -66,6 +65,7 @@ public class RemotableTests
         m_sSerializer = sSerializer;
         }
 
+    @Override
     protected NamedCache<Integer, Trade> getCache()
         {
         ConfigurableCacheFactory cacheFactory = cluster.createSession(m_bldrSession);
@@ -77,6 +77,7 @@ public class RemotableTests
         }
 
     @Test
+    @Override
     public void testRemotableClass()
         {
         String sLambdas = Config.getProperty("coherence.lambdas");

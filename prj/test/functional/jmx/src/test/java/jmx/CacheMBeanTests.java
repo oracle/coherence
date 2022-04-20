@@ -17,7 +17,7 @@ import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Base;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.Serializable;
 

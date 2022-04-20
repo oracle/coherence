@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,13 +8,11 @@ package cache;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.options.Timeout;
-import com.oracle.bedrock.predicate.GreaterThan;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.TypeAssertion;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
-import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -26,8 +24,6 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static java.lang.Boolean.TRUE;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

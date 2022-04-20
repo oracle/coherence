@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -633,7 +633,7 @@ public class BinaryConnection
     /**
      * Binary Request.
      */
-    protected static class BinaryRequest implements Request
+    public static class BinaryRequest implements Request
         {
         /**
          * Construct a BinaryRequest.
@@ -652,6 +652,11 @@ public class BinaryConnection
             m_bufPayLoad     = readBuffer;
             m_lId            = conn.m_cRequests++;
             m_response       = new BinaryResponse(m_bufferManager, m_conn, this);
+            }
+
+        public long getId()
+            {
+            return m_lId;
             }
 
         /**
@@ -783,7 +788,7 @@ public class BinaryConnection
     /**
      * Binary Response.
      */
-    protected static class BinaryResponse implements Response, Disposable
+    public static class BinaryResponse implements Response, Disposable
         {
         /**
          * Construct a Binary Response.
@@ -979,6 +984,11 @@ public class BinaryConnection
         public void dispose()
             {
             m_request.dispose();
+            }
+
+        public BinaryRequest getRequest()
+            {
+            return m_request;
             }
 
         /**

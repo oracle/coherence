@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,11 +10,11 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.coherence.testing.tests.map.AbstractInvocableMapTest;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.InvocableMapTest;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(Parameterized.class)
 public class InvocableMapTests
-        extends InvocableMapTest
+        extends AbstractInvocableMapTest
     {
     @ClassRule
     public static CoherenceClusterResource cluster = new LambdaTestCluster();
@@ -49,9 +49,9 @@ public class InvocableMapTests
             });
         }
 
-    private SessionBuilder m_bldrSession;
+    private final SessionBuilder m_bldrSession;
 
-    private String m_sSerializer;
+    private final String m_sSerializer;
 
     public InvocableMapTests(SessionBuilder bldrSession, String sSerializer)
         {
@@ -59,6 +59,7 @@ public class InvocableMapTests
         m_sSerializer = sSerializer;
         }
 
+    @Override
     protected InvocableMap getInvocableMap()
         {
         ConfigurableCacheFactory cacheFactory = cluster.createSession(m_bldrSession);

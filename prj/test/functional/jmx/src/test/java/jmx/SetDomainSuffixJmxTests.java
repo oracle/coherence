@@ -12,7 +12,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.Registry;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 import java.io.Serializable;
 import java.util.Properties;
 

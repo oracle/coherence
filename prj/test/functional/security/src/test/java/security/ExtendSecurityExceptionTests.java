@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,22 +12,17 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.tangosol.io.pof.PortableException;
 
-import com.tangosol.net.Service;
-
 import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.coherence.component.net.extend.RemoteService;
 import com.tangosol.coherence.component.util.SafeService;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import util.GetExtendPort;
+import com.oracle.coherence.testing.util.GetExtendPort;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.security.PrivilegedExceptionAction;
 
 import java.util.Properties;

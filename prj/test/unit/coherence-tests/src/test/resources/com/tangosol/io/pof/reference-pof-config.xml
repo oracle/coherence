@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">        
+  <user-type-list>
+
+    <user-type>
+      <type-id>0</type-id>
+      <class-name>com.tangosol.io.pof.ConfigurablePofContextTest$PofMaster</class-name>
+      <serializer>
+        <class-name>com.tangosol.io.pof.PortableObjectSerializer</class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>1</type-id>
+      <class-name>com.tangosol.io.pof.ConfigurablePofContextTest$PofChild</class-name>
+      <serializer>
+        <class-name>com.tangosol.io.pof.PortableObjectSerializer</class-name>
+        <init-params>
+          <init-param>
+            <param-type>int</param-type>
+            <param-value>{type-id}</param-value>
+          </init-param>
+        </init-params>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>101</type-id>
+      <class-name>data.pof.PortablePerson</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>201</type-id>
+      <class-name>com.tangosol.util.CompositeKey</class-name>
+    </user-type>
+
+  </user-type-list>
+
+  <enable-references>true</enable-references>    
+</pof-config>

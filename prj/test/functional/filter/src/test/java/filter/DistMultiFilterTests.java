@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,7 +18,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.Filter;
 import com.tangosol.util.filter.EqualsFilter;
 
-import common.TestMapListener;
+import com.oracle.coherence.testing.TestMapListener;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,8 +26,6 @@ import org.junit.Test;
 
 import java.io.DataInput;
 import java.io.IOException;
-
-import util.PartitionedCacheServiceIsBalanced;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 

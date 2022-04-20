@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,14 +10,13 @@ import com.tangosol.io.nio.BinaryMap;
 
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.LocalCache;
-import com.tangosol.net.cache.SerializationCache;
 import com.tangosol.net.partition.ObservableSplittingBackingCache;
 import com.tangosol.net.partition.PartitionSplittingBackingMap;
 
 import com.tangosol.util.SafeHashMap;
 
-import common.AbstractFunctionalTest;
-import common.TestHelper;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.TestHelper;
 
 import java.util.Map;
 
@@ -74,7 +73,7 @@ public class BackingMapTests
         {
         NamedCache cache = getNamedCache("dist-backing-map-default");
         TestHelper.validateBackingMapType(cache, LocalCache.class);
-        TestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
+        CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
         cache.release();
         }
 
@@ -87,7 +86,7 @@ public class BackingMapTests
         {
         NamedCache cache = getNamedCache("dist-backing-map-partitioned");
         TestHelper.validateBackingMapType(cache, ObservableSplittingBackingCache.class);
-        TestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
+        CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
         cache.release();
         }
 
@@ -100,7 +99,7 @@ public class BackingMapTests
          {
          NamedCache cache = getNamedCache("dist-backing-map-non-partitioned");
          TestHelper.validateBackingMapType(cache, LocalCache.class);
-         TestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
+         CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
          cache.release();
          }
 
@@ -112,7 +111,7 @@ public class BackingMapTests
         {
         NamedCache cache = getNamedCache("dist-backup-storage-nio-file");
         TestHelper.validateBackingMapType(cache, LocalCache.class);
-        TestHelper.validateBackupMapType(cache, BinaryMap.class);
+        CacheTestHelper.validateBackupMapType(cache, BinaryMap.class);
         cache.release();
         }
 
@@ -123,7 +122,7 @@ public class BackingMapTests
     public void testCOH7808_backupSchemePartitioned() throws Exception
         {
         NamedCache cache = getNamedCache("dist-backup-storage-partitioned");
-        Map mapBackup = TestHelper.getBackupMap(cache);
+        Map mapBackup = CacheTestHelper.getBackupMap(cache);
         assertEquals( PartitionSplittingBackingMap.class, mapBackup.getClass());
 
         PartitionSplittingBackingMap mapSplitting = (PartitionSplittingBackingMap) mapBackup;

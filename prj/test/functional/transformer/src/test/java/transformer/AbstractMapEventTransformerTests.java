@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,7 +11,6 @@ package transformer;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
@@ -35,7 +34,7 @@ import com.tangosol.util.processor.NumberIncrementor;
 import com.tangosol.util.transformer.ExtractorEventTransformer;
 import com.tangosol.util.transformer.SemiLiteEventTransformer;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.Test;
 

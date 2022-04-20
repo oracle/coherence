@@ -19,7 +19,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.util.stream.Collectors;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -23,18 +23,16 @@ import com.tangosol.net.PartitionedService;
 
 import com.tangosol.util.Base;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
-import common.TestInfrastructureHelper;
+import com.oracle.coherence.testing.TestInfrastructureHelper;
 import org.hamcrest.Matchers;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import util.PartitionedCacheServiceIsDistributionStable;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;

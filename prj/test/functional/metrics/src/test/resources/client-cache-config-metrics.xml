@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -68,7 +68,7 @@
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>common.TestCacheStore</class-name>
+              <class-name>com.oracle.coherence.testing.TestCacheStore</class-name>
             </class-scheme>
           </cachestore-scheme>
           <write-delay>5000</write-delay>
@@ -86,7 +86,7 @@
           </internal-cache-scheme>
           <cachestore-scheme>
             <class-scheme>
-              <class-name>common.TestCacheStore</class-name>
+              <class-name>com.oracle.coherence.testing.TestCacheStore</class-name>
             </class-scheme>
           </cachestore-scheme>
         </read-write-backing-map-scheme>

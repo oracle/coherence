@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,9 +11,9 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.coherence.testing.tests.streams.AbstractDoubleStreamTest;
 import com.tangosol.net.ConfigurableCacheFactory;
 
-import com.tangosol.util.DoubleStreamTest;
 import com.tangosol.util.InvocableMap;
 
 import data.pof.Person;
@@ -34,7 +34,7 @@ import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
  */
 @RunWith(Parameterized.class)
 public class DoubleStreamTests
-        extends DoubleStreamTest
+        extends AbstractDoubleStreamTest
     {
     @ClassRule
     public static CoherenceClusterResource CLUSTER = new LambdaTestCluster();
@@ -59,9 +59,9 @@ public class DoubleStreamTests
             });
         }
 
-    private SessionBuilder m_bldrSession;
+    private final SessionBuilder m_bldrSession;
 
-    private String         m_sSerializer;
+    private final String         m_sSerializer;
 
     public DoubleStreamTests(SessionBuilder bldrSession, String sSerializer, boolean fParallel)
         {
@@ -70,6 +70,7 @@ public class DoubleStreamTests
         m_sSerializer = sSerializer;
         }
 
+    @Override
     protected InvocableMap<String, Person> getPeopleMap()
         {
         ConfigurableCacheFactory client = CLUSTER.createSession(m_bldrSession);

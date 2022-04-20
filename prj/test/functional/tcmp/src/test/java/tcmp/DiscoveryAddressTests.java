@@ -15,9 +15,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
-import common.AbstractFunctionalTest;
-
-import java.util.Properties;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.hamcrest.Matchers;
 

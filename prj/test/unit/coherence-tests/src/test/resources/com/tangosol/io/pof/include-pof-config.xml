@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  http://oss.oracle.com/licenses/upl.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+    <user-type-list>
+
+        <!-- coherence POF user types -->
+        <include>coherence-pof-config.xml</include>
+
+        <user-type>
+            <type-id>1001</type-id>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContextTest$PofChild</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2000</type-id>
+            <class-name>com.tangosol.io.pof.PofNestedBufferTest$NestedType</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2001</type-id>
+            <class-name>com.tangosol.io.pof.PofNestedBufferTest$SimpleType</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2002</type-id>
+            <class-name>com.tangosol.io.pof.reflect.internal.PofAnnotationSerializerTest$Child</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.PofAnnotationSerializer</class-name>
+                <init-params>
+                    <init-param>
+                        <param-type>int</param-type>
+                        <param-value>{type-id}</param-value>
+                    </init-param>
+                    <init-param>
+                        <param-type>class</param-type>
+                        <param-value>{class}</param-value>
+                    </init-param>
+                    <init-param>
+                        <param-type>boolean</param-type>
+                        <param-value>true</param-value>
+                    </init-param>
+                </init-params>
+            </serializer>
+        </user-type>
+    </user-type-list>
+
+    <allow-interfaces>true</allow-interfaces>
+    <allow-subclasses>true</allow-subclasses>
+</pof-config>

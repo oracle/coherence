@@ -32,8 +32,8 @@ import com.tangosol.util.filter.AnyFilter;
 import com.tangosol.util.filter.LessFilter;
 
 
-import common.AbstractFunctionalTest;
-import common.TestMapListener;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.TestMapListener;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

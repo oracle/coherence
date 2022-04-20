@@ -19,7 +19,7 @@ import com.tangosol.internal.net.management.HttpHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.BufferedReader;
 import java.io.Closeable;

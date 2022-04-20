@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,17 +12,7 @@ import com.tangosol.coherence.reporter.Reporter;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 
-import com.tangosol.net.management.Registry;
-
-import com.tangosol.util.Resources;
-
-import common.AbstractFunctionalTest;
-
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-
-import org.junit.rules.TemporaryFolder;
 
 import org.junit.runner.RunWith;
 
@@ -30,14 +20,7 @@ import org.junit.runners.Parameterized;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import java.net.URL;
 
 import java.text.SimpleDateFormat;
 

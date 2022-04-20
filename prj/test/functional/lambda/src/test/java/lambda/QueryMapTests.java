@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,11 +10,11 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.coherence.testing.tests.map.AbstractQueryMapTest;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.QueryMap;
-import com.tangosol.util.QueryMapTest;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import org.junit.runners.Parameterized;
  */
 @RunWith(Parameterized.class)
 public class QueryMapTests
-        extends QueryMapTest
+        extends AbstractQueryMapTest
     {
     @ClassRule
     public static CoherenceClusterResource cluster = new LambdaTestCluster();
@@ -49,9 +49,9 @@ public class QueryMapTests
             });
         }
 
-    private SessionBuilder m_bldrSession;
+    private final SessionBuilder m_bldrSession;
 
-    private String         m_sSerializer;
+    private final String         m_sSerializer;
 
     public QueryMapTests(SessionBuilder bldrSession, String sSerializer)
         {
@@ -59,6 +59,7 @@ public class QueryMapTests
         m_sSerializer = sSerializer;
         }
 
+    @Override
     protected QueryMap getMap()
         {
         ConfigurableCacheFactory cacheFactory = cluster.createSession(m_bldrSession);

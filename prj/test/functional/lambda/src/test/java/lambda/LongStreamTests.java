@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,10 +10,10 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.coherence.testing.tests.streams.AbstractLongStreamTest;
 import com.tangosol.net.ConfigurableCacheFactory;
 
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.LongStreamTest;
 
 import data.pof.Person;
 
@@ -33,7 +33,7 @@ import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
  */
 @RunWith(Parameterized.class)
 public class LongStreamTests
-        extends LongStreamTest
+        extends AbstractLongStreamTest
     {
     @ClassRule
     public static CoherenceClusterResource CLUSTER = new LambdaTestCluster();
@@ -58,9 +58,9 @@ public class LongStreamTests
             });
         }
 
-    private SessionBuilder m_bldrSession;
+    private final SessionBuilder m_bldrSession;
 
-    private String m_sSerializer;
+    private final String m_sSerializer;
 
     public LongStreamTests(SessionBuilder bldrSession, String sSerializer, boolean fParallel)
         {
@@ -69,6 +69,7 @@ public class LongStreamTests
         m_sSerializer = sSerializer;
         }
 
+    @Override
     protected InvocableMap<String, Person> getPeopleMap()
         {
         ConfigurableCacheFactory client = CLUSTER.createSession(m_bldrSession);

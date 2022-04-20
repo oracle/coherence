@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package net;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.is;
 
 import static org.junit.Assert.assertTrue;
 
-import static test.matcher.CoherenceMatchers.hasThreadGroupSize;
+import static com.oracle.coherence.testing.matcher.CoherenceMatchers.hasThreadGroupSize;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 

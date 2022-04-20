@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -19,7 +19,7 @@ import org.osgi.framework.BundleException;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
-import static test.matcher.CoherenceMatchers.hasThreadGroupSize;
+import static com.oracle.coherence.testing.matcher.CoherenceMatchers.hasThreadGroupSize;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;

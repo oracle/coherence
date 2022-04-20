@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,11 +13,11 @@ import com.tangosol.net.cache.BundlingNamedCache;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 
 import com.oracle.coherence.common.base.Blocking;
-import common.AbstractFunctionalTest;
-import common.AbstractTestStore;
-import common.TestBinaryCacheStore;
-import common.TestHelper;
-import common.TestNonBlockingStore;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractTestStore;
+import com.oracle.coherence.testing.TestBinaryCacheStore;
+import com.oracle.coherence.testing.TestHelper;
+import com.oracle.coherence.testing.TestNonBlockingStore;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

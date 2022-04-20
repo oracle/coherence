@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package com.tangosol.io;
 
 
+import com.oracle.coherence.testing.util.BinaryUtils;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
@@ -15,7 +16,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import static util.BinaryUtils.*;
+import static com.oracle.coherence.testing.util.BinaryUtils.*;
 
 
 /**
@@ -173,7 +174,7 @@ public class BinaryDeltaCompressorTest
     * using the passed old and new binary values as the basis for the delta.
     * <p/>
     * This test includes several sub-tests:
-    * <li>padded Binary values (see {@link util.BinaryUtils#invisipad})</li>
+    * <li>padded Binary values (see {@link BinaryUtils#invisipad})</li>
     * <li>alternative ReadBuffer implementations (not Binary, nor derived
     * from AbstractByteArrayReadBuffer)</li>
     *

@@ -10,7 +10,7 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.MapEventFilter;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.coherence.common.base.Blocking;
 

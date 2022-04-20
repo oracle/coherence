@@ -40,7 +40,7 @@ For example, a repository implementation that can be used to store `Person` enti
 
 [source,java]
 ----
-include::../../coherence-core/src/test/java/com/oracle/coherence/repository/PeopleRepository.java[tag=doc]
+include::../../test/functional/repository/src/test/java/repository/PeopleRepository.java[tag=doc]
 ----
 <1> The `getMap` method returns the `NamedMap` that should be used as a backing data store for the repository, which is in this case provided via constructor argument, but could just as easily be injected via CDI
 <2> The `getId` method returns an identifier for a given entity
@@ -484,7 +484,7 @@ To do that, you can create and register a listener that will be notified wheneve
 
 [source,java]
 ----
-include::../../coherence-core/src/test/java/com/oracle/coherence/repository/AbstractRepositoryTest.java[tag=listener]
+include::../../test/functional/repository/src/test/java/repository/AbstractRepositoryTests.java[tag=listener]
 ----
 
 [source,java]
@@ -542,7 +542,7 @@ The asynchronous API also offers callbacks that will be passed the results of th
 
 [source,java]
 ----
-include::../../coherence-core/src/test/java/com/oracle/coherence/repository/AsyncPeopleRepository.java[tag=doc]
+include::../../test/functional/repository/src/test/java/repository/AsyncPeopleRepository.java[tag=doc]
 ----
 <1> The `getMap` method returns the `AsyncNamedMap` that should be used as a backing data store for the repository,
 which

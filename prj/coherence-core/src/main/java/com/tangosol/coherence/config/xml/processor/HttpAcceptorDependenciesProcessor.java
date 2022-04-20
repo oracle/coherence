@@ -107,9 +107,16 @@ public class HttpAcceptorDependenciesProcessor
                                              context.getContextClassLoader(), null);
 
                 // ensure instantiated application is an instance of ResourceConfig
-                if (oResourceConfig instanceof Application)
+                try
                     {
-                    oResourceConfig = ResourceConfig.forApplication((Application) oResourceConfig);
+                    if (oResourceConfig instanceof Application)
+                        {
+                        oResourceConfig = ResourceConfig.forApplication((Application) oResourceConfig);
+                        }
+                    }
+                catch (NoClassDefFoundError e)
+                    {
+                    // ignored
                     }
 
                 if (!clzResource.isAssignableFrom(oResourceConfig.getClass()))

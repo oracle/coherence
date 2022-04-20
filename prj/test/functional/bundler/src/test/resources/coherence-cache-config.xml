@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   http://oss.oracle.com/licenses/upl.
@@ -32,7 +32,7 @@ Cache Configuration used for the bundler test suite.
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestBinaryCacheStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -44,7 +44,7 @@ Cache Configuration used for the bundler test suite.
       <init-params>
         <init-param>
           <param-name>store</param-name>
-          <param-value>common.TestNonBlockingStore</param-value>
+          <param-value>com.oracle.coherence.testing.TestNonBlockingStore</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -117,7 +117,7 @@ Cache Configuration used for the bundler test suite.
 
       <backing-map-scheme>
         <read-write-backing-map-scheme>
-          <class-name>rwbm.EvictingRWBM</class-name>
+          <class-name>com.oracle.coherence.testing.rwbm.EvictingRWBM</class-name>
           <internal-cache-scheme>
             <local-scheme>
               <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
@@ -126,7 +126,7 @@ Cache Configuration used for the bundler test suite.
 
           <cachestore-scheme>
             <class-scheme>
-              <class-name>{store common.TestCacheStore}</class-name>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
             </class-scheme>
             <operation-bundling>
               <bundle-config>
@@ -225,7 +225,7 @@ Cache Configuration used for the bundler test suite.
             </internal-cache-scheme>
             <cachestore-scheme>
               <class-scheme>
-                <class-name>{store common.TestBinaryCacheStore}</class-name>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
               </class-scheme>
               <operation-bundling>
                 <bundle-config/>
@@ -246,7 +246,7 @@ Cache Configuration used for the bundler test suite.
             </internal-cache-scheme>
             <cachestore-scheme>
               <class-scheme>
-                <class-name>{store common.TestBinaryCacheStore}</class-name>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
               </class-scheme>
               <operation-bundling>
                 <bundle-config>
@@ -269,7 +269,7 @@ Cache Configuration used for the bundler test suite.
             </internal-cache-scheme>
             <cachestore-scheme>
               <class-scheme>
-                <class-name>{store common.TestBinaryCacheStore}</class-name>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
               </class-scheme>
               <operation-bundling>
                 <bundle-config>
@@ -296,7 +296,7 @@ Cache Configuration used for the bundler test suite.
             </internal-cache-scheme>
             <cachestore-scheme>
               <class-scheme>
-                <class-name>{store common.TestBinaryCacheStore}</class-name>
+                <class-name>{store com.oracle.coherence.testing.TestBinaryCacheStore}</class-name>
               </class-scheme>
               <operation-bundling>
                 <bundle-config>

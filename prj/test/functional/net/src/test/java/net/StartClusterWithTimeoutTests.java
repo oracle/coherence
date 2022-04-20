@@ -7,7 +7,7 @@
 package net;
 
 import com.oracle.coherence.common.base.Timeout;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

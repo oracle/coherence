@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,9 +11,9 @@ package ssl;
 import com.oracle.coherence.common.net.SocketProvider;
 
 import javax.net.ssl.SSLException;
-import net.EchoClient;
-import net.EchoNIOServer;
-import net.EchoServer;
+import com.oracle.coherence.testing.net.EchoClient;
+import com.oracle.coherence.testing.net.EchoNIOServer;
+import com.oracle.coherence.testing.net.EchoServer;
 import org.junit.Test;
 
 import java.io.IOException;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -746,6 +746,22 @@ public class DefaultCacheServer
     public boolean isMonitorStopped()
         {
         return !m_serviceMon.isMonitoring();
+        }
+
+    /**
+     * Return {@code true} if this {@link DefaultCacheServer} is monitoring services.
+     *
+     * @return {@code true} if this {@link DefaultCacheServer} is monitoring services
+     */
+    public boolean isMonitoringServices()
+        {
+        if (m_serviceMon == null || !m_serviceMon.isMonitoring())
+            {
+            return false;
+            }
+
+        Thread thread = m_serviceMon.getThread();
+        return thread != null && thread.isAlive();
         }
 
     // ----- helpers --------------------------------------------------------

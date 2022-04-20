@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -39,7 +39,7 @@ import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Base;
 
-import common.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import org.junit.Rule;
 import org.junit.rules.TestName;

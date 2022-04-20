@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -32,7 +32,7 @@ import com.tangosol.persistence.bdb.BerkeleyDBEnvironment;
 import com.tangosol.util.ClassHelper;
 
 import com.tangosol.util.NullImplementation;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.File;
 import java.io.IOException;

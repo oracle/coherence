@@ -805,7 +805,7 @@ grant codeBase "file:${test.project.dir}/target/-" {
   permission java.util.PropertyPermission "tangosol.*", "read";
   permission java.util.PropertyPermission "test.*", "read,write";
 
-  // required by various usages of common.TestHelper methods
+  // required by various usages of com.oracle.coherence.testing.TestHelper methods
   permission com.tangosol.net.security.LocalPermission "*";
 
   // allow register of MockHotCacheMBean & MockCWebMBean

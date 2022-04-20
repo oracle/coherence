@@ -9,14 +9,13 @@ package ssl;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.common.net.SocketProvider;
-import net.EchoClient;
-import net.EchoServer;
+import com.oracle.coherence.testing.net.EchoClient;
+import com.oracle.coherence.testing.net.EchoServer;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import util.KeyTool;
+import com.oracle.coherence.testing.util.KeyTool;
 
 import java.io.File;
 import java.io.FileOutputStream;

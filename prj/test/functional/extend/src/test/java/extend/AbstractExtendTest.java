@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,19 +13,13 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.cache.ContinuousQueryCache;
-
 import com.tangosol.util.ClassHelper;
 
-import common.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import java.io.File;
 
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
 import static org.hamcrest.CoreMatchers.is;
 
@@ -216,7 +210,7 @@ public abstract class AbstractExtendTest
      * @param sClassPath   the optional classpath to use for the server being started
      */
     protected static CoherenceClusterMember startCacheServerWithProxy(String sServer, String sProject,
-                                                                      String sBuild, String sCacheConfig, Properties props, boolean fGraceful, String sClassPath)
+            String sBuild, String sCacheConfig, Properties props, boolean fGraceful, String sClassPath)
         {
         CoherenceClusterMember member = startCacheServer(sServer, sProject, sCacheConfig,
             props, fGraceful, sClassPath);

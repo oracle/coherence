@@ -18,7 +18,6 @@ import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
 import com.tangosol.coherence.rest.util.JsonMap;
 import com.tangosol.coherence.rest.util.StaticContent;
 
-import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -31,7 +30,6 @@ import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlElement;
 
-import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
@@ -39,8 +37,8 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MultiplexingMapListener;
 
-import common.AbstractFunctionalTest;
-import common.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import data.pof.Address;
 import data.pof.Person;
@@ -57,7 +55,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -85,7 +82,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import util.SSLSocketProviderBuilderHelper;
+import com.oracle.coherence.testing.util.SSLSocketProviderBuilderHelper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -18,10 +18,9 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.listener.SimpleMapListener;
 import com.tangosol.util.processor.ExtractorProcessor;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.Person;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.Assert;
@@ -30,7 +29,6 @@ import org.junit.Test;
 
 import java.io.File;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -174,7 +172,7 @@ public class ServiceTests
             }
         finally
             {
-            stopCacheServer("testCacheServiceClassLoader-1");
+            stopCacheServer("testCacheServiceClassLoader-1", false);
             CacheFactory.shutdown();
             }
         }

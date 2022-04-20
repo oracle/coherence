@@ -23,7 +23,7 @@ import com.tangosol.util.filter.LessFilter;
 import com.tangosol.util.processor.NumberIncrementor;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.Test;
 

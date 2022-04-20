@@ -83,10 +83,10 @@ import com.tangosol.util.processor.NumberIncrementor;
 
 import com.tangosol.util.transformer.SemiLiteEventTransformer;
 
-import common.CaseInsensitiveComparator;
-import common.TestMapListener;
-import common.TestNCDListener;
-import common.TestSynchronousMapListener;
+import com.oracle.coherence.testing.CaseInsensitiveComparator;
+import com.oracle.coherence.testing.TestMapListener;
+import com.oracle.coherence.testing.TestNCDListener;
+import com.oracle.coherence.testing.TestSynchronousMapListener;
 
 import data.Person;
 import data.Trade;

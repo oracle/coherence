@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -11,7 +11,8 @@ package rwbm;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.tangosol.coherence.config.CustomClasses;
+import com.oracle.coherence.testing.rwbm.EvictingRWBM;
+import com.oracle.coherence.testing.CustomClasses;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.BackingMapManagerContext;
@@ -65,13 +66,13 @@ import com.tangosol.util.processor.NumberIncrementor;
 import com.tangosol.util.processor.PreloadRequest;
 import com.tangosol.util.processor.PropertyManipulator;
 
-import common.AbstractFunctionalTest;
-import common.AbstractTestStore;
-import common.TestBinaryCacheStore;
-import common.TestBinaryCacheStore.ExpireProcessor;
-import common.TestCacheStore;
-import common.TestHelper;
-import common.TestNonBlockingStore;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractTestStore;
+import com.oracle.coherence.testing.TestBinaryCacheStore;
+import com.oracle.coherence.testing.TestBinaryCacheStore.ExpireProcessor;
+import com.oracle.coherence.testing.TestCacheStore;
+import com.oracle.coherence.testing.TestHelper;
+import com.oracle.coherence.testing.TestNonBlockingStore;
 
 import data.Person;
 

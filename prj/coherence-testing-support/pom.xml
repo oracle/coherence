@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -21,81 +21,88 @@
   <name>Coherence Testing Support</name>
 
   <properties>
+    <module.name>com.oracle.coherence.testing</module.name>
     <dependency-check.skip>true</dependency-check.skip>
     <skip.docs>true</skip.docs>
     <skip.sources>true</skip.sources>
   </properties>
 
   <dependencies>
-    <!--
-      This dependency has a scope of provided as the
-      contents of the dependency is shaded into coherence.jar.
-      It also prevents us depending on coherence.jar directly
-      as that will create a circular dependency on this artifact.
-
-      Additionally it resolves breaking the security tests.
-      -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-discovery</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
+      <artifactId>coherence</artifactId>
     </dependency>
 
-    <!--
-      This dependency has a scope of provided as the
-      contents of the dependency is shaded into coherence.jar.
-      It also prevents us depending on coherence.jar directly
-      as that will create a circular dependency on this artifact.
-
-      Additionally it resolves breaking the security tests.
-      -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core</artifactId>
+      <artifactId>coherence-testing-data</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
+
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core</artifactId>
-      <version>${project.version}</version>
-      <type>test-jar</type>
-    </dependency>
-
-    <!--
-      This dependency has a scope of provided as the
-      contents of the dependency is shaded into coherence.jar.
-      It also prevents us depending on coherence.jar directly
-      as that will create a circular dependency on this artifact.
-
-      Additionally it resolves breaking the security tests.
-      -->
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core-components</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-    </dependency>
-
-    <!-- Bedrock -->
-    <dependency>
-      <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-21.06-testing-support</artifactId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
     </dependency>
     <dependency>
       <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-runtime-jacoco</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+    </dependency>
+
+    <!-- JSON-B -->
+    <dependency>
+      <groupId>jakarta.json.bind</groupId>
+      <artifactId>jakarta.json.bind-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JSON-P -->
+    <dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- JAXB -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jersey (optional dependency for http server) -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.inject</groupId>
+      <artifactId>jersey-hk2</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- jackson -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <!-- JUnit 4 -->
@@ -111,16 +118,39 @@
         <classifier>runtime</classifier>
     </dependency>
 
-    <!-- Hamcrest -->
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-    </dependency>
-
     <!-- Mockito -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

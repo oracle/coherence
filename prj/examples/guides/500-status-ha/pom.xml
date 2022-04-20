@@ -120,9 +120,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-21.06-testing-support</artifactId>
-      <version>${oracle.bedrock.version}</version>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
       <scope>test</scope>
     </dependency>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Base;
@@ -49,7 +48,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.coherence.common.internal.util.HeapDump;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.Test;
 
@@ -68,7 +67,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
 

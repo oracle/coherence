@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ import com.tangosol.internal.util.invoke.Lambdas.SerializationMode;
 import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.ValueExtractor;
-import common.SystemPropertyIsolation;
+import com.oracle.coherence.testing.SystemPropertyIsolation;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;

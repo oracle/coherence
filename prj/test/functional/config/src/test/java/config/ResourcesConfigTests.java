@@ -18,7 +18,7 @@ import com.tangosol.net.OperationalContext;
 import com.tangosol.net.cache.CacheLoader;
 import com.tangosol.net.cache.LocalCache;
 
-import common.SystemPropertyIsolation;
+import com.oracle.coherence.testing.SystemPropertyIsolation;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;

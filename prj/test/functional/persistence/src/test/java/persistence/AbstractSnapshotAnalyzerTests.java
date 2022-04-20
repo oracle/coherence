@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -23,14 +23,13 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.persistence.CachePersistenceHelper;
 
-import common.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -61,8 +60,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
-
-import javax.annotation.processing.AbstractProcessor;
 
 import javax.management.MBeanException;
 
