@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -209,6 +209,28 @@ public interface PartitionedService
     */
     public void removePartitionListener(PartitionListener listener);
 
+    /**
+     * Return the current backup strength of the partitioned service.
+     *
+     * @return the current backup strength of the partitioned service
+     */
+    public int getBackupStrength();
+
+    /**
+     * Return the string representing current backup strength.
+     *
+     * @return the string representing current backup strength
+     */
+    public String getBackupStrengthName();
+
+    /**
+     * Return the persistence mode, or {@code null} if persistence
+     * is not configured.
+     *
+     * @return the persistence mode, or {@code null} if persistence
+     *         is not configured
+     */
+    public String getPersistenceMode();
 
     // ----- inner interface: PartitionedAction ---------------------------
 

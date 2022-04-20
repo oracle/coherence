@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -126,6 +126,16 @@ public interface Service
     * @since Coherence 12.2.1
     */
     public ResourceRegistry getResourceRegistry();
+
+    /**
+     * Returns {@code true} if this service is currently suspended.
+     *
+     * @return {@code true} if this service is currently suspended
+     * @see com.tangosol.net.Cluster#suspendService(String)
+     * @see com.tangosol.net.Cluster#resumeService(String)
+     * @since 22.06
+     */
+    public boolean isSuspended();
 
     // ----- inner interface: MemberJoinAction ----------------------------
 

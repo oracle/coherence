@@ -8,10 +8,11 @@
 package com.oracle.bedrock.runtime.coherence.callables;
 
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
+
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService;
-import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
+
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.PartitionedService;
 import com.tangosol.net.Service;
 
 public class GetServiceStatus
@@ -20,7 +21,7 @@ public class GetServiceStatus
     /**
      * The name of the service.
      */
-    private String serviceName;
+    private final String serviceName;
 
 
     /**
@@ -47,15 +48,14 @@ public class GetServiceStatus
         else if (service.isRunning())
             {
             // SafeDistributedCacheServices provide a lot more fidelity!
-            if (service instanceof SafeDistributedCacheService)
+            if (service instanceof PartitionedService)
                 {
-                SafeDistributedCacheService distributedCacheService = (SafeDistributedCacheService) service;
-                PartitionedService partitionedService = (PartitionedService) distributedCacheService.getService();
+                PartitionedService partitionedService = (PartitionedService) service;
 
-                // the service may be initializing and thus we might fail asking it for information
+                // the service may be initializing, and thus we might fail asking it for information
                 try
                     {
-                    int backupStrength = (Integer) partitionedService.getBackupStrength();
+                    int backupStrength = partitionedService.getBackupStrength();
 
                     switch (backupStrength)
                         {
