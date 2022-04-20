@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
+
+import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
 import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
 
@@ -22,9 +24,14 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueManipulator;
 import com.tangosol.util.ValueUpdater;
 
+import com.tangosol.util.extractor.UniversalUpdater;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
+import static com.tangosol.util.extractor.AbstractExtractor.VALUE;
+
 
 /**
  *  MVEL-based ValueManipulator implementation.
@@ -68,7 +75,11 @@ public class MvelManipulator
         ValueExtractor extractor = m_extractor;
         if (extractor == null)
             {
-            m_extractor = extractor = new MvelExtractor(m_sExpr);
+            m_extractor = extractor = MvelHelper.isEnabled()
+                                      ? new MvelExtractor(m_sExpr)
+                                      : new UniversalExtractorBuilder().realize("",
+                                                                                VALUE,
+                                                                                m_sExpr);
             }
         return extractor;
         }
@@ -81,7 +92,9 @@ public class MvelManipulator
         ValueUpdater updater = m_updater;
         if (updater == null)
             {
-            m_updater = updater = new MvelUpdater(m_sExpr);
+            m_updater = updater = MvelHelper.isEnabled()
+                                  ? new MvelUpdater(m_sExpr)
+                                  : new UniversalUpdater(m_sExpr);
             }
         return updater;
         }
