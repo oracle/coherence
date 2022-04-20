@@ -28,8 +28,6 @@
     <module.name>com.oracle.coherence.grpc</module.name>
     <!-- override dependent version -->
     <jakarta.inject.version>1.0</jakarta.inject.version>
-    <!-- TODO: enable once Java 11-related javadoc issues are resolved -->
-    <skip.docs>true</skip.docs>
   </properties>
 
   <dependencies>
@@ -187,6 +185,15 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <reuseForks>false</reuseForks>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven.javadoc.plugin.version}</version>
+        <configuration>
+          <sourcepath>src/main/java;target/generated-sources/protobuf/grpc-java;target/generated-sources/protobuf/java</sourcepath>
         </configuration>
       </plugin>
 
