@@ -119,7 +119,7 @@
      <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
      <maven.jandex.plugin.version>1.0.8</maven.jandex.plugin.version>
      <maven.jar.plugin.version>3.0.0</maven.jar.plugin.version>
-     <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
+     <maven.javadoc.plugin.version>3.4.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
      <maven.moditect.plugin.version>1.0.0-SNAPSHOT</maven.moditect.plugin.version>
      <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
