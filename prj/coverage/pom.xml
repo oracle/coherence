@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ http://oss.oracle.com/licenses/upl.
@@ -206,6 +206,16 @@
           <artifactId>coherence-concurrent</artifactId>
           <version>${project.version}</version>
         </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-bedrock</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-bedrock-testing-support</artifactId>
+          <version>${project.version}</version>
+        </dependency>
 
         <!-- The following modules only contains tests so by using
              test scope the module source is not included in reports
@@ -213,7 +223,31 @@
 
         <dependency>
           <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-bedrock-tests-junit4</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-bedrock-tests-junit5</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}</groupId>
           <artifactId>coherence</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>coherence-core-tests</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>coherence-tests</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
@@ -238,6 +272,12 @@
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
           <artifactId>config</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>core</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
