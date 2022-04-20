@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
+
+import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
 import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
 
@@ -18,6 +20,8 @@ import com.tangosol.util.comparator.SafeComparator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import static com.tangosol.util.extractor.AbstractExtractor.VALUE;
 
 /**
  * Comparator builder that provides a small set of builder methods to
@@ -166,7 +170,9 @@ public class ComparatorBuilder
      */
     protected ValueExtractor createExtractor(String sExpr)
         {
-        return new MvelExtractor(sExpr);
+        return MvelHelper.isEnabled()
+                   ? new MvelExtractor(sExpr)
+                   : new UniversalExtractorBuilder().realize("", VALUE, sExpr);
         }
 
     // ----- data members ---------------------------------------------------

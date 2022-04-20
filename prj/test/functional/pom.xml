@@ -145,6 +145,7 @@
         <module>reporter</module>
         <module>repository</module>
         <module>rest</module>
+        <module>rest-mvel</module>
         <module>rest-netty</module>
         <module>rwbm</module>
         <module>security</module>

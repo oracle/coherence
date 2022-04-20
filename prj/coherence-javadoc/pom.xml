@@ -278,12 +278,6 @@
       <artifactId>microprofile-metrics-api</artifactId>
     </dependency>
 
-    <!-- mvel -->
-    <dependency>
-      <groupId>org.mvel</groupId>
-      <artifactId>mvel2</artifactId>
-    </dependency>
-
     <!-- netty -->
     <dependency>
       <groupId>io.netty</groupId>

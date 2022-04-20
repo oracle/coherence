@@ -191,6 +191,8 @@
     <log4j.version>1.2.17</log4j.version>
     <log4j2.version>2.17.1</log4j2.version>
     <micrometer.version>1.6.6</micrometer.version>
+    <!-- NOTE: mvel dependency removed.
+         version is preserved for backwards compatibility testing in rest-mvel -->
     <mvel.version>2.4.12.Final</mvel.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
@@ -625,13 +627,6 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-api</artifactId>
         <version>${log4j2.version}</version>
-      </dependency>
-
-      <!-- mvel -->
-      <dependency>
-        <groupId>org.mvel</groupId>
-        <artifactId>mvel2</artifactId>
-        <version>${mvel.version}</version>
       </dependency>
 
       <!-- netty -->

@@ -8,17 +8,12 @@ package com.tangosol.coherence.rest.util;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.util.Base;
-
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
-
-import org.mvel2.ParserContext;
 
 /**
  * A collection of utility methods used by Coherence REST.
@@ -105,28 +100,13 @@ public abstract class RestHelper
         }
 
     /**
-     * Return an instance of {@link ParserContext} to be used for evaluation.
+     * Return an instance of ParserContext as an Object to be used for evaluation.
      *
-     * @return an instance of {@link ParserContext} to be used for evaluation
+     * @return an instance of ParserContext as an Object to be used for evaluation
      */
-    public static ParserContext getMvelParserContext()
+    public static Object getMvelParserContext()
         {
-        ClassLoader contextLoader = Base.getContextClassLoader();
-        return s_mapParserContextByLoader.computeIfAbsent(contextLoader, RestHelper::makeParserContext);
+        return MvelHelper.getMvelParserContext();
         }
 
-    private static ParserContext makeParserContext(ClassLoader contextLoader)
-        {
-        ParserContext ctx = new ParserContext();
-        ctx.addPackageImport("java.util");
-        // set the context ClassLoader so that Mvel and ASM uses the correct ClassLoader
-        // for optimizations
-        ctx.getParserConfiguration().setClassLoader(contextLoader);
-        return ctx;
-        }
-
-    /**
-     * Mapping(Weak reference) used to associate a ClassLoader with an instance of ParserContext.
-     */
-    private static WeakHashMap<ClassLoader, ParserContext> s_mapParserContextByLoader = new WeakHashMap<>();
     }
