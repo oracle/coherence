@@ -582,6 +582,12 @@
                       <argument>${top.parent.basedir}/etc/header-2.txt</argument>
                       <argument>-A</argument>
                       <argument>${top.parent.basedir}/etc/header-3.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-4.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-5.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-6.txt</argument>
                       <argument>${copyright.svn}</argument>
                     </arguments>
                   </configuration>
