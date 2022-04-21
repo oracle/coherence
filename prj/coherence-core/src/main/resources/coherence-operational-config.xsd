@@ -892,8 +892,12 @@
                 Used in: cluster-quorum-policy
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType mixed="true">
-            <xsd:attribute name="role" />
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="coherence-string-type">
+              <xsd:attribute name="role" />
+            </xsd:extension>
+          </xsd:complexContent>
         </xsd:complexType>
     </xsd:element>
 
@@ -913,8 +917,12 @@
                 Used in: cluster-quorum-policy
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType mixed="true">
-            <xsd:attribute name="role" />
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="coherence-string-type">
+              <xsd:attribute name="role" />
+            </xsd:extension>
+          </xsd:complexContent>
         </xsd:complexType>
     </xsd:element>
 
@@ -934,8 +942,12 @@
                 Used in: cluster-quorum-policy
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType mixed="true">
-            <xsd:attribute name="role" />
+        <xsd:complexType>
+          <xsd:complexContent>
+            <xsd:extension base="coherence-string-type">
+              <xsd:attribute name="role" />
+            </xsd:extension>
+          </xsd:complexContent>
         </xsd:complexType>
     </xsd:element>
 
