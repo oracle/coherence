@@ -13,7 +13,7 @@ import com.oracle.bedrock.runtime.AssemblyBuilder;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 
 public class CoherenceClusterBuilder
-        extends AbstractAssemblyBuilder<CoherenceClusterMember, CoherenceCluster>
+        extends AbstractAssemblyBuilder<CoherenceClusterMember, CoherenceCluster, CoherenceClusterBuilder>
     {
     @Override
     public CoherenceCluster createAssembly(OptionsByType optionsByType)

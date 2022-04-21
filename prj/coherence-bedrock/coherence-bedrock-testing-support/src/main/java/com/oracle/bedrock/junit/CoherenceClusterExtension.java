@@ -67,7 +67,7 @@ public class CoherenceClusterExtension
     }
 
     @Override
-    protected AssemblyBuilder<CoherenceClusterMember, CoherenceCluster> createBuilder() {
+    protected CoherenceClusterBuilder createBuilder() {
         return new CoherenceClusterBuilder();
     }
 

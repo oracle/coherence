@@ -222,6 +222,11 @@
     </dependency>
     <dependency>
       <groupId>com.oracle.bedrock</groupId>
+      <artifactId>bedrock-testing-support</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-runtime-windows</artifactId>
       <scope>test</scope>
     </dependency>
