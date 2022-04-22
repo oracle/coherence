@@ -20,6 +20,10 @@
   <artifactId>coherence-mock</artifactId>
   <name>Coherence Mock</name>
 
+  <properties>
+    <module.name>com.oracle.coherence.mock</module.name>
+  </properties>
+
   <dependencies>
     <!-- module dependencies -->
     <dependency>
@@ -39,6 +43,12 @@
         <configuration combine.self="override">
           <skip>false</skip>
         </configuration>
+      </plugin>
+
+      <!-- generate module-info.java -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
       <plugin>
