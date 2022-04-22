@@ -24,6 +24,10 @@
     Coherence support for Eclipse MicroProfile Config spec
   </description>
 
+  <properties>
+    <module.name>com.oracle.coherence.mp.config</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -127,6 +131,12 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <!-- generate module-info.java -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
       <!-- run unit tests *Test.java -->
