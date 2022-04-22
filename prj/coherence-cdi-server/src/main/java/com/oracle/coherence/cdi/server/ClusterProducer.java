@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi.server;
-
-import com.tangosol.coherence.component.util.SafeCluster;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -44,6 +42,6 @@ public class ClusterProducer
     @Produces
     public OperationalContext getOperationalContext()
         {
-        return (SafeCluster) CacheFactory.getCluster();
+        return (OperationalContext) CacheFactory.getCluster();
         }
     }

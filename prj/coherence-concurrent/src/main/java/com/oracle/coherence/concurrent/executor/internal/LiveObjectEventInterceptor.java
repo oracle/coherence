@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -31,8 +31,7 @@ import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.EventInterceptor;
 
-import com.tangosol.net.events.internal.ServiceDispatcher;
-
+import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 
@@ -148,9 +147,9 @@ public class LiveObjectEventInterceptor
     @Override
     public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
         {
-        if (dispatcher instanceof ServiceDispatcher)
+        if (dispatcher instanceof PartitionedServiceDispatcher)
             {
-            m_cacheService = (CacheService) ((ServiceDispatcher) dispatcher).getService();
+            m_cacheService = (CacheService) ((PartitionedServiceDispatcher) dispatcher).getService();
             m_cacheService.addMemberListener(this);
             dispatcher.addEventInterceptor(sIdentifier, this);
             }

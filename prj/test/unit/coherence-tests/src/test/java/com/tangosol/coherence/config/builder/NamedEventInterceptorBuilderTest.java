@@ -14,19 +14,19 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.CacheService;
-import com.tangosol.net.PartitionedService;
-import com.tangosol.net.ServiceInfo;
+
+import com.tangosol.net.events.Event;
+import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.NamedEventInterceptor;
+
 import com.tangosol.net.events.annotation.EntryEvents;
+import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.TransferEvents;
-import com.tangosol.net.events.internal.NamedEventInterceptor;
+
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent.Type;
-import com.tangosol.net.events.Event;
-import com.tangosol.net.events.EventInterceptor;
-import com.tangosol.net.events.annotation.Interceptor;
 
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 

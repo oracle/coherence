@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -14,9 +14,9 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.SessionProvider;
 
 import com.tangosol.net.events.CoherenceLifecycleEvent;
+import com.tangosol.net.events.NamedEventInterceptor;
 import com.tangosol.net.events.SessionLifecycleEvent;
 import com.tangosol.net.events.application.LifecycleEvent;
-import com.tangosol.net.events.internal.NamedEventInterceptor;
 import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.MapEvent;

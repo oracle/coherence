@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,7 +9,6 @@ package com.tangosol.internal.net.service.grid;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
 import com.tangosol.persistence.SnapshotArchiverFactory;
-
 
 /**
  * PersistenceDependencies encapsulates the persistence-related configuration
@@ -48,9 +47,9 @@ public interface PersistenceDependencies
     public int getFailureMode();
 
     /**
-     * Return the failure mode (one of the FAILURE_* constants).
+     * Return the persistence mode (one of the MODE_* constants).
      *
-     * @return the failure mode
+     * @return the persistence mode
      */
     public String getPersistenceMode();
 

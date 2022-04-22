@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import java.util.stream.StreamSupport;
  *
  * @deprecated  As Coherence 14.1.1, use {@link ResourceMappingRegistry}.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class CacheMappingRegistry
         implements Iterable<CacheMapping>
     {
@@ -35,7 +36,7 @@ public class CacheMappingRegistry
      */
     public CacheMappingRegistry()
         {
-        m_registry = new SchemeMappingRegistry();
+        f_registry = new SchemeMappingRegistry();
         }
 
     /**
@@ -47,7 +48,7 @@ public class CacheMappingRegistry
      */
     public CacheMappingRegistry(ResourceMappingRegistry registry)
         {
-        m_registry = registry;
+        f_registry = registry;
         }
 
     // ----- Iterable interface ---------------------------------------------
@@ -58,7 +59,7 @@ public class CacheMappingRegistry
     @Override
     public Iterator<CacheMapping> iterator()
         {
-        Stream stream = StreamSupport.stream(m_registry.spliterator(), false).filter(e -> e instanceof CacheMapping);
+        Stream stream = StreamSupport.stream(f_registry.spliterator(), false).filter(e -> e instanceof CacheMapping);
         return stream.iterator();
         }
 
@@ -77,7 +78,7 @@ public class CacheMappingRegistry
         {
         if (findCacheMapping(cacheMapping.getNamePattern()) == null)
             {
-            m_registry.register(cacheMapping);
+            f_registry.register(cacheMapping);
             }
         else
             {
@@ -105,7 +106,7 @@ public class CacheMappingRegistry
      */
     public CacheMapping findCacheMapping(String sCacheName)
         {
-        return m_registry.findCacheMapping(sCacheName);
+        return f_registry.findCacheMapping(sCacheName);
         }
 
     /**
@@ -115,7 +116,7 @@ public class CacheMappingRegistry
      */
     public int size()
         {
-        return (int) StreamSupport.stream(m_registry.spliterator(), false).filter(e -> e instanceof CacheMapping).count();
+        return (int) StreamSupport.stream(f_registry.spliterator(), false).filter(e -> e instanceof CacheMapping).count();
         }
 
     /**
@@ -125,7 +126,7 @@ public class CacheMappingRegistry
      */
     public ResourceMappingRegistry getMappingRegistry()
         {
-        return m_registry;
+        return f_registry;
         }
 
     // ----- data members ---------------------------------------------------
@@ -133,5 +134,5 @@ public class CacheMappingRegistry
     /**
      * The resource mapping registry containing {@link CacheMapping}s and other {@link ResourceMapping}s.
      */
-    private ResourceMappingRegistry m_registry;
+    private final ResourceMappingRegistry f_registry;
     }

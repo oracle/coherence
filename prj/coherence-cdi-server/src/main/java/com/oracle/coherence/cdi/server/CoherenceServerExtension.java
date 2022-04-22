@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -15,7 +15,7 @@ import com.oracle.coherence.cdi.events.EventObserverSupport.TransactionEventHand
 import com.oracle.coherence.cdi.events.EventObserverSupport.TransferEventHandler;
 import com.oracle.coherence.cdi.events.EventObserverSupport.UnsolicitedCommitEventHandler;
 
-import com.tangosol.net.events.internal.NamedEventInterceptor;
+import com.tangosol.net.events.NamedEventInterceptor;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 import com.tangosol.net.events.partition.UnsolicitedCommitEvent;

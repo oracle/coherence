@@ -1,16 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.net.events.internal;
+package com.tangosol.net.events;
 
-import com.tangosol.net.events.Event;
-import com.tangosol.net.events.EventDispatcher;
-import com.tangosol.net.events.EventInterceptor;
-import com.tangosol.net.events.EventDispatcherAwareInterceptor;
-import com.tangosol.net.events.InterceptorMetadataResolver;
 import com.tangosol.net.events.annotation.Events;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.Interceptor.Order;
@@ -29,6 +24,7 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.RegistrationBehavior;
 
 import java.lang.annotation.Annotation;
+
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -162,7 +158,7 @@ public class NamedEventInterceptor<E extends Event<?>>
      * @param behavior       the behavior enacted upon discovering duplicate
      *                       interceptors
      */
-    protected NamedEventInterceptor(String sName, EventInterceptor<E> interceptor, String sCacheName,
+    public NamedEventInterceptor(String sName, EventInterceptor<E> interceptor, String sCacheName,
                                     String sServiceName, Order order, RegistrationBehavior behavior,
                                     Set<Enum> setEventTypes)
         {
@@ -440,6 +436,19 @@ public class NamedEventInterceptor<E extends Event<?>>
             {
             sName = m_sName = sName == null ? anno.identifier() : sName;
             order = anno.order();
+
+            if (setEventTypes.isEmpty())
+                {
+                setEventTypes.addAll(Arrays.asList(anno.entryEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.entryProcessorEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.federatedChangeEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.federatedConnectionEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.federatedPartitionEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.transactionEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.transferEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.unsolicitedEvents()));
+                setEventTypes.addAll(Arrays.asList(anno.cacheLifecycleEvents()));
+                }
             }
 
         // process @Events annotations

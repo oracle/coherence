@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,9 +13,9 @@ import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.NamedEventInterceptor;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.Interceptor.Order;
-import com.tangosol.net.events.internal.NamedEventInterceptor;
 
 import com.tangosol.util.RegistrationBehavior;
 

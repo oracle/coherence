@@ -9,13 +9,13 @@ package com.tangosol.net;
 import com.tangosol.io.pof.reflect.internal.InvocationStrategies.FieldInvocationStrategy;
 import com.tangosol.io.pof.reflect.internal.InvocationStrategy;
 
-import com.tangosol.net.events.annotation.EntryEvents;
-import com.tangosol.net.events.internal.NamedEventInterceptor;
-import com.tangosol.net.events.partition.cache.EntryEvent;
-import com.tangosol.net.events.partition.cache.EntryEvent.Type;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.NamedEventInterceptor;
+import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
+import com.tangosol.net.events.partition.cache.EntryEvent;
+import com.tangosol.net.events.partition.cache.EntryEvent.Type;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import com.tangosol.run.xml.SimpleElement;

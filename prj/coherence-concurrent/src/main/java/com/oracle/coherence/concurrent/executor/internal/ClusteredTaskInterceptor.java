@@ -15,10 +15,6 @@ import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
 
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
-
-import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
-
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -27,6 +23,7 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.Event;
@@ -84,15 +81,14 @@ public class ClusteredTaskInterceptor
      */
     public ClusteredTaskInterceptor(String sServiceName)
         {
-        f_cacheService       = (CacheService) CacheFactory.getCluster().getService(sServiceName);
+        f_cacheService       = (DistributedCacheService) CacheFactory.getCluster().getService(sServiceName);
         f_cMaxBatch          = 20;
         f_cMaxAllowedTasks   = 100;
         f_cOrchestratedTasks = new AtomicInteger(0);
         f_fPendingTasks      = new AtomicBoolean(false);
         f_executorService    = Executors.newSingleThreadExecutor(new DaemonThreadFactory("TaskInterceptorThread-"));
 
-        int cParts = ((PartitionedCache) ((SafeDistributedCacheService) f_cacheService)
-                .getService()).getPartitionCount();
+        int cParts = f_cacheService.getPartitionCount();
 
         f_sequences = new AtomicLongArray(cParts);
 
@@ -708,7 +704,7 @@ public class ClusteredTaskInterceptor
     /**
      * The cache service this interceptor is associated with.
      */
-    protected final CacheService f_cacheService;
+    protected final DistributedCacheService f_cacheService;
 
     /**
      * A map of pending {@link Task}s for each partition that contains sequence to task key mapping.

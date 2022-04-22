@@ -10,6 +10,7 @@ import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.events.Event;
 import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.NamedEventInterceptor;
 import com.tangosol.net.events.internal.AbstractEventDispatcher.DispatcherInterceptorEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 

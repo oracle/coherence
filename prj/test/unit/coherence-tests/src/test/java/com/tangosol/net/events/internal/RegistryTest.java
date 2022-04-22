@@ -17,6 +17,7 @@ import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcher.InterceptorRegistrationEvent;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.NamedEventInterceptor;
 import com.tangosol.net.events.annotation.Interceptor.Order;
 import com.tangosol.net.events.internal.AbstractEventDispatcher.DispatcherInterceptorEvent;
 

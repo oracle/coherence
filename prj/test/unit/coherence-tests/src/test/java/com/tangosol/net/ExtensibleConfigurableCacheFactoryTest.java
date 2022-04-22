@@ -23,8 +23,8 @@ import com.tangosol.net.events.annotation.Interceptor;
 
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.NamedEventInterceptor;
 import com.tangosol.net.events.internal.InterceptorManager;
-import com.tangosol.net.events.internal.NamedEventInterceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.EntryEvent.Type;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
@@ -36,8 +36,6 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
 import com.tangosol.util.ResourceRegistry;
-import com.tangosol.util.SimpleResourceRegistry;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

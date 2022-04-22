@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -13,14 +13,15 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.PartitionedService;
 
+import com.tangosol.net.events.CoherenceDispatcher;
 import com.tangosol.net.events.CoherenceLifecycleEvent;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.SessionDispatcher;
 import com.tangosol.net.events.SessionLifecycleEvent;
+
+import com.tangosol.net.events.application.EventDispatcher;
 import com.tangosol.net.events.application.LifecycleEvent;
-import com.tangosol.net.events.internal.CoherenceEventDispatcher;
-import com.tangosol.net.events.internal.ConfigurableCacheFactoryDispatcher;
-import com.tangosol.net.events.internal.SessionEventDispatcher;
 import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
@@ -360,8 +361,8 @@ public class EventObserverSupport
         @Override
         protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
             {
-            return dispatcher instanceof CoherenceEventDispatcher
-                    && (m_sName == null || ((CoherenceEventDispatcher) dispatcher).getName().equals(m_sName));
+            return dispatcher instanceof CoherenceDispatcher
+                    && (m_sName == null || ((CoherenceDispatcher) dispatcher).getName().equals(m_sName));
             }
 
         // ----- data members -----------------------------------------------
@@ -413,8 +414,8 @@ public class EventObserverSupport
         @Override
         protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
             {
-            return dispatcher instanceof SessionEventDispatcher
-                    && (m_sName == null || ((SessionEventDispatcher) dispatcher).getName().equals(m_sName));
+            return dispatcher instanceof SessionDispatcher
+                    && (m_sName == null || ((SessionDispatcher) dispatcher).getName().equals(m_sName));
             }
 
         // ----- data members -----------------------------------------------
@@ -454,7 +455,7 @@ public class EventObserverSupport
         @Override
         protected boolean isApplicable(com.tangosol.net.events.EventDispatcher dispatcher, String sScopeName)
             {
-            return dispatcher instanceof ConfigurableCacheFactoryDispatcher;
+            return dispatcher instanceof EventDispatcher;
             }
 
         @Override

@@ -265,9 +265,10 @@
                   <name>${module.name}</name>
                   <open>true</open>
                   <exports>
+                    com.tangosol.coherence.transaction.internal to com.oracle.coherence.transaction.core;
+                    com.tangosol.coherence.transaction.internal.* to com.oracle.coherence.transaction.core;
                     !*.internal;
                     !com.oracle.coherence.common.internal*;
-                    !com.tangosol.coherence.transaction.internal*;
                     *;
                   </exports>
                   <addServiceUses>true</addServiceUses>
