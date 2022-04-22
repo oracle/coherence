@@ -82,11 +82,6 @@
       </plugin>
 
       <plugin>
-        <groupId>com.oracle.coherence.moditect</groupId>
-        <artifactId>moditect-maven-plugin</artifactId>
-      </plugin>
-
-      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <executions>
