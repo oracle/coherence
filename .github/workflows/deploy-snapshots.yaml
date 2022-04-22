@@ -10,12 +10,11 @@ name: Deploy to Maven Central
 on:
   workflow_run:
     workflows: ["CI Build"]
-    branches: [ master, v20.12, v14.1.1.0 ]
+    branches: [ master, v20.12, v21.06, v21.12, v14.1.1.0 ]
     types:
     - completed
 
 env:
-  MAVEN_OPTS: "-Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
 
 jobs:
   build:
