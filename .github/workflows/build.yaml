@@ -76,7 +76,7 @@ jobs:
       run: |
         echo "Building and running tests in ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P-modules,${{ matrix.stage }} -Doptional -Dcoherence.SkipLargeMemoryTests=true clean install
+        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules,${{ matrix.stage }} -Doptional -Dcoherence.SkipLargeMemoryTests=true clean install
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence,${{ matrix.stage }} -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true clean verify
 
     # Upload build artifacts for diagnosing failures
