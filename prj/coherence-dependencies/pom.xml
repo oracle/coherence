@@ -3,7 +3,7 @@
   ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -163,7 +163,7 @@
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <jackson.version>2.13.2</jackson.version>
-    <jackson.databind.version>${jackson.version}</jackson.databind.version>
+    <jackson.databind.version>2.13.2.1</jackson.databind.version>
     <jacoco.version>0.8.8</jacoco.version>
     <jaeger.version>1.6.0</jaeger.version>
     <jakarta.activation.version>1.2.2</jakarta.activation.version>
