@@ -24,6 +24,10 @@
     Coherence Micrometer metrics integration
   </description>
 
+  <properties>
+    <module.name>com.oracle.coherence.micrometer</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -98,6 +102,12 @@
             io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
           </pluginArtifact>
         </configuration>
+      </plugin>
+
+      <!-- generate module-info.java -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
       <!-- we deploy this module to a Maven repository -->
