@@ -788,6 +788,22 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-testing-support/tar
   permission java.security.AllPermission;
 };
 
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-bedrock/coherence-bedrock/target/-" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-bedrock/coherence-bedrock-testing-support/target/-" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-bedrock/coherence-bedrock-tests-junit4/target/-" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-bedrock/coherence-bedrock-tests-junit5/target/-" {
+  permission java.security.AllPermission;
+};
+
 grant codeBase "file:${test.project.dir}/target/-" {
   permission java.lang.RuntimePermission "createClassLoader";
   permission java.lang.RuntimePermission "getClassLoader";
