@@ -3,7 +3,7 @@
   ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -322,19 +322,19 @@
               <relocations>
                 <relocation>
                   <pattern>org.objectweb.asm</pattern>
-                  <shadedPattern>com.tangosol.internal.asm</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.rest.internal.asm</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.commons</pattern>
-                  <shadedPattern>com.tangosol.internal.asm.commons</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.rest.internal.asm.commons</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.tree</pattern>
-                  <shadedPattern>com.tangosol.internal.asm.tree</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.rest.internal.asm.tree</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.objectweb.asm.util</pattern>
-                  <shadedPattern>com.tangosol.coherence.asm.util</shadedPattern>
+                  <shadedPattern>com.oracle.coherence.rest.internal.asm.util</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
