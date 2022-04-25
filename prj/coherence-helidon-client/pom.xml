@@ -19,10 +19,6 @@
   <artifactId>coherence-helidon-client</artifactId>
   <name>Coherence Helidon MP gRPC Client</name>
 
-  <properties>
-    <module.name>com.oracle.coherence.helidon-client</module.name>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -39,18 +35,13 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-grpc</artifactId>
       <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>io.helidon.grpc</groupId>
-          <artifactId>io.grpc</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-java-client</artifactId>
       <version>${project.version}</version>
     </dependency>
+
 
     <!-- We could depend on the Helidon re-packaged io.grpc jar but the re-packaged
          version of gRPC does not match the version of Netty being used -->
@@ -95,11 +86,6 @@
     <dependency>
       <groupId>jakarta.enterprise</groupId>
       <artifactId>jakarta.enterprise.cdi-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>jakarta.inject</groupId>
-      <artifactId>jakarta.inject-api</artifactId>
     </dependency>
 
     <!-- test dependencies (this will pull in things like JUnit, Mockito etc...) -->
@@ -169,12 +155,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
-      </plugin>
-
-      <!-- generate module-info.java -->
-      <plugin>
-        <groupId>org.moditect</groupId>
-        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
 
       <!-- run integration tests *Tests.java and *IT.java -->
