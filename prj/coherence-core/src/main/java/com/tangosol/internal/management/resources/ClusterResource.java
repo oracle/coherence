@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
 
@@ -67,6 +67,7 @@ public class ClusterResource
         // child resources
         router.addRoutes(sPathRoot + "/" + CACHES, new CachesResource());
         router.addRoutes(sPathRoot + "/" + EXECUTORS, new ExecutorsResource());
+        router.addRoutes(sPathRoot + "/" + HEALTH, new HealthsResource());
         router.addRoutes(sPathRoot + "/" + JOURNAL + "/{" + JOURNAL_TYPE + "}", new JournalResource());
         router.addRoutes(sPathRoot + "/" + MEMBERS, new ClusterMembersResource());
         router.addRoutes(sPathRoot + "/" + REPORTERS, new ReportersResource());

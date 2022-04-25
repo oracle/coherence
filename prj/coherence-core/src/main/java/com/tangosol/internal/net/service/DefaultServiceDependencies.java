@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service;
 
 import com.tangosol.config.annotation.Injectable;
 
+import com.tangosol.internal.health.HealthCheckDependencies;
 import com.tangosol.io.SerializerFactory;
 
 import com.tangosol.util.Base;
@@ -52,6 +53,7 @@ public class DefaultServiceDependencies
             m_cWorkerThreadsMax              = deps.getWorkerThreadCountMax();
             m_cWorkerThreadsMin              = deps.getWorkerThreadCountMin();
             m_nWorkerPriority                = deps.getWorkerThreadPriority();
+            m_healthCheckDependencies        = deps.getHealthCheckDependencies();
             }
         }
 
@@ -262,6 +264,27 @@ public class DefaultServiceDependencies
         m_nWorkerPriority = nPriority;
         }
 
+    /**
+     * Returns the service's {@link HealthCheckDependencies}.
+     *
+     * @return  the service's {@link HealthCheckDependencies}
+     */
+    public HealthCheckDependencies getHealthCheckDependencies()
+        {
+        return m_healthCheckDependencies;
+        }
+
+    /**
+     * Set the service's {@link HealthCheckDependencies}.
+     *
+     * @param deps  the service's {@link HealthCheckDependencies}
+     */
+    @Injectable("health")
+    public void setHealthCheckDependencies(HealthCheckDependencies deps)
+        {
+        m_healthCheckDependencies = deps;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**
@@ -371,4 +394,9 @@ public class DefaultServiceDependencies
      * The worker threads priority.
      */
     private int m_nWorkerPriority = Thread.NORM_PRIORITY;
+
+    /**
+     * The service health check dependencies.
+     */
+    private HealthCheckDependencies m_healthCheckDependencies;
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
@@ -210,7 +210,8 @@ public class MetricSupport
             // will register the cluster when we see the Node MBean.
             if (sMBeanName.startsWith(Registry.CLUSTER_TYPE)
                     || sMBeanName.startsWith(Registry.MANAGEMENT_TYPE)
-                    || sMBeanName.startsWith(Discovery.DISCOVERY_TYPE))
+                    || sMBeanName.startsWith(Discovery.DISCOVERY_TYPE)
+                    || sMBeanName.startsWith(Registry.HEALTH_TYPE))
                 {
                 return;
                 }

@@ -3,7 +3,7 @@
   ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -124,6 +124,7 @@
         <module>filter</module>
         <module>graal</module>
         <module>guardian</module>
+        <module>health</module>
         <module>http</module>
         <module>http-config</module>
         <module>http-netty</module>
@@ -159,6 +160,27 @@
         <module>util</module>
         <module>xsd</module>
       </modules>
+    </profile>
+
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>true</useModulePath>
+      </properties>
+      <build>
+          <plugins>
+              <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <configuration>
+                <useModulePath>${useModulePath}</useModulePath>
+                <systemProperties>
+                  <com.oracle.bedrock.modules.enabled>true</com.oracle.bedrock.modules.enabled>
+                </systemProperties>
+              </configuration>
+            </plugin>
+          </plugins>
+      </build>
     </profile>
 
     <!-- disable tests in stage1 -->

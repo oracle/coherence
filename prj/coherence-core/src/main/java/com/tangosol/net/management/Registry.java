@@ -2,13 +2,19 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.management;
 
 
+import com.oracle.coherence.common.base.Objects;
 import com.tangosol.net.Member;
+
+import com.tangosol.util.HealthCheck;
+
+import java.util.Collection;
+import java.util.Optional;
 
 
 /**
@@ -91,6 +97,10 @@ import com.tangosol.net.Member;
 * <td> {@link #CONNECTION_TYPE type=Connection},
 *       name=<i>service&nbsp;name</i>,nodeId=<i>cluster&nbsp;node's&nbsp;id</i>,
 *       UUID=<i>connection's&nbsp;UUID&nbsp;</i></td>
+* </tr>
+* <td> HealthCheckMBean </td>
+* <td> {@link #HEALTH_TYPE type=Health},
+*       name=<i>health&nbsp;check&nbsp;name</i>,subType=<i>health&nbsp;check&nbsp;subType</i>,nodeId=<i>cluster&nbsp;node's&nbsp;id</i></td>
 * </tr>
 * </table>
 * </blockquote>
@@ -238,6 +248,110 @@ public interface Registry
      */
     public boolean isExtendedMBeanName();
 
+    /**
+     * Register a {@link HealthCheck}.
+     *
+     * @param healthCheck  the {@link HealthCheck} to register
+     */
+    public void register(HealthCheck healthCheck);
+
+    /**
+     * Unregister a previously registered {@link HealthCheck}.
+     *
+     * @param healthCheck  the {@link HealthCheck} to unregister
+     */
+    public void unregister(HealthCheck healthCheck);
+
+    /**
+     * Returns an immutable collection of the currently
+     * registered {@link HealthCheck health checks}.
+     *
+     * @return an immutable collection of the currently
+     *         registered {@link HealthCheck health checks}
+     */
+    public Collection<HealthCheck> getHealthChecks();
+
+    /**
+     * Return an {@link Optional} containing the {@link HealthCheck} with the
+     * specified name, or an empty {@link Optional} if no {@link HealthCheck}
+     * has been registered with the specified name.
+     *
+     * @param sName  the name of the {@link HealthCheck} to return
+     *
+     * @return an {@link Optional} containing the {@link HealthCheck} with the
+     *         specified name
+     */
+    public default Optional<HealthCheck> getHealthCheck(String sName)
+        {
+        return getHealthChecks().stream()
+                    .filter(h -> Objects.equals(h.getName(), sName))
+                    .findFirst();
+        }
+
+    /**
+     * Returns {@link true} if the all the registered
+     * {@link HealthCheck health checks} are ready.
+     * <p>
+     * Only {@link HealthCheck health checks} that return {@code true}
+     * from their {@link HealthCheck#isMemberHealthCheck()} method
+     * are included in this check.
+     * <p>
+     * The concept of what "ready" means may vary for different
+     * types of {@link HealthCheck}.
+     *
+     * @return {@link true} if the all the registered
+     *         {@link HealthCheck health checks} are ready.
+     */
+    public boolean allHealthChecksReady();
+
+    /**
+     * Returns {@link true} if the all the registered
+     * {@link HealthCheck health checks} are live.
+     * <p>
+     * Only {@link HealthCheck health checks} that return {@code true}
+     * from their {@link HealthCheck#isMemberHealthCheck()} method
+     * are included in this check.
+     * <p>
+     * The concept of what "live" means may vary for different
+     * types of {@link HealthCheck}.
+     *
+     * @return {@link true} if the all the registered
+     *         {@link HealthCheck health checks} are live.
+     */
+    public boolean allHealthChecksLive();
+
+    /**
+     * Returns {@link true} if the all the registered
+     * {@link HealthCheck health checks} are started.
+     * <p>
+     * Only {@link HealthCheck health checks} that return {@code true}
+     * from their {@link HealthCheck#isMemberHealthCheck()} method
+     * are included in this check.
+     * <p>
+     * The concept of what "started" means may vary for different
+     * types of {@link HealthCheck}.
+     *
+     * @return {@link true} if the all the registered
+     *         {@link HealthCheck health checks} are started.
+     */
+    boolean allHealthChecksStarted();
+
+    /**
+     * Returns {@link true} if the all the registered
+     * {@link HealthCheck health checks} are safe.
+     * <p>
+     * Only {@link HealthCheck health checks} that return {@code true}
+     * from their {@link HealthCheck#isMemberHealthCheck()} method
+     * are included in this check.
+     * <p>
+     * The concept of what "safe" means may vary for different
+     * types of {@link HealthCheck}.
+     *
+     * @return {@link true} if the all the registered
+     *         {@link HealthCheck health checks} are safe.
+     */
+    boolean allHealthChecksSafe();
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -341,6 +455,12 @@ public interface Registry
     * PartitionAssignmentStrategy (SimpleStrategyMBean).
     */
     public final static String PARTITION_ASSIGNMENT_TYPE = "type=PartitionAssignment";
+
+    /**
+    * String representing the "type" part of <tt>ObjectName</tt> for the
+    * HealthCheck MBeans.
+    */
+    public final static String HEALTH_TYPE = "type=Health";
 
     /**
     * String representing the "nodeId" key of an <tt>ObjectName</tt> for

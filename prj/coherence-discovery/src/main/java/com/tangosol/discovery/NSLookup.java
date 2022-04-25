@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.discovery;
 
@@ -127,25 +127,7 @@ public class NSLookup
     public static Collection<URL> lookupHTTPManagementURL(String sCluster, SocketAddress socketAddr)
             throws IOException
         {
-        // NSLookup only knows how to deserialize strings, so must request the string form
-        // and then reverse engineer it to the collection of URLs
-
-        Collection<URL> colUrl = new ArrayList<>();
-        String          sURL   = lookup(sCluster, NS_STRING_PREFIX + HTTP_MANAGEMENT_URL, socketAddr, DEFAULT_TIMEOUT);
-
-        // do not use streams as this class needs to be buildable on Java 7
-        // format is "[URL1, URL2, URL3, ...]"
-        String []       asURL  = sURL == null ? null : sURL.split("[\\[,\\] ]+");
-
-        if (asURL != null)
-            {
-            // skip element 0 which will be an empty string
-            for (int i = 1; i < asURL.length; ++i)
-                {
-                colUrl.add(new URL(asURL[i]));
-                }
-            }
-        return colUrl;
+        return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_MANAGEMENT_URL);
         }
 
     /**
@@ -180,15 +162,56 @@ public class NSLookup
     public static Collection<URL> lookupHTTPMetricsURL(String sCluster, SocketAddress socketAddr)
         throws IOException
         {
+        return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_METRICS_URL);
+        }
+
+    /**
+     * Lookup the current health check HTTP connector URLs for current cluster.
+     *
+     * @param socketAddr  Unicast socket address of the coherence cluster node
+     *
+     * @return a collection of URLs which can be used to access a HTTP health check endpoints
+     *
+     * @throws IOException if an I/O error occurs while doing the URL lookup
+     *
+     * @since 22.06
+     */
+    public static Collection<URL> lookupHTTPHealthURL(SocketAddress socketAddr)
+        throws IOException
+        {
+        return lookupHTTPHealthURL(null, socketAddr);
+        }
+
+    /**
+     * Lookup the current health check HTTP connector URLs for a specified cluster.
+     *
+     * @param sCluster    the target cluster
+     * @param socketAddr  Unicast socket address of the coherence cluster node
+     *
+     * @return a collection of URLs which can be used to access a HTTP health check endpoint
+     *
+     * @throws IOException if an I/O error occurs while doing the URL lookup
+     *
+     * @since 22.06
+     */
+    public static Collection<URL> lookupHTTPHealthURL(String sCluster, SocketAddress socketAddr)
+        throws IOException
+        {
+        return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_HEALTH_URL);
+        }
+
+    private static Collection<URL> lookupURL(String sCluster, SocketAddress socketAddr, String sName)
+            throws IOException
+        {
         // NSLookup only knows how to deserialize strings, so must request the string form
         // and then reverse engineer it to the collection of URLs
 
         Collection<URL> colUrl = new ArrayList<>();
-        String          sURL   = lookup(sCluster, NS_STRING_PREFIX + HTTP_METRICS_URL, socketAddr, DEFAULT_TIMEOUT);
+        String          sURL   = lookup(sCluster, sName, socketAddr, DEFAULT_TIMEOUT);
 
         // do not use streams as this class needs to be buildable on Java 7
         // format is "[URL1, URL2, URL3, ...]"
-        String []       asURL  = sURL == null ? null : sURL.split("[\\[,\\] ]+");
+        String [] asURL  = sURL == null ? null : sURL.split("[\\[,\\] ]+");
 
         if (asURL != null)
             {
@@ -1080,6 +1103,13 @@ public class NSLookup
      * @since 12.2.1.4.0
      */
     public static final String HTTP_METRICS_URL = "metrics/HTTPMetricsURL";
+
+    /**
+     * HTTP Health URL lookup name.
+     *
+     * @since 22.06
+     */
+    public static final String HTTP_HEALTH_URL = "health/HTTPHealthURL";
 
     /**
      * Default timeout in milliseconds

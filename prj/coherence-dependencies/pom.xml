@@ -147,6 +147,7 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
     <felix.version>6.0.4</felix.version>
+    <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
     <glassfish.el.version>3.0.1-b08</glassfish.el.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
@@ -330,6 +331,11 @@
         <groupId>org.glassfish</groupId>
         <artifactId>javax.el</artifactId>
         <version>${glassfish.el.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.external</groupId>
+        <artifactId>opendmk_jmxremote_optional_jar</artifactId>
+        <version>${glassfish.jmxmp.version}</version>
       </dependency>
 
       <!-- graal -->

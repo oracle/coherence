@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.http;
 
@@ -11,6 +11,8 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
+
+import com.tangosol.internal.http.ServiceAwareHandler;
 
 import com.tangosol.util.DaemonThreadFactory;
 
@@ -48,6 +50,12 @@ public class JavaHttpServer
     protected void startInternal()
             throws IOException
         {
+        m_mapResourceConfig.values()
+                .stream()
+                .filter(h -> h instanceof ServiceAwareHandler)
+                .map(ServiceAwareHandler.class::cast)
+                .forEach(h -> h.setService(m_serviceParent));
+
         System.setProperty("sun.net.httpserver.nodelay", "true");
         HttpServer server = createHttpServer();
         server.start();

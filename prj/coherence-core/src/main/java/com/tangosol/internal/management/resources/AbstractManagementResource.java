@@ -2,13 +2,14 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.internal.health.HealthCheckWrapperMBean;
 import com.tangosol.internal.http.HttpException;
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.QueryParameters;
@@ -480,7 +481,7 @@ public abstract class AbstractManagementResource
                 Set<ObjectName> setObjNames = convertToObjectNames(setObjectNames);
 
                 Map<String, List<ObjectName>> mapMBeanToName = setObjNames.stream()
-                        .collect(Collectors.groupingBy(o -> o.getKeyProperty(sUniqueKeyProperty)));
+                        .collect(Collectors.groupingBy(o -> getObjectNameKey(o, sUniqueKeyProperty)));
 
                 for (Map.Entry<String, List<ObjectName>> entry : mapMBeanToName.entrySet())
                     {
@@ -514,6 +515,11 @@ public abstract class AbstractManagementResource
                         + queryBuilder.build().getQuery(), e);
             throw new HttpException();
             }
+        }
+
+    private static String getObjectNameKey(ObjectName objectName, String sKey)
+        {
+        return String.valueOf(objectName.getKeyProperty(sKey));
         }
 
     /**
@@ -869,7 +875,7 @@ public abstract class AbstractManagementResource
             Map                 mapChildrenQuery = (Map) oChildValue;
             Filter<String>      attributesFilter = getAttributesFilter(request, mapChildrenQuery);
             EntityMBeanResponse responseEntity   = getResponseEntityForMbean(request, queryBuilder, parentURI,
-                                                                             currentURI, attributesFilter, getLinksFilter(request, mapChildrenQuery), childLinks);
+                    currentURI, attributesFilter, getLinksFilter(request, mapChildrenQuery), childLinks);
 
             if (responseEntity != null)
                 {
@@ -1389,6 +1395,10 @@ public abstract class AbstractManagementResource
         {
         URI    uri   = request.getRequestURI();
         String sPath = uri.getRawPath();
+        if (sPath.endsWith("/"))
+            {
+            sPath = sPath.substring(0, sPath.length() - 1);
+            }
         return uri.resolve(URI.create(sPath));
         }
 
@@ -1616,6 +1626,43 @@ public abstract class AbstractManagementResource
             queryBuilder.withFilter(DOMAIN_PARTITION, getDomainPartitionFilter());
             }
         return queryBuilder;
+        }
+
+    /**
+     * Create a health check QueryBuilder.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the QueryBuilder
+     */
+    protected QueryBuilder createHealthQueryBuilder(HttpRequest request)
+        {
+        String sSubType = request.getFirstPathParameter(SUB_TYPE);
+        String sName    = request.getFirstPathParameter(NAME);
+        return createHealthQueryBuilder(request, sSubType, sName);
+        }
+
+    /**
+     * Create a health check QueryBuilder.
+     *
+     * @param request   the {@link HttpRequest}
+     * @param sSubType  an optional health check subtype
+     * @param sName     an optional health check name
+     *
+     * @return the QueryBuilder
+     */
+    protected QueryBuilder createHealthQueryBuilder(HttpRequest request, String sSubType, String sName)
+        {
+        if (sSubType == null || sSubType.isEmpty())
+            {
+            sSubType = "*";
+            }
+
+        if (sName == null || sName.isEmpty())
+            {
+            sName = "*";
+            }
+        return createQueryBuilder(request).withBaseQuery(String.format(HEALTH_NAMED_QUERY, sSubType, sName));
         }
 
     /**
@@ -2042,6 +2089,17 @@ public abstract class AbstractManagementResource
      */
     public static final String EXECUTOR_QUERY = EXECUTORS_QUERY + ",name=";
 
+    /**
+     * MBean query to filter out all the Health MBeans.
+     */
+    public static final String HEALTH_QUERY = ":" + Registry.HEALTH_TYPE;
+
+    /**
+     * MBean query to filter out all the Health MBeans.
+     */
+    public static final String HEALTH_NAMED_QUERY = ":" + HealthCheckWrapperMBean.MBEAN_NAME_PATTERN;
+
+
     // ------------------------------ Mbean Query patterns ends ---------------------------------
 
     // ------------------------------ Path param constants --------------------------------------
@@ -2091,6 +2149,7 @@ public abstract class AbstractManagementResource
     public static final String OUTGOING         = "outgoing";
     public static final String EXECUTORS        = "executors";
     public static final String STATE            = "state";
+    public static final String HEALTH           = "health";
 
     // ------------------------------ URL constants ends ---------------------------------------------
 
@@ -2112,6 +2171,7 @@ public abstract class AbstractManagementResource
     public static final String TYPE               = "type";
     public static final String NODE_ID            = "nodeId";
     public static final String SERVICE            = "service";
+    public static final String SUB_TYPE           = "subType";
     public static final String TIER_BACK          = "back";
     public static final String TIER               = "tier";
     public static final String OPTIONS            = "options";

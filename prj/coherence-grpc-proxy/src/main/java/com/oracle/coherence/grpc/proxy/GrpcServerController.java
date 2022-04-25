@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -17,9 +17,13 @@ import com.tangosol.application.LifecycleListener;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.net.Cluster;
 import com.tangosol.net.Coherence;
-
+import com.tangosol.net.InetAddressHelper;
+import com.tangosol.net.NameService;
 import com.tangosol.net.events.CoherenceLifecycleEvent;
+
+import com.tangosol.util.HealthCheck;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -27,8 +31,13 @@ import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessServerBuilder;
 
+import javax.naming.NamingException;
+
 import java.io.IOException;
 
+import java.net.InetAddress;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -46,6 +55,7 @@ import java.util.stream.StreamSupport;
  * @author Jonathan Knight  2020.09.24
  */
 public class GrpcServerController
+        implements HealthCheck, NameService.Resolvable
     {
     // ----- constructors ---------------------------------------------------
 
@@ -227,7 +237,7 @@ public class GrpcServerController
      * <p>
      * If disabled then the gRPC proxy will not be started.
      * this method can be used in applications where the
-     * gRPC services are being deploed manually or by some
+     * gRPC services are being deployed manually or by some
      * other mechanism such as CDI.
      *
      * @param fEnabled {@code false} to disable the controller.
@@ -237,7 +247,113 @@ public class GrpcServerController
         m_fEnabled = fEnabled;
         }
 
+    /**
+     * Set the flag indicating whether this server's health check forms
+     * part of the local member's overall health check.
+     *
+     * @param fIsMemberHealth  {@code true} if this server's health check forms
+     *                         part of the local member's overall health check
+     */
+    public void setIsMemberHealth(boolean fIsMemberHealth)
+        {
+        m_fIsMemberHealth = fIsMemberHealth;
+        }
+
+    // ----- NameService.Resolvable API -------------------------------------
+
+    @Override
+    public Object resolve(NameService.RequestContext ctx)
+        {
+        if (m_cluster != null)
+            {
+            InetAddress address  = ctx.getMember().getAddress();
+            String      sAddress = null;
+
+            if (InetAddressHelper.isLocalAddress(address))
+                {
+                sAddress = address.getHostAddress();
+                }
+            else
+                {
+                Collection<InetAddress> colAddress = InetAddressHelper.getRoutableAddresses(null, false, Collections.singletonList(address), false);
+                if (colAddress != null)
+                    {
+                    sAddress = colAddress.stream()
+                            .map(InetAddress::getHostAddress)
+                            .findFirst()
+                            .orElse(null);
+
+                    }
+                }
+            return new Object[]{sAddress, m_server.getPort()};
+            }
+        return null;
+        }
+
+    // ----- HealthCheck API ------------------------------------------------
+
+    @Override
+    public String getName()
+        {
+        return "GrpcServer";
+        }
+
+    @Override
+    public boolean isReady()
+        {
+        return isRunning();
+        }
+
+    @Override
+    public boolean isLive()
+        {
+        return isRunning();
+        }
+
+    @Override
+    public boolean isStarted()
+        {
+        return isRunning();
+        }
+
+    @Override
+    public boolean isSafe()
+        {
+        return isRunning();
+        }
+
+    @Override
+    public boolean isMemberHealthCheck()
+        {
+        return m_fIsMemberHealth;
+        }
+
     // ----- helper methods -------------------------------------------------
+
+    private synchronized void ensureRegistered(Cluster cluster)
+        {
+        if (cluster != null && m_cluster == null)
+            {
+            cluster.getManagement().register(this);
+
+            m_fIsMemberHealth = Config.getBoolean(PROP_HEALTH_ENABLED, true);
+            
+            NameService nameService = cluster.getResourceRegistry().getResource(NameService.class);
+            if (nameService != null)
+                {
+                try
+                    {
+                    nameService.bind(NAME_SERVICE_NAME, this);
+                    }
+                catch (NamingException e)
+                    {
+                    throw Exceptions.ensureRuntimeException(e);
+                    }
+                }
+
+            m_cluster = cluster;
+            }
+        }
 
     private void configure(ServerBuilder<?> serverBuilder, InProcessServerBuilder inProcessServerBuilder)
         {
@@ -296,6 +412,9 @@ public class GrpcServerController
                 case STARTED:
                     if (Config.getBoolean(PROP_ENABLED, true))
                         {
+                        Coherence coherence = event.getCoherence();
+                        Cluster   cluster   = coherence == null ? null : coherence.getCluster();
+                        INSTANCE.ensureRegistered(cluster);
                         INSTANCE.start();
                         }
                     break;
@@ -348,6 +467,17 @@ public class GrpcServerController
      */
     public static final String PROP_ENABLED = "coherence.grpc.enabled";
 
+    /**
+     * The name used to bind to the name service.
+     */
+    public static final String NAME_SERVICE_NAME = "$SYS:GRPC";
+
+    /**
+     * The System property to determine whether this server's health check is part of the
+     * local member's overall health.
+     */
+    public static final String PROP_HEALTH_ENABLED = "coherence.grpc.health.enabled";
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -374,4 +504,14 @@ public class GrpcServerController
      * A {@link CompletableFuture} that will be completed when the server has started.
      */
     private CompletableFuture<Void> m_startFuture = new CompletableFuture<>();
+
+    /**
+     * A flag that is {@code true} if this server is part of the local member's health check.
+     */
+    private boolean m_fIsMemberHealth = true;
+
+    /**
+     * The {@link Cluster} this server is running in.
+     */
+    private Cluster m_cluster;
     }

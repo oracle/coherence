@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.http;
 
@@ -14,6 +14,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpsExchange;
 
+import com.tangosol.net.Service;
+
+import com.tangosol.net.management.MapJsonBodyHandler;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SimpleResourceRegistry;
 
@@ -46,8 +49,16 @@ import java.util.zip.GZIPOutputStream;
  * @since 22.06
  */
 public abstract class BaseHttpHandler
-        implements HttpHandler
+        implements ServiceAwareHandler
     {
+    /**
+     * Create a {@link BaseHttpHandler} with the specified router.
+     */
+    public BaseHttpHandler()
+        {
+        this(new RequestRouter(), MapJsonBodyHandler.ensureMapJsonBodyHandler());
+        }
+
     /**
      * Create a {@link BaseHttpHandler} with the specified router.
      *
@@ -60,9 +71,22 @@ public abstract class BaseHttpHandler
         {
         f_router     = Objects.requireNonNull(router);
         f_bodyWriter = Objects.requireNonNull(bodyWriter);
+        configureRoutes(f_router);
         }
 
-    // ----- HttpHandler methods --------------------------------------------
+    // ----- ServiceAwareHandler methods ------------------------------------
+
+    @Override
+    public void setService(Service service)
+        {
+        m_service = service;
+        }
+
+    @Override
+    public Service getService()
+        {
+        return m_service;
+        }
 
     @Override
     public void handle(HttpExchange exchange)
@@ -123,6 +147,15 @@ public abstract class BaseHttpHandler
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Configure any additional routes.
+     *
+     * @param router  the router to configure
+     */
+    protected void configureRoutes(RequestRouter router)
+        {
+        }
 
     /**
      * Perform any request updates prior to routing.
@@ -488,10 +521,15 @@ public abstract class BaseHttpHandler
     /**
      * The router to route requests to endpoints.
      */
-    private final RequestRouter f_router;
+    protected final RequestRouter f_router;
 
     /**
      * The writer to use to write response bodies.
      */
-    private final BodyWriter<Object> f_bodyWriter;
+    protected final BodyWriter<Object> f_bodyWriter;
+
+    /**
+     * The parent http proxy service.
+     */
+    protected Service m_service;
     }

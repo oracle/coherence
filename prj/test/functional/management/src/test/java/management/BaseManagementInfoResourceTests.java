@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package management;
 
@@ -17,10 +17,12 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 
+import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 
+import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
@@ -40,14 +42,11 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Reads;
 
-import com.tangosol.coherence.component.util.SafeService;
-
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
-
 import com.tangosol.coherence.management.internal.MapProvider;
 
 import com.tangosol.discovery.NSLookup;
 
+import com.tangosol.internal.management.MBeanResponse;
 import com.tangosol.net.management.MapJsonBodyHandler;
 
 import com.tangosol.internal.management.resources.AbstractManagementResource;
@@ -65,7 +64,6 @@ import com.tangosol.util.Binary;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 
 import org.junit.After;
@@ -147,8 +145,8 @@ import static com.tangosol.internal.management.resources.ClusterResource.ROLE;
 import static com.tangosol.internal.management.resources.ClusterResource.TRACING_RATIO;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -156,7 +154,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.isOneOf;
+import static org.hamcrest.Matchers.oneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1383,7 +1381,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCacheMemberUpdate()
         {
-        Map<String, Object> mapMethodValues = new HashMap<String, Object>()
+        Map<String, Object> mapMethodValues = new HashMap<>()
             {{
                put("highUnits",   100005L);
                put("expiryDelay", 60000L);
@@ -1418,7 +1416,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCacheMembersUpdate()
         {
-        Map<String, Object> mapMethodValues = new HashMap<String, Object>()
+        Map<String, Object> mapMethodValues = new HashMap<>()
             {{
                put("highUnits",   100005);
                put("expiryDelay", 60000);
@@ -1445,7 +1443,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testClusterMemberUpdate()
         {
-        Map<String, Object> mapMethodValues = new HashMap<String, Object>()
+        Map<String, Object> mapMethodValues = new HashMap<>()
             {{
                put("loggingLevel",    9L);
                put("resendDelay",     100L);
@@ -1489,7 +1487,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testClusterNodesUpdate()
         {
-        Map<String, Object> mapMethodValues = new HashMap<String, Object>()
+        Map<String, Object> mapMethodValues = new HashMap<>()
             {{
             put("loggingLevel",    9);
             put("resendDelay",     100);
@@ -1876,7 +1874,6 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testServiceStartAndStop()
-            throws IOException
         {
         final String sService    = getScopedServiceName(INVOCATION_SERVICE_NAME);
         List<Map>    listMembers = getMemberList();
@@ -1938,7 +1935,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCache()
         {
-        final String CACHE_NAME = "dist-foo";
+        final String CACHE_NAME = CACHE_NAME_FOO;
 
         f_inClusterInvoker.accept(f_sClusterName, () ->
             {
@@ -2296,7 +2293,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCaches()
         {
-        final String CACHE_NAME = "dist-foo";
+        final String CACHE_NAME = CACHE_NAME_FOO;
 
         f_inClusterInvoker.accept(f_sClusterName, () ->
             {
@@ -2451,7 +2448,7 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapCacheMember : listCacheMembers)
             {
-            assertThat(mapCacheMember.get("tier"), isOneOf("front", "back"));
+            assertThat(mapCacheMember.get("tier"), is(oneOf("front", "back")));
             assertThat(mapCacheMember.get(NAME), is(NEAR_CACHE_NAME));
             assertThat(mapCacheMember.get("size"), instanceOf(Number.class));
             assertThat(mapCacheMember.get("cacheHits"), instanceOf(Number.class));
@@ -2609,7 +2606,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapService : listServices)
             {
             assertThat(mapService.size(), greaterThan(ATTRIBUTES_COUNT));
-            assertThat(mapService.get(NAME), isOneOf(getQuotedScopedServiceList()));
+            assertThat(mapService.get(NAME), is(oneOf(getQuotedScopedServiceList())));
             assertThat(mapService.get("type"), notNullValue());
             assertThat(mapService.get("memberCount"), notNullValue());
             assertThat(((Map<String, Number>) mapService.get("running")).get("true").intValue(), greaterThanOrEqualTo(1));
@@ -2838,7 +2835,7 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testPersistence()
         {
-        String sCacheName = "dist-persistence-test";
+        String sCacheName = PERSISTENCE_CACHE_NAME;
 
         f_inClusterInvoker.accept(f_sClusterName, () ->
             {
@@ -2971,6 +2968,65 @@ public abstract class BaseManagementInfoResourceTests
             }
         }
 
+    @Test
+    public void testHealthChecks() 
+        {
+        WebTarget           target      = getBaseTarget().path(HEALTH);
+        Response            response    = target.request().get();
+        Map<String, Object> mapResponse = readEntity(target, response);
+
+        assertThat(mapResponse, is(notNullValue()));
+
+        List<Map<String, Object>>        list = (List<Map<String, Object>>) mapResponse.get("items");
+        Map<String, Map<String, Object>> map  = new HashMap<>();
+
+        for (Map<String, Object> m : list)
+            {
+            List<String> listName = (List<String>) m.get(NAME);
+            assertThat(listName, is(notNullValue()));
+            assertThat(listName.isEmpty(), is(false));
+            map.put(listName.get(0), m);
+            }
+
+        for (String sService : SERVICES_LIST)
+            {
+            Map<String, Object> mapHealth = map.get(getScopedServiceName(sService));
+            assertThat(mapHealth, is(notNullValue()));
+
+            List<Map<String, Object>> listLink = (List<Map<String, Object>>) mapHealth.get("links");
+            String                    sLink    = listLink.stream()
+                    .filter(m -> "self".equals(m.get("rel")))
+                    .map(m -> String.valueOf(m.get("href")))
+                    .findFirst()
+                    .orElse(null);
+
+            assertThat(sLink, is(notNullValue()));
+
+            Response            responseHealth    = m_client.target(sLink).request().get();
+            Map<String, Object> mapResponseHealth = readEntity(target, responseHealth);
+
+            assertThat(mapResponseHealth, is(notNullValue()));
+
+            List<String> listName = (List<String>) mapResponseHealth.get("name");
+            assertThat(listName, is(notNullValue()));
+            assertThat(listName.isEmpty(), is(false));
+
+            String              sName     = listName.get(0);
+            Map<String, Object> mapParent = map.get(sName);
+            for (Map.Entry<String, Object> entry : mapParent.entrySet())
+                {
+                String sKey = entry.getKey();
+                if (MBeanResponse.PROP_LINKS.equals(sKey))
+                    {
+                    continue;
+                    }
+                assertThat(mapResponseHealth.get(sKey), is(entry.getValue()));
+                }
+            }
+        }
+
+    // ----- Commercial Feature Tests ---------------------------------------------------------------
+
     // ----- utility methods----------------------------------------------------
 
     /**
@@ -2995,11 +3051,6 @@ public abstract class BaseManagementInfoResourceTests
     protected String getQuotedScopedServiceName(String sName)
         {
         return sName;
-        }
-
-    protected String[] getScopedServiceList()
-        {
-        return Arrays.stream(SERVICES_LIST).map(this::getScopedServiceName).toArray(String[]::new);
         }
 
     protected String[] getQuotedScopedServiceList()
@@ -3029,8 +3080,8 @@ public abstract class BaseManagementInfoResourceTests
         // allow status code of 400 since if PersistentManagerMBean is not ready, it returns this code AND resubmits request.
         // (for details search for "double delete" in COH-22169)
         assertThat("validate remove snapshot " + sSnapshotName + " request status code is not NOT_FOUND (404)",
-                   response.getStatus(), isOneOf(Response.Status.OK.getStatusCode(),
-                                                 Response.Status.BAD_REQUEST.getStatusCode()));
+                   response.getStatus(), is(oneOf(Response.Status.OK.getStatusCode(),
+                                                 Response.Status.BAD_REQUEST.getStatusCode())));
 
         response.close();
         ensureServiceStatusIdle();
@@ -3177,7 +3228,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         else if (result instanceof Boolean)
             {
-            return Boolean.valueOf((boolean) value).compareTo((boolean) result) == 0;
+            return Boolean.compare((boolean) value, (boolean) result) == 0;
             }
         throw new IllegalArgumentException("Type of " + value.getClass() + " not supported");
         }
@@ -3240,8 +3291,8 @@ public abstract class BaseManagementInfoResourceTests
 
             String sSelfUrl = getSelfLink(mapCacheMember);
 
-            assertThat(sSelfUrl, isOneOf(sMembersUrl + "/" + mapCacheMember.get(NODE_ID),
-                    sMembersUrl + "/" + mapCacheMember.get(MEMBER)));
+            assertThat(sSelfUrl, is(oneOf(sMembersUrl + "/" + mapCacheMember.get(NODE_ID),
+                    sMembersUrl + "/" + mapCacheMember.get(MEMBER))));
 
             assertThat(mapCacheMember.get("listenerFilterCount"), instanceOf(Number.class));
             assertThat(mapCacheMember.get("listenerKeyCount"), instanceOf(Number.class));
@@ -3273,16 +3324,16 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapCache : listCacheMaps)
             {
             String sCacheName = (String) mapCache.get(NAME);
-            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
+            assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
 
-            if (!sCacheName.equals("dist-persistence-test"))
+            if (!sCacheName.equals(PERSISTENCE_CACHE_NAME))
                 {
                 Object size = mapCache.get("size");
                 assertThat(sCacheName, size, is(instanceOf(Number.class)));
                 assertThat(sCacheName, ((Number) size).intValue(), greaterThan(0));
                 }
 
-            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
+            assertThat(SERVICE, mapCache.get(SERVICE), is(oneOf(getQuotedScopedServiceList())));
             Assert.assertNotNull(NODE_ID, mapCache.get(NODE_ID));
             }
 
@@ -3295,7 +3346,7 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapCache : listCacheMaps)
             {
-            if (!mapCache.get(NAME).equals("dist-persistence-test"))
+            if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME))
                 {
                 assertThat("Cache " + mapCache.get(NAME) + " failed assertion of totalPuts greater than 0", ((Number) mapCache.get("totalPuts")).intValue(), greaterThan(0));
                 }
@@ -3309,8 +3360,8 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapCache : listCacheMaps)
             {
-            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
-            if (mapCache.get(NAME).equals("dist-foo"))
+            assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
+            if (mapCache.get(NAME).equals(CACHE_NAME_FOO))
                 {
                 Object cUnits = mapCache.get("units");
                 assertThat("Cache " + NAME, cUnits, is(instanceOf(Number.class)));
@@ -3318,7 +3369,7 @@ public abstract class BaseManagementInfoResourceTests
                 }
             else
                 {
-                if (!mapCache.get(NAME).equals("dist-persistence-test"))
+                if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME))
                     {
                     assertThat("Cache " + NAME + "assertion", ((Number) mapCache.get("units")).longValue(), is(1L));
                     }
@@ -3333,8 +3384,8 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapCache : listCacheMaps)
             {
-            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
-            if (!mapCache.get(NAME).equals("dist-persistence-test"))
+            assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
+            if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME))
                 {
                 assertThat(((Number) mapCache.get("insertCount")).intValue(), greaterThan(0));
                 }
@@ -3349,7 +3400,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapCache : listCacheMaps)
             {
             assertNull(mapCache.get(NAME));
-            assertThat(mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
+            assertThat(mapCache.get(SERVICE), is(oneOf(getQuotedScopedServiceList())));
             }
         }
 
@@ -3366,7 +3417,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapCache : listCacheMaps)
             {
             String sName = (String) mapCache.get(NAME);
-            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
+            assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
 
             if (sName.equals(sCacheName))
                 {
@@ -3375,7 +3426,7 @@ public abstract class BaseManagementInfoResourceTests
                 assertThat("Validating size of Cache: " + sCacheName, ((Number) size).intValue(), greaterThan(0));
                 }
 
-            assertThat(SERVICE, mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
+            assertThat(SERVICE, mapCache.get(SERVICE), is(oneOf(getQuotedScopedServiceList())));
             Assert.assertNotNull(NODE_ID, mapCache.get(NODE_ID));
             }
 
@@ -3402,7 +3453,7 @@ public abstract class BaseManagementInfoResourceTests
 
         for (Map mapCache : listCacheMaps)
             {
-            assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
+            assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
             if (mapCache.get(NAME).equals(sCacheName))
                 {
                 Object cUnits = mapCache.get("units");
@@ -3426,7 +3477,7 @@ public abstract class BaseManagementInfoResourceTests
         for (Map mapCache : listCacheMaps)
             {
             assertNull(mapCache.get(NAME));
-            assertThat(mapCache.get(SERVICE), isOneOf(getQuotedScopedServiceList()));
+            assertThat(mapCache.get(SERVICE), is(oneOf(getQuotedScopedServiceList())));
             }
         }
 
@@ -3464,7 +3515,7 @@ public abstract class BaseManagementInfoResourceTests
         WebTarget target   = getBaseTarget(client).path(SERVICES).path(sService).path("members").path(SERVER_PREFIX + "-1");
         Response  response = target.request().get();
 
-        assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         Map mapResponse = readEntity(target, response);
         return mapResponse.get(sAttributeName);
         }
@@ -3792,6 +3843,7 @@ public abstract class BaseManagementInfoResourceTests
         OptionsByType commonOptions = AbstractTestInfrastructure.createCacheServerOptions(clsMain.getName(), null, System.getProperties());
 
         AbstractTestInfrastructure.addTestProperties(commonOptions);
+        commonOptions.add(Logging.atMax());
         commonOptions.addAll(opts);
 
         if (!commonOptions.contains(ClassPath.class))
@@ -3875,6 +3927,10 @@ public abstract class BaseManagementInfoResourceTests
         cache = CacheFactory.getCache(NEAR_CACHE_NAME);
         cache.put(1, binValue);
 
+        // fill persistence cache
+        cache = CacheFactory.getCache(PERSISTENCE_CACHE_NAME);
+        cache.put(1, binValue);
+
         return null;
         }
 
@@ -3898,11 +3954,11 @@ public abstract class BaseManagementInfoResourceTests
                 sPrefix = sScope + ":";
                 }
 
+            Eventually.assertDeferred(() -> member.isServiceRunning(sPrefix + SERVICE_NAME), is(true));
             Eventually.assertDeferred(() -> member.getServiceStatus(sPrefix + SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
+            Eventually.assertDeferred(() -> member.isServiceRunning(sPrefix + ACTIVE_SERVICE), is(true));
             Eventually.assertDeferred(() -> member.getServiceStatus(sPrefix + ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE));
-            Eventually.assertDeferred(() -> member.invoke(new CalculateUnbalanced("dist-persistence-test")),
-                                      Matchers.is(0),
-                                      within(3, TimeUnit.MINUTES));
+            Eventually.assertDeferred(() -> member.invoke(IsReady.INSTANCE), is(true), within(3, TimeUnit.MINUTES));
             }
         }
 
@@ -3917,42 +3973,6 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     //--------------------- helper classes ----------------------------
-
-    /**
-     * A RemoteCallable implementation to calculate the number of
-     * unbalanced partitions.
-     */
-    public static class CalculateUnbalanced
-            implements RemoteCallable<Integer>
-        {
-        public CalculateUnbalanced(String sCacheName)
-            {
-            f_sCacheName = sCacheName;
-            }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public Integer call()
-            {
-            try
-                {
-                SafeService      serviceSafe = (SafeService) CacheFactory.getCache(f_sCacheName).getCacheService();
-                PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
-
-                return serviceReal.calculateUnbalanced();
-                }
-            catch (Exception e)
-                {
-                Logger.err(e);
-                throw e;
-                }
-            }
-
-        private final String f_sCacheName;
-        }
-
 
     public static class RemoteStartService implements RemoteRunnable
         {
@@ -4052,6 +4072,11 @@ public abstract class BaseManagementInfoResourceTests
     protected static final String SERVICES = "services";
 
     /**
+     * The health path.
+     */
+    protected static final String HEALTH = "health";
+
+    /**
      * The name of the active persistence service.
      */
     protected static final String ACTIVE_SERVICE = "DistributedCachePersistence";
@@ -4077,6 +4102,16 @@ public abstract class BaseManagementInfoResourceTests
     protected static final String CACHE_NAME = "dist-test";
 
     /**
+     * The name of Distributed cache Foo.
+     */
+    protected static final String CACHE_NAME_FOO = "dist-foo";
+
+    /**
+     * The name of persistence enabled cache.
+     */
+    protected static final String PERSISTENCE_CACHE_NAME = "dist-persistence-test";
+
+    /**
      * The near cache.
      */
     protected static final String NEAR_CACHE_NAME = "near-test";
@@ -4094,13 +4129,13 @@ public abstract class BaseManagementInfoResourceTests
     /**
      * The list of services used by this test class.
      */
-    private static final String[] SERVICES_LIST = {SERVICE_NAME, "ExtendHttpProxyService", PROXY_SERVICE_NAME,
+    private static final String[] SERVICES_LIST = {SERVICE_NAME, PROXY_SERVICE_NAME,
             "DistributedCachePersistence", HttpHelper.getServiceName(), INVOCATION_SERVICE_NAME};
 
     /**
      * The list of caches used by this test class.
      */
-    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", "dist-foo", "dist-persistence-test"};
+    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME};
 
     /**
      * Prefix for the spawned processes.
@@ -4128,7 +4163,7 @@ public abstract class BaseManagementInfoResourceTests
      * The expected number of services on the server, this is very brittle!
      * May be overriden.
      */
-    protected int EXPECTED_SERVICE_COUNT = 5;
+    protected int EXPECTED_SERVICE_COUNT = SERVICES_LIST.length;
 
     /**
      * Name of the Coherence cluster.

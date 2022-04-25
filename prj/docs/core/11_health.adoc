@@ -1,0 +1,212 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Health Check API
+:description: Coherence TLS Enhancements
+:keywords: coherence, SSL, TLS, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// they both serve a purpose, and the docs will look wrong if it is removed.
+== Health Check API
+
+Coherence 22.06 introduced a health check API and corresponding http and management endpoints to allow external
+applications to query the health of a cluster and its members.
+The health API also allows applications to register their own health checks that will then be included in the cluster's health status.
+
+All health checks in Coherence implement a simple interface.
+[source,java]
+.HealthCheck.java
+----
+include::../../coherence-core/src/main/java/com/tangosol/util/HealthCheck.java[tag=doc]
+    }
+----
+
+The methods were specifically chosen to integrate with other systems where Coherence is run, for example Kubernetes, that plug in to similar, "started", "live" and "ready" health checks. The "safe" check is specific to Coherence to be used for controlling use-cases such as rolling upgrades, where it is important to know a cluster is "safe" before rolling the next cluster member.
+
+
+=== Built-in Health Checks
+
+Coherence has a number of health checks that are enabled out of the box.
+Each Coherence service has a corresponding health check.
+Instances of `com.tangosol.net.Coherence` provide a corresponding health check.
+
+==== Service Health Checks
+
+For Coherence services heath checks have the following functionality.
+
+* Started: The `isStarted()` method for a service health check will return `true` if the corresponding service is running.
+
+* Live: The `isLive()` method for a service health check will return `true` if the corresponding service is running.
+
+* Ready: For a service, the `isReady()` method will return `false` until a service becomes "safe", after which the "ready" state will remain `true` until the service is stopped.
+
+* Safe: For all services except a partitioned cache service, the `isSafe()` method will always return `true`.
+
+==== The PartitionedCache Service isSafe Check
+
+The `isSafe()` check for a `PartitionedCache` service performs a number of checks to ensure the service is stable and safe. The main use-cases for the "safe" check are when performing a rolling upgrade, or safely scaling down a cluster.
+
+* The `isSafe()` health check for a `PartitionedCache` service on a non-storage enabled member will return `true` as long as the service is runnning.
+
+* The `isSafe()` health check for a `PartitionedCache` service will return `false` if this member is the only storage enabled member for the service, but does not own all the partitions. This can happen just after all the other members of the cluster have been stopped but the partition recovery and reallocation logic is still in progress, so this member does not yet know it owns all the partitions.
+
+* The `isSafe()` health check for a `PartitionedCache` service will return `false` if the backup count is configured to be greater than zero and the StatusHA state for the service is `endangered`. This behaviour can be changed for individual services in the cache configuration file to allow them to be endangered. A service with a backup count of zero is allowed to be endangered for the safe check.
+
+* The `isSafe()` health check for a `PartitionedCache` service will return `false` if partition redistribution is in progress.
+
+* The `isSafe()` health check for a `PartitionedCache` service will return `false` if recovery from persistent storage is in progress.
+
+
+=== The Health Check API
+
+The health check API is part of the Coherence management APIs and can be accessed from the `com.tangosol.net.management.Registry` class. The `Resistry` is typically obtained from the current Coherence `Cluster` instance.
+
+For example, when Coherence has been started by running `com.tangosol.net.Coherence.main()`, or by using the bootstrap API, the management `Registry` can be obtained as shown below.
+[source,java]
+----
+Cluster  cluster  = Coherence.getInstance().getCluster();
+Registry registry = cluster.getManagement();
+----
+
+==== Obtain All HealthChecks
+
+To obtain a collection of all the registered health checks, the `getHealthChecks()` can be called on the `Registry` instance. This method returns an immutable collection of registered `HealthCheck` instances.
+
+For example, the code below obtains a `Set` of names of `HealthCheck` instances that are not ready:
+[source,java]
+----
+Cluster  cluster  = Coherence.getInstance().getCluster();
+Registry registry = cluster.getManagement();
+Collection<HealthCheck> healthChecks = registry.getHealthChecks();
+Set<String> names = healthChecks.stream()
+        .filter(hc -> !hc.isReady())
+        .map(HealthCheck::getName)
+        .collect(Collectors.toSet());
+----
+
+==== Check all HealthChecks are Ready
+
+The `allHealthChecksReady()` method on the `Registry` instance can be used to determine whether all registered health checks are ready.
+
+[source,java]
+----
+Cluster  cluster  = Coherence.getInstance().getCluster();
+Registry registry = cluster.getManagement();
+boolean ready = registry.allHealthChecksReady();
+----
+
+==== Check all HealthChecks are Started
+
+The `allHealthChecksStarted()` method on the `Registry` instance can be used to determine whether all registered health checks are started.
+
+[source,java]
+----
+Cluster  cluster  = Coherence.getInstance().getCluster();
+Registry registry = cluster.getManagement();
+boolean started = registry.allHealthChecksStarted();
+----
+
+==== Check all HealthChecks are Live
+
+The `allHealthChecksLive()` method on the `Registry` instance can be used to determine whether all registered health checks are live.
+
+[source,java]
+----
+Cluster  cluster  = Coherence.getInstance().getCluster();
+Registry registry = cluster.getManagement();
+boolean live = registry.allHealthChecksLive();
+----
+
+==== Check all HealthChecks are Safe
+
+The `allHealthChecksSafe()` method on the `Registry` instance can be used to determine whether all registered health checks are safe.
+
+[source,java]
+----
+Cluster  cluster  = Coherence.getInstance().getCluster();
+Registry registry = cluster.getManagement();
+boolean safe = registry.allHealthChecksSafe();
+----
+
+=== Application Health Checks
+
+The health check API allows application developers to add custom health checks. This can be useful where an application provides a service that should be used to determine the overall health of a Coherence member. For example, an application could include a web server and should not be considered "ready" until the web server is started.
+
+To register a custom health check, just write an implementation of `com.tangosol.util.HealthCheck`.
+
+The `getName()` method for the custom health check should return a unique name that represents this health check. As health checks are exposed as MBeans the name must be a name that is valid in a JMX MBean object name.
+
+The health check implementation should then use relevant application logic to determine the result to return for each of the methods. Some methods may not apply, in which case they should just return `true`.
+
+It is important to understand how the results of the different health check methods will be used outside the application code. For example, when the application is deployed and managed by an external system that monitors application health. For example, an application deployed into Kubernetes could be killed if it reports not being "live" too many times. An application that does not report being "ready" may be excluded from request routing, etc. An application that is not "safe" will block rolling upgrades or safe scaling of a Coherence cluster.
+
+==== Excluding Custom HealthChecks from Member Health
+
+An application developer may want to add custom health checks for application services, but not have these checks impact the overall Coherence member health. The `HealthCheck` interface has a `isMemberHealthCheck()` method for this purpose. The default implementation of `isMemberHealthCheck()` always returns `true`, so by default all health checks are included in the member's health. To exclude a health check from the member's health, override the `isMemberHealthCheck()` method and return `false`.
+
+
+=== Enabling HTTP Health Checks
+
+The health check http endpoints are enabled when Coherence is run using the bootstrap API, or starting Coherence using `com.tangosol.net.Coherence.main()`. If Coherence is started by any other method, the health check API is still available, but the http endpoints will not be running.
+By default, the http server will bind to an ephemeral port, but this can be changed by setting the `coherence.health.http.port` system property.
+
+For example, running the following command will start Coherence with the health endpoints on http://localhost:6676
+
+[source,bash]
+----
+java -cp coherence.jar -Dcoherence.health.http.port=6676 com.tangosol.net.Coherence
+----
+
+or with Java modules
+[source,bash]
+----
+java -p coherence/target/coherence-14.1.2-0-0-SNAPSHOT.jar -Dcoherence.health.http.port=6676 --module com.oracle.coherence
+----
+
+The `curl` utility can then be used to poll one of the endpoints, for example `/ready`:
+[source,bash]
+----
+curl -i -X GET http://localhost:6676/ready
+----
+
+Which returns output like the following
+[source,bash]
+----
+HTTP/1.1 200 OK
+Date: Tue, 19 Apr 2022 17:59:05 GMT
+Content-type: application/json
+Vary: Accept-Encoding
+Content-length: 0
+X-content-type-options: nosniff
+----
+
+If Coherence the health check had failed, the response code would have been 503, for "service unavailable".
+
+==== Health HTTP Endpoints
+
+The health check http server has a number of endpoints. None of the endpoints return a response body, the status code is all that is provided to check health.
+
+|===
+|Endpoint |Description
+
+| `/started`
+|This endpoint will return a 200 response if all the health checks for the member the request is sent to are "started".
+If one or more health check is not started, a 503 response will be returned.
+
+| `/live`
+|This endpoint will return a 200 response if all the health checks for the member the request is sent to are "live".
+If one or more health check is not live, a 503 response will be returned.
+
+| `/ready`
+|This endpoint will return a 200 response if all the health checks for the member the request is sent to are "ready".
+If one or more health check is not ready, a 503 response will be returned.
+
+| `/safe`
+|This endpoint will return a 200 response if all the health checks for the member the request is sent to are "safe".
+If one or more health check is not safe, a 503 response will be returned.
+|===
+
+

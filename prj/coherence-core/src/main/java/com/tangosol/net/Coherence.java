@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.health.HealthCheckWrapper;
 
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.ScopedUriScopeResolver;
 import com.tangosol.internal.net.SystemSessionConfiguration;
 
@@ -26,6 +27,7 @@ import com.tangosol.net.events.internal.Registry;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.CopyOnWriteMap;
+import com.tangosol.util.HealthCheck;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SimpleResourceRegistry;
@@ -105,6 +107,7 @@ public class Coherence
         f_sName      = config.getName();
         f_registry   = new SimpleResourceRegistry();
         f_dispatcher = new CoherenceEventDispatcher(this);
+        f_health     = new HealthCheckWrapper(new CoherenceHealth(), HealthCheckWrapper.SUBTYPE_COHERENCE);
 
         Registry eventRegistry = new Registry();
         f_registry.registerResource(InterceptorRegistry.class, eventRegistry);
@@ -597,6 +600,9 @@ public class Coherence
 
                 f_mapServer.clear();
                 }
+
+            getCluster().getManagement().unregister(f_health);
+
             f_futureClosed.complete(null);
             }
         catch (Throwable thrown)
@@ -702,6 +708,8 @@ public class Coherence
         Logger.info(() -> isDefaultInstance()
                           ? "Starting default Coherence instance"
                           : "Starting Coherence instance " + f_sName);
+
+        cluster.getManagement().register(f_health);
 
         try
             {
@@ -925,6 +933,9 @@ public class Coherence
                     s_serverSystem = startCCF(SYSTEM_SCOPE, ccfSystem);
                     }
                 }
+
+            registerHealthChecks();
+
             s_sessionSystem = optional;
             }
         else
@@ -943,6 +954,20 @@ public class Coherence
     static void setSystemSession(Optional<Session> optional)
         {
         s_sessionSystem = Objects.requireNonNull(optional);
+        }
+
+    /**
+     * Discover and register any {@link HealthCheck} instances using the {@link ServiceLoader}.
+     */
+    private void registerHealthChecks()
+        {
+        ServiceLoader<HealthCheck>           loader    = ServiceLoader.load(HealthCheck.class);
+        com.tangosol.net.management.Registry registry = getCluster().getManagement();
+        for (HealthCheck healthCheck : loader)
+            {
+            Logger.info("Registering discovered HealthCheck: " + healthCheck.getName());
+            registry.register(healthCheck);
+            }
         }
 
     /**
@@ -1110,6 +1135,55 @@ public class Coherence
             }
         }
 
+    // ----- Health ---------------------------------------------------------
+
+    /**
+     * The Coherence instance's health check.
+     */
+    private class CoherenceHealth
+            implements HealthCheck
+        {
+        @Override
+        public String getName()
+            {
+            if (Coherence.this.isDefaultInstance())
+                {
+                return "Default";
+                }
+            return Coherence.this.getName();
+            }
+
+        @Override
+        public boolean isMemberHealthCheck()
+            {
+            return true;
+            }
+
+        @Override
+        public boolean isReady()
+            {
+            return Coherence.this.isStarted();
+            }
+
+        @Override
+        public boolean isLive()
+            {
+            return Coherence.this.isStarted();
+            }
+
+        @Override
+        public boolean isStarted()
+            {
+            return Coherence.this.isStarted();
+            }
+
+        @Override
+        public boolean isSafe()
+            {
+            return Coherence.this.isStarted();
+            }
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -1195,6 +1269,11 @@ public class Coherence
      * The map of named {@link Session} instances.
      */
     private final Map<String, Session> f_mapSession = new CopyOnWriteMap<>(new HashMap<>());
+
+    /**
+     * This {@link Coherence} instance {@link CoherenceHealth health check MBean}.
+     */
+    private final HealthCheckWrapper f_health;
 
     /**
      * A flag indicating whether this {@link Coherence} instance is started.

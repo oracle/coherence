@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <!--
 Cache configuration for system-level services.
@@ -30,6 +30,7 @@ It will be loaded automatically when CDI integration is used.
       <scheme-name>config</scheme-name>
       <service-name>Config</service-name>
       <thread-count>0</thread-count>
+      <backup-count system-property="coherence.config.backupcount"/>
       <backing-map-scheme>
         <local-scheme>
           <unit-calculator>BINARY</unit-calculator>
@@ -39,7 +40,32 @@ It will be loaded automatically when CDI integration is used.
         <environment>default-${coherence.config.persistence on-demand}</environment>
       </persistence>
       <autostart>true</autostart>
+      <health>
+        <allow-endangered system-property="coherence.config.service.allow.endangered"/>
+      </health>
     </distributed-scheme>
+
+    <proxy-scheme>
+      <service-name>HealthHttpProxy</service-name>
+      <acceptor-config>
+        <http-acceptor>
+          <class-name>com.tangosol.coherence.http.JavaHttpServer</class-name>
+          <socket-provider system-property="coherence.health.http.provider"/>
+          <local-address>
+            <address system-property="coherence.health.http.address"/>
+            <port    system-property="coherence.health.http.port">0</port>
+          </local-address>
+          <resource-config>
+            <context-path>/</context-path>
+            <instance>
+              <class-name>com.tangosol.internal.health.HealthHttpHandler</class-name>
+            </instance>
+          </resource-config>
+          <auth-method system-property="coherence.health.http.auth"/>
+        </http-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
+    </proxy-scheme>
   </caching-schemes>
 
 </cache-config>

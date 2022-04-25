@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.http;
 
@@ -153,6 +153,19 @@ public class RequestRouter
     public Endpoint addPost(String sPath, RequestHandler handler)
         {
         return addRoute(HttpMethod.POST, sPath, handler);
+        }
+
+    /**
+     * Add a PUT endpoint.
+     *
+     * @param sPath    the request path
+     * @param handler  the PUT request handler
+     *
+     * @return the added {@link Endpoint}
+     */
+    public Endpoint addPut(String sPath, RequestHandler handler)
+        {
+        return addRoute(HttpMethod.PUT, sPath, handler);
         }
 
     /**

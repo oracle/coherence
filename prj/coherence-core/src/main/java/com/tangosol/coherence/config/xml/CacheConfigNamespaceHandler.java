@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml;
 
@@ -65,6 +65,7 @@ import com.tangosol.coherence.config.xml.processor.DeltaCompressorProcessor;
 import com.tangosol.coherence.config.xml.processor.ElementCalculatorProcessor;
 import com.tangosol.coherence.config.xml.processor.EvictionPolicyProcessor;
 import com.tangosol.coherence.config.xml.processor.ExecutorProcessor;
+import com.tangosol.coherence.config.xml.processor.HealthProcessor;
 import com.tangosol.coherence.config.xml.processor.HttpAcceptorDependenciesProcessor;
 import com.tangosol.coherence.config.xml.processor.InitParamProcessor;
 import com.tangosol.coherence.config.xml.processor.InitParamsProcessor;
@@ -226,6 +227,7 @@ public class CacheConfigNamespaceHandler
         registerProcessor(ElementCalculatorProcessor.class);
         registerProcessor(ExecutorProcessor.class);
         registerProcessor(EvictionPolicyProcessor.class);
+        registerProcessor(HealthProcessor.class);
         registerProcessor(HttpAcceptorDependenciesProcessor.class);
         registerProcessor(InitiatorDependenciesProcessor.class);
         registerProcessor(InitParamProcessor.class);

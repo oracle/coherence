@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package management;
 
@@ -12,6 +12,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
+import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
@@ -20,7 +21,6 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.internal.net.management.HttpHelper;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -60,19 +60,29 @@ public class MultiClusterInSingleProcessTests
     // ----- Overridden tests -----------------------------------------------
 
     @Test
+    @Override
     public void testJmxJfr()
         {
         // skipped
         }
 
     @Test
+    @Override
     public void testServiceStartAndStop()
         {
         // skipped
         }
 
     @Test
+    @Override
     public void testServiceMemberStartAndStop()
+        {
+        // skipped
+        }
+
+    @Test
+    @Override
+    public void testHealthChecks()
         {
         // skipped
         }
@@ -117,6 +127,6 @@ public class MultiClusterInSingleProcessTests
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(HttpHelper.getServiceName())), is(ServiceStatus.RUNNING), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(SERVICE_NAME)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(ACTIVE_SERVICE)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
-        Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new CalculateUnbalanced("dist-persistence-test")), is(0), within(5, TimeUnit.MINUTES));
+        Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, IsReady.INSTANCE), is(true), within(5, TimeUnit.MINUTES));
         }
     }
