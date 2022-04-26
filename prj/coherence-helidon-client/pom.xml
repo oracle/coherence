@@ -19,6 +19,10 @@
   <artifactId>coherence-helidon-client</artifactId>
   <name>Coherence Helidon MP gRPC Client</name>
 
+  <properties>
+    <module.name>com.oracle.coherence.helidon.client</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -51,11 +55,13 @@
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
       <artifactId>grpc-netty</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -155,6 +161,41 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
+      <!-- generate module-info.java -->
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+              <jdepsExtraArgs>
+                <extraArg>--multi-release=11</extraArg>
+              </jdepsExtraArgs>
+              <exclusions>
+                <exclusion>
+                  <groupId>com.google.code.findbugs</groupId>
+                  <artifactId>jsr305</artifactId>
+                </exclusion>
+              </exclusions>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- run integration tests *Tests.java and *IT.java -->
