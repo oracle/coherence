@@ -3,7 +3,7 @@
   ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -36,7 +36,7 @@
 
     <junit.jupiter.version>5.7.0</junit.jupiter.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
+    <oracle.bedrock.version>6.0.0-RC1</oracle.bedrock.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
