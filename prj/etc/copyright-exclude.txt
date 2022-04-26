@@ -26,6 +26,7 @@ gradle-wrapper.properties
 .idea/
 LicensedObject.java
 login.config
+Makefile
 MANIFEST.MF
 manifest.mf
 /META-INF/services/
