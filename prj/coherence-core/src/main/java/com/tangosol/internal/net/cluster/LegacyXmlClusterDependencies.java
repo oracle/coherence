@@ -2,10 +2,11 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.cluster;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.net.InetAddresses;
 
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
@@ -62,8 +63,7 @@ import java.net.UnknownHostException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -109,16 +109,11 @@ public class LegacyXmlClusterDependencies
 
         // establish a default ParameterResolver based on the System properties
         // COH-9952 wrap the code in privileged block for upper-stack products
-        ScopedParameterResolver resolver = AccessController.doPrivileged(new PrivilegedAction<ScopedParameterResolver>()
-            {
-            public ScopedParameterResolver run()
-                {
-                return new ScopedParameterResolver(
-                        new ChainedParameterResolver(
-                                new SystemPropertyParameterResolver(),
-                                new SystemEnvironmentParameterResolver()));
-                }
-            });
+        ScopedParameterResolver resolver = AccessController
+                .doPrivileged((PrivilegedAction<ScopedParameterResolver>) () ->
+                                        new ScopedParameterResolver(new ChainedParameterResolver(
+                                                new SystemPropertyParameterResolver(),
+                                                new SystemEnvironmentParameterResolver())));
 
         // finish configuring the dependencies
         dependencies.setResourceRegistry(resourceRegistry);
@@ -136,7 +131,7 @@ public class LegacyXmlClusterDependencies
             ctxClusterConfig.ensureNamespaceHandler("", handler);
             }
 
-        // add the ParameterizedBuilderRegistry as a Cookie so we can look it up
+        // add the ParameterizedBuilderRegistry as a Cookie, so we can look it up
         ctxClusterConfig.addCookie(ParameterizedBuilderRegistry.class, getBuilderRegistry());
         ctxClusterConfig.addCookie(DefaultClusterDependencies.class, this);
 
@@ -447,17 +442,19 @@ public class LegacyXmlClusterDependencies
         // <enabled>
         String sShutdownOption = xmlCat.getSafeElement("enabled").getString();
         int    nShutdownOption = getShutdownHookOption();
-        if (sShutdownOption.equals("force") || sShutdownOption.equals("true"))
+        switch (sShutdownOption)
             {
-            nShutdownOption = ClusterDependencies.SHUTDOWN_FORCE;
-            }
-        else if (sShutdownOption.equals("none") || sShutdownOption.equals("false"))
-            {
-            nShutdownOption = ClusterDependencies.SHUTDOWN_NONE;
-            }
-        else if (sShutdownOption.equals("graceful"))
-            {
-            nShutdownOption = ClusterDependencies.SHUTDOWN_GRACEFUL;
+            case "force":
+            case "true":
+                nShutdownOption = ClusterDependencies.SHUTDOWN_FORCE;
+                break;
+            case "none":
+            case "false":
+                nShutdownOption = ClusterDependencies.SHUTDOWN_NONE;
+                break;
+            case "graceful":
+                nShutdownOption = ClusterDependencies.SHUTDOWN_GRACEFUL;
+                break;
             }
         setShutdownHookOption(nShutdownOption);
         }
@@ -654,7 +651,7 @@ public class LegacyXmlClusterDependencies
 
         // <use-filters>
         List<String> listFilter = new SafeLinkedList();
-        listFilter.addAll(parseFilterList(xmlCat));
+        listFilter.addAll(LegacyXmlConfigHelper.parseFilterList(xmlCat));
         setFilterList(listFilter);
         }
 
@@ -663,7 +660,7 @@ public class LegacyXmlClusterDependencies
      *
      * @param xml  the authorized-hosts xml element
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     private void configureAuthorizedHosts(XmlElement xml)
         {
         XmlElement xmlCat = xml.getSafeElement("authorized-hosts");
@@ -717,25 +714,25 @@ public class LegacyXmlClusterDependencies
      *
      * @param xml  the services xml element
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     private void configureServices(XmlElement xml)
         {
-        Map<String, String>       mapService       = new LiteMap();
-        Map<String, List<String>> mapServiceFilter = new LiteMap();
+        Map<String, String>       mapService       = new LiteMap<>();
+        Map<String, List<String>> mapServiceFilter = new LiteMap<>();
         for (Iterator iter = xml.getSafeElement("services").getElements("service"); iter.hasNext(); )
             {
             XmlElement xmlService = (XmlElement) iter.next();
             String     sType      = xmlService.getSafeElement("service-type").getString();
             String     sComponent = xmlService.getSafeElement("service-component").getString();
             mapService.put(sType, sComponent);
-            mapServiceFilter.put(sType, parseFilterList(xmlService));
+            mapServiceFilter.put(sType, LegacyXmlConfigHelper.parseFilterList(xmlService));
 
             // TODO - COH-5021 For now the ServiceTemplateMap is not used and it
             // is empty
             // Service.Template template = new Service.Template(sType,
             // XmlHelper.transformInitParams(new SimpleElement(
             // "config"), xmlService.getSafeElement("init-params")));
-            // String sType, XmlElement xmlInitparam;
+            // String sType, XmlElement xmlInitParam;
             }
         setServiceMap(mapService);
         // setServiceTemplateMap(mapServiceTemplate);
@@ -747,10 +744,10 @@ public class LegacyXmlClusterDependencies
      *
      * @param xml  the filters xml element
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     private void configureFilters(XmlElement xml)
         {
-        Map<String, WrapperStreamFactory> mapFilter = new LiteMap();
+        Map<String, WrapperStreamFactory> mapFilter = new LiteMap<>();
         for (Iterator iter = xml.getSafeElement("filters").getElements("filter"); iter.hasNext(); )
             {
             XmlElement xmlFilter = (XmlElement) iter.next();
@@ -767,13 +764,13 @@ public class LegacyXmlClusterDependencies
      */
     private void configureSnapshotArchivers(XmlElement xml)
         {
-        Map<String, SnapshotArchiverFactory> mapSnapshotArchivers = new LiteMap();
-        for (Iterator iter = xml.getSafeElement("snapshot-archivers").getElementList().iterator(); iter.hasNext(); )
+        Map<String, SnapshotArchiverFactory> mapSnapshotArchivers = new LiteMap<>();
+        for (Object o : xml.getSafeElement("snapshot-archivers").getElementList())
             {
-            XmlElement                          xmlSnapshotArchivers = (XmlElement) iter.next();
-            String                              sName = xmlSnapshotArchivers.getSafeAttribute("id").getString();
+            XmlElement xmlSnapshotArchivers = (XmlElement) o;
+            String     sName                = xmlSnapshotArchivers.getSafeAttribute("id").getString();
 
-            ConfigurableSnapshotArchiverFactory factory              = new ConfigurableSnapshotArchiverFactory();
+            ConfigurableSnapshotArchiverFactory factory = new ConfigurableSnapshotArchiverFactory();
             factory.setConfig(xmlSnapshotArchivers);
             mapSnapshotArchivers.put(sName, factory);
             }
@@ -786,9 +783,10 @@ public class LegacyXmlClusterDependencies
      *
      * @param xml  the address-providers xml element
      */
+    @SuppressWarnings("rawtypes")
     private void configureAddressProviders(XmlElement xml)
         {
-        Map<String, AddressProviderFactory> mapAddressProvider = new LiteMap();
+        Map<String, AddressProviderFactory> mapAddressProvider = new LiteMap<>();
 
         // construct a "cluster-discovery" address provider based on WKA or MC address; see TcpInitiator.onDependencies
         AddressProviderFactory factoryCluster;
@@ -831,6 +829,7 @@ public class LegacyXmlClusterDependencies
                 }
             else
                 {
+                @SuppressWarnings("unused")
                 AddressProviderBuilder builder =
                     AddressProviderBuilderProcessor.newLocalAddressProviderBuilder(xmlLocalAddress);
                 }
@@ -938,12 +937,12 @@ public class LegacyXmlClusterDependencies
      *
      * @return the WKA address provider, or null if WKA is not enabled
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("ConstantConditions")
     private AddressProvider createWkaAddressProvider(XmlElement xml)
         {
         AddressProviderFactory factory  = LegacyXmlConfigHelper.parseAddressProvider(xml, getAddressProviderMap());
-
         AddressProvider        provider = new SubstitutionAddressProvider(factory.createAddressProvider(null), getGroupPort());
+
         if (!(provider instanceof Set))
             {
             CompositeAddressProvider providerComposite = new CompositeAddressProvider();
@@ -952,47 +951,44 @@ public class LegacyXmlClusterDependencies
             provider = providerComposite;
             }
 
-        return ((Set) provider).isEmpty() ? null : provider;
+        Set<?> set = (Set<?>) provider;
+        if (set.isEmpty())
+            {
+            boolean fRetry = Boolean.getBoolean(PROP_WKA_RESOLVE_RETRY);
+            if (fRetry)
+                {
+                long nTimeout = Long.parseLong(System.getProperty(PROP_WKA_TIMEOUT,
+                                        String.valueOf(DEFAULT_WKA_RESOLVE_TIMEOUT.toMillis())));
+                long nRetry   = Long.parseLong(System.getProperty(PROP_WKA_RESOLVE_FREQUENCY,
+                                        String.valueOf(DEFAULT_WKA_RESOLVE_FREQUENCY.toMillis())));
+                long nStart = System.currentTimeMillis();
+
+                Logger.info("Failed to resolve WKA addresses, retrying for " + nTimeout + " millis");
+                while (set.isEmpty() && nTimeout > (System.currentTimeMillis() - nStart))
+                    {
+                    Base.sleep(nRetry);
+                    }
+                }
+            }
+
+        return ((Set<?>) provider).isEmpty() ? null : provider;
         }
 
     /**
      * Ensure that the authorized host filter
      *
-     * NOTE: Do not create this this unless there are authorized hosts or else Coherence will
+     * NOTE: Do not create this unless there are authorized hosts or else Coherence will
      * reject the member during a join.
      */
     private void ensureAuthorizedHostFilter()
         {
-        Filter filter = getAuthorizedHostFilter();
+        Filter<?> filter = getAuthorizedHostFilter();
         if (filter == null)
             {
             setAuthorizedHostFilter(new InetAddressRangeFilter());
             }
         }
 
-    /**
-     * Parse the filter list specified by use-filters.
-     *
-     * @param xml  the use-filters element
-     *
-     * @return the list of filter names
-     */
-    @SuppressWarnings("unchecked")
-    private List<String> parseFilterList(XmlElement xml)
-        {
-        List<String> list = new ArrayList<>();
-
-        for (Iterator iter = xml.getSafeElement("use-filters").getElements("filter-name"); iter.hasNext(); )
-            {
-            String sName = ((XmlElement) iter.next()).getString();
-            if (sName.length() > 0)
-                {
-                list.add(sName);
-                }
-            }
-
-        return list.size() == 0 ? Collections.EMPTY_LIST : list;
-        }
 
     /**
      * Resolve the group address string.
@@ -1053,7 +1049,7 @@ public class LegacyXmlClusterDependencies
         {
         Base.checkNotNull(sName, "Edition name");
 
-        String asNames[] =
+        String[] asNames =
             {
             "DC", "RTC", "SE", "CE", "EE", "GE"
             };
@@ -1069,7 +1065,7 @@ public class LegacyXmlClusterDependencies
         }
 
     /**
-     * Translate the mode name.into an integer
+     * Translate the mode name into an integer
      *
      * @param sName  mode name
      *
@@ -1078,7 +1074,7 @@ public class LegacyXmlClusterDependencies
     private int translateModeName(String sName)
         {
         Base.checkNotNull(sName, "Mode ");
-        String names[] = {"eval", "dev", "prod"};
+        String[] names = {"eval", "dev", "prod"};
         for (int i = 0; i < names.length; i++)
             {
             if (names[i].equalsIgnoreCase(sName))
@@ -1094,6 +1090,7 @@ public class LegacyXmlClusterDependencies
      *
      * @return true if a WKA list is configured
      */
+    @SuppressWarnings("unchecked")
     private boolean isWkaPresent(XmlElement xmlConfig)
         {
         if (xmlConfig != null)
@@ -1125,4 +1122,36 @@ public class LegacyXmlClusterDependencies
 
         return false;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The name of the System property to configure maximum time to attempt to resolve wka addresses.
+     * Set this system property to a number of milliseconds.
+     */
+    public static final String PROP_WKA_TIMEOUT = "coherence.wka.dns.resolution.timeout";
+
+    /**
+     * System property for configuring the frequency to attempt dns resolution of wka addresses.
+     * Set this system property to a number of milliseconds.
+     */
+    public static final String PROP_WKA_RESOLVE_FREQUENCY = "coherence.wka.dns.resolution.frequency";
+
+    /**
+     * The System property to set to block WKA resolution until at least one WKA address has been resolved.
+     * <p>
+     * The default behaviour is not to retry.
+     */
+    public static final String PROP_WKA_RESOLVE_RETRY = "coherence.wka.dns.resolution.retry";
+
+    /**
+     * The default timeout to wait for resolution of at least one WKA address.
+     */
+    public static final Duration DEFAULT_WKA_RESOLVE_TIMEOUT = Duration.ofMinutes(6);
+
+    /**
+     * The default retry frequency to attempt resolution of at least one WKA address.
+     */
+    public static final Duration DEFAULT_WKA_RESOLVE_FREQUENCY = Duration.ofMillis(10);
+
     }
