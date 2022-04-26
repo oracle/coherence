@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -158,13 +158,17 @@ public class MemberEvent
     */
     public String toString()
         {
-        Member member = getMember();
+        Member member      = getMember();
+        String sSourceName = getSource() == null
+                                ? "<unknown source>"
+                                : getSource().getClass().getName();
+
         return new StringBuffer("MemberEvent{Member=")
           .append(member == null ? "Local" : String.valueOf(member.getId()))
           .append(' ')
           .append(DESCRIPTIONS[getId()])
           .append(' ')
-          .append(getSource().getClass().getName())
+          .append(sSourceName)
           .append('}')
           .toString();
         }
