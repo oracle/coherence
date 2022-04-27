@@ -82,9 +82,11 @@ export BUILDAH_FORMAT=docker
 # Build the entrypoint command line.
 ENTRY_POINT="java"
 
+CLASSPATH="/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*"
+
 # The command line
 CMD=""
-CMD="${CMD} -cp /coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*"
+CMD="${CMD} -cp ${CLASSPATH}"
 CMD="${CMD} -Dcoherence.extend.port=${PORT_EXTEND}"
 CMD="${CMD} -Dcoherence.grpc.enabled=true"
 CMD="${CMD} -Dcoherence.grpc.port=${PORT_GRPC}"
@@ -94,18 +96,20 @@ CMD="${CMD} -Dcoherence.metrics.http.enabled=true"
 CMD="${CMD} -Dcoherence.metrics.http.port=${PORT_METRICS}"
 CMD="${CMD} -Dcoherence.health.http.port=${PORT_HEALTH}"
 CMD="${CMD} -Dcoherence.ttl=0"
-CMD="${CMD} -Dcoherence.tracing.ratio=1"
+CMD="${CMD} -XshowSettings:all"
+CMD="${CMD} -XX:+PrintCommandLineFlags"
+CMD="${CMD} -XX:+PrintFlagsFinal"
 CMD="${CMD} @/args/jvm-args.txt"
 
 # The health check command line
 HEALTH_CMD=""
-HEALTH_CMD="${HEALTH_CMD} -cp /coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*"
+HEALTH_CMD="${HEALTH_CMD} -cp ${CLASSPATH}"
 HEALTH_CMD="${HEALTH_CMD} com.tangosol.util.HealthCheckClient"
 HEALTH_CMD="${HEALTH_CMD} http://127.0.0.1:${PORT_HEALTH}/ready"
 
 # Build the environment variable options
 ENV_VARS=""
-ENV_VARS="${ENV_VARS} -e COH_MAIN_CLASS=com.tangosol.net.Coherence"
+ENV_VARS="${ENV_VARS} -e COH_MAIN_CLASS=${MAIN_CLASS}"
 ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_TYPE=const"
 ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_PARAM=0"
 ENV_VARS="${ENV_VARS} -e JAEGER_SERVICE_NAME=coherence"
@@ -128,10 +132,10 @@ CREATED=$(date)
 # param 4: the image name
 common_image(){
   # Create the container from the base image, setting the architecture and O/S
-  buildah from --arch "${1}" --os "${2}" --name "container-${1}" ${3}
+  buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}"
 
   # Add the configuration, entrypoint, ports, env-vars etc...
-  buildah config --healthcheck-start-period 10s --healthcheck-interval 10s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" container-${1}
+  buildah config --healthcheck-start-period 10s --healthcheck-interval 10s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" "container-${1}"
 
   buildah config --arch "${1}" --os "${2}" \
       --entrypoint "[\"${ENTRY_POINT}\"]" --cmd "${CMD} ${MAIN_CLASS}" \

@@ -7,9 +7,9 @@
 
 package com.oracle.coherence.docker;
 
-import com.tangosol.io.ExternalizableLite;
+import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.util.InvocableMap;
 
@@ -31,20 +31,8 @@ public class TestProcessor<K, V>
     @Override
     public Boolean process(InvocableMap.Entry<K, V> entry)
         {
-        CacheFactory.log("Entering InfoProcessor");
-        boolean fResult;
-        try
-            {
-            Class.forName("org.junit.Test");
-            fResult = true;
-            }
-        catch (Throwable t)
-            {
-            t.printStackTrace();
-            fResult = false;
-            }
-        CacheFactory.log("Leaving InfoProcessor - result=" + fResult);
-        return fResult;
+        Logger.info("Executing " + getClass());
+        return true;
         }
 
     @Override

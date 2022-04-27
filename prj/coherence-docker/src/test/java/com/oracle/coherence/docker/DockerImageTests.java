@@ -12,6 +12,7 @@ import com.oracle.bedrock.runtime.Platform;
 
 import com.oracle.bedrock.runtime.options.Argument;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
@@ -62,7 +63,6 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
 import java.net.URI;
-import java.net.URL;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -114,7 +114,8 @@ public class DockerImageTests
         {
         verifyTestAssumptions();
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
-                .withImagePullPolicy(NeverPull.INSTANCE)))
+                .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
             }
@@ -127,6 +128,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))
                 .withExposedPorts(EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -156,6 +158,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))
                 .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -165,21 +168,21 @@ public class DockerImageTests
         }
 
     @Test
-    void shouldAddToClasspath() throws Exception
+    void shouldAddToClasspath()
         {
         verifyTestAssumptions();
 
-        // locate config to put test-classes/ on the classpath
-        URL urlConfig = getClass().getResource("/client-cache-config.xml");
-        assertThat(urlConfig, is(notNullValue()));
+        File fileBuild = MavenProjectFileUtils.locateBuildFolder(getClass());
+        assertThat(fileBuild, is(notNullValue()));
 
-        File   fileTestClasses = new File(urlConfig.toURI()).getParentFile();
+        File   fileTestClasses = new File(fileBuild, "test-classes");
         String sLibs           = fileTestClasses.getAbsolutePath();
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
                 .withImagePullPolicy(NeverPull.INSTANCE)
-                .withExposedPorts(EXTEND_PORT)
-                .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)))
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))
+                .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)
+                .withExposedPorts(EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
 
@@ -203,6 +206,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))
                 .withExposedPorts(MANAGEMENT_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -225,6 +229,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))
                 .withExposedPorts(METRICS_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -247,6 +252,7 @@ public class DockerImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogsExtension.builder().build("Storage")))
                 .withExposedPorts(GRPC_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
