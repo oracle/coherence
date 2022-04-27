@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence;
@@ -15,6 +15,8 @@ import com.oracle.bedrock.runtime.AbstractAssembly;
 import com.oracle.bedrock.runtime.Assembly;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
+import com.oracle.bedrock.runtime.coherence.callables.IsReady;
+import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceStorageEnabled;
 import com.oracle.bedrock.runtime.concurrent.options.Caching;
 import com.oracle.bedrock.util.Trilean;
@@ -47,6 +49,39 @@ public class CoherenceCluster
         super(optionsByType);
         }
 
+    /**
+     * Returns {@code true} if all members of the cluster pass the ready health check.
+     *
+     * @return {@code true} if all members of the cluster pass the ready health check
+     */
+    public boolean isReady()
+        {
+        for (CoherenceClusterMember member : this)
+            {
+            if (!member.invoke(IsReady.INSTANCE))
+                {
+                return false;
+                }
+            }
+        return true;
+        }
+
+    /**
+     * Returns {@code true} if all members of the cluster pass the "safe" health check.
+     *
+     * @return {@code true} if all members of the cluster pass the "safe" health check
+     */
+    public boolean isSafe()
+        {
+        for (CoherenceClusterMember member : this)
+            {
+            if (!member.invoke(IsSafe.INSTANCE))
+                {
+                return false;
+                }
+            }
+        return true;
+        }
 
     /**
      * Obtains the current number of {@link CoherenceClusterMember}s in the underlying

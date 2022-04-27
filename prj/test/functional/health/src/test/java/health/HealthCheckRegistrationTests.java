@@ -45,7 +45,6 @@ public class HealthCheckRegistrationTests
         s_coherence = Coherence.clusterMember(config)
                 .start()
                 .get(5, TimeUnit.MINUTES);
-        System.out.println();
         }
 
     @BeforeEach

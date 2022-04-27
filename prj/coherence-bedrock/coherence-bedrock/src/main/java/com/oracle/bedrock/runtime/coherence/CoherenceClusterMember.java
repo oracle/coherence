@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence;
@@ -19,6 +19,7 @@ import com.oracle.bedrock.runtime.java.container.ContainerClassLoader;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.Headless;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
+import com.oracle.bedrock.runtime.java.options.JavaModules;
 import com.oracle.bedrock.runtime.java.options.SystemProperties;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.remote.RemotePlatform;
@@ -137,10 +138,7 @@ public interface CoherenceClusterMember
      * @param <V>        the type of the value class
      * @return a proxy to the {@link NamedCache}
      */
-    <K, V> NamedCache<K, V> getCache(
-            String cacheName,
-            Class<K> keyClass,
-            Class<V> valueClass);
+    <K, V> NamedCache<K, V> getCache(String cacheName, Class<K> keyClass, Class<V> valueClass);
 
 
     /**
@@ -188,11 +186,7 @@ public interface CoherenceClusterMember
      * @param <V>         the type of the value class
      * @return a proxy to the {@link NamedCache}
      */
-    <K, V> NamedCache<K, V> getCache(
-            String sessionName,
-            String cacheName,
-            Class<K> keyClass,
-            Class<V> valueClass);
+    <K, V> NamedCache<K, V> getCache(String sessionName, String cacheName, Class<K> keyClass, Class<V> valueClass);
 
 
     /**
@@ -244,12 +238,8 @@ public interface CoherenceClusterMember
      * @param <V>           the type of the value class
      * @return a proxy to the {@link NamedCache}
      */
-    <K, V> NamedCache<K, V> getCache(
-            String coherenceName,
-            String sessionName,
-            String cacheName,
-            Class<K> keyClass,
-            Class<V> valueClass);
+    <K, V> NamedCache<K, V> getCache( String coherenceName, String sessionName, String cacheName,
+            Class<K> keyClass, Class<V> valueClass);
 
 
     /**
@@ -403,8 +393,7 @@ public interface CoherenceClusterMember
 
 
         @Override
-        public Class<? extends CoherenceClusterMember> getImplementationClass(
-                Platform platform,
+        public Class<? extends CoherenceClusterMember> getImplementationClass(Platform platform,
                 OptionsByType optionsByType)
             {
             return CoherenceCacheServer.class;
@@ -412,9 +401,7 @@ public interface CoherenceClusterMember
 
 
         @Override
-        public void onLaunching(
-                Platform platform,
-                OptionsByType optionsByType)
+        public void onLaunching(Platform platform, OptionsByType optionsByType)
             {
             // automatically define the default cache server as the default class
             optionsByType.addIfAbsent(ClassName.of(MAIN_CLASSNAME));
@@ -425,80 +412,28 @@ public interface CoherenceClusterMember
             // cache servers are always headless
             optionsByType.add(Headless.enabled());
 
-            SystemProperties systemProperties = optionsByType.get(SystemProperties.class);
-
-            systemProperties = systemProperties.addIfAbsent(SystemProperty.of(LocalHost.PROPERTY,
-                                                                              new SystemProperty.ContextSensitiveValue()
-                                                                                  {
-                                                                                  @Override
-                                                                                  public Object resolve(
-                                                                                          String name,
-                                                                                          Platform platform,
-                                                                                          OptionsByType optionsByType)
-                                                                                      {
-                                                                                      if (platform
-                                                                                              instanceof RemotePlatform)
-                                                                                          {
-                                                                                          InetAddress inetAddress =
-                                                                                                  platform.getAddress();
-
-                                                                                          if (inetAddress == null)
-                                                                                              {
-                                                                                              return null;    // property doesn't exist
-                                                                                              }
-                                                                                          else
-                                                                                              {
-                                                                                              return inetAddress.getHostAddress();
-                                                                                              }
-                                                                                          }
-                                                                                      else
-                                                                                          {
-                                                                                          return null;    // property doesn't exist
-                                                                                          }
-
-                                                                                      }
-                                                                                  }));
-
-            systemProperties = systemProperties.addIfAbsent(SystemProperty.of(MachineName.PROPERTY,
-                                                                              new SystemProperty.ContextSensitiveValue()
-                                                                                  {
-                                                                                  @Override
-                                                                                  public Object resolve(
-                                                                                          String name,
-                                                                                          Platform platform,
-                                                                                          OptionsByType optionsByType)
-                                                                                      {
-                                                                                      if (platform
-                                                                                              instanceof RemotePlatform)
-                                                                                          {
-                                                                                          return platform.getName();
-                                                                                          }
-                                                                                      else
-                                                                                          {
-                                                                                          return null;
-                                                                                          }
-                                                                                      }
-                                                                                  }));
+            SystemProperties properties = optionsByType.get(SystemProperties.class)
+                    .addIfAbsent(SystemProperty.of(LocalHost.PROPERTY,GetLocalHostProperty.INSTANCE))
+                    .addIfAbsent(SystemProperty.of(MachineName.PROPERTY, GetMemberProperty.INSTANCE));
 
             // update the system properties as it may have been modified
-            optionsByType.add(systemProperties);
+            optionsByType.add(properties);
+
+            JavaModules javaModules = optionsByType.get(JavaModules.class);
+
+            optionsByType.add(javaModules.adding("com.oracle.coherence"));
             }
 
 
         @Override
-        public void onLaunch(
-                Platform platform,
-                OptionsByType optionsByType)
+        public void onLaunch(Platform platform, OptionsByType optionsByType)
             {
             // there's nothing to do before launching the application
             }
 
 
         @Override
-        public void onLaunched(
-                Platform platform,
-                CoherenceClusterMember member,
-                OptionsByType optionsByType)
+        public void onLaunched(Platform platform, CoherenceClusterMember member, OptionsByType optionsByType)
             {
             // nothing to do after launch
             }
@@ -514,33 +449,84 @@ public interface CoherenceClusterMember
 
 
         @Override
-        public CompletableFuture<Void> destroy(
-                ContainerBasedJavaApplicationLauncher
-                        .ControllableApplication application)
+        public CompletableFuture<Void> destroy(ContainerBasedJavaApplicationLauncher.ControllableApplication application)
             {
-            RemoteCallable<Void> callable = new RemoteCallableStaticMethod<>(MAIN_CLASSNAME,
-                                                                             "closeAll");
+            RemoteCallable<Void> callable = new RemoteCallableStaticMethod<>(MAIN_CLASSNAME, "closeAll");
 
             return application.submit(callable);
             }
 
 
         @Override
-        public void configure(
-                ContainerClassLoader containerClassLoader,
-                PipedOutputStream pipedOutputStream,
-                PipedInputStream pipedInputStream,
-                OptionsByType optionsByType)
+        public void configure(ContainerClassLoader containerClassLoader, PipedOutputStream pipedOutputStream,
+                PipedInputStream pipedInputStream, OptionsByType optionsByType)
             {
-            ClassName className = optionsByType.getOrSetDefault(ClassName.class,
-                                                                ClassName.of(MAIN_CLASSNAME));
+            ClassName className = optionsByType.getOrSetDefault(ClassName.class, ClassName.of(MAIN_CLASSNAME));
 
-            ContainerBasedJavaApplicationLauncher.configureRemoteChannel(containerClassLoader,
-                                                                         pipedOutputStream,
-                                                                         pipedInputStream,
-                                                                         className.getName());
+            ContainerBasedJavaApplicationLauncher.configureRemoteChannel(containerClassLoader, pipedOutputStream,
+                    pipedInputStream, className.getName());
             }
         }
+
+
+    // ----- inner class: GetMemberProperty ---------------------------------
+
+    /**
+     * A {@link SystemProperty.ContextSensitiveValue} to set the Coherence member name.
+     */
+    class GetMemberProperty
+            implements SystemProperty.ContextSensitiveValue
+        {
+        @Override
+        public Object resolve(String name, Platform platform, OptionsByType optionsByType)
+            {
+            if (platform instanceof RemotePlatform)
+                {
+                return platform.getName();
+                }
+            else
+                {
+                return null;
+                }
+            }
+
+        private static GetMemberProperty INSTANCE = new GetMemberProperty();
+        }
+
+    // ----- inner class: GetLocalHostProperty ------------------------------
+
+    /**
+     * A {@link SystemProperty.ContextSensitiveValue} to set the Coherence member name.
+     */
+    class GetLocalHostProperty
+            implements SystemProperty.ContextSensitiveValue
+        {
+        @Override
+        public Object resolve(String name, Platform platform, OptionsByType optionsByType)
+            {
+            if (platform instanceof RemotePlatform)
+                {
+                InetAddress inetAddress = platform.getAddress();
+
+                if (inetAddress == null)
+                    {
+                    return null;    // property doesn't exist
+                    }
+                else
+                    {
+                    return inetAddress.getHostAddress();
+                    }
+                }
+            else
+                {
+                return null;    // property doesn't exist
+                }
+            }
+
+        private static GetLocalHostProperty INSTANCE = new GetLocalHostProperty();
+        }
+
+    // ----- inner class: StartCoherence ------------------------------------
 
     /**
      * A {@link RemoteCallable} that will start a {@link Coherence} cluster member

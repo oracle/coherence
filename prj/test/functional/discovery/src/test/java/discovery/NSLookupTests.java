@@ -2,14 +2,14 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package discovery;
 
-import com.oracle.bedrock.deferred.Deferred;
+import com.oracle.bedrock.deferred.DeferredCallable;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
-import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
@@ -23,27 +23,30 @@ import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.oracle.bedrock.util.Capture;
 import com.tangosol.discovery.NSLookup;
 
+import com.tangosol.net.management.MBeanConnector;
 import com.tangosol.util.Base;
-
-import java.io.IOException;
 
 import java.net.InetSocketAddress;
 
 import java.util.Set;
 
 import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import org.junit.Rule;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Tests for NSLookup helper class.
@@ -56,12 +59,13 @@ public class NSLookupTests
      * Test the behavior of {@link NSLookup#lookupJMXServiceURL(java.net.SocketAddress)} ()},
      */
     @Test
-    public void testLookup()
+    public void testLookup() throws Exception
         {
         final LocalPlatform         platform     = LocalPlatform.get();
         final String                hostName     = platform.getLoopbackAddress().getHostAddress();
         final AvailablePortIterator ports        = platform.getAvailablePorts();
-        final int                   nClusterPort = ports.next();
+        final Capture<Integer>      nClusterPort = new Capture<>(ports);
+        final Capture<Integer>      nRMIPort     = new Capture<>(ports);
 
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder();
 
@@ -76,68 +80,38 @@ public class NSLookupTests
                                SystemProperty.of("coherence.management", "dynamic"),
                                JmxProfile.enabled(),
                                JmxProfile.authentication(false),
-                               JmxProfile.hostname(hostName)
+                               JmxProfile.hostname(hostName),
+                               SystemProperty.of(MBeanConnector.RMI_CONNECTION_PORT_PROPERTY, nRMIPort),
+                               Logging.atMax(),
+                               IPv4Preferred.yes(),
+                               m_testLogs.builder()
                                );
 
         try (CoherenceCluster testCluster = clusterBuilder.build())
             {
             // ensure the clusters are established
-            Eventually.assertThat(invoking(testCluster).getClusterSize(), is(1));
+            Eventually.assertDeferred(testCluster::getClusterSize, is(1));
+            Eventually.assertDeferred(testCluster::isReady, is(true));
 
-            Deferred<JMXServiceURL> deferedJmxURL = new Deferred<JMXServiceURL>()
-                {
-                public JMXServiceURL get()
-                        throws TemporarilyUnavailableException, PermanentlyUnavailableException
-                    {
-                    if (m_jmxServiceURL == null)
-                        {
-                        try
-                            {
-                            m_jmxServiceURL = NSLookup.lookupJMXServiceURL(
-                                    new InetSocketAddress(hostName, nClusterPort));
-                            }
-                        catch (IOException ioe)
-                            {
-                            throw new TemporarilyUnavailableException(this, ioe);
-                            }
-                        }
-                    return m_jmxServiceURL;
-                    }
+            InetSocketAddress address = new InetSocketAddress(hostName, nClusterPort.get());
 
-                public Class<JMXServiceURL> getDeferredClass()
-                    {
-                    return null;
-                    }
+            DeferredCallable<JMXServiceURL> deferredJmxURL = new DeferredCallable<>(() ->
+                    NSLookup.lookupJMXServiceURL(address), JMXServiceURL.class);
 
-                protected JMXServiceURL m_jmxServiceURL;
-                };
+            Eventually.assertDeferred(deferredJmxURL, is(notNullValue()));
 
-            int i = 0;
-            while (deferedJmxURL.get() == null)
-                {
-                Thread.sleep(1000);
-                if (i++ > 5)
-                    {
-                        break;
-                    }
-                }
-            if (deferedJmxURL.get() == null)
-                {
-                fail("lookup failed: deferedJmxURL is NULL");
-                }
-
-            JMXServiceURL         jmxServiceURL = deferedJmxURL.get();
+            JMXServiceURL         jmxServiceURL = deferredJmxURL.get();
             JMXConnector          jmxConnector  = JMXConnectorFactory.connect(jmxServiceURL, null);
             MBeanServerConnection conn          = jmxConnector.getMBeanServerConnection();
+            Set<ObjectName>       setCluster    = conn.queryNames(new ObjectName("Coherence:type=Cluster,*"), null);
 
-            Set clusterSet = conn.queryNames(new javax.management.ObjectName("Coherence:type=Cluster,*"), null);
-
-            assertNotNull(clusterSet);
-            assertEquals(1, clusterSet.size());
-            }
-        catch (Exception e)
-            {
-            fail("lookup failed " + Base.printStackTrace(e));
+            assertThat(setCluster, is(notNullValue()));
+            assertThat(setCluster.size(), is(1));
             }
         }
+
+    // ----- data members ---------------------------------------------------
+
+    @Rule
+    public final TestLogs m_testLogs = new TestLogs(NSLookupTests.class);
     }

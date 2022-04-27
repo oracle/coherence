@@ -30,6 +30,7 @@ Makefile
 MANIFEST.MF
 manifest.mf
 /META-INF/services/
+module-info.java
 .mvn/
 mvnw
 package.html

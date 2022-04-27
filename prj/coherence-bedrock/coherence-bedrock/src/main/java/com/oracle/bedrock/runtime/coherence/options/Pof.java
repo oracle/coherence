@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence.options;
@@ -185,5 +185,14 @@ public class Pof
         result = 31 * result + (enabled != null ? enabled.hashCode() : 0);
 
         return result;
+        }
+
+    @Override
+    public String toString()
+        {
+        return "Pof(" +
+                "configUri='" + configUri + '\'' +
+                ", enabled=" + enabled +
+                ')';
         }
     }

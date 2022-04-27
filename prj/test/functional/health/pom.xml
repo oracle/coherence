@@ -20,20 +20,6 @@
   <artifactId>health</artifactId>
   <name>Coherence Health Check Tests</name>
 
-  <profiles>
-    <profile>
-      <id>stage10</id>
-      <properties>
-        <skipTests>false</skipTests>
-      </properties>
-    </profile>
-  </profiles>
-
-  <properties>
-    <module.name>com.oracle.coherence.testing.health</module.name>
-    <test.module.name>${module.name}.tests</test.module.name>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -62,11 +48,6 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -74,7 +55,38 @@
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
+        <version>${maven.moditect.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration combine.self="override">
+              <module>
+                <moduleInfoFile>${project.basedir}/src/modules/module-info.java</moduleInfoFile>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>stage10</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
 </project>

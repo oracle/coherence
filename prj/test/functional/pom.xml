@@ -162,27 +162,6 @@
       </modules>
     </profile>
 
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>true</useModulePath>
-      </properties>
-      <build>
-          <plugins>
-              <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-failsafe-plugin</artifactId>
-              <configuration>
-                <useModulePath>${useModulePath}</useModulePath>
-                <systemProperties>
-                  <com.oracle.bedrock.modules.enabled>true</com.oracle.bedrock.modules.enabled>
-                </systemProperties>
-              </configuration>
-            </plugin>
-          </plugins>
-      </build>
-    </profile>
-
     <!-- disable tests in stage1 -->
     <profile>
       <id>stage1</id>

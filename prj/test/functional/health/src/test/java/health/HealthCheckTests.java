@@ -12,13 +12,12 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
 
+import com.oracle.bedrock.runtime.coherence.callables.IsServiceSuspended;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
-
-import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
@@ -35,9 +34,7 @@ import com.oracle.bedrock.util.Capture;
 
 import com.oracle.coherence.common.base.Exceptions;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.Service;
 
 import com.tangosol.util.HealthCheck;
 
@@ -777,26 +774,6 @@ public class HealthCheckTests
             System.err.println("ERROR: isServiceRunning failed: " + e.getMessage());
             return false;
             }
-        }
-
-    // ----- inner class: IsServiceSuspended --------------------------------
-
-    public static class IsServiceSuspended
-            implements RemoteCallable<Boolean>
-        {
-        public IsServiceSuspended(String sName)
-            {
-            m_sName = sName;
-            }
-
-        @Override
-        public Boolean call()
-            {
-            Service service = CacheFactory.getCluster().getService(m_sName);
-            return service != null && service.isSuspended();
-            }
-
-        private final String m_sName;
         }
 
     // ----- constants ------------------------------------------------------

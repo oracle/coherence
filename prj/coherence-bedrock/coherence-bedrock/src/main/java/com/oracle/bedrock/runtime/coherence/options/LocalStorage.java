@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence.options;
@@ -145,5 +145,14 @@ public class LocalStorage
     public int hashCode()
         {
         return (enabled ? 1 : 0);
+        }
+
+
+    @Override
+    public String toString()
+        {
+        return "LocalStorage(" +
+                "enabled=" + enabled +
+                ')';
         }
     }
