@@ -843,8 +843,6 @@
       <id>modular-tests</id>
       <properties>
         <useModulePath>true</useModulePath>
-        <skipTests>true</skipTests>
-        <test.module.info>${top.parent.basedir}/coherence-testing-support/module-infos/basic-junit4/module-info.java</test.module.info>
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
         <failsafe.modules.argline>
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
@@ -854,25 +852,6 @@
       </properties>
       <build>
         <plugins>
-          <plugin>
-            <groupId>com.oracle.coherence.moditect</groupId>
-            <artifactId>moditect-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>add-module-info</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>add-module-info</goal>
-                </goals>
-                <configuration combine.self="override">
-                  <module>
-                    <moduleInfoFile>${test.module.info}</moduleInfoFile>
-                  </module>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>

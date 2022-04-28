@@ -1,14 +1,13 @@
 open module com.oracle.coherence.functional
     {
     requires com.oracle.coherence;
-    requires static com.oracle.coherence.testing;
+    requires com.oracle.coherence.testing;
 
-    requires static com.oracle.bedrock.runtime.coherence;
-    requires static com.oracle.bedrock.testsupport;
+    requires com.oracle.bedrock.runtime.coherence;
+    requires com.oracle.bedrock.runtime.coherence.testing;
+    requires com.oracle.bedrock.testsupport;
 
-    requires junit;
-    requires static org.junit.jupiter.api;
-    requires static org.junit.platform.commons;
+    requires transitive junit;
 
     requires org.hamcrest;
     requires org.mockito;

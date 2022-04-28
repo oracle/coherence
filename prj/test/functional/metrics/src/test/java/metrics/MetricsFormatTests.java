@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
 
@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import javax.ws.rs.core.MediaType;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -100,7 +99,7 @@ public class MetricsFormatTests
             String sURL = "http://127.0.0.1:" + port.get() + "/metrics";
 
             HttpURLConnection con = (HttpURLConnection) URI.create(sURL).toURL().openConnection();
-            con.setRequestProperty("Accept", MediaType.TEXT_PLAIN);
+            con.setRequestProperty("Accept", "text/plain");
             con.setRequestMethod("GET");
 
             int responseCode = con.getResponseCode();

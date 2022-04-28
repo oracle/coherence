@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
@@ -68,6 +68,7 @@ import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 import static org.junit.Assert.fail;
+
 
 /**
  * @author jk  2019.06.25
@@ -718,30 +719,6 @@ public class MetricsSupportTests
                                     "Coherence.Dummy.ValueTwo");                   //  metric from annotated method with no name specified
         }
 
-    @Test
-    public void shouldGetHeapAfterGCMetrics()
-        {
-        Assume.assumeThat("test skipped, no memory pool MBeans", ManagementFactory.getMemoryPoolMXBeans().size(), is(not(0)));
-        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
-        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
-
-        metricSupport.register(getMBeanName("*:type=Platform,Domain=java.lang,subType=MemoryPool,*"));
-
-        assertThat(adapter.metricCount(), is(not(0)));
-
-        List<String> metrics = adapter.getMetrics()
-                .stream()
-                .map(MBeanMetric::getName)
-                .distinct()
-                .collect(Collectors.toList());
-
-        assertThat(metrics.size(), is(4));
-        assertThat(metrics, containsInAnyOrder("Coherence.Memory.HeapAfterGC.Initial",
-                                               "Coherence.Memory.HeapAfterGC.Used",
-                                               "Coherence.Memory.HeapAfterGC.Committed",
-                                               "Coherence.Memory.HeapAfterGC.Max"));
-        }
-
     // ----- helper methods -------------------------------------------------
 
 
@@ -760,8 +737,8 @@ public class MetricsSupportTests
             {
             List<String> listExpected = Arrays.asList(asMetricName);
             List<String> listExtra = list.stream()
+                    .filter(m -> !listExpected.contains(m.getName()))
                     .map(MBeanMetric::getName)
-                    .filter(name -> !listExpected.contains(name))
                     .collect(Collectors.toList());
 
             fail("Extra metric found " + listExtra);
@@ -921,6 +898,7 @@ public class MetricsSupportTests
         {
         return CacheFactory.getCache(sCache);
         }
+
 
     // ----- inner class: MetricsRegistryAdapterStub  -----------------------
 

@@ -227,7 +227,7 @@
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <mockito.version>3.12.4</mockito.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>6.0.0-RC2</oracle.bedrock.version>
+    <oracle.bedrock.version>6.0.0-RC3</oracle.bedrock.version>
     <testcontainers.version>1.17.0</testcontainers.version>
 
     <!-- commercial test dependency versions -->

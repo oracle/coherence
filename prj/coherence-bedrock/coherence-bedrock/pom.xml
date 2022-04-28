@@ -44,6 +44,8 @@
     <dependency>
       <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-runtime-remote</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
 
     <dependency>

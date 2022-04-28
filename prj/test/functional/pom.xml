@@ -162,6 +162,35 @@
       </modules>
     </profile>
 
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <test.module.info>${project.parent.basedir}/module-infos/basic-junit4/module-info.java</test.module.info>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.oracle.coherence.moditect</groupId>
+            <artifactId>moditect-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-module-info</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>add-module-info</goal>
+                </goals>
+                <configuration combine.self="override">
+                  <module>
+                    <moduleInfoFile>${test.module.info}</moduleInfoFile>
+                  </module>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- disable tests in stage1 -->
     <profile>
       <id>stage1</id>

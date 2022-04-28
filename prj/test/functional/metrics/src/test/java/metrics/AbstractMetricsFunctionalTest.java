@@ -2,12 +2,11 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.oracle.coherence.io.json.JsonSerializer;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.BufferedReader;
@@ -23,8 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MediaType;
 
 /**
  * Shared helper methods for metrics end point functional testing.
@@ -79,7 +76,7 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
 
         if (sData.length() > 0)
             {
-            return MAPPER.readValue(sData, List.class);
+            return MAPPER.deserialize(sData, List.class);
             }
         return Collections.emptyList();
         }
@@ -127,7 +124,7 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
         HttpURLConnection con = (HttpURLConnection) URI.create(sURL).toURL().openConnection();
 
         modifyConnection(con);
-        con.setRequestProperty("Accept", MediaType.APPLICATION_JSON);
+        con.setRequestProperty("Accept", "application/json");
         con.setRequestMethod("GET");
 
         int responseCode = con.getResponseCode();
@@ -221,5 +218,5 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
 
     // ----- data members ---------------------------------------------------
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final JsonSerializer MAPPER = new JsonSerializer();
     }

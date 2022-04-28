@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.testing;
@@ -854,11 +854,6 @@ public abstract class AbstractTestInfrastructure
      */
     public static OptionsByType createCacheServerOptions(String sClass, String sClassPath, Properties props)
         {
-        if (sClassPath == null || sClassPath.isEmpty())
-            {
-            sClassPath = System.getProperty("java.class.path");
-            }
-
         OptionsByType optionsByType = OptionsByType.empty();
 
         if (sClass == null)

@@ -315,6 +315,20 @@ public interface CoherenceClusterMember
 
 
     /**
+     * Returns {@code true} if the member "safe" health check returns {@code true}.
+     *
+     * @return {@code true} if the member "safe" health check returns {@code true}
+     */
+    boolean isSafe();
+
+    /**
+     * Returns {@code true} if the member "ready" health check returns {@code true}.
+     *
+     * @return {@code true} if the member "ready" health check returns {@code true}
+     */
+    boolean isReady();
+
+    /**
      * Determines if a specified service is storage enabled.
      *
      * @param serviceName the name of the service
@@ -421,7 +435,8 @@ public interface CoherenceClusterMember
 
             JavaModules javaModules = optionsByType.get(JavaModules.class);
 
-            optionsByType.add(javaModules.adding("com.oracle.coherence"));
+            String sModule = getClass().getModule().getName();
+            optionsByType.add(javaModules.adding(sModule, "com.oracle.coherence"));
             }
 
 
@@ -480,14 +495,18 @@ public interface CoherenceClusterMember
         @Override
         public Object resolve(String name, Platform platform, OptionsByType optionsByType)
             {
-            if (platform instanceof RemotePlatform)
+            try
                 {
-                return platform.getName();
+                if (platform instanceof RemotePlatform)
+                    {
+                    return platform.getName();
+                    }
                 }
-            else
+            catch (NoClassDefFoundError e)
                 {
-                return null;
+                // ignored
                 }
+            return null;
             }
 
         private static GetMemberProperty INSTANCE = new GetMemberProperty();
@@ -504,23 +523,27 @@ public interface CoherenceClusterMember
         @Override
         public Object resolve(String name, Platform platform, OptionsByType optionsByType)
             {
-            if (platform instanceof RemotePlatform)
+            try
                 {
-                InetAddress inetAddress = platform.getAddress();
+                if (platform instanceof RemotePlatform)
+                    {
+                    InetAddress inetAddress = platform.getAddress();
 
-                if (inetAddress == null)
-                    {
-                    return null;    // property doesn't exist
-                    }
-                else
-                    {
-                    return inetAddress.getHostAddress();
+                    if (inetAddress == null)
+                        {
+                        return null;    // property doesn't exist
+                        }
+                    else
+                        {
+                        return inetAddress.getHostAddress();
+                        }
                     }
                 }
-            else
+            catch (NoClassDefFoundError e)
                 {
-                return null;    // property doesn't exist
+                // ignored
                 }
+            return null;    // property doesn't exist
             }
 
         private static GetLocalHostProperty INSTANCE = new GetLocalHostProperty();

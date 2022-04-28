@@ -2,7 +2,7 @@
  * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json;
@@ -45,8 +45,10 @@ import com.oracle.coherence.io.json.internal.VersionableSerializer;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.WrapperDataInputStream;
 import com.tangosol.io.WrapperDataOutputStream;
@@ -64,6 +66,8 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -295,6 +299,55 @@ public class JsonSerializer
         }
 
     // ----- public methods -------------------------------------------------
+
+    /**
+     * Deserialize an object as an instance of the specified class by reading
+     * its state using the specified json String.
+     * <p>
+     * <b>Note:</b> Classes that need to designate an alternative object to be
+     * returned by the Serializer after an object is deserialized from the json
+     * data should implement the {@link SerializationSupport#readResolve()} method.
+     *
+     * @param <T>    the class to deserialize to
+     * @param sJson  the json to deserialize
+     * @param clazz  the type of the object to deserialize
+     *
+     * @return the deserialized user type instance
+     *
+     * @throws IOException if an I/O error occurs
+     *
+     * @since 22.06
+     */
+    public <T> T deserialize(String sJson, Class<? extends T> clazz)
+            throws IOException
+        {
+        return deserialize(sJson.getBytes(StandardCharsets.UTF_8), clazz);
+        }
+
+    /**
+     * Deserialize an object as an instance of the specified class by reading
+     * its state using the specified json byte array.
+     * <p>
+     * <b>Note:</b> Classes that need to designate an alternative object to be
+     * returned by the Serializer after an object is deserialized from the json
+     * data should implement the {@link SerializationSupport#readResolve()} method.
+     *
+     * @param <T>     the class to deserialize to
+     * @param abJson  the json to deserialize
+     * @param clazz   the type of the object to deserialize
+     *
+     * @return the deserialized user type instance
+     *
+     * @throws IOException if an I/O error occurs
+     *
+     * @since 22.06
+     */
+    public <T> T deserialize(byte[] abJson, Class<? extends T> clazz)
+            throws IOException
+        {
+        ByteArrayReadBuffer buf = new ByteArrayReadBuffer(abJson);
+        return deserialize(buf.getBufferInput(), clazz);
+        }
 
     /**
      * @return this {@code JsonSerializer}'s configured {@link Genson} instance.
