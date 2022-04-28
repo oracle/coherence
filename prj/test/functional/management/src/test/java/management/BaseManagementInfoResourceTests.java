@@ -225,6 +225,7 @@ public abstract class BaseManagementInfoResourceTests
                 {
                 member.submit(() ->
                     {
+                    Logger.info(sMsg);
                     System.err.println(sMsg);
                     System.err.flush();
                     return null;
@@ -249,6 +250,7 @@ public abstract class BaseManagementInfoResourceTests
                 {
                 member.submit(() ->
                     {
+                    Logger.info(sMsg);
                     System.err.println(sMsg);
                     System.err.flush();
                     return null;
@@ -2990,15 +2992,17 @@ public abstract class BaseManagementInfoResourceTests
 
         for (String sService : SERVICES_LIST)
             {
+            System.err.println("In testHealthChecks() - service=" + sService);
+
             Map<String, Object> mapHealth = map.get(getScopedServiceName(sService));
             assertThat(mapHealth, is(notNullValue()));
 
             List<Map<String, Object>> listLink = (List<Map<String, Object>>) mapHealth.get("links");
             String                    sLink    = listLink.stream()
-                    .filter(m -> "self".equals(m.get("rel")))
-                    .map(m -> String.valueOf(m.get("href")))
-                    .findFirst()
-                    .orElse(null);
+                                                         .filter(m -> "self".equals(m.get("rel")))
+                                                         .map(m -> String.valueOf(m.get("href")))
+                                                         .findFirst()
+                                                         .orElse(null);
 
             assertThat(sLink, is(notNullValue()));
 
@@ -3020,7 +3024,9 @@ public abstract class BaseManagementInfoResourceTests
                     {
                     continue;
                     }
-                assertThat(mapResponseHealth.get(sKey), is(entry.getValue()));
+                String sMsg = "Failed for key: " + sKey + " Service=" + sService + " response=" + mapResponseHealth
+                        + " expected=" + mapParent;
+                assertThat(sMsg, mapResponseHealth.get(sKey), is(entry.getValue()));
                 }
             }
         }
