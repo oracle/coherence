@@ -430,7 +430,6 @@
         <module>test/unit</module>
         <module>test/distribution</module>
         <module>test/functional</module>
-        <module>test/endurance</module>
         <module>test/performance</module>
       </modules>
     </profile>
@@ -500,7 +499,6 @@
         <!-- test modules -->
         <module>test/unit</module>
         <module>test/functional</module>
-        <module>test/endurance</module>
         <module>test/performance</module>
       </modules>
     </profile>
