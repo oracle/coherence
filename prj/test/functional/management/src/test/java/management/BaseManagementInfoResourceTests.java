@@ -2973,6 +2973,10 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testHealthChecks() 
         {
+        // ensure the cluster is ready before this test starts so that
+        // all health checks should be stable
+        assertClusterReady(s_cluster);
+
         WebTarget           target      = getBaseTarget().path(HEALTH);
         Response            response    = target.request().get();
         Map<String, Object> mapResponse = readEntity(target, response);
