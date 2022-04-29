@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -395,6 +395,10 @@
                     !com.tangosol.coherence;
                     *;
                   </exports>
+                  <!-- static requires for JLine, the usage of which is hidden away in TDE -->
+                  <requires>
+                    static org.jline.style;
+                  </requires>
                   <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>

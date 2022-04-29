@@ -20,15 +20,18 @@
   <artifactId>metrics</artifactId>
   <name>Coherence Metrics Tests</name>
 
-  <properties>
-    <test.module.info>${project.basedir}/src/module-info/module-info.java</test.module.info>
-  </properties>
-
   <profiles>
     <profile>
       <id>stage9</id>
       <properties>
         <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <skipTests>true</skipTests>
       </properties>
     </profile>
   </profiles>

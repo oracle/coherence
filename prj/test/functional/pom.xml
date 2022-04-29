@@ -166,7 +166,7 @@
     <profile>
       <id>modular-tests</id>
       <properties>
-        <test.module.info>${project.parent.basedir}/module-infos/basic-junit4/module-info.java</test.module.info>
+        <test.module.info>${project.basedir}/src/test/module-info/module-info.java</test.module.info>
       </properties>
       <build>
         <plugins>

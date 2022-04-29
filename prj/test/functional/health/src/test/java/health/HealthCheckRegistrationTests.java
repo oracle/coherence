@@ -6,7 +6,6 @@
  */
 package health;
 
-import com.oracle.coherence.functional.health.WrapperHealthCheck;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.SessionConfiguration;

@@ -50,40 +50,9 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.oracle.coherence.moditect</groupId>
-        <artifactId>moditect-maven-plugin</artifactId>
-        <version>${maven.moditect.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>add-module-info</id>
-            <phase>package</phase>
-            <goals>
-              <goal>add-module-info</goal>
-            </goals>
-            <configuration combine.self="override">
-              <module>
-                <moduleInfoFile>${project.basedir}/src/modules/module-info.java</moduleInfoFile>
-              </module>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
   <profiles>
     <profile>
       <id>stage10</id>
-      <properties>
-        <skipTests>false</skipTests>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>modular-tests</id>
       <properties>
         <skipTests>false</skipTests>
       </properties>

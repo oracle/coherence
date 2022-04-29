@@ -20,10 +20,6 @@
   <artifactId>helidon-grpc-proxy</artifactId>
   <name>Coherence Helidon gRPC Proxy Tests</name>
 
-  <properties>
-    <module.name>com.oracle.coherence.helidon.grpc.proxy.tests</module.name>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -105,5 +101,13 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
+
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+
   </profiles>
 </project>

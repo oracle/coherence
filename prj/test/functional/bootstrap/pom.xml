@@ -21,10 +21,6 @@
   <artifactId>bootstrap</artifactId>
   <name>Coherence Bootstrap API Tests</name>
 
-  <properties>
-    <test.module.info>${top.parent.basedir}/coherence-testing-support/module-infos/basic-junit5/module-info.java</test.module.info>
-  </properties>
-
   <profiles>
     <profile>
       <id>stage2</id>

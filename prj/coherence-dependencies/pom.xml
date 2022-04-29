@@ -976,6 +976,7 @@
                 <configuration>
                   <module>
                     <moduleInfo>
+                      <!--suppress UnresolvedMavenProperty -->
                       <name>${module.name}</name>
                       <open>true</open>
                       <exports>
