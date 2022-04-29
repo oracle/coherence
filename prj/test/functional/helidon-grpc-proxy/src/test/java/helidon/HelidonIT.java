@@ -1,19 +1,17 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.grpc.proxy;
+package helidon;
 
 import com.google.protobuf.Int32Value;
 import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
 import com.oracle.coherence.grpc.Requests;
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.ConfigurableCacheFactory;
+import com.oracle.coherence.grpc.proxy.GrpcServerController;
 import com.tangosol.net.SessionProvider;
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.helidon.microprofile.server.Server;
@@ -40,7 +38,6 @@ public class HelidonIT
         System.setProperty("coherence.ttl",          "0");
         System.setProperty("coherence.clustername",  "HelidonIT");
         System.setProperty("coherence.cacheconfig",  "coherence-config.xml");
-        System.setProperty("coherence.pof.config",   "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",  "true");
         System.setProperty("coherence.log.level",    "9");
         System.setProperty("coherence.grpc.enabled", "false");

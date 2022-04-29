@@ -1,0 +1,48 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Helidon MP gRPC Server
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Helidon MP gRPC Server
+
+Coherence gRPC proxy is the server-side implementation of the services defined within the `Coherence gRPC` module.
+The gRPC proxy uses standard gRPC Java libraries to provide Coherence APIs over gRPC.
+
+If using the https://helidon.io[Helidon Microprofile server] with the microprofile gRPC server enabled the Coherence
+gRPC proxy can be deployed into the Helidon gRPC server instead of the Coherence default gRPC server.
+
+== Usage
+
+In order to use Coherence gRPC Server, you need to declare it as a dependency of your project;
+for example if using Maven:
+
+[source,xml,subs="attributes+"]
+----
+<dependency>
+  <groupId>{coherence-maven-group-id}</groupId>
+  <artifactId>coherence-helidon-grpc-proxy</artifactId>
+  <version>{version-coherence-maven}</version>
+</dependency>
+----
+
+or for Gradle:
+[source,groovy,subs="attributes+"]
+----
+implementation '{coherence-maven-group-id}:coherence-helidon-grpc-proxy:{version-coherence-maven}'
+----
+
+== Enable the Proxy Service in Helidon MP
+
+For this behaviour to happen automatically just set the `coherence.grpc.enabled` system property to `false`, which
+will disable the built in server. A built-in `GrpcMpExtension` implementation will then deploy the proxy services
+to the Helidon gRPC server.
+
+WARNING: When using the Helidon MP gRPC server, if the `coherence.grpc.enabled` system property *has not* been set to
+`false`, then both the Helidon gRPC server and the Coherence default gRPC server will start and could cause port
+binding issues unless they are both specifically configured to use different ports.
+

@@ -1,12 +1,15 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.grpc.proxy;
+package com.oracle.coherence.helidon.grpc.proxy;
 
+import com.oracle.coherence.grpc.proxy.BindableGrpcProxyService;
+import com.oracle.coherence.grpc.proxy.GrpcMetricsInterceptor;
+import com.oracle.coherence.grpc.proxy.GrpcServerController;
 import com.tangosol.coherence.config.Config;
 
 import io.helidon.grpc.server.GrpcRouting;

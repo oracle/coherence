@@ -125,6 +125,7 @@
         <module>graal</module>
         <module>guardian</module>
         <module>health</module>
+        <module>helidon-grpc-proxy</module>
         <module>http</module>
         <module>http-config</module>
         <module>http-netty</module>
@@ -289,6 +290,8 @@
     <!-- profile>
       <id>stage10</id>
       <modules>
+        <module>health</module>
+        <module>helidon-grpc-proxy</module>
         <module>session</module>
         <module>ssl</module>
         <module>tcmp</module>

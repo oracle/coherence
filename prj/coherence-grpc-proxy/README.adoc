@@ -189,20 +189,6 @@ GrpcServerController.INSTANCE.whenStarted().thenRun(() -> {
 });
 ----
 
-== Deploy the Proxy Service with Helidon Microprofile gRPC Server
-
-If using the https://helidon.io[Helidon Microprofile server] with the microprofile gRPC server enabled the Coherence
-gRPC proxy can be deployed into the Helidon gRPC server instead of the Coherence default gRPC server.
-
-For this behaviour to happen automatically just set the `coherence.grpc.enabled` system property to `false`, which
-will disable the built in server. A built-in `GrpcMpExtension` implementation will then deploy the proxy services
-to the Helidon gRPC server.
-
-WARNING: When using the Helidon MP gRPC server, if the `coherence.grpc.enabled` system property *has not* been set to
-`false`, then both the Helidon gRPC server and the Coherence default gRPC server will start and could cause port
-binding issues unless they are both specifically configured to use different ports.
-
-
 == Manually Deploy the gRPC Proxy Service
 
 If you are running your own instance of a gRPC server and want to just deploy the Coherence gRPC proxy service to this

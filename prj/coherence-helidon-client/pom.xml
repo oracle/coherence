@@ -111,7 +111,7 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-proxy</artifactId>
+      <artifactId>coherence-helidon-grpc-proxy</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
