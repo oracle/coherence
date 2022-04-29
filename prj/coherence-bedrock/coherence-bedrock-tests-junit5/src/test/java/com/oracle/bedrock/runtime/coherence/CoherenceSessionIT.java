@@ -11,6 +11,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.Platform;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterSize;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberId;
+import com.oracle.bedrock.runtime.coherence.callables.SessionExists;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.options.Console;
@@ -49,6 +50,7 @@ public class CoherenceSessionIT
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
+            Eventually.assertThat(server, new SessionExists(Coherence.DEFAULT_NAME), is(true));
 
             Session session = server.getSession();
             assertThat(session, is(notNullValue()));
@@ -69,6 +71,7 @@ public class CoherenceSessionIT
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
+            Eventually.assertThat(server, new SessionExists(Coherence.DEFAULT_NAME), is(true));
 
             Session session = server.getSession();
             assertThat(session, is(notNullValue()));
@@ -96,6 +99,7 @@ public class CoherenceSessionIT
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
+            Eventually.assertThat(server, new SessionExists(Coherence.SYSTEM_SESSION), is(true));
 
             Session session = server.getSession(Coherence.SYSTEM_SESSION);
             assertThat(session, is(notNullValue()));
@@ -117,6 +121,7 @@ public class CoherenceSessionIT
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
+            Eventually.assertThat(server, new SessionExists(Coherence.SYSTEM_SESSION), is(true));
 
             Session session = server.getSession(Coherence.SYSTEM_SESSION);
             assertThat(session, is(notNullValue()));
