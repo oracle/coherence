@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package tracing;
+package tracing.jaeger;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
@@ -33,13 +33,14 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.junit.runners.Parameterized;
+import tracing.AbstractCacheOperationsTracingTests;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import static tracing.TestingUtils.validateReporter;
+import static tracing.jaeger.TestingUtils.validateReporter;
 
 /**
  * Validate {@code PartitionedCache} produces tracing {@link Span spans} when performing cache operations.
@@ -411,6 +412,7 @@ public abstract class AbstractJaegerPartitionedCacheOperationsTracingTests
             new Object[][]
                 {
                     {"java", "cache-config.xml"},
-                    {"pof",  "cache-config-pof.xml"}
+                    {"pof",  "cache-config-pof.xml"},
+                    {"json", "cache-config-json.xml"}
                 };
     }

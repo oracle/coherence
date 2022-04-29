@@ -1,10 +1,14 @@
 open module com.oracle.coherence.functional
     {
     requires com.oracle.coherence;
-    requires com.oracle.coherence.testing;
+    requires com.oracle.coherence.grpc.proxy;
 
-    requires com.oracle.bedrock.runtime.coherence;
-    requires com.oracle.bedrock.runtime.coherence.testing;
+    requires io.grpc;
+    requires io.helidon.grpc.server;
+    requires io.helidon.microprofile.server;
+    requires io.helidon.microprofile.grpc.server;
+
+    requires com.oracle.bedrock.runtime;
     requires com.oracle.bedrock.testsupport;
 
     requires transitive org.junit.jupiter.api;

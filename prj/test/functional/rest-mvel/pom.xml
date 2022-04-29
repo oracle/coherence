@@ -31,6 +31,7 @@
     <profile>
       <id>modular-tests</id>
       <properties>
+        <moditect.skip>true</moditect.skip>
         <skipTests>true</skipTests>
       </properties>
     </profile>
@@ -217,6 +218,7 @@
               <excludeGroupIds>com.fasterxml.jackson,junit,org.glassfish,org.jakarta,org.hamcrest,org.apache,net.bytebuddy</excludeGroupIds>
               <includeGroupIds>com.oracle.coherence.tests</includeGroupIds>
               <includeArtifactIds>rest</includeArtifactIds>
+              <excludes>**/module-info.*</excludes>
             </configuration>
           </execution>
         </executions>

@@ -102,12 +102,12 @@
       </properties>
     </profile>
 
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
+<!--    <profile>-->
+<!--      <id>modular-tests</id>-->
+<!--      <properties>-->
+<!--        <skipTests>true</skipTests>-->
+<!--      </properties>-->
+<!--    </profile>-->
 
   </profiles>
 </project>

@@ -1,1 +1,1 @@
-tracing.AdaptiveTracerFactory
+tracing.jaeger.AdaptiveTracerFactory

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package tracing;
+package tracing.jaeger;
 
 import com.oracle.coherence.common.base.Blocking;
 
@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import tracing.AbstractTracingTest;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -52,7 +53,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 
 import static org.junit.Assert.assertThat;
 
-import static tracing.TestingUtils.validateReporter;
+import static tracing.jaeger.TestingUtils.validateReporter;
 
 /**
  * Tests to validate Coherence can properly bootstrap with Jaeger+TracerResolver.
