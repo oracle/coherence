@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package executor.common;
 
@@ -18,7 +18,6 @@ import com.oracle.bedrock.testsupport.deferred.Repetitively;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.concurrent.executor.AbstractCollector;
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
@@ -2076,7 +2075,7 @@ public abstract class AbstractTaskExecutorServiceTests
             {
             testTaskExecutorService.register(localES, Role.of("localOnly"));
 
-            // verify that a task can be assigned and run to completion on localOnly prior to shutdown
+            // verify that a task can be assigned and run to completion on localOnly prior to shut down
             RecordingSubscriber<String> hwSubscriber = new RecordingSubscriber<>();
 
             m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
@@ -2434,49 +2433,6 @@ public abstract class AbstractTaskExecutorServiceTests
 
         }
 
-    // ----- inner class: SumCollector --------------------------------------
-
-    public static class SumCollector
-            extends AbstractCollector<Integer, Integer>
-            implements PortableObject
-        {
-        // ----- AbstractCollector interface --------------------------------
-        @Override
-        public Function<List<Integer>, Integer> finisher()
-            {
-            return results ->
-                {
-                int nSum = 0;
-
-                for (int result : results)
-                    {
-                    nSum += result;
-                    }
-                return nSum;
-                };
-            }
-
-        // ----- ExternalizableLite interface -------------------------------
-
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        public void writeExternal(DataOutput out) throws IOException
-            {
-            }
-
-        // ----- PortableObject interface -----------------------------------
-
-        public void readExternal(PofReader in) throws IOException
-            {
-            }
-
-        public void writeExternal(PofWriter out) throws IOException
-            {
-            }
-        }
-
     // ----- inner class: MultipleResultsTask -------------------------------
 
     /**
@@ -2621,6 +2577,8 @@ public abstract class AbstractTaskExecutorServiceTests
                 count = 0;
                 }
             count++;
+            m_cInvoked++;
+            m_sLastInvoke = new Date().toString();
             properties.put("count", count);
             System.out.println("CountingTask has executed: " + count + " times.");
             return count;
@@ -2630,10 +2588,14 @@ public abstract class AbstractTaskExecutorServiceTests
 
         public void readExternal(DataInput in) throws IOException
             {
+            m_sLastInvoke = ExternalizableHelper.readUTF(in);
+            m_cInvoked    = ExternalizableHelper.readLong(in);
             }
 
         public void writeExternal(DataOutput out) throws IOException
             {
+            ExternalizableHelper.writeUTF(out,  m_sLastInvoke);
+            ExternalizableHelper.writeLong(out, m_cInvoked);
             }
 
         // ----- PortableObject interface -----------------------------------
@@ -2641,12 +2603,22 @@ public abstract class AbstractTaskExecutorServiceTests
         @Override
         public void readExternal(PofReader in) throws IOException
             {
+            m_sLastInvoke = in.readString(0);
+            m_cInvoked    = in.readLong(1);
             }
 
         @Override
         public void writeExternal(PofWriter out) throws IOException
             {
+            out.writeString(0, m_sLastInvoke);
+            out.writeLong(1,   m_cInvoked);
             }
+
+        // ----- data members -----------------------------------------------
+
+        protected String m_sLastInvoke;
+
+        protected long m_cInvoked;
         }
 
     // ----- inner class: GetTaskIdTask -------------------------------------
