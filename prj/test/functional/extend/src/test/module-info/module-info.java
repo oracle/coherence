@@ -14,4 +14,5 @@ open module com.oracle.coherence.functional
 
     requires java.net.http;
     requires java.management;
+    requires jdk.management;
     }

@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package xsd;
 
@@ -98,12 +98,12 @@ public class XsdValidationTests
     public void testDefaultFiles()
         throws Exception
         {
-        XmlValidator.validate("../../../coherence-core/src/main/resources/coherence-cache-config.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/coherence-cache-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/coherence-pof-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/management-config.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence-override-dev.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence-override-eval.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence-override-prod.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/tangosol-coherence-override-dev.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/tangosol-coherence-override-eval.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/tangosol-coherence-override-prod.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence.xml");
         }
 

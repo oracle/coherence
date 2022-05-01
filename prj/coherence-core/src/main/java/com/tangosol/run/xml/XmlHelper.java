@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.run.xml;
 
@@ -268,7 +268,7 @@ public abstract class XmlHelper extends Base
     public static XmlDocument loadResource(String sName, String sDescr)
         {
         return loadResourceInternal(sName, sDescr, /*loader*/null, /*fFile*/false,
-                /*fWarnNoSchema*/true);
+                /*fWarnNoSchema*/true, /*fDefault*/ false);
         }
 
     /**
@@ -286,7 +286,7 @@ public abstract class XmlHelper extends Base
     public static XmlDocument loadResource(String sName, String sDescr, ClassLoader loader)
         {
         return loadResourceInternal(sName, sDescr, loader, /*fFile*/false,
-                /*fWarnNoSchema*/true);
+                /*fWarnNoSchema*/true, /*fDefault*/ false);
         }
 
     /**
@@ -319,7 +319,7 @@ public abstract class XmlHelper extends Base
     public static XmlDocument loadFileOrResource(String sName, String sDescr)
         {
         return loadResourceInternal(sName, sDescr, /*loader*/null, /*fFile*/true,
-                /*fWarnNoSchema*/true);
+                /*fWarnNoSchema*/true, /*fDefault*/ false);
         }
 
     /**
@@ -338,7 +338,26 @@ public abstract class XmlHelper extends Base
              ClassLoader loader)
          {
          return loadResourceInternal(sName, sDescr, loader, /*fFile*/true,
-                 /*fWarnNoSchema*/true);
+                 /*fWarnNoSchema*/true, /*fDefault*/ false);
+         }
+
+    /**
+     * Load the configuration from a file or resource.
+     *
+     * @param sName          the name of the file or resource
+     * @param sDescr         a description of the resource being loaded (e.g.
+     *                       "cache configuration").  The description is only used in
+     *                       logging and error messages related to loading the resource
+     * @param loader         (optional) ClassLoader that should be used to load the
+     *                       configuration resource
+     *
+     * @return the configuration XML
+     */
+     public static XmlDocument loadFileOrResourceOrDefault(String sName, String sDescr,
+             ClassLoader loader)
+         {
+         return loadResourceInternal(sName, sDescr, loader, /*fFile*/true,
+                 /*fWarnNoSchema*/true, /*fDefault*/ true);
          }
 
     /**
@@ -357,7 +376,7 @@ public abstract class XmlHelper extends Base
     public static XmlDocument loadFileOrResource(String sName, String sDescr,
             ClassLoader loader, boolean fWarnNoSchema)
         {
-        return loadResourceInternal(sName, sDescr, loader, /*fFile*/true, fWarnNoSchema);
+        return loadResourceInternal(sName, sDescr, loader, /*fFile*/true, fWarnNoSchema, /*fDefault*/ false);
         }
 
     /**
@@ -371,18 +390,29 @@ public abstract class XmlHelper extends Base
     *                       configuration resource
     * @param fFile          true if the specified name could refer to a file
     * @param fWarnNoSchema  display warning if schema is missing
+    * @param fDefault       try to locate the resource in the default location if
+    *                       it cannot be found
     *
     * @return the configuration XML
     */
     protected static XmlDocument loadResourceInternal(
         String sName, String sDescr, ClassLoader loader, boolean fFile,
-            boolean fWarnNoSchema)
+            boolean fWarnNoSchema, boolean fDefault)
         {
         // default to something meaningful and generic
         sDescr = sDescr == null ? "configuration" : sDescr;
 
-        URL url = fFile ? Resources.findFileOrResource(sName, loader) :
-                Resources.findResource(sName, loader);
+        URL url;
+        if (fDefault)
+            {
+            url = fFile ? Resources.findFileOrResourceOrDefault(sName, loader) :
+                    Resources.findResourceOrDefault(sName, loader);
+            }
+        else
+            {
+            url = fFile ? Resources.findFileOrResource(sName, loader) :
+                    Resources.findResource(sName, loader);
+            }
 
         if (url == null)
             {

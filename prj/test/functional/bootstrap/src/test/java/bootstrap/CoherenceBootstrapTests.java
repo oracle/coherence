@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package bootstrap;
 
@@ -17,6 +17,7 @@ import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
 
+import com.tangosol.util.Resources;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ class CoherenceBootstrapTests
         {
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
+        System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
 
     @AfterEach

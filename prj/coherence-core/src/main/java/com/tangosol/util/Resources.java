@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -19,7 +19,6 @@ import java.net.URL;
 
 import java.text.MessageFormat;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.ListResourceBundle;
 
@@ -127,6 +126,64 @@ public abstract class Resources
     */
     public static URL findResource(String sName, ClassLoader loader)
         {
+        return findResource(sName, loader, null);
+        }
+
+    /**
+    * Find the URL of the resource with the given name using the specified
+    * ClassLoader or the following ClassLoaders:
+    * <ul>
+    *   <li>The Thread Context {@link ClassLoader}</li>
+    *   <li>The {@link ClassLoader} used to load {@link Base}, which represents the Coherence Class Loader</li>
+    *   <li>The System {@link ClassLoader}</li>
+    * </ul>
+    * <p>
+    * If a resource with the given name is not found, this method attempts
+    * to find the resource using a fully-qualified or relative version of the
+    * specified name. As a last attempt, the name will be treated as a URL.
+    * <p>
+    * If the resource cannot be found, try to locate the resource in the
+    * {@link #DEFAULT_RESOURCE_PACKAGE default package}.
+    *
+    *
+    * @param sName   the name of the resource
+    * @param loader  the {@link ClassLoader} used to locate the resource; if null,
+    *                or resource is not found, the list of {@link ClassLoader}s
+    *                described above will be tried
+    *
+    * @return the URL of the resource or null if the resource could not be found
+    *         and the resource name is not a valid URL specification
+    */
+    public static URL findResourceOrDefault(String sName, ClassLoader loader)
+        {
+        return findResource(sName, loader, Resources.getDefaultName(sName));
+        }
+
+    /**
+    * Find the URL of the resource with the given name using the specified
+    * ClassLoader or the following ClassLoaders:
+    * <ul>
+    *   <li>The Thread Context {@link ClassLoader}</li>
+    *   <li>The {@link ClassLoader} used to load {@link Base}, which represents the Coherence Class Loader</li>
+    *   <li>The System {@link ClassLoader}</li>
+    * </ul>
+    * <p>
+    * If a resource with the given name is not found, this method attempts
+    * to find the resource using a fully-qualified or relative version of the
+    * specified name. As a last attempt, the name will be treated as a URL.
+    *
+    * @param sName     the name of the resource
+    * @param loader    the {@link ClassLoader} used to locate the resource; if null,
+    *                  or resource is not found, the list of {@link ClassLoader}s
+    *                  described above will be tried
+    * @param sDefault  the default resource to attempt to locate if the specified
+    *                  resource cannot be located
+    *
+    * @return the URL of the resource or null if the resource could not be found
+    *         and the resource name is not a valid URL specification
+    */
+    public static URL findResource(String sName, ClassLoader loader, String sDefault)
+        {
         URL url = findRelativeOrAbsoluteResource(sName, loader);
 
         if (url == null)
@@ -150,7 +207,13 @@ public abstract class Resources
                 {
                 url = new URL(sName);
                 }
-            catch (Exception e) {}
+            catch (Exception ignored) {}
+            }
+
+        if (url == null && sDefault != null && !sDefault.isBlank())
+            {
+            // try the default name
+            url = findResource(sDefault, loader, null);
             }
 
         return url;
@@ -266,8 +329,68 @@ public abstract class Resources
     */
     public static URL findFileOrResource(String sName, ClassLoader loader)
         {
+        return findFileOrResource(sName, loader, null);
+        }
+
+    /**
+    * Return a URL to the specified file or resource, using the specified class
+    * loader or a {@link Base#getContextClassLoader() context ClassLoader}.
+    * <p>
+    * This method attempts to locate a file with the specified name or path.  If
+    * the file does not exist or cannot be read, this method attempts to locate
+    * a resource with the given name, using the specified class loader or
+    * context class loader.
+    * </p>
+    * If a resource with the given name is not found, this method attempts
+    * to find the resource using a fully-qualified or relative version of the
+    * specified name. As a last attempt, the name will be treated as a URL.
+    * </p>
+    * If the resource cannot be located then the {@link #DEFAULT_RESOURCE_PACKAGE}
+    * will be searched for the resource.
+    *
+    * @param sName     the name of the file or resource
+    * @param loader    the ClassLoader used to locate the resource; if null,
+    *                  {@link Base#getContextClassLoader()} is used
+    *
+    * @return the URL of the file or resource or, {@code null} if the resource could
+    *         not be found
+    */
+    public static URL findFileOrResourceOrDefault(String sName, ClassLoader loader)
+        {
+        return findFileOrResource(sName, loader, Resources.getDefaultName(sName));
+        }
+
+    /**
+    * Return a URL to the specified file or resource, using the specified class
+    * loader or a {@link Base#getContextClassLoader() context ClassLoader}.
+    * <p>
+    * This method attempts to locate a file with the specified name or path.  If
+    * the file does not exist or cannot be read, this method attempts to locate
+    * a resource with the given name, using the specified class loader or
+    * context class loader.
+    * </p>
+    * If a resource with the given name is not found, this method attempts
+    * to find the resource using a fully-qualified or relative version of the
+    * specified name. As a last attempt, the name will be treated as a URL.
+    * </p>
+    * If the resource cannot be located then the {@code sDefault} resource will
+    * be located by recursively calling this method (with a {@code null} default)
+    *
+    * @param sName     the name of the file or resource
+    * @param loader    the ClassLoader used to locate the resource; if null,
+    *                  {@link Base#getContextClassLoader()} is used
+    * @param sDefault  the name of the default file or resource to locate if the
+    *                  initial resource cannot be located.
+    *
+    * @return the URL of the file or resource or, if the resource could not
+    *         be found, and the resource name is not a valid URL specification,
+    *         the default resource URL will be returned, or {@code null}, if
+    *         neither the primary nor default resources can be located
+    */
+    public static URL findFileOrResource(String sName, ClassLoader loader, String sDefault)
+        {
         URL url = getFileURL(sName);
-        return url == null ? findResource(sName, loader) :  url;
+        return url == null ? findResource(sName, loader, sDefault) :  url;
         }
 
     /**
@@ -315,4 +438,27 @@ public abstract class Resources
 
         return in;
         }
+
+    private static String getDefaultName(String sName)
+        {
+        if (sName == null || sName.isBlank())
+            {
+            return null;
+            }
+
+        if (sName.charAt(0) == '/')
+            {
+            return DEFAULT_RESOURCE_PACKAGE + sName;
+            }
+
+        return DEFAULT_RESOURCE_PACKAGE + "/" + sName;
+        }
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The name of the package to look for a default resource if the original name could
+     * not be located.
+     */
+    public static final String DEFAULT_RESOURCE_PACKAGE = "/defaults";
+
     }
