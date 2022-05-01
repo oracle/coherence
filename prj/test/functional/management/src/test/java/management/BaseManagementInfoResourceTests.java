@@ -2975,6 +2975,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         // skipped in security manager tests
         Assume.assumeThat(System.getSecurityManager(), is(nullValue()));
+        Assume.assumeThat(System.getProperties().containsKey("java.security.manager"), is(false));
 
         // ensure the cluster is ready before this test starts so that
         // all health checks should be stable
