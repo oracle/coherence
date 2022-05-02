@@ -19,6 +19,15 @@
   <artifactId>tracing-jaeger-1.0.0</artifactId>
   <name>Coherence Tracing Tests - Jaeger(1.0.0)+OpenTracing(0.33.0)</name>
 
+  <profiles>
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
