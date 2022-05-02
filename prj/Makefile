@@ -54,9 +54,16 @@ modules: ## Build Coherence modules
 modules-no-tde: ## Build Coherence modules (without compiling TDE)
 	$(call mvn_build_modules,$(NO_TDE))
 
+.PHONY: docker
+docker: ## Build the Coherence image (does not rebuild Coherence jars)
+	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu
+
+.PHONY: docker-test
+docker-test: ## Build the Coherence image (does not rebuild Coherence image)
+	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu
 
 define mvn_build_coherence
-	mvn clean install -DskipTests $(1) $(ARGS)
+	mvn clean install -U -DskipTests $(1) $(ARGS)
 endef
 
 define mvn_build_modules

@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.grpc;
+package com.oracle.coherence.helidon.grpc;
 
 import com.tangosol.io.pof.SimplePofContext;
 
 import io.grpc.StatusRuntimeException;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,14 +26,14 @@ class PofMarshallerTest
     void testConfigFile()
         {
         PofMarshaller<String> m = new PofMarshaller<>("pof-config.xml", String.class);
-        assertThat(m.parse(m.stream("test")), is("test"));
+        MatcherAssert.assertThat(m.parse(m.stream("test")), is("test"));
         }
 
     @Test
     void testPofContext()
         {
         PofMarshaller<String> m = new PofMarshaller<>(new SimplePofContext(), String.class);
-        assertThat(m.parse(m.stream("test")), is("test"));
+        MatcherAssert.assertThat(m.parse(m.stream("test")), is("test"));
         }
 
     @Test

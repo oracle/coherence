@@ -3,7 +3,7 @@
   Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -126,6 +126,16 @@
       <dependency>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-helidon-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-helidon-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-helidon-grpc-proxy</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

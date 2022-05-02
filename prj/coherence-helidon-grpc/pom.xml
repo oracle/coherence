@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
-  -->
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -16,11 +16,11 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>coherence-helidon-grpc-proxy</artifactId>
-  <name>Coherence Helidon MP gRPC Proxy</name>
+  <artifactId>coherence-helidon-grpc</artifactId>
+  <name>Coherence Helidon MP gRPC Core</name>
 
   <properties>
-    <module.name>com.oracle.coherence.helidon.grpc.proxy</module.name>
+    <module.name>com.oracle.coherence.helidon.grpc</module.name>
     <!-- override dependent version -->
     <jakarta.inject.version>1.0</jakarta.inject.version>
   </properties>
@@ -33,15 +33,14 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-helidon-grpc</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-proxy</artifactId>
+      <artifactId>coherence-grpc</artifactId>
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.helidon.grpc</groupId>
+      <artifactId>helidon-grpc-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.helidon.microprofile.grpc</groupId>
       <artifactId>helidon-microprofile-grpc-server</artifactId>
@@ -51,31 +50,6 @@
           <artifactId>netty-codec-http2</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <!-- test dependencies -->
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-json</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-cdi-server</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>jakarta.json.bind</groupId>
-      <artifactId>jakarta.json.bind-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish</groupId>
-      <artifactId>javax.el</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -98,18 +72,6 @@
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.reactivex.rxjava3</groupId>
-      <artifactId>rxjava</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.oracle.bedrock</groupId>
-      <artifactId>bedrock-runtime</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

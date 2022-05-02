@@ -91,11 +91,12 @@
     </dependency>
     <dependency>
       <groupId>io.helidon.grpc</groupId>
-      <artifactId>helidon-grpc-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.grpc</groupId>
       <artifactId>io.grpc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
 
     <dependency>
