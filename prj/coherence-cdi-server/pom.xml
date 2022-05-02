@@ -150,6 +150,14 @@
 
   <profiles>
     <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
+
+    <profile>
       <id>release-modules</id>
       <build>
         <plugins>
