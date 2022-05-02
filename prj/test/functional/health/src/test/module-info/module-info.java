@@ -12,5 +12,5 @@ open module com.oracle.coherence.functional
     requires org.junit.jupiter.api;
 
     provides com.tangosol.util.HealthCheck
-            with com.oracle.coherence.functional.health.WrapperHealthCheck;
+            with health.WrapperHealthCheck;
     }

@@ -97,6 +97,7 @@
     <!-- set to true within the child POM or on the command line,
          in order to use module path for unit and integration tests -->
     <useModulePath>false</useModulePath>
+    <bedrockUseModules>false</bedrockUseModules>
 
     <failsafe.argLine/>
     <failsafe.modules.argline/>

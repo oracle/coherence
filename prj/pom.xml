@@ -847,6 +847,8 @@
       <id>modular-tests</id>
       <properties>
         <useModulePath>true</useModulePath>
+        <bedrockUseModules>true</bedrockUseModules>
+
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
         <failsafe.modules.argline>
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
@@ -868,7 +870,7 @@
                 <configuration>
                   <useModulePath>${useModulePath}</useModulePath>
                   <systemProperties>
-                    <com.oracle.bedrock.modules.enabled>true</com.oracle.bedrock.modules.enabled>
+                    <com.oracle.bedrock.modules.enabled>${bedrockUseModules}</com.oracle.bedrock.modules.enabled>
                   </systemProperties>
                 </configuration>
               </execution>
