@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- pick up the generic "tests" override -->
+<coherence  xml-override="common/tangosol-coherence-override.xml">
+
+    <cluster-config>
+      <unicast-listener>
+        <well-known-addresses>
+            <address system-property="coherence.wka">127.0.0.1, 127.0.0.3</address>
+        </well-known-addresses>
+      </unicast-listener>
+    </cluster-config>
+</coherence>

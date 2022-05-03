@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="common/tangosol-coherence-override.xml">
+
+  <cluster-config>
+    <unicast-listener>
+      <discovery-address system-property="test.unicast.coherence.discovery.address"></discovery-address>
+    </unicast-listener>
+  </cluster-config>
+</coherence>

@@ -36,7 +36,6 @@
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>ssl</artifactId>
-      <type>test-jar</type>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

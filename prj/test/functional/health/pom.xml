@@ -20,6 +20,10 @@
   <artifactId>health</artifactId>
   <name>Coherence Health Check Tests</name>
 
+  <properties>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
