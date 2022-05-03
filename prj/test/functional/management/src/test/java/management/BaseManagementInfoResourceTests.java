@@ -135,6 +135,7 @@ import static com.tangosol.internal.management.resources.AbstractManagementResou
 import static com.tangosol.internal.management.resources.AbstractManagementResource.NAME;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.NODE_ID;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.OPTIONS;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.PROXY;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.REPORTERS;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.RESET_STATS;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.ROLE_NAME;
@@ -2266,6 +2267,49 @@ public abstract class BaseManagementInfoResourceTests
             }
         }
 
+    /**
+     * This test ensures that metrics are updated after http requests are issued - Bug 34117583.
+     */
+    @Test
+    public void testHttpProxy()
+        {
+        if (getBaseTarget().toString().contains("clusters"))
+            {
+            // if running WLSManagementInfoResourceTests then ignore as the statistics
+            // will never be available in this scenario
+            return;
+            }
+
+        WebTarget target   = getBaseTarget().path(SERVICES).path(PROXY).path("members");
+        Response  response = null;
+
+        // run this twice so that the second time we get some metrics
+        for (int i = 0; i < 2 ; i++)
+            {
+            response = target.request().get();
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+            }
+
+        Map mapResponse = readEntity(target, response);
+
+        assertThat(mapResponse, notNullValue());
+
+        List<Map> listItems = (List<Map>) mapResponse.get("items");
+        assertThat(listItems, notNullValue());
+        assertThat(listItems.size(), is(3));
+
+        for (Map mapEntry : listItems)
+            {
+            if (mapEntry.get(NAME).equals(HTTP_SERVICE_NAME))
+               {
+               // convoluted way of getting long as WLS test seems to return Integer
+               long nRequestCount = Long.parseLong(mapEntry.get("totalRequestCount").toString());
+               assertThat(nRequestCount, is(greaterThan(0L)));
+               }
+            }
+        }
+
     @Test
     public void testProxyConnections()
         {
@@ -4099,6 +4143,11 @@ public abstract class BaseManagementInfoResourceTests
      * The name of the used Extend proxy service.
      */
     protected static final String PROXY_SERVICE_NAME = "ExtendProxyService";
+
+    /**
+     * The name of the used Http proxy service.
+     */
+    protected static final String HTTP_SERVICE_NAME = "ManagementHttpProxy";
 
     /**
      * The name of the used PartitionedService.

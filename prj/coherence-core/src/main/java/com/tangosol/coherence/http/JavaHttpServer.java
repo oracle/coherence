@@ -146,6 +146,9 @@ public class JavaHttpServer
                 handler = new BasicAuthenticationHandler(handler, this);
                 }
 
+            // wrap the handler to update statistics
+            handler = new BasicStatisticsHandler(handler, this);
+
             server.createContext(entry.getKey(), handler);
             }
 
