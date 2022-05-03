@@ -31,11 +31,15 @@
     <profile>
       <id>modular-tests</id>
       <properties>
-        <moditect.skip>true</moditect.skip>
-        <skipTests>true</skipTests>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
   </profiles>
+
+  <properties>
+    <moditect.skip>true</moditect.skip>
+  </properties>
 
   <dependencies>
     <dependency>

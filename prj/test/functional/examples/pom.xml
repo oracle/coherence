@@ -21,6 +21,10 @@
   <packaging>jar</packaging>
   <name>Coherence Examples Tests</name>
 
+  <properties>
+    <moditect.skip>true</moditect.skip>
+  </properties>
+
   <profiles>
     <profile>
       <id>stage6</id>

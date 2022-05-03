@@ -98,6 +98,8 @@
          in order to use module path for unit and integration tests -->
     <useModulePath>false</useModulePath>
     <bedrockUseModules>false</bedrockUseModules>
+    <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
+    <module.name>${project.artifactId}</module.name>
 
     <failsafe.argLine/>
     <failsafe.modules.argline/>
@@ -1343,6 +1345,7 @@
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <useModulePath>${useModulePath}</useModulePath>
+            <testClassesDirectory>${testClassesDirectory}</testClassesDirectory>
           </configuration>
         </plugin>
 

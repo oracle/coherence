@@ -19,6 +19,10 @@
   <artifactId>tracing-clean</artifactId>
   <name>Coherence Tracing Tests - Clean</name>
 
+  <properties>
+    <moditect.skip>true</moditect.skip>
+  </properties>
+
   <build>
     <plugins>
       <plugin>

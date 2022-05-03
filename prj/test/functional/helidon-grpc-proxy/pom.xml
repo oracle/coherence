@@ -20,6 +20,11 @@
   <artifactId>helidon-grpc-proxy</artifactId>
   <name>Coherence Helidon gRPC Proxy Tests</name>
 
+  <properties>
+    <module.name>helidon.grpc.proxy.testing</module.name>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -32,67 +37,90 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-cdi-server</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>jakarta.json.bind</groupId>
       <artifactId>jakarta.json.bind-api</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish</groupId>
       <artifactId>javax.el</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish</groupId>
+          <artifactId>jakarta.el</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>io.reactivex.rxjava3</groupId>
       <artifactId>rxjava</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.oracle.bedrock</groupId>
-      <artifactId>bedrock-runtime</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.bedrock</groupId>
-      <artifactId>bedrock-testing-support</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                </moduleInfo>
+              </module>
+              <jdepsExtraArgs>
+                <extraArg>--multi-release=11</extraArg>
+              </jdepsExtraArgs>
+              <exclusions>
+                <exclusion>
+                  <groupId>com.google.code.findbugs</groupId>
+                  <artifactId>jsr305</artifactId>
+                </exclusion>
+              </exclusions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <profiles>
     <profile>
@@ -102,12 +130,12 @@
       </properties>
     </profile>
 
-<!--    <profile>-->
-<!--      <id>modular-tests</id>-->
-<!--      <properties>-->
-<!--        <skipTests>true</skipTests>-->
-<!--      </properties>-->
-<!--    </profile>-->
-
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
   </profiles>
 </project>

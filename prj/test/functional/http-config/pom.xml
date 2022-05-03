@@ -20,6 +20,10 @@
   <artifactId>http-config</artifactId>
   <name>Coherence HTTP Configuration Tests</name>
 
+  <properties>
+    <moditect.skip>true</moditect.skip>
+  </properties>
+
   <profiles>
     <profile>
       <id>stage9</id>
@@ -31,7 +35,8 @@
     <profile>
       <id>modular-tests</id>
       <properties>
-        <skipTests>true</skipTests>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
   </profiles>
@@ -61,23 +66,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${maven.failsafe.plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
 </project>

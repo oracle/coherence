@@ -21,6 +21,10 @@
   <artifactId>bootstrap</artifactId>
   <name>Coherence Bootstrap API Tests</name>
 
+  <properties>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <profiles>
     <profile>
       <id>stage2</id>
@@ -35,14 +39,12 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>junit</groupId>
@@ -54,13 +56,6 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
-
 </project>

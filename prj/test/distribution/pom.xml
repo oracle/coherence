@@ -158,7 +158,8 @@
     <profile>
       <id>modular-tests</id>
       <properties>
-        <skipTests>true</skipTests>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
   </profiles>

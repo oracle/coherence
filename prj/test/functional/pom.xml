@@ -49,6 +49,12 @@
       </plugin>
 
       <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <version>${maven.moditect.plugin.version}</version>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
@@ -161,35 +167,6 @@
         <module>util</module>
         <module>xsd</module>
       </modules>
-    </profile>
-
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <test.module.info>${project.basedir}/src/test/module-info/module-info.java</test.module.info>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.oracle.coherence.moditect</groupId>
-            <artifactId>moditect-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>add-module-info</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>add-module-info</goal>
-                </goals>
-                <configuration combine.self="override">
-                  <module>
-                    <moduleInfoFile>${test.module.info}</moduleInfoFile>
-                  </module>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
 
     <!-- disable tests in stage1 -->

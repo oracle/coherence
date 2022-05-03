@@ -20,6 +20,10 @@
   <artifactId>wls-management</artifactId>
   <name>Coherence Management Over REST WLS Integration Tests</name>
 
+  <properties>
+    <moditect.skip>true</moditect.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -118,7 +122,8 @@
     <profile>
       <id>modular-tests</id>
       <properties>
-        <skipTests>true</skipTests>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
 
