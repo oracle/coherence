@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
@@ -1218,10 +1218,6 @@ public abstract class PofHelper
                 in.skipBytes(1);
                 break;
 
-            case T_OCTET_STRING:           // octet-string
-                in.skipBytes(in.readPackedInt());
-                break;
-
             case T_CHAR:                   // char
                 switch (in.readUnsignedByte() & 0xF0)
                     {
@@ -1235,6 +1231,7 @@ public abstract class PofHelper
                     }
                 break;
 
+            case T_OCTET_STRING:           // octet-string
             case T_CHAR_STRING:            // char-string
                 int cb = in.readPackedInt();
 
