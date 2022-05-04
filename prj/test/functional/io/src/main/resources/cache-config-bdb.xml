@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>validate-clean-log-cache</cache-name>
+      <scheme-name>ValidateCleanLogScheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>SampleDiskPersistentScheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <external-scheme>
+      <scheme-name>SampleDiskPersistentScheme</scheme-name>
+      <bdb-store-manager>
+        <directory system-property="test.bdb.directory"/>
+        <store-name>{cache-name}.store</store-name>
+      </bdb-store-manager>
+    </external-scheme>
+
+    <external-scheme>
+      <scheme-name>ValidateCleanLogScheme</scheme-name>
+      <bdb-store-manager>
+        <!-- testing only parameters -->
+        <init-params>
+          <init-param>
+            <param-name>je.log.fileMax</param-name>
+            <param-value>1000000</param-value>
+          </init-param>
+          <init-param>
+            <param-name>je.cleaner.minUtilization</param-name>
+            <param-value>90</param-value>
+          </init-param>
+        </init-params>
+        <directory system-property="test.bdb.directory"/>
+        <store-name>{cache-name}.store</store-name>
+      </bdb-store-manager>
+    </external-scheme>
+  </caching-schemes>
+</cache-config>

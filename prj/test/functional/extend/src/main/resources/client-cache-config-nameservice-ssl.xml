@@ -1,0 +1,246 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>local-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-direct-java</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-local</cache-name>
+      <scheme-name>dist-extend-local</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-near-all</cache-name>
+      <scheme-name>dist-extend-near-all</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-near-present</cache-name>
+      <scheme-name>dist-extend-near-present</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-client-key</cache-name>
+      <scheme-name>extend-client-key-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-direct-java</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-local</cache-name>
+      <scheme-name>repl-extend-local</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-near-all</cache-name>
+      <scheme-name>repl-extend-near-all</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-near-present</cache-name>
+      <scheme-name>repl-extend-near-present</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <local-scheme>
+      <scheme-name>dist-extend-local</scheme-name>
+      <cachestore-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <near-scheme>
+      <scheme-name>dist-extend-near-all</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>all</invalidation-strategy>
+    </near-scheme>
+
+    <near-scheme>
+      <scheme-name>dist-extend-near-present</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <local-scheme>
+      <scheme-name>repl-extend-local</scheme-name>
+      <cachestore-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <near-scheme>
+      <scheme-name>repl-extend-near-all</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>all</invalidation-strategy>
+    </near-scheme>
+
+    <near-scheme>
+      <scheme-name>repl-extend-near-present</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>extend-direct</scheme-name>
+      <service-name>ExtendTcpProxySSLService</service-name>
+      <proxy-service-name>ExtendTcpProxySSLService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <socket-provider>
+            <ssl>
+              <trust-manager>
+                <algorithm>PeerX509</algorithm>
+                <provider>
+                  <name>CoherenceSecurityProvider</name>
+                </provider>
+                <key-store>
+                  <url>file:testcert.jks</url>
+                  <password>password</password>
+                </key-store>
+              </trust-manager>
+            </ssl>
+          </socket-provider>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.extend.address.remote">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <use-filters>
+          <filter-name>gzip</filter-name>
+        </use-filters>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-invocation-scheme>
+      <scheme-name>extend-invocation</scheme-name>
+      <service-name>ExtendTcpInvocationService</service-name>
+      <proxy-service-name>ExtendTcpProxySSLService</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <socket-provider>
+            <ssl>
+              <trust-manager>
+                <algorithm>PeerX509</algorithm>
+                <provider>
+                  <name>CoherenceSecurityProvider</name>
+                </provider>
+                <key-store>
+                  <url>file:testcert.jks</url>
+                  <password>password</password>
+                </key-store>
+              </trust-manager>
+            </ssl>
+          </socket-provider>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="test.extend.address.remote">127.0.0.1</address>
+              <port    system-property="test.multicast.port">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <use-filters>
+          <filter-name>gzip</filter-name>
+        </use-filters>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
+</cache-config>

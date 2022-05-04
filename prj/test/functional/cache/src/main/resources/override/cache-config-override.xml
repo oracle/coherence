@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>my-cache-*</cache-name>
+      <scheme-name>my-cache-scheme-override</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>my-cache-override-2</cache-name>
+      <scheme-name>my-cache-scheme-two</scheme-name>
+    </cache-mapping>    
+    <cache-mapping>
+      <cache-name>my-cache-override</cache-name>
+      <scheme-name>my-cache-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>my-cache-scheme-override</scheme-name>
+      <service-name>MyCacheServiceOverride</service-name>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

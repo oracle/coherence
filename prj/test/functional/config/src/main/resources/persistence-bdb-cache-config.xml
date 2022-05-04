@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>default-persistent</cache-name>
+      <scheme-name>default-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>empty-persistent</cache-name>
+      <scheme-name>empty-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>failure-mode-persistent</cache-name>
+      <scheme-name>failure-mode-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>custom-persistent</cache-name>
+      <scheme-name>custom-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>simple-persistent</cache-name>
+      <scheme-name>simple-persistence</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>directory-persistent</cache-name>
+      <scheme-name>directory-persistence</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>default-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceDefault</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>empty-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceEmpty</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence/>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>failure-mode-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceFailureMode</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <active-failure-mode>stop-persistence</active-failure-mode>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>custom-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceCustom</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment>simple-custom-environment</environment>
+        <archiver>simple-custom-archiver</archiver>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>simple-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceSimple</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment system-property="test.persistence.environment">simple-bdb-environment</environment>
+        <archiver system-property="test.persistence.archiver">simple-directory-archiver</archiver>
+        <active-failure-mode system-property="test.persistence.failure.mode">stop-service</active-failure-mode>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>directory-persistence</scheme-name>
+      <service-name>DistributedCachePersistenceDirectory</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment>simple-custom-environment</environment>
+        <archiver>simple-directory-archiver</archiver>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

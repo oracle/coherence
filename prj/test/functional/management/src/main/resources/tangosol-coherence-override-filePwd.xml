@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- see COH-9850 -->
+<!-- coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="../common/tangosol-coherence-override.xml"-->
+<!-- pick up the generic "tests" override -->
+<coherence  xml-override="common/tangosol-coherence-override.xml">
+
+  <cluster-config>
+    <socket-providers>
+      <socket-provider id="mySSLProvider">
+        <ssl>
+          <identity-manager>
+            <key-store>
+              <url system-property="coherence.security.keystore">file:server.jks</url>
+              <password-provider>
+                <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+                <init-params>
+                  <init-param>
+                    <param-name>sFile</param-name>
+                    <param-value>${coherence.security.store.password storepass.txt}</param-value>
+                  </init-param>
+                </init-params>
+              </password-provider>
+            </key-store>
+            <password-provider>
+              <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+              <init-params>
+                <init-param>
+                  <param-name>sFile</param-name>
+                  <param-type>String</param-type>
+                  <param-value>${coherence.security.key.password keypass.txt}</param-value>
+                </init-param>
+              </init-params>
+            </password-provider>
+          </identity-manager>
+          <trust-manager>
+            <key-store>
+              <url system-property="coherence.security.truststore">file:trust-server.jks</url>
+              <password-provider>
+                <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+                <init-params>
+                  <init-param>
+                    <param-name>sFile</param-name>
+                    <param-value>${coherence.security.trust.password trustpass.txt}</param-value>
+                  </init-param>
+                </init-params>
+              </password-provider>
+            </key-store>
+          </trust-manager>
+        </ssl>
+      </socket-provider>
+    </socket-providers>
+    <persistence-environments>
+      <persistence-environment id="simple-bdb-environment">
+        <persistence-mode system-property="test.persistence.mode">active</persistence-mode>
+        <active-directory system-property="test.persistence.active.dir">target/store-bdb-active</active-directory>
+        <snapshot-directory system-property="test.persistence.snapshot.dir">target/store-bdb-snapshot</snapshot-directory>
+        <trash-directory system-property="test.persistence.trash.dir">target/store-bdb-trash</trash-directory>
+      </persistence-environment>
+    </persistence-environments>
+    <snapshot-archivers>
+      <directory-archiver id="simple-directory-archiver">
+         <archive-directory system-property="test.persistence.archive.dir">target/store-archive</archive-directory>
+      </directory-archiver>
+    </snapshot-archivers>
+  </cluster-config>
+</coherence>

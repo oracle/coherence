@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -38,18 +38,20 @@
     </profile>
   </profiles>
 
+  <properties>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -63,8 +65,7 @@
         <executions>
           <execution>
             <configuration>
-              <classesDirectory>${project.build.directory}/test-classes
-              </classesDirectory>
+              <classesDirectory>${testClassesDirectory}</classesDirectory>
             </configuration>
             <id>instrument</id>
             <phase>pre-integration-test</phase>
@@ -90,7 +91,7 @@
             <configuration>
               <fileSets>
                 <fileSet>
-                  <directory>${project.build.directory}/test-classes</directory>
+                  <directory>${testClassesDirectory}</directory>
                 </fileSet>
               </fileSets>
             </configuration>
@@ -108,7 +109,7 @@
               <indexName>address-index/custom.idx</indexName>
               <fileSets>
                 <fileSet>
-                  <directory>${project.build.directory}/test-classes/data/portabletype</directory>
+                  <directory>${testClassesDirectory}/data/portabletype</directory>
                   <includes>
                     <include>Address.class</include>
                   </includes>
@@ -129,7 +130,7 @@
               <indexName>country-index/custom.idx</indexName>
               <fileSets>
                 <fileSet>
-                  <directory>${project.build.directory}/test-classes/data/portabletype</directory>
+                  <directory>${testClassesDirectory}/data/portabletype</directory>
                   <includes>
                     <include>Country.class</include>
                   </includes>
@@ -150,7 +151,7 @@
               <indexName>person-index/custom.idx</indexName>
               <fileSets>
                 <fileSet>
-                  <directory>${project.build.directory}/test-classes/data/portabletype</directory>
+                  <directory>${testClassesDirectory}/data/portabletype</directory>
                   <includes>
                     <include>Person.class</include>
                   </includes>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -38,11 +38,13 @@
   </profiles>
 
   <properties>
-      <!-- the name of the configuration class to use as the default -->
-      <!-- aliases include; "local", "partitioned", "remote" and "passthrough" -->
-      <impl>local</impl>
-      <enablepof>true</enablepof>
-      <CacheStatisticsSleepTime>0L</CacheStatisticsSleepTime>
+    <!-- the name of the configuration class to use as the default -->
+    <!-- aliases include; "local", "partitioned", "remote" and "passthrough" -->
+    <impl>local</impl>
+    <enablepof>true</enablepof>
+    <CacheStatisticsSleepTime>0L</CacheStatisticsSleepTime>
+
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 
   <dependencies>
@@ -50,28 +52,24 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>javax.cache</groupId>
       <artifactId>cache-api</artifactId>
       <version>${javax.cache.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-jcache</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

@@ -1,0 +1,401 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>local-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-direct-bundling</cache-name>
+      <scheme-name>extend-direct-bundling</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-expiry-sliding</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-direct-java</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-local</cache-name>
+      <scheme-name>dist-extend-local</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-near-all</cache-name>
+      <scheme-name>dist-extend-near-all</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-near-present</cache-name>
+      <scheme-name>dist-extend-near-present</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-near-present-custom-*</cache-name>
+      <scheme-name>dist-extend-near-present-custom</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-client-key</cache-name>
+      <scheme-name>extend-client-key-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-direct-java</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-coh11059</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-local</cache-name>
+      <scheme-name>repl-extend-local</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-near-all</cache-name>
+      <scheme-name>repl-extend-near-all</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-extend-near-present</cache-name>
+      <scheme-name>repl-extend-near-present</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-extend-trigger-listener</cache-name>
+      <scheme-name>extend-trigger-listener</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>view-extend-direct</cache-name>
+      <scheme-name>extend-direct</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>view-extend-near</cache-name>
+      <scheme-name>view-remote-dist</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <local-scheme>
+      <scheme-name>SAVE-dist-extend-bundling-save</scheme-name>
+      <cachestore-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+          <operation-bundling>
+            <bundle-config>
+              <operation-name>all</operation-name>
+              <preferred-size>5</preferred-size>
+              <delay-millis>10</delay-millis>
+              <thread-threshold>5</thread-threshold>
+              <auto-adjust>true</auto-adjust>
+            </bundle-config>
+          </operation-bundling>
+        </remote-cache-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <local-scheme>
+      <scheme-name>dist-extend-local</scheme-name>
+      <cachestore-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <view-scheme>
+      <scheme-name>view-remote-dist</scheme-name>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+    </view-scheme>
+
+    <near-scheme>
+      <scheme-name>dist-extend-near-all</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>all</invalidation-strategy>
+    </near-scheme>
+
+    <near-scheme>
+      <scheme-name>dist-extend-near-present</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <near-scheme>
+          <scheme-name>dist-extend-near-present-custom</scheme-name>
+          <front-scheme>
+              <local-scheme>
+                  <high-units>1000</high-units>
+              </local-scheme>
+          </front-scheme>
+          <back-scheme>
+            <class-scheme>
+              <class-name>com.oracle.coherence.testing.CustomBackMap</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>String</param-type>
+                  <param-value>dist-extend-direct</param-value>
+                </init-param>
+                <init-param>
+                  <param-type>String</param-type>
+                  <param-value>ExtendTcpCacheService</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </back-scheme>
+          <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <local-scheme>
+      <scheme-name>repl-extend-local</scheme-name>
+      <cachestore-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </cachestore-scheme>
+    </local-scheme>
+
+    <near-scheme>
+      <scheme-name>repl-extend-near-all</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>all</invalidation-strategy>
+    </near-scheme>
+
+    <near-scheme>
+      <scheme-name>repl-extend-near-present</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>extend-direct</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+      <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>extend-direct</scheme-name>
+      <service-name>ExtendTcpCacheService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval>15s</heartbeat-interval>
+          <heartbeat-timeout>15s</heartbeat-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>extend-direct-bundling</scheme-name>
+      <service-name>ExtendTcpCacheBundlingService</service-name>
+      <operation-bundling>
+        <bundle-config>
+          <operation-name>all</operation-name>
+          <preferred-size>10</preferred-size>
+          <delay-millis>100</delay-millis>
+          <thread-threshold>5</thread-threshold>
+          <auto-adjust>true</auto-adjust>
+        </bundle-config>
+      </operation-bundling>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval>15s</heartbeat-interval>
+          <heartbeat-timeout>15s</heartbeat-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>extend-client-key-direct</scheme-name>
+      <service-name>ExtendTcpCacheService2</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval>15s</heartbeat-interval>
+          <heartbeat-timeout>15s</heartbeat-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/extend-client-key-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>extend-trigger-listener</scheme-name>
+      <service-name>ExtendTcpCacheService3</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+      </initiator-config>
+      <listener>
+        <class-scheme>
+           <class-factory-name>extend.TriggerListenerTests</class-factory-name>
+           <method-name>createTriggerListener</method-name>
+           <init-params>
+              <init-param>
+                 <param-type>string</param-type>
+                <param-value>{cache-name}</param-value>
+              </init-param>
+           </init-params>
+        </class-scheme>
+     </listener>
+    </remote-cache-scheme>
+
+    <remote-invocation-scheme>
+      <scheme-name>extend-invocation</scheme-name>
+      <service-name>ExtendTcpInvocationService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>ap3</address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval>15s</heartbeat-interval>
+          <heartbeat-timeout>15s</heartbeat-timeout>
+        </outgoing-message-handler>
+        <serializer>
+          <instance>
+            <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+            <init-params>
+              <init-param>
+                <param-type>string</param-type>
+                <param-value>extend/test-pof-config.xml</param-value>
+              </init-param>
+            </init-params>
+          </instance>
+        </serializer>
+        <connect-timeout>5s</connect-timeout>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+ <defaults>
+  <serializer>pof</serializer>
+ </defaults>
+
+ <caching-scheme-mapping>
+  <cache-mapping>
+   <cache-name>dist-default-pof*</cache-name>
+   <scheme-name>dist-default-pof-scheme</scheme-name>
+  </cache-mapping>
+
+  <cache-mapping>
+   <cache-name>dist-inline-pof*</cache-name>
+   <scheme-name>dist-inline-pof-scheme</scheme-name>
+  </cache-mapping>
+  
+  <cache-mapping>
+   <cache-name>dist-inline-pofcontext*</cache-name>
+   <scheme-name>dist-inline-pofcontext-scheme</scheme-name>
+  </cache-mapping>
+
+  <cache-mapping>
+   <cache-name>dist-inline-java*</cache-name>
+   <scheme-name>dist-inline-java-scheme</scheme-name>
+  </cache-mapping>
+  
+ </caching-scheme-mapping>
+
+ <caching-schemes>
+  <distributed-scheme>
+   <scheme-name>dist-default-pof-scheme</scheme-name>
+   <service-name>dist-default-pof-service</service-name>
+   <backing-map-scheme>
+    <partitioned>true</partitioned>
+    <local-scheme />
+   </backing-map-scheme>
+  </distributed-scheme>
+
+  <distributed-scheme>
+   <scheme-name>dist-inline-pofcontext-scheme</scheme-name>
+   <service-name>dist-inline-pofcontext-service</service-name>
+   <serializer>
+     <instance>
+	    <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+	    <init-params>
+	     <init-param>
+	      <param-type>String</param-type>
+	      <param-value>pof-config.xml</param-value>
+	     </init-param>
+	    </init-params>
+	  </instance>
+   </serializer>
+   <backing-map-scheme>
+    <partitioned>true</partitioned>
+    <local-scheme />
+   </backing-map-scheme>
+  </distributed-scheme>
+
+  <distributed-scheme>
+   <scheme-name>dist-inline-java-scheme</scheme-name>
+   <service-name>dist-inline-java-service</service-name>
+   <serializer>java</serializer>
+   <backing-map-scheme>
+    <partitioned>true</partitioned>
+    <local-scheme />
+   </backing-map-scheme>
+  </distributed-scheme>
+
+  <distributed-scheme>
+   <scheme-name>dist-inline-pof-scheme</scheme-name>
+   <service-name>dist-inline-pof-service</service-name>
+   <serializer>pof</serializer>
+   <backing-map-scheme>
+    <partitioned>true</partitioned>
+    <local-scheme />
+   </backing-map-scheme>
+  </distributed-scheme>
+  
+ </caching-schemes>
+ 
+</cache-config>

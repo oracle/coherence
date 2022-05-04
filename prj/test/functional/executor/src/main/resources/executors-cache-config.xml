@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config
+  xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+  xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler">
+
+  <c:single>
+    <c:name>test</c:name>
+  </c:single>
+
+  <c:fixed>
+    <c:name>test2</c:name>
+    <c:thread-count>5</c:thread-count>
+  </c:fixed>
+</cache-config>

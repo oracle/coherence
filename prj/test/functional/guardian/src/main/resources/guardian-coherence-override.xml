@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- pick up the generic "tests" override -->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"   
+            xml-override="common/tangosol-coherence-override.xml">
+            
+  <cluster-config>
+    <service-guardian>
+      <service-failure-policy system-property="test.guardian.GuardianTests.global.policy">exit-process</service-failure-policy>
+      <timeout-milliseconds system-property="test.guardian.GuardianTests.global.timeout">60000</timeout-milliseconds>
+    </service-guardian>
+  </cluster-config>
+</coherence>

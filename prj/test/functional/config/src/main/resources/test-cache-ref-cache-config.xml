@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config
+        xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>pof</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>test-*</cache-name>
+      <scheme-name system-property="scheme.name">not-set</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>test-two-*</cache-name>
+      <scheme-name>class-scheme-with-param-from-mapping</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>underlying-cache</param-name>
+          <param-value>local-underlying-*</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>local-*</cache-name>
+      <scheme-name>local-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>distributed-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>cqc-*</cache-name>
+      <scheme-name>cqc-scheme</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>wrapped-cache</param-name>
+          <param-value>dist-*</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <class-scheme>
+      <scheme-name>class-scheme-no-params</scheme-name>
+      <class-name>config.MyCache</class-name>
+    </class-scheme>
+
+    <class-scheme>
+      <scheme-name>class-scheme-cache-name-macro-param</scheme-name>
+      <class-name>config.MyCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>java.lang.String</param-type>
+          <param-value>{cache-name}</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+
+    <class-scheme>
+      <scheme-name>class-scheme-with-class-loader-params</scheme-name>
+      <class-name>config.MyCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>java.lang.ClassLoader</param-type>
+          <param-value>{class-loader}</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+
+    <class-scheme>
+      <scheme-name>class-scheme-cache-ref-macro-param</scheme-name>
+      <class-name>config.MyCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>{cache-ref}</param-type>
+          <param-value>local-{cache-name}</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+
+    <class-scheme>
+      <scheme-name>class-scheme-cache-name-and-cache-ref-macro-param</scheme-name>
+      <class-name>config.MyCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>java.lang.String</param-type>
+          <param-value>{cache-name}</param-value>
+        </init-param>
+        <init-param>
+          <param-type>{cache-ref}</param-type>
+          <param-value>local-{cache-name}</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+
+    <class-scheme>
+      <scheme-name>class-scheme-with-param-from-mapping</scheme-name>
+      <class-name>config.MyCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>java.lang.String</param-type>
+          <param-value>{cache-name}</param-value>
+        </init-param>
+        <init-param>
+          <param-type>{cache-ref}</param-type>
+          <param-value>{underlying-cache}</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+
+    <local-scheme>
+      <scheme-name>local-scheme</scheme-name>
+      <service-name>MyLocalService</service-name>
+    </local-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-scheme</scheme-name>
+      <service-name>DistributedService</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <class-scheme>
+      <scheme-name>cqc-scheme</scheme-name>
+      <class-name>config.WrapperContinuousQueryCache</class-name>
+      <init-params>
+        <init-param>
+          <param-type>{cache-ref}</param-type>
+          <param-value>{wrapped-cache}</param-value>
+        </init-param>
+        <init-param>
+          <param-type>String</param-type>
+          <param-value>{cache-name}</param-value>
+        </init-param>
+      </init-params>
+    </class-scheme>
+  </caching-schemes>
+</cache-config>

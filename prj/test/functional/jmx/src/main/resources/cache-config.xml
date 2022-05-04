@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+
+<!--
+Note: This XML document is a Coherence Cache Configuration deployment
+descriptor which is customized for CacheMBeanTests 
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+              
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>near-*</cache-name>
+      <scheme-name>example-near</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>readwrite-*</cache-name>
+      <scheme-name>read-write-backing-map-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>overflow-*</cache-name>
+      <scheme-name>overflow-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>readwriteoverflow-*</cache-name>
+      <scheme-name>read-write-overflow</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>view-*</cache-name>
+      <scheme-name>view-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Distributed caching scheme.
+    -->
+    <distributed-scheme>
+      <scheme-name>example-distributed</scheme-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <!--
+     A scheme used by backing maps that store data in internal (binary) format
+     and employ size limitation and/or expiry eviction policies.
+    -->
+    <local-scheme>
+      <scheme-name>example-binary-backing-map</scheme-name>
+
+      <high-units>{back-size-limit 0}</high-units>
+      <unit-calculator>BINARY</unit-calculator>
+    </local-scheme>
+    
+    <!--
+    Near caching (two-tier) scheme with size limited local cache
+    in the front-tier and a distributed cache in the back-tier.
+    -->
+    <near-scheme>
+      <scheme-name>example-near</scheme-name>
+
+      <front-scheme>
+        <local-scheme>
+          <high-units>100</high-units>
+        </local-scheme>
+      </front-scheme>
+
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>example-distributed</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+
+      <invalidation-strategy>present</invalidation-strategy>
+    </near-scheme>
+
+    <!--
+    Distributed Scheme with ReadWriteBackingMap 
+    -->
+    <distributed-scheme>
+      <scheme-name>read-write-backing-map-scheme</scheme-name>
+
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+        
+          <internal-cache-scheme>
+            <local-scheme />
+          </internal-cache-scheme>
+          
+          <cachestore-scheme/>
+          
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      
+    </distributed-scheme>
+    
+    <!--
+    Overflow caching scheme with example eviction local cache
+    in the front-tier and BDB in the back-tier.
+    -->
+    <overflow-scheme>
+      <scheme-name>overflow-scheme</scheme-name>
+
+      <front-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+          <high-units>{front-size-limit 0}</high-units>
+          <unit-calculator>FIXED</unit-calculator>
+        </local-scheme>
+      </front-scheme>
+
+      <back-scheme>
+        <external-scheme>
+          <scheme-ref>example-bdb</scheme-ref>
+        </external-scheme>
+      </back-scheme>
+    </overflow-scheme>
+
+    <!-- 
+    ReadWriteBackingMap with Overflow caching scheme 
+    -->
+    <distributed-scheme>
+      <scheme-name>read-write-overflow</scheme-name>
+
+        <backing-map-scheme>
+          <read-write-backing-map-scheme>
+            <internal-cache-scheme>
+              <overflow-scheme>
+
+                <front-scheme>
+                  <local-scheme>
+                    <high-units>8000</high-units>
+                    <unit-calculator>FIXED</unit-calculator>
+                  </local-scheme>
+                </front-scheme>
+
+                <back-scheme>
+                  <external-scheme>
+                    <scheme-ref>example-bdb</scheme-ref>
+                  </external-scheme>
+                </back-scheme>
+              </overflow-scheme>
+            </internal-cache-scheme>
+          </read-write-backing-map-scheme>
+        </backing-map-scheme>
+    </distributed-scheme>
+
+    <!--
+    External caching scheme using Berkley DB.
+    -->
+    <external-scheme>
+      <scheme-name>example-bdb</scheme-name>
+
+      <bdb-store-manager>
+        <directory system-property="java.io.tmpdir"></directory>
+      </bdb-store-manager>
+
+    </external-scheme>
+
+    <view-scheme>
+      <scheme-name>view-scheme</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>example-distributed</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+      <reconnect-interval>123</reconnect-interval>
+    </view-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">      
+
+  <caching-scheme-mapping> 
+
+    <cache-mapping> 
+      <cache-name>external-async-default*</cache-name> 
+      <scheme-name>external-async-default-scheme</scheme-name> 
+    </cache-mapping>
+
+    <cache-mapping> 
+      <cache-name>external-async-specified*</cache-name> 
+      <scheme-name>external-async-specified-scheme</scheme-name> 
+    </cache-mapping>
+    
+    <cache-mapping> 
+      <cache-name>external-bdb-default</cache-name> 
+      <scheme-name>external-bdb-default-scheme</scheme-name> 
+    </cache-mapping>
+
+    <cache-mapping> 
+      <cache-name>external-bdb-specified</cache-name> 
+      <scheme-name>external-bdb-specified-scheme</scheme-name> 
+    </cache-mapping>
+    
+    <cache-mapping> 
+      <cache-name>external-nio-file-default</cache-name> 
+      <scheme-name>external-nio-file-default-scheme</scheme-name> 
+    </cache-mapping>
+
+    <cache-mapping> 
+      <cache-name>external-nio-file-specified</cache-name> 
+      <scheme-name>external-nio-file-specified-scheme</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>session-paging-cache</cache-name>
+      <scheme-name>session-paging</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>external-configured-bdb-cache</cache-name>
+      <scheme-name>external-configured-bdb-store</scheme-name>
+    </cache-mapping>
+                                    
+  </caching-scheme-mapping> 
+  
+  <caching-schemes> 
+
+    <external-scheme>
+      <scheme-name>external-async-default-scheme</scheme-name>
+      <async-store-manager>
+        <bdb-store-manager/>
+      </async-store-manager>
+     </external-scheme>
+
+    <external-scheme>
+      <scheme-name>external-async-specified-scheme</scheme-name>
+      <async-store-manager>
+        <bdb-store-manager/>
+        <async-limit>10M</async-limit>
+      </async-store-manager>
+     </external-scheme>
+
+    <external-scheme>
+      <scheme-name>external-bdb-default-scheme</scheme-name>
+      <bdb-store-manager/>
+     </external-scheme>
+
+    <external-scheme>
+      <scheme-name>external-bdb-specified-scheme</scheme-name>
+      <bdb-store-manager>         
+        <directory system-property="coherence.bdb.tmpdir"/>
+        <store-name>{cache-name}</store-name>
+      </bdb-store-manager>
+     </external-scheme>
+
+    <external-scheme>
+      <scheme-name>external-nio-file-default-scheme</scheme-name>
+      <nio-file-manager/>
+    </external-scheme>
+  
+    <external-scheme>
+      <scheme-name>external-nio-file-specified-scheme</scheme-name>
+      <nio-file-manager>         
+        <initial-size>10MB</initial-size>
+        <maximum-size>100MB</maximum-size>
+        <directory system-property="coherence.nio.tmpdir"/>
+      </nio-file-manager>
+     </external-scheme>
+
+    <external-scheme>
+      <scheme-name>external-configured-bdb-store</scheme-name>
+      <bdb-store-manager>
+        <init-params>
+          <!-- testing only parameters -->
+          <init-param>
+            <param-name>je.stats.collect</param-name>
+            <param-value>FALSE</param-value>
+          </init-param>
+          <init-param>
+            <param-name>je.log.fileMax</param-name>
+            <param-value>1000000</param-value>
+          </init-param>
+          <init-param>
+            <param-name>je.cleaner.minUtilization</param-name>
+            <param-value>90</param-value>
+          </init-param>
+
+        </init-params>
+        <directory system-property="test.bdb.tmpdir"/>
+        <store-name>{cache-name}.store</store-name>
+      </bdb-store-manager>
+    </external-scheme>
+
+    <local-scheme>
+      <scheme-name>session-front</scheme-name>
+      <eviction-policy>HYBRID</eviction-policy>
+      <high-units>1000</high-units>
+      <low-units>750</low-units>
+    </local-scheme>
+
+    <!--
+    Disk-based Session attribute overflow caching scheme.
+    -->
+    <overflow-scheme>
+      <scheme-name>session-paging</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <scheme-ref>session-front</scheme-ref>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <external-scheme>
+          <bdb-store-manager>
+            <init-params>
+              <init-param>
+                <param-name>com.sleepycact.je.util.FileHandler.level</param-name>
+                <param-value>ERROR</param-value>
+              </init-param>
+              <init-param>
+                <param-name>je.stats.collect</param-name>
+                <param-value>false</param-value>
+              </init-param>
+            </init-params>
+          </bdb-store-manager>
+        </external-scheme>
+      </back-scheme>
+    </overflow-scheme>
+
+
+  </caching-schemes> 
+  
+</cache-config>
+    

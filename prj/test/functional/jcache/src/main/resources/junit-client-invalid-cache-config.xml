@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:jcache="class://com.tangosol.coherence.jcache.JCacheNamespace"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config
+                                  coherence-cache-config.xsd">
+
+    <invalid>invalid</invalid>
+    <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>remove-me-*</cache-name>
+            <scheme-name>junit-distributed</scheme-name>
+        </cache-mapping>
+    </caching-scheme-mapping>
+
+    <caching-schemes>
+        <!--
+        Distributed caching scheme.
+        -->
+        <distributed-scheme>
+            <scheme-name>junit-distributed</scheme-name>
+            <service-name>MyDistributedCache</service-name>
+            <backing-map-scheme>
+                <local-scheme>
+                    <scheme-ref>junit-binary-backing-map</scheme-ref>
+                </local-scheme>
+            </backing-map-scheme>
+
+            <autostart>true</autostart>
+        </distributed-scheme>
+        <!--
+         A scheme used by backing maps that store data in internal (binary) format
+         and employ size limitation and/or expiry eviction policies.
+        -->
+        <local-scheme>
+            <scheme-name>junit-binary-backing-map</scheme-name>
+
+            <eviction-policy>HYBRID</eviction-policy>
+            <high-units>{back-size-limit 0}</high-units>
+            <unit-calculator>BINARY</unit-calculator>
+            <expiry-delay>{back-expiry 1h}</expiry-delay>
+            <cachestore-scheme/>
+        </local-scheme>
+    </caching-schemes>
+</cache-config>

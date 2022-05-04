@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns="class://override.BaseNamespaceHandler"
+            targetNamespace="class://override.BaseNamespaceHandler"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.3">
+
+  <xsd:element name="custom">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines a custom element.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="name" type="xsd:string"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

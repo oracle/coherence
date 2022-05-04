@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>pof</cache-name>
+      <scheme-name>pof-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>java</cache-name>
+      <scheme-name>java-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+
+    <remote-cache-scheme>
+      <scheme-name>pof-scheme</scheme-name>
+      <service-name>RemotePof</service-name>
+      <proxy-service-name>PofProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="coherence.localhost">127.0.0.1</address>
+              <port system-property="coherence.clusterport">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <serializer>pof</serializer>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>java-scheme</scheme-name>
+      <service-name>RemoteJava</service-name>
+      <proxy-service-name>JavaProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="coherence.localhost">127.0.0.1</address>
+              <port system-property="coherence.clusterport">9999</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <serializer>java</serializer>
+      </initiator-config>
+    </remote-cache-scheme>
+
+  </caching-schemes>
+</cache-config>

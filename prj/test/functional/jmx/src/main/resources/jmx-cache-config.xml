@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+
+<!--
+Note: This XML document is a Coherence Cache Configuration deployment
+descriptor which is customized for JmxTests
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>PAS-*</cache-name>
+      <scheme-name>example-PAS</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>events</cache-name>
+      <scheme-name>example-Event</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>example-Event</scheme-name>
+      <service-name>Event</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <name>MyTransactionInterceptor</name>
+          <instance>
+            <class-name>
+              jmx.JmxTests$TransactionInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>example-PAS</scheme-name>
+      <service-name>PAS</service-name>
+      <partition-assignment-strategy>
+        <instance>
+          <class-name>com.tangosol.net.partition.SimpleAssignmentStrategy
+          </class-name>
+        </instance>
+      </partition-assignment-strategy>
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <local-scheme>
+      <scheme-name>example-binary-backing-map</scheme-name>
+      <unit-calculator>BINARY</unit-calculator>
+    </local-scheme>
+  </caching-schemes>
+</cache-config>

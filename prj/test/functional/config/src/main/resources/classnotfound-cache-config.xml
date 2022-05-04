@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+    <caching-schemes>
+
+        <distributed-scheme>
+            <scheme-name>distributed</scheme-name>
+            <service-name>ClassNotFoundDistributedService</service-name>
+            <partitioned-quorum-policy-scheme>
+                <class-name>nonexistant.MyNonExistentPartitionedQurorumPolicyy</class-name>
+            </partitioned-quorum-policy-scheme>
+        </distributed-scheme>
+
+        <!-- Proxy Service scheme that allows remote clients to connect to the cluster over TCP/IP. -->
+        <proxy-scheme>
+            <scheme-name>proxy</scheme-name>
+            <service-name>AnotherProxyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <member-listener>
+                <class-name>nonexisting.nonexistingMemberListener</class-name>
+            </member-listener>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
+                    </local-address>
+                </tcp-acceptor>
+            </acceptor-config>
+            <proxy-config>
+                <cache-service-proxy>
+                    <class-name>nonexistentclass.EntitledCacheService</class-name>
+                    <init-params>
+                        <init-param>
+                            <param-type>com.tangosol.net.CacheService</param-type>
+                            <param-value>{service}</param-value>
+                        </init-param>
+                    </init-params>
+                </cache-service-proxy>
+                <invocation-service-proxy>
+                    <class-name>nonexistentclass.EntitledInvocationService </class-name>
+                    <init-params>
+                        <init-param>
+                            <param-type>com.tangosol.net.InvocationService</param-type>
+                            <param-value>{service}</param-value>
+                        </init-param>
+                    </init-params>
+                </invocation-service-proxy>
+            </proxy-config>
+            <proxy-quorum-policy-scheme>
+                <class-name>nonexistant.NonExistentProxyQurorumPolicy</class-name>
+            </proxy-quorum-policy-scheme>
+            <autostart>false</autostart>
+        </proxy-scheme>
+
+        <proxy-scheme>
+            <scheme-name>missingCustomProxyQuorumPolicy</scheme-name>
+            <service-name>missingCustomProxyQuorumPolicyService</service-name>
+            <thread-count system-property="coherence.extend.threads">5</thread-count>
+            <acceptor-config>
+                <tcp-acceptor>
+                    <local-address>
+                        <address system-property="coherence.extend.address">localhost</address>
+                        <port system-property="coherence.extend.port">9099</port>
+                    </local-address>
+                </tcp-acceptor>
+            </acceptor-config>
+            <proxy-quorum-policy-scheme>
+                <class-name>nonexistant.NonExistentProxyQurorumPolicy</class-name>
+            </proxy-quorum-policy-scheme>
+            <autostart>false</autostart>
+        </proxy-scheme>
+
+        <distributed-scheme>
+            <scheme-name>missingCustomParitionedQuorumPolicyService</scheme-name>
+            <service-name>missingCustomPartitionedQuorumPolicyService</service-name>
+            <partitioned-quorum-policy-scheme>
+                <class-name>nonexistentCustomParititonedQuorumService</class-name>
+            </partitioned-quorum-policy-scheme>
+        </distributed-scheme>
+    </caching-schemes>
+</cache-config>

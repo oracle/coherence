@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>
+      <instance>
+        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>extend/test-pof-config.xml</param-value>
+          </init-param>
+        </init-params>
+      </instance>
+    </serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>coh10772</cache-name>
+      <scheme-name>rep-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <replicated-scheme>
+      <scheme-name>rep-scheme</scheme-name>
+      <lease-granularity>thread</lease-granularity>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </replicated-scheme>
+
+    <proxy-scheme>
+      <service-name>ExtendTcpCustomProxyServiceCoh10772</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <address-provider>ap2</address-provider>
+        </tcp-acceptor>
+      </acceptor-config>
+      <proxy-config>
+        <cache-service-proxy>
+          <class-name>extend.CustomProxyService</class-name>
+          <init-params>
+             <init-param>
+                <param-type>com.tangosol.net.CacheService</param-type>
+                <param-value>{service}</param-value>
+             </init-param>
+             <init-param>
+                <param-type>boolean</param-type>
+                <param-value>true</param-value>
+             </init-param>
+          </init-params>
+        </cache-service-proxy>
+      </proxy-config>
+      <autostart system-property="test.extend.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

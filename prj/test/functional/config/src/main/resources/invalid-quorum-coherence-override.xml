@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="../common/tangosol-coherence-override.xml"-->
+<!-- pick up the generic "tests" override -->
+<coherence  xml-override="common/tangosol-coherence-override.xml">
+
+  <cluster-config>
+    <address-providers>
+      <address-provider id="ExistentAddressProvider">
+        <address>127.0.0.1</address>
+      </address-provider>
+    </address-providers>
+    <packet-publisher>
+      <packet-delivery>
+        <!--
+        Artificially set to 5 sec for the quorum test.
+        -->
+        <timeout-milliseconds>5000</timeout-milliseconds>
+      </packet-delivery>
+    </packet-publisher>
+    <cluster-quorum-policy>
+      <timeout-survivor-quorum>-1</timeout-survivor-quorum>
+    </cluster-quorum-policy>
+  </cluster-config>
+</coherence>
