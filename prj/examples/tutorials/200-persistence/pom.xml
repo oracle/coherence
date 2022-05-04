@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.tutorial</groupId>
+  <artifactId>persistence</artifactId>
+  <version>${revision}</version>
+  <name>Coherence Tutorials - Persistence</name>
+
+  <properties>
+    <revision>22.06-SNAPSHOT</revision>
+
+    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
+    <coherence.version>${revision}</coherence.version>
+
+    <java.version>1.8</java.version>
+    <java.version.release>8</java.version.release>
+    <jline.version>3.20.0</jline.version>
+
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <maven.depdency.plugin.version>3.1.2</maven.depdency.plugin.version>
+    <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
+    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+    <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
+    <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
+
+    <junit.jupiter.version>5.7.0</junit.jupiter.version>
+    <hamcrest.version>2.2</hamcrest.version>
+    <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <!-- tag::deps1[] -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-bom</artifactId>
+        <version>${coherence.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <!-- end::deps1[] -->
+
+  <dependencies>
+    <!-- tag::deps2[] -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+    <!-- end::deps2[] -->
+
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>${jline.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.bedrock.coherence</groupId>
+      <artifactId>coherence-21.06-testing-support</artifactId>
+      <version>${oracle.bedrock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${hamcrest.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- tag::cache-server[] -->
+    <profile>
+      <id>cache-server</id>
+      <activation>
+        <property>
+          <name>cache-server</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${maven.exec.plugin.version}</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument><classpath/>
+                <argument>-Dcoherence.log.level=3</argument>
+                <argument>-Dcoherence.wka=127.0.0.1</argument>
+                <argument>-Xmx512m</argument>
+                <argument>-Xms512m</argument>
+                <argument>-Dcoherence.cacheconfig=persistence-cache-config.xml</argument>
+                <argument>-Dcoherence.distributed.persistence.mode=on-demand</argument>  <!--1-->
+                <argument>-Dcoherence.distributed.persistence.base.dir=persistence-data</argument>  <!--2-->
+                <argument>com.tangosol.net.DefaultCacheServer</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- end::cache-server[] -->
+
+    <!-- tag::cohql[] -->
+    <profile>
+      <id>cohql</id>
+      <activation>
+        <property>
+          <name>cohql</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${maven.exec.plugin.version}</version>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <key>coherence.cacheconfig</key>
+                  <value>persistence-cache-config.xml</value>
+                </property>
+                <property>
+                  <key>coherence.distributed.persistence.base.dir</key>
+                  <value>persistence-data</value>
+                </property>
+                <property>
+                  <key>coherence.distributed.persistence.mode</key>
+                  <value>on-demand</value>
+                </property>
+                <property>
+                  <key>coherence.wka</key>
+                  <value>127.0.0.1</value>
+                </property>
+                <property>
+                  <key>coherence.distributed.localstorage</key>
+                  <value>false</value>
+                </property>
+              </systemProperties>
+              <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- end::cohql[] -->
+
+    <!-- tag::notifications[] -->
+    <profile>
+      <id>notifications</id>
+      <activation>
+        <property>
+          <name>notifications</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${maven.exec.plugin.version}</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument><classpath/>
+                <argument>-Dcoherence.log.level=3</argument>
+                <argument>-Dcoherence.wka=127.0.0.1</argument>
+                <argument>-Xmx128m</argument>
+                <argument>-Xms128m</argument>
+                <argument>-Dcoherence.cacheconfig=persistence-cache-config.xml</argument>
+                <argument>-Dcoherence.distributed.localstorage=false</argument>
+                <argument>com.oracle.coherence.tutorials.persistence.NotificationWatcher</argument>
+                <argument>PartitionedCache</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- end::notifications[] -->
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven.jar.plugin.version}</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>libs</classpathPrefix>
+              <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
+              <useUniqueVersions>false</useUniqueVersions>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.depdency.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>copy-libs</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/libs</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeScope>runtime</includeScope>
+              <excludeScope>test</excludeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

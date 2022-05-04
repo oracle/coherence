@@ -3,7 +3,7 @@
   ~ Copyright (c) 2021, 2022 Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -38,6 +38,7 @@
     <module>guides/190-cache-stores</module>
     <module>guides/200-federation</module>
     <module>guides/460-topics</module>
+    <module>tutorials/200-persistence</module>
     <module>tutorials/500-graphql/initial</module>
     <module>tutorials/500-graphql/complete</module>
   </modules>

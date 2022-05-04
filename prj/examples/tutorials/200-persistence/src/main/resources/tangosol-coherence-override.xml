@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+<!-- tag::mapping[] -->
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+
+  <cluster-config>
+    <snapshot-archivers>
+      <directory-archiver id="shared-directory-archiver"> <!--1-->
+        <archive-directory system-property="coherence.distributed.persistence.archive.dir">persistence-data/archives</archive-directory>
+      </directory-archiver>
+    </snapshot-archivers>
+  </cluster-config>
+
+  <management-config>
+    <managed-nodes system-property="coherence.management">all</managed-nodes>
+  </management-config>
+</coherence>
+<!-- end::mapping[] -->

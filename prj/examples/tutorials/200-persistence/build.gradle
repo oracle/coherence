@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2022 Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id "application"
+}
+apply plugin: "java"
+
+
+group = 'com.oracle.coherence.tutorials'
+version = '${coherenceVersion}'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+    implementation "${coherenceGroupId}:coherence"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5:${helidonVersion}"
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
+    testImplementation "org.jline:jline:${jlineVersion}"
+    testImplementation "com.oracle.bedrock.coherence:coherence-12.2.1-testing-support:${bedrockVersion}"
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+task runCacheServer(type: Exec) {
+    dependsOn build
+    group = "Execution"
+    description = "Run a Coherence Cache Server"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "-Xms512m", "-Xmx512m",
+            "-Dcoherence.cacheconfig=persistence-cache-config.xml",
+            "-Dcoherence.wka=127.0.0.1", "-Dcoherence.distributed.persistence.base.dir=persistence-data",
+            "-Dcoherence.distributed.persistence.mode=on-demand",
+            "com.tangosol.net.DefaultCacheServer"
+}
+
+
+task runCohQL(type: Exec) {
+    standardInput = System.in
+    dependsOn build
+    group = "Execution"
+    description = "Run CohQL"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), 
+            "-Dcoherence.cacheconfig=persistence-cache-config.xml", "-Xms128m", "-Xmx128m",
+            "-Dcoherence.wka=127.0.0.1",  "-Dcoherence.distributed.persistence.base.dir=persistence-data",
+            "-Dcoherence.distributed.persistence.mode=on-demand",
+            "-Dcoherence.distributed.localstorage=false", "com.tangosol.coherence.dslquery.QueryPlus"
+}
+
+task runNotifications(type: Exec) {
+    standardInput = System.in
+    dependsOn build
+    group = "Execution"
+    description = "Run Notification Listener"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(),
+            "-Dcoherence.cacheconfig=persistence-cache-config.xml", "-Xms128m", "-Xmx128m",
+            "-Dcoherence.wka=127.0.0.1",  "-Dcoherence.distributed.persistence.base.dir=persistence-data",
+            "-Dcoherence.distributed.localstorage=false", "com.oracle.coherence.tutorials.persistence.NotificationWatcher", "PartitionedCache"
+}
