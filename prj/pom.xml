@@ -3,7 +3,7 @@
   ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -1627,6 +1627,12 @@
                       <argument>${top.parent.basedir}/etc/header-2.txt</argument>
                       <argument>-A</argument>
                       <argument>${top.parent.basedir}/etc/header-3.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-4.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-5.txt</argument>
+                      <argument>-A</argument>
+                      <argument>${top.parent.basedir}/etc/header-6.txt</argument>
                       <argument>${copyright.svn}</argument>
                     </arguments>
                   </configuration>
