@@ -395,10 +395,6 @@
                     !com.tangosol.coherence;
                     *;
                   </exports>
-                  <!-- static requires for JLine, the usage of which is hidden away in TDE -->
-                  <requires>
-                    static org.jline.style;
-                  </requires>
                   <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>
