@@ -849,7 +849,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/rest/target/-
   permission java.util.PropertyPermission "*", "read";
 };
 
-grant codeBase "file:${oracle.coherence.lib}/../../test/functional/management/target/test-classes/-" {
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/management/target/classes/-" {
     // added for MultiClusterInSingleProcessTests
     permission java.net.NetPermission "getNetworkInformation";
     permission java.lang.management.ManagementPermission "monitor";
