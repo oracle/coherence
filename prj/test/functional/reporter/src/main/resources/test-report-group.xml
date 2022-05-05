@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-group xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-report-group-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-group-config coherence-report-group-config.xsd">
+
+    <frequency>5s</frequency>
+    <output-directory>./output</output-directory>
+    <report-list>
+        <report-config>
+            <location>test-report-cluster-config.xml </location>
+        </report-config>
+        <report-config>
+            <location>test-report-node-config.xml </location>
+        </report-config>
+    </report-list>
+</report-group>
+

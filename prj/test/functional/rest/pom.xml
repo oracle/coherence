@@ -29,82 +29,75 @@
     </profile>
   </profiles>
 
+  <properties>
+    <!-- split packages in http jar   -->
+    <moditect.skip>true</moditect.skip>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>http</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-login</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-management</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <!-- JAXB -->
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-core</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.connectors</groupId>
       <artifactId>jersey-apache-connector</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jettison</groupId>
       <artifactId>jettison</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -132,25 +125,6 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>test-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-            <configuration combine.self="override">
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
@@ -171,5 +145,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

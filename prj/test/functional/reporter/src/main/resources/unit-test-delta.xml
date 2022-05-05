@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-delta.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Delta,*</pattern>
+      	<params>
+          <column-ref>batch</column-ref>
+          <column-ref>node</column-ref>
+          <column-ref>intVal</column-ref>
+          <column-ref>longVal</column-ref>
+          <column-ref>doubleVal</column-ref>
+          <column-ref>DeltaInt</column-ref>
+          <column-ref>DeltaLong</column-ref>
+          <column-ref>DeltaDouble</column-ref>
+        </params>
+      </query>
+
+      <row>
+        <column id="batch">
+          <type>global</type>
+          <name>{batch-counter}</name>
+          <header>batchID</header>
+        </column>
+
+        <column id="node">
+          <type>key</type>
+          <name>nodeId</name>
+        </column>
+
+        <column id ="intVal">
+      	  <name>Int</name>
+	      <hidden>false</hidden>
+	      <return-neg>true</return-neg>
+        </column>
+
+        <column id ="longVal">
+      	  <name>Long</name>
+      	  <return-neg>true</return-neg>
+        </column>
+
+        <column id ="doubleVal">
+      	  <name>Double</name>
+      	  <return-neg>true</return-neg>
+        </column>
+
+        <column id="DeltaInt">
+          <type>function</type>
+          <name>DeltaInt</name>
+          <column-ref>intVal</column-ref>
+          <function-name>delta</function-name>
+          <params>
+            <column-ref>node</column-ref>
+          </params>
+        </column>
+
+        <column id="DeltaLong">
+          <type>function</type>
+          <name>DeltaLong</name>
+          <column-ref>longVal</column-ref>
+          <function-name>delta</function-name>
+          <params>
+            <column-ref>node</column-ref>
+          </params>
+        </column>
+
+        <column id="DeltaDouble">
+          <type>function</type>
+          <name>DeltaDouble</name>
+          <column-ref>doubleVal</column-ref>
+          <function-name>delta</function-name>
+          <params>
+            <column-ref>node</column-ref>
+          </params>
+        </column>
+      </row>
+    </report>
+
+
+</report-config>

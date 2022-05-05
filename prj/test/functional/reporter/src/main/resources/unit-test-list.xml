@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>
+    <file-name>unit-test-list.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=Test,*</pattern>
+    </query>
+
+    <row>
+      <column id="node">
+        <type>key</type>
+        <name>nodeId</name>
+      </column>
+
+      <column id ="intVal">
+        <name>Int</name>
+        <hidden>false</hidden>
+        <return-neg>true</return-neg>
+      </column>
+
+      <column id ="longVal">
+        <name>Long</name>
+        <hidden>false</hidden>
+        <return-neg>true</return-neg>
+      </column>
+
+      <column id ="doubleVal">
+        <name>Double</name>
+        <hidden>false</hidden>
+        <return-neg>true</return-neg>
+      </column>
+
+      <column id ="string">
+        <name>String</name>
+        <hidden>false</hidden>
+      </column>
+
+      <column id ="LongArray">
+        <name>LongArray</name>
+        <delim>,</delim>
+        <hidden>false</hidden>
+        <return-neg>true</return-neg>
+      </column>
+
+      <column id ="IntArray">
+        <name>IntArray</name>
+        <delim>,</delim>
+        <hidden>false</hidden>
+        <return-neg>true</return-neg>
+      </column>
+
+      <column id ="DoubleArray">
+        <name>DoubleArray</name>
+        <delim>,</delim>
+        <hidden>false</hidden>
+        <return-neg>true</return-neg>
+      </column>
+
+     <column id ="Date">
+        <name>Date</name>
+        <hidden>false</hidden>
+      </column>
+
+     <column id ="Bool">
+        <name>Bool</name>
+        <hidden>false</hidden>
+      </column>
+    </row>
+  </report>
+</report-config>

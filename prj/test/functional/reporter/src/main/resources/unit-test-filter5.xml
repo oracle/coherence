@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-filter5.txt</file-name>
+      <delim>{tab}</delim>
+      <filters>
+        <filter id = "equals">
+          <type>equals</type>
+          <params>
+            <column-ref>string</column-ref>
+            <column-ref>const</column-ref>
+          </params>
+	      </filter>
+  	    <filter id = "not">
+            <type>not</type>
+            <params>
+              <filter-ref>equals</filter-ref>
+            </params>
+      	 </filter>
+      </filters>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+	      <filter-ref>not</filter-ref>
+      </query>
+
+      <row>
+        <column id="node">
+          <type>key</type>
+          <name>nodeId</name>
+        </column>
+
+        <column id ="string">
+      	  <name>String</name>
+        </column>
+
+        <column id ="const">
+          <type>constant</type>
+      	  <name>const</name>
+          <data-type>string</data-type>
+          <value>Ora</value>
+        </column>
+      </row>
+    </report>
+
+
+</report-config>

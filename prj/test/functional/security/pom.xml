@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -37,60 +37,61 @@
     </profile>
   </profiles>
 
+  <properties>
+    <!-- moditect will probably not work until coherence rest and the rest tests this
+         module depends on are sorted out -->
+    <moditect.skip>true</moditect.skip>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-login</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-http-netty</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.glassfish.jersey.connectors</groupId>
-          <artifactId>jersey-apache-connector</artifactId>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.connectors</groupId>
+      <artifactId>jersey-apache-connector</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <!-- CreateKeyStore.java is used to create key stores for 
-           the security tests and requires JDK 8 to build.  
+           the security tests and requires a Sun JDK to build.
            To build CreateKeyStore.java, replace
-           <testExcludes> with
+           <excludes> with
            <source>${java.version}</source>
            <target>${java.version}</target>
-           and make sure java.version is 1.8 -->
+           and make sure the JDK is a Sun JDK -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <testExcludes>
-            <testExclude>**/CreateKeyStore.java</testExclude>
-          </testExcludes>
+          <excludes>
+            <exclude>**/CreateKeyStore.java</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>

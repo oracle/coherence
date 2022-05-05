@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>distributed-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Distributed caching scheme.
+    -->
+    <distributed-scheme>
+      <scheme-name>distributed-scheme</scheme-name>
+      <service-name>DistributedCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <!--
+    Proxy Service scheme that allows remote clients to connect to the
+    cluster over HTTP.
+    -->
+    <proxy-scheme>
+      <scheme-name>proxy-scheme</scheme-name>
+      <service-name>HttpProxyService</service-name>
+
+      <acceptor-config>
+        <http-acceptor>
+          <class-name>com.tangosol.coherence.http.netty.NettyHttpServer</class-name>
+          <local-address>
+            <address system-property="test.extend.address.local">127.0.0.1</address>
+            <port    system-property="test.extend.port">9999</port>
+          </local-address>
+          <auth-method>basic</auth-method>
+        </http-acceptor>
+      </acceptor-config>
+
+      <proxy-config>
+        <cache-service-proxy>
+          <class-name>security.EntitledCacheService</class-name>
+          <init-params>
+            <init-param>
+              <param-type>com.tangosol.net.CacheService</param-type>
+              <param-value>{service}</param-value>
+            </init-param>
+            <init-param>
+              <param-type>String</param-type>
+              <param-value>CN=Manager,OU=MyUnit</param-value>
+            </init-param>
+          </init-params>
+        </cache-service-proxy>
+      </proxy-config>
+
+      <autostart>true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

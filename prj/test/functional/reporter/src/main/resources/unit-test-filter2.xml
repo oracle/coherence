@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+      <file-name>unit-test-filter2.txt</file-name>
+      <delim>{tab}</delim>
+      <filters>
+      	 <filter id = "less">
+            <type>less</type>
+            <params>
+              <column-ref>doubleVal</column-ref>
+              <column-ref>constVal</column-ref>
+            </params>
+         </filter>
+      </filters>
+
+      <query>
+        <pattern>Coherence:type=Test,*</pattern>
+        <filter-ref>less</filter-ref>
+      </query>
+
+      <row>
+        <column id="node">
+          <type>key</type>
+          <name>nodeId</name>
+        </column>
+
+        <column id ="doubleVal">
+      	  <name>Double</name>
+          <return-neg>true</return-neg>
+        </column>
+
+        <column id ="constVal">
+          <type>constant</type>
+          <name>Constant.70</name>
+          <data-type>double</data-type>
+          <value>0.70</value>
+        </column>
+      </row>
+    </report>
+
+
+</report-config>

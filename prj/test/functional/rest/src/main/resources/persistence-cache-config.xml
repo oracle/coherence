@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>test-persistence</cache-name>
+      <scheme-name>simple-persistence</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>simple-persistence</scheme-name>
+      <service-name>DistributedCachePersistence</service-name>
+      <thread-count-min system-property="test.threads">0</thread-count-min>
+      <backing-map-scheme>
+        <transient>{transient false}</transient>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment system-property="test.persistent-environment">simple-bdb-environment</environment>
+        <archiver>simple-directory-archiver</archiver>
+      </persistence>
+      <autostart system-property="test.dist.enabled">true</autostart>
+    </distributed-scheme>
+
+  </caching-schemes>
+</cache-config>

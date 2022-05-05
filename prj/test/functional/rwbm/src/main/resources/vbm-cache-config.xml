@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- This does not validate with the xsd -->
+
+<cache-config>
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-vbm-*</cache-name>
+      <scheme-name>distributed-vbm</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>repl-*</cache-name>
+      <scheme-name>replicated-version</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>distributed-vbm</scheme-name>
+
+      <backing-map-scheme>
+        <versioned-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <high-units>0</high-units>
+              <expiry-delay>0</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>com.oracle.coherence.testing.TestCacheStore</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>java.lang.String</param-type>
+                  <param-value>repl-store</param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <write-delay-seconds>2</write-delay-seconds>
+
+          <version-persistent-scheme>
+            <replicated-scheme>
+              <scheme-ref>replicated-version</scheme-ref>
+            </replicated-scheme>
+          </version-persistent-scheme>
+
+          <version-transient-scheme>
+            <replicated-scheme>
+              <scheme-ref>replicated-version</scheme-ref>
+            </replicated-scheme>
+          </version-transient-scheme>
+
+          <manage-transient>true</manage-transient>
+        </versioned-backing-map-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <replicated-scheme>
+      <scheme-name>replicated-version</scheme-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>0</high-units>
+          <expiry-delay>0</expiry-delay>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </replicated-scheme>
+  </caching-schemes>
+</cache-config>

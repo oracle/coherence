@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-*</cache-name>
+      <scheme-name>dist-default</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>dist-default</scheme-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <service-name>ExtendHttpProxyService</service-name>
+      <acceptor-config>
+        <http-acceptor>
+          <class-name>com.tangosol.coherence.http.netty.NettyHttpServer</class-name>
+          <local-address>
+            <address system-property="test.extend.address.local">127.0.0.1</address>
+            <port    system-property="test.extend.port">8080</port>
+          </local-address>
+          <resource-config>
+            <instance>
+              <class-name>com.tangosol.coherence.rest.server.DefaultResourceConfig</class-name>
+            </instance>
+          </resource-config>
+          <resource-config>
+            <context-path>/_internal</context-path>
+            <instance>
+              <class-name>com.tangosol.coherence.rest.server.DefaultResourceConfig</class-name>
+            </instance>
+          </resource-config>
+        </http-acceptor>
+      </acceptor-config>
+      <autostart system-property="test.extend.enabled">true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

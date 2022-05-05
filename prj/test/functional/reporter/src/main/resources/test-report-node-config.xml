@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+			  
+    <report>
+      <description>Node Details Report</description>
+      <file-name>node-config.txt</file-name>
+      <delim>{tab}</delim>
+
+      <query>
+        <pattern>Coherence:type=Node,*</pattern>
+      </query>
+
+      <row>
+        <column id ="NodeId">
+          <type>key</type>
+          <name>nodeId</name>
+          <header>Node Id</header>
+        </column>
+
+      <column id ="NodeTS">
+        <name>Timestamp</name>
+        <header>Time Stamp</header>
+      </column>
+
+        <column id="MachineId">
+           <name>MachineId</name>
+           <header>Machine Id</header>
+        </column>
+
+        <column id="MachineName">
+           <name>MachineName</name>
+           <header>Machine Name</header>
+        </column>
+
+        <column id ="MemberName">
+          <name>MemberName</name>
+          <header>Member Name</header>
+        </column>
+
+        <column id="SiteName">
+           <name>SiteName</name>
+           <header>Site Name</header>
+        </column>
+
+        <column id="MulticastAddress">
+           <name>MulticastAddress</name>
+           <header>Multicast Address</header>
+        </column>
+
+        <column id="MulticastPort">
+           <name>MulticastPort</name>
+           <header>Multicast Port</header>
+        </column>
+
+        <column id="MulticastEnabled">
+           <name>MulticastEnabled</name>
+           <header>Multicast Enabled</header>
+        </column>
+
+        <column id="MulticastTTL">
+           <name>MulticastTTL</name>
+           <header>Multicast TTL</header>
+        </column>
+
+        <column id="MulticastThreshold">
+           <name>MulticastThreshold</name>
+           <header>Multicast Threshold</header>
+        </column>
+
+        <column id="UnicastAddress">
+           <name>UnicastAddress</name>
+           <header>Unicast Address</header>
+        </column>
+
+        <column id="UnicastPort">
+           <name>UnicastPort</name>
+           <header>Unicast Port</header>
+        </column>
+
+        <column id="RackName">
+           <name>RackName</name>
+           <header>Rack Name</header>
+        </column>
+
+        <column id="RoleName">
+           <name>RoleName</name>
+           <header>Role Name</header>
+        </column>
+
+        <column id="CpuCount">
+           <name>CpuCount</name>
+           <header>CpuCount</header>
+        </column>
+
+        <column id="ProductEdition">
+           <name>ProductEdition</name>
+           <header>Product Edition</header>
+        </column>
+
+        <column id="ProcessName">
+           <name>ProcessName</name>
+           <header>Process Name</header>
+        </column>
+
+        <column id="MemoryMaxMB">
+           <name>MemoryMaxMB</name>
+           <header>Memory Max MB</header>
+        </column>
+
+        <column id="NackEnabled">
+           <name>NackEnabled</name>
+           <header>Nack Enabled</header>
+        </column>
+
+        <column id="FlowControlEnabled">
+           <name>FlowControlEnabled</name>
+           <header>Flow Control Enabled</header>
+        </column>
+
+        <column id="BufferPublishSize">
+           <name>BufferPublishSize</name>
+           <header>Buffer Publish Size</header>
+        </column>
+
+        <column id="BufferReceiveSize">
+           <name>BufferReceiveSize</name>
+           <header>Buffer Receive Size</header>
+        </column>
+
+        <column id="ResendDelay">
+           <name>ResendDelay</name>
+           <header>Resend Delay</header>
+        </column>
+
+        <column id="SendAckDelay">
+           <name>SendAckDelay</name>
+           <header>Send Ack Delay</header>
+        </column>
+
+        <column id="TrafficJamCount">
+           <name>TrafficJamCount</name>
+           <header>Traffic Jam Count</header>
+        </column>
+
+        <column id="TrafficJamDelay">
+           <name>TrafficJamDelay</name>
+           <header>Traffic Jam Delay</header>
+        </column>
+
+        <column id="LoggingLevel">
+           <name>LoggingLevel</name>
+           <header>Logging Level</header>
+        </column>
+
+        <column id="LoggingLimit">
+           <name>LoggingLimit</name>
+           <header>Logging Limit</header>
+        </column>
+
+        <column id="LoggingFormat">
+           <name>LoggingFormat</name>
+           <header>Logging Format</header>
+        </column>
+
+        <column id="QuorumStatus">
+           <name>QuorumStatus</name>
+           <header>Quorum Status</header>
+        </column>
+
+        <column id="WellKnownAddresses">
+           <name>WellKnownAddresses</name>
+           <header>Well Known Addresses</header>
+        </column>
+
+      </row>
+    </report>
+</report-config>

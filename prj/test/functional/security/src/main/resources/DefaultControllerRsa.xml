@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<config>
+  <!-- https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html -->
+  <keystore-type>PKCS12</keystore-type>
+
+  <!-- https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html -->
+  <signature-algorithm>SHA256withRSA</signature-algorithm>
+</config>
