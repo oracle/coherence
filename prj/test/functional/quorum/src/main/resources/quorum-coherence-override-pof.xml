@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<!-- disable validation to parameterize the quorum elements -->
+<!--<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+            <!--xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"-->
+            <!--xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"-->
+            <!--xml-override="common/tangosol-coherence-override.xml">-->
+<!-- pick up the generic "tests" override -->
+<coherence xml-override="common/tangosol-coherence-override.xml">
+  <defaults>
+    <serializer>
+      <instance>
+        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>test-pof-config.xml</param-value>
+          </init-param>
+        </init-params>
+      </instance>
+    </serializer>
+  </defaults>
+
+  <cluster-config>
+    <packet-publisher>
+      <packet-delivery>
+        <!--
+        Artificially set to 5 sec for the quorum test.
+        -->
+        <timeout-milliseconds>5000</timeout-milliseconds>
+      </packet-delivery>
+    </packet-publisher>
+
+    <cluster-quorum-policy>
+      <timeout-survivor-quorum system-property="test.member.quorum">0</timeout-survivor-quorum>
+      <timeout-survivor-quorum system-property="test.member.role.quorum" role="qualified">0</timeout-survivor-quorum>
+
+      <timeout-machine-quorum system-property="test.machine.quorum">0</timeout-machine-quorum>
+      <timeout-machine-quorum system-property="test.machine.role.quorum" role="qualified">0</timeout-machine-quorum>
+
+      <timeout-site-quorum system-property="test.site.quorum">0</timeout-site-quorum>
+      <timeout-site-quorum system-property="test.site.role.quorum" role="qualified">0</timeout-site-quorum>
+    </cluster-quorum-policy>
+  </cluster-config>
+</coherence>

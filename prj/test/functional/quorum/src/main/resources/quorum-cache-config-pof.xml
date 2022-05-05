@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <defaults>
+    <serializer>
+      <instance>
+        <class-name>com.tangosol.io.pof.ConfigurablePofContext</class-name>
+        <init-params>
+          <init-param>
+            <param-type>string</param-type>
+            <param-value>test-pof-config.xml</param-value>
+          </init-param>
+        </init-params>
+      </instance>
+    </serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>dist-no-quorum</cache-name>
+      <scheme-name>partitioned-cache-no-quorum</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-quorum0</cache-name>
+      <scheme-name>partitioned-cache-with-quorum0</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-quorum1</cache-name>
+      <scheme-name>partitioned-cache-with-quorum1</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-quorum2</cache-name>
+      <scheme-name>partitioned-cache-with-quorum2</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-quorum3</cache-name>
+      <scheme-name>partitioned-cache-with-quorum3</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>distribution-events</cache-name>
+      <scheme-name>ReplDistributionEvents</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>partitioned-cache-with-quorum0</scheme-name>
+      <service-name>PartitionedCacheWithQuorum</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <!-- test typical-case -->
+        <distribution-quorum>4</distribution-quorum>
+        <read-quorum>3</read-quorum>
+        <write-quorum>5</write-quorum>
+      </partitioned-quorum-policy-scheme>
+      <autostart system-property="test.quorum.test.partitioned0">false</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>partitioned-cache-with-quorum1</scheme-name>
+      <service-name>PartitionedCacheWithQuorum</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <!-- test boundary-case -->
+        <distribution-quorum>0</distribution-quorum>
+        <read-quorum>0</read-quorum>
+        <write-quorum>0</write-quorum>
+      </partitioned-quorum-policy-scheme>
+      <autostart system-property="test.quorum.test.partitioned1">false</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>partitioned-cache-with-quorum2</scheme-name>
+      <service-name>PartitionedCacheWithQuorum</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <!-- test read/write lower than distribution -->
+        <distribution-quorum>3</distribution-quorum>
+        <read-quorum>0</read-quorum>
+        <write-quorum>0</write-quorum>
+      </partitioned-quorum-policy-scheme>
+      <autostart system-property="test.quorum.test.partitioned2">false</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>partitioned-cache-with-quorum3</scheme-name>
+      <service-name>PartitionedCacheWithQuorum</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <partitioned-quorum-policy-scheme>
+        <!-- test restore-quorum -->
+        <restore-quorum>3</restore-quorum>
+      </partitioned-quorum-policy-scheme>
+      <autostart system-property="test.quorum.test.partitioned3">false</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>partitioned-cache-no-quorum</scheme-name>
+      <service-name>PartitionedCacheNoQuorum</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <replicated-scheme>
+      <scheme-name>ReplDistributionEvents</scheme-name>
+      <service-name>ReplicatedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </replicated-scheme>
+
+    <proxy-scheme>
+      <scheme-name>proxy-with-quorum</scheme-name>
+      <service-name>TcpProxyService</service-name>
+      
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.extend.address">127.0.0.1</address>
+            <port system-property="coherence.extend.port">32000</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+
+      <load-balancer>client</load-balancer>
+
+      <proxy-quorum-policy-scheme>
+        <connect-quorum>3</connect-quorum>
+      </proxy-quorum-policy-scheme>
+      
+      <autostart system-property="test.quorum.proxy">false</autostart>
+    </proxy-scheme>
+
+    <remote-cache-scheme>
+      <scheme-name>extend-quorum</scheme-name>
+      <service-name>ExtendService</service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <address-provider>
+              <class-factory-name>quorum.QuorumTests</class-factory-name>
+              <method-name>getInitiatorAddressProvider</method-name>
+            </address-provider>
+          </remote-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <request-timeout>5s</request-timeout>
+        </outgoing-message-handler>
+      </initiator-config>
+    </remote-cache-scheme>
+
+  </caching-schemes>
+</cache-config>

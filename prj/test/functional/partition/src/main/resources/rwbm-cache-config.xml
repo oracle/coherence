@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+       
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>distrwbm-*</cache-name>
+      <scheme-name>distributed-rwbm-zerobackup</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-zerobackup</scheme-name>
+      <local-storage>true</local-storage>
+      <backup-count-after-writebehind>0</backup-count-after-writebehind>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme />
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart system-property="test.extend.enabled">true</autostart> 
+    </distributed-scheme>
+
+  </caching-schemes>
+</cache-config>
