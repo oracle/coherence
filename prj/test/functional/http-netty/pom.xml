@@ -107,36 +107,8 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>test-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-            <configuration combine.self="override">
-              <archive>
-                <addMavenDescriptor>false</addMavenDescriptor>
-              </archive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-install</id>
-            <phase>install</phase>
-          </execution>
-        </executions>
-      </plugin>
-
       <!--  We unpack the com.oracle.coherence.tests:http test-jar into target/classes
-            so that we have all of the certs and security files and we do not have to have
+            so that we have all the certs and security files and we do not have to have
             them copied into this module. We DO NOT unpack the .class files from that jar -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
