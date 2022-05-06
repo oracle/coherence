@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -149,27 +149,28 @@ public abstract class AbstractServerSentEventsTests
 
     protected EventSource createEventSource(WebTarget target, Map<String, Integer> mapCounts)
         {
-        EventSource source = new EventSource(target)
-            {
-            @Override
-            public void onEvent(InboundEvent inboundEvent)
-                {
-                mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
-                System.out.println("received " + inboundEvent.getName() + " event: "
-                        + inboundEvent.readData(SimpleMapEvent.class));
-                }
-            };
         int i = 0;
         while (i++ < 3)
             {
-            try{
-                Eventually.assertThat(invoking(source).isOpen(), is(true), within(2, TimeUnit.MINUTES));
-                return source;
-                }
-            catch (Exception e)
+            EventSource source = new EventSource(target)
                 {
-                System.out.println("createEventSource() got an exception: " + e);
-                source.open();
+                @Override
+                public void onEvent(InboundEvent inboundEvent)
+                    {
+                    mapCounts.merge(inboundEvent.getName(), 1, (v1, v2) -> v1 + 1);
+                    System.out.println("received " + inboundEvent.getName() + " event: "
+                            + inboundEvent.readData(SimpleMapEvent.class));
+                    }
+                };
+
+            try{
+            Eventually.assertThat(invoking(source).isOpen(), is(true), within(1, TimeUnit.MINUTES));
+            return source;
+            }
+            catch (AssertionError e)
+                {
+                System.out.println("createEventSource() got an AssertionError: " + e);
+                source.close();
                 }
             }
 
