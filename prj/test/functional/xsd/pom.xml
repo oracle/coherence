@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -37,18 +37,22 @@
     </profile>
   </profiles>
 
+  <properties>
+    <!-- the dependency on xerces causes all sorts of split packages -->
+    <moditect.skip>true</moditect.skip>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
@@ -56,14 +60,12 @@
       <groupId>xerces</groupId>
       <artifactId>xercesImpl</artifactId>
       <version>2.12.2</version>
-      <scope>test</scope>
     </dependency>
 
     <!--dependency>
       <groupId>org.apache.xerces</groupId>
       <artifactId>com.springsource.org.apache.xerces</artifactId>
       <version>2.9.1</version>
-      <scope>test</scope>
     </dependency-->
   </dependencies>
 

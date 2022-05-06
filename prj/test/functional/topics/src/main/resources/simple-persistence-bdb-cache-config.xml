@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>simple-persistent-topic-*</topic-name>
+      <scheme-name>simple-persistence-topic-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-persistent-retained-topic-*</topic-name>
+      <scheme-name>simple-persistence-topic-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>retain-values</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-transient-topic-*</topic-name>
+      <scheme-name>simple-persistence-topic-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>transient</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-archiver</topic-name>
+      <scheme-name>simple-persistence-archiver-scheme</scheme-name>
+      <value-type>int</value-type>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <paged-topic-scheme>
+      <scheme-name>simple-persistence-topic-scheme</scheme-name>
+      <service-name>DistributedTopicPersistence</service-name>
+      <transient>{transient false}</transient>
+      <persistence>
+        <environment system-property="test.persistent-environment">simple-bdb-environment</environment>
+      </persistence>
+      <partitioned-quorum-policy-scheme>
+        <class-name>topics.AbstractSimplePersistenceTopicTests$QuorumPolicy</class-name>
+      </partitioned-quorum-policy-scheme>
+      <autostart>true</autostart>
+      <retain-consumed>{retain-values false}</retain-consumed>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>simple-persistence-archiver-scheme</scheme-name>
+      <service-name>DistributedTopicPersistenceArchiver</service-name>
+      <thread-count-min system-property="test.threads">0</thread-count-min>
+      <transient>{transient false}</transient>
+      <persistence>
+        <environment system-property="test.persistent-environment">simple-bdb-environment</environment>
+        <archiver>simple-directory-archiver</archiver>
+      </persistence>
+      <partitioned-quorum-policy-scheme>
+         <class-name>topics.AbstractSimplePersistenceTopicTests$QuorumPolicy</class-name>
+      </partitioned-quorum-policy-scheme>
+      <autostart system-property="test.start.archiver">false</autostart>
+    </paged-topic-scheme>
+
+    <invocation-scheme>
+      <scheme-name>InvocationService</scheme-name>
+      <service-name>InvocationService</service-name>
+      <thread-count>5</thread-count>
+      <guardian-timeout>500000</guardian-timeout>
+      <autostart>true</autostart>
+    </invocation-scheme>
+  </caching-schemes>
+</cache-config>

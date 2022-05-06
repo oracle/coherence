@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="{tangosol.coherence.override /tangosol-coherence-override-{mode}.xml}">    
+
+<!--
+Note: This XML is set up for a development mode; search for "Note:"
+to find specific notes on changes suggested for production use.
+-->
+
+  <federation-config>
+    <participants>
+      <participant>
+        <name>BOSTON</name>
+        <initial-action system-property="test.federation.initial.action">start</initial-action>
+        <connect-timeout>5s</connect-timeout>
+        <send-timeout system-property="test.federation.sendtimeout">300s</send-timeout>
+        <send-old-value>false</send-old-value>
+        <participant-type system-property="test.federation.participant.type">cluster</participant-type>
+        <remote-addresses>
+          <socket-address>
+            <address>127.0.0.1</address>
+            <port system-property="test.federation.port.boston">11100</port>
+          </socket-address>
+        </remote-addresses>
+      </participant>
+      <participant>
+        <name>NEWYORK</name>
+        <connect-timeout>5s</connect-timeout>
+        <remote-addresses>
+          <socket-address>
+            <address>127.0.0.1</address>
+            <port system-property="test.federation.port.newyork">11200</port>
+          </socket-address>
+        </remote-addresses>
+      </participant>
+    </participants>
+
+    <topology-definitions>
+      <central-replication>
+        <name>Central</name>
+        <hub>BOSTON</hub>
+        <leaf>NEWYORK</leaf>
+      </central-replication>
+    </topology-definitions>
+
+  </federation-config>
+</coherence>

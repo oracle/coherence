@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name system-property="coherence.cachename">dist-*</cache-name>
+      <scheme-name system-property="coherence.schemename">example-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name system-property="coherence.paramname">back-size-limit</param-name>
+          <param-value system-property="coherence.paramvalue">8MB</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>repl-*</cache-name>
+      <scheme-name>example-replicated</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>opt-*</cache-name>
+      <scheme-name>example-optimistic</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>5000</param-value>
+        </init-param>
+      </init-params>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>example-distributed</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Distributed caching scheme.
+    -->
+    <distributed-scheme>
+      <scheme-name system-property="coherence.schemename">example-distributed</scheme-name>
+      <service-name system-property="coherence.servicename">DistributedCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref system-property="coherence.schemeref">example-binary-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart system-property="coherence.autostart">true</autostart>
+    </distributed-scheme>
+
+
+    <distributed-scheme>
+      <scheme-name>example-distributed2</scheme-name>
+      <service-name>DistributedCache2</service-name>
+
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <read-write-backing-map-scheme>
+          <scheme-name>example-read-write</scheme-name>
+    
+          <internal-cache-scheme>
+            <local-scheme>
+              <scheme-ref>example-binary-backing-map</scheme-ref>
+            </local-scheme>
+          </internal-cache-scheme>
+    
+          <cachestore-scheme></cachestore-scheme>
+    
+          <read-only>true</read-only>
+          <write-delay>0s</write-delay>
+        </read-write-backing-map-scheme>
+       </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+
+    <!--
+    Replicated caching scheme.
+    -->
+    <replicated-scheme>
+      <scheme-name>example-replicated</scheme-name>
+      <service-name>ReplicatedCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>unlimited-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </replicated-scheme>
+
+    <!--
+    Optimistic caching scheme.
+    -->
+    <optimistic-scheme>
+      <scheme-name>example-optimistic</scheme-name>
+      <service-name>OptimisticCache</service-name>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <scheme-ref>example-object-backing-map</scheme-ref>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </optimistic-scheme>
+
+  </caching-schemes>
+</cache-config>

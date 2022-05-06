@@ -22,6 +22,7 @@
 
   <properties>
     <moditect.skip>true</moditect.skip>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 
   <dependencies>
@@ -29,7 +30,6 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-management</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
       <exclusions>
         <!-- WLS does not have coherence-json, so we exclude it for these tests -->
         <exclusion>
@@ -42,19 +42,23 @@
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>management</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
+      <exclusions>
+        <!-- WLS does not have coherence-json, so we exclude it for these tests -->
+        <exclusion>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-json</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.inject</groupId>
@@ -63,32 +67,26 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jettison</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jettison</groupId>
       <artifactId>jettison</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.connectors</groupId>
       <artifactId>jersey-apache-connector</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
