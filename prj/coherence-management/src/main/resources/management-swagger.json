@@ -5461,6 +5461,12 @@
           "description": "Return an error description. This only returns a value if the sender is in an ERROR state.",
           "readOnly": true
         },
+        "currentBandwidth": {
+          "type": "number",
+          "format": "double",
+          "description": "The current utilized bandwidth in megabits per second for sending replicate message.",
+          "readOnly": true
+        },
         "maxBandwidth": {
           "type": "number",
           "format": "double",
@@ -5537,10 +5543,15 @@
           "description": "The messages sent per second.",
           "readOnly": true
         },
-        "currentBandwidth": {
-          "type": "number",
-          "format": "double",
-          "description": "The current utilized bandwidth in megabits per second for sending replicate message.",
+        "state": {
+          "type": "string",
+          "description": "Return the participant state.",
+          "readOnly": true
+        },
+        "stateCode": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Return the participant state code. The value of:\n 0: INITIAL\n 1: STARTING\n 2: CONNECTING\n 3: CONNECT_WAIT\n 4: IDLE\n 5: READY\n 6: SENDING\n 7: STOPPED\n 8: PAUSED\n 9: ERROR\n 10: YIELDING\n 11: DISCONNECTED\n 12: DISCONNECTING",
           "readOnly": true
         },
         "totalBytesSent": {
@@ -5577,11 +5588,6 @@
           "type": "integer",
           "format": "int64",
           "description": "The total number of responses with error. Check the log for details of the errors",
-          "readOnly": true
-        },
-        "state": {
-          "type": "string",
-          "description": "Return the participant state.",
           "readOnly": true
         },
         "traceLogging": {
