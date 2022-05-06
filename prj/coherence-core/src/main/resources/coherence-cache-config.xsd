@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -409,6 +409,7 @@
                         <xsd:element ref="socket-provider" minOccurs="0" />
                         <xsd:element ref="address-provider" minOccurs="0" />
                         <xsd:element ref="load-balancer" minOccurs="0"  />
+                        <xsd:element ref="participant-destination-name" minOccurs="0" />
                         <xsd:element ref="topologies" minOccurs="0"  />
                     </xsd:sequence>
                     <xsd:anyAttribute namespace="##other" processContents="lax" />
@@ -1245,6 +1246,23 @@
             </xsd:sequence>
             <xsd:anyAttribute namespace="##other" processContents="lax" />
         </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="participant-destination-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant-destination-name element contains the destination name
+                that should be used to obtain participant destination configuration
+                within the operational configuration.
+
+                In the absence of this element, federation will use destination
+                specific configuration keyed by the service name, if present.
+
+                Default value is the service name.
+
+                Used in: federated-scheme
+            </xsd:documentation>
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="topologies">

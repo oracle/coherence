@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-operational-config"
@@ -1637,6 +1637,7 @@
                 <xsd:element minOccurs="0" ref="send-old-value" />
                 <xsd:element minOccurs="0" ref="batch-size" />
                 <xsd:element minOccurs="0" ref="geo-ip" />
+                <xsd:element minOccurs="0" ref="participant-destinations" />
                 <xsd:element minOccurs="0" ref="participant-type" />
                 <xsd:element minOccurs="0" ref="interceptors" />
                 <xsd:choice minOccurs="0">
@@ -1782,6 +1783,46 @@
                 Used in: participant
             </xsd:documentation>
         </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="participant-destinations">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant-destinations element is a container for the
+                definition of one or more participant-destination elements.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="0" maxOccurs="unbounded" ref="participant-destination" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="participant-destination">
+        <xsd:annotation>
+            <xsd:documentation>
+                The participant-destination element contains destination specific
+                information (e.g. for a specific federation service) for a given
+                participant.
+
+                Used in: participant-destinations
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element minOccurs="1" name="name" type="coherence-string-type" />
+                <xsd:element minOccurs="0" ref="remote-addresses" />
+                <xsd:any namespace="##other" processContents="lax"
+                         minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:anyAttribute namespace="##other" processContents="lax" />
+        </xsd:complexType>
     </xsd:element>
 
     <xsd:element name="participant-type">
