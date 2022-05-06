@@ -5484,10 +5484,33 @@
           "description": "The 90-percentile value of the time (in milliseconds) taken by transmission of replication messages and the corresponding ack messages over the network.",
           "readOnly": true
         },
+        "replicateAllLastException": {
+          "type": "string",
+          "description": "The last exception recorded for a replicateAll request.",
+          "readOnly": true
+        },
+        "replicateAllPartitionCompletedCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of partitions completed for the replicateAll request.",
+          "readOnly": true
+        },
+        "replicateAllPartitionCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of partitions in the replicateAll request.",
+          "readOnly": true
+        },
+        "replicateAllPartitionErrorCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of partitions with error responses for the replicateAll request. Check ReplicateAllLastException for details of the last exception and the log for details of all the errors.",
+          "readOnly": true
+        },
         "replicateAllPercentComplete": {
           "type": "integer",
           "format": "int64",
-          "description": "The percent of work completed for a replicateAll request.",
+          "description": "The percent of work completed for the replicateAll request. If there are any problem in replicateAll, ReplicateAllPartitionErrorCount will be greater than 0.  Please look at the server log for details of the errors.",
           "readOnly": true
         },
         "estimatedReplicateAllRemainingTime": {
@@ -5625,6 +5648,11 @@
           "description": "The messages received per second.",
           "readOnly": true
         },
+        "replicateMessageLastException": {
+          "type": "string",
+          "description": "The last exception recorded for a ReplicateMessage request.",
+          "readOnly": true
+        },
         "totalBytesReceived": {
           "type": "integer",
           "format": "int64",
@@ -5635,6 +5663,12 @@
           "type": "integer",
           "format": "int64",
           "description": "The total number of cache entries that were received.",
+          "readOnly": true
+        },
+        "totalErrorRequests": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of ReplicateMessage requests with error. Check the log for details of the errors.",
           "readOnly": true
         },
         "totalRecordsReceived": {
