@@ -3,7 +3,7 @@
   "info": {
     "title": "RESTful Management Interface for Oracle Coherence MBeans",
     "description": "RESTful Management Interface for Oracle Coherence MBeans",
-    "version": "12.2.1.4.0"
+    "version": "14.1.1.0.8"
   },
   "schemes": [
     "http",
@@ -2987,6 +2987,35 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetstatistics": {
+      "post": {
+        "tags": [
+          "Federation"
+        ],
+        "summary": "Reset Incoming Statistics of a Participant",
+        "description": "Use this endpoint to clear the current statistics for a specific incoming/origin participant.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetstatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          },
+          {
+            "$ref": "#/parameters/participantName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants": {
       "get": {
         "tags": [
@@ -3056,6 +3085,37 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetstatistics": {
+      "post": {
+        "tags": [
+          "Federation"
+        ],
+        "summary": "Reset Outgoing Statistics of a Participant",
+        "description": "Use this endpoint to clear the current statistics for a specific outgoing/destination participant.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetstatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          },
+          {
+            "$ref": "#/parameters/participantName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+
+
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [
@@ -5326,6 +5386,11 @@
           "description": "The number of pending outgoing messages.",
           "format": "int64",
           "type": "integer"
+        },
+        "traceLogging": {
+          "default": "false",
+          "description": "True if federation trace logging is on.",
+          "type": "boolean"
         }
       }
     },
@@ -5495,6 +5560,11 @@
           "type": "string",
           "description": "Return the participant state.",
           "readOnly": true
+        },
+        "traceLogging": {
+          "default": "false",
+          "type": "boolean",
+          "description": "True if federation trace logging is turned on."
         }
       }
     },
