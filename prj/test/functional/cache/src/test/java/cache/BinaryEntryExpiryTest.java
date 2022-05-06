@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package cache;
 
@@ -67,17 +67,17 @@ public class BinaryEntryExpiryTest
         cache.invoke(2, processor);
 
         Object result = cache.invoke(1, processor);
-        assertTrue((lExpiry - (long) result) < 100l);
+        assertTrue((lExpiry - (long) result) < 1000l);
 
         lExpiry = 60000l;
         cache.put(1, 1, lExpiry);
         result = cache.invoke(1, processor);
-        assertTrue((lExpiry - (long) result) < 100l);
+        assertTrue((lExpiry - (long) result) < 500l);
 
         lExpiry = 432000000l;
         cache.put(1, 1, lExpiry);
         result = cache.invoke(1, processor);
-        assertTrue((lExpiry - (long) result) < 100l);
+        assertTrue((lExpiry - (long) result) < 1000l);
         }
 
 
