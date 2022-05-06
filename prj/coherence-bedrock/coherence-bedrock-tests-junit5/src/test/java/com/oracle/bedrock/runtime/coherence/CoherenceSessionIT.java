@@ -9,18 +9,25 @@ package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.Platform;
+
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterSize;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberId;
 import com.oracle.bedrock.runtime.coherence.callables.SessionExists;
+
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
-import com.oracle.bedrock.runtime.options.Console;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.oracle.bedrock.testsupport.junit.AbstractTest;
+import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
+
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -30,14 +37,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class CoherenceSessionIT
         extends AbstractTest
     {
-    /**
-     * Obtains the {@link Platform} to use when realizing applications.
-     */
-    public Platform getPlatform()
-        {
-        return LocalPlatform.get();
-        }
-
     @Test
     public void shouldGetDefaultSession()
         {
@@ -46,7 +45,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
@@ -67,7 +66,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
@@ -95,7 +94,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
@@ -117,7 +116,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
@@ -139,4 +138,22 @@ public class CoherenceSessionIT
             assertThat(defaultCache.get("key-1"), is(nullValue()));
             }
         }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Obtains the {@link Platform} to use when realizing applications.
+     */
+    public Platform getPlatform()
+        {
+        return LocalPlatform.get();
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * JUnit 5 extension to write Coherence logs to target/test-output/
+     */
+    @RegisterExtension
+    static final TestLogsExtension m_testLogs = new TestLogsExtension(CoherenceSessionIT.class);
     }
