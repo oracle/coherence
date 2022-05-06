@@ -31,7 +31,11 @@
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
@@ -50,13 +54,13 @@
     <!--
     Excluded from modular tests due to test failures
     -->
-        <profile>
-          <id>modular-tests</id>
-          <properties>
-            <useModulePath>false</useModulePath>
-            <bedrockUseModules>false</bedrockUseModules>
-          </properties>
-        </profile>
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
 
     <profile>
       <id>code-coverage</id>

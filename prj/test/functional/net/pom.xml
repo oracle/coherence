@@ -44,5 +44,16 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!--
+    This dependency is optional, so that tests Coherence servers
+    can be run without it on the classpath.
+    -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 </project>

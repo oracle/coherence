@@ -50,6 +50,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>http</artifactId>
       <version>${project.version}</version>

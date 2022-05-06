@@ -7,6 +7,7 @@
 package net;
 
 
+import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
@@ -21,6 +22,8 @@ import com.tangosol.util.processor.ExtractorProcessor;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.Person;
+
+import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.Assert;
@@ -130,7 +133,7 @@ public class ServiceTests
         }
 
     @Test
-    public void testCacheServiceClassLoader()
+    public void testCacheServiceClassLoader() throws Exception
         {
         try
             {
@@ -177,7 +180,7 @@ public class ServiceTests
             }
         }
 
-    protected static String getLocation(Class clz) throws URISyntaxException
+    protected static String getLocation(Class<?> clz) throws URISyntaxException
         {
         ProtectionDomain domain = clz.getProtectionDomain();
         CodeSource       source = domain == null ? null : domain.getCodeSource();
@@ -186,40 +189,14 @@ public class ServiceTests
         return url == null ? null : Paths.get(url.toURI()).toFile().toString();
         }
 
-    protected static String createSansClassPath(Class clz) throws URISyntaxException
+    protected static String createSansClassPath(Class<?>... clzExcludes) throws IOException
         {
-        String sFile      = getLocation(clz);
-        String sClassPath = System.getProperty("java.class.path", "");
-
-        if (sFile != null)
+        ClassPath classPath = ClassPath.automatic();
+        for (Class<?> clz : clzExcludes)
             {
-            if (sClassPath.indexOf(sFile) == -1)
-                {
-                // TODO: temporary fix to accommodate windows System32 and system32 being same for a file.
-                // handle possible windows differences between drive letter in path and case.
-                if (sClassPath.contains("system32") && sFile.contains("System32"))
-                    {
-                    sFile = sFile.replace("System32", "system32");
-
-                    if (!sClassPath.contains(sFile))
-                        {
-                        azzertFailed("can not find class file location=" + sFile + " in classpath " + sClassPath);
-                        return sClassPath;
-                        }
-                    }
-                }
-
-            sClassPath = sClassPath.replace(sFile, "");
-            Assert.assertEquals(sClassPath.indexOf(sFile), -1);
-
-            // if exist, remove consecutive classpath separators from classpath.
-            StringBuilder sb = new StringBuilder(2);
-            sb.append(File.pathSeparator).append(File.pathSeparator);
-
-            sClassPath = sClassPath.replace(sb.toString(), File.pathSeparator);
+            classPath = classPath.excluding(ClassPath.ofClass(clz));
             }
-
-        return sClassPath;
+        return classPath.toString();
         }
 
 

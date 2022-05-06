@@ -227,5 +227,20 @@
         </plugins>
       </build>
     </profile>    
+
+    <!--
+    This is actually an isseu with Helidon's repackaged io.grpc module:
+
+    class io.grpc.ServerRegistry (in module io.grpc) cannot access
+    class com.google.common.base.Preconditions (in module com.google.common)
+    because module io.grpc does not read module com.google.common
+    -->
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
   </profiles>
 </project>

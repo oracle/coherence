@@ -27,10 +27,18 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
+
+    <!-- split packages in http jar   -->
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
   </profiles>
 
   <properties>
-    <!-- split packages in http jar   -->
     <moditect.skip>true</moditect.skip>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
@@ -39,6 +47,11 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

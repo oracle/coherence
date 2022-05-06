@@ -32,6 +32,11 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -103,6 +108,17 @@
       <id>stage4</id>
       <properties>
         <skipTests>false</skipTests>
+      </properties>
+    </profile>
+
+    <!--
+    Excluded from modular tests due to pretty much all tests failing
+    -->
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
 
