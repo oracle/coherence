@@ -9,7 +9,7 @@
   <ssl>
     <identity-manager>
       <key-loader>
-        <class-name>com.tangosol.net.ssl.CustomPrivateKeyLoader</class-name>
+        <class-name>ssl.CustomPrivateKeyLoader</class-name>
         <init-params>
           <init-param>
             <param-type>string</param-type>
@@ -18,7 +18,7 @@
         </init-params>
       </key-loader>
       <cert-loader>
-        <class-name>com.tangosol.net.ssl.CustomCertificateLoader</class-name>
+        <class-name>ssl.CustomCertificateLoader</class-name>
         <init-params>
           <init-param>
             <param-type>string</param-type>
@@ -29,7 +29,7 @@
     </identity-manager>
     <trust-manager>
       <cert-loader>
-        <class-name>com.tangosol.net.ssl.CustomCertificateLoader</class-name>
+        <class-name>ssl.CustomCertificateLoader</class-name>
         <init-params>
           <init-param>
             <param-type>string</param-type>

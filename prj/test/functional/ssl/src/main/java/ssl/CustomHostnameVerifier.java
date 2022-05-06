@@ -5,7 +5,7 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.net.ssl;
+package ssl;
 
 
 import javax.net.ssl.HostnameVerifier;

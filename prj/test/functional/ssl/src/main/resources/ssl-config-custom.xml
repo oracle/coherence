@@ -8,7 +8,7 @@
 <ssl>
   <provider>
     <name>CustomSSLProvider</name>
-    <class-name>com.tangosol.net.ssl.CustomProvider</class-name>
+    <class-name>ssl.CustomProvider</class-name>
     <init-params>
       <init-param>
         <param-type>String</param-type>
@@ -25,7 +25,7 @@
   <identity-manager>
     <provider>
       <name>CustomKeyManagerProvider</name>
-      <class-name>com.tangosol.net.ssl.CustomProvider</class-name>
+      <class-name>ssl.CustomProvider</class-name>
       <init-params>
         <init-param>
           <param-type>String</param-type>
@@ -43,7 +43,7 @@
   <trust-manager>
     <provider>
       <name>CustomTrustManagerProvider</name>
-      <class-name>com.tangosol.net.ssl.CustomProvider</class-name>
+      <class-name>ssl.CustomProvider</class-name>
       <init-params>
         <init-param>
           <param-type>String</param-type>
@@ -58,7 +58,7 @@
   </trust-manager>
 
   <hostname-verifier>
-    <class-name>com.tangosol.net.ssl.CustomHostnameVerifier</class-name>
+    <class-name>ssl.CustomHostnameVerifier</class-name>
     <init-params>
       <init-param>
         <param-type>boolean</param-type>

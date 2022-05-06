@@ -23,7 +23,7 @@
     </trust-manager>
 
     <hostname-verifier>
-      <class-name>com.tangosol.net.ssl.CustomHostnameVerifier</class-name>
+      <class-name>ssl.CustomHostnameVerifier</class-name>
       <init-params>
         <init-param>
           <param-type>boolean</param-type>

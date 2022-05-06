@@ -21,8 +21,6 @@
   <name>Coherence Extend Tests</name>
 
   <properties>
-<!--  ssl tests jar causes split package  -->
-    <moditect.skip>true</moditect.skip>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 
@@ -56,28 +54,11 @@
               <goal>unpack-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+              <outputDirectory>${testClassesDirectory}</outputDirectory>
               <includeArtifactIds>ssl</includeArtifactIds>
               <includes>*.jks</includes>
               <overWriteReleases>true</overWriteReleases>
               <overWriteSnapshots>true</overWriteSnapshots>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-            <configuration combine.self="override">
-              <archive>
-                <addMavenDescriptor>true</addMavenDescriptor>
-              </archive>
             </configuration>
           </execution>
         </executions>

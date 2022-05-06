@@ -4,17 +4,18 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.net.ssl;
+package ssl;
 
+import com.tangosol.net.ssl.AbstractCertificateLoader;
 import com.tangosol.util.Resources;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public class CustomPrivateKeyLoader
-        extends AbstractPrivateKeyLoader
+public class CustomCertificateLoader
+        extends AbstractCertificateLoader
     {
-    public CustomPrivateKeyLoader(String sURL)
+    public CustomCertificateLoader(String sURL)
         {
         super(sURL);
         }

@@ -4,8 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.net.ssl;
+package ssl;
 
+import com.tangosol.net.ssl.AbstractKeyStoreLoader;
 import com.tangosol.util.Resources;
 
 import java.io.IOException;
