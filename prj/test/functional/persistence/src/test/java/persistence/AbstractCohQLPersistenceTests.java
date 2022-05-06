@@ -211,20 +211,27 @@ public abstract class AbstractCohQLPersistenceTests
 
             String sRepeatOperation =
                     "remove snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
-                    "create snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
                     "remove archived snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
+                    "list snapshots;\n" +
+                    "create snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
                     "archive snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
+                    "list snapshots;\n" +
+                    "list archived snapshots '" + sService + "'; \n" +
                     "remove snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
+                    "list snapshots;\n" +
                     "retrieve archived snapshot '" + sSnapshot10000 + "' '" + sService + "';\n";
 
             // run a long series of commands to ensure that the operation status is valid
             writeScriptToFile(fileScript,
                               "list snapshots;\n" +
                               "remove snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
+                              "list snapshots;\n" +
                               "create snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
                               "remove snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
+                              "list snapshots;\n" +
                               "create snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
                               "remove snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
+                              "list snapshots;\n" +
                               "create snapshot '" + sSnapshot10000 + "' '" + sService + "';\n" +
                               sRepeatOperation +
                               sRepeatOperation +
@@ -283,8 +290,10 @@ public abstract class AbstractCohQLPersistenceTests
             writeScriptToFile(fileScript,
                     "archive  snapshot '" + sMacroSnapshotName + "' '" + sService + "'; \n" +
                     "remove   snapshot '" + sMacroSnapshotName + "' '" + sService + "'; \n" +
+                    "list snapshots;\n" +
                     "retrieve archived snapshot '" + sMacroSnapshotName + "' '" + sService + "'; \n" +
                     "remove   archived snapshot '" + sMacroSnapshotName + "' '" + sService + "'; \n" +
+                    "list archived snapshots '" + sService + "'; \n" +
                     "recover  snapshot  '" + sMacroSnapshotName + "' '" + sService + "'; \n" +
                     "remove    snapshot '" + sMacroSnapshotName + "' '" + sService + "'; \n");
 
