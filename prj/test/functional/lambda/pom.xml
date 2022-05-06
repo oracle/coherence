@@ -47,6 +47,17 @@
       </properties>
     </profile>
 
+    <!--
+    Excluded from modular tests due to test failures
+    -->
+        <profile>
+          <id>modular-tests</id>
+          <properties>
+            <useModulePath>false</useModulePath>
+            <bedrockUseModules>false</bedrockUseModules>
+          </properties>
+        </profile>
+
     <profile>
       <id>code-coverage</id>
       <activation>

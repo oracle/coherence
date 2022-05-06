@@ -230,6 +230,17 @@
   </build>
 
   <profiles>
+<!--
+cannot access class com.google.common.io.ByteStreams (in module com.google.common) because module io.grpc does not read module com.google.common
+-->
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
+
     <profile>
       <id>release-modules</id>
       <build>
@@ -255,13 +266,6 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
-    <!-- This module requires Java 11 -->
-    <profile>
-      <id>test-jdk8</id>
-      <properties>
-        <maven.test.skip>true</maven.test.skip>
-      </properties>
     </profile>
   </profiles>
 </project>

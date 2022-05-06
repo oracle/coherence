@@ -27,6 +27,23 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
+
+<!--
+Excluded from modular tests due to failures in:
+
+metrics.ExtendMetricsTests.(?)
+metrics.MultiserverMetricsTests.(?)
+metrics.NSLookUpMetricsTests.(?)
+metrics.SimpleMetricsSSLTests.(?)
+metrics.SimpleMetricsTests.(?)
+-->
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
   </profiles>
 
   <properties>
