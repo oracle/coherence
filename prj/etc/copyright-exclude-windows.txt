@@ -85,6 +85,7 @@ test\functional\rest-simple\
 test\functional\toplink\
 test\functional\transaction\
 tools\ant-contrib\
+tools\internal\
 tools\maven\
 tools\tde\
 tools\tlt-antutils\
