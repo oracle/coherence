@@ -41,19 +41,45 @@
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!--
-    This dependency is optional, so that tests Coherence servers
-    can be run without it on the classpath.
-    -->
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-testing-data</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+          <groupId>com.oracle.coherence.moditect</groupId>
+          <artifactId>moditect-maven-plugin</artifactId>
+          <version>${maven.moditect.plugin.version}</version>
+          <executions>
+            <execution>
+              <id>add-module-info</id>
+              <phase>package</phase>
+              <goals>
+                <goal>add-module-info</goal>
+              </goals>
+              <configuration combine.self="append">
+                <module>
+                  <moduleInfo>
+                    <!--
+                     This dependency is optional, so that test Coherence servers
+                     can be run without it on the classpath.
+                     -->
+                    <requires>
+                      static com.oracle.coherence.testing.data;
+                    </requires>
+                  </moduleInfo>
+                </module>
+              </configuration>
+            </execution>
+          </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
