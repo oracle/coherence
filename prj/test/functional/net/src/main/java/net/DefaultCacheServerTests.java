@@ -6,6 +6,7 @@
  */
 package net;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -13,14 +14,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 
-import com.tangosol.util.Base;
-import com.tangosol.util.Resources;
-
 import java.io.File;
 import java.io.IOException;
-
-import java.net.URISyntaxException;
-import java.net.URL;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -58,16 +53,11 @@ public class DefaultCacheServerTests
     @BeforeClass
     public static void _startup()
         {
-        try
-            {
-            URL url   = Resources.findFileOrResource("coh_new_examples.gar", getContextClassLoader());
-            File file = new File(url.toURI());
-            GAR_FILE_NAME = file.getAbsolutePath();
-            }
-        catch (URISyntaxException e)
-            {
-            throw Base.ensureRuntimeException(e);
-            }
+        File buildFolder   = MavenProjectFileUtils.locateBuildFolder(DefaultCacheServerTests.class);
+        File classesFolder = new File(buildFolder, "classes");
+        File fileGar       = new File(classesFolder, "coh_new_examples.gar");
+
+        GAR_FILE_NAME = fileGar.getAbsolutePath();
 
         System.setProperty("coherence.distributed.localstorage", "true");
 
