@@ -188,5 +188,13 @@
         <maven.test.skip>true</maven.test.skip>
       </properties>
     </profile>
+
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
   </profiles>
 </project>
