@@ -105,8 +105,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
       <!--  We unpack the com.oracle.coherence.tests:http test-jar into target/classes
             so that we have all the certs and security files and we do not have to have
             them copied into this module. We DO NOT unpack the .class files from that jar -->

@@ -182,11 +182,13 @@
         </plugins>
       </build>
     </profile>
-    <!-- This module requires Java 11 -->
+
+    <!-- gRPC is currently broken when using modules -->
     <profile>
-      <id>test-jdk8</id>
+      <id>modular-tests</id>
       <properties>
-        <maven.test.skip>true</maven.test.skip>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
   </profiles>
