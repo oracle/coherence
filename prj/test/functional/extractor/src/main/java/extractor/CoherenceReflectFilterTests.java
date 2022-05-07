@@ -15,7 +15,7 @@ import com.tangosol.util.extractor.ReflectionUpdater;
 import com.tangosol.util.extractor.UniversalExtractor;
 import com.tangosol.util.extractor.UniversalUpdater;
 
-import data.TestInterface;
+import extractor.data.TestInterface;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,9 +24,7 @@ import static com.tangosol.internal.util.extractor.ReflectionAllowedFilter.DEFAU
 import static com.tangosol.internal.util.extractor.ReflectionAllowedFilter.REFLECT_FILTER_SEPARATOR;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Validate all reflection enabled extractors against a ReflectionAllowedFilter.INSTANCE configured by
@@ -59,15 +57,15 @@ public class CoherenceReflectFilterTests
             try
                 {
                 extractor.extract(target);
-                assertTrue("testUniversalExtractor: targetClass=" + target.getClass().getName() +
+                assertThat("testUniversalExtractor: targetClass=" + target.getClass().getName() +
                     " expected reflection not allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(true));
                 }
             catch (WrapperException e)
                 {
-                assertFalse("testUniversalExtractor: targetClass=" + target.getClass().getName() +
+                assertThat("testUniversalExtractor: targetClass=" + target.getClass().getName() +
                     " expected reflection allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(false));
                 }
             }
         }
@@ -84,15 +82,15 @@ public class CoherenceReflectFilterTests
             try
                 {
                 extractor.update(target, target.getClass().getName() + " updatedValue");
-                assertTrue("testUniversalUpdater: targetClass=" + target.getClass().getName() +
+                assertThat("testUniversalUpdater: targetClass=" + target.getClass().getName() +
                     " expected reflection not allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(true));
                 }
             catch (WrapperException e)
                 {
-                assertFalse("testUniversalUpdater: targetClass=" + target.getClass().getName() +
+                assertThat("testUniversalUpdater: targetClass=" + target.getClass().getName() +
                     " expected reflection allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(false));
                 }
             }
         }
@@ -109,15 +107,15 @@ public class CoherenceReflectFilterTests
             try
                 {
                 extractor.extract(target);
-                assertTrue("testReflectionExtractor: targetClass=" + target.getClass().getName() +
+                assertThat("testReflectionExtractor: targetClass=" + target.getClass().getName() +
                     " expected reflection not allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(true));
                 }
             catch (WrapperException e)
                 {
-                assertFalse("testReflectionExtractor: targetClass=" + target.getClass().getName() +
+                assertThat("testReflectionExtractor: targetClass=" + target.getClass().getName() +
                     " expected reflection allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(false));
                 }
             }
         }
@@ -134,15 +132,15 @@ public class CoherenceReflectFilterTests
             try
                 {
                 extractor.update(target, target.getClass().getName() + " updatedValue");
-                assertTrue("testReflectionUpdater: targetClass=" + target.getClass().getName() +
+                assertThat("testReflectionUpdater: targetClass=" + target.getClass().getName() +
                     " expected reflection not allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(true));
                 }
             catch (WrapperException e)
                 {
-                assertFalse("testReflectionUpdater: targetClass=" + target.getClass().getName() +
+                assertThat("testReflectionUpdater: targetClass=" + target.getClass().getName() +
                     " expected reflection allowed for coherence.reflect.filter=" + REFLECT_FILTER_VALUE,
-                    fReflectionAllowed);
+                    fReflectionAllowed, is(false));
                 }
             }
         }
@@ -152,11 +150,11 @@ public class CoherenceReflectFilterTests
     /**
      * Set system property {@link ReflectionAllowedFilter#REFLECT_FILTER_PROPERTY} to this value for these tests.
      */
-    private static String REFLECT_FILTER_VALUE = DEFAULT_REFLECT_ALLOWED_BLACKLIST + REFLECT_FILTER_SEPARATOR +
-        "data.AllowReflection" + REFLECT_FILTER_SEPARATOR +
-        "!data.RejectReflection" + REFLECT_FILTER_SEPARATOR +
-        "data.allowPackage.*" + REFLECT_FILTER_SEPARATOR +
-        "!data.rejectPackage.*" + REFLECT_FILTER_SEPARATOR +
+    private static final String REFLECT_FILTER_VALUE = DEFAULT_REFLECT_ALLOWED_BLACKLIST + REFLECT_FILTER_SEPARATOR +
+        "extractor.data.AllowReflection" + REFLECT_FILTER_SEPARATOR +
+        "!extractor.data.RejectReflection" + REFLECT_FILTER_SEPARATOR +
+        "extractor.data.allowPackage.*" + REFLECT_FILTER_SEPARATOR +
+        "!extractor.data.rejectPackage.*" + REFLECT_FILTER_SEPARATOR +
         "*";
 
     /**
@@ -164,19 +162,19 @@ public class CoherenceReflectFilterTests
      */
     private final TestInterface[] f_arr_oTarget =
         {
-        new data.AllowReflection("AllowReflection"),
-        new data.RejectReflection("RejectReflection"),
-        new data.allowPackage.AllowReflection("allowPkg.AllowReflection"),
-        new data.allowPackage.RejectReflection("allowPkg.RejectReflection"),
-        new data.rejectPackage.AllowReflection("rejectPkg.AllowReflection"),
-        new data.rejectPackage.RejectReflection("rejectPkg.RejectReflection")
+        new extractor.data.AllowReflection("AllowReflection"),
+        new extractor.data.RejectReflection("RejectReflection"),
+        new extractor.data.allowPackage.AllowReflection("allowPkg.AllowReflection"),
+        new extractor.data.allowPackage.RejectReflection("allowPkg.RejectReflection"),
+        new extractor.data.rejectPackage.AllowReflection("rejectPkg.AllowReflection"),
+        new extractor.data.rejectPackage.RejectReflection("rejectPkg.RejectReflection")
         };
 
     /**
      * Expected results for each element of {@link #f_arr_oTarget}.
      * True if reflection should be allowed for extractor and false if reflection should be rejected for extractor.
      */
-    private boolean[] f_arr_fExpectedReflectionAllowed =
+    private final boolean[] f_arr_fExpectedReflectionAllowed =
         {
         true,
         false,
