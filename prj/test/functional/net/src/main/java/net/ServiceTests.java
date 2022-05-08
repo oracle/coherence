@@ -23,28 +23,26 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.Person;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
-import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.File;
 
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.fail;
 
 
@@ -96,8 +94,8 @@ public class ServiceTests
             cacheFoo.put(1, 1);
             cacheFoo.remove(1);
 
-            assertTrue(cacheFoo.isEmpty());
-            Eventually.assertThat(invoking(this).dereference(atomicSuccess), is(2));
+            assertThat(cacheFoo.isEmpty(), is(true));
+            Eventually.assertDeferred(() -> this.dereference(atomicSuccess), is(2));
 
             // clear the 'rippled' change and the success status
             cacheBar.remove(1);
@@ -113,8 +111,8 @@ public class ServiceTests
             // instigate the remove that the MapListener will be invoked
             cacheFoo.remove(1);
 
-            assertTrue(cacheFoo.isEmpty());
-            Eventually.assertThat(invoking(this).dereference(atomicSuccess), greaterThan(0));
+            assertThat(cacheFoo.isEmpty(), is(true));
+            Eventually.assertDeferred(() -> this.dereference(atomicSuccess), greaterThan(0));
 
             switch (atomicSuccess.get())
                 {
@@ -135,10 +133,14 @@ public class ServiceTests
     @Test
     public void testCacheServiceClassLoader() throws Exception
         {
+        // This test cannot run with modules enabled
+        Assume.assumeFalse("Cannot run this test with Java module path",
+                           System.getProperties().containsKey("jdk.module.path"));
+
         try
             {
             CoherenceClusterMember server = startCacheServer("testCacheServiceClassLoader-1", "net", null, null, true,
-                    createSansClassPath(Person.class));
+                    createServerClassPath());
 
             NamedCache<Integer, Person> cachePpl = CacheFactory.getCache("resetCL");
 
@@ -167,7 +169,7 @@ public class ServiceTests
             });
 
             Person p = cachePpl.invoke(1, new ExtractorProcessor<>(ValueExtractor.identity()));
-            assertNotNull(p);
+            assertThat(p, is(notNullValue()));
             }
         catch (URISyntaxException e)
             {
@@ -180,7 +182,7 @@ public class ServiceTests
             }
         }
 
-    protected static String getLocation(Class<?> clz) throws URISyntaxException
+    private static String getLocation(Class<?> clz) throws URISyntaxException
         {
         ProtectionDomain domain = clz.getProtectionDomain();
         CodeSource       source = domain == null ? null : domain.getCodeSource();
@@ -189,18 +191,12 @@ public class ServiceTests
         return url == null ? null : Paths.get(url.toURI()).toFile().toString();
         }
 
-    protected static String createSansClassPath(Class<?>... clzExcludes) throws IOException
+    private static String createServerClassPath() throws IOException
         {
-        ClassPath classPath = ClassPath.automatic();
-        for (Class<?> clz : clzExcludes)
-            {
-            classPath = classPath.excluding(ClassPath.ofClass(clz));
-            }
-        return classPath.toString();
+        return ClassPath.automatic().excluding(".*coherence-testing-data.*").toString();
         }
 
-
-    public int dereference(AtomicInteger ref)
+    private int dereference(AtomicInteger ref)
         {
         return ref.get();
         }

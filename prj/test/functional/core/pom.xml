@@ -27,6 +27,15 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
+
+    <!-- These tests do not run with modules due to split packages -->
+    <profile>
+      <id>modular-tests</id>
+      <properties>
+        <useModulePath>false</useModulePath>
+        <bedrockUseModules>false</bedrockUseModules>
+      </properties>
+    </profile>
   </profiles>
 
   <properties>
