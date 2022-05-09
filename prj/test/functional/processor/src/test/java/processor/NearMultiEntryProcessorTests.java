@@ -1,18 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package processor;
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.tangosol.util.InvocableMap;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 /**
 * A collection of functional tests for the various
@@ -45,8 +46,10 @@ public class NearMultiEntryProcessorTests
     @BeforeClass
     public static void startup()
         {
-        startCacheServer("NearMultiProcessorTests-1", "processor");
-        startCacheServer("NearMultiProcessorTests-2", "processor");
+        CoherenceClusterMember member1 = startCacheServer("NearMultiProcessorTests-1", "processor");
+        CoherenceClusterMember member2 = startCacheServer("NearMultiProcessorTests-2", "processor");
+        m_listClusterMembers.add(member1);
+        m_listClusterMembers.add(member2);
         }
 
     /**
