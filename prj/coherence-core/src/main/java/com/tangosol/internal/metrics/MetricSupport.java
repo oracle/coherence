@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
@@ -275,7 +275,14 @@ public class MetricSupport
 
         f_setRegistered.add(sMBeanName);
 
-        MBeanInfo        mBeanInfo = proxy.getMBeanInfo(sMBeanName);
+        MBeanInfo mBeanInfo = proxy.getMBeanInfo(sMBeanName);
+        if (mBeanInfo == null)
+            {
+            CacheFactory.log("MetricSupport.registerInternal(), mBeanInfo is null on MBean: " + sMBeanName
+                    + ", proxy: " + proxy, Base.LOG_WARN);
+            return;
+            }
+
         Set<MBeanMetric> setMetric = getMetrics(sMBeanName, mBeanInfo, proxy);
         if (setMetric.size() > 0)
             {
