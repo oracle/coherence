@@ -23,6 +23,10 @@
 
   <properties>
     <module.name>com.oracle.coherence.core</module.name>
+
+    <java.version>11</java.version>
+    <java.version.release>11</java.version.release>
+
     <skip.sources>false</skip.sources>
   </properties>
 
@@ -165,6 +169,13 @@
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
       <artifactId>jakarta.ws.rs-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Caffeine -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
       <optional>true</optional>
     </dependency>
 

@@ -117,6 +117,7 @@
         <module>bootstrap</module>
         <module>bundler</module>
         <module>cache</module>
+        <module>caffeine</module>
         <module>config</module>
         <module>core</module>
         <module>dependencies</module>
