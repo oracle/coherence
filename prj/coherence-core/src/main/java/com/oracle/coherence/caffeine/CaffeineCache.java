@@ -65,6 +65,9 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code OldCache},
  * this cache does not support {@code null} keys or values.
+ *
+ * @author Ben Manes  2022.04.01
+ * @since 22.06
  */
 @SuppressWarnings({"rawtypes", "unchecked", "NullableProblems"})
 public final class CaffeineCache
