@@ -1,0 +1,213 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Entry Processors
+:description: Provides a guide for creating Entry Processors
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Entry Processors
+
+This guide walks you through the concepts of creating _Entry Processors_. Entry Processors allow you to perform data
+grid processing across a cluster. That means without moving cache entries across the wire, you can process one
+or more cache entries locally on the storage node.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building-the-example-code, Building The Example Code>>
+* <<data-model, Example Data Model>>
+* <<why-use-entry-processors, Why use Entry Processors?>>
+* <<creating-an-entry-processor, Creating an Entry Processor>>
+* <<lambda-expressions, Using Lambda Expressions>>
+* <<lambda-expressions-single-value, Process Single Map Keys Using Lambda Expressions>>
+* <<update-all-map-entries, Update all Map Entries>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+The example code is written as a set of unit tests, showing how you can use Entry Processors with Coherence.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 20
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building-the-example-code]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#data-model]
+=== Example Data Model
+
+The data model for this guide consists of a single class named `Country`. This model class represents a country with the
+following properties:
+
+- name
+- capital
+- population
+
+The data is being stored in a Coherence cache named `countries` with the key being the two-letter
+https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2[ISO 3166 country code].
+
+[#why-use-entry-processors]
+=== Why use Entry Processors?
+
+In our example, we do have several countries loaded into the cache. Let's assume we want to increase the population of
+several countries by a million each. More specifically, we only want to increase the population for those countries that
+have a population of 60 million or more.
+
+The obvious choice would be to query the cache using a `GreaterEqualsFilter` as we have done in the
+<<examples/guides/124-views/README.adoc,previous example on Views>>, iterate over the results and update the respective
+countries.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationWithoutEntryProcessor]
+----
+<1> Get the `countries` Map
+<2> We create a Filter that will select only countries with at least 60 million people using a `GreaterEqualsFilter`
+<3> Apply the `Filter` by invoking `keySet(filter)` on the `NamedCache` that will return a Set of keys
+<4> Assert that the `Set` of filtered keys only contains 2 keys
+<5> Loop over the keys
+<6> Make sure we lock the cache entry
+<7> Increment the population by 1 million
+<8> Update the map
+
+IMPORTANT: This is an example of how NOT to do this!
+
+While this works, it will be inefficient in use-cases where you have to update high number of cache entries.This approach
+would cause a lot of data to be moved over the wire, first for the retrieval of countries and then when pushing the
+updated countries back into the cluster.
+
+This is where _Entry Processors_ come into play. Entry Processors allow us to perform data grid processing inside the Coherence
+cluster. You can either apply Entry Processors for single cache keys or you can perform parallel processing against a
+collection of cache entries (map-reduce functionality).
+
+NOTE: For a more in-depth introduction to Entry Processors, please refer to the respective chapter
+link:{commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B[Processing Data In a Cache]
+in the Oracle Coherence reference guide.
+
+[#creating-an-entry-processor]
+=== Creating an Entry Processor
+
+Let's rewrite the inefficient example above to use an Entry Processor. First, we will create a class called
+`IncrementingEntryProcessor` that implements `InvocableMap.EntryProcessor`:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/entryprocessors/IncrementingEntryProcessor.java[tag=IncrementingEntryProcessor]
+----
+<1> The Entry Processor implements Coherence's `InvocableMap.EntryProcessor` class. The type parameters represent the key, the value
+    and the return type of the Entry Processor.
+<2> The `process()` method gives us access to the value of the `countries` Map
+<3> Increment the population by 1 million
+<4> Return the incremented population
+
+The `IncrementingEntryProcessor` contains one method `process()` that provides us with access to the `Country` via
+the `InvocableMap.Entry` argument. We will increase the population and the return the population. Now it is time to use
+the `IncrementingEntryProcessor`.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationWithCustomEntryProcessor]
+----
+<1> Get the `countries` Map
+<2> We create a Filter that will select only countries with at least 60 million people using a `GreaterEqualsFilter`
+<3> Call `invokeAll` on the `countries` Map, passing in both the filter and the `IncrementingEntryProcessor`
+<4> The result should be the Map containing the key and the new population value for the 2 affected countries
+
+In this example we are processing multiple map entries at once. You can of course apply Entry Processors to single map keys
+as well by using:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationForSingleEntry]
+----
+<1> Get the `countries` Map
+<2> Call `invoke` on the `countries` Map, passing in the key (instead of the filter) and the `IncrementingEntryProcessor`
+<3> The result should be the double value representing the new population value of Germany
+
+In the next section we will see how we can simplify the example even further using lambda expressions.
+
+[#lambda-expressions]
+=== Using Lambda Expressions
+
+Instead of creating dedicated Entry Processor classes, it may be advisable to pass in lambda expressions instead.
+Especially in use-cases such as our very simple contrived example, lambda expressions simplify the code noticeably.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationUsingLambdaExpression]
+----
+<1> Get the `countries` Map
+<2> We create a Filter that will select only countries with at least 60 million people using a `GreaterEqualsFilter`
+<3> Call `invokeAll` on the `countries` Map passing in the filter and the function that increments the population
+<4> The result should be the Map containing the key and the new population value for the 2 affected countries
+
+[#lambda-expressions-single-value]
+=== Process Single Map Keys Using Lambda Expressions
+
+When using lambda expressions for single map keys, you can use Coherence's `invoke()` as well as Java's `Map.compute()` method.
+Let's see the code for Coherence's `invoke()` method first:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationUsingInvokeForSingleCountry]
+----
+<1> Get the `countries` Map
+<2> Call `invoke` on the `NamedCache`, passing the key for Germany and the lambda expression
+<3> It is important to explicitly call `setValue` on the cache entry
+
+If using `compute()`, the code will look like this:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationUsingComputeForSingleCountry]
+----
+<1> Get the `countries` Map
+<2> Call `compute` on the `NamedCache`, passing the key for Germany and the lambda expression.
+<3> Set the new population but as you can see that there is no need to set the country explicitly on the cache entry.
+
+The code when using `compute` looks a little simpler, as `compute` implicitly updates the value to whatever you return. When
+using `invoke`, you have to explicitly call `entry.setValue(country)`. On the other hand, `compute` will return the entire
+country, whereas with `invoke` you can return any data object. This is advantageous in situations where you need to
+minimize the amount of data passed over the wire.
+
+[#update-all-map-entries]
+=== Update all Map Entries
+
+Sometimes we may need to update all entries in a Coherence Map. In that use-case we simply change the passed-in Filter.
+The lambda expression on the other hand remains the same. All we need to do is to pass in an instance of the `AlwaysFilter`:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationForAllCountries]
+----
+<1> Get the `countries` Map
+<2> Get an instance of the `AlwaysFilter` that will select all entries in the `countries` Map
+<3> Call `invokeAll` on the `countries` Map passing in the `AlwaysFilter` and the function that increments the population
+<4> The result should be the Map containing the key and the new population value for all 5 countries in the Map
+
+[#summary]
+=== Summary
+
+In this guide we showed how you can easily create _Entry Processors_ to perform data grid processing across a cluster.
+Please see the Coherence reference guide, specifically the chapter
+link:{commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B[Processing Data In a Cache]
+for more details.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-1CF26403-2922-4514-9395-84BCFF81849B[Processing Data In a Cache]
+* <<examples/guides/110-queries/README.adoc,Querying Caches>>
+* <<examples/guides/124-views/README.adoc,Views>>

@@ -61,6 +61,13 @@ This guide walks you through how to use the Streams API with Coherence.
 --
 
 [CARD]
+.Entry Processors
+[link=examples/guides/128-entry-processors/README.adoc]
+--
+This guide walks you through how to use Entry Processors with Coherence.
+--
+
+[CARD]
 .Federation
 [link=examples/guides/200-federation/README.adoc]
 --
