@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.micrometer;
@@ -75,7 +75,7 @@ public class CoherenceMicrometerMetrics
      *
      * @param metric  the metric to register
      */
-    void register(MBeanMetric metric)
+    public void register(MBeanMetric metric)
         {
         Holder holder = f_mapMetric.compute(metric.getIdentifier(),
                                             (k, v) -> v == null ? createHolder(metric) : v.setMetric(metric));
@@ -214,7 +214,7 @@ public class CoherenceMicrometerMetrics
      *
      * @return the currently registered metrics
      */
-    Map<MBeanMetric.Identifier, Holder> getMetrics()
+    public Map<MBeanMetric.Identifier, Holder> getMetrics()
         {
         return f_mapMetric;
         }
@@ -258,7 +258,7 @@ public class CoherenceMicrometerMetrics
     /**
      * A metric holder.
      */
-    static class Holder
+    public static class Holder
         {
         /**
          * Create a holder for a metric.
@@ -267,7 +267,7 @@ public class CoherenceMicrometerMetrics
          * @param sName   the metric name
          * @param tags    the metric tags
          */
-        Holder(MBeanMetric metric, String sName, Tags tags)
+        public Holder(MBeanMetric metric, String sName, Tags tags)
             {
             f_metric  = metric;
             f_sName   = sName;
@@ -279,7 +279,7 @@ public class CoherenceMicrometerMetrics
          *
          * @return  the metric identifier
          */
-        MBeanMetric.Identifier getIdentifier()
+        public MBeanMetric.Identifier getIdentifier()
             {
             return f_metric.getIdentifier();
             }
@@ -289,7 +289,7 @@ public class CoherenceMicrometerMetrics
          *
          * @return the metric name
          */
-        String getName()
+        public String getName()
             {
             return f_sName;
             }
@@ -299,7 +299,7 @@ public class CoherenceMicrometerMetrics
          *
          * @return  the metric tags
          */
-        Tags getTags()
+        public Tags getTags()
             {
             return f_tags;
             }
@@ -309,7 +309,7 @@ public class CoherenceMicrometerMetrics
          *
          * @return  the metric description
          */
-        String getDescription()
+        public String getDescription()
             {
             return f_metric.getDescription();
             }
@@ -322,7 +322,7 @@ public class CoherenceMicrometerMetrics
          *
          * @return  the metric value as a {@code double}
          */
-        double getValue()
+        public double getValue()
             {
             Object oValue = f_metric.getValue();
             if (oValue instanceof Number)
@@ -339,7 +339,7 @@ public class CoherenceMicrometerMetrics
          *
          * @return  this {@link Holder}
          */
-        Holder setMetric(MBeanMetric metric)
+        public Holder setMetric(MBeanMetric metric)
             {
             f_metric = metric;
             return this;

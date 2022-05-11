@@ -148,6 +148,7 @@
         <module>wls-management</module>
         <module>memcached</module>
         <module>metrics</module>
+        <module>micrometer</module>
         <module>near</module>
         <module>net</module>
         <module>partition</module>
@@ -261,6 +262,7 @@
         <module>management</module>
         <module>wls-management</module>
         <module>metrics</module>
+        <module>micrometer</module>
         <module>rest</module>
         <module>rest-netty</module>
         <module>rwbm</module>
