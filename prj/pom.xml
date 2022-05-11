@@ -850,11 +850,12 @@
         <bedrockUseModules>true</bedrockUseModules>
 
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
-        <failsafe.modules.argline>
+        <default.failsafe.modules.argline>
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
-        </failsafe.modules.argline>
+        </default.failsafe.modules.argline>
+        <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
       </properties>
       <build>
         <plugins>

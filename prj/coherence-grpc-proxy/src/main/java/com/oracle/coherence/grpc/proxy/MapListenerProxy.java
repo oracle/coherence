@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -61,7 +61,7 @@ import java.util.Set;
  * @author Jonathan Knight  2019.12.03
  * @since 20.06
  */
-class MapListenerProxy
+public class MapListenerProxy
         implements StreamObserver<MapListenerRequest>, MapListener<Object, Object>
     {
     // ----- constructors ---------------------------------------------------
@@ -75,7 +75,7 @@ class MapListenerProxy
      *                  instances to
      */
     @SuppressWarnings("unchecked")
-    MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
+    public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
         {
         f_service              = service;
         f_observer             = observer;
@@ -218,7 +218,7 @@ class MapListenerProxy
      *
      * @return the {@link DeactivationListener} for this proxy
      */
-    protected MapListener<Object, Object> getDeactivationListener()
+    public MapListener<Object, Object> getDeactivationListener()
         {
         return f_listenerDeactivation;
         }
@@ -960,7 +960,7 @@ class MapListenerProxy
     /**
      * {@link MapListenerSupport.PrimingListener} that delegates calls to the wrapped {@link MapListener}.
      */
-    protected static class WrapperPrimingListener
+    public static class WrapperPrimingListener
             implements MapListenerSupport.PrimingListener<Object, Object>
         {
         // ----- constructors -----------------------------------------------
@@ -971,7 +971,7 @@ class MapListenerProxy
          *
          * @param wrapped  the {@link MapListener} delegate
          */
-        protected WrapperPrimingListener(MapListener<Object, Object> wrapped)
+        public WrapperPrimingListener(MapListener<Object, Object> wrapped)
             {
             f_listenerWrapped = wrapped;
             }

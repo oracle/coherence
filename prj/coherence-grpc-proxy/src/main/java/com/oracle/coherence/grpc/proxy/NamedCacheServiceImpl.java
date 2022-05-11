@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -1485,7 +1485,7 @@ public class NamedCacheServiceImpl
      *
      * @throws io.grpc.StatusRuntimeException if the {@link ByteString} is null or empty
      */
-    ValueExtractor<?, ?> ensureValueExtractor(ByteString bytes, Serializer serializer)
+    public ValueExtractor<?, ?> ensureValueExtractor(ByteString bytes, Serializer serializer)
         {
         if (bytes == null || bytes.isEmpty())
             {
@@ -1548,7 +1548,7 @@ public class NamedCacheServiceImpl
      * @return a deserialized {@link Comparator} or {@code null} if the {@link ByteString}
      *         is {@code null} or {@link ByteString#EMPTY}
      */
-    <T> Comparator<T> deserializeComparator(ByteString bytes, Serializer serializer)
+    public <T> Comparator<T> deserializeComparator(ByteString bytes, Serializer serializer)
         {
         if (bytes == null || bytes.isEmpty())
             {
@@ -1661,7 +1661,7 @@ public class NamedCacheServiceImpl
      * @return a {@link CompletionStage} that completes when the {@link CacheRequestHolder} has
      *         been created
      */
-    <Req> CompletionStage<CacheRequestHolder<Req, Void>> createHolderAsync(Req request,
+    public <Req> CompletionStage<CacheRequestHolder<Req, Void>> createHolderAsync(Req request,
                                                                            String sScope,
                                                                            String sCacheName,
                                                                            String format)

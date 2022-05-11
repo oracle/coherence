@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -23,6 +23,16 @@
   <properties>
     <module.name>helidon.grpc.proxy.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+
+    <!-- The add-opens can be removed once Helidon MP gRPC is fixed -->
+    <failsafe.modules.argline>
+      ${default.failsafe.modules.argline}
+      --add-reads com.oracle.coherence.cdi=ALL-UNNAMED
+      --add-reads com.oracle.coherence.cdi.server=ALL-UNNAMED
+      --add-reads io.helidon.microprofile.grpc.server=ALL-UNNAMED
+      --add-opens io.helidon.microprofile.grpc.server/io.helidon.microprofile.grpc.server=weld.core.impl
+      --add-opens io.helidon.microprofile.grpc.server/io.helidon.microprofile.grpc.server=io.helidon.microprofile.cdi
+    </failsafe.modules.argline>
   </properties>
 
   <dependencies>
@@ -32,7 +42,6 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- test dependencies -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>

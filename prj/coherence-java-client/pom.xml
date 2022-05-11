@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -58,20 +58,6 @@
     </dependency>
 
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-json</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-grpc-proxy</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
@@ -101,16 +87,7 @@
         <artifactId>flatten-maven-plugin</artifactId>
       </plugin>
 
-      <!-- run integration tests *Tests.java and *IT.java -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <reuseForks>false</reuseForks>
-        </configuration>
-      </plugin>
-
-      <!-- run integration tests *Test.java -->
+      <!-- run unit tests *Test.java -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>

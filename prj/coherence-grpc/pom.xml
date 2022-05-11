@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -37,30 +37,15 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- We could depend on the Helidon re-packaged io.grpc jar but the re-packaged
-         version of gRPC does not match the version of Netty being used -->
+    <!--
+    We use Helidon's repackaged io.grpc artifact so that gRPC
+    will work with Java modules.
+    -->
     <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-protobuf</artifactId>
+      <groupId>io.helidon.grpc</groupId>
+      <artifactId>io.grpc</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-context</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-netty</artifactId>
@@ -79,6 +64,30 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+      <exclusions>
+          <exclusion>
+              <groupId>io.grpc</groupId>
+              <artifactId>grpc-core</artifactId>
+          </exclusion>
+          <exclusion>
+              <groupId>io.grpc</groupId>
+              <artifactId>grpc-api</artifactId>
+          </exclusion>
+      </exclusions>
+    </dependency>
 
     <!-- Override the version of Netty   -->
     <dependency>
@@ -88,10 +97,6 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler-proxy</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.helidon.grpc</groupId>
-      <artifactId>io.grpc</artifactId>
     </dependency>
 
     <dependency>
@@ -106,22 +111,6 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -166,21 +155,6 @@
         <version>${maven.deploy.plugin.version}</version>
         <configuration combine.self="override">
           <skip>false</skip>
-        </configuration>
-      </plugin>
-
-      <!-- run integration tests *Tests.java and *IT.java -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin>
-
-      <!-- run integration tests *Test.java -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
 

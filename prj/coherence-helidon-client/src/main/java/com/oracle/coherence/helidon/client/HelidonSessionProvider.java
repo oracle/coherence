@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.helidon.client;
 
@@ -76,7 +76,7 @@ public class HelidonSessionProvider
      * @return the completed {@link Context} containing the session or an incomplete
      *         {@link Context} if this provider could not create the session.
      */
-    Context createSession(BeanManager beanManager, SessionConfiguration configuration, Context context)
+    public Context createSession(BeanManager beanManager, SessionConfiguration configuration, Context context)
         {
         CoherenceConfigHelper configHelper     = new CoherenceConfigHelper(beanManager);
         Map<String, Config>   mapSessionConfig = configHelper.getSessions();

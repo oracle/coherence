@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -40,7 +40,7 @@ public class GrpcProxyMetrics
      *
      * @throws NullPointerException is the name parameter is {@code null}
      */
-    GrpcProxyMetrics(String sName, DaemonPoolExecutor.DaemonPoolManagement poolManagement)
+    public GrpcProxyMetrics(String sName, DaemonPoolExecutor.DaemonPoolManagement poolManagement)
         {
         Objects.requireNonNull(sName);
 
@@ -61,7 +61,7 @@ public class GrpcProxyMetrics
      *
      * @param nanos  the request time in nanos.
      */
-    void addRequestDuration(long nanos)
+    public void addRequestDuration(long nanos)
         {
         // convert the time to millis
         f_requestHistogram.update(TimeUnit.NANOSECONDS.toMillis(nanos));
@@ -72,7 +72,7 @@ public class GrpcProxyMetrics
      *
      * @param nanos  the request time in nanos.
      */
-    void addMessageDuration(long nanos)
+    public void addMessageDuration(long nanos)
         {
         // convert the time to millis
         f_messageHistogram.update(TimeUnit.NANOSECONDS.toMillis(nanos));
@@ -81,7 +81,7 @@ public class GrpcProxyMetrics
     /**
      * Update the successful request meter.
      */
-    void markSuccess()
+    public void markSuccess()
         {
         f_meterSuccess.mark();
         }
@@ -89,7 +89,7 @@ public class GrpcProxyMetrics
     /**
      * Update the failed request meter.
      */
-    void markError()
+    public void markError()
         {
         f_meterError.mark();
         }
@@ -97,7 +97,7 @@ public class GrpcProxyMetrics
     /**
      * Update the messages sent meter.
      */
-    void markSent()
+    public void markSent()
         {
         f_meterSent.mark();
         }
@@ -105,7 +105,7 @@ public class GrpcProxyMetrics
     /**
      * Update the messages received meter.
      */
-    void markReceived()
+    public void markReceived()
         {
         f_meterReceived.mark();
         }

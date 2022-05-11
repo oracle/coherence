@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -129,9 +129,13 @@
         <module>extractor</module>
         <module>filter</module>
         <module>graal</module>
+        <module>grpc</module>
+        <module>grpc-proxy</module>
+        <module>grpc-client</module>
         <module>guardian</module>
         <module>health</module>
         <module>helidon-grpc-proxy</module>
+        <module>helidon-grpc-client</module>
         <module>http</module>
         <module>http-config</module>
         <module>http-netty</module>
@@ -267,8 +271,12 @@
     <!-- profile>
       <id>stage10</id>
       <modules>
+        <module>grpc</module>
+        <module>grpc-proxy</module>
+        <module>grpc-client</module>
         <module>health</module>
         <module>helidon-grpc-proxy</module>
+        <module>helidon-grpc-client</module>
         <module>session</module>
         <module>ssl</module>
         <module>tcmp</module>

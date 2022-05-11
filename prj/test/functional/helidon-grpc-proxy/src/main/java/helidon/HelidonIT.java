@@ -60,7 +60,12 @@ public class HelidonIT
     static void cleanupBaseTest()
         {
         SessionProvider.get().close();
-        s_channel.shutdownNow();
+
+        if (s_channel != null)
+            {
+            s_channel.shutdownNow();
+            }
+
         if (s_server != null)
             {
             s_server.stop();

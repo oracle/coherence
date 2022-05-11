@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -102,6 +102,7 @@
     <module.name>${project.artifactId}</module.name>
 
     <failsafe.argLine/>
+    <default.failsafe.modules.argline/>
     <failsafe.modules.argline/>
     <failsafe.coverage.argline/>
 
@@ -916,6 +917,13 @@
         <groupId>io.grpc</groupId>
         <artifactId>grpc-stub</artifactId>
         <version>${grpc.version}</version>
+        <exclusions>
+            <exclusion>
+                <!-- Used for compilation of "their" sources -->
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+            </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -1504,6 +1512,7 @@
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <useModulePath>${useModulePath}</useModulePath>
+            <testClassesDirectory>${testClassesDirectory}</testClassesDirectory>
           </configuration>
           <dependencies>
             <dependency>

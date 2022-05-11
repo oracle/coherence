@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.client;
 
@@ -123,7 +123,7 @@ public class AsyncNamedCacheClient<K, V>
      * @param dependencies  the {@link Dependencies} to configure this
      *                      {@link AsyncNamedCacheClient}.
      */
-    AsyncNamedCacheClient(Dependencies dependencies)
+    public AsyncNamedCacheClient(Dependencies dependencies)
         {
         f_sCacheName                = dependencies.getCacheName();
         f_dispatcher                = dependencies.getEventDispatcher();
@@ -848,7 +848,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@code true} if the cache is still active
      */
-    protected boolean isActiveInternal()
+    public boolean isActiveInternal()
         {
         return !m_fReleased && !m_fDestroyed;
         }
@@ -905,7 +905,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> release()
+    public CompletableFuture<Void> release()
         {
         return executeIfActive(() -> releaseInternal(false));
         }
@@ -1466,7 +1466,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to add
      */
-    protected synchronized void addDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ?
+    public synchronized void addDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ?
             super V>> listener)
         {
         assertActive();
@@ -1482,7 +1482,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to add
      */
-    protected synchronized void addDeactivationListener(NamedCacheDeactivationListener listener)
+    public synchronized void addDeactivationListener(NamedCacheDeactivationListener listener)
         {
         if (listener != null)
             {

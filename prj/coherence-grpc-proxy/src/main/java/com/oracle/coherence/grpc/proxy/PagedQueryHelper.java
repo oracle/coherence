@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -54,7 +54,7 @@ import java.util.stream.Stream;
  * @author Jonathan Knight  2019.11.28
  * @since 20.06
  */
-final class PagedQueryHelper
+public final class PagedQueryHelper
     {
     // ----- constructors ---------------------------------------------------
 
@@ -368,7 +368,7 @@ final class PagedQueryHelper
      *
      * @return the decoded cookie
      */
-    static Object[] decodeCookie(Service service, ByteString cookie)
+    public static Object[] decodeCookie(Service service, ByteString cookie)
         {
         PartitionSet parts;
         int nPage;
@@ -419,7 +419,7 @@ final class PagedQueryHelper
      *
      * @return an encoded page request cookie
      */
-    static ByteString encodeCookie(PartitionSet parts, int page)
+    public static ByteString encodeCookie(PartitionSet parts, int page)
         {
         if (parts.isEmpty())
             {
