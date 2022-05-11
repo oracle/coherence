@@ -15,6 +15,7 @@ tools/tde/
 tools/tlt-antutils/
 tools/wls/
 dependency-reduced-pom.xml
+.Dockerfile
 etc/
 ExcludeList
 .git/

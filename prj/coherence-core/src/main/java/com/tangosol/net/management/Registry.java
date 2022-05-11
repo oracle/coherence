@@ -289,7 +289,7 @@ public interface Registry
         }
 
     /**
-     * Returns {@link true} if the all the registered
+     * Returns {@code true} if the all the registered
      * {@link HealthCheck health checks} are ready.
      * <p>
      * Only {@link HealthCheck health checks} that return {@code true}
@@ -299,13 +299,13 @@ public interface Registry
      * The concept of what "ready" means may vary for different
      * types of {@link HealthCheck}.
      *
-     * @return {@link true} if the all the registered
+     * @return {@code true} if the all the registered
      *         {@link HealthCheck health checks} are ready.
      */
     public boolean allHealthChecksReady();
 
     /**
-     * Returns {@link true} if the all the registered
+     * Returns {@code true} if the all the registered
      * {@link HealthCheck health checks} are live.
      * <p>
      * Only {@link HealthCheck health checks} that return {@code true}
@@ -315,13 +315,13 @@ public interface Registry
      * The concept of what "live" means may vary for different
      * types of {@link HealthCheck}.
      *
-     * @return {@link true} if the all the registered
+     * @return {@code true} if the all the registered
      *         {@link HealthCheck health checks} are live.
      */
     public boolean allHealthChecksLive();
 
     /**
-     * Returns {@link true} if the all the registered
+     * Returns {@code true} if the all the registered
      * {@link HealthCheck health checks} are started.
      * <p>
      * Only {@link HealthCheck health checks} that return {@code true}
@@ -331,13 +331,13 @@ public interface Registry
      * The concept of what "started" means may vary for different
      * types of {@link HealthCheck}.
      *
-     * @return {@link true} if the all the registered
+     * @return {@code true} if the all the registered
      *         {@link HealthCheck health checks} are started.
      */
     boolean allHealthChecksStarted();
 
     /**
-     * Returns {@link true} if the all the registered
+     * Returns {@code true} if the all the registered
      * {@link HealthCheck health checks} are safe.
      * <p>
      * Only {@link HealthCheck health checks} that return {@code true}
@@ -347,7 +347,7 @@ public interface Registry
      * The concept of what "safe" means may vary for different
      * types of {@link HealthCheck}.
      *
-     * @return {@link true} if the all the registered
+     * @return {@code true} if the all the registered
      *         {@link HealthCheck health checks} are safe.
      */
     boolean allHealthChecksSafe();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -643,6 +643,19 @@ public class Coherence
     public Cluster getCluster()
         {
         return CacheFactory.getCluster();
+        }
+
+    /**
+     * Returns the current management registry.
+     *
+     * @return the current management registry or {@code null}
+     *         if the management is disabled on this node
+     *
+     * @since 22.06
+     */
+    public com.tangosol.net.management.Registry getManagement()
+        {
+        return getCluster().getManagement();
         }
 
     /**

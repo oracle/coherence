@@ -1,0 +1,335 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Health Checks
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides, health, docker, containers
+
+== Health Checks
+
+Version 22.06 of Coherence introduced a Health Check API to provide simple checks for the overall health of a Coherence member. This guide shows some ways this API can be used.
+
+=== What You Will Build
+
+This guide will build simple examples showing different uses of the Health Check API from application code and in containerized environments.
+
+* <<basic,The Basic Health Check API>> introduces the basic health check APIs.
+* <<application,Application Health Checks>> shows how to add custom application health checks
+* <<container,Container Health Checks>> shows how to add health checks to be used in containers
+** <<docker,Docker Image Health Checks>> shows adding health checks to an image built with Docker
+** <<buildah,Buildah Image Health Checks>> shows adding health checks to an image built with Buildah
+
+
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+==== Building the Example Code
+include::../../internal/includes/simple-build-maven.adoc[tag=text]
+
+[#basic]
+== The Basic Health Check API
+
+The basic health check API includes methods to check the local member's health and obtain health check instances.
+This API is demonstrated using a simple integration test in `src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java`
+
+The test first bootstraps a Coherence storage member using the Coherence bootstrap API.
+The test will fail if Coherence takes longer than five minutes to start (it should be up in seconds).
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=bootstrap]
+----
+
+When the tests finish Coherence is shut down.
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=cleanup]
+----
+
+=== Check All Health Checks are Started
+
+The first test in `BasicHealthIT` checks that everything is "started".
+The `Coherence` instance is obtained (there is only one instance running in this case so the `Coherence.getInstance()` method can be used). From the `Coherence` instance the management `Registry` is obtained.
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=started]
+----
+
+The test then asserts that "eventually", the call to `registry.allHealthChecksStarted()` returns `true`, which it should as soon as all services are started. At this point Coherence may not be "ready" or "safe", but it is started.
+
+=== Check All Health Checks are Ready
+
+The second test in `BasicHealthIT` checks that everything is "ready".
+The `Coherence` instance is obtained and from the `Coherence` instance the management `Registry` is obtained.
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=started]
+----
+
+The test then asserts that "eventually", the call to `registry.allHealthChecksReady()` returns `true`, which it should as soon as all services reach the "ready" state.
+
+
+=== Check All Health Checks are Safe
+
+The third test in `BasicHealthIT` checks that everything is "safe".
+The `Coherence` instance is obtained and from the `Coherence` instance the management `Registry` is obtained.
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=started]
+----
+
+The test then asserts that "eventually", the call to `registry.allHealthChecksSafe()` returns `true`, which it should as soon as all services reach the "safe" state.
+
+
+=== Get Health Check Instances
+
+The `Registry` health check API has methods to obtain instances of the health checks that have been registered on the local member.
+
+==== Gat All Health Checks
+
+A `Collection` of health checks can be obtained using the `Registry` instances `getHealthChecks()` method.
+
+The example below shows a simple test case that obtains all the registered health checks.
+There is an assertion that the collection returned is not empty.
+As the test uses the default Coherence cache configuration file, this will start a distributed cache service named `PartitionedCache`, so there will be a health check registered with this name.
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=get]
+----
+
+==== Get a Health Check by Name
+
+Instead of getting the collection of all health checks, a single health check can be obtained by using its name.
+
+The `Registry` instances `getHealthCheck(String name)` method can be used to obtain a health check instance by name. The method returns an `Optional` that will be empty if there is no health check registered with the specified name.
+
+The example below obtains the health check named `PartitionedCache`, which should exist as the test uses the default Coherence cache configuration file.
+
+[source,java]
+.BasicHealthIT.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/BasicHealthIT.java[tag=name]
+----
+
+
+[#application]
+== Application Health Checks
+
+Applications can add custom health checks by creating a class that implements the `com.tangosol.util.HealthCheck` interface, and registering the health check with the `Registry`.
+
+The example `ApplicationHealth` class below implements the `HealthCheck` interface.
+The `getName()` method returns `"Demo"`, which is a unique name for this health check.
+In this example, the class does not have any processing in the health check methods.
+In a real application health check these methods would perform custom application specific checks.
+
+[source,java]
+.ApplicationHealth.java
+----
+include::src/test/java/com/oracle/coherence/guides/health/ApplicationHealth.java[tag=custom]
+----
+
+The health check can be registered in application code using the `Registry.register(HealthCheck hc)` method.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/health/ApplicationHealthIT.java[tag=register]
+----
+
+When no longer required, the health check can be unregistered using the `Registry.unregister(String name)` method.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/health/ApplicationHealthIT.java[tag=unregister]
+----
+
+=== Health Check Auto-Registration
+
+Application health checks can be automatically registered by Coherence during start-up.
+When Coherence starts, it will use the Java `ServiceLoader` to discover any `HealthCheck` implementations, and
+automatically register them.
+
+To automatically register the example `ApplicationHealth` class above, create
+a `META-INF/service/com.tangosol.util.HealthCheck` file, containing a single line that is the name of the application health check.
+
+[source]
+.META-INF/service/com.tangosol.util.HealthCheck
+----
+com.oracle.coherence.guides.health.ApplicationHealth;
+----
+
+Alternatively, if using a `module-info.java` file add the health check using the `provides` clause.
+
+[source,java]
+.module-info.java
+----
+module coherence.guides.health {
+  provides com.tangosol.util.HealthCheck
+      with com.oracle.coherence.guides.health.ApplicationHealth;
+}
+----
+
+When Coherence starts, it will use `ServiceLoader` to load `HealthCheck` instances, which will discover and load an `ApplicationHealth` instance.
+
+
+[#container]
+== Container Health Checks
+
+Health checks are extremely useful when running Coherence in containers, as they can signal to the container management system (e.g. Docker, or Kubernetes) that the Coherence container is running and healthy.
+
+The OCI specification allows an image to define a command to run to check its health.
+This is supported by image build tools such as Docker and Buildah.
+
+[#docker]
+=== Docker Image Health Checks
+
+To use health checks in Docker, the https://docs.docker.com/engine/reference/builder/#healthcheck[`HEALTHCHECK`] instruction can be used in the `Dockerfile`.
+
+The format of the `HEALTHCHECK` instruction is shown below:
+
+[source]
+----
+HEALTHCHECK [OPTIONS] CMD command
+----
+
+The `command` is typically a simple command line, such as `curl` or a shell script, or Java command line.
+For example, if the Coherence health check endpoint is enabled on a fixed port `6676`, then the `HEALTHCHECK` instruction's `CMD` can be set to `curl -f http://127.0.0.1:6676/ready`
+
+An example of a simple Coherence `Dockerfile` with a health check is shown below.
+This example image uses OpenJDK as a base image. Coherence jar is added to the image and the health check port fixed to `6676` using the `COHERENCE_HEALTH_HTTP_PORT` environment variable.
+When the image runs, the entry point will just start `Coherence`.
+
+[source]
+.src/docker/OpenJDK.Dockerfile
+----
+include::src/docker/OpenJDK.Dockerfile[]
+----
+
+==== Build and Run the Image
+
+The example above can be built and tested using a simple Maven command.
+The command will run a Maven build with the `docker` profile enabled, which will use Docker to build an image.
+The name of the image is configured in the properties' section of the example `pom.xml` to be `coherence-health:1.0.0`.
+
+[source,bash]
+----
+mvn clean package -DskipTests -Pdocker
+----
+
+A container can then be run using the image.
+The normal `docker run` command is used, in this case the container is given the name `test`.
+
+[source,bash]
+----
+docker run -d --name test coherence-health:1.0.0
+----
+
+After starting the container, the set of running containers can be listed using `docker ps`, which should display the `test` container:
+
+[source,bash]
+----
+CONTAINER ID  IMAGE                   COMMAND                  CREATED        STATUS                           PORTS   NAMES
+520559d772e3  coherence-health:1.0.0  "java -cp /coherence…"   3 seconds ago  Up 2 seconds (health: starting)          test
+----
+
+Because the image has a health check configured the status in this case included the current health state `Up 2 seconds (health: starting)`.
+At this point the container is still starting, so the Coherence health endpoint (`http://127.0.0.1:6676/ready`) has not returned a 200 response, as Coherence is still starting. Once Coherence has started and te health check reports ready, the container status will change to `healthy`.
+
+[source,bash]
+----
+CONTAINER ID  IMAGE                   COMMAND                  CREATED        STATUS                  PORTS   NAMES
+520559d772e3  coherence-health:1.0.0  "java -cp /coherence…"   3 seconds ago  Up 4 minutes (healthy)          test
+----
+
+[#buildah]
+=== Buildah Image Health Checks
+
+The Podman and Buildah tools are common replacements for Docker when running in Linux.
+When using Buildah to create images, health checks can be added to an image using the Buildah CLI.
+To support health checks Buildah must be configured to use "Docker" format. The simplest way to do this is to export
+the `BUILDAH_FORMAT` environment variable
+
+[source,bash]
+----
+export BUILDAH_FORMAT=docker
+----
+
+Now, the Buildah CLI can be used to create an image.
+
+[source,bash]
+----
+buildah from --name coherence openjdk:11-jre
+
+buildah copy coherence coherence.jar  /coherence/lib/coherence.jar
+
+buildah config --healthcheck-start-period 10s --healthcheck-interval 10s \
+    --healthcheck "CMD curl -f http://127.0.0.1:6676/ready || exit 1" coherence
+
+buildah config \
+    --entrypoint '["java"]' --cmd '-cp /coherence/lib/* com.tangosol.net.Coherence' \
+    -e COHERENCE_HEALTH_HTTP_PORT=6676 \
+    coherence
+
+buildah commit coherence coherence-health:1.0.0
+
+buildah push -f v2s2 coherence-health:1.0.0 docker-daemon:coherence-health:1.0.0
+----
+
+The Buildah commands above build the same image that was built with the Dockerfile in the previous section.
+The final command above pushes the `coherence-health:1.0.0` image built by Buildah into a Docker daemon, so it can be run using Docker.
+
+
+=== Health Checks in Distroless Base Images
+
+Sometimes a distroless image is used as a base image for applications.
+These are images that do not contain a Linux distribution.
+There are various reasons for this such as image size, but mainly security, as the base image does not contain a lot of
+Linux utilities that may introduce CVEs. The example Coherence images use distroless base images.
+
+When using a distroless base image, the `curl` utility is not present, so it cannot be used as the health check command.
+In the distroless base images used by Coherence, all that is present is a Linux kernel and Java.
+This means that the only way to run any health check commands would be to execute a Java command.
+
+As part of the Coherence health check API there is a simple http client class `com.tangosol.util.HealthCheckClient`
+that can be used to execute a health check as a Java command.
+
+The Java command line to execute a health check would be:
+[source,bash]
+----
+java -cp coherence.jar com.tangosol.util.HealthCheckClient http://127.0.0.1:6676/ready
+----
+
+This `Distroless.Dockerfile` in the source code contains an example of using a Java health check command.
+Because the health check command is running Java and not a simple O/S command, the format of the `CMD` parameters
+is slightly different than the previous example.
+
+[source]
+.src/docker/Distroless.Dockerfile
+----
+include::src/docker/Distroless.Dockerfile[]
+----
+
+The example distroless image can be built using Maven, as before but specifying the distroless Dockerfile.
+
+[source,bash]
+----
+mvn clean package -DskipTests -Pdocker -Ddocker.file=Distroless.Dockerfile
+----
+
+The Maven command builds the same test image with the tag `coherence-health:1.0.0`
+which can be run in the same way as the previous examples.

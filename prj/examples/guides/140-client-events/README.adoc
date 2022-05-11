@@ -61,7 +61,7 @@ In this example you will run a number of tests and that show the following featu
 
 [#what-you-will-need]
 ==== What You Need
-:java_version: 1.8
+:java_version: 11
 :duration: 20
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

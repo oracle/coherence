@@ -39,7 +39,7 @@ Coherence data.
 
 [#what-you-will-need]
 ==== What You Need
-:java_version: 1.8
+:java_version: 11
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 [#building-the-example-code]

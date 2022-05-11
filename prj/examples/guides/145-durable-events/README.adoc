@@ -62,7 +62,7 @@ NOTE: If you do not set the directory to store active persistence the default di
 
 [#what-you-will-need]
 ==== What You Need
-:java_version: 1.8
+:java_version: 11
 :duration: 15
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
