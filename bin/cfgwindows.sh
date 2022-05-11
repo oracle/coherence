@@ -1,13 +1,10 @@
 #!/bin/bash
 
+# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 #
-#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-#
-#  Licensed under the Universal Permissive License v 1.0 as shown at
-#  http://oss.oracle.com/licenses/upl.
-#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
 
-#
 # This script sets all environment variables necessary to build Coherence.
 #
 # Command line:
@@ -40,8 +37,17 @@ while [ -h "${SCRIPT_PATH}" ]; do
   fi
 done
 
-cd `dirname $SCRIPT_PATH`
-SCRIPTS_DIR=`pwd`
+if [ -z "$SCRIPT_PATH" ]; then
+  SCRIPTS_DIR=`pwd`/bin
+  if [ -e `pwd`/cfgwindows.sh ]; then
+    SCRIPTS_DIR=`pwd`
+  else
+    SCRIPTS_DIR=`pwd`/bin
+  fi
+else
+  cd `dirname $SCRIPT_PATH`
+  SCRIPTS_DIR=`pwd`
+fi
 cd - &>/dev/null
 
 if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfgwindows.sh ]; then

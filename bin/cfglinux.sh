@@ -1,13 +1,10 @@
 #!/bin/bash
 
+# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 #
-#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-#
-#  Licensed under the Universal Permissive License v 1.0 as shown at
-#  http://oss.oracle.com/licenses/upl.
-#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
 
-#
 # This script sets all environment variables necessary to build Coherence.
 #
 # Command line:
@@ -17,7 +14,6 @@
 
 #
 # Global Variables
-#
 
 # The platform specific command used to locate the correct version of java
 # Note: this command is evaluated when required
@@ -44,8 +40,12 @@ while [ -h "${SCRIPT_PATH}" ]; do
   fi
 done
 
-cd `dirname $SCRIPT_PATH`
-SCRIPTS_DIR=`pwd`
+if [ -z "$SCRIPT_PATH" ]; then
+  SCRIPTS_DIR=`pwd`/bin
+else
+  cd `dirname $SCRIPT_PATH`
+  SCRIPTS_DIR=`pwd`
+fi
 cd - &>/dev/null
 
 if [ -f $SCRIPTS_DIR/../tools/internal/bin/cfglinux.sh ]; then
