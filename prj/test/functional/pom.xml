@@ -118,6 +118,7 @@
         <module>bundler</module>
         <module>cache</module>
         <module>cdi</module>
+        <module>cdi-server</module>
         <module>config</module>
         <module>core</module>
         <module>dependencies</module>
@@ -275,6 +276,7 @@
       <id>stage10</id>
       <modules>
         <module>cdi</module>
+        <module>cdi-server</module>
         <module>grpc</module>
         <module>grpc-proxy</module>
         <module>grpc-client</module>

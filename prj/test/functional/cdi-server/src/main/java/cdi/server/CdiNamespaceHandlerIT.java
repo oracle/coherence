@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.cdi.server;
+package cdi.server;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -22,6 +22,8 @@ import com.oracle.coherence.cdi.events.Destroyed;
 import com.oracle.coherence.cdi.events.Disposing;
 import com.oracle.coherence.cdi.events.ServiceName;
 
+import com.oracle.coherence.cdi.server.CdiNamespaceHandler;
+import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 import com.oracle.coherence.common.base.Blocking;
 
 import com.tangosol.net.MemberEvent;

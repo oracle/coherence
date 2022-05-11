@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.cdi.server;
+package cdi.server;
 
 import com.oracle.coherence.cdi.events.EventObserverSupport;
 import com.oracle.coherence.cdi.CoherenceExtension;
@@ -27,8 +27,9 @@ import com.oracle.coherence.cdi.events.Processor;
 import com.oracle.coherence.cdi.events.Removed;
 import com.oracle.coherence.cdi.events.Updated;
 
-import com.oracle.coherence.cdi.server.data.Person;
-import com.oracle.coherence.cdi.server.data.PhoneNumber;
+import com.oracle.coherence.cdi.server.CoherenceServerExtension;
+import cdi.server.data.Person;
+import cdi.server.data.PhoneNumber;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
@@ -63,6 +64,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.hamcrest.MatcherAssert;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
@@ -249,19 +251,19 @@ class CdiInterceptorSupportIT
         private void onPersonInserted(@Observes @Inserted @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            assertThat(event.getValue().getLastName(), is("Simpson"));
+            MatcherAssert.assertThat(event.getValue().getLastName(), is("Simpson"));
             }
 
         private void onPersonUpdated(@Observes @Updated @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            assertThat(event.getValue().getLastName(), is("SIMPSON"));
+            MatcherAssert.assertThat(event.getValue().getLastName(), is("SIMPSON"));
             }
 
         private void onPersonRemoved(@Observes @Removed @CacheName("people") EntryEvent<String, Person> event)
             {
             record(event);
-            assertThat(event.getOriginalValue().getLastName(), is("SIMPSON"));
+            MatcherAssert.assertThat(event.getOriginalValue().getLastName(), is("SIMPSON"));
             }
 
         private void onExecuting(@Observes @Executing @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
