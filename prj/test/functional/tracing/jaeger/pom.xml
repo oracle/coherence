@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -17,43 +17,47 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>tracing-jaeger-1.0.0</artifactId>
-  <name>Coherence Tracing Tests - Jaeger(1.0.0)+OpenTracing(0.33.0)</name>
-
-  <profiles>
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
-      </properties>
-    </profile>
-  </profiles>
+  <name>Coherence Tracing Tests</name>
+  <description>Coherence Tracing Tests - Jaeger(1.0.0)+OpenTracing(0.33.0)</description>
 
   <properties>
-    <moditect.skip>true</moditect.skip>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <module.name>com.oracle.coherence.testing.tracing.jaeger</module.name>
   </properties>
 
   <dependencies>
     <dependency>
+      <groupId>io.opentracing</groupId>
+      <artifactId>opentracing-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.jaegertracing</groupId>
+      <artifactId>jaeger-client</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.tomcat</groupId>
+          <artifactId>tomcat-annotations-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>tracing-jaeger-common</artifactId>
+      <artifactId>tracing-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- JSON serialization -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>jakarta.json</groupId>
-        <artifactId>jakarta.json-api</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.glassfish</groupId>
-        <artifactId>jakarta.json</artifactId>
-      </dependency>
+      <groupId>jakarta.json</groupId>
+      <artifactId>jakarta.json-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.json</artifactId>
+    </dependency>
     <dependency>
       <groupId>jakarta.json.bind</groupId>
       <artifactId>jakarta.json.bind-api</artifactId>

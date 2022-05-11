@@ -4,9 +4,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package tracing.jaeger;
+package jaeger;
 
 import com.tangosol.net.CacheFactory;
+
 import io.jaegertracing.internal.reporters.InMemoryReporter;
 
 /**

@@ -4,25 +4,13 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package jaeger1_0;
-
-import com.tangosol.internal.tracing.TracingHelper;
-
-import com.tangosol.internal.tracing.opentracing.AbstractOpenTracingTracer;
-
-import com.tangosol.internal.tracing.opentracing33.OpenTracingTracer;
-
-import io.jaegertracing.internal.JaegerSpan;
+package jaeger;
 
 import io.opentracing.Span;
-
-import io.opentracing.contrib.tracerresolver.TracerFactory;
 
 import io.opentracing.noop.NoopSpan;
 
 import org.junit.Test;
-
-import tracing.jaeger.AbstractJaegerTracingTest;
 
 /**
  * Tests to validate Coherence can properly bootstrap with Jaeger+TracerResolver.
@@ -33,35 +21,7 @@ import tracing.jaeger.AbstractJaegerTracingTest;
 public class JaegerTracingTest
         extends AbstractJaegerTracingTest
     {
-    // ----- AbstractJaegerTracingTest methods ------------------------------
-
-    @Override
-    protected Class<? extends AbstractOpenTracingTracer> getExcpectedTracerType()
-        {
-        return OpenTracingTracer.class;
-        }
-
     // ----- test methods ---------------------------------------------------
-
-    /**
-     * When coherence tracing is enabled and a usable {@link TracerFactory} is present, tracing should be enabled.
-     */
-    @Override
-    @Test
-    public void testIsEnabled()
-        {
-        super.testIsEnabled();
-        }
-
-    /**
-     * Verify {@link TracingHelper#getTracer()} returns an instance of {@link OpenTracingTracer}.
-     */
-    @Override
-    @Test
-    public void testGetTracer()
-        {
-        super.testGetTracer();
-        }
 
     /**
      * Verify the act of starting a cluster when tracing is enabled will result in {@link Span spans} being captured.
@@ -117,7 +77,7 @@ public class JaegerTracingTest
 
     /**
      * Validate the {@link Span} produced when tracing is zero and there is an outer span is an
-     * instance of {@link JaegerSpan}.
+     * instance of {@code JaegerSpan}.
      */
     @Override
     @Test
@@ -125,4 +85,13 @@ public class JaegerTracingTest
         {
         super.testExpectedSpanTypeWhenTraceIsZeroWithOuterSpan();
         }
+
+    // ----- static members -------------------------------------------------
+
+    /**
+     * Added in order to ensure that opentracing-noop is added to the module
+     * path.
+     */
+    @SuppressWarnings("unused")
+    private static final NoopSpan NOOP = NoopSpan.INSTANCE;
     }

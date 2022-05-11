@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package tracing.jaeger;
+package jaeger;
 
 import com.tangosol.net.CacheFactory;
 
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * {@link TracerFactory} to produce an in-memory {@link Tracer} for testing purposes.  However,
  * if {@link JaegerConfigProperties#ENDPOINT} is defined, then the the default
- * behavior, as described here https://github.com/jaegertracing/jaeger-client-java/tree/master/jaeger-tracerresolver,
+ * behavior, as described <a href="https://github.com/jaegertracing/jaeger-client-java/tree/master/jaeger-tracerresolver">...here</a>,
  * will be executed to create a new {@link Tracer} instance.  This allows running a run test against a live Jaeger
  * instance.
  *
@@ -112,5 +112,5 @@ public class AdaptiveTracerFactory
     /**
      * Reference to store the current {@link InMemoryReporter}.
      */
-    private static AtomicReference<InMemoryReporter> REPORTER = new AtomicReference<>();
+    private static final AtomicReference<InMemoryReporter> REPORTER = new AtomicReference<>();
     }

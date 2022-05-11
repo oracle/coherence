@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package tracing.jaeger;
+package jaeger;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
@@ -40,7 +40,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import static tracing.jaeger.TestingUtils.validateReporter;
+import static jaeger.TestingUtils.validateReporter;
 
 /**
  * Validate {@code PartitionedCache} produces tracing {@link Span spans} when performing cache operations.

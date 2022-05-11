@@ -92,6 +92,7 @@
                   <artifactId>jsr305</artifactId>
                 </exclusion>
               </exclusions>
+              <overwriteExistingFiles>true</overwriteExistingFiles>
             </configuration>
           </execution>
         </executions>

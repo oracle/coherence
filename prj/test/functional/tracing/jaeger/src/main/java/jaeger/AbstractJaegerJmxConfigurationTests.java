@@ -4,20 +4,19 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package jaeger1_0;
+package jaeger;
 
 import java.util.Properties;
 
 import org.junit.Test;
 
-import tracing.jaeger.AbstractJaegerJmxConfigurationTests;
-import tracing.jaeger.JaegerConfigProperties;
+import tracing.AbstractJmxConfigurationTests;
 
 /**
  * Run JMX configuration tests with Jaeger enabled.
  */
-public class JaegerJmxConfigurationTests
-        extends AbstractJaegerJmxConfigurationTests
+public abstract class AbstractJaegerJmxConfigurationTests
+        extends AbstractJmxConfigurationTests
     {
     // ----- methods from AbstractTracingTest -------------------------------
 

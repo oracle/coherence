@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package jaeger1_0;
+package jaeger;
 
 import io.opentracing.Span;
 
@@ -12,8 +12,6 @@ import org.junit.Test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import tracing.jaeger.AbstractJaegerPartitionedCacheOperationsTracingTests;
 
 /**
  * Validate {@code PartitionedCache} produces tracing {@link Span spans} when performing cache operations.

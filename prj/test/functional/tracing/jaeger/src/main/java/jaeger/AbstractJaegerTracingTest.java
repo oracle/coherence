@@ -4,15 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package tracing.jaeger;
+package jaeger;
 
 import com.oracle.coherence.common.base.Blocking;
-
-import com.tangosol.internal.tracing.TracingHelper;
-
-import com.tangosol.internal.tracing.TracingShim;
-
-import com.tangosol.internal.tracing.opentracing.AbstractOpenTracingTracer;
 
 import com.tangosol.net.NamedCache;
 
@@ -26,11 +20,10 @@ import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.InMemoryReporter;
 
 import io.jaegertracing.internal.samplers.ConstSampler;
+
 import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-
-import io.opentracing.contrib.tracerresolver.TracerFactory;
 
 import io.opentracing.noop.NoopSpan;
 
@@ -45,15 +38,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import tracing.AbstractTracingTest;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import static tracing.jaeger.TestingUtils.validateReporter;
+import static jaeger.TestingUtils.validateReporter;
 
 /**
  * Tests to validate Coherence can properly bootstrap with Jaeger+TracerResolver.
@@ -111,33 +105,6 @@ public abstract class AbstractJaegerTracingTest
         }
 
     /**
-     * When coherence tracing is enabled and a usable {@link TracerFactory} is present, tracing should be enabled.
-     */
-    @Test
-    public void testIsEnabled()
-        {
-        runTest(() -> assertThat("Tracing should be enabled.", TracingHelper.isEnabled(), is(true)));
-        }
-
-    /**
-     * Verify {@link TracingHelper#getTracer()} returns an instance of {@link AbstractOpenTracingTracer}.
-     */
-    @Test
-    public void testGetTracer()
-        {
-        runTest(() ->
-                {
-                com.tangosol.internal.tracing.Tracer tracer = TracingHelper.getTracer();
-                assertThat("Expected tracer of type "
-                                   + getExcpectedTracerType()
-                                   + ", received: "
-                                   + tracer.getClass().getName(),
-                           getExcpectedTracerType().isInstance(tracer),
-                           is(true));
-                });
-        }
-
-    /**
      * Verify the act of starting a cluster when tracing is enabled will result in {@link Span spans} being captured.
      */
     @Test
@@ -157,13 +124,10 @@ public abstract class AbstractJaegerTracingTest
     public void testTraceNotCapturedWhenTraceIsZero()
         {
         runTest(() ->
-                {
-                assertThat("Tracing should be enabled.", TracingHelper.isEnabled(), is(true));
-                validateReporter((reporter) ->
-                                         assertThat("Spans incorrectly recorded.",
-                                                    reporter.getSpans().isEmpty(),
-                                                    is(true)));
-                }, "tracing-enabled-with-zero.xml");
+                        validateReporter((reporter) ->
+                                                 assertThat("Spans incorrectly recorded.",
+                                                            reporter.getSpans().isEmpty(),
+                                                            is(true))), "tracing-enabled-with-zero.xml");
         }
 
     /**
@@ -174,8 +138,6 @@ public abstract class AbstractJaegerTracingTest
         {
         runTest(() ->
                 {
-                assertThat("Tracing should be enabled.", TracingHelper.isEnabled(), is(true));
-
                 try (@SuppressWarnings("unused") Scope scopeTest = startTestScope("test"))
                     {
                     NamedCache<String, String> cache =
@@ -202,8 +164,6 @@ public abstract class AbstractJaegerTracingTest
         {
         runTest(() ->
                 {
-                assertThat("Tracing should be enabled.", TracingHelper.isEnabled(), is(true));
-
                 // span created via Tracing will be no-op if there is no outer span and thus won't be recorded.
                 NamedCache<String, String> cache =
                         getNamedCache("dist", TypeAssertion.withTypes(String.class, String.class));
@@ -228,9 +188,7 @@ public abstract class AbstractJaegerTracingTest
         {
         runTest(() ->
                 {
-                assertThat("Tracing should be enabled.", TracingHelper.isEnabled(), is(true));
-
-                com.tangosol.internal.tracing.Span tracingSpan = TracingHelper.getActiveSpan();
+                Span tracingSpan = GlobalTracer.get().activeSpan();
                 assertThat("Expected active span to null, but was "
                                    + (tracingSpan == null ? "null" : tracingSpan.getClass().getName()),
                            tracingSpan,
@@ -248,14 +206,12 @@ public abstract class AbstractJaegerTracingTest
         {
         runTest(() ->
                 {
-                assertThat("Tracing should be enabled.", TracingHelper.isEnabled(), is(true));
-
                 try (@SuppressWarnings("unused") Scope scopeTest = startTestScope("test"))
                     {
-                    com.tangosol.internal.tracing.Span tracingSpan = TracingHelper.getActiveSpan();
+                    Span tracingSpan = GlobalTracer.get().activeSpan();
                     assertThat("Expected active span to be JaegerSpan, but was "
                                        + (tracingSpan == null ? "null" : tracingSpan.getClass().getName()),
-                               tracingSpan != null && tracingSpan.underlying() instanceof JaegerSpan,
+                               tracingSpan instanceof JaegerSpan,
                                is(true));
                     }
                 }, "tracing-enabled-with-zero.xml");
@@ -295,20 +251,14 @@ public abstract class AbstractJaegerTracingTest
             assertThat("Tracer already registered!  Test in invalid state.",
                        GlobalTracer.registerIfAbsent(tracer),
                        is(true));
-            assertThat("Expected TracingHelper.initialize() to return null",
-                       TracingHelper.initialize(new TracingShim.DefaultDependencies()),
-                       is(nullValue()));
 
             // Start a cluster and run sanity checks
             runTest(() ->
                     {
-                    assertThat("Expected TracingHelper.isEnabled() to return true",
-                               TracingHelper.isEnabled(),
-                               is(true));
 
                     // TracerResolver and therefor by extension TracingHelper will return
                     // any registered global Tracer before invoking service loaders
-                    Tracer underlying = TracingHelper.getTracer().underlying();
+                    Tracer underlying = GlobalTracer.get();
                     Field field = GlobalTracer.class.getDeclaredField("tracer");
                     field.setAccessible(true);
                     assertThat("Unable to find tracer field within GlobalTracer - API INCOMPATIBILITY!",
@@ -334,14 +284,4 @@ public abstract class AbstractJaegerTracingTest
             fieldRegistered.set(null, false);
             }
         }
-
-    // ----- abstract helper methods ----------------------------------------
-
-    /**
-     * Get the expected tracer shim type.
-     *
-     * @return the expected tracer shim type
-     */
-    protected abstract Class<? extends AbstractOpenTracingTracer> getExcpectedTracerType();
-
     }
