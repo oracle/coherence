@@ -117,6 +117,7 @@
         <module>bootstrap</module>
         <module>bundler</module>
         <module>cache</module>
+        <module>cdi</module>
         <module>config</module>
         <module>core</module>
         <module>dependencies</module>
@@ -273,6 +274,7 @@
     <!-- profile>
       <id>stage10</id>
       <modules>
+        <module>cdi</module>
         <module>grpc</module>
         <module>grpc-proxy</module>
         <module>grpc-client</module>

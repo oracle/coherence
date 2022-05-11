@@ -723,7 +723,6 @@
         <groupId>org.jboss.weld</groupId>
         <artifactId>weld-junit5</artifactId>
         <version>${weld-junit.version}</version>
-        <scope>test</scope>
       </dependency>
 
       <!-- jandex -->
