@@ -205,6 +205,13 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Caffeine -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <!--
     Bedrock is temporarily here to force a download of snapshot dependencies,
     which the two-step Coherence CI builds will not do.
