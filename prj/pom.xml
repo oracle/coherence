@@ -146,6 +146,26 @@
 
     <copyright.svn>-p4</copyright.svn>
 
+    <!-- Coherence container/image properties -->
+    <docker.registry>docker.io/oraclecoherence</docker.registry>
+    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
+    <docker.image.arch>amd64</docker.image.arch>
+    <!--
+    The base image for the Coherence image - ideally a distroless OpenJDK image.
+    We build both x86_64 (arm64) and AMD64 images so need a base image for both of these
+    that uses the correct architecture.
+    Image names MUST include a registry prefix (for example even Docker Hub images need a docker.io/
+    prefix. This is because the images are NOT built using Docker.
+    -->
+    <docker.base.image.name.amd>gcr.io/distroless/java11</docker.base.image.name.amd>
+    <docker.base.image.name.arm>gcr.io/distroless/java11</docker.base.image.name.arm>
+    <!-- default ports configured in the image -->
+    <docker.port.grpc>1408</docker.port.grpc>
+    <docker.port.extend>20000</docker.port.extend>
+    <docker.port.management>30000</docker.port.management>
+    <docker.port.metrics>9612</docker.port.metrics>
+    <docker.port.health>6676</docker.port.health>
+
     <!-- tool versions -->
     <java.version>11</java.version>
     <java.version.release>11</java.version.release> <!-- maven-compiler-plugin "release" version -->

@@ -21,28 +21,6 @@
   <packaging>jar</packaging>
   <name>Coherence Docker Distribution</name>
 
-  <properties>
-    <docker.registry>docker.io/oraclecoherence</docker.registry>
-    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
-    <docker.image.arch>amd64</docker.image.arch>
-
-    <!--
-    The base image for the Coherence image - ideally a distroless OpenJDK image.
-    We build both x86_64 (arm64) and AMD64 images so need a base image for both of these
-    that ses the correct architecture.
-    Image names MUST include a registry prefix (for example even Docker Hub images need a docker.io/
-    prefix. This is because the images are NOT built using Docker.
-    -->
-    <docker.base.image.name.amd>gcr.io/distroless/java11</docker.base.image.name.amd>
-    <docker.base.image.name.arm>gcr.io/distroless/java11</docker.base.image.name.arm>
-
-    <port.grpc>1408</port.grpc>
-    <port.extend>20000</port.extend>
-    <port.management>30000</port.management>
-    <port.metrics>9612</port.metrics>
-    <port.health>6676</port.health>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -203,12 +181,12 @@
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
-                     <PORT_EXTEND>${port.extend}</PORT_EXTEND>
-                     <PORT_GRPC>${port.grpc}</PORT_GRPC>
-                     <PORT_MANAGEMENT>${port.management}</PORT_MANAGEMENT>
+                     <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
+                     <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
+                     <PORT_MANAGEMENT>${docker.port.management}</PORT_MANAGEMENT>
+                     <PORT_METRICS>${docker.port.metrics}</PORT_METRICS>
+                     <PORT_HEALTH>${docker.port.health}</PORT_HEALTH>
                      <MAIN_CLASS>com.tangosol.net.Coherence</MAIN_CLASS>
-                     <PORT_METRICS>${port.metrics}</PORT_METRICS>
-                     <PORT_HEALTH>${port.health}</PORT_HEALTH>
                      <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
                      <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
@@ -244,11 +222,11 @@
               <skipTests>false</skipTests>
               <systemProperties>
                 <docker.image.name>${docker.image.name}</docker.image.name>
-                <port.grpc>${port.grpc}</port.grpc>
-                <port.extend>${port.extend}</port.extend>
-                <port.management>${port.management}</port.management>
-                <port.metrics>${port.metrics}</port.metrics>
-                <port.health>${port.health}</port.health>
+                <port.grpc>${docker.port.grpc}</port.grpc>
+                <port.extend>${docker.port.extend}</port.extend>
+                <port.management>${docker.port.management}</port.management>
+                <port.metrics>${docker.port.metrics}</port.metrics>
+                <port.health>${docker.port.health}</port.health>
               </systemProperties>
             </configuration>
           </plugin>
@@ -261,11 +239,11 @@
                 <skip>false</skip>
                 <skipTests>false</skipTests>
                 <docker.image.name>${docker.image.name}</docker.image.name>
-                <port.grpc>${port.grpc}</port.grpc>
-                <port.extend>${port.extend}</port.extend>
-                <port.management>${port.management}</port.management>
-                <port.metrics>${port.metrics}</port.metrics>
-                <port.health>${port.health}</port.health>
+                <port.grpc>${docker.port.grpc}</port.grpc>
+                <port.extend>${docker.port.extend}</port.extend>
+                <port.management>${docker.port.management}</port.management>
+                <port.metrics>${docker.port.metrics}</port.metrics>
+                <port.health>${docker.port.health}</port.health>
               </systemProperties>
             </configuration>
           </plugin>
