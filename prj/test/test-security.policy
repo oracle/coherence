@@ -918,15 +918,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/security/targ
   permission java.lang.RuntimePermission "getenv.*";
 };
 
-grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/jaeger-common/target/-" {
-  permission java.util.PropertyPermission "*", "read, write";
-  permission java.lang.RuntimePermission "getenv.*";
-  permission java.io.FilePermission "<<ALL FILES>>", "read";
-  permission java.net.SocketPermission "*", "connect,resolve,accept,listen";
-  permission java.lang.RuntimePermission "shutdownHooks";
-};
-
-grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/jaeger-1.0.0/target/-" {
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/jaeger/target/-" {
   permission java.util.PropertyPermission "*", "read, write";
   permission java.lang.RuntimePermission "getenv.*";
   permission java.io.FilePermission "<<ALL FILES>>", "read";
