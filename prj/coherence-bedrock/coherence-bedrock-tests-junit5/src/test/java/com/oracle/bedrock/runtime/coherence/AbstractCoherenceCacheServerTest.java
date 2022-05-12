@@ -33,6 +33,7 @@ import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.Discriminator;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.AbstractTest;
+import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.bedrock.testsupport.matchers.MapMatcher;
 import com.oracle.bedrock.util.Capture;
 import com.tangosol.net.NamedCache;
@@ -40,6 +41,7 @@ import com.tangosol.util.aggregator.LongSum;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.filter.PresentFilter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import javax.management.ObjectName;
 import java.util.AbstractMap;
@@ -84,6 +86,7 @@ public abstract class AbstractCoherenceCacheServerTest
                                                            RoleName.of("test-role"),
                                                            SiteName.of("test-site"),
                                                            JmxFeature.enabled(),
+                                                           m_testLogs,
                                                            JMXManagementMode.LOCAL_ONLY))
 
             {
@@ -117,7 +120,7 @@ public abstract class AbstractCoherenceCacheServerTest
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
                                                            Diagnostics.enabled(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             assertThat(server, new GetLocalMemberId(), is(1));
             assertThat(server, new GetClusterSize(), is(1));
@@ -150,7 +153,7 @@ public abstract class AbstractCoherenceCacheServerTest
                                                                SiteName.of("test-site"),
                                                                Diagnostics.enabled(),
                                                                Discriminator.of(i),
-                                                               Console.system()))
+                                                               m_testLogs))
                 {
                 assertThat(invoking(server).getClusterSize(), is(1));
                 assertThat(server.getRoleName(), is("test-role"));
@@ -174,7 +177,7 @@ public abstract class AbstractCoherenceCacheServerTest
                                                            OperationalOverride.of("test-operational-override.xml"),
                                                            LocalHost.only(),
                                                            Diagnostics.enabled(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             assertThat(server, new GetLocalMemberId(), is(1));
             assertThat(server, new GetClusterSize(), is(1));
@@ -197,7 +200,7 @@ public abstract class AbstractCoherenceCacheServerTest
                                                            ClusterPort.from(availablePorts),
                                                            LocalHost.only(),
                                                            CacheConfig.of("test-autostart-services-cache-config.xml"),
-                                                           Console.system(),
+                                                           m_testLogs,
                                                            Diagnostics.enabled()))
             {
             assertThat(server, new GetLocalMemberId(), is(1));
@@ -225,8 +228,11 @@ public abstract class AbstractCoherenceCacheServerTest
                                                            LocalHost.only(),
                                                            WellKnownAddress.of("127.0.0.1"),
                                                            IPv4Preferred.yes(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
+            Eventually.assertDeferred(() -> server.isServiceRunning("PartitionedCache"), is(true));
+            Eventually.assertDeferred(server::isReady, is(true));
+
             assertThat(server, new GetLocalMemberId(), is(1));
             assertThat(server, new GetClusterSize(), is(1));
 
@@ -345,7 +351,7 @@ public abstract class AbstractCoherenceCacheServerTest
                                                            ClassName.of(CustomServer.class),
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
-                                                           Console.system()))
+                                                           m_testLogs))
             {
             server.addListener(listener, StreamName.of("Foo"));
 
@@ -422,4 +428,12 @@ public abstract class AbstractCoherenceCacheServerTest
             latch.countDown();
             }
         }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * JUnit 5 extension to write Coherence logs to target/test-output/
+     */
+    @RegisterExtension
+    static final TestLogsExtension m_testLogs = new TestLogsExtension(CoherenceSessionIT.class);
     }
