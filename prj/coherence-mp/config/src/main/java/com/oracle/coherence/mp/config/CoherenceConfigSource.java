@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.mp.config;
 
@@ -157,18 +157,8 @@ public class CoherenceConfigSource
 
     // ---- lifecycle observer ----------------------------------------------
 
-//    void onSystemCache(@Observes @ScopeName(Coherence.SYSTEM_SCOPE) CacheLifecycleEvent event)
-//        {
-//        if (event.getType() == CacheLifecycleEvent.Type.CREATED)
-//            {
-//            m_configMap = ((PartitionedCacheDispatcher) event.getEventDispatcher()).getBackingMapContext()
-//                    .getManagerContext().getCacheService().ensureCache(MAP_NAME, Classes.getContextClassLoader());
-//            }
-//        }
-
     void onSystemScopeActivated(@Observes @ScopeName(Coherence.SYSTEM_SCOPE) @Activated LifecycleEvent e)
         {
-//        m_configMap = e.getConfigurableCacheFactory().ensureCache(MAP_NAME, null);
         ConfigurableCacheFactory ccf = e.getConfigurableCacheFactory();
         ccf.getInterceptorRegistry().registerEventInterceptor(this);
         CompletableFuture.runAsync(() -> ccf.ensureCache(MAP_NAME, null));
@@ -184,6 +174,7 @@ public class CoherenceConfigSource
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onEvent(CacheLifecycleEvent event)
         {
         if (!event.getCacheName().equals(MAP_NAME))
@@ -203,7 +194,7 @@ public class CoherenceConfigSource
      *
      * @return internal config map
      */
-    NamedMap<String, String> getConfigMap()
+    public NamedMap<String, String> getConfigMap()
         {
         return m_configMap;
         }

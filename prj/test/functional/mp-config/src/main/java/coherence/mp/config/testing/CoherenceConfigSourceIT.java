@@ -1,22 +1,25 @@
 /*
- * Copyright (c) 2019, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.mp.config;
+package coherence.mp.config.testing;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
+import com.oracle.coherence.mp.config.CoherenceConfigSource;
+import com.oracle.coherence.mp.config.ConfigPropertyChanged;
 import org.eclipse.microprofile.config.Config;
 
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
+import org.hamcrest.MatcherAssert;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
@@ -109,8 +112,8 @@ class CoherenceConfigSourceIT
 
         assertThat(source.getProperties().entrySet(), hasSize(1));
         assertThat(source.getProperties(), hasKey("config.value"));
-        assertThat(source.getPropertyNames(), hasSize(1));
-        assertThat(source.getPropertyNames(), hasItem("config.value"));
+        MatcherAssert.assertThat(source.getPropertyNames(), hasSize(1));
+        MatcherAssert.assertThat(source.getPropertyNames(), hasItem("config.value"));
         assertThat(source.getValue("config.value"), is("value"));
         assertThat(source.getOrdinal(), is(500));
         assertThat(source.getName(), is("CoherenceConfigSource"));
@@ -121,11 +124,11 @@ class CoherenceConfigSourceIT
         {
         source.setValue("config.value", "cache");
 
-        assertThat(config.getValue("coherence.cluster", String.class), is("test"));
-        assertThat(config.getValue("coherence.role", String.class), is("proxy"));
-        assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
-        assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));
-        assertThat(config.getValue("config.value", String.class), is("cache"));
+        MatcherAssert.assertThat(config.getValue("coherence.cluster", String.class), is("test"));
+        MatcherAssert.assertThat(config.getValue("coherence.role", String.class), is("proxy"));
+        MatcherAssert.assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
+        MatcherAssert.assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));
+        MatcherAssert.assertThat(config.getValue("config.value", String.class), is("cache"));
         }
 
     @Test
@@ -134,7 +137,7 @@ class CoherenceConfigSourceIT
         System.setProperty("coherence.config.ordinal", "100");
 
         Config config = getConfig();
-        assertThat(config.getValue("config.value", String.class), is("sysprop"));
+        MatcherAssert.assertThat(config.getValue("config.value", String.class), is("sysprop"));
         }
 
     @Test

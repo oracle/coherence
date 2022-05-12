@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
+    <artifactId>coherence-functional-tests</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>mp-config</artifactId>
+  <name>Coherence MP Config Tests</name>
+
+  <properties>
+    <module.name>coherence.mp.config.testing</module.name>
+    <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+
+    <failsafe.modules.argline>
+      ${default.failsafe.modules.argline}
+      --add-reads com.oracle.coherence.cdi=ALL-UNNAMED
+      --add-reads com.oracle.coherence.cdi.server=ALL-UNNAMED
+      --add-reads com.oracle.coherence.mp.config=ALL-UNNAMED
+      --add-opens java.base/java.lang=weld.core.impl
+    </failsafe.modules.argline>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-mp-config</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-cdi-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.microprofile.config</groupId>
+      <artifactId>microprofile-config-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.helidon.config</groupId>
+      <artifactId>helidon-config-yaml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.microprofile.bundles</groupId>
+      <artifactId>helidon-microprofile-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.microprofile.config</groupId>
+      <artifactId>helidon-microprofile-config</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.weld.se</groupId>
+      <artifactId>weld-se-core</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.spec.javax.interceptor</groupId>
+          <artifactId>jboss-interceptors-api_1.2_spec</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.weld</groupId>
+      <artifactId>weld-junit5</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <!--
+              We exclude the beans.xml file from the final jar, otherwise
+              Weld will find duplicate beans as it will scan both the jar
+              and the classes directory, which failsafe puts on the test
+              classpath or module path.
+              -->
+              <excludes>
+                <exclude>**/beans.xml</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- run unit tests *Test.java -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <reuseForks>false</reuseForks>
+          <!-- needed for tests -->
+          <environmentVariables>
+            <COHERENCE_ROLE>proxy</COHERENCE_ROLE>
+            <COHERENCE_MEMBER>env01</COHERENCE_MEMBER>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+
+      <!-- run integration tests *Tests.java and *IT.java -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <reuseForks>false</reuseForks>
+          <!-- needed for tests -->
+          <environmentVariables>
+            <COHERENCE_ROLE>proxy</COHERENCE_ROLE>
+            <COHERENCE_MEMBER>env01</COHERENCE_MEMBER>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>stage10</id>
+      <properties>
+        <skipTests>false</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+</project>

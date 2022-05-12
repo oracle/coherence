@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.mp.metrics;
+package coherence.mp.metrics.testing;
 
+import com.oracle.coherence.mp.metrics.MpMetricsRegistryAdapter;
 import com.tangosol.internal.metrics.BaseMBeanMetric;
 import com.tangosol.net.metrics.MBeanMetric;
 
@@ -43,9 +44,8 @@ import static org.mockito.Mockito.when;
  * @author Jonathan Knight  2020.01.08
  */
 @SuppressWarnings("unchecked")
-public class MpMetricsRegistryAdapterTest
+public class MpMetricsRegistryAdapterIT
     {
-
     @Test
     void shouldRegisterVendorMetric()
         {
@@ -72,8 +72,6 @@ public class MpMetricsRegistryAdapterTest
         Metadata metadata = metadataArgument.getValue();
         assertThat(metadata, is(notNullValue()));
         assertThat(metadata.getName(), is(metric.getName()));
-//        assertThat(metadata.getDescription().isPresent(), is(true));
-//        assertThat(metadata.getDescription().get(), is(metric.getDescription()));
         assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
         Gauge<Object> gauge = gaugeArgument.getValue();
@@ -210,8 +208,6 @@ public class MpMetricsRegistryAdapterTest
         Metadata metadata = metadataArgument.getValue();
         assertThat(metadata, is(notNullValue()));
         assertThat(metadata.getName(), is(metric.getName()));
-//        assertThat(metadata.getDescription().isPresent(), is(true));
-//        assertThat(metadata.getDescription().get(), is(metric.getDescription()));
         assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
         Gauge<Object> gauge = gaugeArgument.getValue();
@@ -268,8 +264,6 @@ public class MpMetricsRegistryAdapterTest
         Metadata metadata = metadataArgument.getValue();
         assertThat(metadata, is(notNullValue()));
         assertThat(metadata.getName(), is(metric.getName()));
-//        assertThat(metadata.getDescription().isPresent(), is(true));
-//        assertThat(metadata.getDescription().get(), is(metric.getDescription()));
         assertThat(metadata.getTypeRaw(), is(MetricType.GAUGE));
 
         Gauge<Object> gauge = gaugeArgument.getValue();
@@ -386,7 +380,7 @@ public class MpMetricsRegistryAdapterTest
             implements MBeanMetric
         {
 
-        private Object value;
+        private final Object value;
 
         private MBeanMetricStub(Identifier identifier, String sMBeanName, String sDescription, Object value)
             {

@@ -147,6 +147,8 @@
         <module>lambda</module>
         <module>logging</module>
         <module>management</module>
+        <module>mp-config</module>
+        <module>mp-metrics</module>
         <module>wls-management</module>
         <module>memcached</module>
         <module>metrics</module>

@@ -1,29 +1,28 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.mp.metrics;
+package coherence.mp.metrics.testing;
 
+import com.oracle.coherence.mp.metrics.CoherenceTagsConfigSource;
 import org.eclipse.microprofile.metrics.MetricID;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit tests for {@link CoherenceTagsConfigSource}.
  *
  * @author Aleks Seovic  2020.03.26
  */
-public class CoherenceTagsConfigSourceTest
+public class CoherenceTagsConfigSourceIT
     {
     @BeforeAll
     static void setup()
