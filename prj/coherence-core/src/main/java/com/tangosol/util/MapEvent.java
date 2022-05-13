@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -398,12 +398,13 @@ public class MapEvent<K, V>
     public void dispatch(MapListener<? super K, ? super V> listener)
         {
         Thread      thread  = Thread.currentThread();
-        ClassLoader loader  = thread.getContextClassLoader();
+        ClassLoader loader  = null;
         Object      oSource = getSource();
 
         // context class loader should be set to that of the source (cache)
         if (oSource instanceof ClassLoaderAware)
             {
+            loader = thread.getContextClassLoader();
             thread.setContextClassLoader(
                 ((ClassLoaderAware) oSource).getContextClassLoader());
             }
@@ -430,7 +431,10 @@ public class MapEvent<K, V>
             }
         finally
             {
-            thread.setContextClassLoader(loader);
+            if (loader != null)
+                {
+                thread.setContextClassLoader(loader);
+                }
             }
         }
 
