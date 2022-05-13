@@ -4,9 +4,8 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package http;
+package http.config;
 
-import com.oracle.coherence.testing.http.HttpServerStub;
 import com.tangosol.coherence.config.xml.processor.HttpAcceptorDependenciesProcessor;
 import com.tangosol.config.xml.DefaultProcessingContext;
 import com.tangosol.config.xml.ProcessingContext;

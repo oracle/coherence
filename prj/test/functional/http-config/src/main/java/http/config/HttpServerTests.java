@@ -4,17 +4,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package http;
+package http.config;
 
-import com.oracle.coherence.testing.http.HttpServerStub;
-import com.tangosol.coherence.http.DefaultHttpServer;
 import com.tangosol.coherence.http.HttpServer;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;

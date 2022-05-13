@@ -4,11 +4,14 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.coherence.http;
+package http;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
 
+import com.tangosol.coherence.http.AbstractHttpServer;
+
 import com.tangosol.coherence.rest.server.DefaultResourceConfig;
+
 import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
 
 import com.tangosol.net.Service;

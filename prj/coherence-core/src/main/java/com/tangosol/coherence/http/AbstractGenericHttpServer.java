@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.http;
 
@@ -531,7 +531,7 @@ public abstract class AbstractGenericHttpServer<R>
      *
      * @param asserter  the identity asserter to use
      */
-    protected void setIdentityAsserter(IdentityAsserter asserter)
+    public void setIdentityAsserter(IdentityAsserter asserter)
         {
         m_identityAsserter = asserter;
         }
@@ -541,7 +541,7 @@ public abstract class AbstractGenericHttpServer<R>
      *
      * @return true if HTTP basic authentication should be used
      */
-    protected boolean isAuthMethodBasic()
+    public boolean isAuthMethodBasic()
         {
         String sAuthMethod = m_sAuthMethod;
         return AUTH_BASIC.equalsIgnoreCase(sAuthMethod)

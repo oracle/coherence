@@ -21,24 +21,15 @@
   <name>Coherence HTTP Configuration Tests</name>
 
   <properties>
-    <moditect.skip>true</moditect.skip>
+    <module.name>http.config.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
-
 
   <profiles>
     <profile>
       <id>stage9</id>
       <properties>
         <skipTests>false</skipTests>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
       </properties>
     </profile>
   </profiles>
@@ -54,7 +45,11 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>${coherence.group.id}.tests</groupId>
+      <artifactId>http</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>

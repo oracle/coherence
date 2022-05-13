@@ -4,10 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package http;
+package http.config;
 
 import com.oracle.coherence.common.net.SocketProvider;
-import com.oracle.coherence.testing.http.HttpServerStub;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultHttpAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.LegacyXmlHttpAcceptorHelper;
 import com.tangosol.net.OperationalContext;

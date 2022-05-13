@@ -4,14 +4,19 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.coherence.http;
+package http.netty;
 
-public class DefaultHttpServerTest
+import com.tangosol.coherence.http.AbstractHttpServer;
+import com.tangosol.coherence.http.netty.NettyHttpServer;
+
+import http.AbstractHttpServerTest;
+
+public class NettyHttpServerTest
         extends AbstractHttpServerTest
     {
     @Override
     protected AbstractHttpServer createServer()
         {
-        return new DefaultHttpServer();
+        return new NettyHttpServer();
         }
     }
