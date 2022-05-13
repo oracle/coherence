@@ -16,7 +16,7 @@
 
      <user-type>
         <type-id>20000</type-id>
-        <class-name>com.tangosol.internal.util.graal.pojo.LorCharacter</class-name>
+        <class-name>graal.pojo.LorCharacter</class-name>
      </user-type>
    </user-type-list>
 </pof-config>

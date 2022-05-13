@@ -4,10 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.internal.util.graal;
-
-
-import com.tangosol.internal.util.graal.pojo.LorCharacter;
+package graal;
 
 import com.tangosol.util.Aggregators;
 
@@ -19,11 +16,12 @@ import java.util.Map;
 
 import java.util.stream.Stream;
 
+import graal.pojo.LorCharacter;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
 
 /**
  * A collection of functional tests for the {@link StreamingAggregator}.

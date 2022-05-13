@@ -4,28 +4,27 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.internal.util.graal;
+package graal;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
-import com.tangosol.net.NamedCache;
-
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+
+import com.tangosol.net.NamedCache;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 
+import graal.pojo.LorCharacter;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import com.tangosol.internal.util.graal.pojo.LorCharacter;
-
 import org.junit.runner.RunWith;
 
 import org.junit.runners.Parameterized;
-
 
 /**
 * A base class for all Graal related functional tests.

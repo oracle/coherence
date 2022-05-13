@@ -4,9 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.internal.util.graal;
-
-import com.tangosol.internal.util.graal.pojo.LorCharacter;
+package graal;
 
 import com.tangosol.net.NamedCache;
 
@@ -16,6 +14,8 @@ import com.tangosol.util.InvocableMap.EntryProcessor;
 import com.tangosol.util.Processors;
 
 import com.tangosol.util.stream.RemoteCollectors;
+
+import graal.pojo.LorCharacter;
 
 import org.junit.Test;
 

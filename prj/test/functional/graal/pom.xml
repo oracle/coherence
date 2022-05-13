@@ -36,28 +36,25 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.graalvm.sdk</groupId>
       <artifactId>graal-sdk</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-scriptengine</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.graalvm.js</groupId>
       <artifactId>js-launcher</artifactId>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 

@@ -5,15 +5,15 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.internal.util.graal;
-
-import com.tangosol.internal.util.graal.pojo.LorCharacter;
+package graal;
 
 import com.tangosol.util.Extractors;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.ReflectionExtractor;
+
+import graal.pojo.LorCharacter;
 
 import java.util.Arrays;
 import java.util.Map;
