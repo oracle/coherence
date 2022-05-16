@@ -124,7 +124,21 @@ public class MultiClusterInSingleProcessTests
         MultiCluster.assertClusterStarted(cluster, "Foo");
 
         CoherenceClusterMember member = cluster.getAny();
-        Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(HttpHelper.getServiceName())), is(ServiceStatus.RUNNING), Timeout.of(5, TimeUnit.MINUTES));
+        Eventually.assertDeferred("assert " + HttpHelper.getServiceName() + " is running in one cluster member of cluster " + CLUSTER_NAME,
+            () ->
+                {
+                // ensure one cluster member is running ManagementHttpProxy service. not always the first one in cluster list.
+                ServiceStatus status = null;
+                for (CoherenceClusterMember member1 : cluster)
+                    {
+                    status = MultiCluster.invokeInCluster(member1, CLUSTER_NAME, new GetServiceStatus(HttpHelper.getServiceName()));
+                    if (ServiceStatus.RUNNING.equals(status))
+                        {
+                        break;
+                        }
+                    }
+                return status;
+                }, is(ServiceStatus.RUNNING), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(SERVICE_NAME)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(ACTIVE_SERVICE)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, IsReady.INSTANCE), is(true), within(5, TimeUnit.MINUTES));
