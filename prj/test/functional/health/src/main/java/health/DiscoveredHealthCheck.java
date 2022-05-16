@@ -8,7 +8,7 @@ package health;
 
 import com.tangosol.util.HealthCheck;
 
-public class WrapperHealthCheck
+public class DiscoveredHealthCheck
         implements HealthCheck
     {
     // ----- HealthCheck methods --------------------------------------------
@@ -22,44 +22,28 @@ public class WrapperHealthCheck
     @Override
     public boolean isReady()
         {
-        return s_delegate == null || s_delegate.isReady();
+        return true;
         }
 
     @Override
     public boolean isLive()
         {
-        return s_delegate == null || s_delegate.isLive();
+        return true;
         }
 
     @Override
     public boolean isStarted()
         {
-        return s_delegate == null || s_delegate.isStarted();
+        return true;
         }
 
     @Override
     public boolean isSafe()
         {
-        return s_delegate == null || s_delegate.isSafe();
-        }
-
-    // ----- accessor methods -----------------------------------------------
-
-    public static HealthCheck getDelegate()
-        {
-        return s_delegate;
-        }
-
-    public static void setDelegate(HealthCheck delegate)
-        {
-        s_delegate = delegate;
+        return true;
         }
 
     // ----- constants ------------------------------------------------------
 
-    public static final String NAME = "Custom";
-
-    // ----- data members ---------------------------------------------------
-
-    private static volatile HealthCheck s_delegate;
+    public static final String NAME = "Discovered";
     }

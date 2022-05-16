@@ -40,7 +40,6 @@ import com.tangosol.util.HealthCheck;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -58,7 +57,6 @@ import java.net.http.HttpResponse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@Disabled
 @SuppressWarnings("unused")
 public class HealthCheckTests
     {
@@ -83,7 +81,7 @@ public class HealthCheckTests
     void shouldBeHealthySingleMember()
         {
         LocalPlatform    platform       = LocalPlatform.get();
-        Capture<Integer> nHealthPort     = new Capture<>(platform.getAvailablePorts());
+        Capture<Integer> nHealthPort    = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> managementPort = new Capture<>(platform.getAvailablePorts());
 
         try (CoherenceClusterMember ignored = platform.launch(CoherenceClusterMember.class,

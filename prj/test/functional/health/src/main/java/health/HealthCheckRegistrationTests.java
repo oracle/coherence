@@ -13,8 +13,6 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.util.HealthCheck;
 import com.tangosol.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
@@ -28,7 +26,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@Disabled
 public class HealthCheckRegistrationTests
     {
     @BeforeAll
@@ -48,20 +45,9 @@ public class HealthCheckRegistrationTests
                 .get(5, TimeUnit.MINUTES);
         }
 
-    @BeforeEach
-    void resetWrappedHealthCheck()
-        {
-        WrapperHealthCheck.setDelegate(null);
-        }
-
     @Test
     public void shouldDiscoverHealthCheck()
         {
-        HealthCheckStub stub = new HealthCheckStub("Test");
-        // The WrapperHealthCheck will be discovered using the ServiceLoader and registered
-        // as a health check. It wraps the stub created above.
-        WrapperHealthCheck.setDelegate(stub);
-
         Registry                registry       = s_coherence.getCluster().getManagement();
         Collection<HealthCheck> colHealthCheck = registry.getHealthChecks();
 
@@ -69,13 +55,13 @@ public class HealthCheckRegistrationTests
         colHealthCheck.forEach(h -> System.err.println(h.getName() + " " + h.getClass()));
 
         List<HealthCheck> list = colHealthCheck.stream()
-                .filter(h -> WrapperHealthCheck.NAME.equals(h.getName()))
+                .filter(h -> DiscoveredHealthCheck.NAME.equals(h.getName()))
                 .collect(Collectors.toList());
 
         assertThat(list.size(), is(1));
 
         HealthCheck           healthCheck = list.get(0);
-        Optional<HealthCheck> optional    = registry.getHealthCheck(WrapperHealthCheck.NAME);
+        Optional<HealthCheck> optional    = registry.getHealthCheck(DiscoveredHealthCheck.NAME);
 
         assertThat(optional.isPresent(), is(true));
 
@@ -84,37 +70,13 @@ public class HealthCheckRegistrationTests
 
         assertThat(registry.allHealthChecksReady(), is(true));
         assertThat(healthCheck.isReady(), is(true));
-        stub.setReady(false);
-        assertThat(registry.allHealthChecksReady(), is(false));
-        assertThat(healthCheck.isReady(), is(false));
-        stub.setReady(true);
-        assertThat(registry.allHealthChecksReady(), is(true));
-        assertThat(healthCheck.isReady(), is(true));
 
-        assertThat(registry.allHealthChecksLive(), is(true));
-        assertThat(healthCheck.isLive(), is(true));
-        stub.setLive(false);
-        assertThat(registry.allHealthChecksLive(), is(false));
-        assertThat(healthCheck.isLive(), is(false));
-        stub.setLive(true);
         assertThat(registry.allHealthChecksLive(), is(true));
         assertThat(healthCheck.isLive(), is(true));
 
         assertThat(registry.allHealthChecksStarted(), is(true));
         assertThat(healthCheck.isStarted(), is(true));
-        stub.setStarted(false);
-        assertThat(registry.allHealthChecksStarted(), is(false));
-        assertThat(healthCheck.isStarted(), is(false));
-        stub.setStarted(true);
-        assertThat(registry.allHealthChecksStarted(), is(true));
-        assertThat(healthCheck.isStarted(), is(true));
 
-        assertThat(registry.allHealthChecksSafe(), is(true));
-        assertThat(healthCheck.isSafe(), is(true));
-        stub.setSafe(false);
-        assertThat(registry.allHealthChecksSafe(), is(false));
-        assertThat(healthCheck.isSafe(), is(false));
-        stub.setSafe(true);
         assertThat(registry.allHealthChecksSafe(), is(true));
         assertThat(healthCheck.isSafe(), is(true));
         }

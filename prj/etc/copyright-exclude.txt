@@ -1,4 +1,4 @@
-coherence-grpc-proxy/src/test/proto/route_guide.proto
+route_guide.proto
 coherence-grpc-proxy/src/test/java/com/oracle/coherence/grpc/proxy/routeguide/
 coherence-http-netty/src/main/java/com/tangosol/coherence/http/netty/NettyInputStream.java
 coherence-javadoc/src/main/javadoc/resources/
