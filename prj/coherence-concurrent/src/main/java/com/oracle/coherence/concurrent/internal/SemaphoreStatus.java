@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.internal;
 
@@ -25,6 +25,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -41,8 +42,9 @@ public class SemaphoreStatus
         implements ExternalizableLite, PortableObject
     {
     /**
-     * Default constructor (necessary for the ExternalizableLite interface).
+     * Default constructor (necessary for serialization).
      */
+    @SuppressWarnings("unused")
     public SemaphoreStatus()
         {
         }
@@ -157,7 +159,7 @@ public class SemaphoreStatus
      */
     public void setPermits(int permits)
         {
-        this.m_permits = permits;
+        m_permits = permits;
         }
 
     /**
@@ -245,6 +247,16 @@ public class SemaphoreStatus
         return m_initialPermits;
         }
 
+    /**
+     * Returns an immutable map of acquirers and permits that they acquired.
+     *
+     * @return an immutable map of acquirers and permits that they acquired
+     */
+    public Map<PermitAcquirer, Integer> getPermitsMap()
+        {
+        return Collections.unmodifiableMap(m_permitsMap);
+        }
+
     @Override
     public String toString()
         {
@@ -297,28 +309,6 @@ public class SemaphoreStatus
         out.writeMap(3,        m_permitsMap);
         }
 
-    // ---- data members ----------------------------------------------------
-
-    /**
-     * The current number of permits available.
-     */
-    private int m_permits;
-
-    /**
-     * The identity of a member who most recently updated the semaphore.
-     */
-    private UID m_memberId;
-
-    /**
-     * Number of permits used to initialise
-     */
-    private int m_initialPermits;
-
-    /**
-     * The map of acquirers and permits that they acquired.
-     */
-    Map<PermitAcquirer, Integer> m_permitsMap = new HashMap<>();
-
     // ----- inner class RemovePermits --------------------------------------
 
     /**
@@ -339,7 +329,7 @@ public class SemaphoreStatus
         /**
          * Create an instance of {@code SemaphoreStatus}.
          *
-         * @param memberId
+         * @param memberId the UID of the Coherence member
          */
         public RemovePermits(UID memberId)
             {
@@ -409,4 +399,26 @@ public class SemaphoreStatus
          */
         protected UID m_memberId;
         }
+
+    // ---- data members ----------------------------------------------------
+
+    /**
+     * The current number of permits available.
+     */
+    private int m_permits;
+
+    /**
+     * The identity of a member who most recently updated the semaphore.
+     */
+    private UID m_memberId;
+
+    /**
+     * Number of permits used to initialise
+     */
+    private int m_initialPermits;
+
+    /**
+     * The map of acquirers and permits that they acquired.
+     */
+    Map<PermitAcquirer, Integer> m_permitsMap = new HashMap<>();
     }

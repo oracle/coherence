@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.RejectedExecutionException;
  * @author rl  11.20.21
  * @since 21.12
  */
-class NamedClusteredExecutorService
+public class NamedClusteredExecutorService
         extends ClusteredExecutorService
     {
     // ----- constructors -----------------------------------------------
@@ -94,6 +94,16 @@ class NamedClusteredExecutorService
     protected void init(CacheService cacheService)
         {
         m_cacheService = cacheService;
+        }
+
+    /**
+     * Return the {@link Name} of this {@link NamedClusteredExecutorService}.
+     *
+     * @return the {@link Name} of this {@link NamedClusteredExecutorService}
+     */
+    public Name getName()
+        {
+        return f_name;
         }
 
     // ----- inner class: NamedOrchestration --------------------------------

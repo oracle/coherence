@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.function;
@@ -220,6 +220,7 @@ public final class Predicates
     /**
      * An {@link AlwaysPredicate} returns true for any value provided to the {@link Predicate#test(Object)} method.
      */
+    @SuppressWarnings("rawtypes")
     public static class AlwaysPredicate
             implements PortablePredicate
         {
@@ -237,7 +238,8 @@ public final class Predicates
          *
          * @return an {@link AlwaysPredicate}
          */
-        public static AlwaysPredicate get()
+        @SuppressWarnings("unchecked")
+        public static <T> Predicate<T> get()
             {
             return INSTANCE;
             }

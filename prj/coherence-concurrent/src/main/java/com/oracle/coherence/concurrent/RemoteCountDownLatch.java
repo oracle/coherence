@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent;
 
@@ -53,8 +53,8 @@ public class RemoteCountDownLatch
             throw new IllegalArgumentException("count < 0");
             }
 
-        this.f_sync         = new RemoteCountDownLatch.Sync(sName, latches);
-        this.f_initialCount = count;
+        f_sync         = new RemoteCountDownLatch.Sync(sName, latches);
+        f_initialCount = count;
         latches.addMapListener(new SimpleMapListener<String, LatchCounter>()
                         .addDeleteHandler(this::onDelete), sName, false);
         }
