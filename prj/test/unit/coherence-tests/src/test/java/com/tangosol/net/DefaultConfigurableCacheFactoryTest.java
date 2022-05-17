@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -20,6 +20,7 @@ import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.SimpleParser;
+import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -33,6 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import static org.junit.Assert.assertEquals;
@@ -50,8 +52,16 @@ import static org.mockito.Mockito.when;
  *
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("deprecation")
 public class DefaultConfigurableCacheFactoryTest
     {
+    @Test
+    public void shouldLoadDefaultConfiguration()
+        {
+        XmlDocument xml = DefaultConfigurableCacheFactory.loadConfig("coherence-cache-config.xml");
+        assertThat(xml, is(notNullValue()));
+        }
+
     @Test
     public void testEnsureScopedService()
         {
