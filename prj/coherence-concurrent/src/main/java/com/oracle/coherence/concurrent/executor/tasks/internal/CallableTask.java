@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks.internal;
@@ -46,7 +46,7 @@ public class CallableTask<T>
      *
      * @param callable  the callable
      */
-    public CallableTask(Callable callable)
+    public CallableTask(Callable<T> callable)
         {
         m_callable = callable;
         }
@@ -68,9 +68,7 @@ public class CallableTask<T>
     @Override
     public T execute(Context<T> context) throws Exception
         {
-        T result = m_callable.call();
-
-        return result;
+        return m_callable.call();
         }
 
     // ----- ExternalizableLite interface -----------------------------------
@@ -101,6 +99,15 @@ public class CallableTask<T>
         throws IOException
         {
         out.writeObject(0, m_callable);
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    public String toString()
+        {
+        return "CallableTask{" +
+               "callable=" + m_callable +
+               '}';
         }
 
     // ----- data members ---------------------------------------------------

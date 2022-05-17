@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks.internal;
@@ -50,7 +50,7 @@ public class ScheduledCallableTask<T>
      * @param callable      the callable
      * @param initialDelay  the initial delay to execute the task
      */
-    public ScheduledCallableTask(Callable callable, Duration initialDelay)
+    public ScheduledCallableTask(Callable<T> callable, Duration initialDelay)
         {
         super(callable);
 
@@ -136,6 +136,17 @@ public class ScheduledCallableTask<T>
         super.writeExternal(out);
         out.writeLong(1, m_ldtSubmitNanos);
         out.writeLong(2, m_ltdInitialDelay == null ? 0 : m_ltdInitialDelay.getSeconds());
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    public String toString()
+        {
+        return "ScheduledCallableTask{" +
+               "callable=" + m_callable +
+               ", execution-time-nanos=" + m_ldtSubmitNanos +
+               ", initial-delay=" + m_ltdInitialDelay +
+               '}';
         }
 
     // ----- data members ---------------------------------------------------

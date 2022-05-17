@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks;
@@ -57,6 +57,7 @@ public class CronTask<T>
      * @param task      the task
      * @param sPattern  the crontab scheduling pattern
      */
+    @SuppressWarnings("unchecked")
     public CronTask(Task<T> task, String sPattern)
         {
         if (task == null)
@@ -92,6 +93,7 @@ public class CronTask<T>
      *
      * @return the crontab schedule pattern
      */
+    @SuppressWarnings("unused")
     public String getCronPattern()
         {
         return m_sCronPattern;
@@ -113,6 +115,7 @@ public class CronTask<T>
 
     // ----- Task interface -------------------------------------------------
 
+    @SuppressWarnings("unchecked")
     @Override
     public T execute(Context<T> context) throws Exception
         {
@@ -135,10 +138,6 @@ public class CronTask<T>
 
             m_task = (Task<T>) clone(m_origTask);
 
-            }
-        catch (Yield yield)
-            {
-            throw yield;
             }
         finally
             {
@@ -231,7 +230,7 @@ public class CronTask<T>
     @Override
     public String toString()
         {
-        return "CronTask{" + "task=" + m_task + "cron pattern=" + m_sCronPattern + '}';
+        return "CronTask{task=" + m_task + "cron-pattern=" + m_sCronPattern + '}';
         }
 
     /**

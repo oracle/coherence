@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks.internal;
@@ -38,17 +38,6 @@ public class ScheduledRunnableTask
     @SuppressWarnings("unused")
     public ScheduledRunnableTask()
         {
-        }
-
-    /**
-     * Constructs a {@link RunnableTask}.
-     *
-     * @param runnable      the runnable
-     * @param initialDelay  the initial delay
-     */
-    public ScheduledRunnableTask(Runnable runnable, Duration initialDelay)
-        {
-        this(runnable, initialDelay, null, null);
         }
 
     /**
@@ -208,6 +197,19 @@ public class ScheduledRunnableTask
         out.writeLong(2, m_ldtExecuteNanos);
         out.writeLong(3, m_initialDelay == null ? 0 : m_initialDelay.getSeconds());
         out.writeLong(4, m_period == null ? 0 : m_period.getSeconds());
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    public String toString()
+        {
+        return "ScheduledRunnableTask{" +
+               "runnable=" + m_runnable +
+               ", initial-delay=" + m_initialDelay +
+               ", next-execution-time-nanos=" + m_ldtExecuteNanos +
+               ", execution-period=" + m_period +
+               ", execution-delay=" + m_delay +
+               '}';
         }
 
     // ----- data members ---------------------------------------------------

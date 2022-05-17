@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks.internal;
@@ -97,6 +97,15 @@ public class RunnableTask
         throws IOException
         {
         out.writeObject(0, m_runnable);
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    public String toString()
+        {
+        return "RunnableTask{" +
+               "runnable=" + m_runnable +
+               '}';
         }
 
     // ----- data members ---------------------------------------------------
