@@ -22,74 +22,74 @@ descriptor: pof-config.xsd.
        <include>coherence-jcache-pof-config.xml</include>
        <user-type>
            <type-id>2000</type-id>
-           <class-name>com.tangosol.coherence.jcache.Point</class-name>
+           <class-name>com.tangosol.coherence.jcachetesting.Point</class-name>
        </user-type>
        <user-type>
            <type-id>2001</type-id>
-               <class-name>com.tangosol.coherence.jcache.NonPofPoint</class-name>
+               <class-name>com.tangosol.coherence.jcachetesting.NonPofPoint</class-name>
            <serializer>
-               <class-name>com.tangosol.coherence.jcache.NonPofPointSerializer</class-name>
+               <class-name>com.tangosol.coherence.jcachetesting.NonPofPointSerializer</class-name>
            </serializer>
        </user-type>
        <user-type>
                <type-id>2002</type-id>
-               <class-name>com.tangosol.coherence.jcache.CacheExpiryTests$ParameterizedExpiryPolicy</class-name>
+               <class-name>com.tangosol.coherence.jcachetesting.CacheExpiryTests$ParameterizedExpiryPolicy</class-name>
                <serializer>
                    <!-- simulate adding POF support to JSR 107 tck -->
-                   <class-name>com.tangosol.coherence.jcache.io.ParameterizedExpiryPolicySerializer</class-name>
+                   <class-name>com.tangosol.coherence.jcachetesting.io.ParameterizedExpiryPolicySerializer</class-name>
                </serializer>
        </user-type>
        <user-type>
            <type-id>2003</type-id>
-           <class-name>com.tangosol.coherence.jcache.CacheListenerTests$SetEntryProcessor</class-name>
+           <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$SetEntryProcessor</class-name>
        </user-type>
        <user-type>
            <type-id>2004</type-id>
-           <class-name>com.tangosol.coherence.jcache.CacheListenerTests$MultiArgumentEntryProcessor</class-name>
+           <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$MultiArgumentEntryProcessor</class-name>
        </user-type>
        <user-type>
            <type-id>2005</type-id>
-           <class-name>com.tangosol.coherence.jcache.CacheListenerTests$RemoveEntryProcessor</class-name>
+           <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$RemoveEntryProcessor</class-name>
        </user-type>
        <user-type>
            <type-id>2006</type-id>
-           <class-name>com.tangosol.coherence.jcache.AbstractCoherenceCacheTests$SimpleCacheLoader</class-name>
+           <class-name>com.tangosol.coherence.jcachetesting.AbstractCoherenceCacheTests$SimpleCacheLoader</class-name>
            <serializer>
-               <class-name>com.tangosol.coherence.jcache.SimpleCacheLoaderPofSerializer</class-name>
+               <class-name>com.tangosol.coherence.jcachetesting.SimpleCacheLoaderPofSerializer</class-name>
            </serializer>
        </user-type>
        <user-type>
             <type-id>2007</type-id>
-           <class-name>com.tangosol.coherence.jcache.FailingEntryProcessor</class-name>
+           <class-name>com.tangosol.coherence.jcachetesting.FailingEntryProcessor</class-name>
            <serializer>
                <class-name>
-               com.tangosol.coherence.jcache.io.FailingEntryProcessorPofSerializer
+               com.tangosol.coherence.jcachetesting.io.FailingEntryProcessorPofSerializer
             </class-name>
            </serializer>
        </user-type>
        <user-type>
          <type-id>2008</type-id>
-         <class-name>com.tangosol.coherence.jcache.CacheListenerTests$MyCacheEntryListener</class-name>
+         <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$MyCacheEntryListener</class-name>
        </user-type>
      <user-type>
        <type-id>2009</type-id>
-       <class-name>com.tangosol.coherence.jcache.CacheListenerTests$MyCacheEntryEventFilter</class-name>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheListenerTests$MyCacheEntryEventFilter</class-name>
      </user-type>
      <user-type>
        <type-id>2010</type-id>
-       <class-name>com.tangosol.coherence.jcache.CacheWriterTests$CreateEntryProcessor</class-name>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$CreateEntryProcessor</class-name>
      </user-type>
      <user-type>
        <type-id>2011</type-id>
-       <class-name>com.tangosol.coherence.jcache.CacheWriterTests$UpdateEntryProcessor</class-name>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$UpdateEntryProcessor</class-name>
      </user-type>
      <user-type>
        <type-id>2012</type-id>
-       <class-name>com.tangosol.coherence.jcache.CacheWriterTests$RemoveEntryProcessor</class-name>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$RemoveEntryProcessor</class-name>
      </user-type>
      <user-type>
        <type-id>2013</type-id>
-       <class-name>com.tangosol.coherence.jcache.CacheWriterTests$RecordingCacheWriter</class-name>
+       <class-name>com.tangosol.coherence.jcachetesting.CacheWriterTests$RecordingCacheWriter</class-name>
      </user-type>
      <user-type>
          <type-id>2014</type-id>
