@@ -874,6 +874,7 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+          --add-opens=java.base/java.lang.invoke=com.oracle.coherence
         </default.failsafe.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
       </properties>
