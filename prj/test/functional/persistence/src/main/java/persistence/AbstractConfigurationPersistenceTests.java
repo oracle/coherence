@@ -19,10 +19,11 @@ import com.tangosol.internal.net.service.grid.PersistenceDependencies;
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Service;
 
-import com.tangosol.persistence.ConfigurableSnapshotArchiverFactoryTest;
 import com.tangosol.persistence.DirectorySnapshotArchiver;
 import com.tangosol.persistence.SafePersistenceWrappers.SafePersistenceEnvironment;
 
@@ -83,6 +84,7 @@ public abstract class AbstractConfigurationPersistenceTests
         {
         // this test requires local storage to be enabled
         System.setProperty("coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         // the following property is used by the custom persistence environment
         try
@@ -131,6 +133,10 @@ public abstract class AbstractConfigurationPersistenceTests
     public void testDefaultConfig()
             throws Exception
         {
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
+
         CacheService service     = getNamedCache("default-persistent").getCacheService();
         SafeService  serviceSafe = (SafeService) service;
         Service      serviceReal = serviceSafe.getService();
@@ -328,6 +334,7 @@ public abstract class AbstractConfigurationPersistenceTests
             props = new Properties();
             }
         props.setProperty("test.server.distributed.localstorage", String.valueOf(fStorage));
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
         try
             {
             // start a new member that we either expect to fail (storage-enabled)

@@ -21,6 +21,7 @@ import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
@@ -80,6 +81,7 @@ public abstract class AbstractCohQLPersistenceTests
         System.setProperty("coherence.management.remote", "true");
         System.setProperty("coherence.management.refresh.expiry", "1");
         System.setProperty("coherence.management.refresh.policy", "refresh-expired");
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         AbstractFunctionalTest._startup();
         }
@@ -116,6 +118,7 @@ public abstract class AbstractCohQLPersistenceTests
         props.setProperty("coherence.management", "none");
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("test.start.archiver", "true");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         final NamedCache       cache    = getNamedCache(sPersistentCache);
         final NamedCache       cache1   = getNamedCache(sTransientCache);
@@ -331,7 +334,7 @@ public abstract class AbstractCohQLPersistenceTests
      */
     protected void RunQueryPlusAsInvocable(File fileScript)
         {
-        InvocationService invocationService = (InvocationService) CacheFactory.getService("InvocationService");
+        InvocationService invocationService = (InvocationService) getFactory().ensureService("InvocationService");
         assertTrue(invocationService != null);
 
         Cluster     cluster        = invocationService.getCluster();

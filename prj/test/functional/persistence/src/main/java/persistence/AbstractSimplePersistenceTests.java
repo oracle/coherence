@@ -31,6 +31,7 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
@@ -317,11 +318,16 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         Cluster cluster = CacheFactory.getCluster();
 
         CoherenceClusterMember clusterMember = startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
         Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         NamedCache         cache   = getNamedCache(sPersistentCache);
         PartitionedService service = (PartitionedService) cache.getCacheService();
@@ -462,6 +468,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.asyncbackup", fAsyncBackup ? "true" : "false");
         props.setProperty("test.persistence.members", "2");
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         final NamedCache        cache   = getNamedCache(sPersistentCache);
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
@@ -603,6 +614,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.threads", "5");
         props.setProperty("test.persistence.members", "2");
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         NamedCache cache         = getNamedCache(sPersistentCache);
         NamedCache cacheTruncate = getNamedCache(sTruncateCache);
@@ -722,6 +738,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
         props.setProperty("test.threads", "1");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
@@ -974,6 +995,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("coherence.management.refresh.expiry", "1s");
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
@@ -1147,6 +1173,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("coherence.management", "all");
         props.setProperty("coherence.management.refresh.expiry", "1s");
         props.setProperty("coherence.management.remote", "true");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
@@ -1237,6 +1268,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("coherence.management", "all");
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         NamedCache              cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
@@ -1354,6 +1390,11 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.threads", "5");
         props.setProperty("test.persistence.members", "2");
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();

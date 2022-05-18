@@ -6,8 +6,8 @@
  */
 package com.tangosol.persistence.bdb;
 
-import com.tangosol.persistence.AbstractPersistenceEnvironment;
 import com.tangosol.persistence.AbstractPersistenceEnvironmentTest;
+import com.tangosol.persistence.AbstractPersistenceEnvironment;
 
 import java.io.IOException;
 

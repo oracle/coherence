@@ -70,6 +70,7 @@ public abstract class AbstractArchiverPersistenceTests
         {
         System.setProperty("coherence.management", "all");
         System.setProperty("coherence.management.remote", "true");
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         AbstractFunctionalTest._startup();
         }
@@ -150,6 +151,7 @@ public abstract class AbstractArchiverPersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.start.archiver", "true");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         String           sClusterName    = CacheFactory.ensureCluster().getClusterName();
         final NamedCache cache           = getNamedCache(sPersistentCache);

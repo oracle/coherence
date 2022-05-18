@@ -10,7 +10,6 @@ import com.tangosol.net.Member;
 
 import com.tangosol.net.partition.PartitionSet;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.UID;
 
 import java.util.Date;

@@ -76,6 +76,7 @@ public class BerkeleyDBWriteBehindPersistenceTests
         System.setProperty("coherence.management.refresh.expiry", "1s");
         System.setProperty("coherence.management.http", "inherit");
         System.setProperty("coherence.management.metrics.port", "0");
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         AbstractFunctionalTest._startup();
         }
@@ -142,6 +143,7 @@ public class BerkeleyDBWriteBehindPersistenceTests
         props.setProperty("test.persistence.mode", sPersistenceMode);
         props.setProperty("coherence.distribution.2server", "false");
         props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         Cluster cluster = CacheFactory.getCluster();
 

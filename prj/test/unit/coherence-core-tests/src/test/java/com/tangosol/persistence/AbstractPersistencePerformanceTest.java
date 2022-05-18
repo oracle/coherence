@@ -538,7 +538,7 @@ public abstract class AbstractPersistencePerformanceTest
      * The name of the test persistent store identifier.
      */
     public static String TEST_STORE_ID = GUIDHelper.generateGUID(1, 1L,
-            new Date().getTime(), GUIDHelperTest.getMockMember(1));
+                                                                 new Date().getTime(), GUIDHelperTest.getMockMember(1));
 
     /**
      * Test Binary values.

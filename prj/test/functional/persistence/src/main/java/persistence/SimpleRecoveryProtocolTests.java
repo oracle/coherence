@@ -121,6 +121,7 @@ public class SimpleRecoveryProtocolTests
             System.setProperty("test.persistence.snapshot.dir",  s_fileSnapshot.getAbsolutePath());
             System.setProperty("test.persistence.trash.dir",     s_fileTrash.getAbsolutePath());
             System.setProperty("coherence.cacheconfig", CFG_FILE);
+            System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             AbstractFunctionalTest._startup();
 
@@ -128,6 +129,7 @@ public class SimpleRecoveryProtocolTests
             addTestProperties(props);
             props.setProperty("test.recover.quorum", "0");
             props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             CoherenceClusterMember clusterMember = startCacheServer("SRPT-setup", getProjectName(), "simple-recovery-cache-config.xml", props);
             Eventually.assertThat(invoking(clusterMember).getClusterSize(), is(2));
@@ -156,6 +158,7 @@ public class SimpleRecoveryProtocolTests
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testNoPersistentData");
             props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -221,6 +224,7 @@ public class SimpleRecoveryProtocolTests
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testAllOnMember3");
             props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -286,6 +290,7 @@ public class SimpleRecoveryProtocolTests
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testHalfOn3HalfOn4");
             props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -365,6 +370,7 @@ public class SimpleRecoveryProtocolTests
             addTestProperties(props);
             props.setProperty("test.manager.testcase", "testHalfOn3HalfMissing");
             props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             NamedCache         cache      = getNamedCache("simple-recovery");
             PartitionedService service    = (PartitionedService) cache.getCacheService();
@@ -525,7 +531,7 @@ public class SimpleRecoveryProtocolTests
                 }
             return manager;
             }
-
+        
         /**
          * {@inheritDoc}
          */

@@ -10,7 +10,7 @@
 <!-- coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
             xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
-            xml-override="../common/tangosol-coherence-override.xml"-->
+            xml-override="../common/commomn-tangosol-coherence-override.xml"-->
 <!-- pick up the generic "tests" override -->
 <coherence  xml-override="common/tangosol-coherence-override.xml">
 
@@ -86,7 +86,7 @@
          <archive-directory system-property="test.persistence.archive.dir">target/store-archive</archive-directory>
       </directory-archiver>
       <custom-archiver id="simple-custom-archiver">
-        <class-name>com.tangosol.persistence.ConfigurableSnapshotArchiverFactoryTest$CustomArchiver</class-name>
+        <class-name>persistence.ConfigurableSnapshotArchiverFactoryTest$CustomArchiver</class-name>
           <init-params>
             <init-param>
               <param-value>{cluster-name}</param-value>

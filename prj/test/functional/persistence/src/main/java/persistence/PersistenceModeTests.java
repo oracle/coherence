@@ -162,6 +162,8 @@ public class PersistenceModeTests
         props.setProperty("test.server.distributed.localstorage", String.valueOf(false));
         props.setProperty("coherence.management", "all");
         props.setProperty("com.sun.management.jmxremote", "true");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         NamedCache<Integer, String> cache = null;
         try
@@ -239,7 +241,6 @@ public class PersistenceModeTests
             }
         finally
             {
-            cache.destroy();
             stopCacheServer(sServer);
             fileActive.delete();
             fileSnapshot.delete();

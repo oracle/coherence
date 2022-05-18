@@ -441,7 +441,7 @@ public class ArchiverHelperTest
         for (int iPart = 0; iPart < cPartitions; iPart++)
             {
             String       sStore     = getStore(iPart);
-            Set<Integer> setMembers = com.tangosol.persistence.ArchiverHelper.getMembersOwningPartition(mapStores, sStore);
+            Set<Integer> setMembers = ArchiverHelper.getMembersOwningPartition(mapStores, sStore);
 
             Assert.assertTrue("Partition " + iPart + "(" + sStore + ") should be owned by one member"
                               + " but is owned by the following members " + setMembers + "\n" + dumpMap(mapStores),

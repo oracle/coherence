@@ -57,6 +57,7 @@ public class SimpleRecoveryDynamicQuorumTests
     public static void _startup()
         {
         System.setProperty("coherence.cacheconfig", CFG_FILE);
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         AbstractFunctionalTest._startup();
         }
@@ -107,6 +108,7 @@ public class SimpleRecoveryDynamicQuorumTests
             props.setProperty("test.persistence.snapshot.dir",      s_fileSnapshot.getAbsolutePath());
             props.setProperty("test.persistence.trash.dir",         s_fileTrash.getAbsolutePath());
             props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
             NamedCache              cache       = getNamedCache("dynamic-quorum");
             DistributedCacheService service     = (DistributedCacheService) cache.getCacheService();

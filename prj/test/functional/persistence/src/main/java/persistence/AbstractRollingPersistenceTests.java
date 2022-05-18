@@ -16,6 +16,7 @@ import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 
@@ -125,6 +126,7 @@ public abstract class AbstractRollingPersistenceTests
         System.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         System.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         System.setProperty("test.backupcount", "" + cBackups);
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         int cServers = 4 * (cBackups + 1);
         MemberHandler memberHandler = new MemberHandler(
@@ -136,6 +138,10 @@ public abstract class AbstractRollingPersistenceTests
 
         try
             {
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                    .getConfigurableCacheFactory("client-cache-config.xml", null);
+            setFactory(factory);
+
             NamedCache cache = getNamedCache("rolling-" + sTest);
             HashMap    map   = new HashMap();
             for (int i = 0; i < 5000; i++)
@@ -234,6 +240,7 @@ public abstract class AbstractRollingPersistenceTests
 
         Properties props = new Properties();
         props.setProperty("test.recover.quorum", "0"); // dynamic recovery
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         try
             {
@@ -241,6 +248,10 @@ public abstract class AbstractRollingPersistenceTests
                 {
                 startServer(sTestPrefix, sMember, dirActive, dirTrash, props, null);
                 }
+
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                    .getConfigurableCacheFactory("client-cache-config.xml", null);
+            setFactory(factory);
 
             NamedCache cache = getNamedCache("rolling-" + sTestPrefix + "data");
             DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
@@ -396,6 +407,7 @@ public abstract class AbstractRollingPersistenceTests
         props.setProperty("coherence.machine", sMachine);
         props.setProperty("test.persistence.active.dir", dirActive.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", dirTrash.getAbsolutePath());
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         if (listMembers != null)
             {
@@ -466,7 +478,11 @@ public abstract class AbstractRollingPersistenceTests
                 }
             for (int i = 0; i < cBounce; i++)
                 {
-                addServer();
+                Properties props = new Properties();
+
+                props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+                addServer(props);
                 }
             }
 

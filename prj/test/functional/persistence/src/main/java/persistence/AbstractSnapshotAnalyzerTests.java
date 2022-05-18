@@ -80,6 +80,7 @@ public abstract class AbstractSnapshotAnalyzerTests
         System.setProperty("coherence.management", "all");
         System.setProperty("coherence.management.remote", "true");
         System.setProperty("coherence.management.refresh.expiry", "1s");
+        System.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         AbstractFunctionalTest._startup();
         }
@@ -121,6 +122,7 @@ public abstract class AbstractSnapshotAnalyzerTests
         props.setProperty("coherence.management.remote", "true");
         props.setProperty("test.start.archiver", "true");
         props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
 
         System.setProperty("coherence.distributed.localstorage", "false");
 

@@ -112,7 +112,7 @@ public abstract class AbstractPersistenceManagerTest
 
         Properties prop = manager.readMetadata(file);
         prop.setProperty(CachePersistenceHelper.META_IMPL_VERSION,
-                String.valueOf(manager.getImplVersion() + 1));
+                         String.valueOf(manager.getImplVersion() + 1));
 
         CachePersistenceHelper.writeMetadata(file, prop);
         }
@@ -803,7 +803,7 @@ public abstract class AbstractPersistenceManagerTest
      * The name of test persistent store a persistent store will be opened with.
      */
     public static String TEST_FROM_STORE_ID = GUIDHelper.generateGUID(1, 2L,
-                new Date().getTime(), GUIDHelperTest.getMockMember(1));
+                                                                      new Date().getTime(), GUIDHelperTest.getMockMember(1));
 
     // ----- data members ---------------------------------------------------
 

@@ -15,6 +15,7 @@ import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 
@@ -108,6 +109,11 @@ public class BerkeleyDBSimplePersistenceTests
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.threads", "5");
         props.setProperty("test.persistence.members", "3");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
 
         final String            sServer          = "testMultipleRestartsWithClientEnsureCache";
         final String            sPersistentCache = "simple-persistent";

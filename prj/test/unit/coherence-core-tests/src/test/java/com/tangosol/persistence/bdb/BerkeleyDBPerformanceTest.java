@@ -6,20 +6,19 @@
  */
 package com.tangosol.persistence.bdb;
 
+import com.tangosol.persistence.AbstractPersistencePerformanceTest;
 import com.tangosol.persistence.AbstractPersistenceManager;
-import com.tangosol.persistence.AbstractPersistentStoreTest;
 
 import java.io.IOException;
 
 /**
- * Unit test of the BerkeleyDBStore.
+ * Performance test for a BerkeleyDBManager.
  *
- * @author jh  2012.10.10
+ * @author jh  2012.11.13
  */
-public class BerkeleyDBStoreTest
-        extends AbstractPersistentStoreTest
+public class BerkeleyDBPerformanceTest
+        extends AbstractPersistencePerformanceTest
     {
-
     // ----- test lifecycle -------------------------------------------------
 
     @Override

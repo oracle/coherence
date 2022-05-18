@@ -6,10 +6,8 @@
  */
 package com.tangosol.persistence.bdb;
 
-import com.tangosol.persistence.AbstractPersistenceManager;
 import com.tangosol.persistence.AbstractPersistenceManagerTest;
-
-import com.tangosol.persistence.bdb.BerkeleyDBManager.BerkeleyDBStore;
+import com.tangosol.persistence.AbstractPersistenceManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +65,7 @@ public class BerkeleyDBManagerTest
         BerkeleyDBManager managerImpl = (BerkeleyDBManager) m_manager;
         synchronized (managerImpl)
             {
-            Map<String, BerkeleyDBStore> map = managerImpl.getPersistentStoreMap();
+            Map<String, BerkeleyDBManager.BerkeleyDBStore> map = managerImpl.getPersistentStoreMap();
             assertTrue(map.isEmpty());
 
             managerImpl.open(TEST_STORE_ID, null);

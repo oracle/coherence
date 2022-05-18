@@ -15,6 +15,7 @@ import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.PartitionedService;
@@ -105,6 +106,7 @@ public class SuspendTests
         props.setProperty("test.persistence.trash.dir", TRASH_DIR);
         props.setProperty("coherence.distributed.threads.min", "2");
         props.setProperty("coherence.management", "none");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
         System.getProperties().putAll(props);
         try
             {
@@ -112,6 +114,10 @@ public class SuspendTests
             startCacheServer(sTestName + "-2", "persistence", CACHE_CFG, props);
             props.put("coherence.management", "all");
             startCacheServer(sTestName + "-3", "persistence", CACHE_CFG, props);
+
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                    .getConfigurableCacheFactory("client-cache-config.xml", null);
+            setFactory(factory);
 
             NamedCache<Integer, String> cache = getFactory().ensureTypedCache("simple-persistent", null, TypeAssertion.withRawTypes());
 
