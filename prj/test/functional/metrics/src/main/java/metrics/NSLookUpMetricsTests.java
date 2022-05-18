@@ -65,6 +65,7 @@ public class NSLookUpMetricsTests
             props.put("coherence.member", sMemberName);
             props.put(PROP_METRICS_ENABLED, "true");
             props.put("coherence.metrics.http.port", "0");
+            props.put("coherence.override", "common-tangosol-coherence-override.xml");
 
             CoherenceClusterMember clusterMember = startCacheServer(sMemberName, "metrics", FILE_SERVER_CFG_CACHE, props);
             Eventually.assertThat(invoking(clusterMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));

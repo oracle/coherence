@@ -68,6 +68,7 @@ public class SimpleMetricsSSLTests
         props.put("coherence.security.trust.password", "password");
         props.put("test.persistence.enabled", false);
         props.put("coherence.management.extendedmbeanname", "true");
+        props.put("coherence.override", "common-tangosol-coherence-override.xml");
 
         CoherenceClusterMember clusterMember = startCacheServer("SimpleMetricsSSLTests", "metrics", FILE_SERVER_CFG_CACHE, props);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));

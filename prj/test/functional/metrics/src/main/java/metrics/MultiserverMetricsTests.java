@@ -6,20 +6,38 @@
  */
 package metrics;
 
+import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.deferred.DeferredHelper;
 
+import com.oracle.bedrock.junit.CoherenceClusterResource;
+import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
+import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
+import com.oracle.bedrock.runtime.coherence.options.Pof;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
+import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
+import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.io.FileHelper;
 
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.partition.SimpleStrategyMBean;
@@ -33,6 +51,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
@@ -92,6 +111,7 @@ public class MultiserverMetricsTests
         props.put("test.persistence.archive.dir", fileArchiveDir.getAbsolutePath());
         props.put("test.extend.address.local", "0.0.0.0");
         props.put("test.extend.multiservertests.enabled", "true");
+        props.put(OperationalOverride.PROPERTY, "common-tangosol-coherence-override.xml");
 
         AvailablePortIterator ports      = new com.oracle.bedrock.runtime.network.AvailablePortIterator(9613, 10100);
         AvailablePortIterator proxyPorts = new com.oracle.bedrock.runtime.network.AvailablePortIterator(30100, 30200);
@@ -171,6 +191,10 @@ public class MultiserverMetricsTests
     @Test
     public void testCollectionOverMultipleCacheServers() throws Exception
         {
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config-metrics.xml", null);
+        setFactory(factory);
+
         // wait for partition assignments to complete.
         Map<String, String> serviceTags = new LinkedHashMap<>();
 

@@ -76,6 +76,7 @@ public class SimpleMetricsTests
         props.put("coherence.metrics.http.port", Integer.toString(metricsHttpPort));
         props.put("test.persistence.enabled", false);
         props.put("coherence.management.extendedmbeanname", "true");
+        props.put("coherence.override", "common-tangosol-coherence-override.xml");
 
         CoherenceClusterMember clusterMember = startCacheServer("SimpleMetricsTests", "metrics", FILE_SERVER_CFG_CACHE, props);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));

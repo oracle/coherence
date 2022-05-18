@@ -106,6 +106,7 @@ public class ExtendMetricsTests
         props.put("coherence.management.extendedmbeanname", "true");
         props.put("coherence.management", "all");
         props.put("coherence.role", "Server");
+        props.put("coherence.override", "common-tangosol-coherence-override.xml");
 
         // extend client properties
         System.setProperty("coherence.management.extendedmbeanname", "true");
