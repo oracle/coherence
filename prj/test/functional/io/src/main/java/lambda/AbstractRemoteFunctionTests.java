@@ -9,10 +9,13 @@ package lambda;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.java.ClassPath;
-import com.tangosol.internal.util.invoke.Lambdas;
+import com.oracle.bedrock.runtime.java.options.JavaModules;
 
+import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.invoke.Lambdas.SerializationMode;
+
 import com.tangosol.io.pof.PortableException;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -26,12 +29,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
-
-import java.io.IOException;
-import java.net.URL;
-
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
 
 import java.util.Properties;
 
@@ -135,8 +132,13 @@ abstract public class AbstractRemoteFunctionTests
         String sServerName       = this.getClass().getName().replace("lambda.Remote", "Remote").replace("Tests", "") + "_Simple";
         String sClassPath        = m_fIncludeTestClassInServerClasspath ? null : createClassPathExcludingTestClasses();
         String sKindLambdaInvoke = Lambdas.isStaticLambdas() ? "static" : "dynamic";
+        JavaModules module       = m_fIncludeTestClassInServerClasspath ? JavaModules.automatic() : JavaModules.automatic().excluding("io").adding("com.oracle.coherence.testing").withClassPath(new ClassPath(sClassPath));
 
-        startCacheServer(sServerName, "io", getCacheConfigPath(), m_propsForServer, true, sClassPath);
+        if (sClassPath != null)
+            {
+            System.setProperty("java.class.path", sClassPath);
+            }
+        startCacheServer(sServerName, "io", getCacheConfigPath(), m_propsForServer, true, sClassPath, module);
 
         assertEquals("assert client side " + Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
              Lambdas.isStaticLambdas(), m_fClientDynamicLambdaDisabled);
@@ -153,7 +155,7 @@ abstract public class AbstractRemoteFunctionTests
             }
         catch (WrapperException e)
             {
-            assertTrue(sKindLambdaInvoke + " lamdba invocation failed unexpectedly", m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+            assertTrue(sKindLambdaInvoke + " lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             assertFalse(m_fIncludeTestClassInServerClasspath);
             }
         catch (PortableException e)
@@ -174,8 +176,13 @@ abstract public class AbstractRemoteFunctionTests
         String sServerName       = this.getClass().getName().replace("lambda.Remote", "Remote").replace("Tests", "") +  "_WithArgs";
         String sClassPath        = m_fIncludeTestClassInServerClasspath ? null : createClassPathExcludingTestClasses();
         String sKindLambdaInvoke = Lambdas.isStaticLambdas()  ? "static" : "dynamic";
+        JavaModules module       = m_fIncludeTestClassInServerClasspath ? JavaModules.automatic() : JavaModules.automatic().excluding("io").adding("com.oracle.coherence.testing").withClassPath(new ClassPath(sClassPath));
 
-        startCacheServer(sServerName, "io", getCacheConfigPath(), m_propsForServer, true, sClassPath);
+        if (sClassPath != null)
+            {
+            System.setProperty("java.class.path", sClassPath);
+            }
+        startCacheServer(sServerName, "io", getCacheConfigPath(), m_propsForServer, true, sClassPath, module);
         try
             {
             NamedCache cache = CacheFactory.getCache("foo");
@@ -189,7 +196,7 @@ abstract public class AbstractRemoteFunctionTests
             }
         catch (WrapperException e)
             {
-            assertTrue("dynamic lamdba invocation failed unexpectedly", m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+            assertTrue("dynamic lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             }
         catch (PortableException e)
             {

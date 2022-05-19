@@ -5,10 +5,13 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
 import com.oracle.coherence.testing.util.BinaryUtils;
+import com.tangosol.io.BinaryDeltaCompressor;
+import com.tangosol.io.DecoratedBinaryDeltaCompressor;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 

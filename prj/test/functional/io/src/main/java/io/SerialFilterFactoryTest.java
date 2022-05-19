@@ -5,9 +5,12 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
+import com.tangosol.io.ByteArrayReadBuffer;
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.util.ExternalizableHelper;
 
 import data.BlobExternalizableLite;
@@ -63,7 +66,7 @@ public class SerialFilterFactoryTest
         {
         CheckJDK.assumeJDKVersionEqualOrGreater(17);
         BlobExternalizableLite blob = new BlobExternalizableLite(40);
-        ByteArrayWriteBuffer baos = new ByteArrayWriteBuffer(0);
+        ByteArrayWriteBuffer   baos = new ByteArrayWriteBuffer(0);
 
         try
             {
@@ -74,8 +77,8 @@ public class SerialFilterFactoryTest
             e.printStackTrace();
             }
 
-        ByteArrayReadBuffer bais = new ByteArrayReadBuffer(baos.toByteArray());
-        ReadBuffer.BufferInput in = bais.getBufferInput();
+        ByteArrayReadBuffer    bais = new ByteArrayReadBuffer(baos.toByteArray());
+        ReadBuffer.BufferInput in   = bais.getBufferInput();
 
         assertTrue("must have process-wide filter",
                    in.getObjectInputFilter().toString().contains("examples.*"));

@@ -8,9 +8,8 @@
 package com.oracle.coherence.testing;
 
 
-import com.oracle.coherence.testing.bedrock.Jdk;
+import com.oracle.bedrock.Option;
 import com.oracle.bedrock.OptionsByType;
-import com.oracle.coherence.testing.bedrock.CoverageProfile;
 import com.oracle.bedrock.deferred.Deferred;
 import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
@@ -42,6 +41,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Threads;
+import com.oracle.coherence.testing.bedrock.Jdk;
+import com.oracle.coherence.testing.bedrock.CoverageProfile;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
@@ -613,12 +614,13 @@ public abstract class AbstractTestInfrastructure
     * @param fGraceful     if true, a "graceful" startup of the cache server
     *                      will be performed
     * @param sClassPath    the optional classpath to use for the server being started
+    * @param options       the options used to start the cache server
     */
     protected static CoherenceClusterMember startCacheServer(String sServer, String sProject,
-                                                             String sCacheConfig, Properties props, boolean fGraceful, String sClassPath)
+            String sCacheConfig, Properties props, boolean fGraceful, String sClassPath, Option... options)
         {
         return startCacheServer(sServer, sProject, sCacheConfig, props,
-                fGraceful, sClassPath, DefaultCacheServer.class);
+                fGraceful, sClassPath, DefaultCacheServer.class, options);
         }
 
     /**
@@ -640,9 +642,10 @@ public abstract class AbstractTestInfrastructure
     * @param sClassPath    the optional classpath to use for the server being started
     * @param classMain     the Class with a main method will be used to start the
     *                      cache server, if null then {@link DefaultCacheServer} is used
+    * @param options       the options used to start the cache server
     */
     protected static CoherenceClusterMember startCacheServer(String sServer, String sProject,
-            String sCacheConfig, Properties props, boolean fGraceful, String sClassPath, Class classMain)
+            String sCacheConfig, Properties props, boolean fGraceful, String sClassPath, Class classMain, Option... options)
         {
         if (sServer == null || sServer.length() == 0)
             {
@@ -671,7 +674,7 @@ public abstract class AbstractTestInfrastructure
             classMain = DefaultCacheServer.class;
             }
 
-        OptionsByType optionsByType = createCacheServerOptions(classMain.getCanonicalName(), sClassPath, props);
+        OptionsByType optionsByType = createCacheServerOptions(classMain.getCanonicalName(), sClassPath, props, options);
 
         props.setProperty("test.server.name", sServer);
         if (sCacheConfig != null && sCacheConfig.length() > 0)
@@ -849,12 +852,14 @@ public abstract class AbstractTestInfrastructure
      *
      * @param sClass     the name of the main class to run
      * @param sClassPath the optional class path to use for the process
+     * @param props      the properties used to start the cache server
+     * @param options    the options used to start the cache server
      *
      * @return an OptionsByTpe
      */
-    public static OptionsByType createCacheServerOptions(String sClass, String sClassPath, Properties props)
+    public static OptionsByType createCacheServerOptions(String sClass, String sClassPath, Properties props, Option... options)
         {
-        OptionsByType optionsByType = OptionsByType.empty();
+        OptionsByType optionsByType = OptionsByType.of(options);
 
         if (sClass == null)
             {

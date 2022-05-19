@@ -5,13 +5,14 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import com.tangosol.io.FileHelper;
 import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
@@ -179,9 +180,9 @@ public class PortableTypeMultipleIndexesTests
      * that include an index file called custom-index.idx and test that
      * the indexes can be loaded from multiple locations. 
      * E.g. person-idx.jar should contain just the custom.idx generated from
-     * target/test-classes/data/portabletype/META-INF/person-index/custom.idx
+     * target/classes/data/portabletype/META-INF/person-index/custom.idx
      * address-idx.jar should contain just the custom.idx generated from
-     * target/test-classes/data/portabletype/META-INF/address-index/custom.idx.
+     * target/classes/data/portabletype/META-INF/address-index/custom.idx.
      *
      * Both these jars should contain only the custom.idx file in the root.
      */

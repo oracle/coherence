@@ -5,9 +5,12 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
+import com.tangosol.io.ByteArrayReadBuffer;
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.util.ExternalizableHelper;
 
 import data.BlobExternalizableLite;

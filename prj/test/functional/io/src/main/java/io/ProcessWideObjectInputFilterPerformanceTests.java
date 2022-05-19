@@ -5,12 +5,15 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.tangosol.io.ByteArrayReadBuffer;
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.util.AssertionException;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
@@ -64,7 +67,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         setupProps();
         propsCommon = new Properties();
         propsCommon.put("test.log.level", "6");
-        //propsCommon.put("jdk.serialFilterFactory", "com.tangosol.io.SerialFilterFactoryTests$FilterInThread");
+        //propsCommon.put("jdk.serialFilterFactory", "io.SerialFilterFactoryTests$FilterInThread");
         }
 
     @AfterClass
@@ -93,7 +96,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("testExternalizableLiteWithObjectInputFilter",
-                                                              "com.tangosol.io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput",
+                                                              "io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -109,7 +112,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("testExternalizableLiteWithBlockingObjectInputFilter",
-                                                              "com.tangosol.io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput",
+                                                              "io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -123,7 +126,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("testExternalizableLiteWithoutObjectInputFilter",
-                                                              "com.tangosol.io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput",
+                                                              "io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -138,7 +141,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("testObjectInputFilter",
-                                                              "com.tangosol.io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream",
+                                                              "io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -153,7 +156,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("testWithBlockingObjectInputFilter",
-                                                              "com.tangosol.io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream",
+                                                              "io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -168,7 +171,7 @@ public class ProcessWideObjectInputFilterPerformanceTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("testWithoutObjectInputFilter",
-                                                              "com.tangosol.io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream",
+                                                              "io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));

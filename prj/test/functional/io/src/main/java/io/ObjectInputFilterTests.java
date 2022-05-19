@@ -5,13 +5,17 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.util.invoke.RemoteConstructor;
+import com.tangosol.io.ByteArrayReadBuffer;
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.MultiBufferReadBuffer;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.ReadBuffer.BufferInput;
 import com.tangosol.io.nio.ByteBufferReadBuffer;
 import com.tangosol.util.AssertionException;
@@ -67,7 +71,7 @@ public class ObjectInputFilterTests
         propsCommon.put("test.log.level", "6");
         // configure JDK java.io.serialization filter logging for the Java Serialization tests
         propsCommon.put("java.util.logging.config.file", sFile);
-        //propsCommon.put("jdk.serialFilterFactory", "com.tangosol.io.SerialFilterFactoryTests$FilterInThread");
+        //propsCommon.put("jdk.serialFilterFactory", "io.SerialFilterFactoryTests$FilterInThread");
         }
 
     @AfterClass
@@ -156,7 +160,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestExternalizableLiteWithObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestBufferInput",
+                                                              "io.ObjectInputFilterTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -173,7 +177,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestExternalizableLiteWithBlockingObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestBufferInput",
+                                                              "io.ObjectInputFilterTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -188,7 +192,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestExternalizableLiteWithoutObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestBufferInput",
+                                                              "io.ObjectInputFilterTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -214,7 +218,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestJavaSerializableWithObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestBufferInput",
+                                                              "io.ObjectInputFilterTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -231,7 +235,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestJavaSerializableWithBlockingObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestBufferInput",
+                                                              "io.ObjectInputFilterTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -246,7 +250,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestJavaSerializableithoutObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestBufferInput",
+                                                              "io.ObjectInputFilterTests$TestBufferInput",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -261,7 +265,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestWithObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestObjectInputStream",
+                                                              "io.ObjectInputFilterTests$TestObjectInputStream",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -276,7 +280,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestWithBlockingObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestObjectInputStream",
+                                                              "io.ObjectInputFilterTests$TestObjectInputStream",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -291,7 +295,7 @@ public class ObjectInputFilterTests
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestWithoutObjectInputFilter",
-                                                              "com.tangosol.io.ObjectInputFilterTests$TestObjectInputStream",
+                                                              "io.ObjectInputFilterTests$TestObjectInputStream",
                                                               "io", "", props);
 
         int result = member.waitFor(Timeout.after("30s"));
@@ -369,8 +373,8 @@ public class ObjectInputFilterTests
 
             byte[] ab = baos.toByteArray();
 
-            ByteArrayReadBuffer    bais = new ByteArrayReadBuffer(ab);
-            BufferInput in   = bais.getBufferInput();
+            ByteArrayReadBuffer bais = new ByteArrayReadBuffer(ab);
+            BufferInput         in   = bais.getBufferInput();
 
             if (s_fFilterEnabled)
                 {

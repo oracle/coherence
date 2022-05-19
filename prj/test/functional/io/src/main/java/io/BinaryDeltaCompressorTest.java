@@ -5,10 +5,12 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
 import com.oracle.coherence.testing.util.BinaryUtils;
+import com.tangosol.io.BinaryDeltaCompressor;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
@@ -181,7 +183,7 @@ public class BinaryDeltaCompressorTest
     * @param binOld  the old binary value to diff against
     * @param binNew  the new binary value
     */
-    private static void testExtractInternal(Binary binOld, Binary binNew)
+    protected static void testExtractInternal(Binary binOld, Binary binNew)
         {
         // extract delta
         ReadBuffer bufDelta = s_compressor.extractDelta(binOld, binNew);

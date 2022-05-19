@@ -19,7 +19,6 @@
 
   <artifactId>io</artifactId>
   <name>Coherence I/O Tests</name>
-  <packaging>jar</packaging>
 
   <profiles>
     <profile>
@@ -28,18 +27,15 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
-
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
-      </properties>
-    </profile>
   </profiles>
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <failsafe.modules.argline>
+      ${default.failsafe.modules.argline}
+      --add-exports java.management/sun.management=com.oracle.coherence
+      --add-opens java.base/java.lang.invoke=com.oracle.coherence
+    </failsafe.modules.argline>
   </properties>
 
   <dependencies>

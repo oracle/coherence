@@ -4,12 +4,14 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.io;
+package io;
 
 import com.oracle.bedrock.options.Timeout;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.FileHelper;
 import com.tangosol.net.CoherenceSession;
 import com.tangosol.net.NamedCache;
 
@@ -65,7 +67,7 @@ public class BDBStoreTests
 
             // 1. create a bdb-store-manager persistent binary store and terminate abnormally, (bypassing BDBShutdownHook)
             CoherenceClusterMember member = startCacheApplication("TestAutoRecoveryCreatePersistentCacheTerminatesAbnormal",
-                "com.tangosol.io.BDBStoreTests$AddAndGetFromBDBStore",
+                "io.BDBStoreTests$AddAndGetFromBDBStore",
                 "io", CACHE_CONFIG, props);
 
             int result = member.waitFor(Timeout.after("30s"));
@@ -80,7 +82,7 @@ public class BDBStoreTests
             props.put("test.bdb.directory", fileBDBTempDir.getAbsolutePath());
             props.put("test.require_keys_exist", "true");
             member = startCacheApplication("TestAutoRecoveryValidatePersistentCache",
-                "com.tangosol.io.BDBStoreTests$AddAndGetFromBDBStore",
+                "io.BDBStoreTests$AddAndGetFromBDBStore",
                 "io", CACHE_CONFIG, props);
 
             result = member.waitFor(Timeout.after("30s"));
@@ -112,7 +114,7 @@ public class BDBStoreTests
 
             // 1. create a bdb-store-manager persistent binary store and terminate abnormally, (bypassing BDBShutdownHook)
             CoherenceClusterMember member = startCacheApplication("testPersistentBDBLogCleaning_first",
-                "com.tangosol.io.BDBStoreTests$ValidateLogCleanup",
+                "io.BDBStoreTests$ValidateLogCleanup",
                 "io", CACHE_CONFIG, props);
 
             int result = member.waitFor(Timeout.after("30s"));
@@ -127,7 +129,7 @@ public class BDBStoreTests
             props.put("test.bdb.directory", fileBDBTempDir.getAbsolutePath());
             props.put("test.require_keys_exist", "true");
             member = startCacheApplication("testPersistentBDBLogCleaning_second",
-                "com.tangosol.io.BDBStoreTests$ValidateLogCleanup",
+                "io.BDBStoreTests$ValidateLogCleanup",
                 "io", CACHE_CONFIG, props);
 
             result = member.waitFor(Timeout.after("30s"));

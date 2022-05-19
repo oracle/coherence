@@ -5,7 +5,7 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.io;
+package io;
 
 
 import com.tangosol.io.pof.ConfigurablePofContext;
