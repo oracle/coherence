@@ -14,13 +14,12 @@ import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.Policy.Eviction;
 import com.github.benmanes.caffeine.cache.Policy.VarExpiration;
 import com.github.benmanes.caffeine.cache.RemovalCause;
-import com.github.benmanes.caffeine.cache.stats.CacheStats;
 
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.CacheStatistics;
 import com.tangosol.net.cache.ConfigurableCacheMap;
-import com.tangosol.net.cache.OldCache.InternalUnitCalculator;
+import com.tangosol.net.cache.OldCache;
 import com.tangosol.net.cache.SimpleCacheStatistics;
 
 import com.tangosol.util.Base;
@@ -57,20 +56,25 @@ import static java.util.Objects.requireNonNull;
  * amortized {@code O(1)} expiration.
  * <p>
  * This implementation does not support providing an {@link EvictionPolicy} or
- * {@link EvictionApprover}. The maximum size is set by {@link
- * #setHighUnits(int)} and the low watermark, {@link #setLowUnits(int)}, has no
- * effect. Cache entries do not support {@code touch()}, {@code getTouchCount()},
- * {@code getLastTouchMillis()}, or {@code setUnits(c)}. By default, the cache
- * is unbounded and will not be limited by size or expiration until set.
+ * {@link EvictionApprover}, and always uses TinyLFU policy. The maximum size is
+ * set by {@link #setHighUnits(int)} and the low watermark, {@link
+ * #setLowUnits(int)}, has no effect. Cache entries do not support {@code
+ * touch()}, {@code getTouchCount()}, {@code getLastTouchMillis()}, or {@code
+ * setUnits(c)}. By default, the cache is unbounded and will not be limited by
+ * size or expiration until set.
  * <p>
- * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code OldCache},
- * this cache does not support {@code null} keys or values.
+ * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code
+ * OldCache}, this cache does not support {@code null} keys or values.
+ *
+ * @see <a href="https://github.com/ben-manes/caffeine">Caffeine Project</a>
+ * @see <a href="https://highscalability.com/blog/2016/1/25/design-of-a-modern-cache.html">Design of a Modern Cache</a>
+ * @see <a href="https://dl.acm.org/authorize?N41277">TinyLFU: A Highly Efficient Cache Admission Policy</a>
  *
  * @author Ben Manes  2022.04.01
  * @since 22.06
  */
 @SuppressWarnings({"rawtypes", "unchecked", "NullableProblems"})
-public final class CaffeineCache
+public class CaffeineCache
         implements ConfigurableCacheMap, ConcurrentMap
     {
     // ---- constructors ----------------------------------------------------
@@ -89,47 +93,51 @@ public final class CaffeineCache
                 .weigher(this::weigh)
                 .build();
 
-        f_expiration     = f_cache.policy().expireVariably().orElseThrow();
-        f_eviction       = f_cache.policy().eviction().orElseThrow();
-        f_listeners      = new MapListenerSupport();
-        f_stats          = new SimpleCacheStatistics();
-        m_unitCalculator = InternalUnitCalculator.INSTANCE;
+        f_expiration             = f_cache.policy().expireVariably().orElseThrow();
+        f_eviction               = f_cache.policy().eviction().orElseThrow();
+        f_listeners              = new MapListenerSupport();
+        f_stats                  = new SimpleCacheStatistics();
+        m_unitCalculator         = OldCache.INSTANCE_FIXED;
         m_cExpireAfterWriteNanos = Long.MAX_VALUE;
-        m_nUnitFactor    = 1;
+        m_nUnitFactor            = 1;
         }
 
     /**
      * Returns the statistics for this cache.
+     *
+     * @apiNote This method is called via reflection by {@code CacheModel},
+     *          in order to populate {@code CacheMBean} attributes.
      */
     public CacheStatistics getCacheStatistics()
         {
         return f_stats;
         }
 
-   /**
-    * Specify whether or not this cache is used in the environment,
-    * where the {@link Base#getSafeTimeMillis()} is used very frequently and
-    * as a result, the {@link Base#getLastSafeTimeMillis} could be used
-    * without sacrificing the clock precision. By default, the optimization
-    * is off.
-    *
-    * @param fOptimize  pass true to turn the "last safe time" optimization on
-    */
+    /**
+     * Specify whether this cache is used in the environment, where the
+     * {@link Base#getSafeTimeMillis()} is used very frequently and as a result,
+     * the {@link Base#getLastSafeTimeMillis} could be used without sacrificing
+     * the clock precision. By default, the optimization is off.
+     *
+     * @param fOptimize pass true to turn the "last safe time" optimization on
+     */
     public void setOptimizeGetTime(boolean fOptimize)
         {
         m_fOptimizeGetTime = fOptimize;
         }
 
     /**
-    * Return the current {@link Base#getSafeTimeMillis() safe time} or
-    * {@link Base#getLastSafeTimeMillis last safe time}
-    * depending on the optimization flag.
-    *
-    * @return the current time
-    */
+     * Return the current {@link Base#getSafeTimeMillis() safe time} or {@link
+     * Base#getLastSafeTimeMillis last safe time} depending on the optimization
+     * flag.
+     *
+     * @return the current time
+     */
     private long getCurrentTimeMillis()
         {
-        return m_fOptimizeGetTime ? Base.getLastSafeTimeMillis() : Base.getSafeTimeMillis();
+        return m_fOptimizeGetTime
+               ? Base.getLastSafeTimeMillis()
+               : Base.getSafeTimeMillis();
         }
 
     // ---- CacheMap interface ----------------------------------------------
@@ -165,20 +173,20 @@ public final class CaffeineCache
             duration = Duration.ofMillis(cMillis);
             }
 
-        Object[] aoPrevious = { null };
+        Object[] aoPrevious = {null};
         f_expiration.compute(oKey, (k, oValueOld) ->
+        {
+        if (oValueOld == null)
             {
-            if (oValueOld == null)
-                {
-                notifyCreate(oKey, oValue);
-                }
-            else
-                {
-                notifyUpdate(oKey, oValueOld, oValue);
-                aoPrevious[0] = oValueOld;
-                }
-            return oValue;
-            }, duration);
+            notifyCreate(oKey, oValue);
+            }
+        else
+            {
+            notifyUpdate(oKey, oValueOld, oValue);
+            aoPrevious[0] = oValueOld;
+            }
+        return oValue;
+        }, duration);
 
         f_stats.registerPut(0L);
         return aoPrevious[0];
@@ -246,12 +254,14 @@ public final class CaffeineCache
     @Override
     public void setUnitCalculator(UnitCalculator calculator)
         {
-        m_unitCalculator = requireNonNull(calculator);
+        m_unitCalculator = calculator == null
+                           ? OldCache.INSTANCE_FIXED
+                           : calculator;
 
         for (Object oKey : f_cache.asMap().keySet())
             {
             f_expiration.getExpiresAfter(oKey).ifPresent(duration ->
-                                                              f_expiration.compute(oKey, (k, oValue) -> oValue, duration));
+                    f_expiration.compute(oKey, (k, oValue) -> oValue, duration));
             }
         }
 
@@ -292,8 +302,8 @@ public final class CaffeineCache
             throw new IllegalArgumentException();
             }
         m_cExpireAfterWriteNanos = (cMillis == 0)
-                                ? Long.MAX_VALUE
-                                : TimeUnit.MILLISECONDS.toNanos(cMillis);
+                                   ? Long.MAX_VALUE
+                                   : TimeUnit.MILLISECONDS.toNanos(cMillis);
         }
 
     @Override
@@ -497,17 +507,17 @@ public final class CaffeineCache
         requireNonNull(function);
 
         f_cache.asMap().replaceAll((oKey, oValueOld) ->
-                                     {
-                                     Object oValueNew = function.apply(oKey, oValueOld);
-                                     notifyUpdate(oKey, oValueOld, oValueNew);
-                                     return oValueNew;
-                                     });
+                                   {
+                                   Object oValueNew = function.apply(oKey, oValueOld);
+                                   notifyUpdate(oKey, oValueOld, oValueNew);
+                                   return oValueNew;
+                                   });
         }
 
     @Override
     public Object remove(Object oKey)
         {
-        Object[] aoRemoved = {null};
+        Object[] aoRemoved = { null };
         f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
             {
             notifyDelete(k, oldValue);
@@ -521,7 +531,7 @@ public final class CaffeineCache
     public boolean remove(Object oKey, Object oValue)
         {
         requireNonNull(oValue);
-        boolean[] afRemoved = {false};
+        boolean[] afRemoved = { false };
         f_cache.asMap().computeIfPresent(oKey, (k, oldValue) ->
             {
             if (oValue.equals(oldValue))
@@ -539,17 +549,18 @@ public final class CaffeineCache
     public Object computeIfAbsent(Object oKey, Function mappingFunction)
         {
         requireNonNull(mappingFunction);
-        boolean[] afComputed = {false};
+        boolean[] afComputed = { false };
         Object oResult = f_cache.asMap().computeIfAbsent(oKey, k ->
             {
             Object oValue = mappingFunction.apply(oKey);
             if (oValue != null)
-            {
-              notifyCreate(oKey, oValue);
-            }
+                {
+                notifyCreate(oKey, oValue);
+                }
             afComputed[0] = true;
             return oValue;
             });
+
         if (afComputed[0])
             {
             f_stats.registerMiss();
@@ -686,8 +697,8 @@ public final class CaffeineCache
     /**
      * Returns the weight of a cache entry.
      *
-     * @param oKey    the key to weigh
-     * @param oValue  the value to weigh
+     * @param oKey   the key to weigh
+     * @param oValue the value to weigh
      *
      * @return the weight of the entry; must be non-negative
      */
@@ -705,8 +716,8 @@ public final class CaffeineCache
     /**
      * Fires a cache event to notify listeners that the entry was inserted.
      *
-     * @param oKey       the key
-     * @param oValueNew  the new value
+     * @param oKey      the key
+     * @param oValueNew the new value
      */
     private void notifyCreate(Object oKey, Object oValueNew)
         {
@@ -717,9 +728,9 @@ public final class CaffeineCache
     /**
      * Fires a cache event to notify listeners that the entry was updated.
      *
-     * @param oKey       the key
-     * @param oValueOld  the old value
-     * @param oValueNew  the new value
+     * @param oKey      the key
+     * @param oValueOld the old value
+     * @param oValueNew the new value
      */
     private void notifyUpdate(Object oKey, Object oValueOld, Object oValueNew)
         {
@@ -731,8 +742,8 @@ public final class CaffeineCache
      * Fires a cache event to notify listeners that the entry was explicitly
      * removed.
      *
-     * @param oKey       the key
-     * @param oValueOld  the old value
+     * @param oKey      the key
+     * @param oValueOld the old value
      */
     private void notifyDelete(Object oKey, Object oValueOld)
         {
@@ -744,9 +755,9 @@ public final class CaffeineCache
      * Fires a cache event to notify listeners that the entry was automatically
      * removed.
      *
-     * @param oKey          the key
-     * @param oValueOld     the old value
-     * @param removalCause  the eviction type (size, expired)
+     * @param oKey         the key
+     * @param oValueOld    the old value
+     * @param removalCause the eviction type (size, expired)
      */
     private void notifyEvicted(Object oKey, Object oValueOld, RemovalCause removalCause)
         {
@@ -759,7 +770,7 @@ public final class CaffeineCache
     /**
      * Fire the specified cache event.
      *
-     * @param event  the cache event to fire
+     * @param event the cache event to fire
      */
     private void fireEvent(CacheEvent event)
         {
@@ -1110,10 +1121,9 @@ public final class CaffeineCache
 
     /**
      * An expiration policy that sets the entry's lifetime after every write
-     * (create, update) to the fixed duration specified by
-     * {@link #setExpiryDelay}. This policy is used except when an explicit
-     * duration is provided by the caller, e.g.
-     * {@link #put(Object, Object, long)}.
+     * (create, update) to the fixed duration specified by {@link
+     * #setExpiryDelay}. This policy is used except when an explicit duration is
+     * provided by the caller, e.g. {@link #put(Object, Object, long)}.
      */
     private final class ExpireAfterWrite
             implements Expiry<Object, Object>
@@ -1153,8 +1163,8 @@ public final class CaffeineCache
         /**
          * Construct {@code WriteThroughEntry} instance.
          *
-         * @param oKey    the key
-         * @param oValue  the value
+         * @param oKey   the key
+         * @param oValue the value
          */
         WriteThroughEntry(Object oKey, Object oValue)
             {
@@ -1184,11 +1194,11 @@ public final class CaffeineCache
         /**
          * Construct {@code WriteThroughEntry} instance.
          *
-         * @param oKey        the key
-         * @param oValue      the value
-         * @param nWeight     the number of units used by this entry
-         * @param lExpiresAt  the date/time, in milliseconds, when the entry
-         *                    will expire
+         * @param oKey       the key
+         * @param oValue     the value
+         * @param nWeight    the number of units used by this entry
+         * @param lExpiresAt the date/time, in milliseconds, when the entry will
+         *                   expire
          */
         CacheEntry(Object oKey, Object oValue, int nWeight, long lExpiresAt)
             {
@@ -1260,13 +1270,12 @@ public final class CaffeineCache
 
     // ---- data members ----------------------------------------------------
 
-   /**
-    * Specifies whether or not this cache is used in the environment,
-    * where the {@link Base#getSafeTimeMillis()} is used very frequently and
-    * as a result, the {@link Base#getLastSafeTimeMillis} could be used
-    * without sacrificing the clock precision. By default, the optimization
-    * is off.
-    */
+    /**
+     * Specifies whether or not this cache is used in the environment, where the
+     * {@link Base#getSafeTimeMillis()} is used very frequently and as a result,
+     * the {@link Base#getLastSafeTimeMillis} could be used without sacrificing
+     * the clock precision. By default, the optimization is off.
+     */
     private boolean m_fOptimizeGetTime;
 
     /**

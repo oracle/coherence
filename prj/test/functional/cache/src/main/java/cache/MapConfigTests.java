@@ -15,10 +15,11 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.cache.AbstractEvictionPolicy;
 import com.tangosol.net.cache.ConfigurableCacheMap.Entry;
 import com.tangosol.net.cache.LocalCache;
-import com.tangosol.net.cache.SerializationCache;
 import com.tangosol.net.cache.SimpleMemoryCalculator;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.NamedCache;
+
+import java.lang.reflect.Method;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,10 +77,11 @@ public class MapConfigTests
     @Test
     public void testUnitCalculator()
         {
-        verifyCalculator("dist-default", LocalCache.INSTANCE_FIXED.getClass());
-        verifyCalculator("near-test",    LocalCache.INSTANCE_FIXED.getClass());
-        verifyCalculator("repl-test",    LocalCache.INSTANCE_FIXED.getClass());
-        verifyCalculator("local-test",   LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("dist-default",  LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("near-test",     LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("repl-test",     LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("local-test",    LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("caffeine-test", LocalCache.INSTANCE_FIXED.getClass());
         }
 
     /**
@@ -89,8 +91,11 @@ public class MapConfigTests
     public void testExplicitUnitCalculator()
         {
         verifyCalculator("dist-calculator-binary", LocalCache.INSTANCE_BINARY.getClass());
+        verifyCalculator("dist-caffeine-calculator-binary", LocalCache.INSTANCE_BINARY.getClass());
         verifyCalculator("dist-calculator-fixed",  LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("dist-caffeine-calculator-fixed",  LocalCache.INSTANCE_FIXED.getClass());
         verifyCalculator("dist-calculator-custom", CustomUnitCalculator.class);
+        verifyCalculator("dist-caffeine-calculator-custom", CustomUnitCalculator.class);
         }
 
     /**
@@ -100,7 +105,8 @@ public class MapConfigTests
     public void testDefaultBinaryUnitCalculator()
         {
         verifyCalculator("dist-units-memorysize", LocalCache.INSTANCE_BINARY.getClass());
-        verifyExtCalculator("dist-ext-units-memorysize", LocalCache.INSTANCE_BINARY.getClass());
+        verifyCalculator("dist-caffeine-units-memorysize", LocalCache.INSTANCE_BINARY.getClass());
+        verifyCalculator("dist-ext-units-memorysize", LocalCache.INSTANCE_BINARY.getClass());
         }
 
     /**
@@ -110,7 +116,8 @@ public class MapConfigTests
     public void testDefaultFixedUnitCalculator()
         {
         verifyCalculator("dist-units-fixed", LocalCache.INSTANCE_FIXED.getClass());
-        verifyExtCalculator("dist-ext-units-fixed", LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("dist-caffeine-units-fixed", LocalCache.INSTANCE_FIXED.getClass());
+        verifyCalculator("dist-ext-units-fixed", LocalCache.INSTANCE_FIXED.getClass());
         }
 
     /**
@@ -196,23 +203,15 @@ public class MapConfigTests
         Map backingMap = TestHelper.getBackingMap(cache);
 
         assertNotNull(backingMap);
-        assertEquals(clzCalculator, ((LocalCache) backingMap).getUnitCalculator().getClass());
-        }
-
-    /**
-     * Verify that the UnitCalculator is the correct class.
-     *
-     * @param sCacheName     the cache name
-     * @param clzCalculator  the calculator class
-     */
-    protected void verifyExtCalculator(String sCacheName, Class clzCalculator)
-        {
-        NamedCache cache = getNamedCache(sCacheName);
-        cache.put(1,1);
-        Map backingMap = TestHelper.getBackingMap(cache);
-
-        assertNotNull(backingMap);
-        assertEquals(clzCalculator, ((SerializationCache) backingMap).getUnitCalculator().getClass());
+        try
+            {
+            Method getUnitCalculator = backingMap.getClass().getMethod("getUnitCalculator");
+            assertEquals(clzCalculator, getUnitCalculator.invoke(backingMap).getClass());
+            }
+        catch (Exception e)
+            {
+            throw new RuntimeException(e);
+            }
         }
 
     /**

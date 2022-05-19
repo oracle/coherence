@@ -718,6 +718,7 @@
             <xsd:element ref="class-scheme" />
             <xsd:element ref="flashjournal-scheme" />
             <xsd:element ref="ramjournal-scheme" />
+            <xsd:element ref="caffeine-scheme" />
         </xsd:choice>
     </xsd:group>
 
@@ -937,6 +938,43 @@
             <xsd:anyAttribute namespace="##other" processContents="lax" />
         </xsd:complexType>
     </xsd:element>
+
+  <xsd:element name="caffeine-scheme">
+      <xsd:annotation>
+          <xsd:documentation>
+              The caffeine-scheme element contains the Caffeine caching
+              scheme configuration info. It should be used to specify
+              and configure Caffeine local caches or backing maps.
+
+              This scheme is implemented by
+              com.oracle.coherence.caffeine.CaffeineCache class (unless
+              overridden by the class-name element).
+
+              For more information on Caffeine, and the highly efficient TinyLFU
+              eviction policy it uses, see https://github.com/ben-manes/caffeine.
+
+              Used in: standalone-caching-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+      <xsd:complexType>
+          <xsd:sequence>
+              <xsd:element ref="scheme-name" minOccurs="0" />
+              <xsd:element ref="scheme-ref" minOccurs="0" />
+              <xsd:element ref="class-name" minOccurs="0" />
+              <xsd:element ref="scope-name" minOccurs="0" />
+              <xsd:element ref="service-name" minOccurs="0" />
+              <xsd:element ref="init-params" minOccurs="0" />
+              <xsd:element ref="high-units" minOccurs="0" />
+              <xsd:element ref="unit-calculator" minOccurs="0" />
+              <xsd:element ref="unit-factor" minOccurs="0" />
+              <xsd:element ref="expiry-delay" minOccurs="0" />
+              <xsd:element ref="listener" minOccurs="0" />
+              <xsd:any namespace="##other" processContents="lax"
+                  minOccurs="0" maxOccurs="unbounded" />
+          </xsd:sequence>
+          <xsd:anyAttribute namespace="##other" processContents="lax" />
+      </xsd:complexType>
+  </xsd:element>
 
     <xsd:element name="near-scheme">
         <xsd:annotation>

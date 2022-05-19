@@ -2,10 +2,11 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing;
 
+import com.oracle.coherence.caffeine.CaffeineCache;
 import com.tangosol.io.AsyncBinaryStoreManager;
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.BinaryStoreManager;
@@ -20,6 +21,7 @@ import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.net.cache.CacheLoader;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.NearCache;
+import com.tangosol.net.cache.OldCache;
 import com.tangosol.net.cache.OverflowMap;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 import com.tangosol.net.cache.SerializationCache;
@@ -211,7 +213,6 @@ public class CustomClasses
     /**
      * Custom LocalCache.
      */
-    @SuppressWarnings("serial")
     public static class CustomLocalCache
             extends LocalCache
         {
@@ -249,6 +250,14 @@ public class CustomClasses
         // ----- data members --------------------------------------------
 
         private boolean m_fLoaded;
+        }
+
+    /**
+     * Custom CaffeineCache.
+     */
+    public static class CustomCaffeineCache
+            extends CaffeineCache
+        {
         }
 
     /**

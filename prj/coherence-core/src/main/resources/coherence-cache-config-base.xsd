@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified"
@@ -238,7 +238,7 @@
 
                 Used in:
                 cache-mapping, local-scheme, replicated-scheme,
-                distributed-scheme,
+                distributed-scheme, caffeine-scheme,
                 transactional-scheme, optimistic-scheme, invocation-scheme,
                 overflow-scheme, near-scheme,
                 read-write-backing-map-scheme,external-scheme,

@@ -9,6 +9,7 @@ package config;
 import com.tangosol.coherence.component.util.SafeNamedCache;
 
 import com.oracle.coherence.testing.CustomClasses;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.LocalCache;
@@ -25,7 +26,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -172,6 +172,15 @@ public class CustomSchemeTests
         NamedCache cache = validateNamedCache("local-custom-store", CacheService.TYPE_LOCAL);
         assertTrue(cache instanceof SafeNamedCache);
         TestHelper.validateBackingMapType(cache, CustomClasses.CustomLocalCache.class);
+        cache.release();
+        }
+
+    @Test
+    public void caffeineCustom() throws Exception
+        {
+        NamedCache cache = validateNamedCache("caffeine-custom", CacheService.TYPE_LOCAL);
+        assertTrue(cache instanceof SafeNamedCache);
+        TestHelper.validateBackingMapType(cache, CustomClasses.CustomCaffeineCache.class);
         cache.release();
         }
 

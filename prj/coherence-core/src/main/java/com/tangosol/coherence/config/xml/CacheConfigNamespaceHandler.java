@@ -16,6 +16,7 @@ import com.tangosol.coherence.config.builder.storemanager.NioFileManagerBuilder;
 
 import com.tangosol.coherence.config.scheme.CacheStoreScheme;
 
+import com.tangosol.coherence.config.scheme.CaffeineScheme;
 import com.tangosol.coherence.config.scheme.ClassScheme;
 import com.tangosol.coherence.config.scheme.ContinuousQueryCacheScheme;
 import com.tangosol.coherence.config.scheme.DistributedScheme;
@@ -318,6 +319,7 @@ public class CacheConfigNamespaceHandler
         registerProcessor("invocation-scheme", new ServiceBuilderProcessor<>(InvocationScheme.class));
         registerProcessor("limit-buffer-size", new MemorySizeProcessor());
         registerProcessor("local-scheme", new CustomizableBuilderProcessor<>(LocalScheme.class));
+        registerProcessor("caffeine-scheme", new CustomizableBuilderProcessor<>(CaffeineScheme.class));
 
         registerProcessor("max-message-size", new MemorySizeProcessor());
         registerProcessor("message-codec", new SpecificInstanceProcessor<>(Codec.class));

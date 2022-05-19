@@ -871,6 +871,7 @@
 
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
         <default.failsafe.modules.argline>
+          --add-exports java.management/sun.management=com.oracle.coherence
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
