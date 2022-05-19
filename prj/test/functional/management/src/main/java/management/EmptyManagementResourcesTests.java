@@ -68,6 +68,7 @@ public class EmptyManagementResourcesTests
         propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
         propsServer1.setProperty("coherence.management.http", "inherit");
         propsServer1.setProperty("coherence.management.http.port", "0");
+        propsServer1.setProperty("coherence.override", "tangosol-coherence-override-mgmt.xml");
 
         CoherenceClusterMember member1 = startCacheServer(SERVER_PREFIX + "-1", "rest",
                 CACHE_CONFIG, propsServer1);

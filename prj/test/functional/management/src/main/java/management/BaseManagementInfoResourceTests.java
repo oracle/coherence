@@ -26,6 +26,8 @@ import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
+import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
+
 import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
@@ -208,7 +210,8 @@ public abstract class BaseManagementInfoResourceTests
 
         if (s_cluster != null)
             {
-            s_cluster.close();
+            // work around for bug 33867995
+            s_cluster.close(RuntimeHalt.withExitCode(0));
             }
 
         FileHelper.deleteDirSilent(m_dirActive);
@@ -3935,6 +3938,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
         propsServer1.add(SystemProperty.of("coherence.management.http.port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
+        propsServer1.add(SystemProperty.of("coherence.override", "tangosol-coherence-override-mgmt.xml"));
         propsServer1.add(SystemProperty.of("test.persistence.active.dir", m_dirActive.getAbsolutePath()));
         propsServer1.add(SystemProperty.of("test.persistence.snapshot.dir", m_dirSnapshot.getAbsolutePath()));
         propsServer1.add(SystemProperty.of("test.persistence.archive.dir", m_dirArchive.getAbsolutePath()));

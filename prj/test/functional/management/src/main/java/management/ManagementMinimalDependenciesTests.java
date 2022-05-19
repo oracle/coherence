@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.ClassPath;
+import com.oracle.bedrock.runtime.java.options.JavaModules;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -24,7 +25,6 @@ import com.oracle.coherence.common.base.Reads;
 
 import com.oracle.coherence.io.json.JsonSerializer;
 
-import com.oracle.coherence.io.json.genson.GensonBuilder;
 import com.oracle.coherence.io.json.internal.GensonMapJsonBodyHandler;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
@@ -58,13 +58,21 @@ public class ManagementMinimalDependenciesTests
         Capture<Integer> port     = new Capture<>(platform.getAvailablePorts());
         String           sCluster = "Storage";
 
+        if (JavaModules.useModules())
+            {
+            // Java Modules would include bedrock and its dependencies.
+            // So, this test would fail with those dependencies modules
+            // not found errors.
+            return;
+            }
+
         // We only need Coherence and Coherence JSON on the classpath
         // We add Coherence and PartitionedCache so that we can run this in an IDE
         // In Maven both classes would be in coherence.jar
         ClassPath classPath = ClassPath.of(ClassPath.ofClass(Coherence.class),
                                            ClassPath.ofClass(PartitionedCache.class),
                                            ClassPath.ofClass(JsonSerializer.class));
-        
+
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class, classPath,
                                     LocalHost.only(),
                                     WellKnownAddress.of("127.0.0.1"),

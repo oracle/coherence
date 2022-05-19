@@ -22,6 +22,10 @@
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <failsafe.modules.argline>
+      ${default.failsafe.modules.argline}
+      --add-opens java.base/java.util=com.oracle.coherence
+    </failsafe.modules.argline>
   </properties>
 
   <dependencies>
