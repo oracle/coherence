@@ -8,6 +8,7 @@
 package com.oracle.coherence.io.json;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.io.json.genson.GenericType;
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
@@ -66,8 +67,8 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -246,8 +247,10 @@ public class JsonSerializer
         if (DEBUG_MODE)
             {
             Class<?> cls = oValue == null ? null : oValue.getClass();
-            Base.log("-------------------- JSON DEBUG: Serializing -------------------- \nType: "
-                     + cls + "\nValue: " + oValue + "\n" + f_genson.serialize(oValue)
+            String serialized = f_genson.serialize(oValue);
+            Base.log("\n-------------------- JSON DEBUG: Serializing -------------------- \nType: "
+                     + cls + "\nValue: " + oValue + "\nSerialized Result:\n" + serialized
+                     + "\nSerialized Bytes:\n" + Base.toHexDump(serialized.getBytes(), 16)
                      + "\n---------------------------------------------------------------");
             }
 
@@ -264,7 +267,7 @@ public class JsonSerializer
 
         if (!SerializationGate.isValid(clazz))
             {
-            throw new JsonBindingException("Unable to de-sererialize " + clazz.getName());
+            throw new JsonBindingException("Unable to de-serialize " + clazz.getName());
             }
 
         WrapperDataInputStream stream = new WrapperDataInputStream(in);
@@ -272,7 +275,17 @@ public class JsonSerializer
         if (DEBUG_MODE)
             {
             byte[] abData = new byte[stream.available()];
-            stream.read(abData);
+            int nRead = stream.read(abData);
+
+            if (nRead == -1)
+                {
+                throw new IOException("BufferInput.available() is non-zero, however, no bytes were read");
+                }
+
+            if (nRead != abData.length)
+                {
+                throw new IOException(String.format("Expected to %s bytes, but only %s were read", abData.length, nRead));
+                }
 
             try
                 {
@@ -280,8 +293,9 @@ public class JsonSerializer
 
                 Class<?> cls = oValue == null ? null : oValue.getClass();
 
-                Base.log("-------------------- JSON DEBUG: Deserializing -------------------- \nType: "
-                         + cls + "\nValue: " + oValue + "\n" + f_genson.serialize(oValue)
+                Base.log("\n-------------------- JSON DEBUG: Deserializing -------------------- \nBytes:\n"
+                         + Base.toHexDump(abData, 16)
+                         + "\nType: " + cls + "\nValue: " + oValue
                          + "\n---------------------------------------------------------------");
 
                 return oValue;
