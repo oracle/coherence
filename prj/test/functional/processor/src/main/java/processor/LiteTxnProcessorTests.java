@@ -34,7 +34,6 @@ import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap.Entry;
 import com.tangosol.util.InvocableMap.EntryProcessor;
 
-import com.tangosol.util.InvocableMap;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.WrapperException;
 
@@ -168,7 +167,7 @@ public class LiteTxnProcessorTests
                 }
 
             final DistributedCacheService service = (DistributedCacheService) cache1.getCacheService();
-            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(cServers));
+            Eventually.assertDeferred(() -> service.getOwnershipEnabledMembers().size(), is(cServers));
 
             // prime the cache
             for (int i = 0; i < cKeys; i++)
@@ -236,7 +235,7 @@ public class LiteTxnProcessorTests
 
             memberHandler.dispose();
             Cluster cluster = CacheFactory.getCluster();
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -282,10 +281,10 @@ public class LiteTxnProcessorTests
         CoherenceClusterMember clusterMember = startCacheServer(sServer, s_sProject, s_sCacheConfig, props);
 
         Cluster cluster = CacheFactory.getCluster();
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(2));
 
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("PartitionedCacheAssoc"), is(true));
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("InvocationService"), is(true));
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("PartitionedCacheAssoc"), is(true));
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("InvocationService"), is(true));
 
         final InvocationService service  = (InvocationService) getFactory().ensureService("InvocationService");
         final Member            member   = findCacheServer(sServer);
@@ -370,7 +369,7 @@ public class LiteTxnProcessorTests
                 cache2.remove(oKey2);
                 }
             stopCacheServer(sServer);
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -445,7 +444,7 @@ public class LiteTxnProcessorTests
                 memberHandler.addServer();
                 }
 
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(cServers + 1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(cServers + 1));
 
             int              cThreads = 4;
             final int        cKeys    = 10000;
@@ -504,7 +503,7 @@ public class LiteTxnProcessorTests
         finally
             {
             memberHandler.dispose();
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -518,8 +517,8 @@ public class LiteTxnProcessorTests
         Cluster cluster = CacheFactory.getCluster();
 
         CoherenceClusterMember member = startCacheServer(sServer, s_sProject, s_sCacheConfig);
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
-        Eventually.assertThat(invoking(member).isServiceRunning("PartitionedCache"), is(true));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(),is(2));
+        Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedCache"),is(true));
 
         NamedCache cache1 = getNamedCache("test-cache1");
         NamedCache cache2 = getNamedCache("test-cache2");
@@ -542,7 +541,7 @@ public class LiteTxnProcessorTests
         finally
             {
             stopCacheServer(sServer);
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(),is(1));
             }
         }
 
@@ -556,8 +555,8 @@ public class LiteTxnProcessorTests
         Cluster cluster = CacheFactory.getCluster();
 
         CoherenceClusterMember member = startCacheServer(sServer, s_sProject, s_sCacheConfig);
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
-        Eventually.assertThat(invoking(member).isServiceRunning("PartitionedCache"), is(true));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(2));
+        Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedCache"), is(true));
 
         NamedCache cache1 = getNamedCache("test-cache1");
         NamedCache cache2 = getNamedCache("test-cache2");
@@ -626,7 +625,7 @@ public class LiteTxnProcessorTests
         finally
             {
             stopCacheServer(sServer);
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -640,9 +639,9 @@ public class LiteTxnProcessorTests
         Cluster cluster = CacheFactory.getCluster();
 
         CoherenceClusterMember member = startCacheServer(sServer, s_sProject, s_sCacheConfig);
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
-        Eventually.assertThat(invoking(member).isServiceRunning("PartitionedCache"), is(true));
-        Eventually.assertThat(invoking(member).isServiceRunning("PartitionedCacheAssoc"), is(true));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(2));
+        Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedCache"), is(true));
+        Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedCacheAssoc"), is(true));
 
         NamedCache cache1 = getNamedCache("test-associator1");
         NamedCache cache2 = getNamedCache("test-associator2");
@@ -675,7 +674,7 @@ public class LiteTxnProcessorTests
         finally
             {
             stopCacheServer(sServer);
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -689,8 +688,8 @@ public class LiteTxnProcessorTests
         Cluster cluster = CacheFactory.getCluster();
 
         CoherenceClusterMember member = startCacheServer(sServer, s_sProject, s_sCacheConfig);
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
-        Eventually.assertThat(invoking(member).isServiceRunning("PartitionedCache"), is(true));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(2));
+        Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedCache"), is(true));
 
         NamedCache cache = getNamedCache("test-cache1");
         cache.clear();
@@ -708,7 +707,7 @@ public class LiteTxnProcessorTests
         finally
             {
             stopCacheServer(sServer);
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -722,8 +721,8 @@ public class LiteTxnProcessorTests
         Cluster cluster = CacheFactory.getCluster();
 
         CoherenceClusterMember member = startCacheServer(sServer, s_sProject, s_sCacheConfig);
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(2));
-        Eventually.assertThat(invoking(member).isServiceRunning("PartitionedCache"), is(true));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(2));
+        Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedCache"), is(true));
         NamedCache cache1 = getNamedCache("test-associator1");
         NamedCache cache2 = getNamedCache("test-associator2");
         try
@@ -733,7 +732,7 @@ public class LiteTxnProcessorTests
         finally
             {
             stopCacheServer(sServer);
-            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
             }
         }
 
@@ -796,8 +795,8 @@ public class LiteTxnProcessorTests
                 thd.join();
 
                 // check that my backing-map is not null
-                Eventually.assertThat(invoking(ctx).getBackingMap("test-cache1"), is(notNullValue()));
-                Eventually.assertThat(invoking(ctx).getBackingMap("test-cache1"), is((Map) binEntry.getBackingMap()));
+                Eventually.assertDeferred(() -> ctx.getBackingMap("test-cache1"), is(notNullValue()));
+                Eventually.assertDeferred(() -> ctx.getBackingMap("test-cache1"), is(binEntry.getBackingMap()));
 
                 // destroy test-cache2
                 thd = new Thread()
@@ -811,8 +810,8 @@ public class LiteTxnProcessorTests
                 thd.join();
 
                 // check that cache2 backing-map is still the same
-                Eventually.assertThat(invoking(ctx).getBackingMap("test-cache2"), is(mapCache2));
-                Eventually.assertThat(invoking(ctx).getBackingMapContext("test-cache2").getBackingMapEntry(binKey), is((InvocableMap.Entry) binEntry2));
+                Eventually.assertDeferred(() -> ctx.getBackingMap("test-cache2"), is(mapCache2));
+                Eventually.assertDeferred(() -> ctx.getBackingMapContext("test-cache2").getBackingMapEntry(binKey), is(binEntry2));
                 assertEquals(mapCache2, binEntry2.getBackingMap());
 
                 return null;
@@ -1205,7 +1204,7 @@ public class LiteTxnProcessorTests
         */
         public void run()
             {
-            Eventually.assertThat(invoking(this).dereference(DeadlockProcessor.f_cInvocations), is(m_nStep));
+            Eventually.assertDeferred(() -> this.dereference(DeadlockProcessor.f_cInvocations), is(m_nStep));
 
             try
                 {
