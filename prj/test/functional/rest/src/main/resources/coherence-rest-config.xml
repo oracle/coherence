@@ -33,7 +33,7 @@
     <resource>
       <cache-name>dist-test-proc</cache-name>
       <key-class>java.lang.Integer</key-class>
-      <value-class>rest.Persona</value-class>
+      <value-class>rest.data.Persona</value-class>
     </resource>
     <resource>
       <cache-name>dist-test-basic</cache-name>
@@ -43,7 +43,7 @@
     <resource>
       <cache-name>dist-test-named-query</cache-name>
       <key-class>java.lang.Integer</key-class>
-      <value-class>rest.Persona</value-class>
+      <value-class>rest.data.Persona</value-class>
       <query engine="DEFAULT">
         <name>name-query</name>
         <expression>name is :name</expression>
@@ -165,29 +165,29 @@
   <aggregators>
     <aggregator>
       <name>custom-long-sum</name>
-      <class-name>rest.CustomLongSum</class-name>
+      <class-name>rest.data.CustomLongSum</class-name>
     </aggregator>
     <aggregator>
       <name>custom-long-sum-factory</name>
-      <class-name>rest.CustomLongSumFactory</class-name>
+      <class-name>rest.data.CustomLongSumFactory</class-name>
     </aggregator>
   </aggregators>
 
   <processors>
     <processor>
       <name>custom-number-doubler</name>
-      <class-name>rest.CustomNumberDoubler</class-name>
+      <class-name>rest.data.CustomNumberDoubler</class-name>
     </processor>
     <processor>
       <name>custom-number-doubler-factory</name>
-      <class-name>rest.CustomNumberDoublerFactory</class-name>
+      <class-name>rest.data.CustomNumberDoublerFactory</class-name>
     </processor>
   </processors>
 
   <query-engines>
     <engine>
       <name>null-engine</name>
-      <class-name>com.tangosol.coherence.rest.query.QueryEngineRegistryTest$NullQueryEngine</class-name>
+      <class-name>rest.NullQueryEngine</class-name>
     </engine>
   </query-engines>
 </rest>

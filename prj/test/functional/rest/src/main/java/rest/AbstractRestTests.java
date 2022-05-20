@@ -19,6 +19,7 @@ import com.tangosol.coherence.rest.util.JsonMap;
 import com.tangosol.coherence.rest.util.StaticContent;
 
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
+
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -39,6 +40,8 @@ import com.tangosol.util.MultiplexingMapListener;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
+
+import com.oracle.coherence.testing.util.SSLSocketProviderBuilderHelper;
 
 import data.pof.Address;
 import data.pof.Person;
@@ -82,7 +85,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.oracle.coherence.testing.util.SSLSocketProviderBuilderHelper;
+import rest.data.Persona;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

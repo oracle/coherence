@@ -4,7 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.coherence.rest.util.updater;
+package rest.mvel.updater;
+
+import com.tangosol.coherence.rest.util.updater.MvelUpdater;
 
 import java.lang.reflect.Constructor;
 
@@ -14,8 +16,6 @@ import java.net.URLClassLoader;
 import java.util.stream.IntStream;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created by shyaradh on 2017.01.04

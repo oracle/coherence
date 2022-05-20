@@ -57,8 +57,6 @@ import org.junit.Test;
 
 import java.util.logging.Logger;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -89,6 +87,7 @@ public class PersistenceResourceTests
             m_tmpDirectory = Files.createTempDirectory("testPersistence");
 
             setupProps();
+            System.setProperty("coherence.override", "rest-tests-coherence-override.xml");
             System.setProperty("coherence.management", "dynamic");
             System.setProperty("coherence.management.http", "inherit");
             System.setProperty("coherence.management.http.port", "0");
@@ -177,7 +176,7 @@ public class PersistenceResourceTests
 
     private void testRetrieveSnapshot()
         {
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
 
         Response response = getBaseTarget().path("services").path(SERVICE_NAME).path("persistence")
                 .path("archives").path("test-snapshot").path("retrieve").request().post(null);

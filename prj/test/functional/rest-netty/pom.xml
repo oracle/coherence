@@ -27,19 +27,10 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
-
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
-      </properties>
-    </profile>
   </profiles>
 
   <properties>
-    <!-- split packages in http jar   -->
-    <moditect.skip>true</moditect.skip>
+    <module.name>rest.netty.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 
@@ -47,11 +38,6 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>http</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -75,26 +61,18 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>rest</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>http</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- JAXB -->
-    <dependency>
-      <groupId>jakarta.xml.bind</groupId>
-      <artifactId>jakarta.xml.bind-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-core</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
@@ -131,35 +109,6 @@
                 <exclude>**/GlassFishTests.*</exclude>
                 <exclude>**/WebLogicTests.*</exclude>
               </excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!--  We unpack the com.oracle.coherence.tests:rest jar into target/classes
-            so that we have all the certs and security files, and we do not have to have
-            them copied into this module. We DO NOT unpack the .class files from that jar -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>${coherence.group.id}.tests</groupId>
-                  <artifactId>rest</artifactId>
-                  <version>${project.version}</version>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${testClassesDirectory}</outputDirectory>
-                  <excludes>**/*.class</excludes>
-                </artifactItem>
-              </artifactItems>
             </configuration>
           </execution>
         </executions>

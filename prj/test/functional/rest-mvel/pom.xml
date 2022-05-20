@@ -27,19 +27,10 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
-
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
-      </properties>
-    </profile>
   </profiles>
 
   <properties>
-    <!-- split packages in http jar   -->
-    <moditect.skip>true</moditect.skip>
+    <module.name>rest.mvel.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 
@@ -52,11 +43,6 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-data</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>http</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -73,23 +59,32 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-management</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.inject</groupId>
+          <artifactId>jakarta.inject-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-json</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
-      <type>test-jar</type>
-      <version>${project.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>rest</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>http</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- backwards compatibility mode only - optional mvel2 module -->
@@ -100,14 +95,6 @@
     </dependency>
 
     <!-- JAXB -->
-    <dependency>
-      <groupId>jakarta.xml.bind</groupId>
-      <artifactId>jakarta.xml.bind-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-core</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
@@ -169,29 +156,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>${maven.dependency.plugin.version}</version>
-        <executions>
-          <!-- we must unpack the tests as junit can't find them in a jar -->
-          <execution>
-            <id>copy-rest-tests</id>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${testClassesDirectory}</outputDirectory>
-              <excludeGroupIds>com.fasterxml.jackson,junit,org.glassfish,org.jakarta,org.hamcrest,org.apache,net.bytebuddy</excludeGroupIds>
-              <includeGroupIds>com.oracle.coherence.tests</includeGroupIds>
-              <includeArtifactIds>rest</includeArtifactIds>
-              <excludes>**/module-info.*</excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
     </plugins>
   </build>
 

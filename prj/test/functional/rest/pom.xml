@@ -27,19 +27,10 @@
         <skipTests>false</skipTests>
       </properties>
     </profile>
-
-    <!-- split packages in http jar   -->
-    <profile>
-      <id>modular-tests</id>
-      <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
-      </properties>
-    </profile>
   </profiles>
 
   <properties>
-    <moditect.skip>true</moditect.skip>
+    <module.name>rest.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 
@@ -52,11 +43,6 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-data</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}.tests</groupId>
-      <artifactId>http</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -73,28 +59,24 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-management</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jakarta.inject</groupId>
+          <artifactId>jakarta.inject-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-json</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rest</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-rest</artifactId>
-      <type>test-jar</type>
       <version>${project.version}</version>
     </dependency>
 
     <!-- JAXB -->
-    <dependency>
-      <groupId>jakarta.xml.bind</groupId>
-      <artifactId>jakarta.xml.bind-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-core</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>

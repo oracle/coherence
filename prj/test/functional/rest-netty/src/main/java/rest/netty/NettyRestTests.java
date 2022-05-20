@@ -4,17 +4,16 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package rest;
-
+package rest.netty;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
+
+import rest.AbstractServerSentEventsTests;
+
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -22,9 +21,10 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.CoreMatchers.is;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 
+import static org.hamcrest.CoreMatchers.is;
 
 /**
  * A collection of functional tests for Coherence*Extend-REST that use
@@ -32,10 +32,10 @@ import static org.hamcrest.CoreMatchers.is;
  *
  * @author lh 2015.12.16
  */
-public class NettySSLRestTests
+public class NettyRestTests
         extends AbstractServerSentEventsTests
     {
-    public NettySSLRestTests()
+    public NettyRestTests()
         {
         super(FILE_SERVER_CFG_CACHE);
         }
@@ -48,8 +48,9 @@ public class NettySSLRestTests
     @BeforeClass
     public static void startup()
         {
-        CoherenceClusterMember clusterMember = startCacheServer("NettySSLRestTests", "rest", FILE_SERVER_CFG_CACHE);
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("ExtendHttpProxyService"), is(true));
+        System.setProperty("coherence.override", "rest-tests-coherence-override.xml");
+        CoherenceClusterMember clusterMember = startCacheServer("NettyRestTests", "rest", FILE_SERVER_CFG_CACHE);
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
         }
 
     /**
@@ -58,26 +59,22 @@ public class NettySSLRestTests
     @AfterClass
     public static void shutdown()
         {
-        stopCacheServer("NettySSLRestTests");
+        stopCacheServer("NettyRestTests");
         }
 
-    // ----- AbstractRestTests methods --------------------------------------
-
-    @Override
-    protected ClientBuilder createClient()
+    /**
+     * Create a new HTTP client.
+     *
+     * @return a new HTTP client
+     */
+    @Override protected ClientBuilder createClient()
         {
         ClientConfig clientConfig = new ClientConfig();
         clientConfig.connectorProvider(new ApacheConnectorProvider());
-        return configureSSL(ClientBuilder.newBuilder()
+        return ClientBuilder.newBuilder()
                 .withConfig(clientConfig)
                 .register(JacksonMapperProvider.class)
-                .register(JacksonFeature.class));
-        }
-
-    @Override
-    public String getProtocol()
-        {
-        return "https";
+                .register(JacksonFeature.class);
         }
 
     /**
@@ -90,7 +87,7 @@ public class NettySSLRestTests
         if (m_client == null)
             {
             m_client = createClient().build();
-            m_client.property(ClientProperties.READ_TIMEOUT, 5000);
+            m_client.property(ClientProperties.READ_TIMEOUT, 10000);
             }
 
         return m_client;
@@ -101,5 +98,5 @@ public class NettySSLRestTests
     /**
      * The file name of the default cache configuration file used by this test.
      */
-    public static String FILE_SERVER_CFG_CACHE = "server-cache-config-netty-ssl.xml";
+    public static String FILE_SERVER_CFG_CACHE = "server-cache-config-netty.xml";
     }

@@ -12,6 +12,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.coherence.rest.events.SimpleMapEvent;
 import com.tangosol.net.NamedCache;
 
+import rest.data.Persona;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +27,6 @@ import org.glassfish.jersey.media.sse.InboundEvent;
 
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.Matchers.is;
 
@@ -165,7 +166,7 @@ public abstract class AbstractServerSentEventsTests
 
             try
                 {
-                Eventually.assertThat(invoking(source).isOpen(), is(true), within(1, TimeUnit.MINUTES));
+                Eventually.assertDeferred(() -> source.isOpen(), is(true), within(1, TimeUnit.MINUTES));
                 return source;
                 }
             catch (AssertionError e)
