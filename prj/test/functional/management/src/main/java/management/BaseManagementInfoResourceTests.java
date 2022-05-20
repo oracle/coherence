@@ -178,6 +178,7 @@ import static org.junit.Assert.assertTrue;
  * @author hr 2016.07.21
  * @author sr 2017.08.24
  * @author jk 2022.01.25
+ * @author gh 2022.05.13
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public abstract class BaseManagementInfoResourceTests
@@ -2241,6 +2242,21 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(mapResponse, notNullValue());
         assertThat(mapResponse.get("state"), notNullValue());
         assertThat((String) mapResponse.get("state"), containsString("Full Thread Dump"));
+        }
+
+    @Test
+    public void testReportEnvironment()
+        {
+        WebTarget target   = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("environment");
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        assertThat(mapResponse, notNullValue());
+        assertThat(mapResponse.get("environment"), notNullValue());
+        assertThat((String) mapResponse.get("environment"), containsString("Java Runtime Environment"));
         }
 
     @Test

@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
 import com.oracle.coherence.common.base.Logger;
@@ -34,6 +34,8 @@ import static java.lang.String.format;
  *
  * @author sr  2017.08.21
  * @author Jonathan Knight  2022.01.25
+ * @author Gunnar Hillert  2022.05.13
+ *
  * @since 12.2.1.4.0
  */
 public class ClusterMemberResource
@@ -47,6 +49,7 @@ public class ClusterMemberResource
         router.addGet(sPathRoot, this::get);
         router.addGet(sPathRoot + "/" + PLATFORM + "/{" + PLATFORM_MBEAN + "}", this::getPlatformMBeanResponse);
         router.addGet(sPathRoot + "/{" + NETWORK_STATS + "}", this::getPointToPointResponse);
+        router.addGet(sPathRoot + "/" + ENVIRONMENT, this::getEnvironmentResponse);
         router.addGet(sPathRoot + "/" + STATE, this::getStateResponse);
         router.addGet(sPathRoot + "/" + FEDERATION, this::getFederationResponse);
         router.addGet(sPathRoot + "/" + FEDERATION+ "/" + TOPOLOGIES, this::getTopologiesResponse);
@@ -116,7 +119,7 @@ public class ClusterMemberResource
         }
 
     /**
-     * Return the response of "reportNodeState" operation of NodeMBean
+     * Return the response of "reportNodeState" operation of {@code ClusterNodeMBean}.
      *
      * @return the response object
      */
@@ -124,6 +127,17 @@ public class ClusterMemberResource
         {
         String sMemberKey = request.getFirstPathParameter(MEMBER_KEY);
         return response(getResponseFromMBeanOperation(request, getQuery(request, sMemberKey), STATE, "reportNodeState"));
+        }
+
+    /**
+     * Return the response of the {@code reportEnvironment} operation of {@code ClusterNodeMBean}.
+     *
+     * @return the response object
+     */
+    public Response getEnvironmentResponse(HttpRequest request)
+        {
+        String sMemberKey = request.getFirstPathParameter(MEMBER_KEY);
+        return response(getResponseFromMBeanOperation(request, getQuery(request, sMemberKey), ENVIRONMENT, "reportEnvironment"));
         }
 
     /**

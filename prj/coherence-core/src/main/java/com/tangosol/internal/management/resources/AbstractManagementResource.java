@@ -61,6 +61,8 @@ import javax.management.ObjectName;
  *
  * @author sr  2017.08.21
  * @author Jonathan Knight  2022.01.25
+ * @author Gunnar Hillert  2022.05.13
+ *
  * @since 12.2.1.4
  */
 public abstract class AbstractManagementResource
@@ -2149,6 +2151,7 @@ public abstract class AbstractManagementResource
     public static final String OUTGOING         = "outgoing";
     public static final String EXECUTORS        = "executors";
     public static final String STATE            = "state";
+    public static final String ENVIRONMENT      = "environment";
     public static final String HEALTH           = "health";
 
     // ------------------------------ URL constants ends ---------------------------------------------
