@@ -2,11 +2,14 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.server;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.coherence.http.HttpApplication;
+
 import com.tangosol.coherence.rest.DefaultRootResource;
 
 import com.tangosol.coherence.rest.providers.EntryWriter;
@@ -22,10 +25,16 @@ import com.tangosol.coherence.rest.providers.XmlMapWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.ws.rs.ApplicationPath;
+
 import javax.ws.rs.core.MediaType;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
+
+import org.glassfish.jersey.logging.LoggingFeature;
 
 import org.glassfish.jersey.media.sse.SseFeature;
 
@@ -45,7 +54,6 @@ public class DefaultResourceConfig
         extends ResourceConfig
         implements HttpApplication
     {
-
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -74,6 +82,7 @@ public class DefaultResourceConfig
         registerContainerRequestFilters();
         registerContainerResponseFilters();
         registerResourceFilterFactories();
+        registerLoggingFeature();
         }
 
     /**
@@ -97,6 +106,7 @@ public class DefaultResourceConfig
         registerContainerRequestFilters();
         registerContainerResponseFilters();
         registerResourceFilterFactories();
+        registerLoggingFeature();
         }
 
     // ----- Object methods -------------------------------------------------
@@ -141,7 +151,6 @@ public class DefaultResourceConfig
     /**
      * Register the predefined Coherence REST container request filters.
      */
-    @SuppressWarnings({"unchecked"})
     protected void registerContainerRequestFilters()
         {
         register(new UriConnegFilter(getExtensionsMap(), new LinkedHashMap<>()));
@@ -159,6 +168,23 @@ public class DefaultResourceConfig
      */
     protected void registerResourceFilterFactories()
         {
+        }
+
+    /**
+     * Register the Jersey LoggingFeature iff the {@code LOGGING_FEATURE_ENABLED_PROP} is {@code true}.
+     *
+     * @since 22.06
+     */
+    private void registerLoggingFeature()
+        {
+        if (LOGGING_FEATURE_ENABLED)
+            {
+            com.oracle.coherence.common.base.Logger.finest("Enabling Jersey LoggingFeature");
+
+            register(new LoggingFeature(Logger.getLogger("coherence.rest.diagnostic"),
+                                        Level.INFO,
+                                        LoggingFeature.Verbosity.PAYLOAD_ANY, 4098));
+            }
         }
 
     /**
@@ -182,11 +208,28 @@ public class DefaultResourceConfig
      */
     protected static Map<String, MediaType> getExtensionsMap()
         {
-        Map<String, MediaType> map = new LinkedHashMap<String, MediaType>(4);
+        Map<String, MediaType> map = new LinkedHashMap<>(4);
         map.put("txt",  MediaType.TEXT_PLAIN_TYPE);
         map.put("bin",  MediaType.APPLICATION_OCTET_STREAM_TYPE);
         map.put("xml",  MediaType.APPLICATION_XML_TYPE);
         map.put("json", MediaType.APPLICATION_JSON_TYPE);
         return map;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The system property name to enable Jersey's LoggingFeature extension which
+     * will enable logging of HTTP payloads as received and sent by Jersey.
+     *
+     * @since 22.06
+     */
+    private static final String LOGGING_FEATURE_ENABLED_PROP = DefaultResourceConfig.class.getName() + ".logging.enabled";
+
+    /**
+     * Flag indicating whether Jersey's LoggingFeature extension is enabled or not.
+     *
+     * @since 22.06
+     */
+    private static final boolean LOGGING_FEATURE_ENABLED = Config.getBoolean(LOGGING_FEATURE_ENABLED_PROP);
     }

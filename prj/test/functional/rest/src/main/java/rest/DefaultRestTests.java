@@ -6,13 +6,8 @@
  */
 package rest;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.CoreMatchers.is;
 
 /**
  * A collection of functional tests for Coherence*Extend-REST that use the
@@ -39,8 +34,7 @@ public class DefaultRestTests
     @BeforeClass
     public static void startup()
         {
-        CoherenceClusterMember clusterMember = startCacheServer("DefaultRestTests", "rest", FILE_SERVER_CFG_CACHE);
-        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
+        doStartCacheServer("DefaultRestTests", FILE_SERVER_CFG_CACHE);
         }
 
     /**

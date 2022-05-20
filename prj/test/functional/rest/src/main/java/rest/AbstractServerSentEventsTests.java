@@ -6,37 +6,41 @@
  */
 package rest;
 
-
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.rest.events.SimpleMapEvent;
+
 import com.tangosol.net.NamedCache;
+
+import javax.ws.rs.client.Client;
 
 import rest.data.Persona;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.WebTarget;
-
-import org.codehaus.jettison.json.JSONException;
 
 import org.glassfish.jersey.media.sse.EventSource;
 import org.glassfish.jersey.media.sse.InboundEvent;
 
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.within;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-
 
 /**
  * @author Aleksandar Seovic  2015.06.26
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class AbstractServerSentEventsTests
         extends AbstractRestTests
     {
+    // ----- constructors ---------------------------------------------------
+
     /**
      * Default constructor.
      *
@@ -48,9 +52,9 @@ public abstract class AbstractServerSentEventsTests
         }
 
     // ---- tests -----------------------------------------------------------
+
     @Test
     public void testCacheSSE()
-            throws JSONException, InterruptedException
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
@@ -63,7 +67,7 @@ public abstract class AbstractServerSentEventsTests
         cache.put(1, new Persona("Ivan", 36));
         cache.remove(3);
 
-        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(mapCounts::size, is(3));
         Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("update"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("delete"), is(2));
@@ -73,7 +77,6 @@ public abstract class AbstractServerSentEventsTests
 
     @Test
     public void testFilterSSE()
-            throws JSONException, InterruptedException
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
@@ -88,7 +91,7 @@ public abstract class AbstractServerSentEventsTests
         cache.remove(2);
         cache.remove(3);
 
-        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(mapCounts::size, is(3));
         Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("update"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("delete"), is(2));
@@ -98,7 +101,6 @@ public abstract class AbstractServerSentEventsTests
 
     @Test
     public void testNamedQuerySSE()
-            throws JSONException, InterruptedException
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
@@ -113,7 +115,7 @@ public abstract class AbstractServerSentEventsTests
         cache.remove(2);
         cache.remove(3);
 
-        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(mapCounts::size, is(3));
         Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("update"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("delete"), is(2));
@@ -123,7 +125,6 @@ public abstract class AbstractServerSentEventsTests
 
     @Test
     public void testKeySSE()
-            throws JSONException, InterruptedException
         {
         final Map<String, Integer> mapCounts = new HashMap<>();
 
@@ -140,7 +141,7 @@ public abstract class AbstractServerSentEventsTests
         cache.remove(3);
         cache.put(1, new Persona("Ivan", 37));
 
-        Eventually.assertDeferred(() -> mapCounts.size(), is(3));
+        Eventually.assertDeferred(mapCounts::size, is(3));
         Eventually.assertDeferred(() -> mapCounts.get("insert"), is(1));
         Eventually.assertDeferred(() -> mapCounts.get("update"), is(2));
         Eventually.assertDeferred(() -> mapCounts.get("delete"), is(1));
@@ -150,10 +151,15 @@ public abstract class AbstractServerSentEventsTests
 
     protected EventSource createEventSource(WebTarget target, Map<String, Integer> mapCounts)
         {
+        // implementation note:  getClient() isn't used here as the LoggingFeature doesn't
+        //                       appear to work well with SSE
+        Client    sseClient = createClient().build();
+        WebTarget sseTarget = sseClient.target(target.getUri());
+
         int i = 0;
         while (i++ < 3)
             {
-            EventSource source = new EventSource(target)
+            EventSource source = new EventSource(sseTarget)
                 {
                 @Override
                 public void onEvent(InboundEvent inboundEvent)
@@ -166,13 +172,23 @@ public abstract class AbstractServerSentEventsTests
 
             try
                 {
-                Eventually.assertDeferred(() -> source.isOpen(), is(true), within(1, TimeUnit.MINUTES));
+                assertThat(source.isOpen(), is(true));
                 return source;
                 }
             catch (AssertionError e)
                 {
                 System.out.println("createEventSource() got an AssertionError: " + e);
                 source.close();
+                }
+
+            Logger.info(String.format("Connection attempt %s failed.  Retrying in 10 seconds.", i + 1));
+            try
+                {
+                Blocking.sleep(10000);
+                }
+            catch (InterruptedException e)
+                {
+                throw new RuntimeException(e);
                 }
             }
 

@@ -94,10 +94,36 @@
 
   <build>
     <plugins>
+      <!-- extract and copy the logging.properties from the base rest jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>resource-dependencies</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>rest</includeArtifactIds>
+              <includes>logging.properties</includes>
+              <outputDirectory>${project.build.directory}/classes</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${maven.failsafe.plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.config.file>${project.build.directory}/classes/logging.properties</java.util.logging.config.file>
+          </systemPropertyVariables>
+        </configuration>
         <executions>
           <execution>
             <goals>

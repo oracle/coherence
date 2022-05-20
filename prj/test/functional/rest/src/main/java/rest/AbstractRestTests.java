@@ -8,9 +8,14 @@ package rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.oracle.coherence.common.net.SSLSocketProvider;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.HttpAcceptor;
 
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
@@ -50,13 +55,15 @@ import data.pof.VersionablePortablePerson;
 
 import java.io.IOException;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -80,6 +87,8 @@ import org.glassfish.jersey.client.ClientProperties;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
 
+import org.glassfish.jersey.logging.LoggingFeature;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -87,6 +96,8 @@ import org.junit.Test;
 
 import rest.data.Persona;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -100,7 +111,7 @@ import static org.junit.Assert.fail;
  * @author vp 2011.06.30
  * @author jh 2011.07.08
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public abstract class AbstractRestTests
         extends AbstractFunctionalTest
     {
@@ -209,7 +220,6 @@ public abstract class AbstractRestTests
 
     @Test
     public void testGetEntriesJson()
-            throws JSONException
         {
         WebTarget webTarget = getWebTarget("dist-test1/entries.json");
         Response  response  = webTarget.request().get();
@@ -237,7 +247,6 @@ public abstract class AbstractRestTests
 
     @Test
     public void testGetEntriesPartialJson()
-            throws JSONException
         {
         WebTarget webTarget = getWebTarget("dist-test1/entries.json;p=name,age");
         Response  response  = webTarget.request().get();
@@ -346,7 +355,6 @@ public abstract class AbstractRestTests
          * {@inheritDoc}
          */
         public void readExternal(PofReader in)
-                throws IOException
             {
             }
 
@@ -354,14 +362,12 @@ public abstract class AbstractRestTests
          * {@inheritDoc}
          */
         public void writeExternal(PofWriter out)
-                throws IOException
             {
             }
         }
 
     @Test
     public void testGetNonExistResource()
-            throws JSONException
         {
         WebTarget webTarget = getWebTarget("bad-name-test");
 
@@ -651,7 +657,6 @@ public abstract class AbstractRestTests
 
     @Test
     public void testJSonPTPut()
-            throws Exception
         {
         NamedCache cache = getNamedCache("dist-binary");
         cache.clear();
@@ -690,7 +695,7 @@ public abstract class AbstractRestTests
         JSONObject jsonMap = new JSONObject(response.readEntity(String.class));
         for (Map.Entry<Integer, String> entry : m_map.entrySet())
             {
-            assertTrue(entry.getValue().equals(jsonMap.getString(entry.getKey().toString())));
+            assertEquals(entry.getValue(), jsonMap.getString(entry.getKey().toString()));
             }
         }
 
@@ -1090,8 +1095,7 @@ public abstract class AbstractRestTests
         assertEquals(200 /* OK */, status);
 
         String    entity = response.readEntity(String.class);
-        assertTrue(entity.equals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><Persona><addresses/><age>37</age><name>Vaso</name></Persona></collection>"));
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><Persona><addresses/><age>37</age><name>Vaso</name></Persona></collection>", entity);
         }
 
     @Test
@@ -1127,7 +1131,7 @@ public abstract class AbstractRestTests
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), status);
 
         String    entity = response.readEntity(String.class);
-        assertTrue(entity.equals("An exception occurred while processing the request."));
+        assertEquals("An exception occurred while processing the request.", entity);
         }
 
     @Test
@@ -1221,8 +1225,7 @@ public abstract class AbstractRestTests
         assertEquals(200 /* OK */, status);
 
         String    entity    = response.readEntity(String.class);
-        assertTrue(entity.equals(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><Persona><addresses/><age>33</age><name>Ivan</name></Persona></collection>"));
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><Persona><addresses/><age>33</age><name>Ivan</name></Persona></collection>", entity);
         }
 
     @Test
@@ -1308,7 +1311,7 @@ public abstract class AbstractRestTests
         assertEquals(200 /* OK */, status);
 
         String    entity    = response.readEntity(String.class);
-        assertTrue(entity.equals("[{\"name\":\"Aleks\"},{\"name\":\"Vaso\"}]"));
+        assertEquals("[{\"name\":\"Aleks\"},{\"name\":\"Vaso\"}]", entity);
 
         webTarget = getWebTarget("dist-test-named-query", "/age-37-query;p=name;sort=name:desc");
         response  = webTarget.request(MediaType.APPLICATION_JSON).get();
@@ -1316,7 +1319,7 @@ public abstract class AbstractRestTests
         assertEquals(200 /* OK */, status);
 
         entity    = response.readEntity(String.class);
-        assertTrue(entity.equals("[{\"name\":\"Vaso\"},{\"name\":\"Aleks\"}]"));
+        assertEquals("[{\"name\":\"Vaso\"},{\"name\":\"Aleks\"}]", entity);
         }
 
     @Test
@@ -1351,7 +1354,7 @@ public abstract class AbstractRestTests
 
         String         entity   = response.readEntity(String.class);
         assertEquals(200 /* OK */, status);
-        assertTrue(entity.equals("[1]"));
+        assertEquals("[1]", entity);
 
         webTarget = getWebTarget("dist-test-named-query", "/age-37-query/keys");
         response  = webTarget.request(MediaType.APPLICATION_JSON).get();
@@ -1373,7 +1376,7 @@ public abstract class AbstractRestTests
 
         String entity   = response.readEntity(String.class);
         assertEquals(200 /* OK */, status);
-        assertTrue(entity.equals("[\"1\"]"));
+        assertEquals("[\"1\"]", entity);
 
         webTarget = getWebTarget("dist-binary-named-query", "/age-37-query/keys");
         response  = webTarget.request(MediaType.APPLICATION_JSON).get();
@@ -1644,28 +1647,28 @@ public abstract class AbstractRestTests
      public void testBinaryPTValue()
              throws Exception
          {
-         testBinaryPassThrough("dist-binaryvalue", 1, false /** fUseImage **/);
+         testBinaryPassThrough("dist-binaryvalue", 1, false /* fUseImage */);
          }
 
      @Test
      public void testBinaryPTKeyAndValue()
              throws Exception
          {
-         testBinaryPassThrough("dist-binary", "Aleks", false/** fUseImage **/);
+         testBinaryPassThrough("dist-binary", "Aleks", false /* fUseImage */);
          }
 
      @Test
      public void testBinaryPTValueWithImage()
              throws Exception
          {
-         testBinaryPassThrough("dist-binaryvalue", 1, true /** fUseImage **/);
+         testBinaryPassThrough("dist-binaryvalue", 1, true /* fUseImage */);
          }
 
      @Test
      public void testBinaryPTKeyAndValueWithImage()
              throws Exception
          {
-         testBinaryPassThrough("dist-binary", "Aleks", true/** fUseImage **/);
+         testBinaryPassThrough("dist-binary", "Aleks", true /* fUseImage */);
          }
 
      @Test
@@ -1683,7 +1686,7 @@ public abstract class AbstractRestTests
          }
 
     protected void testBinaryPassThrough(String sCacheName, Object oKey, boolean fUseImage)
-            throws URISyntaxException, IOException
+            throws IOException
         {
         byte[] abData;
         String sMediaType;
@@ -1711,7 +1714,7 @@ public abstract class AbstractRestTests
         assertEquals(200 /* OK */, response.getStatus());
 
         byte[] abResponse = response.readEntity(byte[].class);
-        assertTrue(Arrays.equals(abResponse, abData));
+        assertArrayEquals(abResponse, abData);
         }
 
      protected void testJsonPassThrough(String sCacheName, Object oKey)
@@ -1734,6 +1737,27 @@ public abstract class AbstractRestTests
          }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Starts a {@link CoherenceClusterMember}.
+     *
+     * @param sName        the name
+     * @param sCacheConfig  the configuration
+     *
+     * @since 22.06
+     */
+    @SuppressWarnings("resource")
+    protected static void doStartCacheServer(String sName, String sCacheConfig)
+        {
+        System.setProperty("coherence.override", "rest-tests-coherence-override.xml");
+
+        Properties properties = new Properties();
+        properties.put("com.tangosol.coherence.rest.server.DefaultResourceConfig.logging.enabled", "true");
+        properties.put("java.util.logging.config.file", System.getProperty("java.util.logging.config.file", ""));
+
+        CoherenceClusterMember clusterMember = startCacheServer(sName, "rest", sCacheConfig, properties);
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
+        }
 
     /**
      * Create a new HTTP client.
@@ -1853,7 +1877,13 @@ public abstract class AbstractRestTests
         {
         if (m_client == null)
             {
-            m_client = createClient().build();
+            ClientBuilder builder = createClient();
+            ((ClientConfig) builder.getConfiguration())
+                    .register(new LoggingFeature(Logger.getLogger("coherence.rest.diagnostic"),
+                                                 Level.INFO,
+                                                 LoggingFeature.Verbosity.PAYLOAD_TEXT,
+                                                 4096));
+            m_client = builder.build();
             }
         return m_client;
         }
@@ -1870,5 +1900,5 @@ public abstract class AbstractRestTests
     protected PortablePerson m_person;
     protected VersionablePortablePerson m_verPerson;
     protected Map<Integer, String> m_map;
-    protected Collection<String>   m_collection;
+    protected Collection<String> m_collection;
     }
