@@ -40,9 +40,25 @@
             <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
           </classpathDependencyExcludes>
-          <includes>
-            <include>**/*Tests.*</include>
-          </includes>
+          <useModulePath>false</useModulePath>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <configuration>
+          <!--
+            We never want to include these API deps on an execution classpath.
+          -->
+          <classpathDependencyExcludes>
+            <classpathDependencyExclude>io.opentracing:opentracing-api</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentracing:opentracing-noop</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
+            <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
+          </classpathDependencyExcludes>
+          <useModulePath>false</useModulePath>
         </configuration>
       </plugin>
     </plugins>
