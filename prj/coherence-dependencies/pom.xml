@@ -160,7 +160,7 @@
     <glassfish.el.version>3.0.1-b08</glassfish.el.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
     <graal.version>19.3.1</graal.version>
-    <grpc.version>1.44.0</grpc.version>
+    <grpc.version>1.45.1</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -169,7 +169,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.5.0</helidon.version>
+    <helidon.version>2.5.1-M1</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <jackson.version>2.13.2</jackson.version>
@@ -206,7 +206,7 @@
     <mvel.version>2.4.12.Final</mvel.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.73.Final</netty.version>
+    <netty.version>4.1.77.Final</netty.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
