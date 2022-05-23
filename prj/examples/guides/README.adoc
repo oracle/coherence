@@ -96,6 +96,13 @@ This guide walks you through how to use client events within Coherence
 --
 
 [CARD]
+.Server-Side Events
+[link=examples/guides/142-server-events/README.adoc]
+--
+This guide walks you through how to use server-side events within Coherence
+--
+
+[CARD]
 .Durable Events
 [link=examples/guides/145-durable-events/README.adoc]
 --

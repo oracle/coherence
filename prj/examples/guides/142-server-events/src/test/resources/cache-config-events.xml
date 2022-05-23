@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+     <!-- tag::config1[] -->
+    <interceptors>
+        <interceptor>  <!--1-->
+          <name>LifecycleEventsInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.LifecycleEventsInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+    </interceptors>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>customers</cache-name>  <!--2-->
+      <scheme-name>server-scheme</scheme-name>
+      <interceptors>
+        <interceptor>
+          <name>UppercaseInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.UppercaseInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+        <interceptor>
+          <name>ValidationInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.ValidationInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
+
+    <!-- cache to store auditing events -->
+    <cache-mapping>
+      <cache-name>audit-events</cache-name>
+      <scheme-name>server-scheme</scheme-name>
+    </cache-mapping>
+
+    <!-- any caches other than are defined above will be audited -->
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>auditing-scheme</scheme-name>
+    </cache-mapping>
+    <!-- end::config1[] -->
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>server-scheme</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <!-- tag::config4[] -->
+    <!--
+       Any caches in this scheme will be audited and data put in "audit-events" cache.
+    -->
+    <distributed-scheme>
+      <scheme-name>auditing-scheme</scheme-name>  <!--1-->
+      <service-name>DistributedCacheAudit</service-name>
+      <partition-count>31</partition-count>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+      <interceptors>
+        <interceptor>
+          <name>AuditingInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.AuditingInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+
+        <interceptor>
+          <name>EntryProcessorAuditingInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.EntryProcessorAuditingInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+
+        <interceptor>
+          <name>TransferEventsInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.TransferEventsInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+
+        <interceptor>
+          <name>CacheLifecycleEventsInterceptor</name>
+          <instance>
+            <class-name>
+              com.oracle.coherence.guides.serverevents.interceptors.CacheLifecycleEventsInterceptor
+            </class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </distributed-scheme>
+    <!-- end::config4[] -->
+  </caching-schemes>
+</cache-config>

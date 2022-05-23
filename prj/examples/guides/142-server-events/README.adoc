@@ -1,0 +1,444 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Server-Side Events
+:description: Coherence Guides Client Events
+:keywords: coherence, java, documentation, server side events, server events
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Server-Side Events
+
+This guide walks you through how to use server-side events, (also known as "Live Events"), within Coherence to listen
+for various events on a Coherence `NamedMap` or `NamedCache`.
+
+Coherence provides an event programming model that allows extensibility within a cluster
+when performing operations against a data grid. The model uses events to represent observable
+occurrences of cluster operations. The events that are currently supported include:
+
+* Partitioned Cache Events – A set of events that represent the operations being performed against a
+set of entries in a cache. Partitioned cache events include both entry events and entry processor events. Entry events
+are related to inserting, removing, and updating entries in a cache.
+Entry processor events are related to the execution of entry processors.
+
+* Partitioned Cache Lifecycle Events – A set of events that represent the operations for creating a cache, destroying a cache,
+and clearing all entries from a cache.
+
+* Partitioned Service Events – A set of events that represent the operations being performed by a partitioned service. Partitioned
+service events include both partition transfer events  and partition transaction events. Partition transfer events are related
+to the movement of partitions among cluster members. Partition transaction events are related to changes that may span multiple
+caches and are performed within the context of a single request.
+
+* Lifecycle Events – A set of events that represent the activation and disposal of a ConfigurableCacheFactory instance.
+
+* Federation Events – A set of events that represent the operations being performed by a federation service. Federation events include
+both Federated connection events and federated change events. Federated connection events are related to the interaction of federated
+participants and federated change events are related to cache updates.
+
+NOTE: In this example we will not cover Federation Events.
+
+Events are registered in the cache configuration against either a cache service or individual caches via cache mappings.
+The classes are annotated to identify what types of events they will receive.
+
+For more information on server-side events, see the {commercial-docs-base-url}/develop-applications/using-live-events.html#[Coherence] documentation.
+
+NOTE: Please see {commercial-docs-base-url}/develop-applications/using-map-events.html[the Coherence documentation] for more information on client events.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building, Building the Example Code>>
+* <<example-tests-1, Review the Tests>>
+** <<example-tests-classes, Review the classes>>
+** <<example-tests-config, Review the cache configuration>>
+* <<run-example-1, Run the Tests>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will run a number of tests that demonstrate the following features of server-side events including:
+
+* Understanding where to declare interceptors in your cache config
+* Listening for `cache events` related to mutations of cache data, and execution of entry processors
+* Listening for `transfer events` related to partition transfers and loss events
+* Listening for `partitioned cache events` related to creation, destruction and truncating of caches
+* Listening for `lifecycle events` for `ConfigurableCacheFactory` instantiation
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 11
+:duration: 20
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+NOTE: You can skip the tests in the initial build by adding the following options: `-DskipTests` for Maven or `-x test` for Gradle.
+
+[#running]
+==== Running the Examples
+
+This example comprises a number of tests showing various server-side events features.
+
+1. Running each example
++
+Each example can be run direct from the IDE, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#example-tests-1]
+=== Review the Tests
+
+The example code comprises a number of classes:
+
+**Tests**
+
+* `ServerCacheEventsTest` - tests for various cache events
+* `ServerPartitionEventsTest` - tests for partition based events
+* `AbstractEventsTest` - a class used by both tests which starts the clusters
+
+**Model**
+
+* `Customer` - represents a fictional customer
+* `AuditEvent` - represents an audit event
+
+**Interceptors**
+
+* `AuditingInterceptor` - creates audit events after inserts, updates or removes on a cache
+* `EntryProcessorAuditingInterceptor` - creates audit events after entry processor executions
+* `UppercaseInterceptor` - a mutating interceptor that changes the `name` and `address` attributes to uppercase
+* `ValidationInterceptor` - a mutating interceptor that optionally rejects updates if certain business rules are not met
+* `TransferEventsInterceptor` - creates audit events after any partition transfers made
+* `CacheLifecycleEventsInterceptor` - creates audit events after caches are created, truncated or destroyed
+* `LifecycleEventsInterceptor` - logs a message when ConfigurableCacheFactories are activated or destroyed
+
+[#example-tests-classes]
+==== Review the classes
+
+1. Review the `Customer` class.
++
+Some tests use the `Customer` class which has the following fields:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/model/Customer.java[tag=vars]
+----
+
+2. Review the `AuditEvent` class.
++
+Some tests use the `AuditEvent` class which has the following fields:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/model/AuditEvent.java[tag=vars]
+----
+
+3. Review the `AuditingInterceptor` which audits any mutations to caches using post-commit events.
++
+NOTE: See {commercial-docs-base-url}/develop-applications/using-live-events.html#GUID-7CC4EAFB-7A82-4B6F-A7FD-A776D33F36CD[here] for details of all Partitioned Cache events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/AuditingInterceptor.java[tag=class]
+----
+<1> Defines the interceptor name and optional order of HIGH or LOW as the priority
+<2> Identifies the `EntryEvents` that will be intercepted. INSERTED, UPDATED and REMOVED are raised asynchronously after the event has happened
+<3> Identifies the type of events, in this case `EntryEvents`
+<4> Overrides method to respond to the event
+<5> Identifies the type of event and sets the payload accordingly
+<6> Adds the audit event to the auditing cache
++
+This is used in the following test in `ServerCacheEventsTest`:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/ServerCacheEventsTest.java[tag=test2]
+----
+
+4. Review the `EntryProcessorAuditingInterceptor` which audits entry processors executions using post-commit events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/EntryProcessorAuditingInterceptor.java[tag=class]
+----
+<1> Defines the interceptor name
+<2> Identifies the `EntryProcessorEvents` that will be intercepted. EXECUTED event is raised asynchronously after the event has happened
+<3> Identifies the type of events, in this case `EntryProcessorEvents`
+<3> Overrides method to respond to the event and add to the auditing cache
++
+This is used in the following test in `ServerCacheEventsTest`:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/ServerCacheEventsTest.java[tag=test3]
+----
+
+5. Review the `UppercaseInterceptor` which changes the `name` and `address` attributes to uppercase.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/UppercaseInterceptor.java[tag=class]
+----
+<1> Defines the interceptor name
+<2> Identifies the `EntryEvents` that will be intercepted. INSERTING and UPDATING are raised synchronously before the operation is performed. Care must be taken to ensure these operations take as short amount of time as possible as implicit locks are held for the keys while updating.
+<3> Identifies the type of events, in this case `EntryEvent` and the key and value are also defined using generics
+<4> Overrides method to respond to the event
+<5> Ensures the changes are persisted by calling `entry.setValue()`
++
+This is used in the following test in `ServerCacheEventsTest`:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/ServerCacheEventsTest.java[tag=test1]
+----
+
+6. Review the `ValidationInterceptor` which rejects or accepts changes based upon some simple business rules.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/ValidationInterceptor.java[tag=class]
+----
+<1> Defines the interceptor name
+<2> Identifies the `EntryEvents` that will be intercepted. INSERTING and UPDATING are raised synchronously before the operation is performed. Care must be taken to ensure these operations take as short amount of time as possible as implicit locks are held for the keys while updating.
+<3> Identifies the type of events, in this case `EntryEvent` and the key and value are also defined using generics
+<4> Overrides method to respond to the event
+<5> Validates the first business rule if the event is an insert. If the rule fails, then throw a `RuntimeException`
+<6> Validates the second business rule if the event is an update. If the rule fails, then throw a `RuntimeException`
+<7> Saves the entry if all the business rules pass
++
+This is used in the following test in `ServerCacheEventsTest`:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/ServerCacheEventsTest.java[tag=test4]
+----
+
+7. Review the `TransferEventsInterceptor` which audits partition transfer events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/TransferEventsInterceptor.java[tag=class]
+----
+<1> Defines the interceptor name
+<2> Identifies the `TransferEvents` that will be intercepted. Transfer events are raised while holding a lock on the partition being transferred that blocks any operations for the partition.
+<3> Identifies the type of events, in this case `TransferEvents`
+<4> Overrides method to respond to the event
++
+This is used in the following test in `ServerPartitionEventsTest`:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/ServerPartitionEventsTest.java[tag=test1]
+----
+
+8. Review the `CacheLifecycleEventsInterceptor` which audits cache lifecycle events.
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/interceptors/CacheLifecycleEventsInterceptor.java[tag=class]
+----
+<1> Defines the interceptor name
+<2> Identifies the `CacheLifecycleEvent` that will be intercepted. CREATED, DESTROYED and TRUNCATED are raised asynchronously after the operation is completed.
+<3> Identifies the type of events, in this case `CacheLifecycleEvent`
+<4> Overrides method to respond to the event
++
+This is used in the following test in `ServerCacheEventsTest`:
++
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/serverevents/ServerCacheEventsTest.java[tag=truncate]
+----
+
+[#example-tests-config]
+==== Review the cache config
+
+The interceptors are added via cache config and can be applied at the service or cache level.
+
+1. Review the Cache Scheme Mapping
++
+[source,xml,indent=0]
+----
+include::src/test/resources/cache-config-events.xml[tag=config1]
+----
+<1> Defines an interceptor called `LifecycleEventsInterceptor` to log any `ConfigurableCacheFactory` events.
+<2> Defines customers cache which has the `UppercaseInterceptor` and `ValidationInterceptor` enabled for only this cache
+
+2. Review the Caching Schemes
++
+[source,xml,indent=0]
+----
+include::src/test/resources/cache-config-events.xml[tag=config4]
+----
+<1> Defines `auditing-scheme` which has the `AuditingInterceptor`, `EntryProcessorAuditingInterceptor`, `CacheLifecycleEventsInterceptor` and `TransferEventsInterceptor` enabled for any caches using this scheme.
+
+[#run-example-1]
+=== Run the Tests
+
+Run the examples using the test case below.
+
+1. Run directly from your IDE by running either of the following test classes:
++
+* com.oracle.coherence.guides.serverevents.ServerPartitionEventsTest
+* com.oracle.coherence.guides.serverevents.ServerCacheEventsTest
++
+
+2. Run using Maven or Gradle
++
+E.g. for Maven use:
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+When the test is run you will see output from the various parts of the test code.
+
+NOTE: Output has been truncated and formatted for easier reading.
+
+
+*testPartitions Output*
+
+[source,bash]
+----
+testPartitionEvents
+Dumping the audit events testPartitionEvents
+<1>
+AuditEvent{id=2E1E1FE69E, target='cache=test-cache', eventType='CREATED', eventData='Event from service DistributedCacheAudit', eventTime=1652255209123}
+AuditEvent{id=54A54A5CED, target='cache=test-cache', eventType='CREATED', eventData='Event from service DistributedCacheAudit', eventTime=1652255209129}
+<2>
+AuditEvent{id=AAA54A5CEE, target='cache=test-cache', eventType='INSERTED', eventData='key=0, old=null, new=value-0', eventTime=1652255209135}
+AuditEvent{id=A51E1FE69F, target='cache=test-cache', eventType='INSERTED', eventData='key=1, old=null, new=value-1', eventTime=1652255209141}
+...
+AuditEvent{id=A1A54A5CF3, target='cache=test-cache', eventType='INSERTED', eventData='key=9, old=null, new=value-9', eventTime=1652255209169}
+
+...
+<3>
+AuditEvent{id=961E1FE6A3, target='partition=0', eventType='ARRIVED', eventData='Partitions from remote member Member(Id=1, ...', eventTime=1652255209572}
+AuditEvent{id=261E1FE6A4, target='partition=1', eventType='ARRIVED', eventData='Partitions from remote member Member(Id=1, ...', eventTime=1652255209580}
+...
+AuditEvent{id=531E1FE6B1, target='partition=14', eventType='ARRIVED', eventData='Partitions from remote member Member(Id=1, ...', eventTime=1652255209587}
+----
+<1> Lifecycle events from creation of cache from two storage nodes
+<2> Insert events for cache entries
+<3> Partitions arriving from remove member before shutdown
+
+*testTruncate Output*
+
+[source,bash]
+----
+testTruncate
+Dumping the audit events truncate
+<1>
+AuditEvent{id=B8127D2701, target='cache=test-cache', eventType='CREATED', eventData='Event from service DistributedCacheAudit', eventTime=1652255218772}
+AuditEvent{id=6BD64A90EA, target='cache=test-cache', eventType='CREATED', eventData='Event from service DistributedCacheAudit', eventTime=1652255218784}
+AuditEvent{id=7E127D2702, target='cache=test-cache', eventType='TRUNCATED', eventData='Event from service DistributedCacheAudit', eventTime=1652255218802}
+AuditEvent{id=17D64A90EB, target='cache=test-cache', eventType='TRUNCATED', eventData='Event from service DistributedCacheAudit', eventTime=1652255218806}
+----
+<1> Both CREATED and TRUNCATED events are shown.
+
+*testEntryProcessorInterceptor Output*
+
+[source,bash]
+----
+testEntryProcessorInterceptor
+Dumping the audit events testEntryProcessorInterceptor-1
+
+<1>
+AuditEvent{id=AE5BC2D3EB, target='cache=test-customer', eventType='EXECUTED', eventData='Entries=1, processor=UpdaterProcessor(Customer$setCreditLimit...', eventTime=1652319479550}
+AuditEvent{id=C25BC2D3EC, target='cache=test-customer', eventType='UPDATED', eventData='key=1,
+   old=Customer{id=1, name='Tim', address='Address 1', customerType='GOLD', balance=10000},
+   new=Customer{id=1, name='Tim', address='Address 1', customerType='GOLD', balance=100000}', eventTime=1652319479553}
+AuditEvent{id=3D82ADF7F7, target='cache=test-customer', eventType='EXECUTED', eventData='Entries=2, processor=UpdaterProcessor(Customer$setCreditLimit...'}}, arguments=[]}}, 100000)', eventTime=1652319479553}
+AuditEvent{id=4382ADF7F8, target='cache=test-customer', eventType='UPDATED', eventData='key=2,
+   old=Customer{id=2, name='Tom', address='Address 2', customerType='SILVER', balance=10000},
+   new=Customer{id=2, name='Tom', address='Address 2', customerType='SILVER', balance=100000}', eventTime=1652319479556}
+AuditEvent{id=575BC2D3ED, target='cache=test-customer', eventType='UPDATED', eventData='key=3,
+   old=Customer{id=3, name='Helen', address='Address 3', customerType='BRONZE', balance=10000},
+   new=Customer{id=3, name='Helen', address='Address 3', customerType='BRONZE', balance=100000}', eventTime=1652319479556}
+
+Dumping the audit events testEntryProcessorInterceptor-2
+
+<2>
+AuditEvent{id=F05BC2D3EE, target='cache=test-customer', eventType='EXECUTED', eventData='Entries=2, processor=UpdaterProcessor(...'}}, arguments=[]}}, 100000)', eventTime=1652319479577}
+AuditEvent{id=7982ADF7F9, target='cache=test-customer', eventType='EXECUTED', eventData='Entries=1, processor=UpdaterProcessor(...'}}, arguments=[]}}, 100000)', eventTime=1652319479578}
+AuditEvent{id=235BC2D3EF, target='cache=test-customer', eventType='EXECUTED', eventData='Entries=1, processor=UpdaterProcessor(...'}}, arguments=[]}}, 100000)', eventTime=1652319479584}
+----
+<1> Three insert events and two entry processor events. One from each storage-enabled node
+<2> Three entry processor events, one for an individual invoke() on a key and two from the invokeAll as per item 1
+
+*testValidatingInterceptor Output*
+*testValidatingInterceptor Output*
+
+[source,bash]
+----
+Put was correctly rejected: Failed to execute [put] with arguments <1>
+   [1, Customer{id=1, name='tim', address='123 james street, perth', customerType='BRONZE', balance=2000000}]
+Update was correctly rejected: Failed to execute [invoke] with arguments [1,
+   UpdaterProcessor(com.oracle.coherence.guides.serverevents.ServerCacheEventsTest$$Lambda$475/0x00000008003da040@783ecb80, GOLD)]
+testCustomerUppercaseInterceptor
+----
+<1> Messages from rejected updates
+
+*testAuditingInterceptor Output*
+
+[source,bash]
+----
+testAuditingInterceptor
+Dumping the audit events testAuditingInterceptor-1
+
+<1>
+AuditEvent{id=1D127D270E, target='cache=test-cache', eventType='INSERTED', eventData='key=1, old=null, new=one', eventTime=1652255219418}
+AuditEvent{id=25D64A90F4, target='cache=test-cache', eventType='INSERTED', eventData='key=2, old=null, new=two', eventTime=1652255219428}
+AuditEvent{id=A5127D270F, target='cache=test-cache', eventType='UPDATED', eventData='key=1, old=one, new=ONE', eventTime=1652255219432}
+AuditEvent{id=EF127D2710, target='cache=test-cache', eventType='REMOVED', eventData='key=1, old=ONE, new=null', eventTime=1652255219436}
+
+Dumping the audit events testAuditingInterceptor-2
+
+<2>
+AuditEvent{id=A5127D2711, target='cache=test-customer', eventType='INSERTED', eventData='key=1, old=null,
+   new=Customer{id=1, name='Tim', address='Address 1', customerType='GOLD', balance=10000}', eventTime=1652255219456}
+AuditEvent{id=5BD64A90F5, target='cache=test-customer', eventType='INSERTED', eventData='key=2, old=null,
+   new=Customer{id=2, name='John', address='Address 2', customerType='SILVER', balance=4000}', eventTime=1652255219460}
+AuditEvent{id=CAD64A90F6, target='cache=test-customer', eventType='REMOVED', eventData='key=2,
+   old=Customer{id=2, name='John', address='Address 2', customerType='SILVER', balance=4000}, new=null', eventTime=1652255219466}
+AuditEvent{id=27127D2712, target='cache=test-customer', eventType='REMOVED', eventData='key=1,
+   old=Customer{id=1, name='Tim', address='Address 1', customerType='GOLD', balance=10000}, new=null', eventTime=1652255219466}
+----
+<1> Two inserts, one update and a remove
+<2> Two inserts and two removes as a result of `clear()`
+
+[#summary]
+=== Summary
+
+In this guide we walked you through how to use server-side events within Coherence to listen
+for various events on a Coherence `NamedMap` or `NamedCache`.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/using-live-events.html#[Develop Applications using Server Side Events]
+* {commercial-docs-base-url}/develop-applications/using-map-events.html[Client Side Events]
