@@ -35,6 +35,7 @@ public class AuthorizedHostFilterTests
     @BeforeClass
     public static void _startup()
         {
+        System.setProperty("coherence.override", "security-coherence-override.xml");
         System.setProperty("java.security.auth.login.config", "login.config");
         }
 

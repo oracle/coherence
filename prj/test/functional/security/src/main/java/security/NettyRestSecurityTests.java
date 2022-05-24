@@ -41,6 +41,7 @@ public class NettyRestSecurityTests
     public NettyRestSecurityTests()
         {
         super(FILE_CFG_CACHE);
+        System.setProperty("coherence.override", "security-coherence-override.xml");
         }
 
     // ----- lifecycle methods ----------------------------------------------

@@ -42,6 +42,7 @@ public class SecurityFrameworkTests
     @BeforeClass
     public static void _startup()
         {
+        System.setProperty("coherence.override", "security-coherence-override.xml");
         System.setProperty("java.security.auth.login.config", "login.config");
         System.setProperty("coherence.cluster", "BOSTON");
             System.setProperty("coherence.security.log", "true");

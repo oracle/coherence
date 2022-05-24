@@ -32,6 +32,7 @@ public class DefaultRestSecurityTests
     public DefaultRestSecurityTests()
         {
         super(FILE_CFG_CACHE);
+        System.setProperty("coherence.override", "security-coherence-override.xml");
         }
 
     // ----- lifecycle methods ----------------------------------------------
