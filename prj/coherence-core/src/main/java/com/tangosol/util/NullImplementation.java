@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -42,6 +42,7 @@ import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 
+import com.tangosol.net.MemberIdentityProvider;
 import com.tangosol.net.cache.CacheStore;
 
 import com.tangosol.net.partition.DistributionManager;
@@ -451,6 +452,16 @@ public class NullImplementation
     public static <V> LongArray<V> getLongArray()
         {
         return (LongArray<V>) NullLongArray.INSTANCE;
+        }
+
+    /**
+     * Return an instance of a null implementation {@link MemberIdentityProvider}.
+     *
+     * @return an instance of a null implementation {@link MemberIdentityProvider}
+     */
+    public static MemberIdentityProvider getMemberIdentityProvider()
+        {
+        return NullMemberIdentityProvider.INSTANCE;
         }
 
     // ----- inner classes ----------------------------------------------
@@ -3144,6 +3155,53 @@ public class NullImplementation
          * The singleton empty {@link LongArray.Iterator}.
          */
         private static final LongArray.Iterator<?> INSTANCE_ITERATOR = new NullLongArray.EmptyIterator<>();
+        }
+
+    // ----- inner class NullMemberIdentityProvider ---------------------
+
+    /**
+     * An implementation of a {@link MemberIdentityProvider} that
+     * returns {@code null} for all its methods.
+     *
+     * @since 22.06
+     */
+    public static class NullMemberIdentityProvider
+            implements MemberIdentityProvider
+        {
+        @Override
+        public String getMachineName()
+            {
+            return null;
+            }
+
+        @Override
+        public String getMemberName()
+            {
+            return null;
+            }
+
+        @Override
+        public String getRackName()
+            {
+            return null;
+            }
+
+        @Override
+        public String getSiteName()
+            {
+            return null;
+            }
+
+        @Override
+        public String getRoleName()
+            {
+            return null;
+            }
+
+        /**
+         * A singleton instance of a {@link NullMemberIdentityProvider}.
+         */
+        public static final NullMemberIdentityProvider INSTANCE = new NullMemberIdentityProvider();
         }
 
     // ----- data members -----------------------------------------------

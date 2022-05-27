@@ -504,6 +504,70 @@ public abstract class BaseHttpHandler
         void write(T body, OutputStream out);
         }
 
+    // ----- inner interface: BytesBodyWriter -------------------------------
+
+    /**
+     * A class that can write a byte array to an {@link OutputStream}.
+     */
+    public static class BytesBodyWriter
+            implements BodyWriter<byte[]>
+        {
+        /**
+         * Write the specified bytes to the {@link OutputStream}.
+         *
+         * @param abBody  the bytes to write
+         * @param out     the {@link OutputStream} to write to
+         */
+        public void write(byte[] abBody, OutputStream out)
+            {
+            try
+                {
+                out.write(abBody);
+                }
+            catch (IOException e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+
+        /**
+         * A static instance of a {@link BytesBodyWriter}.
+         */
+        public static final BodyWriter<byte[]> INSTANCE = new BytesBodyWriter();
+        }
+
+    // ----- inner interface: BytesBodyWriter -------------------------------
+
+    /**
+     * A class that can write a String to an {@link OutputStream}.
+     */
+    public static class StringBodyWriter
+            implements BodyWriter<String>
+        {
+        /**
+         * Write the specified String to the {@link OutputStream}.
+         *
+         * @param sBody  the bytes to write
+         * @param out    the {@link OutputStream} to write to
+         */
+        public void write(String sBody, OutputStream out)
+            {
+            try
+                {
+                out.write(sBody.getBytes(StandardCharsets.UTF_8));
+                }
+            catch (IOException e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+
+        /**
+         * A static instance of a {@link StringBodyWriter}.
+         */
+        public static final BodyWriter<String> INSTANCE = new StringBodyWriter();
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**

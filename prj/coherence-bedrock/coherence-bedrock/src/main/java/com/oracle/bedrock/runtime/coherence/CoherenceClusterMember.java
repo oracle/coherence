@@ -9,6 +9,7 @@ package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.Platform;
+import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberMachineName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.MachineName;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
@@ -74,11 +75,35 @@ public interface CoherenceClusterMember
 
 
     /**
+     * Obtains the machine name for the local member.
+     *
+     * @return the machine name
+     */
+    String getMachineName();
+
+
+    /**
+     * Obtains the name for the local member.
+     *
+     * @return the member name
+     */
+    String getMemberName();
+
+
+    /**
      * Obtains the role name for the local member.
      *
      * @return the role name
      */
     String getRoleName();
+
+
+    /**
+     * Obtains the role name for the local member.
+     *
+     * @return the role name
+     */
+    String getRackName();
 
 
     /**

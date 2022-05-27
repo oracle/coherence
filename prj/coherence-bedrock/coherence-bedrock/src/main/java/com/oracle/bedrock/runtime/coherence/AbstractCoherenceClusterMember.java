@@ -15,6 +15,9 @@ import com.oracle.bedrock.runtime.coherence.callables.GetClusterMemberUIDs;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterName;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterSize;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberId;
+import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberMachineName;
+import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberName;
+import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberRackName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberRoleName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberSiteName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberUID;
@@ -178,9 +181,30 @@ public abstract class AbstractCoherenceClusterMember
 
 
     @Override
+    public String getMachineName()
+        {
+        return invoke(new GetLocalMemberMachineName());
+        }
+
+
+    @Override
+    public String getMemberName()
+        {
+        return invoke(new GetLocalMemberName());
+        }
+
+
+    @Override
     public String getRoleName()
         {
         return invoke(new GetLocalMemberRoleName());
+        }
+
+
+    @Override
+    public String getRackName()
+        {
+        return invoke(new GetLocalMemberRackName());
         }
 
 

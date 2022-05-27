@@ -1,21 +1,32 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.cluster;
 
+import com.oracle.coherence.common.base.Classes;
+import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.coherence.config.builder.InstanceBuilder;
+
+import com.tangosol.config.expression.NullParameterResolver;
+
 import com.tangosol.net.MemberIdentity;
+import com.tangosol.net.MemberIdentityProvider;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+import com.tangosol.util.NullImplementation;
 
-import java.lang.management.ManagementFactory;
+import com.tangosol.util.comparator.PriorityComparator;
 
 import java.lang.reflect.InvocationTargetException;
 
-import javax.management.ObjectName;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.ServiceLoader;
 
 /**
  * DefaultMemberIdentity provides a basic MemberIdentity implementation as well as
@@ -110,7 +121,12 @@ public class DefaultMemberIdentity
     @Override
     public String getMachineName()
         {
-        return m_sMachineName;
+        String sMachineName = m_sMachineName;
+        if (sMachineName == null)
+            {
+            m_sMachineName = sMachineName = ensureProvider().getMachineName();
+            }
+        return sMachineName;
         }
 
     /**
@@ -132,7 +148,12 @@ public class DefaultMemberIdentity
     @Override
     public String getMemberName()
         {
-        return m_sMemberName;
+        String sMemberName = m_sMemberName;
+        if (sMemberName == null)
+            {
+            m_sMemberName = sMemberName = ensureProvider().getMemberName();
+            }
+        return sMemberName;
         }
 
     /**
@@ -203,7 +224,12 @@ public class DefaultMemberIdentity
     @Override
     public String getRackName()
         {
-        return m_sRackName;
+        String sRackName = m_sRackName;
+        if (sRackName == null)
+            {
+            m_sRackName = sRackName = ensureProvider().getRackName();
+            }
+        return sRackName;
         }
 
     /**
@@ -252,7 +278,12 @@ public class DefaultMemberIdentity
     @Override
     public String getSiteName()
         {
-        return m_sSiteName;
+        String sSiteName = m_sSiteName;
+        if (sSiteName == null)
+            {
+            m_sSiteName = sSiteName = ensureProvider().getSiteName();
+            }
+        return sSiteName;
         }
 
     /**
@@ -379,91 +410,162 @@ public class DefaultMemberIdentity
         {
         // compute a default role name based on the application which was executed.
         // This is determined by finding the "main" thread and examining its root class name.
-        String sName = null;
-        try
+        String sName = ensureProvider().getRoleName();
+
+        if (sName == null)
             {
-            Thread thread = Thread.currentThread();
-            StackTraceElement[] aStack = null;
-            if (Base.equals(thread.getName(), "main")) // 1.4 and higher
+            try
                 {
-                // we're on main thread
-                aStack = new Throwable().getStackTrace();
-                }
-            else // 1.5 and higher
-                {
-                // walk up ThreadGroup to root, and look for "main" thread
-                ThreadGroup group = thread.getThreadGroup();
-                ThreadGroup parent = group.getParent();
-                while (parent != null)
+                Thread thread = Thread.currentThread();
+                StackTraceElement[] aStack = null;
+                if (Base.equals(thread.getName(), "main")) // 1.4 and higher
                     {
-                    group = parent;
-                    parent = group.getParent();
+                    // we're on main thread
+                    aStack = new Throwable().getStackTrace();
                     }
-                Thread[] aThread = new Thread[group.activeCount()];
-                for (int i = 0, c = group.enumerate(aThread); i < c; ++i)
+                else // 1.5 and higher
                     {
-                    thread = aThread[i];
-                    String sThreadName = thread.getName();
-                    if (Base.equals(sThreadName, "main")         // Sun JVM
-                     || Base.equals(sThreadName, "Main Thread")) // JRockit JVM
+                    // walk up ThreadGroup to root, and look for "main" thread
+                    ThreadGroup group = thread.getThreadGroup();
+                    ThreadGroup parent = group.getParent();
+                    while (parent != null)
                         {
-                        aStack = (StackTraceElement[]) ClassHelper.invoke(thread, "getStackTrace", ClassHelper.VOID);
-                        break;
+                        group = parent;
+                        parent = group.getParent();
+                        }
+                    Thread[] aThread = new Thread[group.activeCount()];
+                    for (int i = 0, c = group.enumerate(aThread); i < c; ++i)
+                        {
+                        thread = aThread[i];
+                        String sThreadName = thread.getName();
+                        if (Base.equals(sThreadName, "main")         // Sun JVM
+                                || Base.equals(sThreadName, "Main Thread")) // JRockit JVM
+                            {
+                            aStack = (StackTraceElement[]) ClassHelper.invoke(thread, "getStackTrace", ClassHelper.VOID);
+                            break;
+                            }
                         }
                     }
-                }
 
-            if (aStack != null)
-                {
-                String sClass = aStack[aStack.length - 1].getClassName();
-
-                // translate well known classes
-                if (sClass.equals("com.tangosol.coherence.component.Application")
-                 || sClass.equals("com.tangosol.net.CacheFactory"))
+                if (aStack != null)
                     {
-                    sName = "CoherenceConsole";
-                    }
-                else if (sClass.equals("com.tangosol.net.DefaultCacheServer"))
-                    {
-                    sName = "CoherenceServer";
-                    }
-                else
-                    {
-                    // build a role from the class name
-                    String[] sParts = Base.parseDelimitedString(sClass, '.');
+                    String sClass = aStack[aStack.length - 1].getClassName();
 
-                    // strip off well known prefixes
-                    int ofPartStart = sParts[0].equals("com") || sParts[0].equals("org") ? 1 : 0;
-
-                    sName = Base.capitalize(sParts[ofPartStart]);
-                    String sEnd = Base.capitalize(sParts[sParts.length - 1]);
-                    if (sName.length() + sEnd.length() < MEMBER_IDENTITY_LIMIT)
+                    // translate well known classes
+                    if (sClass.equals("com.tangosol.coherence.component.Application")
+                            || sClass.equals("com.tangosol.net.CacheFactory"))
                         {
-                        // remove parts from the end until we fit within the character limit
-
-                        for (int i = ofPartStart + 1, c = sParts.length - 1; i < c; ++i)
-                            {
-                            String sPart = sParts[i];
-                            if (sName.length() + sPart.length() + sEnd.length() > MEMBER_IDENTITY_LIMIT)
-                                {
-                                break;
-                                }
-                            sName = sName + Base.capitalize(sPart);
-                            }
-                        sName += sEnd;
+                        sName = "CoherenceConsole";
+                        }
+                    else if (sClass.equals("com.tangosol.net.DefaultCacheServer")
+                            || sClass.equals("com.tangosol.net.Coherence"))
+                        {
+                        sName = "CoherenceServer";
                         }
                     else
                         {
-                        // just use truncated class name (no package)
-                        sName = sEnd.substring(0, MEMBER_IDENTITY_LIMIT);
+                        // build a role from the class name
+                        String[] sParts = Base.parseDelimitedString(sClass, '.');
+
+                        // strip off well known prefixes
+                        int ofPartStart = sParts[0].equals("com") || sParts[0].equals("org") ? 1 : 0;
+
+                        sName = Base.capitalize(sParts[ofPartStart]);
+                        String sEnd = Base.capitalize(sParts[sParts.length - 1]);
+                        if (sName.length() + sEnd.length() < MEMBER_IDENTITY_LIMIT)
+                            {
+                            // remove parts from the end until we fit within the character limit
+
+                            for (int i = ofPartStart + 1, c = sParts.length - 1; i < c; ++i)
+                                {
+                                String sPart = sParts[i];
+                                if (sName.length() + sPart.length() + sEnd.length() > MEMBER_IDENTITY_LIMIT)
+                                    {
+                                    break;
+                                    }
+                                sName = sName + Base.capitalize(sPart);
+                                }
+                            sName += sEnd;
+                            }
+                        else
+                            {
+                            // just use truncated class name (no package)
+                            sName = sEnd.substring(0, MEMBER_IDENTITY_LIMIT);
+                            }
+                        }
+                    }
+                }
+            catch (Throwable ignored)
+                {}
+            }
+
+        return sName;
+        }
+
+    /**
+     * Load an {@link MemberIdentityProvider} if one has been configured using
+     * the {@link MemberIdentityProvider#PROPERTY} or has been discovered using
+     * the {@link ServiceLoader}.
+     * <p>
+     * If no {@link MemberIdentityProvider} has been configured a null implementation
+     * of {@link MemberIdentityProvider} will be returned.
+     *
+     * @return  the {@link MemberIdentityProvider} to use
+     */
+    private MemberIdentityProvider ensureProvider()
+        {
+        if (m_provider == null)
+            {
+            synchronized (this)
+                {
+                if (m_provider == null)
+                    {
+                    try
+                        {
+                        MemberIdentityProvider provider = null;
+
+                        String sClass = System.getProperty(MemberIdentityProvider.PROPERTY);
+                        if (sClass != null)
+                            {
+                            try
+                                {
+                                Logger.finer("Loading MemberIdentityProvider: " + sClass);
+                                InstanceBuilder<MemberIdentityProvider> builder = new InstanceBuilder<>(sClass);
+                                provider = builder.realize(new NullParameterResolver(), Classes.getContextClassLoader(), null);
+                                }
+                            catch (Throwable e)
+                                {
+                                Logger.err("Failed to load MemberIdentityProvider: " + sClass, e);
+                                }
+                            }
+
+                        if (provider == null)
+                            {
+                            provider = ServiceLoader.load(MemberIdentityProvider.class)
+                                    .stream()
+                                    .sorted(Collections.reverseOrder(PriorityComparator.forServiceLoader()))
+                                    .map(ServiceLoader.Provider::get)
+                                    .filter(Objects::nonNull)
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (provider != null)
+                                {
+                                Logger.finer("Discovered MemberIdentityProvider: " + provider);
+                                }
+                            }
+
+                        m_provider = provider == null ? NullImplementation.getMemberIdentityProvider() : provider;
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err("Failed to load identity provider", t);
+                        m_provider = NullImplementation.getMemberIdentityProvider();
                         }
                     }
                 }
             }
-        catch (Throwable e)
-            {}
-
-        return sName;
+        return m_provider;
         }
 
     // ----- data members ---------------------------------------------------
@@ -512,4 +614,9 @@ public class DefaultMemberIdentity
      * The site name.
      */
     private String m_sSiteName;
+
+    /**
+     * An optional {@link MemberIdentityProvider}.
+     */
+    private volatile MemberIdentityProvider m_provider;
     }
