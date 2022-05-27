@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
 
@@ -81,15 +81,20 @@ public interface PersistenceDependencies
     /**
      * Persistence Mode: active.
      */
-    public static final String MODE_ACTIVE       = "active";
+    public static final String MODE_ACTIVE        = "active";
+
+    /**
+     * Persistence Mode: active-backup.
+     */
+    public static final String MODE_ACTIVE_BACKUP = "active-backup";
 
     /**
      * Persistence Mode: active-async.
      */
-    public static final String MODE_ACTIVE_ASYNC = "active-async";
+    public static final String MODE_ACTIVE_ASYNC  = "active-async";
 
     /**
      * Persistence Mode: on-demand.
      */
-    public static final String MODE_ON_DEMAND    = "on-demand";
+    public static final String MODE_ON_DEMAND     = "on-demand";
     }

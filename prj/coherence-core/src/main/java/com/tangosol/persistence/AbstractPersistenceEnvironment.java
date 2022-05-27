@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -83,6 +83,7 @@ public abstract class AbstractPersistenceEnvironment
      *     <li>snapshot - location for snapshots</li>
      *     <li>trash - optional location trashed stores</li>
      *     <li>events - optional location for event storage</li>
+     *     <li>backup - optional location for backup storage</li>
      * </ol>
      *
      * @param fileActive    the data directory of the singleton active
@@ -102,9 +103,44 @@ public abstract class AbstractPersistenceEnvironment
     public AbstractPersistenceEnvironment(File fileActive, File fileSnapshot, File fileTrash, File fileEvents)
             throws IOException
         {
+        this(fileActive, null, fileEvents, fileSnapshot, fileTrash);
+        }
+
+    /**
+     * Create a new BerkeleyDBEnvironment that manages a singleton
+     * BerkeleyDBManager with the specified directories:
+     * <ol>
+     *     <li>data - active persistence</li>
+     *     <li>backup - optional location for backup storage</li>
+     *     <li>events - optional location for event storage</li>
+     *     <li>snapshot - location for snapshots</li>
+     *     <li>trash - optional location trashed stores</li>
+     * </ol>
+     *
+     * @param fileActive   the data directory of the singleton active manager or
+     *                     null if an active manager shouldn't be maintained by
+     *                     this environment
+     * @param fileBackup   an optional backup directory used to store backup map
+     *                     data
+     * @param fileEvents   an optional events directory used to store map
+     *                     events
+     * @param fileSnapshot the snapshot directory
+     * @param fileTrash    an optional trash directory used for "safe" deletes
+     * @throws IOException              if the data directory could not be
+     *                                  created
+     * @throws IllegalArgumentException if the data, backup, snapshot, and trash
+     *                                  directories are not unique
+     */
+    public AbstractPersistenceEnvironment(File fileActive, File fileBackup, File fileEvents, File fileSnapshot, File fileTrash)
+            throws IOException
+        {
         if (fileActive != null && !fileActive.exists())
             {
             Logger.info("Creating persistence active directory \"" + fileActive.getAbsolutePath() + '"');
+            }
+        if (fileBackup != null && !fileBackup.exists())
+            {
+            Logger.info("Creating persistence backup directory \"" + fileBackup.getAbsolutePath() + '"');
             }
         if (fileEvents != null && !fileEvents.exists())
             {
@@ -112,29 +148,53 @@ public abstract class AbstractPersistenceEnvironment
             }
 
         f_fileActive   = fileActive == null ? null : FileHelper.ensureDir(fileActive);
+        f_fileBackup   = fileBackup == null ? null : FileHelper.ensureDir(fileBackup);
         f_fileEvents   = fileEvents;
         f_fileSnapshot = fileSnapshot;
         f_fileTrash    = fileTrash;
 
-        // validate that the active and snapshot directories are not the same
-        if (f_fileActive != null && f_fileActive.equals(f_fileSnapshot))
+        // validate that the active, backup and snapshot directories are not the same
+        if (f_fileActive != null && (f_fileActive.equals(f_fileSnapshot) ||
+                f_fileActive.equals(f_fileBackup)))
             {
             throw new IllegalArgumentException("active directory \""
                     + f_fileActive
-                    + " \"cannot be the same as the snapshot directory");
+                    + " \"cannot be the same as the backup or snapshot directory");
             }
 
         // validate that the trash directory is unique as well
         if (f_fileTrash != null && (f_fileTrash.equals(f_fileActive) ||
+                f_fileTrash.equals(f_fileBackup) ||
                 f_fileTrash.equals(f_fileSnapshot)))
             {
             throw new IllegalArgumentException("trash directory \""
                     + f_fileTrash
-                    + " \"cannot be the same as the active or snapshot directory");
+                    + " \"cannot be the same as the active, backup or snapshot directory");
             }
         }
 
     // ----- PersistenceEnvironment interface -------------------------------
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public synchronized PersistenceManager<ReadBuffer> openBackup()
+        {
+        if (f_fileBackup == null)
+            {
+            return null;
+            }
+
+        AbstractPersistenceManager manager = m_managerBackup;
+        if (manager == null)
+            {
+            m_managerBackup = manager = openBackupInternal();
+            manager.setPersistenceEnvironment(this);
+            }
+
+        return manager;
+        }
 
     /**
      * {@inheritDoc}
@@ -317,6 +377,15 @@ public abstract class AbstractPersistenceEnvironment
      * {@inheritDoc}
      */
     @Override
+    public File getPersistenceBackupDirectory()
+        {
+        return f_fileBackup;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public File getPersistenceEventsDirectory()
         {
         return f_fileEvents;
@@ -425,12 +494,24 @@ public abstract class AbstractPersistenceEnvironment
     protected abstract AbstractPersistenceManager openActiveInternal();
 
     /**
-     * Open the active manager.
+     * Open the backup manager.
      * <p>
      * Note: this method is guaranteed to only be called by a thread that
      * holds a monitor on this environment.
      *
-     * @return the active manager
+     * @return the backup manager
+     *
+     * @throws PersistenceException if a general persistence error occurs
+     */
+    protected abstract AbstractPersistenceManager openBackupInternal();
+
+    /**
+     * Open the events manager.
+     * <p>
+     * Note: this method is guaranteed to only be called by a thread that
+     * holds a monitor on this environment.
+     *
+     * @return the events manager
      *
      * @throws PersistenceException if a general persistence error occurs
      */
@@ -733,6 +814,11 @@ public abstract class AbstractPersistenceEnvironment
     protected final File f_fileActive;
 
     /**
+     * The data directory of the backup persistence manager.
+     */
+    protected final File f_fileBackup;
+
+    /**
      * The events directory of the events persistence manager.
      */
     protected final File f_fileEvents;
@@ -751,6 +837,11 @@ public abstract class AbstractPersistenceEnvironment
      * This singleton active manager.
      */
     protected AbstractPersistenceManager<?> m_managerActive;
+
+    /**
+     * This singleton backup manager.
+     */
+    protected AbstractPersistenceManager<?> m_managerBackup;
 
     /**
      * This singleton events manager.

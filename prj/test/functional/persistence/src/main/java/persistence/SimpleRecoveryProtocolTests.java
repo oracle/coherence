@@ -536,6 +536,27 @@ public class SimpleRecoveryProtocolTests
          * {@inheritDoc}
          */
         @Override
+        public synchronized PersistenceManager openBackup()
+            {
+            Manager manager = m_manager;
+            if (manager == null)
+                {
+                try
+                    {
+                    m_manager = manager = new Manager();
+                    }
+                catch (IOException e)
+                    {
+                    throw new PersistenceException(e);
+                    }
+                }
+            return manager;
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public PersistenceManager openSnapshot(String sSnapshot)
             {
             throw new IllegalArgumentException();

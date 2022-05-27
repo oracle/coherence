@@ -173,6 +173,14 @@ public class PersistenceInfoConfigTests
             }
 
         @Override
+        public PersistenceManager<ReadBuffer> openBackup()
+            {
+            return "active-backup".equals(f_sMode)
+                   ? NullImplementation.getPersistenceManager(ReadBuffer.class)
+                   : null;
+            }
+
+        @Override
         public PersistenceManager<ReadBuffer> openSnapshot(String sSnapshot)
             {
             return NullImplementation.getPersistenceManager(ReadBuffer.class);

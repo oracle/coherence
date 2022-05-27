@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -1652,6 +1652,11 @@ public class CachePersistenceHelper
      * Default active directory name.
      */
     public static final String DEFAULT_ACTIVE_DIR = "active";
+
+    /**
+     * Default backup directory name.
+     */
+    public static final String DEFAULT_BACKUP_DIR = "backup";
 
     /**
      * Default events directory name.

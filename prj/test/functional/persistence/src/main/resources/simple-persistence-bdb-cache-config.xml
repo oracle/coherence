@@ -39,6 +39,7 @@
       <scheme-name>simple-persistence</scheme-name>
       <service-name>DistributedCachePersistence</service-name>
       <thread-count-min system-property="test.threads">0</thread-count-min>
+      <backup-count system-property="test.backupcount">1</backup-count>
       <backing-map-scheme>
           <transient>{transient false}</transient>
           <local-scheme/>
@@ -53,23 +54,23 @@
       <async-backup system-property="test.asyncbackup">false</async-backup>
   </distributed-scheme>
 
-      <distributed-scheme>
-          <scheme-name>dynamic-quorum</scheme-name>
-          <service-name>DistributedCachePersistenceQuorum</service-name>
-          <thread-count-min system-property="test.threads">0</thread-count-min>
-          <backing-map-scheme>
-              <transient>{transient false}</transient>
-              <local-scheme/>
-          </backing-map-scheme>
-          <persistence>
-              <environment>simple-bdb-environment</environment>
-          </persistence>
-          <partitioned-quorum-policy-scheme>
-              <recover-quorum system-property="test.recover.quorum">3</recover-quorum>
-          </partitioned-quorum-policy-scheme>
-          <autostart>true</autostart>
-          <async-backup system-property="test.asyncbackup">false</async-backup>
-      </distributed-scheme>
+    <distributed-scheme>
+        <scheme-name>dynamic-quorum</scheme-name>
+        <service-name>DistributedCachePersistenceQuorum</service-name>
+        <thread-count-min system-property="test.threads">0</thread-count-min>
+        <backing-map-scheme>
+            <transient>{transient false}</transient>
+            <local-scheme/>
+        </backing-map-scheme>
+        <persistence>
+            <environment>simple-bdb-environment</environment>
+        </persistence>
+        <partitioned-quorum-policy-scheme>
+            <recover-quorum system-property="test.recover.quorum">3</recover-quorum>
+        </partitioned-quorum-policy-scheme>
+        <autostart>true</autostart>
+        <async-backup system-property="test.asyncbackup">false</async-backup>
+    </distributed-scheme>
 
     <distributed-scheme>
       <scheme-name>simple-persistence-archiver</scheme-name>

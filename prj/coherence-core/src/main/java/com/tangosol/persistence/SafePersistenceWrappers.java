@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -15,7 +15,6 @@ import com.oracle.coherence.persistence.PersistentStore;
 
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
-import com.tangosol.util.Base;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.NullImplementation.NullPersistenceEnvironment;
 import com.tangosol.util.NullImplementation.NullPersistenceManager;
@@ -214,6 +213,23 @@ public class SafePersistenceWrappers
             }
 
         // ----- PersistenceEnvironment methods -----------------------------
+
+        /**
+         * {@inheritDoc}
+         */
+        public PersistenceManager<R> openBackup()
+            {
+            try
+                {
+                return wrap(getEnvironment().openBackup());
+                }
+            catch (Throwable t)
+                {
+                onException((T) t);
+                }
+
+            return NullImplementation.getPersistenceManager();
+            }
 
         /**
          * {@inheritDoc}

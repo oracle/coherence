@@ -41,7 +41,6 @@ import com.tangosol.util.UID;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -51,7 +50,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -76,6 +74,7 @@ public class PersistenceEnvironmentProcessorTests
         {
         m_fileHome     = FileHelper.createTempDir();
         m_fileActive   = new File(new File(m_fileHome, "coherence"), "active");
+        m_fileBackup   = new File(new File(m_fileHome, "coherence"), "backup");
         m_fileSnapshot = new File(new File(m_fileHome, "coherence"), "snapshots");
         m_fileTrash    = new File(new File(m_fileHome, "coherence"), "trash");
 
@@ -560,6 +559,82 @@ public class PersistenceEnvironmentProcessorTests
         }
 
     @Test
+    public void testCustomEnvironmentActiveBackup()
+            throws IOException
+        {
+        File fileActive   = m_fileActive;
+        File fileBackup   = m_fileBackup;
+        File fileSnapshot = m_fileSnapshot;
+        File fileTrash    = m_fileTrash;
+
+        String sXml =
+                "<persistence-environment>\n"
+                + "  <instance>"
+                + "    <class-name>config.PersistenceEnvironmentProcessorTests$CustomEnvironment</class-name>\n"
+                + "    <init-params>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{cluster-name}</param-value>\n"
+                + "      </init-param>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{service-name}</param-value>\n"
+                + "      </init-param>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{persistence-mode}</param-value>\n"
+                + "      </init-param>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{active-directory}</param-value>\n"
+                + "      </init-param>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{backup-directory}</param-value>\n"
+                + "      </init-param>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{snapshot-directory}</param-value>\n"
+                + "      </init-param>\n"
+                + "      <init-param>\n"
+                + "        <param-value>{trash-directory}</param-value>\n"
+                + "      </init-param>\n"
+                + "    </init-params>"
+                + "  </instance>\n"
+                + "  <persistence-mode>active-backup</persistence-mode>\n"
+                + "  <active-directory>" + fileActive.getAbsolutePath() + "</active-directory>\n"
+                + "  <backup-directory>" + fileBackup.getAbsolutePath() + "</backup-directory>\n"
+                + "  <snapshot-directory>" + fileSnapshot.getAbsolutePath() + "</snapshot-directory>\n"
+                + "  <trash-directory>" + fileTrash.getAbsolutePath() + "</trash-directory>\n"
+                + "</persistence-environment>";
+
+        PersistenceEnvironmentParamBuilder bldr
+                = m_processor.process(new XmlDocumentReference(sXml));
+
+        PersistenceEnvironment<ReadBuffer> env = bldr.realize(RESOLVER, getClass().getClassLoader(), null);
+
+        env = SafePersistenceWrappers.unwrap(env);
+        assertTrue(env instanceof CustomEnvironment);
+
+        fileActive   = new File(new File(fileActive, "Cluster"), "Service");
+        fileBackup   = new File(new File(fileBackup, "Cluster"), "Service");
+        fileSnapshot = new File(new File(fileSnapshot, "Cluster"), "Service");
+        fileTrash    = new File(new File(fileTrash, "Cluster"), "Service");
+
+        CustomEnvironment envImpl = (CustomEnvironment) env;
+
+        assertEquals("Cluster", envImpl.f_sCluster);
+        assertEquals("Service", envImpl.f_sService);
+        assertEquals("active-backup", envImpl.f_sMode);
+        assertEquals(fileActive, envImpl.f_fileActive);
+        assertEquals(fileBackup, envImpl.f_fileBackup);
+        assertEquals(fileSnapshot, envImpl.f_fileSnapshot);
+        assertEquals(fileTrash, envImpl.f_fileTrash);
+
+        PersistenceEnvironmentInfo info = bldr.getPersistenceEnvironmentInfo("Cluster", "Service");
+        assertEquals(fileActive, info.getPersistenceActiveDirectory());
+        assertEquals(fileBackup, info.getPersistenceBackupDirectory());
+        assertEquals(fileSnapshot, info.getPersistenceSnapshotDirectory());
+        assertEquals(fileTrash, info.getPersistenceTrashDirectory());
+
+        env.release();
+        }
+
+    @Test
     public void testCustomEnvironmentOnDemand()
             throws IOException
         {
@@ -732,12 +807,31 @@ public class PersistenceEnvironmentProcessorTests
             f_fileActive   = fileActive;
             f_fileSnapshot = fileSnapshot;
             f_fileTrash    = fileTrash;
+            f_fileBackup   = null;
+            }
+
+        public CustomEnvironment(String sCluster, String sService, String sMode, File fileActive, File fileBackup,
+                                 File fileSnapshot, File fileTrash)
+            {
+            f_sCluster     = sCluster;
+            f_sService     = sService;
+            f_sMode        = sMode;
+            f_fileActive   = fileActive;
+            f_fileBackup   = fileBackup;
+            f_fileSnapshot = fileSnapshot;
+            f_fileTrash    = fileTrash;
             }
 
         @Override
         public PersistenceManager<ReadBuffer> openActive()
             {
             return "active".equals(f_sMode) ? NullImplementation.getPersistenceManager(ReadBuffer.class) : null;
+            }
+
+        @Override
+        public PersistenceManager<ReadBuffer> openBackup()
+            {
+            return "active-backup".equals(f_sMode) ? NullImplementation.getPersistenceManager(ReadBuffer.class) : null;
             }
 
         @Override
@@ -756,7 +850,6 @@ public class PersistenceEnvironmentProcessorTests
 
             return NullImplementation.getPersistenceManager(ReadBuffer.class);
             }
-
 
         @Override
         public boolean removeSnapshot(String sSnapshot)
@@ -779,6 +872,7 @@ public class PersistenceEnvironmentProcessorTests
         protected final String f_sService;
         protected final String f_sMode;
         protected final File   f_fileActive;
+        protected final File   f_fileBackup;
         protected final File   f_fileSnapshot;
         protected final File   f_fileTrash;
         }
@@ -808,6 +902,7 @@ public class PersistenceEnvironmentProcessorTests
 
     protected File                                  m_fileHome;
     protected File                                  m_fileActive;
+    protected File                                  m_fileBackup;
     protected File                                  m_fileSnapshot;
     protected File                                  m_fileTrash;
     protected DocumentProcessor                     m_processor;

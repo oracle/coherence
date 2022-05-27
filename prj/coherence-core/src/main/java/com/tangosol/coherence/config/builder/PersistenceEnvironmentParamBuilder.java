@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
@@ -62,6 +62,7 @@ public class PersistenceEnvironmentParamBuilder
         String sHome = getDefaultPersistenceEnvironmentHomeDirectory();
 
         m_sActive   = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_ACTIVE_DIR;
+        m_sBackup   = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_BACKUP_DIR;
         m_sSnapshot = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_SNAPSHOT_DIR;
         m_sTrash    = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_TRASH_DIR;
         m_sMode     = "active";
@@ -87,9 +88,10 @@ public class PersistenceEnvironmentParamBuilder
             environment = m_bldr == null
                     ? new BerkeleyDBEnvironment(
                             info.getPersistenceActiveDirectory(),
+                            info.getPersistenceBackupDirectory(),
+                            info.getPersistenceEventsDirectory(),
                             info.getPersistenceSnapshotDirectory(),
-                            info.getPersistenceTrashDirectory(),
-                            info.getPersistenceEventsDirectory())
+                            info.getPersistenceTrashDirectory())
                     : m_bldr.realize(createResolver(sClusterName, sServiceName), loader, listParameters);
             }
         catch (Exception e)
@@ -132,13 +134,14 @@ public class PersistenceEnvironmentParamBuilder
 
         // create a directory reference for the active, snapshot and trash locations
         File fileActive   = isActive() ? new File(new File(new File(m_sActive), sCluster), sService) : null;
+        File fileBackup   = isActiveBackup() ? new File(new File(new File(m_sBackup), sCluster), sService) : null;
         File fileSnapshot = new File(new File(new File(m_sSnapshot), sCluster), sService);
         File fileTrash    = new File(new File(new File(m_sTrash), sCluster), sService);
         
         File fileEvents = m_sEvents == null || m_sEvents.isEmpty() || !isActive()
                 ? null : new File(new File(new File(m_sEvents), sCluster), sService);
 
-        return new PersistenceEnvironmentInfo(fileActive, fileSnapshot, fileTrash, m_sMode, fileEvents);
+        return new PersistenceEnvironmentInfo(m_sMode, fileActive, fileBackup, fileEvents, fileSnapshot, fileTrash);
         }
 
     public String getPersistenceMode()
@@ -149,7 +152,7 @@ public class PersistenceEnvironmentParamBuilder
     /**
      * Set persistence mode.
      *
-     * @param sMode  active, active-async or on-demand
+     * @param sMode  active, active-backup, active-async or on-demand
      */
     @Injectable("persistence-mode")
     public void setPersistenceMode(String sMode)
@@ -171,6 +174,20 @@ public class PersistenceEnvironmentParamBuilder
         if (sPathname != null && sPathname.length() > 0)
             {
             m_sActive = sPathname;
+            }
+        }
+
+    /**
+     * Set the persistence backup directory.
+     *
+     * @param sPathname  either relative or absolute pathname
+     */
+    @Injectable("backup-directory")
+    public void setBackupDirectory(String sPathname)
+        {
+        if (sPathname != null && sPathname.length() > 0)
+            {
+            m_sBackup = sPathname;
             }
         }
 
@@ -283,6 +300,7 @@ public class PersistenceEnvironmentParamBuilder
         resolver.add(new Parameter("service-name", String.class, sServiceName));
         resolver.add(new Parameter("persistence-mode", String.class, info.getPersistenceMode()));
         resolver.add(new Parameter("active-directory", File.class, info.getPersistenceActiveDirectory()));
+        resolver.add(new Parameter("backup-directory", File.class, info.getPersistenceBackupDirectory()));
         resolver.add(new Parameter("events-directory", File.class, info.getPersistenceEventsDirectory()));
         resolver.add(new Parameter("snapshot-directory", File.class, info.getPersistenceSnapshotDirectory()));
         resolver.add(new Parameter("trash-directory", File.class, info.getPersistenceTrashDirectory()));
@@ -298,7 +316,18 @@ public class PersistenceEnvironmentParamBuilder
     protected boolean isActive()
         {
         return m_sMode.equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE) ||
+               m_sMode.equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE_BACKUP) ||
                m_sMode.equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE_ASYNC);
+        }
+
+    /**
+     * Return true if the persistence mode is active-backup.
+     *
+     * @return true if the persistence mode is active-backup
+     */
+    protected boolean isActiveBackup()
+        {
+        return m_sMode.equalsIgnoreCase(PersistenceDependencies.MODE_ACTIVE_BACKUP);
         }
 
     /**
@@ -390,14 +419,15 @@ public class PersistenceEnvironmentParamBuilder
          * @param dirTrash     trash directory
          * @param sMode        persistence mode (active or on-demand)
          */
-        public PersistenceEnvironmentInfo(File dirActive, File dirSnapshot, File dirTrash,
-                                          String sMode, File dirEvents)
+        public PersistenceEnvironmentInfo(String sMode, File dirActive, File dirBackup, File dirEvents,
+                                          File dirSnapshot, File dirTrash)
             {
+            f_sMode       = sMode;
             f_dirActive   = dirActive;
+            f_dirEvents   = dirEvents;
+            f_dirBackup   = dirBackup;
             f_dirSnapshot = dirSnapshot;
             f_dirTrash    = dirTrash;
-            f_sMode       = sMode;
-            f_dirEvents   = dirEvents;
             }
 
         // ------ PersistenceEnvironmentInfo interface ------------------------
@@ -406,6 +436,12 @@ public class PersistenceEnvironmentParamBuilder
         public File getPersistenceActiveDirectory()
             {
             return f_dirActive;
+            }
+
+        @Override
+        public File getPersistenceBackupDirectory()
+            {
+            return f_dirBackup;
             }
 
         @Override
@@ -474,7 +510,12 @@ public class PersistenceEnvironmentParamBuilder
         private final File f_dirActive;
 
         /**
-         * Path to the active directory.
+         * Path to the backup directory.
+         */
+        private final File f_dirBackup;
+
+        /**
+         * Path to the events directory.
          */
         private final File f_dirEvents;
 
@@ -497,7 +538,7 @@ public class PersistenceEnvironmentParamBuilder
     // ----- data members ---------------------------------------------------
 
     /**
-     * The mode used by persistence; either active or on-demand.
+     * The mode used by persistence; either active, active-backup, active-async or on-demand.
      */
     protected String m_sMode;
 
@@ -507,7 +548,12 @@ public class PersistenceEnvironmentParamBuilder
     protected String m_sActive;
 
     /**
-     * The active directory used by persistence.
+     * The backup directory used by persistence.
+     */
+    protected String m_sBackup;
+
+    /**
+     * The events directory used by persistence.
      */
     protected String m_sEvents;
 

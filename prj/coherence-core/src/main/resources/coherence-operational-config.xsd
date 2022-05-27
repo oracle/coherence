@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-operational-config"
@@ -1036,14 +1036,28 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="events-directory" type="coherence-string-type">
+    <xsd:element name="backup-directory" type="coherence-string-type">
         <xsd:annotation>
             <xsd:documentation>
-                The active-directory element contains the path to a directory
+              The backup-directory element contains the path to a directory
+              under which backups of cached data is actively persisted by a
+              persistent environment.
+
+              Default value is ${user.home}/coherence/backup
+
+              Used in: persistence-environment
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+  <xsd:element name="events-directory" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The events-directory element contains the path to a directory
                 under which cached data is actively persisted by a persistent
                 environment.
 
-                Default value is ${user.home}/coherence/active
+                Default value is ${user.home}/coherence/events
 
                 Used in: persistence-environment
             </xsd:documentation>
@@ -1103,6 +1117,7 @@
                 <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
                 <xsd:element ref="persistence-mode" minOccurs="0" />
                 <xsd:element ref="active-directory" minOccurs="0" />
+                <xsd:element ref="backup-directory" minOccurs="0" />
                 <xsd:element ref="events-directory" minOccurs="0" />
                 <xsd:element ref="snapshot-directory" minOccurs="0" />
                 <xsd:element ref="trash-directory" minOccurs="0" />

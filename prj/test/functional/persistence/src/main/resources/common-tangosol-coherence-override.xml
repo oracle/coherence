@@ -19,6 +19,7 @@
       <persistence-environment id="simple-bdb-environment">
         <persistence-mode system-property="test.persistence.mode">active</persistence-mode>
         <active-directory system-property="test.persistence.active.dir">target/store-bdb-active</active-directory>
+        <backup-directory system-property="test.persistence.backup.dir">target/store-bdb-backup</backup-directory>
         <snapshot-directory system-property="test.persistence.snapshot.dir">target/store-bdb-snapshot</snapshot-directory>
         <trash-directory system-property="test.persistence.trash.dir">target/store-bdb-trash</trash-directory>
       </persistence-environment>

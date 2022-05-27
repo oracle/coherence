@@ -152,9 +152,21 @@ public class PersistenceModeTests
         testPersistenceModeProperty("testOnDemandProperties", "coherence.distributed.persistence.mode", "on-demand");
         }
 
+    /**
+     * Test the default persistence properties for active-backup mode.
+     *
+     * @since 22.06
+     */
+    @Test
+    public void testActiveBackupProperties()
+        {
+        testPersistenceModeProperty("testActiveBackupProperties", "coherence.distributed.persistence.mode", "active-backup");
+        }
+
     private void testPersistenceModeProperty(String sServer, String sProperty, String sMode)
         {
         File fileActive   = null;
+        File fileBackup   = null;
         File fileSnapshot = null;
         File fileTrash    = null;
 
@@ -169,6 +181,7 @@ public class PersistenceModeTests
         try
             {
             fileActive   = FileHelper.createTempDir();
+            fileBackup   = FileHelper.createTempDir();
             fileSnapshot = FileHelper.createTempDir();
             fileTrash    = FileHelper.createTempDir();
 
@@ -185,6 +198,17 @@ public class PersistenceModeTests
                     props.setProperty("coherence.distributed.persistence.active.dir", fileActive.getAbsolutePath());
                     props.setProperty("coherence.distributed.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
                     props.setProperty("coherence.distributed.persistence.trash.dir", fileTrash.getAbsolutePath());
+                    }
+                if (sMode.equals("active-backup"))
+                    {
+                    props.setProperty("coherence.distributed.persistence.active.dir", fileActive.getAbsolutePath());
+                    props.setProperty("coherence.distributed.persistence.backup.dir", fileBackup.getAbsolutePath());
+                    props.setProperty("coherence.distributed.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+                    props.setProperty("coherence.distributed.persistence.trash.dir", fileTrash.getAbsolutePath());
+                    System.setProperty("coherence.distributed.persistence.active.dir", fileActive.getAbsolutePath());
+                    System.setProperty("coherence.distributed.persistence.backup.dir", fileBackup.getAbsolutePath());
+                    System.setProperty("coherence.distributed.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+                    System.setProperty("coherence.distributed.persistence.trash.dir", fileTrash.getAbsolutePath());
                     }
                 else if (sMode.equals("on-demand"))
                     {
@@ -241,8 +265,10 @@ public class PersistenceModeTests
             }
         finally
             {
+            cache.destroy();
             stopCacheServer(sServer);
             fileActive.delete();
+            fileBackup.delete();
             fileSnapshot.delete();
             fileTrash.delete();
             }
