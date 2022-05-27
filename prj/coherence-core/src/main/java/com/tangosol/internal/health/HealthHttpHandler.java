@@ -68,6 +68,7 @@ public class HealthHttpHandler
         router.addGet(HealthCheck.PATH_READY, this::ready);
         router.addGet(HealthCheck.PATH_STARTED, this::started);
         router.addGet(HealthCheck.PATH_LIVE, this::live);
+        router.addGet(HealthCheck.PATH_HEALTHZ, this::live);
         router.addGet(HealthCheck.PATH_SAFE, this::safe);
         router.addGet("/ha", this::safe);
 

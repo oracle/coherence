@@ -98,6 +98,7 @@ public class HealthCheckTests
             {
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_STARTED), is(200));
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_LIVE), is(200));
+            Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_HEALTHZ), is(200));
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_READY), is(200));
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, PATH_HA), is(200));
             }

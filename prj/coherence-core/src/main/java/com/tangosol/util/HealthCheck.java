@@ -115,6 +115,11 @@ public interface HealthCheck
     String PATH_LIVE = "/live";
 
     /**
+     * The http request path for the healthz endpoint.
+     */
+    String PATH_HEALTHZ = "/healthz";
+
+    /**
      * The http request path for the started endpoint.
      */
     String PATH_STARTED = "/started";
