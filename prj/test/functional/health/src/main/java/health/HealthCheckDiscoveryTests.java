@@ -6,7 +6,9 @@
  */
 package health;
 
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.SessionConfiguration;
@@ -30,6 +32,7 @@ public class HealthCheckDiscoveryTests
     @BeforeAll
     static void setup() throws Exception
         {
+        System.setProperty(ClusterName.PROPERTY, "HealthCheckDiscoveryTests");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
 
         CoherenceConfiguration config = CoherenceConfiguration.builder()
@@ -37,7 +40,7 @@ public class HealthCheckDiscoveryTests
             .withSession(SessionConfiguration.builder()
                 .named("Test")
                 .withScopeName("Test")
-                .withConfigUri("test-cache-config-two.xml")
+                .withConfigUri("test-cache-config.xml")
                 .build())
             .build();
 
@@ -71,7 +74,7 @@ public class HealthCheckDiscoveryTests
         HealthCheck healthCheckByName = optional.get();
         assertThat(healthCheckByName,  is(sameInstance(healthCheck)));
 
-        assertThat(registry.allHealthChecksReady(), is(true));
+        Eventually.assertDeferred(registry::allHealthChecksReady, is(true));
         assertThat(healthCheck.isReady(), is(true));
 
         assertThat(registry.allHealthChecksLive(), is(true));
