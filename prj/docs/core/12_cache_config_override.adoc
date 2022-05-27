@@ -1,0 +1,215 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Cache Configuration Override
+:description: Coherence Cache Configuration Override
+:keywords: coherence, config, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// they both serve a purpose, and the docs will look wrong if it is removed.
+== Cache Configuration Override
+
+Coherence 22.06 introduced cache configuration override similar to the Coherence Cluster override. The same way how Coherence Cluster override file specified, cache configuration override can be specified using "xml-override" attribute in the root element of the cache configuration which can be referred as a "base" cache configuration file whose elements now can be overriden by putting override file in classpath or module path and if the specified XML override file is found on classpath or a module path, it will be loaded by the Coherence at runtime and overrides base configuration based on each module's specific requirements.
+
+=== Coherence cache config xml snippet with "xml-override" attribute specified
+[source,xml]
+    <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+                  xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+                  xml-override="{coherence.cacheconfig.override cache-config-override.xml}">
+    ....
+    </cache-config>
+
+So based on above `xml-override` attribute specified, `cache-config-override.xml` is loaded and applied when found on the classpath or a module path of the application when no system property `coherence.cacheconfig.override` specified. And if `coherence.cacheconfig.override` is specified then XML override pointed by that system property is loaded and applied at runtime.
+
+=== Below are different scenarios or uses cases for overriding Coherence cache configuration.
+
+* Cache config override has "caching-scheme-mapping/cache-mapping" that already exist in base cache config with same "cache-name"
++
+--
+In this case, the "cache-mapping" element within "caching-scheme-mapping" will be overridden from the override file as shown in below example
+
+** Base xml:
+[source,xml]
+     <cache-mapping>
+        <cache-name>my-cache-*</cache-name>
+        <scheme-name>my-cache-scheme-parent</scheme-name>
+     </cache-mapping>
+
+** Override xml:
+[source,xml]
+     <cache-mapping>
+        <cache-name>my-cache-*</cache-name>
+        <scheme-name>my-cache-scheme-override</scheme-name>
+     </cache-mapping>
+
+** The effective <caching-scheme-mapping> element after XML override applied to base XML
+[source,xml]
+     <caching-scheme-mapping>
+        <cache-mapping>
+           <cache-name>my-cache-*</cache-name>
+           <scheme-name>my-cache-scheme-override</scheme-name>
+        </cache-mapping>
+     </caching-scheme-mapping>
+--
++
+* Cache config override has "caching-scheme-mapping/cache-mapping" that does not exist in base cache config
++
+--
+In this case, new <cache-mapping> element from override file prepend to other elements within "caching-scheme-mapping" as shown in below example
+
+** Base xml:
+[source,xml]
+     <cache-mapping>
+        <cache-name>my-cache-*</cache-name>
+        <scheme-name>my-cache-scheme-parent</scheme-name>
+     </cache-mapping>
+
+** Override xml:
+[source,xml]
+     <cache-mapping>
+        <cache-name>my-cache-override</cache-name>
+        <scheme-name>my-cache-scheme-override</scheme-name>
+     </cache-mapping>
+
+** The effective <caching-scheme-mapping> element after above XML override applied to base XML
+[source,xml]
+     <caching-scheme-mapping>
+        <cache-mapping>
+            <cache-name>my-cache-override</cache-name>
+            <scheme-name>my-cache-scheme-override</scheme-name>
+        </cache-mapping>
+        <cache-mapping>
+            <cache-name>my-cache-*</cache-name>
+            <scheme-name>my-cache-scheme-parent</scheme-name>
+        </cache-mapping>
+     </caching-scheme-mapping>
+--
++
+* Cache config override has "caching-scheme" with same "scheme-name" that exist in base configuration file
++
+--
+Only that "caching-scheme" with the given "scheme-name" will be merged with the relevant content from the override file as shown in below example
+
+** Base xml content:
+[source,xml]
+    <caching-schemes>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme</scheme-name>
+          <service-name>MyCache</service-name>
+          <backing-map-scheme>
+             <local-scheme>
+                <unit-calculator>BINARY</unit-calculator>
+             </local-scheme>
+          </backing-map-scheme>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>3</write-quorum>
+          </partitioned-quorum-policy-scheme>
+          <autostart>true</autostart>
+       </distributed-scheme>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme-two</scheme-name>
+          <service-name>MyCache2</service-name>
+       </distributed-scheme>
+    <caching-schemes>
+
+** Override xml content:
+[source,xml]
+    <caching-schemes>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme</scheme-name>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>1</write-quorum>
+          </partitioned-quorum-policy-scheme>
+       </distributed-scheme>
+    </caching-schemes>
+
+** The effective <caching-schemes> element after XML override applied
+[source,xml]
+    <caching-schemes>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme</scheme-name>
+          <service-name>MyCache</service-name>
+          <backing-map-scheme>
+             <local-scheme>
+                <unit-calculator>BINARY</unit-calculator>
+             </local-scheme>
+          </backing-map-scheme>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>1</write-quorum>
+          </partitioned-quorum-policy-scheme>
+          <autostart>true</autostart>
+       </distributed-scheme>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme-two</scheme-name>
+          <service-name>MyCache2</service-name>
+       </distributed-scheme>
+    <caching-schemes>
+--
++
+* Cache config override with "caching-schemes" without any "scheme-name"
++
+--
+All the type of that "caching-scheme" will be modified with the relevant content from the override file as shown in below example
+
+** Base xml content:
+[source,xml]
+    <caching-schemes>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme</scheme-name>
+          <service-name>MyCache</service-name>
+          <backing-map-scheme>
+             <local-scheme>
+                <unit-calculator>BINARY</unit-calculator>
+             </local-scheme>
+          </backing-map-scheme>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>3</write-quorum>
+          </partitioned-quorum-policy-scheme>
+          <autostart>true</autostart>
+       </distributed-scheme>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme-two</scheme-name>
+          <service-name>MyCache2</service-name>
+       </distributed-scheme>
+    <caching-schemes>
+
+** Override xml content:
+[source,xml]
+    <caching-schemes>
+       <distributed-scheme>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>1</write-quorum>
+          </partitioned-quorum-policy-scheme>
+       </distributed-scheme>
+    </caching-schemes>
+
+** The effective <caching-schemes> element after XML override applied
+[source,xml]
+    <caching-schemes>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme</scheme-name>
+          <service-name>MyCache</service-name>
+          <backing-map-scheme>
+             <local-scheme>
+                <unit-calculator>BINARY</unit-calculator>
+             </local-scheme>
+          </backing-map-scheme>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>1</write-quorum>
+          </partitioned-quorum-policy-scheme>
+          <autostart>true</autostart>
+       </distributed-scheme>
+       <distributed-scheme>
+          <scheme-name>my-cache-scheme-two</scheme-name>
+          <service-name>MyCache2</service-name>
+          <partitioned-quorum-policy-scheme>
+             <write-quorum>1</write-quorum>
+          </partitioned-quorum-policy-scheme>
+       </distributed-scheme>
+    <caching-schemes>
+--
++

@@ -2,7 +2,7 @@
     Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Overview
 :description: Coherence Core Improvements
@@ -79,6 +79,13 @@ Changes to partition backup management.
 TLS & SSL enhancements to use key and certificate files as an alternative to Java keystores.
 Supports refreshable keystores, keys and certificates.
 Adds extension points to allow custom keystore, key and certificate loaders.
+--
+
+[CARD]
+.Cache Configuration Override
+[icon=fa-file-code-o,link=docs/core/12_cache_config_override.adoc]
+--
+Overriding Cache Configuration Using XML Override file.
 --
 
 ====
