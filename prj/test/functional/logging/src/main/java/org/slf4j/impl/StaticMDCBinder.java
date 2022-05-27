@@ -6,7 +6,7 @@
  */
 package org.slf4j.impl;
 
-import org.slf4j.helpers.DebugMDCAdapter;
+import logging.impl.DebugMDCAdapter;
 
 import org.slf4j.spi.MDCAdapter;
 

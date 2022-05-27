@@ -21,7 +21,6 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 
@@ -40,6 +39,9 @@ public class JavaUtilLogLevelTests
         {
         System.setProperty("test.log.level", "9");
         System.setProperty("test.log", "jdk");
+
+        System.setProperty("coherence.override", "logging-coherence-override.xml");
+        System.setProperty("coherence.cacheconfig", "logging-cache-config.xml");
 
         Logger logger = m_logger = Logger.getLogger("Test");
         logger.addHandler(m_logHandler = new LogHandler());
@@ -74,7 +76,7 @@ public class JavaUtilLogLevelTests
         com.oracle.coherence.common.base.Logger.info(sMessage_info_1);
 
         // wait for the logger to wake
-        Eventually.assertThat(invoking(this).isLogged(sMessage_info_1), is(true));
+        Eventually.assertDeferred(() -> isLogged(sMessage_info_1), is(true));
         assertFalse(isLogged(sMessage_finest));
 
         // Change the Coherence log level - should have no effect on Java logger
@@ -86,7 +88,7 @@ public class JavaUtilLogLevelTests
         // INFO level message is logged
         com.oracle.coherence.common.base.Logger.info(sMessage_info_2);
 
-        Eventually.assertThat(invoking(this).isLogged(sMessage_info_2), is(true));
+        Eventually.assertDeferred(() -> isLogged(sMessage_info_2), is(true));
         assertFalse(isLogged(sMessage_finest));
 
         // Change the Java logging level
@@ -94,7 +96,7 @@ public class JavaUtilLogLevelTests
 
         // FINEST level message should be logged
         com.oracle.coherence.common.base.Logger.finest(sMessage_finest);
-        Eventually.assertThat(invoking(this).isLogged(sMessage_finest), is(true));
+        Eventually.assertDeferred(() -> isLogged(sMessage_finest), is(true));
         }
 
     @AfterClass
@@ -102,6 +104,8 @@ public class JavaUtilLogLevelTests
         {
         System.clearProperty("test.log.level");
         System.clearProperty("test.log");
+        System.clearProperty("coherence.override");
+        System.clearProperty("coherence.cacheconfig");
         }
 
     /**

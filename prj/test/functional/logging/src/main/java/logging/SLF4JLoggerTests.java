@@ -12,15 +12,14 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import logging.impl.DebugLogger;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.slf4j.LoggerFactory;
 
-import org.slf4j.helpers.DebugLogger;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -38,6 +37,8 @@ public class SLF4JLoggerTests
         {
         System.setProperty("test.log", "slf4j");
         System.setProperty("test.log.name", "SLF4J");
+        System.setProperty("coherence.override", "logging-coherence-override.xml");
+        System.setProperty("coherence.cacheconfig", "logging-cache-config.xml");
         }
 
     @BeforeClass
@@ -61,7 +62,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 0", 0);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Info SLF4J - This is log level 0\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Info SLF4J - This is log level 0\n"));
         }
 
     @Test
@@ -70,7 +71,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 1", 1);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Error SLF4J - This is log level 1\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Error SLF4J - This is log level 1\n"));
         }
 
     @Test
@@ -79,7 +80,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 2", 2);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Warn SLF4J - This is log level 2\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Warn SLF4J - This is log level 2\n"));
         }
 
     @Test
@@ -88,7 +89,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 3", 3);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Info SLF4J - This is log level 3\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Info SLF4J - This is log level 3\n"));
         }
 
     @Test
@@ -97,7 +98,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 4", 4);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Info SLF4J - This is log level 4\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Info SLF4J - This is log level 4\n"));
         }
 
     @Test
@@ -106,7 +107,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 5", 5);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Debug SLF4J - This is log level 5\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Debug SLF4J - This is log level 5\n"));
         }
 
     @Test
@@ -115,7 +116,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 6", 6);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Debug SLF4J - This is log level 6\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Debug SLF4J - This is log level 6\n"));
         }
 
     @Test
@@ -124,7 +125,7 @@ public class SLF4JLoggerTests
         DebugLogger logger = m_logger;
         CacheFactory.log(DebugLogger.CAPTURE_PREFIX + "This is log level 7", 7);
 
-        Eventually.assertThat(invoking(logger).getLogOutput(), is("Trace SLF4J - This is log level 7\n"));
+        Eventually.assertDeferred(() -> logger.getLogOutput(), is("Trace SLF4J - This is log level 7\n"));
         }
 
     // ----- data members ---------------------------------------------------

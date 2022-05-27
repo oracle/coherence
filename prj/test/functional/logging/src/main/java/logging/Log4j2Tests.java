@@ -25,7 +25,6 @@ import org.junit.Test;
 
 import java.io.StringWriter;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 
@@ -42,6 +41,9 @@ public class Log4j2Tests extends AbstractFunctionalTest
         {
         System.setProperty("test.log.level", "9");
         System.setProperty("test.log", "log4j2");
+
+        System.setProperty("coherence.override", "logging-coherence-override.xml");
+        System.setProperty("coherence.cacheconfig", "logging-cache-config.xml");
 
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config  = context.getConfiguration();
@@ -88,7 +90,7 @@ public class Log4j2Tests extends AbstractFunctionalTest
         Logger.info(sMessage_info);
 
         // wait for the logger to wake
-        Eventually.assertThat(invoking(this).isLogged(sMessage_info), is(true));
+        Eventually.assertDeferred(() -> isLogged(sMessage_info), is(true));
         assertFalse(isLogged(sMessage_finest));
         }
 
@@ -98,7 +100,7 @@ public class Log4j2Tests extends AbstractFunctionalTest
     @Test
     public void testStartedCluster()
         {
-        Eventually.assertThat(invoking(this).isLogged("log4j2: Started cluster"), is(true));
+        Eventually.assertDeferred(() -> isLogged("log4j2: Started cluster"), is(true));
         }
 
     @AfterClass
@@ -106,6 +108,8 @@ public class Log4j2Tests extends AbstractFunctionalTest
         {
         System.clearProperty("test.log.level");
         System.clearProperty("test.log");
+        System.clearProperty("coherence.override");
+        System.clearProperty("coherence.cacheconfig");
         }
 
     /**

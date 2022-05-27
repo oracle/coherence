@@ -47,7 +47,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -71,6 +70,9 @@ public class UnavailableTimeTests
         System.setProperty("test.log", "jdk");
         System.setProperty("test.log.level", "8");
         System.setProperty("test.log.name", "Unavailable");
+
+        System.setProperty("coherence.override", "logging-coherence-override.xml");
+        System.setProperty("coherence.cacheconfig", "logging-cache-config.xml");
 
         Logger rootLog = Logger.getLogger("");
         rootLog.setLevel( Level.ALL );
@@ -103,7 +105,7 @@ public class UnavailableTimeTests
             NamedCache<Integer, Person> cache = CacheFactory.getCache("dist-unavail-time");
             int nPartitions = ((PartitionedService) cache.getCacheService()).getPartitionCount();
 
-            Eventually.assertThat(invoking(handler).collectContaining("ASSIGN"), hasSize(1));
+            Eventually.assertDeferred(() -> handler.collectContaining("ASSIGN"), hasSize(1));
 
             // start second member to generate partition events
             Properties props = new Properties();
@@ -122,8 +124,8 @@ public class UnavailableTimeTests
             waitForServer(clusterMember1);
             waitForBalanced(cache.getCacheService());
 
-            Eventually.assertThat(invoking(handler).collectContaining("PRIMARY_TRANSFER_OUT"), hasSize(nPartitions / 2));
-            Eventually.assertThat(invoking(handler).collectContaining("BACKUP_TRANSFER_OUT"), hasSize(nPartitions / 2));
+            Eventually.assertDeferred(() -> handler.collectContaining("PRIMARY_TRANSFER_OUT"), hasSize(nPartitions / 2));
+            Eventually.assertDeferred(() -> handler.collectContaining("BACKUP_TRANSFER_OUT"), hasSize(nPartitions / 2));
 
             // generate index build messages
             for (int i = 0; i < 1000; i++)
@@ -137,7 +139,7 @@ public class UnavailableTimeTests
             Filter filter = new EqualsFilter<>(Person::getBirthYear, 1919);
             cache.entrySet(filter);
 
-            Eventually.assertThat(invoking(handler).collectContaining("INDEX_BUILD"), hasSize(nPartitions / 2));
+            Eventually.assertDeferred(() -> handler.collectContaining("INDEX_BUILD"), hasSize(nPartitions / 2));
 
             handler.flush();
 
@@ -168,12 +170,12 @@ public class UnavailableTimeTests
             PartitionedService service = (PartitionedService) cache.getCacheService();
             Member             member  = service.getCluster().getLocalMember();
             // wait for re-distribution
-            Eventually.assertThat(invoking(service).getOwnedPartitions(member).cardinality(), is(nPartitions));
+            Eventually.assertDeferred(() -> service.getOwnedPartitions(member).cardinality(), is(nPartitions));
 
-            Eventually.assertThat(invoking(handler).collectContaining("RESTORE"), hasSize(nPartitions / 2));
+            Eventually.assertDeferred(() -> handler.collectContaining("RESTORE"), hasSize(nPartitions / 2));
             // sleep to ensure index build gets performed
             Base.sleep(3000L);
-            Eventually.assertThat(invoking(handler).collectContaining("INDEX_BUILD"), hasSize(nPartitions / 2));
+            Eventually.assertDeferred(() -> handler.collectContaining("INDEX_BUILD"), hasSize(nPartitions / 2));
             }
         finally
             {
@@ -193,7 +195,7 @@ public class UnavailableTimeTests
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateUnbalanced(), is(0), within(300, TimeUnit.SECONDS));
+        Eventually.assertDeferred(() -> serviceReal.calculateUnbalanced(), is(0), within(300, TimeUnit.SECONDS));
         }
 
     // ----- inner class: LogHandler ----------------------------------------

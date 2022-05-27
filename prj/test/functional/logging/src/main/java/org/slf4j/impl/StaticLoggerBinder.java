@@ -6,10 +6,10 @@
  */
 package org.slf4j.impl;
 
+import logging.impl.DebugLoggerFactory;
+
 import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
-
-import org.slf4j.helpers.DebugLoggerFactory;
 
 import org.slf4j.spi.LoggerFactoryBinder;
 
