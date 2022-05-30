@@ -5,9 +5,6 @@
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
-import com.oracle.coherence.common.base.Logger;
-import com.oracle.coherence.common.internal.util.HeapDump;
-
 
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.RequestRouter;
@@ -57,8 +54,6 @@ public class ClusterMemberResource
 
         router.addPost(sPathRoot, this::update);
         router.addPost(sPathRoot + "/{" + OPERATION_NAME + "}", this::executeOperation);
-//        router.addPost(sPathRoot + "/" + MEMBER_STATE, this::logMemberState);
-//        router.addPost(sPathRoot + "/" + MEMBER_DUMP_HEAP, this::dumpHeap);
         router.addPost(sPathRoot + "/" + MEMBER_STATE, new LogMemberStateHandler());
         router.addPost(sPathRoot + "/" + MEMBER_DUMP_HEAP, new DumpHeapHandler());
         router.addPost(sPathRoot + "/" + NETWORK_STATS + "/trackWeakest", this::trackWeakestMember);
@@ -229,13 +224,15 @@ public class ClusterMemberResource
                 "logNodeState", null, null);
         }
 
+    /**
+     * {@link RequestRouter.RequestHandler} to call "logNodeState" operation on NodeMBean.
+     */
     public class LogMemberStateHandler
             implements RequestRouter.RequestHandler
         {
         @Override
         public Response handle(HttpRequest request)
             {
-Logger.err("**** Entered LogMemberStateHandler");
             String sMemberKey = request.getFirstPathParameter(MEMBER_KEY);
             return executeMBeanOperation(request, getQuery(request, sMemberKey),
                     "logNodeState", null, null);
@@ -243,32 +240,14 @@ Logger.err("**** Entered LogMemberStateHandler");
         }
 
     /**
-     * Call "dumpHeap" operation on NodeMBean.
-     *
-     * {@link HeapDump#dumpHeap()} documents system properties
-     * to specify tmp directory to generate the heapdump-<i>uniqueid</i>.hprof file.
-     *
-     * @return the response object
+     * {@link RequestRouter.RequestHandler} to call "dumpHeap" operation on NodeMBean.
      */
-    public Response dumpHeap(HttpRequest request)
-        {
-Logger.err("**** Entered dumpHeap");
-        String sMemberKey = request.getFirstPathParameter(MEMBER_KEY);
-Logger.err("**** Entered dumpHeap member=" + sMemberKey);
-        String[] asSignature = {String.class.getName()};
-        Object[] aoArguments = {null};
-
-        // dynamically named hprof file, "heapdump-*.hprof" saved in a specified tmp directory
-        return executeMBeanOperation(request, getQuery(request, sMemberKey), "dumpHeap", aoArguments, asSignature);
-        }
-
     public class DumpHeapHandler
             implements RequestRouter.RequestHandler
         {
         @Override
         public Response handle(HttpRequest request)
             {
-Logger.err("**** Entered DumpHeapHandler");
             String sMemberKey = request.getFirstPathParameter(MEMBER_KEY);
             String[] asSignature = {String.class.getName()};
             Object[] aoArguments = {null};
