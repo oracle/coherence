@@ -728,6 +728,68 @@
         }
       }
     },
+    "/management/coherence/cluster/members/{memberIdentifier}/state": {
+      "get": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Get a get a full thread dump for the specified cluster member",
+        "description": "Use this endpoint to get a full thread dump and outstanding polls for the services running on the node.",
+        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/state GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the thread dump information",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/members/{memberIdentifier}/environment": {
+      "get": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "View JVM details and system properties for the specified cluster member",
+        "description": "Use this endpoint to retrieve environment information for the specified cluster member. This includes details of the JVM as well as system properties.",
+        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/environment GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the environment information",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "environment": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/reporters": {
       "get": {
         "tags": [
