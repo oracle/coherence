@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -131,9 +131,7 @@ public class PagedTopicPublisher<V>
 
         f_listenerNotification = new SimpleMapListener<NotificationKey, int[]>()
                             .addDeleteHandler(evt -> onNotification(evt.getOldValue()))
-                            .synchronous()
-                            .versioned();
-
+                            .synchronous();
         f_filterListenerNotification = f_nNotifyPostFull == 0
                                        ? null
                                        : new InKeySetFilter<>(/*filter*/ null, pagedTopicCaches.getPartitionNotifierSet(f_nNotifyPostFull));

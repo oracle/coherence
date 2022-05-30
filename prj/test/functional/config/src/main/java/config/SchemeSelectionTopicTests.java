@@ -19,6 +19,7 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.TopicService;
 import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.net.topic.NamedTopic;
@@ -74,7 +75,7 @@ public class SchemeSelectionTopicTests
     public void testDistributedTopicTest()
         {
         NamedTopic<String> topic = validateNamedTopic("topic-dist-backing-local1",
-                                             CacheService.TYPE_DISTRIBUTED);
+                                             TopicService.TYPE_DEFAULT);
 
         assertNotNull(topic);
 
@@ -103,7 +104,7 @@ public class SchemeSelectionTopicTests
         {
         String TOPIC_NAME = "topic-with-durable-subscriber42";
         NamedTopic<String> topic = validateNamedTopic(TOPIC_NAME,
-                CacheService.TYPE_DISTRIBUTED);
+                TopicService.TYPE_DEFAULT);
 
         assertNotNull(topic);
 
@@ -136,7 +137,7 @@ public class SchemeSelectionTopicTests
     public void testDistributedTopicTestDefaults()
         {
         NamedTopic<String> topic = validateNamedTopic("topic-dist-defaults",
-                CacheService.TYPE_DISTRIBUTED);
+                TopicService.TYPE_DEFAULT);
 
         assertNotNull(topic);
 
@@ -163,7 +164,7 @@ public class SchemeSelectionTopicTests
     public void testTopicTestDefaults()
         {
         NamedTopic<String> topic = validateNamedTopic("all-defaulted-topic",
-            CacheService.TYPE_DISTRIBUTED);
+            TopicService.TYPE_DEFAULT);
 
         assertNotNull(topic);
 
@@ -196,7 +197,7 @@ public class SchemeSelectionTopicTests
 
 
         NamedTopic<String> topic = validateNamedTopic("same",
-                CacheService.TYPE_DISTRIBUTED);
+                TopicService.TYPE_DEFAULT);
         assertNotNull(topic);
 
         PagedTopic.Dependencies config = getTopicDependencies("same");
@@ -220,7 +221,7 @@ public class SchemeSelectionTopicTests
         {
         final String             COLLECTION_NAME = "topic-retain-dist-backing-local1";
 
-        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, CacheService.TYPE_DISTRIBUTED);
+        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, TopicService.TYPE_DEFAULT);
 
         assertNotNull(topic);
 
@@ -245,7 +246,7 @@ public class SchemeSelectionTopicTests
         {
         final String             COLLECTION_NAME = "topic-override-dist-backing-local1";
 
-        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, CacheService.TYPE_DISTRIBUTED);
+        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, TopicService.TYPE_DEFAULT);
 
         assertNotNull(topic);
 
@@ -263,7 +264,7 @@ public class SchemeSelectionTopicTests
     @Test
     public void validateDefaultCacheServiceDiffersFromDefaultTopicService()
         {
-        NamedTopic topic = validateNamedTopic("all-defaulted-topic", CacheService.TYPE_DISTRIBUTED);
+        NamedTopic topic = validateNamedTopic("all-defaulted-topic", TopicService.TYPE_DEFAULT);
         NamedCache cache = validateNamedCache("all-defaulted-cache", CacheService.TYPE_DISTRIBUTED);
 
         System.out.println("****************************** all-default-topic default service name is " + topic.getService().getInfo().getServiceName());

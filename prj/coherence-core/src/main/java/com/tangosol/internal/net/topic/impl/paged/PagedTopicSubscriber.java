@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -139,7 +139,7 @@ public class PagedTopicSubscriber<V>
      * @throws NullPointerException if the {@code topic} or {@code caches} parameters are {@code null}
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected <T> PagedTopicSubscriber(PagedTopic<?> topic, PagedTopicCaches caches, Option<? super T, V>... options)
+    public <T> PagedTopicSubscriber(NamedTopic<?> topic, PagedTopicCaches caches, Option<? super T, V>... options)
         {
         f_topic  = Objects.requireNonNull(topic);
         m_caches = Objects.requireNonNull(caches, "The TopicCaches parameter cannot be null");
@@ -2003,7 +2003,7 @@ public class PagedTopicSubscriber<V>
      * @param pagedTopicCaches   the associated caches
      * @param subscriberGroupId  the group to destroy
      */
-    static void destroy(PagedTopicCaches pagedTopicCaches, SubscriberGroupId subscriberGroupId)
+    public static void destroy(PagedTopicCaches pagedTopicCaches, SubscriberGroupId subscriberGroupId)
         {
         if (pagedTopicCaches.isActive())
             {

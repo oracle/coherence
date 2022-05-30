@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -37,11 +37,11 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.Service;
+import com.tangosol.net.TopicService;
 import com.tangosol.net.ValueTypeAssertion;
 
 import com.tangosol.net.cache.LocalCache;
@@ -84,6 +84,17 @@ public class PagedTopicScheme
         {
         // override default service type name of "DistributedCache"
         return DEFAULT_SERVICE_NAME;
+        }
+
+    // ----- ServiceScheme interface  ---------------------------------------
+
+    /**
+     * Return the service type.
+     */
+    @Override
+    public String getServiceType()
+        {
+        return TopicService.TYPE_DEFAULT;
         }
 
     // ----- TopicScheme methods --------------------------------------------
@@ -488,10 +499,8 @@ public class PagedTopicScheme
                                   ParameterResolver resolver, Dependencies deps)
         {
         String           sQueueName  = deps.getCacheName();
-        CacheService     service     = ensureConfiguredService(resolver, deps);
-        PagedTopicCaches topicCaches = new PagedTopicCaches(sQueueName, service);
-
-        return new PagedTopic<>(topicCaches);
+        TopicService     service     = ensureConfiguredService(resolver, deps);
+        return service.ensureTopic(sQueueName, deps.getClassLoader());
         }
 
     // ----- helper methods -------------------------------------------------
@@ -504,13 +513,13 @@ public class PagedTopicScheme
      * @param resolver       the ParameterResolver
      * @param deps           the {@link MapBuilder} dependencies
      *
-     * @return corresponding CacheService for this scheme
+     * @return corresponding TopicService for this scheme
      */
-    public CacheService ensureConfiguredService(ParameterResolver resolver, Dependencies deps)
+    public TopicService ensureConfiguredService(ParameterResolver resolver, Dependencies deps)
         {
         ClassLoader             loader       = deps.getClassLoader();
         String                  sTopicName   = PagedTopicCaches.Names.getTopicName(deps.getCacheName());
-        CacheService            service      = getOrEnsureService(deps);
+        TopicService            service      = getOrEnsureService(deps);
         ResourceRegistry        registry     = service.getResourceRegistry();
         PagedTopic.Dependencies dependencies = registry.getResource(PagedTopic.Dependencies.class, sTopicName);
 
@@ -528,12 +537,12 @@ public class PagedTopicScheme
      * Get or ensure service corresponding to this scheme.
      *
      * Optimized to avoid ensureService synchronization on cluster and service
-     * when possible. This behavoir is required on server side. Intermittent deadlock occurs
+     * when possible. This behavior is required on server side. Intermittent deadlock occurs
      * calling ensureService on server side from inside service implementation.
      *
-     * @return {@link CacheService}
+     * @return {@link TopicService}
      */
-    private CacheService getOrEnsureService(Dependencies deps)
+    private TopicService getOrEnsureService(Dependencies deps)
         {
         ExtensibleConfigurableCacheFactory eccf =
                 (ExtensibleConfigurableCacheFactory) deps.getConfigurableCacheFactory();
@@ -545,14 +554,14 @@ public class PagedTopicScheme
             service = eccf.ensureService(this);
             }
 
-        if (service instanceof CacheService)
+        if (service instanceof TopicService)
             {
-            return (CacheService) service;
+            return (TopicService) service;
             }
         else
             {
             throw new IllegalArgumentException("Error: the configured service " + service.getInfo().getServiceName()
-                    + " is not a CacheService");
+                    + " is not a TopicService");
             }
         }
 
