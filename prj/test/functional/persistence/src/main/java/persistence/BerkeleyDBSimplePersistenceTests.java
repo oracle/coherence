@@ -115,7 +115,7 @@ public class BerkeleyDBSimplePersistenceTests
     public void testBackupPersistence2()
             throws IOException, MBeanException
         {
-        testBackupPersistence("active-backup", 2);
+        testBackupPersistence("active-backup", 2, "simple-persistent");
         }
 
     /**
@@ -136,7 +136,7 @@ public class BerkeleyDBSimplePersistenceTests
     public void testBackupPersistence4()
             throws IOException, MBeanException
         {
-        testBackupPersistence("active-backup", 4);
+        testBackupPersistence("active-backup", 4, "simple-persistent");
         }
 
     /**
@@ -381,7 +381,7 @@ public class BerkeleyDBSimplePersistenceTests
     /**
      * Test N server restart with backup persistence.
      */
-    public void testBackupPersistence(String sMode, int nServers)
+    public void testBackupPersistence(String sMode, int nServers, String sCacheName)
             throws IOException, MBeanException
         {
         File fileSnapshot = FileHelper.createTempDir();
@@ -430,8 +430,7 @@ public class BerkeleyDBSimplePersistenceTests
         setFactory(factory);
 
         final String sServer = "testBackupPersistence" + nServers;
-        final String sPersistentCache = "simple-persistent";
-        NamedCache cache = getNamedCache(sPersistentCache);
+        NamedCache cache = getNamedCache(sCacheName);
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
         Cluster cluster = CacheFactory.ensureCluster();
 
@@ -461,6 +460,9 @@ public class BerkeleyDBSimplePersistenceTests
 
             // always assert the size to ensure we have not lost data
             assertEquals(cache.size(), 5000);
+
+            // populate with some data, on non-default cache to trigger extents init
+            PersistenceTestHelper.populateData(getNamedCache("simple-persistent-new"), 5000);
 
             String sService = service.getInfo().getServiceName();
 
@@ -501,7 +503,7 @@ public class BerkeleyDBSimplePersistenceTests
 
             try
                 {
-                cache = getNamedCache(sPersistentCache);
+                cache = getNamedCache(sCacheName);
                 cache.size();
                 }
             catch (Throwable t)

@@ -253,6 +253,7 @@ public class PersistenceEnvironmentParamBuilder
         StringBuilder sb = new StringBuilder()
           .append("\n        Mode: ").append(m_sMode)
           .append("\n        Active Location: ").append(m_sActive)
+          .append("\n        Backup Location: ").append(m_sBackup)
           .append("\n        Events Location: ").append(m_sEvents)
           .append("\n        Snapshot Location:").append(m_sSnapshot)
           .append("\n        Trash Location:").append(m_sTrash);
