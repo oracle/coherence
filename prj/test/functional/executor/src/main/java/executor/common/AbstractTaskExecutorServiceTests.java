@@ -19,11 +19,7 @@ import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
-import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
-import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
-import com.oracle.coherence.concurrent.executor.ClusteredProperties;
-import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
@@ -40,7 +36,9 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
-import com.tangosol.net.NamedCache;
+import com.oracle.coherence.concurrent.executor.util.Caches;
+
+import com.tangosol.net.CacheService;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
@@ -71,8 +69,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import java.util.function.Function;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -142,15 +138,11 @@ public abstract class AbstractTaskExecutorServiceTests
     protected abstract ClusteredExecutorService createExecutorService();
 
     /**
-     * Obtain the specified {@link NamedCache}.
+     * Return the {@link CacheService} used by the executor service.
      *
-     * @param sName  the cache name
-     * @param <K>    the key type
-     * @param <V>    the value type
-     *
-     * @return the specified {@link NamedCache} or {@code null} if not found
+     * @return the {@link CacheService} used by the executor service
      */
-    public abstract <K, V> NamedCache<K, V> getNamedCache(String sName);
+    protected abstract CacheService getCacheService();
 
     /**
      * Obtain the {@link CoherenceCluster} under test.
@@ -256,13 +248,13 @@ public abstract class AbstractTaskExecutorServiceTests
      */
     public void shouldExecuteAndCompleteTaskWithMultipleResults()
         {
-        final int       NUM_RESULTS = 10000;
+        final int        NUM_RESULTS = 10000;
         ExecutorService localES     = Executors.newSingleThreadExecutor();
 
         try
             {
             RecordingSubscriber<Integer> subscriber      = new RecordingSubscriber<>();
-            final int                    cExpectedResult = NUM_RESULTS * (getInitialExecutorCount() + 1);
+            final int                     cExpectedResult = NUM_RESULTS * (getInitialExecutorCount() + 1);
 
             m_taskExecutorService.register(localES);
             m_taskExecutorService.orchestrate(new MultipleResultsTask(NUM_RESULTS))
@@ -2158,11 +2150,14 @@ public abstract class AbstractTaskExecutorServiceTests
      */
     protected void dumpExecutorCacheStates()
         {
-        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
-                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
-                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
-                                      getNamedCache(ClusteredProperties.CACHE_NAME));
-        Utils.heapdump(getCluster());
+        CacheService service = getCacheService();
+
+        Utils.dumpExecutorCacheStates(Caches.executors(service),
+                                      Caches.assignments(service),
+                                      Caches.tasks(service),
+                                      Caches.properties(service));
+
+        //Utils.heapdump(getCluster());
         }
 
     // ----- inner class: SleeperTask ---------------------------------------

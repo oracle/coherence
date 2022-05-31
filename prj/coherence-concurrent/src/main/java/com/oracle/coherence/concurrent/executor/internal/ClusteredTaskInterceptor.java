@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.internal;
@@ -14,6 +14,8 @@ import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
 
 import com.oracle.coherence.concurrent.executor.options.Debugging;
+
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -69,6 +71,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author bo, lh
  * @since 21.12
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ClusteredTaskInterceptor
         implements EventInterceptor
     {
@@ -110,6 +113,7 @@ public class ClusteredTaskInterceptor
      * @param sequence  the sequence
      * @param key       the task key
      */
+    @SuppressWarnings("unused")
     protected synchronized void addKey(LongArray<String> keyMap, long sequence, String key)
         {
         keyMap.set(sequence, key);
@@ -155,7 +159,7 @@ public class ClusteredTaskInterceptor
             }
 
         PartitionSet partsNew;
-        boolean      fRemoved = false;
+        boolean      fRemoved;
 
         do
             {
@@ -187,6 +191,7 @@ public class ClusteredTaskInterceptor
      *
      * @return the {@link Task} sequence number
      */
+    @SuppressWarnings("unused")
     public long getSequence(int nPartitionId)
         {
         return f_sequences.get(nPartitionId);
@@ -211,6 +216,7 @@ public class ClusteredTaskInterceptor
      *
      * @return the reset {@link Task} sequence number
      */
+    @SuppressWarnings("unused")
     public long resetSequence(int nPartitionId)
         {
         return f_sequences.getAndSet(nPartitionId, 0);
@@ -221,6 +227,7 @@ public class ClusteredTaskInterceptor
      *
      * @return the last partition ID processed
      */
+    @SuppressWarnings("unused")
     public int getLastPartitionId()
         {
         return m_nLastPartitionId;
@@ -259,7 +266,7 @@ public class ClusteredTaskInterceptor
             }
         else if (event instanceof TransferEvent)
             {
-            setBinaryEntries = ((TransferEvent) event).getEntries().get(ClusteredTaskManager.CACHE_NAME);
+            setBinaryEntries = ((TransferEvent) event).getEntries().get(Caches.TASKS_CACHE_NAME);
 
             if (setBinaryEntries == null)
                 {
@@ -283,10 +290,6 @@ public class ClusteredTaskInterceptor
                     else if (binaryEntry.getValue() == null)
                         {
                         type = EntryEvent.Type.REMOVING;
-                        }
-                    else
-                        {
-                        type = EntryEvent.Type.UPDATING;
                         }
                     }
                 else if (((TransactionEvent) event).getType() == TransactionEvent.Type.COMMITTED)
@@ -439,8 +442,7 @@ public class ClusteredTaskInterceptor
                                     int        nBatchSize = 0;
                                     int        nMaxSize   = getBatchMax();
                                     Set        setTasks   = new HashSet();
-                                    NamedCache taskCache  = f_cacheService
-                                            .ensureCache(ClusteredTaskManager.CACHE_NAME, null);
+                                    NamedCache taskCache  = Caches.tasks(getCacheService());
 
                                     int          nPidLast      = m_nLastPartitionId;
                                     PartitionSet partsPending  = f_atomicPartsPending.get();
@@ -592,6 +594,7 @@ public class ClusteredTaskInterceptor
          *
          * @param desired   the desired state
          */
+        @SuppressWarnings("unused")
         public SetTaskStateProcessor(ClusteredTaskManager.State desired)
             {
             m_previous = null;

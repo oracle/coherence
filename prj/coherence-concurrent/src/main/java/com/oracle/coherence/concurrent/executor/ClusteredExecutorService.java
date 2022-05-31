@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -23,13 +23,19 @@ import com.oracle.coherence.concurrent.executor.tasks.internal.RunnableWithResul
 import com.oracle.coherence.concurrent.executor.tasks.internal.ScheduledCallableTask;
 import com.oracle.coherence.concurrent.executor.tasks.internal.ScheduledRunnableTask;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
+
+import com.tangosol.internal.tracing.Scope;
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Session;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.DaemonThreadFactory;
 
 import com.tangosol.util.extractor.ReflectionExtractor;
@@ -92,7 +98,7 @@ public class ClusteredExecutorService
      */
     public ClusteredExecutorService(ConfigurableCacheFactory cacheFactory)
         {
-        init(cacheFactory.ensureCache(ClusteredAssignment.CACHE_NAME, null).getCacheService());
+        init(Caches.assignments(cacheFactory).getCacheService());
         }
 
     /**
@@ -102,7 +108,7 @@ public class ClusteredExecutorService
      */
     public ClusteredExecutorService(Session session)
         {
-        init(session.getCache(ClusteredAssignment.CACHE_NAME).getCacheService());
+        init(Caches.assignments(session).getCacheService());
         }
 
 
@@ -221,14 +227,14 @@ public class ClusteredExecutorService
     @Override
     public <R> Task.Coordinator<R> acquire(String sTaskId)
         {
-        if (getCacheService().ensureCache(ClusteredTaskManager.CACHE_NAME,
-                                          null).containsKey(sTaskId))
+        CacheService service = getCacheService();
+
+        if (Caches.tasks(service).containsKey(sTaskId))
             {
-            ClusteredTaskManager manager = (ClusteredTaskManager) getCacheService()
-                    .ensureCache(ClusteredTaskManager.CACHE_NAME, null).get(sTaskId);
+            ClusteredTaskManager manager = (ClusteredTaskManager) Caches.tasks(service).get(sTaskId);
 
             ClusteredTaskCoordinator<R> coordinator =
-                    new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService());
+                    new ClusteredTaskCoordinator<>(service, manager, getScheduledExecutorService());
 
             if (manager.isCompleted() && manager.getRetainDuration() != null)
                 {
@@ -507,28 +513,34 @@ public class ClusteredExecutorService
     @Override
     public <T> Future<T> submit(Remote.Callable<T> task)
         {
-        if (task == null) throw new NullPointerException();
-        CESRunnableFuture<T> ftask = new CESRunnableFuture<>(task);
-        execute(ftask);
-        return ftask;
+        Objects.requireNonNull(task);
+
+        CESRunnableFuture<T> futureTask = new CESRunnableFuture<>(task);
+        execute(futureTask);
+
+        return futureTask;
         }
 
     @Override
     public <T> Future<T> submit(Remote.Runnable task, T result)
         {
-        if (task == null) throw new NullPointerException();
-        CESRunnableFuture<T> ftask = new CESRunnableFuture<>(task, result);
-        execute(ftask);
-        return ftask;
+        Objects.requireNonNull(task);
+
+        CESRunnableFuture<T> futureTask = new CESRunnableFuture<>(task, result);
+        execute(futureTask);
+
+        return futureTask;
         }
 
     @Override
     public Future<?> submit(Remote.Runnable task)
         {
-        if (task == null) throw new NullPointerException();
-        CESRunnableFuture<Void> ftask = new CESRunnableFuture<>(task, null);
-        execute(ftask);
-        return ftask;
+        Objects.requireNonNull(task);
+
+        CESRunnableFuture<Void> futureTask = new CESRunnableFuture<>(task, null);
+        execute(futureTask);
+
+        return futureTask;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -688,7 +700,7 @@ public class ClusteredExecutorService
      * @param strategy             the {@link ExecutionStrategy} for this task
      * @param optionsByType        the {@link OptionsByType} to be used
      * @param properties           the {@link Task.Properties} for this task
-     * @param collector            the {@link Task.Collector} to be used to collect result
+     * @param collector            the {@link Task.Collector} to be used to collect the result
      * @param completionPredicate  the completion {@link Remote.Predicate}
      * @param completionRunnable   the {@link Task.CompletionRunnable} to call when the task is complete
      * @param retainDuration       the {@link Duration} to retain a {@link Task} after it is complete
@@ -726,19 +738,35 @@ public class ClusteredExecutorService
             completionPredicate = Predicates.never();
             }
 
-        // create a task manager for the task
-        final ClusteredTaskManager<T, A, R> manager =
-                new ClusteredTaskManager<>(sTaskId, task, strategy, collector, completionPredicate, completionRunnable,
-                        retainDuration, optionsByType);
+        Span.Builder builder       = TracingHelper.newSpan("Task.Submit")
+                                         .withMetadata(Span.Type.COMPONENT.key(), "ExecutorService");
+        Span         executionSpan = builder.startSpan();
 
-        ClusteredProperties clusteredProperties = null;
-        if (properties != null)
+        try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
             {
-            clusteredProperties = new ClusteredProperties(sTaskId, m_cacheService, (TaskProperties) properties);
-            }
+            // create a task manager for the task
+            ClusteredTaskManager<T, A, R> manager = new ClusteredTaskManager<>(sTaskId, task, strategy, collector,
+                                                                               completionPredicate, completionRunnable,
+                                                                               retainDuration, optionsByType);
 
-        return new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService(),
-                clusteredProperties, subscribers);
+            ClusteredProperties clusteredProperties = null;
+            if (properties != null)
+                {
+                clusteredProperties = new ClusteredProperties(sTaskId, m_cacheService, (TaskProperties) properties);
+                }
+
+            return new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService(),
+                                                  clusteredProperties, subscribers);
+            }
+        catch (Exception e)
+            {
+            TracingHelper.augmentSpanWithErrorDetails(executionSpan, true, e);
+            throw Base.ensureRuntimeException(e);
+            }
+        finally
+            {
+            executionSpan.end();
+            }
         }
 
     /**
@@ -757,8 +785,7 @@ public class ClusteredExecutorService
             if ((((DistributedCacheService) m_cacheService).isLocalStorageEnabled()))
                 {
                 // establish indexes for Executor assignments
-                cacheService.ensureCache(ClusteredAssignment.CACHE_NAME, null)
-                    .addIndex(new ReflectionExtractor("getExecutorId"), true, null);
+                Caches.assignments(cacheService).addIndex(new ReflectionExtractor("getExecutorId"), true, null);
                 }
             }
         }

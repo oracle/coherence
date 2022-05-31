@@ -9,7 +9,7 @@
               xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
   <user-type-list>
-    <!-- by default just include coherence POF user types -->
+    <!-- by default, just include coherence POF user types -->
     <include>coherence-concurrent-pof-config.xml</include>
 
     <!-- Coherence ExecutorService Test POF Types 1501-1599 -->

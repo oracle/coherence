@@ -2,11 +2,13 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -35,6 +37,7 @@ import java.util.Objects;
  * @author bo, lh
  * @since 21.12
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ClusteredProperties
         implements Task.Properties, ExternalizableLite, PortableObject
     {
@@ -67,13 +70,12 @@ public class ClusteredProperties
      * @param service     the {@link CacheService} used by the {@link Task}
      * @param properties  the properties to initialize
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public ClusteredProperties(String sTaskId, CacheService service, TaskProperties properties)
         {
         m_sTaskId = sTaskId;
         m_service = service;
 
-        NamedCache<PropertyKey, PropertyValue> propertyCache = service.ensureCache(CACHE_NAME, null);
+        NamedCache<PropertyKey, PropertyValue> propertyCache = Caches.properties(service);
         for (Object o : properties.getProperties().entrySet())
             {
             Map.Entry entry = (Map.Entry) o;
@@ -83,14 +85,13 @@ public class ClusteredProperties
 
     // ----- Task.Properties interface --------------------------------------
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public <V extends Serializable> V get(String sKey)
         {
         if (m_service != null)
             {
-            NamedCache propertyCache = m_service.ensureCache(CACHE_NAME, null);
-            PropertyValue value = (PropertyValue) propertyCache.get(new PropertyKey(m_sTaskId, sKey));
+            NamedCache<PropertyKey, PropertyValue> propertyCache = Caches.properties(getCacheService());
+            PropertyValue value = propertyCache.get(new PropertyKey(m_sTaskId, sKey));
 
             return value == null ? null : (V) value.getValue();
             }
@@ -98,13 +99,12 @@ public class ClusteredProperties
         return null;
         }
 
-    @SuppressWarnings({"unchecked"})
     @Override
     public <V extends Serializable> V put(String sKey, V value)
         {
         if (m_service != null)
             {
-            NamedCache<PropertyKey, PropertyValue> propertyCache = m_service.ensureCache(CACHE_NAME, null);
+            NamedCache<PropertyKey, PropertyValue> propertyCache = Caches.properties(getCacheService());
 
             PropertyValue oldValue = propertyCache.put(new PropertyKey(m_sTaskId, sKey),
                     new PropertyValue(m_sTaskId, value));
@@ -150,6 +150,18 @@ public class ClusteredProperties
         {
         out.writeString(0, m_sTaskId);
         out.writeObject(1, m_service);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return the {@link CacheService} used by this executor service.
+     *
+     * @return the {@link CacheService} used by this executor service
+     */
+    protected CacheService getCacheService()
+        {
+        return m_service;
         }
 
     // ----- inner class: PropertyKey ---------------------------------------
@@ -237,9 +249,9 @@ public class ClusteredProperties
         // ----- accessors --------------------------------------------------
 
         /**
-         * Return task key.
+         * Return the task ID.
          *
-         * @return task key
+         * @return task ID
          */
         public String getTaskId()
             {
@@ -247,7 +259,7 @@ public class ClusteredProperties
             }
 
         /**
-         * Return property key.
+         * Return the property key.
          *
          * @return property key
          */
@@ -438,13 +450,6 @@ public class ClusteredProperties
          */
         protected Object m_oValue;
         }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The {@link NamedCache} in which the properties will be place in.
-     */
-    public static String CACHE_NAME = "executor-properties";
 
     // ----- data members ---------------------------------------------------
 

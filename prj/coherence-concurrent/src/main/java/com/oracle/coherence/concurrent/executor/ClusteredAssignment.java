@@ -2,11 +2,13 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
+
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -126,8 +128,13 @@ public class ClusteredAssignment
             EXECUTING,
 
             /**
+             * Indicates an {@link #EXECUTING} {@link Task} has been cancelled.
+             */
+            CANCELLED,
+
+            /**
              * The {@link Executor} has completed executing the {@link Task} and should not be re-scheduled for further
-             * execution.   This does not mean however that the {@link Task} has been completed.
+             * execution.  This does not mean, however, that the {@link Task} has been completed.
              */
             EXECUTED
         }
@@ -285,7 +292,7 @@ public class ClusteredAssignment
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void registerAssignments(String sTaskId, ExecutionPlan executionPlan, CacheService service)
         {
-        NamedCache       cacheAssignments = service.ensureCache(CACHE_NAME, null);
+        NamedCache       cacheAssignments = Caches.assignments(service);
         Iterator<String> iter             = executionPlan.getIds();
 
         while (iter.hasNext())
@@ -299,6 +306,20 @@ public class ClusteredAssignment
         }
 
     /**
+     * Cancels all assignments that are currently running.
+     *
+     * @param sTaskId  the task
+     * @param service  the {@link CacheService}
+     */
+    @SuppressWarnings("unchecked")
+    public static void cancelAssignments(String sTaskId, CacheService service)
+        {
+        Caches.assignments(service).invokeAll(
+                new EqualsFilter<String, String>("getTaskId", sTaskId),
+                new ClusteredAssignment.SetStateProcessor(State.EXECUTING, State.CANCELLED));
+        }
+
+    /**
      * Remove assignments for a task.
      *
      * @param sTaskId  the task
@@ -307,9 +328,8 @@ public class ClusteredAssignment
     @SuppressWarnings("unchecked")
     public static void removeAssignments(String sTaskId, CacheService service)
         {
-        service.ensureCache(CACHE_NAME,
-                            null).invokeAll(new EqualsFilter<String, String>("getTaskId", sTaskId),
-                                            new ConditionalRemove<>(AlwaysFilter.INSTANCE, false));
+        Caches.assignments(service).invokeAll(new EqualsFilter<String, String>("getTaskId", sTaskId),
+                                              new ConditionalRemove<>(AlwaysFilter.INSTANCE, false));
         }
 
     // ----- inner class: AssignmentProcessor -------------------------------
@@ -512,13 +532,6 @@ public class ClusteredAssignment
          */
         protected State m_desired;
         }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The {@link NamedCache} in which instance of this class will be placed.
-     */
-    public static String CACHE_NAME = "executor-assignments";
 
     // ----- data members ---------------------------------------------------
 

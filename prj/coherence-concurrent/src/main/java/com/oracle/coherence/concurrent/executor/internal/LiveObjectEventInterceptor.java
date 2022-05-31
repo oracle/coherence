@@ -2,17 +2,15 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.concurrent.executor.internal;
 
 import com.oracle.coherence.concurrent.executor.ComposableContinuation;
 import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
-import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
-import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
-import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.ContinuationService;
+
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -66,6 +64,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author bo, lh
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class LiveObjectEventInterceptor
         implements EventDispatcherAwareInterceptor, MemberListener
     {
@@ -91,9 +90,9 @@ public class LiveObjectEventInterceptor
     @Override
     public void onEvent(Event event)
         {
-        Set<BinaryEntry> setBinaryEntries = Collections.EMPTY_SET;
-        Set<BinaryEntry> setAssignments   = Collections.EMPTY_SET;
-        Set<BinaryEntry> setTasks         = Collections.EMPTY_SET;
+        Set<BinaryEntry> setBinaryEntries = Collections.emptySet();
+        Set<BinaryEntry> setAssignments   = Collections.emptySet();
+        Set<BinaryEntry> setTasks         = Collections.emptySet();
         Cause            cause            = Cause.REGULAR;
 
         if (event instanceof TransactionEvent)
@@ -102,25 +101,25 @@ public class LiveObjectEventInterceptor
             }
         else if (event instanceof TransferEvent)
             {
-            setBinaryEntries = ((TransferEvent) event).getEntries().get(ClusteredExecutorInfo.CACHE_NAME);
+            setBinaryEntries = ((TransferEvent) event).getEntries().get(Caches.EXECUTORS_CACHE_NAME);
 
             if (setBinaryEntries == null)
                 {
-                setBinaryEntries = Collections.EMPTY_SET;
+                setBinaryEntries = Collections.emptySet();
                 }
 
-            setAssignments = ((TransferEvent) event).getEntries().get(ClusteredAssignment.CACHE_NAME);
+            setAssignments = ((TransferEvent) event).getEntries().get(Caches.ASSIGNMENTS_CACHE_NAME);
 
             if (setAssignments == null)
                 {
-                setAssignments = Collections.EMPTY_SET;
+                setAssignments =Collections.emptySet();
                 }
 
-            setTasks = ((TransferEvent) event).getEntries().get(ClusteredTaskManager.CACHE_NAME);
+            setTasks = ((TransferEvent) event).getEntries().get(Caches.TASKS_CACHE_NAME);
 
             if (setTasks == null)
                 {
-                setTasks = Collections.EMPTY_SET;
+                setTasks = Collections.emptySet();
                 }
 
             cause = Cause.PARTITIONING;
@@ -176,15 +175,31 @@ public class LiveObjectEventInterceptor
      * @param binaryEntry  the {@link BinaryEntry}
      * @param cause        the cause for the {@link Event}
      */
+    @SuppressWarnings("ConstantConditions")
     protected void processEntry(Event event,
                                 BinaryEntry binaryEntry,
                                 Cause cause)
         {
         Object          oValue;
-        Object          oKey    = binaryEntry.getKey();
-        EntryEvent.Type type    = EntryEvent.Type.INSERTING; // set the default to a type not used
+        Object          oKey         = binaryEntry.getKey();
+        EntryEvent.Type type         = EntryEvent.Type.INSERTING; // set the default to a type not used
+        boolean         fTransfer    = event instanceof TransferEvent;
+        boolean         fTransaction = event instanceof TransactionEvent;
 
-        if (event instanceof TransactionEvent)
+        if (fTransfer)
+            {
+            TransferEvent.Type transType = ((TransferEvent) event).getType();
+
+            if (transType == TransferEvent.Type.ARRIVED || transType == TransferEvent.Type.RECOVERED)
+                {
+                type = EntryEvent.Type.INSERTED;
+                }
+            else if (transType == TransferEvent.Type.DEPARTING)
+                {
+                type = EntryEvent.Type.REMOVED;
+                }
+            }
+        else if (fTransaction)
             {
             if (((TransactionEvent) event).getType() == TransactionEvent.Type.COMMITTED)
                 {
@@ -200,19 +215,6 @@ public class LiveObjectEventInterceptor
                     {
                     type = EntryEvent.Type.UPDATED;
                     }
-                }
-            }
-        else if (event instanceof TransferEvent)
-            {
-            TransferEvent.Type transType = ((TransferEvent) event).getType();
-
-            if (transType == TransferEvent.Type.ARRIVED || transType == TransferEvent.Type.RECOVERED)
-                {
-                type = EntryEvent.Type.INSERTED;
-                }
-            else if (transType == TransferEvent.Type.DEPARTING)
-                {
-                type = EntryEvent.Type.REMOVED;
                 }
             }
 
@@ -291,7 +293,7 @@ public class LiveObjectEventInterceptor
                     {
                     ComposableContinuation continuation;
 
-                    if (event instanceof TransferEvent)
+                    if (fTransfer)
                         {
                         continuation =
                             ((LiveObject) oValue).onInserted((CacheService) ((TransferEvent) event).getDispatcher()
@@ -299,7 +301,7 @@ public class LiveObjectEventInterceptor
                                                             binaryEntry,
                                                             cause);
                         }
-                    else if (event instanceof TransactionEvent)
+                    else if (fTransaction)
                         {
                         continuation =
                             ((LiveObject) oValue).onInserted((CacheService) ((TransactionEvent) event).getDispatcher()
@@ -332,7 +334,7 @@ public class LiveObjectEventInterceptor
                     {
                     ComposableContinuation continuation;
 
-                    if (event instanceof TransferEvent)
+                    if (fTransfer)
                         {
                         continuation =
                             ((LiveObject) oValue).onUpdated((CacheService) ((TransferEvent) event).getDispatcher()
@@ -340,7 +342,7 @@ public class LiveObjectEventInterceptor
                                                            binaryEntry,
                                                            cause);
                         }
-                    else if (event instanceof TransactionEvent)
+                    else if (fTransaction)
                         {
                         continuation =
                             ((LiveObject) oValue).onUpdated((CacheService) ((TransactionEvent) event).getDispatcher()
@@ -395,7 +397,7 @@ public class LiveObjectEventInterceptor
                     {
                     ComposableContinuation continuation;
 
-                    if (event instanceof TransferEvent)
+                    if (fTransfer)
                         {
                         continuation =
                             ((LiveObject) oValue).onDeleted((CacheService) ((TransferEvent) event).getDispatcher()
@@ -403,7 +405,7 @@ public class LiveObjectEventInterceptor
                                                            binaryEntry,
                                                            cause);
                         }
-                    else if (event instanceof TransactionEvent)
+                    else if (fTransaction)
                         {
                         continuation =
                             ((LiveObject) oValue).onDeleted((CacheService) ((TransactionEvent) event).getDispatcher()
@@ -538,7 +540,7 @@ public class LiveObjectEventInterceptor
         public void run()
             {
             long   ldtCurrentTime = CacheFactory.getSafeTimeMillis();
-            String sCacheName     = ClusteredExecutorInfo.CACHE_NAME;
+            String sCacheName     = Caches.EXECUTORS_CACHE_NAME;
 
            ExecutorTrace.log(() -> String.format("Commenced Inspecting Lease Expiry Times for [%s].", sCacheName));
 
@@ -693,8 +695,7 @@ public class LiveObjectEventInterceptor
         @Override
         public void run()
             {
-            getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME,
-                                          null).invokeAll(f_setMemberAware, new MemberAwareProcessor(f_nId));
+            Caches.executors(getCacheService()).invokeAll(f_setMemberAware, new MemberAwareProcessor(f_nId));
             }
 
         // ----- data members -----------------------------------------------

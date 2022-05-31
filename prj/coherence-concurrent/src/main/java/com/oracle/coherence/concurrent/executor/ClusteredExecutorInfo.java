@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -14,11 +14,14 @@ import com.oracle.coherence.concurrent.executor.internal.Leased;
 import com.oracle.coherence.concurrent.executor.internal.LiveObject;
 
 import com.oracle.coherence.concurrent.executor.options.ClusterMember;
+import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Member;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
 import com.oracle.coherence.concurrent.executor.options.Name;
+
+import com.oracle.coherence.concurrent.executor.util.Caches;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
 import com.tangosol.io.pof.PofReader;
@@ -32,6 +35,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.Entry;
+import com.tangosol.util.Processors;
 import com.tangosol.util.UID;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -263,13 +267,25 @@ public class ClusteredExecutorInfo
         }
 
     /**
-     * Return the logical name of this {@code ClusteredExecutorInfo}.
+     * Return the logical name of this {@link ClusteredExecutorInfo}.
      *
-     * @return the logical name of this {@code ClusteredExecutorInfo}
+     * @return the logical name of this {@link ClusteredExecutorInfo}
      */
     public String getExecutorName()
         {
         return getOption(Name.class, Name.UNNAMED).getName();
+        }
+
+    /**
+     * Return the description of the {@link ClusteredExecutorInfo}.
+     *
+     * @return the description of the {@link ClusteredExecutorInfo}
+     *
+     * @since 22.06
+     */
+    public String getDescription()
+        {
+        return getOption(Description.class, Description.UNKNOWN).getName();
         }
 
     // ----- Object methods -------------------------------------------------
@@ -277,7 +293,8 @@ public class ClusteredExecutorInfo
     @Override
     public String toString()
         {
-        return "ClusteredExecutorInfo{" + "identity='" + m_sIdentity + '\'' + ", state=" + m_state + ", lastUpdateTime="
+        return "ClusteredExecutorInfo{"+ "name=" + getExecutorName() + ", description=" + getDescription()
+               + ", identity='" + m_sIdentity + '\'' + ", state=" + m_state + ", lastUpdateTime="
                + m_ldtUpdate + ", maxMemory=" + m_cMaxMemory + ", totalMemory=" + m_cTotalMemory + ", freeMemory="
                + m_cFreeMemory + ", optionsByType=" + m_optionsByType + ", completed="
                + m_cCompleted + ", in-progress=" + m_cInProgress + ", rejected=" + m_cRejected + '}';
@@ -516,6 +533,61 @@ public class ClusteredExecutorInfo
         out.writeLong(9,    m_cInProgress);
         }
 
+    // ----- inner class: CacheAwareContinuation ----------------------------
+
+    protected static abstract class CacheAwareContinuation
+        implements ComposableContinuation
+        {
+        // ----- constructors -----------------------------------------------
+
+        public CacheAwareContinuation(CacheService cacheService)
+            {
+            f_cacheService = cacheService;
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Obtains a reference to the {@link ClusteredTaskManager} cache.
+         *
+         * @return a reference to the {@link ClusteredTaskManager} cache
+         */
+        @SuppressWarnings("rawtypes")
+        protected NamedCache tasks()
+            {
+            return Caches.tasks(f_cacheService);
+            }
+
+        /**
+         * Obtains a reference to the {@link ClusteredAssignment} cache.
+         *
+         * @return a reference to the {@link ClusteredAssignment} cache
+         */
+        @SuppressWarnings("rawtypes")
+        protected NamedCache assignments()
+            {
+            return Caches.assignments(f_cacheService);
+            }
+
+        /**
+         * Obtains a reference to the {@link ClusteredExecutorInfo} cache.
+         *
+         * @return a reference to the {@link ClusteredExecutorInfo} cache
+         */
+        @SuppressWarnings("rawtypes")
+        protected NamedCache executors()
+            {
+            return Caches.executors(f_cacheService);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The {@link CacheService} for accessing the various executor caches.
+         */
+        protected final CacheService f_cacheService;
+        }
+
     // ----- inner class: ClosingContinuation -------------------------------
 
     /**
@@ -523,20 +595,21 @@ public class ClusteredExecutorInfo
      * including cleaning up assigned {@link Task}s.
      */
     public static class ClosingContinuation
-            implements ComposableContinuation
+            extends CacheAwareContinuation
         {
         // ----- constructors -----------------------------------------------
 
         /**
          * Constructs an {@link ClosingContinuation}.
          *
-         * @param sExecutorId   the {@link Executor} identity to update
-         * @param cacheService  the {@link CacheService}
+         * @param sExecutorId  the {@link Executor} identity to update
+         * @param cacheService the {@link CacheService}
          */
         public ClosingContinuation(String sExecutorId, CacheService cacheService)
             {
-            f_cacheService = cacheService;
-            f_sExecutorId  = sExecutorId;
+            super(cacheService);
+
+            f_sExecutorId = sExecutorId;
             }
 
         // -----  ComposableContinuation methods ----------------------------
@@ -545,32 +618,32 @@ public class ClusteredExecutorInfo
         @Override
         public void proceed(Object o)
             {
-            ExecutorTrace.log(() -> String.format("Closing Executor [%s]", f_sExecutorId));
+            String sExecutorId = f_sExecutorId;
+
+            ExecutorTrace.log(() -> String.format("Closing Executor [%s]", sExecutorId));
 
             // remove task assignments for the Executor
-            ExecutorTrace.log(() -> String.format("Determining Tasks Assigned to Executor [%s]", f_sExecutorId));
+            ExecutorTrace.log(() -> String.format("Determining Tasks Assigned to Executor [%s]", sExecutorId));
 
             // determine all tasks assigned to the executor
-            Map<String, String> assignmentMap = f_cacheService.ensureCache(ClusteredAssignment.CACHE_NAME, null)
-                    .invokeAll(new EqualsFilter<String, String>("getExecutorId", f_sExecutorId),
+            Map<String, String> assignmentMap = assignments()
+                    .invokeAll(new EqualsFilter<String, String>("getExecutorId", sExecutorId),
                                new ExtractorProcessor<>("getTaskId"));
 
-            Logger.finer(() -> String.format("Found %d Tasks Assigned to Executor [%s].  Notifying them of the Closing Executor", assignmentMap.size(), f_sExecutorId));
+            Logger.finer(() -> String.format("Found %d Tasks Assigned to Executor [%s].  Notifying them of the Closing Executor", assignmentMap.size(), sExecutorId));
 
             // notify the Tasks assigned to the Executor to re-assign
-            f_cacheService.ensureCache(ClusteredTaskManager.CACHE_NAME, null).
-                    invokeAll(assignmentMap.values(), new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
+            tasks().invokeAll(assignmentMap.values(), new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
 
-            Logger.finer(() -> String.format("Removing Assignments for Executor [%s]", f_sExecutorId));
+            Logger.finer(() -> String.format("Removing Assignments for Executor [%s]", sExecutorId));
 
             // now remove the assignments for the tasks
-            f_cacheService.ensureCache(ClusteredTaskManager.CACHE_NAME, null)
-                    .invokeAll(assignmentMap.keySet(), new ConditionalRemove<String, String>(AlwaysFilter.INSTANCE));
+            tasks().invokeAll(assignmentMap.keySet(), new ConditionalRemove<>(AlwaysFilter.INSTANCE));
 
-            Logger.finer(() -> String.format("Notifying Executor [%s] that it is now Closed", f_sExecutorId));
+            Logger.finer(() -> String.format("Notifying Executor [%s] that it is now Closed", sExecutorId));
 
             // change the state of the Executor to be CLOSED
-            f_cacheService.ensureCache(CACHE_NAME, null).invoke(f_sExecutorId, new SetStateProcessor(State.CLOSED));
+            executors().invoke(sExecutorId, new SetStateProcessor(State.CLOSED));
             }
 
         @Override
@@ -585,11 +658,6 @@ public class ClusteredExecutorInfo
          * The unique identity of the {@link Executor}.
          */
         protected final String f_sExecutorId;
-
-        /**
-         * The {@link CacheService} for accessing the {@link TaskExecutorService.ExecutorInfo} cache.
-         */
-        protected final CacheService f_cacheService;
         }
 
     // ----- inner class: ClosingGracefullyContinuation ---------------------
@@ -599,7 +667,7 @@ public class ClusteredExecutorInfo
      * allowing already assigned {@link Task}s to complete.
      */
     public static class ClosingGracefullyContinuation
-            implements ComposableContinuation
+            extends CacheAwareContinuation
         {
         // ----- constructors -----------------------------------------------
 
@@ -611,25 +679,25 @@ public class ClusteredExecutorInfo
          */
         public ClosingGracefullyContinuation(String sExecutorId, CacheService cacheService)
             {
+            super(cacheService);
+
             m_sExecutorId  = sExecutorId;
-            f_cacheService = cacheService;
             }
 
         // ----- ComposableContinuation methods -----------------------------
 
+        @SuppressWarnings("unchecked")
         @Override
         public void proceed(Object o)
             {
             // determine if there are any Tasks currently running on this Executor
-            long currentTaskCount = f_cacheService.ensureCache(ClusteredAssignment.CACHE_NAME, null)
+            long currentTaskCount = assignments()
                     .stream(new EqualsFilter<String, String>("getExecutorId", m_sExecutorId)).count();
 
             if (currentTaskCount == 0)
                 {
                 // proceed to CLOSING
-                //noinspection unchecked
-                f_cacheService.ensureCache(CACHE_NAME, null)
-                        .invoke(m_sExecutorId, new SetStateProcessor(State.CLOSING));
+                executors().invoke(m_sExecutorId, new SetStateProcessor(State.CLOSING));
                 }
             else
                 {
@@ -658,11 +726,6 @@ public class ClusteredExecutorInfo
          * The unique identity of the {@link Executor}.
          */
         protected final String m_sExecutorId;
-
-        /**
-         * The {@link CacheService} for accessing the {@link TaskExecutorService.ExecutorInfo} cache.
-         */
-        protected final CacheService f_cacheService;
         }
 
     // ----- JoiningContinuation interface ----------------------------------
@@ -672,17 +735,9 @@ public class ClusteredExecutorInfo
      * with existing {@link Task}s.
      */
     public static class JoiningContinuation
-            implements ComposableContinuation, PortableObject
+            extends CacheAwareContinuation
         {
         // ----- constructors -----------------------------------------------
-
-        /**
-         * Constructs a {@link JoiningContinuation} (required for serialization).
-         */
-        @SuppressWarnings("unused")
-        public JoiningContinuation()
-            {
-            }
 
         /**
          * Constructs an {@link JoiningContinuation}.
@@ -692,8 +747,9 @@ public class ClusteredExecutorInfo
          */
         public JoiningContinuation(String sExecutorId, CacheService cacheService)
             {
+            super(cacheService);
+
             m_sExecutorId  = sExecutorId;
-            m_cacheService = cacheService;
             }
 
         // ----- ComposableContinuation methods -----------------------------
@@ -703,14 +759,16 @@ public class ClusteredExecutorInfo
         public void proceed(Object o)
             {
             // change the state of the Executor to be Running
-            m_cacheService.ensureCache(CACHE_NAME,
-                                       null).invoke(m_sExecutorId, new SetStateProcessor(State.JOINING, State.RUNNING));
+            Object[] results = (Object[]) executors().invoke(m_sExecutorId, Processors.composite(
+                    new InvocableMap.EntryProcessor[] {
+                            new SetStateProcessor(State.JOINING, State.RUNNING),
+                            Processors.extract("getExecutorName")}));
 
-            m_cacheService.ensureCache(ClusteredTaskManager.CACHE_NAME,
-                                       null).invokeAll(AlwaysFilter.INSTANCE,
-                                                     new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
+            String sExecutorName = (String) results[1];
 
-            Logger.fine(() -> String.format("Executor [%s] joined.", m_sExecutorId));
+            tasks().invokeAll(AlwaysFilter.INSTANCE, new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
+
+            Logger.fine(() -> String.format("Executor [name=%s, id=%s] joined.", sExecutorName, m_sExecutorId));
             }
 
         @Override
@@ -719,36 +777,19 @@ public class ClusteredExecutorInfo
             return continuation;
             }
 
-        // ----- PortableObject interface -----------------------------------
-
-        @Override
-        public void readExternal(PofReader pofReader) throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(PofWriter pofWriter) throws IOException
-            {
-            }
-
         // ----- data members -----------------------------------------------
 
         /**
          * The unique identity of the {@link Executor}.
          */
         protected String m_sExecutorId;
-
-        /**
-         * The {@link CacheService} for accessing the {@link TaskExecutorService.ExecutorInfo} cache.
-         */
-        protected CacheService m_cacheService;
         }
 
     /**
      * A {@link ComposableContinuation} to remove a {@link ClusteredExecutorInfo}.
      */
     public static class RemoveContinuation
-            implements ComposableContinuation
+            extends CacheAwareContinuation
         {
         // ----- constructors -----------------------------------------------
 
@@ -760,8 +801,9 @@ public class ClusteredExecutorInfo
          */
         public RemoveContinuation(String sExecutorId, CacheService cacheService)
             {
+            super(cacheService);
+
             f_sExecutorId  = sExecutorId;
-            f_cacheService = cacheService;
             }
 
         // ----- ComposableContinuation methods -----------------------------
@@ -770,9 +812,8 @@ public class ClusteredExecutorInfo
         public void proceed(Object o)
             {
             // change the state of the Executor to be CLOSED
-            f_cacheService.ensureCache(CACHE_NAME, null).remove(f_sExecutorId);
-
-            Logger.fine(() -> String.format("Removed Executor [%s]", f_sExecutorId));
+           ClusteredExecutorInfo info = (ClusteredExecutorInfo) executors().remove(f_sExecutorId);
+            Logger.fine(() -> String.format("Removed Executor [name=%s, id=%s]", info.getExecutorName(), f_sExecutorId));
             }
 
         @Override
@@ -787,11 +828,6 @@ public class ClusteredExecutorInfo
          * The unique identity of the {@link Executor}.
          */
         protected final String f_sExecutorId;
-
-        /**
-         * The {@link CacheService} for accessing the {@link TaskExecutorService.ExecutorInfo} cache.
-         */
-        protected final CacheService f_cacheService;
         }
 
     // ----- inner class: SetStateProcessor ---------------------------------
@@ -1011,15 +1047,11 @@ public class ClusteredExecutorInfo
 
         // ----- Runnable interface -----------------------------------------
 
+        @SuppressWarnings("unchecked")
         @Override
         public void run()
             {
-            // acquire the executor info cache
-            @SuppressWarnings("unchecked") NamedCache<String, ?> cache =
-                    f_cacheService.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
-
-            //noinspection unchecked
-            cache.invoke(f_sExecutorId, new TouchProcessor());
+            Caches.executors(f_cacheService).invoke(f_sExecutorId, new TouchProcessor());
             }
 
         // ----- data members -----------------------------------------------
@@ -1221,12 +1253,8 @@ public class ClusteredExecutorInfo
                 Runtime runtime = Runtime.getRuntime();
 
                 // update the cluster information for the executor
-                // acquire the executor info cache
                 //noinspection unchecked
-                NamedCache<String, ?> cache = f_cacheService.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
-
-                //noinspection unchecked
-                cache.invoke(f_sExecutorId,
+                Caches.executors(f_cacheService).invoke(f_sExecutorId,
                              new UpdateInfoProcessor(runtime.maxMemory(),
                                                      runtime.totalMemory(),
                                                      runtime.freeMemory(),
@@ -1271,11 +1299,6 @@ public class ClusteredExecutorInfo
         }
 
     // ----- constants ------------------------------------------------------
-
-    /**
-     * The {@link NamedCache} in which instance of this class will be placed.
-     */
-    public static final String CACHE_NAME = "executor-executors";
 
     /**
      * The duration of a lease for {@link Executor}s.

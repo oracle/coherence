@@ -29,16 +29,17 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
 
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
-import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredProperties;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
-import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
+
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.NamedCache;
@@ -137,8 +138,8 @@ public class TaskExecutorServiceClusterMemberTests
             m_taskExecutorService.shutdown();
 
             // clear the caches between tests
-            getNamedCache(ClusteredTaskManager.CACHE_NAME).clear();
-            getNamedCache(ClusteredAssignment.CACHE_NAME).clear();
+            Caches.tasks(getCacheService()).clear();
+            Caches.assignments(getCacheService()).clear();
             }
         m_session.close();
         m_local.close();
@@ -158,7 +159,7 @@ public class TaskExecutorServiceClusterMemberTests
         m_taskExecutorService = new ClusteredExecutorService(m_session);
 
         // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
-        NamedCache executors = m_session.getCache(ClusteredExecutorInfo.CACHE_NAME);
+        NamedCache executors = Caches.executors(m_session);
 
         Eventually.assertDeferred(executors::size, is(getInitialExecutorCount()));
 
@@ -220,8 +221,8 @@ public class TaskExecutorServiceClusterMemberTests
         MatcherAssert.assertThat(coordinator.isCancelled(), Matchers.is(false));
         MatcherAssert.assertThat(coordinator.isDone(), Matchers.is(true));
 
-        Eventually.assertDeferred(() -> getNamedCache(ClusteredTaskManager.CACHE_NAME).size(), is(0));
-        Eventually.assertDeferred(() -> getNamedCache(ClusteredAssignment.CACHE_NAME).size(), is(0));
+        Eventually.assertDeferred(() -> Caches.tasks(getCacheService()).size(), is(0));
+        Eventually.assertDeferred(() -> Caches.assignments(getCacheService()).size(), is(0));
         }
 
     @SuppressWarnings("rawtypes")
@@ -262,17 +263,19 @@ public class TaskExecutorServiceClusterMemberTests
      */
     protected void dumpExecutorCacheStates()
         {
-        Utils.dumpExecutorCacheStates(getNamedCache(ClusteredExecutorInfo.CACHE_NAME),
-                                      getNamedCache(ClusteredAssignment.CACHE_NAME),
-                                      getNamedCache(ClusteredTaskManager.CACHE_NAME),
-                                      getNamedCache(ClusteredProperties.CACHE_NAME));
-        Utils.heapdump(s_coherence.getCluster());
+        CacheService service = getCacheService();
+
+        Utils.dumpExecutorCacheStates(Caches.executors(service),
+                                      Caches.assignments(service),
+                                      Caches.tasks(service),
+                                      Caches.properties(service));
+
+        //Utils.heapdump(s_coherence.getCluster());
         }
 
-    @SuppressWarnings("unchecked")
-    public <K, V> NamedCache<K, V> getNamedCache(String sName)
+    public CacheService getCacheService()
         {
-        return m_taskExecutorService.getCacheService().ensureCache(sName, null);
+        return m_taskExecutorService.getCacheService();
         }
 
     protected int getInitialExecutorCount()

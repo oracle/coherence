@@ -6,8 +6,7 @@
  */
 package executor;
 
-import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
-import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import executor.common.SingleClusterForAllTests;
 import executor.common.Utils;
@@ -34,8 +33,8 @@ public abstract class AbstractCESSingleClusterTests
         {
         super.cleanup();
 
-        getNamedCache(ClusteredTaskManager.CACHE_NAME).clear();
-        getNamedCache(ClusteredAssignment.CACHE_NAME).clear();
+        Caches.tasks(getCacheService()).clear();
+        Caches.assignments(getCacheService()).clear();
         }
 
     // ----- constructors ---------------------------------------------------

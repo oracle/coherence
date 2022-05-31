@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -10,10 +10,16 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
+
+import com.tangosol.internal.tracing.Scope;
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
+import com.tangosol.internal.tracing.TracingHelper;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
-import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
@@ -45,21 +51,23 @@ public class ClusteredTaskCoordinator<T>
 
     /**
      * Constructs a {@link ClusteredTaskCoordinator}.
+     * This constructor should only be used to obtain a coordinator for a previously
+     * submitted task.
      *
      * @param service          the {@link CacheService} containing the orchestration
      *                         metadata caches
      * @param manager          the {@link ClusteredTaskManager}
      * @param executorService  the {@link ExecutorService} from the
-     *                         {@link TaskExecutorService} for asynchronously publishing
+     *                         {@link TaskExecutorService} for asynchronous publishing
      */
     public ClusteredTaskCoordinator(CacheService service, ClusteredTaskManager manager, ExecutorService executorService)
         {
         super(manager.getTaskId(), executorService, manager.getRetainDuration() != null);
 
-        m_taskManagers = service.ensureCache(ClusteredTaskManager.CACHE_NAME, null);
+        f_cacheService = service;
 
         // TODO - only add map listener if there is at least one subscriber
-        m_taskManagers.addMapListener(this, getTaskId(), false);
+        Caches.tasks(service).addMapListener(this, getTaskId(), false);
         f_memberListener = new ClusteredMemberListener(this, service);
         addMemberListener(f_memberListener);
         }
@@ -70,7 +78,7 @@ public class ClusteredTaskCoordinator<T>
      * @param service          the {@link CacheService} containing the orchestration metadata caches
      * @param manager          the {@link ClusteredTaskManager}
      * @param executorService  the {@link ExecutorService} from the {@link TaskExecutorService}
-     *                         for asynchronously publishing
+     *                         for asynchronous publishing
      * @param properties       the {@link Task.Properties} of the task
      * @param subscribers      an optional set of subscribers to pre-register
      */
@@ -79,7 +87,7 @@ public class ClusteredTaskCoordinator<T>
         {
         super(manager.getTaskId(), executorService, manager.getRetainDuration() != null);
 
-        m_taskManagers = service.ensureCache(ClusteredTaskManager.CACHE_NAME, null);
+        f_cacheService = service;
         m_properties   = properties;
 
         if (subscribers != null)
@@ -93,19 +101,19 @@ public class ClusteredTaskCoordinator<T>
             }
 
         // TODO - only add map listener if there is at least one subscriber
-        m_taskManagers.addMapListener(this, getTaskId(), false);
+        Caches.tasks(getCacheService()).addMapListener(this, getTaskId(), false);
         f_memberListener = new ClusteredMemberListener(this, service);
         addMemberListener(f_memberListener);
 
         // attempt to add the task to the cluster
         ClusteredTaskManager existing =
-                (ClusteredTaskManager) m_taskManagers.invoke(f_sTaskId,
+                (ClusteredTaskManager) Caches.tasks(getCacheService()).invoke(f_sTaskId,
                         new ConditionalPut(new NotFilter(new PresentFilter()), manager, true));
 
         if (existing != null)
             {
             // the task already exists, so clean up
-            m_taskManagers.removeMapListener(this, getTaskId());
+            Caches.tasks(getCacheService()).removeMapListener(this, getTaskId());
 
             Logger.warn(() -> String.format("Task with the identity [%s] already exists.  Task will not be created.",
                                             f_sTaskId));
@@ -119,7 +127,29 @@ public class ClusteredTaskCoordinator<T>
     @Override
     public boolean cancel(boolean fMayInterruptIfRunning)
         {
-        return (Boolean) m_taskManagers.invoke(getTaskId(), new ClusteredTaskManager.TerminateProcessor(true));
+        ClusteredTaskManager taskManager = (ClusteredTaskManager) Caches.tasks(getCacheService()).get(f_sTaskId);
+        if (taskManager != null)
+            {
+            SpanContext  parentSpanContext = taskManager.getParentSpanContext();
+            Span.Builder builder           = TracingHelper.newSpan("Task.Cancel")
+                                                 .withAssociation(Span.Association.FOLLOWS_FROM.key(), parentSpanContext)
+                                                 .withMetadata(Span.Type.COMPONENT.key(), "ExecutorService");
+            Span         executionSpan     = builder.startSpan();
+
+            try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
+                {
+                if (fMayInterruptIfRunning)
+                    {
+                    ClusteredAssignment.cancelAssignments(f_sTaskId, f_cacheService);
+                    }
+                return (Boolean) Caches.tasks(getCacheService()).invoke(getTaskId(), new ClusteredTaskManager.TerminateProcessor(true));
+                }
+            finally
+                {
+                executionSpan.end();
+                }
+            }
+        return false;
         }
 
     @Override
@@ -129,7 +159,7 @@ public class ClusteredTaskCoordinator<T>
             {
             if (m_properties == null)
                 {
-                m_properties = new ClusteredProperties(f_sTaskId, m_taskManagers.getCacheService());
+                m_properties = new ClusteredProperties(f_sTaskId, getCacheService());
                 }
             }
 
@@ -139,7 +169,7 @@ public class ClusteredTaskCoordinator<T>
     @Override
     protected void subscribeRetainedTask(Task.Subscriber subscriber)
         {
-        ClusteredTaskManager taskManager = (ClusteredTaskManager) m_taskManagers.get(f_sTaskId);
+        ClusteredTaskManager taskManager = (ClusteredTaskManager) Caches.tasks(getCacheService()).get(f_sTaskId);
         if (taskManager != null)
             {
             try
@@ -249,10 +279,7 @@ public class ClusteredTaskCoordinator<T>
      */
     public void addMemberListener(MemberListener listener)
         {
-        if (m_taskManagers != null)
-            {
-            m_taskManagers.getCacheService().addMemberListener(listener);
-            }
+        getCacheService().addMemberListener(listener);
         }
 
     /**
@@ -262,13 +289,15 @@ public class ClusteredTaskCoordinator<T>
      */
     public void removeMemberListener(MemberListener listener)
         {
-        if (m_taskManagers != null)
-            {
-            m_taskManagers.getCacheService().removeMemberListener(listener);
-            }
+        getCacheService().removeMemberListener(listener);
         }
 
     // ----- helper methods -------------------------------------------------
+
+    protected CacheService getCacheService()
+        {
+        return f_cacheService;
+        }
 
     /**
      * Removes the {@link MapListener} previously installed by this
@@ -280,7 +309,7 @@ public class ClusteredTaskCoordinator<T>
         final ClusteredTaskCoordinator coordinator = this;
 
         // create a Runnable to remove the MapListener
-        Runnable removeMapListenerRunnable = () -> m_taskManagers.removeMapListener(coordinator, getTaskId());
+        Runnable removeMapListenerRunnable = () -> Caches.tasks(getCacheService()).removeMapListener(coordinator, getTaskId());
 
         try
             {
@@ -337,15 +366,13 @@ public class ClusteredTaskCoordinator<T>
             // create a Runnable to add the MapListener
             Runnable addMapListenerRunnable = () ->
                 {
-                m_taskManagers = f_service.ensureCache(ClusteredTaskManager.CACHE_NAME, null);
-
-                m_taskManagers.get(getTaskId());
-                m_taskManagers.addMapListener(f_coordinator, getTaskId(), false);
+                Caches.tasks(getCacheService()).get(getTaskId());
+                Caches.tasks(getCacheService()).addMapListener(f_coordinator, getTaskId(), false);
                 };
 
             try
                 {
-                // attempt to perform the add asynchronously
+                // attempt to perform the adding asynchronously
                 f_executorService.submit(addMapListenerRunnable);
                 }
             catch (RejectedExecutionException e)
@@ -371,12 +398,6 @@ public class ClusteredTaskCoordinator<T>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The {@link ClusteredTaskManager}s cache.
-     */
-    @SuppressWarnings("rawtypes")
-    protected NamedCache m_taskManagers;
-
-    /**
      * The sharable {@link Task.Properties} for this task.
      */
     protected Task.Properties m_properties;
@@ -385,4 +406,9 @@ public class ClusteredTaskCoordinator<T>
      * The member listener for cluster member.
      */
     protected final ClusteredMemberListener f_memberListener;
+
+    /**
+     * The {@link CacheService} used by the executor service.
+     */
+    protected final CacheService f_cacheService;
     }

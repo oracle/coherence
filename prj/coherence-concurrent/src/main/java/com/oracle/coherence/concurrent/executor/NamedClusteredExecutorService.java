@@ -12,6 +12,8 @@ import com.oracle.coherence.concurrent.executor.function.Predicates;
 
 import com.oracle.coherence.concurrent.executor.options.Name;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
@@ -51,8 +53,7 @@ public class NamedClusteredExecutorService
 
         f_name = name;
 
-        //noinspection unchecked
-        m_viewNamed = getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
+        m_viewNamed = Caches.executors(session())
                 .view().filter(Filters.equal(Extractors.extract("getOption", Name.class, null), f_name)).build();
         }
 
@@ -169,5 +170,6 @@ public class NamedClusteredExecutorService
      * If the map is empty, it means there is no registered executors
      * for the given name causing attempted executions to be rejected.
      */
-    protected NamedCache<String,ExecutorInfo> m_viewNamed;
+    @SuppressWarnings("rawtypes")
+    protected NamedCache m_viewNamed;
     }

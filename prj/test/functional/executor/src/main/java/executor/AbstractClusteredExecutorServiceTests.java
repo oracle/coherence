@@ -39,11 +39,9 @@ import com.oracle.bedrock.testsupport.deferred.Repetitively;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
-import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
-import com.oracle.coherence.concurrent.executor.ClusteredTaskManager;
 import com.oracle.coherence.concurrent.executor.RecoveringTask;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskCollectors;
@@ -62,7 +60,11 @@ import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
+
+import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.io.Serializer;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
@@ -147,7 +149,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         m_taskExecutorService = createExecutorService();
 
         // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
-        NamedCache<String, ClusteredExecutorInfo> executors = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+        NamedCache<String, ClusteredExecutorInfo> executors = Caches.executors(getCacheService());
 
         Eventually.assertDeferred(executors::size, is(getInitialExecutorCount()));
 
@@ -246,12 +248,11 @@ public abstract class AbstractClusteredExecutorServiceTests
             {
             TaskExecutorService.Registration registration = m_taskExecutorService.register(executorService);
 
-            Eventually.assertDeferred(() -> getNamedCache(ClusteredExecutorInfo.CACHE_NAME)
+            Eventually.assertDeferred(() -> Caches.executors(getCacheService())
                                       .containsKey(registration.getId()), is(true));
 
             TaskExecutorService.ExecutorInfo info =
-                (TaskExecutorService
-                    .ExecutorInfo) getNamedCache(ClusteredExecutorInfo.CACHE_NAME)
+                (TaskExecutorService.ExecutorInfo) Caches.executors(getCacheService())
                     .get(registration.getId());
 
             MatcherAssert.assertThat(info.getOption(Member.class, null).get(),
@@ -271,8 +272,8 @@ public abstract class AbstractClusteredExecutorServiceTests
         {
         super.shouldExecuteAndCompleteTask();
 
-        Eventually.assertDeferred(() -> getNamedCache(ClusteredTaskManager.CACHE_NAME).size(), is(0));
-        Eventually.assertDeferred(() -> getNamedCache(ClusteredAssignment.CACHE_NAME).size(), is(0));
+        Eventually.assertDeferred(() -> Caches.tasks(getCacheService()).size(), is(0));
+        Eventually.assertDeferred(() -> Caches.assignments(getCacheService()).size(), is(0));
         }
 
     @Override
@@ -280,8 +281,8 @@ public abstract class AbstractClusteredExecutorServiceTests
         {
         super.shouldCancelTask();
 
-        Eventually.assertDeferred(() -> getNamedCache(ClusteredTaskManager.CACHE_NAME).size(), is(0));
-        Eventually.assertDeferred(() -> getNamedCache(ClusteredAssignment.CACHE_NAME).size(), is(0));
+        Eventually.assertDeferred(() -> Caches.tasks(getCacheService()).size(), is(0));
+        Eventually.assertDeferred(() -> Caches.assignments(getCacheService()).size(), is(0));
         }
 
     /**
@@ -289,8 +290,8 @@ public abstract class AbstractClusteredExecutorServiceTests
      */
     public void shouldRemoveCacheEntriesOnCancel()
         {
-        NamedCache taskManagers = getNamedCache(ClusteredTaskManager.CACHE_NAME);
-        NamedCache assignments  = getNamedCache(ClusteredAssignment.CACHE_NAME);
+        NamedCache taskManagers = Caches.tasks(getCacheService());
+        NamedCache assignments  = Caches.assignments(getCacheService());
 
         MatcherAssert.assertThat(taskManagers.size(), is(0));
         MatcherAssert.assertThat(assignments.size(), is(0));
@@ -333,12 +334,11 @@ public abstract class AbstractClusteredExecutorServiceTests
             TaskExecutorService.Registration registration = m_taskExecutorService.register(executorService);
 
             // ensure that the executor info is removed from the cache
-            Eventually.assertDeferred(() -> getNamedCache(ClusteredExecutorInfo.CACHE_NAME)
-                                      .containsKey(registration.getId()),
-                                  is(false),
-                                  InitialDelay.of(10, TimeUnit.SECONDS));
+            Eventually.assertDeferred(() -> Caches.executors(getCacheService()).containsKey(registration.getId()),
+                                            is(false),
+                                            InitialDelay.of(10, TimeUnit.SECONDS));
 
-            // ensure that the executor has been de-registered locally
+            // ensure that the executor has been deregistered locally
             Eventually.assertDeferred(() -> m_taskExecutorService.deregister(executorService), is(nullValue()));
             }
         finally
@@ -381,7 +381,7 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             m_taskExecutorService.register(executorService3);
 
-            NamedCache cacheExecutorService = session.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+            NamedCache cacheExecutorService = Caches.executors(session);
 
             Eventually.assertDeferred(cacheExecutorService::size, is(getInitialExecutorCount() + 5));
 
@@ -402,8 +402,8 @@ public abstract class AbstractClusteredExecutorServiceTests
     public void shouldWorkWithServerRemoved()
         {
         CoherenceCluster cluster              = getCoherence().getCluster();
-        NamedCache       cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
-        NamedCache       cacheTasks           = getNamedCache(ClusteredTaskManager.CACHE_NAME);
+        NamedCache       cacheExecutorService = Caches.executors(getCacheService());
+        NamedCache       cacheTasks           = Caches.tasks(getCacheService());
         ExecutorService  executorService1     = Executors.newSingleThreadExecutor();
         ExecutorService  executorService2     = Executors.newSingleThreadExecutor();
 
@@ -428,7 +428,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             Eventually.assertDeferred(cluster::getClusterSize, is(clusterSize - 1));
 
             // refresh in case connected member was stopped
-            NamedCache cacheExecutorServiceInternal = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            NamedCache cacheExecutorServiceInternal = Caches.executors(getCacheService());
 
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorServiceInternal::size,
@@ -610,7 +610,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             properties.put("key2", "value2");
             fail("Expect ConnectionException");
             }
-        catch (ConnectionException expected)
+        catch (ConnectionException ignored) // this is expected
             {
             }
         catch (IllegalStateException ise)
@@ -765,7 +765,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         {
         CoherenceCluster cluster              = getCoherence().getCluster();
         final int         CLUSTER_SIZE         = cluster.getClusterSize();
-        NamedCache       cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+        NamedCache       cacheExecutorService = Caches.executors(getCacheService());
 
         ExecutorService executorService1 = Executors.newSingleThreadExecutor();
         ExecutorService executorService2 = Executors.newSingleThreadExecutor();
@@ -792,7 +792,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             Eventually.assertDeferred(cluster::getClusterSize, is(CLUSTER_SIZE));
 
             // refresh in case connected member was stopped
-            NamedCache cacheExecutorServiceInner = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            NamedCache cacheExecutorServiceInner = Caches.executors(getCacheService());
 
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorServiceInner::size,
@@ -1034,7 +1034,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         try
             {
             final int        EXPECTED_EXECUTORS   = getInitialExecutorCount() + 2;
-            NamedCache      cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            NamedCache      cacheExecutorService = Caches.executors(getCacheService());
 
             Eventually.assertDeferred(cacheExecutorService::size, is(getInitialExecutorCount()), Timeout.of(5, TimeUnit.SECONDS));
 
@@ -1082,9 +1082,9 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         try
             {
-            final int        EXPECTED_EXECUTORS   = getInitialExecutorCount() + 2;
+            final int        EXPECTED_EXECUTORS    = getInitialExecutorCount() + 2;
             CoherenceCluster cluster              = getCoherence().getCluster();
-            NamedCache       cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            NamedCache       cacheExecutorService = Caches.executors(getCacheService());
 
             m_taskExecutorService.register(executorService1);
             m_taskExecutorService.register(executorService2);
@@ -1093,7 +1093,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             cluster.filter(member -> member.getRoleName().equals(STORAGE_ENABLED_MEMBER_ROLE)).relaunch();
             ensureConcurrentServiceRunning(cluster);
 
-            cacheExecutorService = getNamedCache(ClusteredExecutorInfo.CACHE_NAME);
+            cacheExecutorService = Caches.executors(getCacheService());
 
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorService::size,
@@ -1245,8 +1245,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             String                   sId   = m_taskExecutorService.register(executorService, Role.of("foo")).getId();
             ClusteredExecutorService clsES = m_taskExecutorService;
 
-            NamedCache<String, ClusteredExecutorInfo> executorCache =
-                    clsES.getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME,null);
+            NamedCache<String, ClusteredExecutorInfo> executorCache = Caches.executors(clsES.getCacheService());
 
             // wait for the ES to be registered and in the RUNNING state before setting to REJECTING
             Eventually.assertDeferred(() -> executorCache.get(sId).getState(), is(RUNNING));
@@ -1331,9 +1330,7 @@ public abstract class AbstractClusteredExecutorServiceTests
         try
             {
             // verify that there are getInitialExecutorCount() Executors available and that they are in the RUNNING state
-            NamedCache<String, ClusteredExecutorInfo> executorsCache =
-                m_taskExecutorService
-                    .getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+            NamedCache<String, ClusteredExecutorInfo> executorsCache = Caches.executors(getCacheService());
 
             Eventually.assertDeferred(executorsCache::size, is(cExpectedExecutors));
 
@@ -1396,8 +1393,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             MatcherAssert.assertThat(sFailureTask, coordinators[i].isDone(), Matchers.is(true));
             }
 
-        NamedCache<String, ?> executorsCache =
-            m_taskExecutorService.getCacheService().ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+        NamedCache<String, ?> executorsCache = Caches.executors(getCacheService());
 
         // verify the Executor's JMX stats
         for (String key : executorsCache.keySet())
@@ -1439,19 +1435,9 @@ public abstract class AbstractClusteredExecutorServiceTests
                              Eventually.assertDeferred(() -> member.isServiceRunning(CONCURRENT_PROXY_SERVICE_NAME), is(true)));
         }
 
-    /**
-     * Obtain the specified {@link NamedCache}.
-     *
-     * @param sName  the cache name
-     * @param <K>    the key type
-     * @param <V>    the value type
-     *
-     * @return the specified {@link NamedCache} or {@code null} if not found
-     */
-    @SuppressWarnings("unchecked")
-    public <K, V> NamedCache<K, V> getNamedCache(String sName)
+    public CacheService getCacheService()
         {
-        return m_taskExecutorService.getCacheService().ensureCache(sName, null);
+        return m_taskExecutorService.getCacheService();
         }
 
     /**

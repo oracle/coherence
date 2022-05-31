@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -18,8 +18,13 @@ import com.oracle.coherence.concurrent.executor.options.Debugging;
 
 import com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
 import com.oracle.coherence.concurrent.executor.util.FilteringIterable;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
+
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
+import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -51,11 +56,13 @@ import java.io.IOException;
 import java.time.Duration;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-
+import java.util.Map;
 import java.util.Objects;
 
 import java.util.concurrent.Executor;
@@ -84,6 +91,7 @@ public class ClusteredTaskManager<T, A, R>
     /**
      * Constructs an {@link ClusteredTaskManager} (required for serialization).
      */
+    @SuppressWarnings("unused")
     public ClusteredTaskManager()
         {
         }
@@ -136,6 +144,12 @@ public class ClusteredTaskManager<T, A, R>
         m_fCancelled = false;
         m_fCompleted = false;
         m_state      = State.ORCHESTRATED;
+
+        Span parentSpan = TracingHelper.getActiveSpan();
+        if (parentSpan != null)
+            {
+            m_parentSpanContext = parentSpan.getContext();
+            }
         }
 
     // ----- public methods -------------------------------------------------
@@ -298,7 +312,7 @@ public class ClusteredTaskManager<T, A, R>
         ExecutorTrace.log(() -> String.format("Task                               : %s", key),     debug);
         ExecutorTrace.log(() -> String.format("State                              : %s", m_state), debug);
         ExecutorTrace.log(() -> String.format("Completed ?                        : %s", m_fCompleted), debug);
-        ExecutorTrace.log(() -> String.format("Cancelled ?                        : %s", m_fCompleted), debug);
+        ExecutorTrace.log(() -> String.format("Cancelled ?                        : %s", m_fCancelled), debug);
         ExecutorTrace.log(() -> String.format("Last Result                        : %s", m_lastResult), debug);
         ExecutorTrace.log(() -> String.format("Result Version                     : %s", m_nResultVersion), debug);
         ExecutorTrace.log(() -> String.format("Pending Results from Executors     : %s", newResultCount), debug);
@@ -350,7 +364,7 @@ public class ClusteredTaskManager<T, A, R>
 
         ExecutorTrace.log(() -> String.format("Evaluation Rationales              : %s", rationales), debug);
 
-        // only process changes if the task is running, not completed, not cancelled and there are updates to process
+        // only process changes if the task is running, not completed, not cancelled, and there are updates to process
         if (m_state == State.ORCHESTRATED
             && !m_fCompleted
             && !m_fCancelled
@@ -407,7 +421,7 @@ public class ClusteredTaskManager<T, A, R>
             {
             ExecutorTrace.log(() -> String.format("Updating Task [%s]", m_sTaskId), debug);
 
-            Result result = (Result) service.ensureCache(CACHE_NAME, null).invoke(m_sTaskId, LocalOnlyProcessor.of(chain));
+            Result result = (Result) Caches.tasks(service).invoke(m_sTaskId, LocalOnlyProcessor.of(chain));
 
             // is the task local?
             isLocal = result.isPresent();
@@ -416,7 +430,7 @@ public class ClusteredTaskManager<T, A, R>
         // we'll only perform updates if the task is still local, or we're recovering (which means we're local)
         if (isLocal || cause == Cause.PARTITIONING)
             {
-            // ensure the executors are updated with the current execution plan (when we're not already completed)
+            // ensure the executors are updated with the current execution plan (when we haven't yet completed)
             if (!m_fCompleted && !m_fCancelled && m_cPendingExecutionPlanOptimizationCount > 0)
                 {
                 ExecutorTrace.log(() -> String.format(
@@ -441,10 +455,8 @@ public class ClusteredTaskManager<T, A, R>
                     }
 
                 // use an EntryProcessor update the execution plan and count (that it's now completed)
-                service.ensureCache(CACHE_NAME, null)
-                        .invoke(m_sTaskId, LocalOnlyProcessor.of(
-                                new OptimizeExecutionPlanProcessor(m_executionPlan,
-                                                                   m_cPendingExecutionPlanOptimizationCount)));
+               Caches.tasks(service).invoke(m_sTaskId, LocalOnlyProcessor.of(
+                       new OptimizeExecutionPlanProcessor(m_executionPlan, m_cPendingExecutionPlanOptimizationCount)));
 
                 ExecutorTrace.log(() -> String.format(
                         "Completed Assigning and Optimizing Execution Plan for Task [%s]", m_sTaskId), debug);
@@ -640,6 +652,10 @@ public class ClusteredTaskManager<T, A, R>
         m_fCancelled = in.readBoolean();
         m_fCompleted = in.readBoolean();
         m_state      = ExternalizableHelper.readObject(in);
+
+        Map<String, String> wireTracingContext = new LinkedHashMap();
+        ExternalizableHelper.readMap(in, wireTracingContext, Base.getContextClassLoader());
+        m_parentSpanContext = wireTracingContext.isEmpty() ? SpanContext.Noop.INSTANCE : TracingHelper.getTracer().extract(wireTracingContext);
         }
 
     @Override
@@ -669,6 +685,9 @@ public class ClusteredTaskManager<T, A, R>
         out.writeBoolean(m_fCancelled);
         out.writeBoolean(m_fCompleted);
         ExternalizableHelper.writeObject(out, m_state);
+
+        Map<String, String> injectMap = TracingHelper.getTracer().inject(m_parentSpanContext);
+        ExternalizableHelper.writeMap(out, injectMap == null ? Collections.emptyMap() : injectMap);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -715,6 +734,10 @@ public class ClusteredTaskManager<T, A, R>
         m_fCancelled = in.readBoolean(16);
         m_fCompleted = in.readBoolean(17);
         m_state      = in.readObject(18);
+
+        Map<String, String> wireTracingContext = new LinkedHashMap();
+        in.readMap(19, wireTracingContext);
+        m_parentSpanContext = TracingHelper.getTracer().extract(wireTracingContext);
         }
 
     @Override
@@ -742,9 +765,22 @@ public class ClusteredTaskManager<T, A, R>
         out.writeBoolean(16, m_fCancelled);
         out.writeBoolean(17, m_fCompleted);
         out.writeObject(18,  m_state);
+        out.writeObject(19, TracingHelper.getTracer().inject(m_parentSpanContext));
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return the {@link SpanContext} of the span that enqueued this task.
+     *
+     * @return the {@link SpanContext} of the span that enqueued this task
+     *
+     * @since 22.06
+     */
+    protected SpanContext getParentSpanContext()
+        {
+        return m_parentSpanContext;
+        }
 
     /**
      * Evaluate the result of the {@link Task} given the current {@link Result}s made by each of the assigned {@link
@@ -901,7 +937,7 @@ public class ClusteredTaskManager<T, A, R>
             // create Map of the available executors (info), that are candidates for executing a task
 
             // obtain the cache containing ExecutionInfo
-            NamedCache executorInfoCache = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+            NamedCache executorInfoCache = Caches.executors(service);
 
             HashMap<String, ExecutorInfo> executorInfoMap = new HashMap<>();
 
@@ -976,7 +1012,7 @@ public class ClusteredTaskManager<T, A, R>
 
         if (retain == null)
             {
-            service.ensureCache(CACHE_NAME, null).remove(sKey);
+            Caches.tasks(service).remove(sKey);
             }
         else if (retain != Duration.ZERO)
             {
@@ -985,7 +1021,7 @@ public class ClusteredTaskManager<T, A, R>
 
             m_retainDuration  = Duration.ZERO;
 
-            service.ensureCache(CACHE_NAME, null).put(sKey, value, cRetainMillis);
+            Caches.tasks(service).put(sKey, value, cRetainMillis);
             }
 
         // clean up the task properties
@@ -1006,8 +1042,7 @@ public class ClusteredTaskManager<T, A, R>
 
         ExecutorTrace.entering(ClusteredTaskManager.class, "cleanProperties", sTaskId);
 
-        service.ensureCache(ClusteredProperties.CACHE_NAME, null)
-                .invokeAll(filterAsc, new ConditionalRemove(PresentFilter.INSTANCE, false));
+        Caches.properties(service).invokeAll(filterAsc, new ConditionalRemove(PresentFilter.INSTANCE, false));
 
         ExecutorTrace.exiting(ClusteredTaskManager.class, "cleanProperties", sTaskId);
         }
@@ -1053,7 +1088,7 @@ public class ClusteredTaskManager<T, A, R>
         }
 
     /**
-     * Effectively a no-op.
+     * Effectively, a no-op.
      *
      * @param service  {@inheritDoc}
      * @param entry    {@inheritDoc}
@@ -1476,7 +1511,7 @@ public class ClusteredTaskManager<T, A, R>
          * Constructs a {@link ClusteredExecutorInfo.SetStateProcessor}.
          *
          * @param sExecutorId  the {@link Executor} id
-         * @param previous     the previous states (<code>null</code> if any state ok to replace)
+         * @param previous     the previous states (<code>null</code> if okay to replace any state)
          * @param desired      the desired state
          */
         public SetActionProcessor(String sExecutorId, EnumSet<ExecutionPlan.Action> previous,
@@ -1491,7 +1526,7 @@ public class ClusteredTaskManager<T, A, R>
          * Constructs a {@link ClusteredExecutorInfo.SetStateProcessor}.
          *
          * @param sExecutorId  the {@link Executor} id
-         * @param previous    the previous state (<code>null</code> if any state ok to replace)
+         * @param previous    the previous state (<code>null</code> if okay to replace any state)
          * @param desired     the desired state
          */
         @SuppressWarnings("unused")
@@ -2035,13 +2070,6 @@ public class ClusteredTaskManager<T, A, R>
         TERMINATING
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The {@link NamedCache} in which instance of this class will be placed.
-     */
-    public static String CACHE_NAME = "executor-tasks";
-
     // ----- data members ---------------------------------------------------
 
     /**
@@ -2159,4 +2187,9 @@ public class ClusteredTaskManager<T, A, R>
      * The current state of the {@link ClusteredTaskManager}.
      */
     protected volatile State m_state;
+
+    /**
+     * The {@link SpanContext} of the span enqueuing this task.
+     */
+    private SpanContext m_parentSpanContext = SpanContext.Noop.INSTANCE;
     }

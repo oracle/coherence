@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.internal;
@@ -11,8 +11,9 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.concurrent.config.ConcurrentConfiguration;
 
-import com.oracle.coherence.concurrent.executor.ClusteredAssignment;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorService;
+
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -54,7 +55,7 @@ public class LifecycleEventInterceptor
                 ConfigurableCacheFactory configurableCacheFactory = event.getConfigurableCacheFactory();
 
                 // attempt to acquire the cache to determine if we're storage enabled
-                NamedCache<?, ?> cache = configurableCacheFactory.ensureCache(ClusteredAssignment.CACHE_NAME, null);
+                NamedCache<?, ?> cache = Caches.assignments(configurableCacheFactory);
 
                 if (cache != null && cache.isActive())
                     {

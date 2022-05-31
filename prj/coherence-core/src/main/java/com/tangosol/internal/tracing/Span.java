@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.tracing;
 
@@ -756,9 +756,17 @@ public interface Span
     public enum Association
         {
         /**
-         * Indicates that the span is associated with a particular {@code Coherence} component.
+         * Some parent Spans do not depend in any way on the result of their
+         * child Spans. In these cases, we say merely that the child Span
+         * FollowsFrom the parent Span in a causal sense.
          */
-        FOLLOWS_FROM;
+        FOLLOWS_FROM,
+
+        /**
+         * A Span may be the ChildOf a parent Span. In a ChildOf reference,
+         * the parent Span depends on the child Span in some capacity.
+         */
+        CHILD_OF;
 
         // ----- constructors -----------------------------------------------
 

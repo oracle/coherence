@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -25,15 +25,16 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A task that may take a long time to execute, may be executed by multiple {@link Executor}s, may generate intermediate
- * results, and may yield for later execution.
+ * A task which may take a long time to execute, may be executed by multiple {@link Executor}s,
+ * may generate intermediate results, and may yield for later execution.
  * <p>
  * Implementations define a single method called {@link #execute(Context)} that performs the task, possibly yielding
- * execution to some later point.  Once the method has completed execution, by returning a result or throwing an
+ * execution to some later point.
+ * Once the method has completed execution, by returning a result or throwing an
  * exception (but not a YieldException), the task is considered completed for the assigned {@link Executor}.
  * <p>
  * {@link Task}s are like {@link Callable} and {@link Runnable} classes in that they are designed to be potentially
- * executed by one or more {@link Thread}s, typically {@link Executor}s.  Unlike {@link Callable} and {@link Runnable}
+ * executed by one or more {@link Thread}s, typically {@link Executor}s. Unlike {@link Callable} and {@link Runnable}
  * classes, the execution may occur in Java Virtual Machines, fail and/or recover between different Java Virtual Machine
  * processes.
  *
@@ -80,7 +81,7 @@ public interface Task<T>
          * considered completed, based on the collected result, after which no further
          * results will be published to {@link Subscriber}s.
          * <p>
-         * When collection is completed {@link Subscriber}s will then be notified by
+         * When collection activity is completed, {@link Subscriber}s will then be notified by
          * calling {@link Subscriber#onComplete()}.
          *
          * @param predicate  the {@link Predicate} to determine when the {@link Task}
@@ -132,12 +133,13 @@ public interface Task<T>
      * container, optionally transforming the accumulated result into a final
      * representation after all results have been processed.
      * <p>
-     * Based on https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collector.html
      *
      * @param <T>  the type of input elements to the reduction operation
      * @param <A>  the mutable accumulation type of the reduction operation
      *             (often hidden as an implementation detail)
      * @param <R>  the result type of the reduction operation
+     *
+     * @see java.util.stream.Collector
      */
     interface Collector<T, A, R>
             extends ExternalizableLite
@@ -223,7 +225,7 @@ public interface Task<T>
          * according to the configured {@link Task.Collector} and then published to
          * registered {@link Task.Subscriber}s.
          * <p>
-         * Multiple calls to this method is permitted during the execution of a
+         * Multiple calls to this method are permitted during the execution of a
          * {@link Task}, thus permitting a stream of results to be collected and
          * thus published.
          *
@@ -242,6 +244,15 @@ public interface Task<T>
          *         <code>false</code> otherwise
          */
         boolean isDone();
+
+        /**
+         * Determines if a {@link Task} was cancelled.
+         *
+         * @return {@code true} if the task was cancelled
+         *
+         * @since 22.06
+         */
+        boolean isCancelled();
 
         /**
          * Determines if a {@link Task} execution by an {@link Executor} resuming
@@ -323,7 +334,6 @@ public interface Task<T>
          * return true. Subsequent calls to isDone() will always return true if this
          * method returned true.
          * </p>
-         * Based on https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Future.html#cancel(boolean)
          *
          * @param mayInterruptIfRunning  <code>true</code> if the thread executing this
          *                               task should be interrupted; otherwise,
@@ -331,16 +341,18 @@ public interface Task<T>
          *
          * @return <code>false</code> if the task could not be cancelled, typically
          *         because it has already completed normally; <code>true</code> otherwise
+         *
+         * @see java.util.concurrent.Future#cancel(boolean)
          */
         boolean cancel(boolean mayInterruptIfRunning);
 
         /**
          * Returns <code>true</code> if the {@link Task} was cancelled before
          * it completed normally.
-         * <p>
-         * Based on https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Future.html#isCancelled()
          *
          * @return <code>true</code> if this task was cancelled before it completed
+         *
+         * @see java.util.concurrent.Future#isCancelled()
          */
         boolean isCancelled();
 
@@ -348,10 +360,10 @@ public interface Task<T>
          * Returns <code>true</code> if the {@link Task} completed. Completion may be due
          * to normal termination, an exception, or cancellation -- in all of these cases,
          * this method will return <code>true</code>.
-         * <p>
-         * Based on https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Future.html#isDone()
          *
          * @return <code>true</code> if this task completed
+         *
+         * @see java.util.concurrent.Future#isDone()
          */
         boolean isDone();
 
@@ -571,9 +583,10 @@ public interface Task<T>
         {
         /**
          * Invoked by a {@link Coordinator} when it is known that no additional
-         * {@link Subscriber} method invocations will occur and that is not
-         * already terminated by error.  After this method is invoked no other
-         * {@link Subscriber} methods will be called.
+         * {@link Subscriber} method invocations will occur or has already been
+         * terminated by an error.
+         * <p>
+         * After this method is invoked no other {@link Subscriber} methods will be called.
          * <p>
          * If this method throws an exception, the {@link Subscriber} will be closed.
          */
@@ -622,6 +635,7 @@ public interface Task<T>
          * Causes the {@link Subscriber} to (eventually) stop receiving items from
          * a {@link Coordinator}.
          */
+        @SuppressWarnings("unused")
         void cancel();
 
         /**

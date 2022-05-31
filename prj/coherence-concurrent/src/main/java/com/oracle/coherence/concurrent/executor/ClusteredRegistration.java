@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -13,13 +13,21 @@ import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
 import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Member;
 
+import com.oracle.coherence.concurrent.executor.options.Name;
+
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 
 import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
+import com.oracle.coherence.concurrent.executor.util.Caches;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
 import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.tracing.Scope;
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
+import com.tangosol.internal.tracing.TracingHelper;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
@@ -85,7 +93,10 @@ public class ClusteredRegistration
         f_clusteredExecutorService = clusteredExecutorService;
         f_sExecutorId              = sExecutorId;
         f_executor                 = executor;
-        f_optionsByType            = optionsByType;
+        f_optionsByType            = optionsByType == null
+                                         ? OptionsByType.from(TaskExecutorService.Registration.Option.class,
+                                                              new TaskExecutorService.Registration.Option[0])
+                                         : optionsByType;
         f_mapTaskExecutors         = new ConcurrentHashMap<>();
         }
 
@@ -173,9 +184,25 @@ public class ClusteredRegistration
     @Override
     public void entryUpdated(MapEvent mapEvent)
         {
-        // we don't need to do anything when a Task assignment is updated
-        // (as it's ourselves doing the update)
         ExecutorTrace.log(() -> String.format("Executor [%s] received update event [%s]", f_sExecutorId, mapEvent));
+
+        // obtain the task assignment
+        final ClusteredAssignment assignment = (ClusteredAssignment) mapEvent.getNewValue();
+        String                   sTaskId    = assignment.getTaskId();
+
+        if (assignment.getState() == ClusteredAssignment.State.CANCELLED)
+            {
+            TaskExecutor taskExecutor = f_mapTaskExecutors.get(sTaskId);
+            if (taskExecutor != null)
+                {
+                Thread executionThread = taskExecutor.getExecutionThread();
+                if (executionThread != null)
+                    {
+                    ExecutorTrace.log(() -> String.format("Executor [%s] attempting interrupt of task [%s] running on thread [%s]", f_sExecutorId, sTaskId, executionThread));
+                    executionThread.interrupt();
+                    }
+                }
+            }
         }
 
     @Override
@@ -186,14 +213,7 @@ public class ClusteredRegistration
         // obtain the task assignment
         ClusteredAssignment assignment = (ClusteredAssignment) mapEvent.getOldValue();
 
-        // obtain the identity of the assigned task
-        String taskId = assignment.getTaskId();
-
-        // remove the task
-        f_mapTaskExecutors.remove(taskId);
-
-        m_cTasksCompletedCount++;
-        m_cTasksInProgressCount--;
+        cleanupTask(assignment.getTaskId());
         }
 
     /**
@@ -206,26 +226,26 @@ public class ClusteredRegistration
             {
             // only go through the shutdown process once
 
-            f_clusteredExecutorService.getCacheService()
-                    .ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
-                            .invoke(f_sExecutorId,
-                                    new ClusteredExecutorInfo.SetStateProcessor(
-                                            TaskExecutorService.ExecutorInfo.State.CLOSING_GRACEFULLY));
+            executors().invoke(f_sExecutorId,
+                    new ClusteredExecutorInfo.SetStateProcessor(
+                            TaskExecutorService.ExecutorInfo.State.CLOSING_GRACEFULLY));
 
             // schedule a callable that will touch the executor every second within the cluster using the
-            // local ScheduledExecutorService from the ClusteredExecutorService. This will trigger a check
-            // for remaining tasks
+            // local ScheduledExecutorService from the ClusteredExecutorService.
+            // This will trigger a check for any remaining tasks
             try
                 {
+                ClusteredExecutorService service = f_clusteredExecutorService;
+
                 m_touchFuture =
-                    f_clusteredExecutorService.getScheduledExecutorService()
+                    service.getScheduledExecutorService()
                         .scheduleAtFixedRate(
                                 new ClusteredExecutorInfo.TouchRunnable(f_sExecutorId,
-                                        f_clusteredExecutorService.getCacheService()), 1, 1, TimeUnit.SECONDS);
+                                        service.getCacheService()), 1, 1, TimeUnit.SECONDS);
                 }
             catch (RejectedExecutionException e)
                 {
-                // ignore - likely an Executor being de-registered in the middle of the
+                // ignore - likely an Executor being deregistered in the middle of the
                 // ClusteredExecutorService shutting down
                 }
             }
@@ -503,12 +523,8 @@ public class ClusteredRegistration
                 processor = cp;
                 }
 
-            // acquire the task
-            NamedCache tasksCache = f_clusteredExecutorService.getCacheService()
-                    .ensureCache(ClusteredTaskManager.CACHE_NAME, null);
-
             // update the Task with the result
-            tasksCache.invoke(f_sTaskId, processor);
+            tasks().invoke(f_sTaskId, processor);
             }
 
         // ----- Runnable interface -----------------------------------------
@@ -517,6 +533,10 @@ public class ClusteredRegistration
         @Override
         public void run()
             {
+            // Save a reference to the current execution thread for the duration
+            // of the execution to allow interrupting a task.
+            m_executionThread = Thread.currentThread();
+
             // should the execution status be updated after the task has executed?
             boolean fUpdateExecutionStatus;
 
@@ -531,9 +551,7 @@ public class ClusteredRegistration
                                                 f_sExecutorId, f_sTaskId));
 
                 // acquire the task
-                NamedCache tasksCache =
-                    f_clusteredExecutorService.getCacheService().ensureCache(ClusteredTaskManager.CACHE_NAME,
-                                                                             null);
+                NamedCache tasksCache = tasks();
 
                 // whether the task execution is considered completed by the ClusteredExecutorService
                 boolean fIsCompleted;
@@ -589,7 +607,7 @@ public class ClusteredRegistration
                 if (m_task == null)
                     {
                     ExecutorTrace.log(() -> String.format("Executor [%s] skipping execution of Task [%s] (no longer exists)",
-                                                    f_sExecutorId, f_sTaskId));
+                                                          f_sExecutorId, f_sTaskId));
 
                     // we skip executing the task as it has been completed
                     fUpdateExecutionStatus          = false;
@@ -611,10 +629,10 @@ public class ClusteredRegistration
                 else
                     {
                     // update the task assignment to indicate that we've started execution
-                    ClusteredAssignment.State existing = (ClusteredAssignment.State) m_assignmentsCache
+                    ClusteredAssignment.State existing = (ClusteredAssignment.State) m_viewAssignments
                             .invoke(ClusteredAssignment.getCacheKey(f_sExecutorId, f_sTaskId),
                                     new ClusteredAssignment.SetStateProcessor(ClusteredAssignment.State.ASSIGNED,
-                                            ClusteredAssignment.State.EXECUTING));
+                                                                              ClusteredAssignment.State.EXECUTING));
 
                     if (existing == null)
                         {
@@ -625,13 +643,38 @@ public class ClusteredRegistration
                     else if (existing.equals(ClusteredAssignment.State.ASSIGNED)
                              || (isResuming() && existing.equals(ClusteredAssignment.State.EXECUTING)))
                         {
+                        ClusteredTaskManager          taskManager       = (ClusteredTaskManager) tasks().get(f_sTaskId);
+                        SpanContext                   parentSpanContext = taskManager.getParentSpanContext();
+
+                        Span executionSpan = createSpan(parentSpanContext);
+
                         // attempt to execute the task (passing in this executor as the context)
-                        try
+                        try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
                             {
                             ExecutorTrace.log(() -> String.format("Executor [%s] Task [%s]",
-                                                            isResuming() ? "Resuming" : "Executing", f_sTaskId));
+                                                                  isResuming()
+                                                                  ? "Resuming"
+                                                                  : "Executing", f_sTaskId));
 
-                            setResult(Result.of(m_task.execute(this)), true);
+                            executionSpan.log(String.format("%s %s",
+                                    isResuming() ? "Resuming" : "Executing", f_sTaskId));
+
+                            // Store a reference to the current thread at this point in time.
+                            // Then clear the reference after execution returns.
+                            // If the reference is available when an update is received for the assignment
+                            // (see entryUpdated()) indicating cancellation, then interrupt the thread,
+                            // otherwise, we continue executing as normal.
+                            m_executionThread = Thread.currentThread();
+                            try
+                                {
+                                setResult(Result.of(m_task.execute((this))), true);
+                                }
+                            finally
+                                {
+                                m_executionThread = null;
+                                }
+
+                            executionSpan.log("Execution completed");
 
                             // we've provided a result; assume we're finished executing
                             fUpdateExecutionStatus          = true;
@@ -643,25 +686,33 @@ public class ClusteredRegistration
                             m_cYield++;
 
                             ExecutorTrace.log(() -> String.format("Executor [%s] scheduling Task [%s] to resume in %s",
-                                                            f_sExecutorId, f_sTaskId, yield.getDuration()));
+                                                                  f_sExecutorId, f_sTaskId, yield.getDuration()));
+
+                            executionSpan.log("Yielding execution for " + yield.getDuration());
 
                             TaskExecutor taskExecutor = this;
                             f_clusteredExecutorService.getScheduledExecutorService()
                                     .schedule(() -> executingTask(taskExecutor, f_sTaskId, f_sExecutorId),
-                                            yield.getDuration().toNanos(), TimeUnit.NANOSECONDS);
+                                              yield.getDuration().toNanos(), TimeUnit.NANOSECONDS);
 
-                            // we've yielded so we're not finished
-                            fUpdateExecutionStatus          = false;
+                            // we've yielded, so we're not finished
+                            fUpdateExecutionStatus         = false;
                             fCleanupLocalExecutionResources = false;
                             }
                         catch (Throwable throwable)
                             {
-                            // update the result indicating the exception
+                        // update the result indicating the exception
                             setResult(Result.throwable(throwable));
+
+                            TracingHelper.augmentSpanWithErrorDetails(executionSpan, true, throwable);
 
                             // we're finished executing!
                             fUpdateExecutionStatus          = true;
                             fCleanupLocalExecutionResources = true;
+                            }
+                        finally
+                            {
+                            executionSpan.end();
                             }
                         }
                     else
@@ -681,7 +732,7 @@ public class ClusteredRegistration
                             f_sExecutorId, f_sTaskId));
 
                     // update the task assignment to indicate that we've completed execution
-                    NamedCache cache = m_assignmentsCache;
+                    NamedCache cache = m_viewAssignments;
 
                     // may be null or not active if this ClusteredExecutorService is shutting down
                     if (cache != null && cache.isActive())
@@ -706,7 +757,7 @@ public class ClusteredRegistration
                 if (fCleanupLocalExecutionResources)
                     {
                     ExecutorTrace.log(() -> String.format("Executor [%s] cleaning up local resources for Task [%s]",
-                                                    f_sExecutorId, f_sTaskId));
+                                                          f_sExecutorId, f_sTaskId));
 
                     // stop tracking the executor locally
                     f_mapTaskExecutors.remove(f_sTaskId);
@@ -718,6 +769,20 @@ public class ClusteredRegistration
                         "Executor [%s] skipping execution of Task [%s] (no longer tracked locally)",
                         f_sExecutorId, f_sTaskId));
                 }
+            }
+
+        private Span createSpan(SpanContext parentSpanContext)
+            {
+            Span.Builder builder = TracingHelper.newSpan("Task.Execute").withAssociation(Span.Association.CHILD_OF.key(), parentSpanContext)
+                    .withMetadata(Span.Type.COMPONENT.key(), "ExecutorService");
+
+            builder.withMetadata("task-id",              f_sTaskId);
+            builder.withMetadata("task-type",            m_task.toString());
+            builder.withMetadata("executor-id",          f_sExecutorId);
+            builder.withMetadata("executor-name",        f_optionsByType.get(Name.class, Name.of("")).getName());
+            builder.withMetadata("executor-description", f_optionsByType.get(Description.class, Description.of("")).getName());
+
+            return builder.startSpan();
             }
 
         // ----- Context interface ------------------------------------------
@@ -732,11 +797,18 @@ public class ClusteredRegistration
         @Override
         public boolean isDone()
             {
-            Boolean fDone = (Boolean) f_clusteredExecutorService.getCacheService()
-                    .ensureCache(ClusteredTaskManager.CACHE_NAME, null)
-                            .invoke(f_sTaskId, new ExtractorProcessor("isDone"));
+            Boolean fDone = (Boolean) tasks().invoke(f_sTaskId, new ExtractorProcessor("isDone"));
 
             return fDone == null || fDone;
+            }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public boolean isCancelled()
+            {
+            Boolean fCancelled = (Boolean) tasks().invoke(f_sTaskId, new ExtractorProcessor("isCancelled"));
+
+            return fCancelled == null || fCancelled;
             }
 
         @Override
@@ -771,6 +843,16 @@ public class ClusteredRegistration
             return ClusteredRegistration.this.getId();
             }
 
+        /**
+         * Returns the {@link Thread} this task is currently executing on.
+         *
+         * @return the {@link Thread} this task is currently executing on
+         */
+        protected Thread getExecutionThread()
+            {
+            return m_executionThread;
+            }
+
         // ----- object methods ---------------------------------------------
 
         @Override
@@ -781,6 +863,7 @@ public class ClusteredRegistration
                    ", task=" + m_task +
                    ", yieldCount=" + m_cYield +
                    ", recovered=" + f_fRecovered +
+                   ", current-thread=" + m_executionThread +
                    '}';
             }
 
@@ -810,9 +893,46 @@ public class ClusteredRegistration
          * The task {@link Task.Properties}.
          */
         protected ClusteredProperties m_properties;
+
+        /**
+         * The thread this task is currently running on.
+         *
+         * @since 22.06
+         */
+        protected volatile Thread m_executionThread;
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return the {@link NamedCache} storing {@link ClusteredExecutorInfo} instances.
+     *
+     * @return the {@link NamedCache} storing {@link ClusteredExecutorInfo} instances
+     */
+    protected NamedCache executors()
+        {
+        return Caches.executors(f_clusteredExecutorService.getCacheService());
+        }
+
+    /**
+     * Return the {@link NamedCache} storing {@link ClusteredTaskManager} instances.
+     *
+     * @return the {@link NamedCache} storing {@link ClusteredTaskManager} instances
+     */
+    protected NamedCache tasks()
+        {
+        return Caches.tasks(f_clusteredExecutorService.getCacheService());
+        }
+
+    /**
+     * Return the {@link NamedCache} storing {@link ClusteredAssignment} instances.
+     *
+     * @return the {@link NamedCache} storing {@link ClusteredAssignment} instances
+     */
+    protected NamedCache assignments()
+        {
+        return Caches.assignments(f_clusteredExecutorService.getCacheService());
+        }
 
     /**
      * Registers the provided MBean for the specified executor.
@@ -902,6 +1022,8 @@ public class ClusteredRegistration
     @SuppressWarnings("unchecked")
     protected void executingTask(TaskExecutor taskExecutor, String sExecId, String sTaskId)
         {
+        m_cTasksInProgressCount++;
+
         // submit the TaskExecutor for execution using the ExecutionService
         try
             {
@@ -920,11 +1042,9 @@ public class ClusteredRegistration
             // update the ExecutorInfo to indicate that is it now rejecting tasks
             f_clusteredExecutorService.getScheduledExecutorService().submit(() ->
                 {
-                f_clusteredExecutorService.getCacheService()
-                    .ensureCache(ClusteredExecutorInfo.CACHE_NAME, null)
-                            .invoke(sExecId, new ClusteredExecutorInfo.SetStateProcessor(
-                                    TaskExecutorService.ExecutorInfo.State.RUNNING,
-                                    TaskExecutorService.ExecutorInfo.State.REJECTING));
+                executors().invoke(sExecId,
+                        new ClusteredExecutorInfo.SetStateProcessor(TaskExecutorService.ExecutorInfo.State.RUNNING,
+                                TaskExecutorService.ExecutorInfo.State.REJECTING));
                 });
 
             // update the execution plan action and notify TaskManager about the change so that the
@@ -936,8 +1056,7 @@ public class ClusteredRegistration
                             ExecutionPlan.Action.ASSIGN, ExecutionPlan.Action.RECOVER), ExecutionPlan.Action.REASSIGN));
 
             chainedProcessor.andThen(new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
-            f_clusteredExecutorService.getCacheService()
-                    .ensureCache(ClusteredTaskManager.CACHE_NAME, null).invoke(sTaskId, chainedProcessor);
+            tasks().invoke(sTaskId, chainedProcessor);
 
             ExecutorService executorService = f_executor;
 
@@ -950,6 +1069,22 @@ public class ClusteredRegistration
                 f_clusteredExecutorService.deregister(f_executor);
                 }
             }
+        }
+
+    /**
+     * Removes the task from the known task executors and adjusts metrics
+     * accordingly.
+     *
+     * @param sTaskId  the task ID
+     *
+     * @since 22.06
+     */
+    protected void cleanupTask(String sTaskId)
+        {
+        f_mapTaskExecutors.remove(sTaskId);
+
+        m_cTasksCompletedCount++;
+        m_cTasksInProgressCount--;
         }
 
     /**
@@ -967,17 +1102,13 @@ public class ClusteredRegistration
             CacheService service = f_clusteredExecutorService.getCacheService();
 
             // register a listener to detect external closing of the Executor
-            service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null).addMapListener(f_listener, f_sExecutorId, false);
+            executors().addMapListener(f_listener, f_sExecutorId, false);
 
             // create a view for the task assignments to the Executor
-            NamedCache clusteredAssignment = service.ensureCache(ClusteredAssignment.CACHE_NAME, null);
-            m_assignmentsCache = clusteredAssignment.view()
+            m_viewAssignments = assignments().view()
                     .filter(Filters.equal("executorId", f_sExecutorId))
                     .listener(this)
                     .build();
-
-            // acquire the executor info cache
-            NamedCache<String, ClusteredExecutorInfo> cache = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
 
             // acquire the Runtime so we can capture local runtime information
             Runtime runtime = Runtime.getRuntime();
@@ -992,7 +1123,7 @@ public class ClusteredRegistration
 
             // attempt to create the cluster information for the executor
             ClusteredExecutorInfo existingInfo = (ClusteredExecutorInfo)
-                    cache.invoke(f_sExecutorId, new ConditionalPut(Filters.not(Filters.present()), info, true));
+                    executors().invoke(f_sExecutorId, new ConditionalPut(Filters.not(Filters.present()), info, true));
 
             if (existingInfo == null)
                 {
@@ -1053,8 +1184,7 @@ public class ClusteredRegistration
             // be in the process of shutting down
             Runnable runnable = () ->
                 {
-                CacheService      service       = f_clusteredExecutorService.getCacheService();
-                NamedCache        esCache       = service.ensureCache(ClusteredExecutorInfo.CACHE_NAME, null);
+                NamedCache        esCache       = executors();
                 ExecutorMBeanImpl executorMBean = m_executorMBean;
 
                 unregisterExecutiveServiceMBean(
@@ -1076,15 +1206,15 @@ public class ClusteredRegistration
 
             Base.makeThread(null, runnable, "ConcurrentExecutorCleaner").start();
 
-            // release the assignments cache (as it's a CQC)
-            if (m_assignmentsCache != null)
+            // release the assignment cache (as it's a CQC)
+            if (m_viewAssignments != null)
                 {
-                m_assignmentsCache.release();
+                m_viewAssignments.release();
 
-                m_assignmentsCache = null;
+                m_viewAssignments = null;
                 }
 
-            // de-register in case the close wasn't initiated by the owning ClusteredExecutorService
+            // deregister in case the close wasn't initiated by the owning ClusteredExecutorService
             f_clusteredExecutorService.deregister(f_executor);
             }
         }
@@ -1106,11 +1236,11 @@ public class ClusteredRegistration
     /**
      * The executor attribute to indicate whether trace logging is
      * enabled.
-     *
-     * By default, the executor trace logging is disabled. You can enable
-     * it by either setting the "coherence.executor.trace.logging" system
-     * property or the "TraceLogging" attribute in ExecutorMBean through JMX or
-     * management over REST.
+     * <p>
+     * By default, the executor trace logging is disabled.
+     * logging can be enabled by either setting the {@code coherence.executor.trace.logging}
+     * system property or the {@code TraceLogging} attribute on the JMX ExecutorMBean or
+     * via {@code Management over REST}.
      */
     public static boolean s_fTraceLogging = Config.getBoolean("coherence.executor.trace.logging", false);
 
@@ -1208,10 +1338,10 @@ public class ClusteredRegistration
     protected volatile ScheduledFuture m_touchFuture;
 
     /**
-     * The {@link NamedCache} containing {@link ClusteredAssignment}s for the {@link Executor}.
+     * The {@link NamedCache}/View containing {@link ClusteredAssignment}s for the {@link Executor}.
      */
     @SuppressWarnings("rawtypes")
-    protected NamedCache m_assignmentsCache;
+    protected NamedCache m_viewAssignments;
 
     /**
      * The {@link TaskExecutor}s representing the {@link Task}s scheduled for execution with the {@link Executor}.
