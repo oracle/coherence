@@ -44,6 +44,12 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-data</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
 </project>
