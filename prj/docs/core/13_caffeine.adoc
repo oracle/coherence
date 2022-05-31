@@ -1,0 +1,148 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Caffeine Integration
+:description: Caffeine Backing Map Implementation
+:keywords: coherence, caffeine, caching, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// they both serve a purpose, and the docs will look wrong if it is removed.
+== Caffeine Integration
+
+Coherence 22.06 adds https://github.com/ben-manes/caffeine[Caffeine] backing map implementation,
+  allowing you to use Caffeine wherever the standard Coherence local cache can be used: as a local cache,
+  as a backing map for a partitioned cache, or as a front map for a near cache.
+
+=== About Caffeine
+
+// TODO: @ben-manes please expand this section to describe applicable features and benefits
+Caffeine is a high performance, near optimal caching library.
+
+=== Using Caffeine
+
+Caffeine is integrated tightly into the Coherence, and is almost as easy to use as any of the built-in backing map
+  implementations Coherence provides. The only difference is that it requires that you add dependency on Caffeine
+  to your project's POM file, as it is defined as an optional dependency within Coherence POM.
+
+==== Adding a Dependency on Caffeine
+
+To be able to use Caffeine, you need to add the following dependency to your POM file:
+[source,xml]
+----
+<dependency>
+  <groupId>com.github.ben-manes.caffeine</groupId>
+  <artifactId>caffeine</artifactId>
+  <version>${caffeine.version}</version>
+</dependency>
+----
+
+The supported Caffeine versions are `3.1.0` or higher.
+
+==== Caffeine Configuration
+
+Once the dependency above is added, Caffeine is as easy to use as a standard local cache implementation.
+
+Coherence provides `caffeine-scheme` configuration element, which can be used anywhere the `local-scheme` element
+  is currently used: standalone, as a definition of a local cache scheme, within `distributed-scheme` element as
+  a `backing-map` for a partitioned cache, or within `near-scheme` element as a `front-map`.
+
+===== Local Cache
+
+[source,xml]
+----
+ <caffeine-scheme>
+    <scheme-name>caffeine-local-scheme</scheme-name>
+ </caffeine-scheme>
+----
+
+===== Distributed Cache
+
+[source,xml]
+----
+<distributed-scheme>
+    <scheme-name>caffeine-distributed-scheme</scheme-name>
+    <backing-map-scheme>
+        <caffeine-scheme />
+    </backing-map-scheme>
+    <autostart>true</autostart>
+</distributed-scheme>
+----
+
+===== Near Cache
+
+[source,xml]
+----
+<near-scheme>
+    <scheme-name>caffeine-near-scheme</scheme-name>
+    <front-scheme>
+        <caffeine-scheme />
+    </front-scheme>
+    <back-scheme>
+        <distributed-scheme>
+            <scheme-ref>my-dist-scheme</scheme-ref>
+        </distributed-scheme>
+    </back-scheme>
+ </near-scheme>
+----
+
+Each of the `caffeine-scheme` elements above can be further configured the same way `local-scheme` is configured,
+  by specifying one or more of the following child elements:
+
+|===
+|Configuration Element |Description
+
+|`scheme-name`
+|The name of this scheme, which can be referenced elsewhere in the configuration file.
+
+|`scheme-ref`
+|The reference (by name) to a `caffeine-scheme` defined elsewhere in the configuration file.
+
+|`class-name`
+|The name of the custom class that extends `com.oracle.coherence.caffeine.CaffeineCache`,
+ allowing you to customize its behavior.
+
+|`scope-name`
+|The name of the scope.
+
+|`service-name`
+|The name of the service.
+
+|`init-params`
+|The arguments to pass to the `class-name` constructor.
+
+|`high-units`
+|The maximum amount of data the cache should be allowed to hold before the eviction occurs.
+
+|`unit-calculator`
+|The unit calculator to use, typically either `BINARY`, which determines the number of "units"
+ based on the number of bytes that the serialized form of cache keys and values consume, or `FIXED`
+ which simply uses the number of entries as "units".
+
+|`unit-factor`
+|Sometimes used in combination with a `BINARY` calculator to overcome 2 GB limit for "units". For example,
+ specifying `1024` as a "unit factor" allows you to express `high-units` in kilobytes instead of in bytes.
+
+|`expiry-delay`
+|The amount of time from last update the entries will be kept in cache before being discarded.
+
+|`listener`
+|A `MapListener` to register with the cache.
+|===
+
+All of the configuration elements above are optional, but you will typically want to set either
+  `high-units` or `expiry-delay` (or both) to limit cache based on either size or time-to-live (TTL).
+
+If neither is specified, the cache size will be limited only by available memory, and the TTL can
+  be specified explicitly using `NamedCache.put(key, value, ttl)` method, or by calling `BinaryEntry.expire`
+  within an entry processor.
+
+Of course, there is nothing wrong with not limiting the cache by either size or time, and you may still
+  benefit from using Caffeine in those situations, especially under high concurrent load, due to its lock-free
+  implementation.
+
+Finally, when using Caffeine as a backing map for a partitioned cache, you will likely want to configure
+  `unit-calculator` to `BINARY`, so you can set the limits and observe cache size (via JMX or Metrics) in
+  bytes instead of the number of entries in the cache.

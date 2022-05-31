@@ -76,9 +76,13 @@ Changes to partition backup management.
 .TLS/SSL Enhancements
 [icon=https,link=docs/core/10_tls.adoc]
 --
-TLS & SSL enhancements to use key and certificate files as an alternative to Java keystores.
-Supports refreshable keystores, keys and certificates.
-Adds extension points to allow custom keystore, key and certificate loaders.
+Various enhancements for TLS/SSL certificate management.
+--
+
+.Health API
+[icon=fa-heart-pulse,link=docs/core/11_health.adoc]
+--
+Determine the health of the local Coherence member.
 --
 
 [CARD]
@@ -86,6 +90,13 @@ Adds extension points to allow custom keystore, key and certificate loaders.
 [icon=fa-file-code-o,link=docs/core/12_cache_config_override.adoc]
 --
 Overriding Cache Configuration Using XML Override file.
+--
+
+[CARD]
+.Caffeine Support
+[icon=fa-coffee-pot,link=docs/core/13_caffeine.adoc]
+--
+Use Caffeine as a local cache or a backing map for a partitioned cache.
 --
 
 ====
