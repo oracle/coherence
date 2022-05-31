@@ -44,6 +44,18 @@
           </interceptor>
       </interceptors>
     </cache-mapping>
+    <!--    EntryProcessor Testing Cache-->
+    <cache-mapping>
+      <cache-name>dist-ep-*</cache-name>
+      <scheme-name>dist-default</scheme-name>
+      <interceptors>
+        <interceptor>
+          <instance>
+            <class-name>events.common.EntryProcessorInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
     <cache-mapping>
       <cache-name>dist-rwbm-exp</cache-name>
       <scheme-name>dist-rwbm-expiring</scheme-name>
