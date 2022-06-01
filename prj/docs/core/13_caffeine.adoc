@@ -18,8 +18,29 @@ Coherence 22.06 adds https://github.com/ben-manes/caffeine[Caffeine] backing map
 
 === About Caffeine
 
-// TODO: @ben-manes please expand this section to describe applicable features and benefits
-Caffeine is a high performance, near optimal caching library.
+Caffeine is a high performance, near optimal caching library. It improves upon Coherence's standard local
+  cache by offering better read and write concurrency, as well as a higher hit rate.
+
+This cache implements an adaptive eviction policy that can achieve a significantly higher hit rate across a large
+  variety of workloads. This can be leveraged to either reduce latencies or maintain the same performance with
+  smaller caches. That may allow for decreasing the operational costs due to requiring fewer resources for the
+  same workload.
+
+The https://dl.acm.org/doi/10.1145/3274808.3274816[adaptive] nature of this policy, nicknamed
+  https://dl.acm.org/doi/10.1145/3149371[W-TinyLFU], allows it to stay robustly performant despite changes in the
+  runtime workload. Those changes may be caused by variations in the external request pattern or differences
+  caused by the application's evolution. This self-optimizing, O(1) algorithm avoids the need to manually analyze
+  the application and tune the cache to a more optimal eviction policy.
+
+[format=csv,cols="h,,,,",options="header"]
+|===
+Workload, Caffeine, Hybrid, Lru, Lfu
+An analytical loop, *32.7%*, 2.6%, 1.0%, 1.4%
+Blockchain mining, 32.3%, 12.1%, *33.3%*, 0.0%
+OLTP, *40.2%*, 15.4%, 33.2%, 9.6%
+Search, *42.5%*, 31.3%, 12.0%, 29.3%
+Database, *44.8%*, 37.0%, 20.2%, 39.1%
+|===
 
 === Using Caffeine
 
@@ -140,8 +161,8 @@ If neither is specified, the cache size will be limited only by available memory
   within an entry processor.
 
 Of course, there is nothing wrong with not limiting the cache by either size or time, and you may still
-  benefit from using Caffeine in those situations, especially under high concurrent load, due to its lock-free
-  implementation.
+  benefit from using Caffeine in those situations, especially under high concurrent load, due to its support
+  for lock-free reads and fine-grained locking on writes.
 
 Finally, when using Caffeine as a backing map for a partitioned cache, you will likely want to configure
   `unit-calculator` to `BINARY`, so you can set the limits and observe cache size (via JMX or Metrics) in
