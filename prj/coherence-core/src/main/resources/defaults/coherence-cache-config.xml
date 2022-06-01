@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <!--
 This XML document is a default Coherence Cache Configuration deployment descriptor that should be
@@ -20,8 +20,10 @@ This configuration defines a number of inter-related cache schemes:
  - server       - this scheme defines the storage tier for all caches
  - thin-direct  - this scheme is for use by cluster members to access the caches hosted by the "server" scheme
  - near-direct  - this scheme adds near caching to "thin-direct"
- - thin-remote  - conceptually similar to "thin-direct" but for use by extend clients
- - near-remote  - conceptually similar to "near-direct" but for use by extend clients
+ - thin-remote  - conceptually similar to "thin-direct" but for use by extend clients that use the name service to locate the proxy
+ - near-remote  - conceptually similar to "near-direct" but for use by extend clients that use the name service to locate the proxy
+ - thin-remote-fixed   - conceptually similar to "thin-direct" but for use by extend clients that use a fixed proxy service address
+ - near-remote-fixed   - conceptually similar to "near-direct" but for use by extend clients that use a fixed proxy service address
  - topic-server - this scheme defines the storage tier for all topics
 
 
@@ -35,7 +37,8 @@ meaningful to other cache configurations unless similarly defined there.
 -->
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
-              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+              xml-override="{coherence.cacheconfig.override}">
   <defaults>
     <scope-name>${coherence.scope}</scope-name>
     <serializer>${coherence.serializer}</serializer>
@@ -85,6 +88,24 @@ meaningful to other cache configurations unless similarly defined there.
     <!-- remote caching scheme for accessing the proxy from extend clients -->
     <remote-cache-scheme>
       <scheme-name>thin-remote</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <proxy-service-name>Proxy</proxy-service-name>
+    </remote-cache-scheme>
+
+    <!-- near caching scheme for extend clients -->
+    <near-scheme>
+      <scheme-name>near-remote-fixed</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-cache-scheme>
+          <scheme-ref>thin-remote-fixed</scheme-ref>
+        </remote-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!-- remote caching scheme for accessing the proxy from extend clients -->
+    <remote-cache-scheme>
+      <scheme-name>thin-remote-fixed</scheme-name>
       <service-name>RemoteCache</service-name>
       <proxy-service-name>Proxy</proxy-service-name>
       <initiator-config>

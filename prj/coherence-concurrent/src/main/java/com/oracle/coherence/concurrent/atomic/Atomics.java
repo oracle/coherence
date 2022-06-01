@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.atomic;
 
@@ -81,11 +81,11 @@ public final class Atomics
         }
 
     /**
-     * Return {@link LocalAtomicBoolean} instance for the specified name.
+     * Return {@link RemoteAtomicBoolean} instance for the specified name.
      *
      * @param sName  the name of the atomic value
      *
-     * @return a {@code LocalAtomicBoolean} instance for the specified name
+     * @return a {@code RemoteAtomicBoolean} instance for the specified name
      */
     public static RemoteAtomicBoolean remoteAtomicBoolean(String sName)
         {
@@ -141,11 +141,11 @@ public final class Atomics
         }
 
     /**
-     * Return {@link LocalAtomicInteger} instance for the specified name.
+     * Return {@link RemoteAtomicInteger} instance for the specified name.
      *
      * @param sName  the name of the atomic value
      *
-     * @return a {@code LocalAtomicInteger} instance for the specified name
+     * @return a {@code RemoteAtomicInteger} instance for the specified name
      */
     public static RemoteAtomicInteger remoteAtomicInteger(String sName)
         {
@@ -201,11 +201,11 @@ public final class Atomics
         }
 
     /**
-     * Return {@link LocalAtomicLong} instance for the specified name.
+     * Return {@link RemoteAtomicLong} instance for the specified name.
      *
      * @param sName  the name of the atomic value
      *
-     * @return a {@code LocalAtomicLong} instance for the specified name
+     * @return a {@code RemoteAtomicLong} instance for the specified name
      */
     public static RemoteAtomicLong remoteAtomicLong(String sName)
         {
@@ -269,7 +269,7 @@ public final class Atomics
      * @param sName  the name of the atomic value
      * @param <V>    the type of object referred to by this reference
      *
-     * @return a {@code LocalAtomicLong} instance for the specified name
+     * @return a {@code RemoteAtomicReference} instance for the specified name
      */
     public static <V> RemoteAtomicReference<V> remoteAtomicReference(String sName)
         {

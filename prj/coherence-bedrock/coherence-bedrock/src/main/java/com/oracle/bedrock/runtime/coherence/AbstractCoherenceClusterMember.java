@@ -23,6 +23,7 @@ import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberSiteName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberUID;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.GetSessionCache;
+import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
@@ -312,6 +313,17 @@ public abstract class AbstractCoherenceClusterMember
         return invoke(new IsServiceRunning(serviceName));
         }
 
+    @Override
+    public boolean isCoherenceRunning()
+        {
+        return invoke(IsCoherenceRunning.instance());
+        }
+
+    @Override
+    public boolean isCoherenceRunning(String sName)
+        {
+        return invoke(IsCoherenceRunning.named(sName));
+        }
 
     @Override
     public boolean isSafe()

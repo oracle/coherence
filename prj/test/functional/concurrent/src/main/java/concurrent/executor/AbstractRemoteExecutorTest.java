@@ -9,6 +9,7 @@ package concurrent.executor;
 import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 import com.oracle.coherence.concurrent.executor.NamedClusteredExecutorService;
 import com.oracle.coherence.concurrent.executor.RemoteExecutor;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 
 import java.util.concurrent.RejectedExecutionException;
@@ -63,6 +64,7 @@ public abstract class AbstractRemoteExecutorTest
     public void afterAll()
         {
         Coherence.closeAll();
+        CacheFactory.shutdown();
         m_clientMember = null;
         }
 

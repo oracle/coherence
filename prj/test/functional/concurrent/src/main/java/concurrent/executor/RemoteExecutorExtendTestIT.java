@@ -41,7 +41,6 @@ public class RemoteExecutorExtendTestIT
     @Override
     protected Coherence getClient()
         {
-        coherenceResource.getCluster().get("executors-executor");
         return Coherence.client();
         }
 
@@ -70,7 +69,6 @@ public class RemoteExecutorExtendTestIT
                           logs,
                           ClusterPort.automatic())
                     .include(1,
-                             SystemProperty.of("coherence.concurrent.extend.enabled", true),
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),

@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2021, 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -31,7 +31,6 @@
   </interceptors>
 
   <caching-scheme-mapping>
-
     <cache-mapping>
       <cache-name>atomic-*</cache-name>
       <scheme-name>concurrent</scheme-name>
@@ -75,11 +74,9 @@
       <cache-name>semaphores</cache-name>
       <scheme-name>concurrent</scheme-name>
     </cache-mapping>
-
   </caching-scheme-mapping>
 
   <caching-schemes>
-
     <distributed-scheme>
       <scheme-name>concurrent</scheme-name>
       <service-name>Concurrent</service-name>
@@ -111,14 +108,12 @@
       <acceptor-config>
         <tcp-acceptor>
           <local-address>
-            <address system-property="coherence.concurrent.extend.address">127.0.0.1</address>
-            <port system-property="coherence.concurrent.extend.port">9099</port>
+            <address system-property="coherence.concurrent.extend.address"/>
+            <port system-property="coherence.concurrent.extend.port"/>
           </local-address>
         </tcp-acceptor>
       </acceptor-config>
-
-      <autostart system-property="coherence.concurrent.extend.enabled">false</autostart>
+      <autostart system-property="coherence.concurrent.extend.enabled">true</autostart>
     </proxy-scheme>
-
   </caching-schemes>
 </cache-config>

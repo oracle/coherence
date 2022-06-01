@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence.callables;
@@ -32,7 +32,7 @@ public class IsCoherenceRunning
     /**
      * Constructs an {@link IsCoherenceRunning}
      *
-     * @param name the optional name of the service
+     * @param name the optional name of the Coherence instance
      */
     public IsCoherenceRunning(String name)
         {
@@ -46,8 +46,27 @@ public class IsCoherenceRunning
         return Coherence.getInstances()
                 .stream()
                 .filter(c -> name.equals(c.getName()))
-                .map(Coherence::isStarted)
+                .map(c -> c.whenStarted().isDone() && c.isStarted())
                 .findFirst()
                 .orElse(false);
         }
+
+    // ----- helper methods -------------------------------------------------
+
+    public static IsCoherenceRunning instance()
+        {
+        return s_fInstance;
+        }
+
+    public static IsCoherenceRunning named(String sName)
+        {
+        return new IsCoherenceRunning(sName);
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * A singleton default instance.
+     */
+    private static final IsCoherenceRunning s_fInstance = new IsCoherenceRunning();
     }

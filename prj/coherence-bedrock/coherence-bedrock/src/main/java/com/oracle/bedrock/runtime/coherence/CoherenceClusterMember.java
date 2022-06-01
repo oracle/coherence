@@ -340,6 +340,20 @@ public interface CoherenceClusterMember
 
 
     /**
+     * Returns {@code true} if the default {@link Coherence} instance is running.
+     *
+     * @return {@code true} if the default {@link Coherence} instance is running
+     */
+    boolean isCoherenceRunning();
+
+    /**
+     * Returns {@code true} if the named {@link Coherence} instance is running.
+     *
+     * @return {@code true} if the named {@link Coherence} instance is running
+     */
+    boolean isCoherenceRunning(String sName);
+
+    /**
      * Returns {@code true} if the member "safe" health check returns {@code true}.
      *
      * @return {@code true} if the member "safe" health check returns {@code true}

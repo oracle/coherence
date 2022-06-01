@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
@@ -145,12 +145,13 @@ public class DefaultSessionProvider
         String            name              = configuration.getName();
         String            sConfigUri        = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);
         ParameterResolver resolverCfg       = configuration.getParameterResolver().orElse(null);
+        Coherence.Mode    mode              = context.getMode();
 
-        if (context.getMode() == Coherence.Mode.Client)
+        if (mode == Coherence.Mode.Client)
             {
             // If this is a client we override the coherence.client property if it has not already
             // been set to be "remote" so that we force any session using the default cache config
-            // file to be an extend client.
+            // file to be an Extend client.
             String sProp = Config.getProperty("coherence.client", "remote");
             Map<String, String> map = Collections.singletonMap("coherence.client", sProp);
             if (resolverCfg == null)

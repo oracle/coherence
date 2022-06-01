@@ -52,6 +52,12 @@ then
   PORT_EXTEND=20000
 fi
 
+# Ensure there is a concurrent extend port set
+if [ "${PORT_CONCURRENT_EXTEND}" == "" ]
+then
+  PORT_CONCURRENT_EXTEND=20001
+fi
+
 # Ensure there is a gRPC port set
 if [ "${PORT_GRPC}" == "" ]
 then
@@ -87,15 +93,6 @@ CLASSPATH="/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:
 # The command line
 CMD=""
 CMD="${CMD} -cp ${CLASSPATH}"
-CMD="${CMD} -Dcoherence.extend.port=${PORT_EXTEND}"
-CMD="${CMD} -Dcoherence.grpc.enabled=true"
-CMD="${CMD} -Dcoherence.grpc.port=${PORT_GRPC}"
-CMD="${CMD} -Dcoherence.management.http=all"
-CMD="${CMD} -Dcoherence.management.http.port=${PORT_MANAGEMENT}"
-CMD="${CMD} -Dcoherence.metrics.http.enabled=true"
-CMD="${CMD} -Dcoherence.metrics.http.port=${PORT_METRICS}"
-CMD="${CMD} -Dcoherence.health.http.port=${PORT_HEALTH}"
-CMD="${CMD} -Dcoherence.ttl=0"
 CMD="${CMD} -XshowSettings:all"
 CMD="${CMD} -XX:+PrintCommandLineFlags"
 CMD="${CMD} -XX:+PrintFlagsFinal"
@@ -109,6 +106,16 @@ HEALTH_CMD="${HEALTH_CMD} http://127.0.0.1:${PORT_HEALTH}/ready"
 
 # Build the environment variable options
 ENV_VARS=""
+ENV_VARS="${ENV_VARS} -e COHERENCE_EXTEND_PORT=${PORT_EXTEND}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_CONCURRENT_EXTEND_PORT=${PORT_CONCURRENT_EXTEND}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_GRPC_ENABLED=true"
+ENV_VARS="${ENV_VARS} -e COHERENCE_GRPC_PORT=${PORT_GRPC}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_MANAGEMENT_HTTP=all"
+ENV_VARS="${ENV_VARS} -e COHERENCE_MANAGEMENT_HTTP_PORT=${PORT_MANAGEMENT}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_METRICS_HTTP_ENABLED=true"
+ENV_VARS="${ENV_VARS} -e COHERENCE_METRICS_HTTP_PORT=${PORT_METRICS}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_HEALTH_HTTP_PORT=${PORT_HEALTH}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_TTL=0"
 ENV_VARS="${ENV_VARS} -e COH_MAIN_CLASS=${MAIN_CLASS}"
 ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_TYPE=const"
 ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_PARAM=0"
@@ -117,6 +124,7 @@ ENV_VARS="${ENV_VARS} -e JAEGER_SERVICE_NAME=coherence"
 # Build the exposed port list
 PORT_LIST=""
 PORT_LIST="${PORT_LIST} -p ${PORT_EXTEND}"
+PORT_LIST="${PORT_LIST} -p ${PORT_CONCURRENT_EXTEND}"
 PORT_LIST="${PORT_LIST} -p ${PORT_GRPC}"
 PORT_LIST="${PORT_LIST} -p ${PORT_MANAGEMENT}"
 PORT_LIST="${PORT_LIST} -p ${PORT_METRICS}"

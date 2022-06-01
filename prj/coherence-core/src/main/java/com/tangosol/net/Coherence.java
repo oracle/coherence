@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.health.HealthCheckWrapper;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
@@ -157,6 +158,12 @@ public class Coherence
 
     /**
      * Create a default {@link Coherence} client instance.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence Concurrent extensions, this will configure Coherence
+     * Concurrent to be an Extend client.
      *
      * @return a default {@link Coherence} instance
      */
@@ -167,6 +174,12 @@ public class Coherence
 
     /**
      * Create a client {@link Coherence} instance from the specified {@link CoherenceConfiguration}.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence Concurrent extensions, this will configure Coherence
+     * Concurrent to be an Extend client.
      *
      * @param config  the configuration to use to create the
      *                {@link Coherence} instance
@@ -200,6 +213,12 @@ public class Coherence
      * <p>
      * The {@link Coherence} instance built by the {@code Builder} will be a
      * client, it will not start or join a Coherence cluster.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence Concurrent extensions, this will configure Coherence
+     * Concurrent to be an Extend client.
      *
      * @return a {@link Builder} instance that can build a {@link Coherence}
      *         instance using the specified {@link CoherenceConfiguration}
@@ -672,7 +691,16 @@ public class Coherence
      */
     public static void main(String[] args)
         {
-        Coherence coherence = Coherence.clusterMember();
+        String sClient = Config.getProperty("coherence.client");
+        Coherence coherence;
+        if (sClient == null || !sClient.contains("remote"))
+            {
+            coherence = Coherence.clusterMember();
+            }
+        else
+            {
+            coherence = Coherence.client();
+            }
         coherence.start();
         // block forever (or until the Coherence instance is shutdown)
         coherence.whenClosed().join();
@@ -1114,9 +1142,16 @@ public class Coherence
         {
         /**
          * The {@link Coherence} instance should run as a non-cluster member client.
-         * Typically this would be something like an Extend or gRPC client.
+         * Typically, this would be something like an Extend or gRPC client.
+         * For an Extend client, the proxy will be discovered using the name service.
          */
         Client,
+        /**
+         * The {@link Coherence} instance should run as a non-cluster member client.
+         * Typically, this would be something like an Extend or gRPC client.
+         * For an Extend client, the proxy be configured with a fixed address and port.
+         */
+        ClientFixed,
         /**
          * The {@link Coherence} instance should run as a cluster member client.
          */
