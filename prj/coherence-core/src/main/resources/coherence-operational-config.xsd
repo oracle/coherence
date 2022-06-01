@@ -1054,7 +1054,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 The events-directory element contains the path to a directory
-                under which cached data is actively persisted by a persistent
+                under which durable event's data is actively persisted by a persistent
                 environment.
 
                 Default value is ${user.home}/coherence/events
