@@ -967,6 +967,7 @@
         <failsafe.coverage.argline>${jacoco.agent.it.arg} -Dcoverage.enabled=true</failsafe.coverage.argline>
         <maven.test.failure.ignore>true</maven.test.failure.ignore>
         <skip.animal.sniffer.plugin>true</skip.animal.sniffer.plugin>
+        <moditect.jdeps.coverage.args>--ignore-missing-deps</moditect.jdeps.coverage.args>
       </properties>
       <modules>
         <module>coverage</module>

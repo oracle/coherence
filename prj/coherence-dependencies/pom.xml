@@ -106,6 +106,13 @@
     <failsafe.modules.argline/>
     <failsafe.coverage.argline/>
 
+    <!--
+    These are extra args added to the jdeps command used by Moditect when running the code coverage build.
+    We would ideally have had an empty property here, but Moditect blows up with an empty extraArgs parameter,
+    so we use -v to make jdeps verbose.
+    -->
+    <moditect.jdeps.coverage.args>-v</moditect.jdeps.coverage.args>
+
     <!-- plugin dependency versions -->
      <maven.antrun.plugin.version>1.8</maven.antrun.plugin.version>
      <maven.assembly.plugin.version>3.0.0</maven.assembly.plugin.version>
@@ -1004,6 +1011,7 @@
                   </module>
                   <jdepsExtraArgs>
                     <extraArg>--multi-release=11</extraArg>
+                    <extraArg>${moditect.jdeps.coverage.args}</extraArg>
                   </jdepsExtraArgs>
                   <outputDirectory>${project.build.directory}</outputDirectory>
                   <overwriteExistingFiles>true</overwriteExistingFiles>

@@ -85,6 +85,7 @@
               </module>
               <jdepsExtraArgs>
                 <extraArg>--multi-release=11</extraArg>
+                <extraArg>${moditect.jdeps.coverage.args}</extraArg>
               </jdepsExtraArgs>
               <exclusions>
                 <exclusion>
