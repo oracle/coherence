@@ -105,11 +105,11 @@ public class DefaultCacheServerTests
 
         server.startDaemon(1000);
 
-        Eventually.assertThat(invoking(server).isMonitorStopped(), is(false));
+        Eventually.assertDeferred(server::isMonitorStopped, is(false));
 
         server.shutdownServer();
 
-        Eventually.assertThat(invoking(server).isMonitorStopped(), is(true));
+        Eventually.assertDeferred(server::isMonitorStopped, is(true));
         }
 
     /**
@@ -121,11 +121,11 @@ public class DefaultCacheServerTests
         {
         DefaultCacheServer server = DefaultCacheServer.startServerDaemon();
 
-        Eventually.assertThat(invoking(server).isMonitorStopped(), is(false), Eventually.delayedBy(3, TimeUnit.SECONDS));
+        Eventually.assertDeferred(server::isMonitorStopped, is(false), Eventually.delayedBy(3, TimeUnit.SECONDS));
 
         DefaultCacheServer.shutdown();
 
-        Eventually.assertThat(invoking(server).isMonitorStopped(), is(true));
+        Eventually.assertDeferred(server::isMonitorStopped, is(true));
         }
 
     /**
@@ -138,12 +138,12 @@ public class DefaultCacheServerTests
         s_scheduler.submit(
             () -> DefaultCacheServer.main(new String[] {"override-cache-config.xml", "1"}));
 
-        Eventually.assertThat(invoking(hasThreadGroupSize(greaterThan(0))).
+        Eventually.assertDeferred(() -> hasThreadGroupSize(greaterThan(0)).
             matches("OverriddenExamplesPartitionedPofCache"), is(true));
 
         DefaultCacheServer.shutdown();
 
-        Eventually.assertThat(invoking(hasThreadGroupSize(anyOf(nullValue(), is(0)))).
+        Eventually.assertDeferred(() -> hasThreadGroupSize(anyOf(nullValue(), is(0))).
             matches("OverriddenExamplesPartitionedPofCache"), is(true));
         }
 
