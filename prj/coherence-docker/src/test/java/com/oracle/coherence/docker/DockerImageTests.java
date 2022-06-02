@@ -17,6 +17,7 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.Argument;
 
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -149,7 +150,7 @@ public class DockerImageTests
 
             LocalPlatform platform       = LocalPlatform.get();
             int           extendPort     = container.getMappedPort(EXTEND_PORT);
-            int           concurrentPort = container.getMappedPort(EXTEND_PORT);
+            int           concurrentPort = container.getMappedPort(CONCURRENT_EXTEND_PORT);
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
                                                                  SystemProperty.of("coherence.client", "remote-fixed"),
@@ -159,6 +160,7 @@ public class DockerImageTests
                                                                  SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
                                                                  IPv4Preferred.yes(),
                                                                  LocalHost.only(),
+                                                                 DisplayName.of("client"),
                                                                  m_testLogs))
                 {
                 Eventually.assertDeferred(client::isCoherenceRunning, is(true));
@@ -493,12 +495,10 @@ public class DockerImageTests
 
     public static final int CONCURRENT_EXTEND_PORT = Integer.getInteger("port.concurrent.extend",20001);
 
-    public static final String STARTED_MESSAGE = "Started Coherence server";
-
     // ----- data members ---------------------------------------------------
 
     @RegisterExtension
-    final TestLogsExtension m_testLogs = new TestLogsExtension(DockerImageTests.class);
+    static final TestLogsExtension m_testLogs = new TestLogsExtension(DockerImageTests.class);
 
     /**
      * Flag indicating whether the image is present.

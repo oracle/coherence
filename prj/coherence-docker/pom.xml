@@ -21,6 +21,11 @@
   <packaging>jar</packaging>
   <name>Coherence Docker Distribution</name>
 
+  <properties>
+    <useModulePath>false</useModulePath>
+    <bedrockUseModules>false</bedrockUseModules>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
@@ -221,6 +226,7 @@
             <configuration>
               <skip>false</skip>
               <skipTests>false</skipTests>
+              <useModulePath>false</useModulePath>
               <systemProperties>
                 <docker.image.name>${docker.image.name}</docker.image.name>
                 <port.grpc>${docker.port.grpc}</port.grpc>
@@ -237,6 +243,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+              <useModulePath>false</useModulePath>
               <systemProperties>
                 <skip>false</skip>
                 <skipTests>false</skipTests>
