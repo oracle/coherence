@@ -836,17 +836,17 @@ to find specific notes on changes suggested for production use.
       </persistence-environment>
       <persistence-environment id="default-active-async">
         <persistence-mode>active-async</persistence-mode>
-        <active-directory   system-property="coherence.distributed.persistence.async.active.dir"></active-directory>
-        <events-directory   system-property="coherence.distributed.persistence.async.events.dir"></events-directory>
-        <snapshot-directory system-property="coherence.distributed.persistence.async.snapshot.dir"></snapshot-directory>
-        <trash-directory    system-property="coherence.distributed.persistence.async.trash.dir"></trash-directory>
+        <active-directory   system-property="coherence.distributed.persistence.active.dir"></active-directory>
+        <events-directory   system-property="coherence.distributed.persistence.events.dir"></events-directory>
+        <snapshot-directory system-property="coherence.distributed.persistence.snapshot.dir"></snapshot-directory>
+        <trash-directory    system-property="coherence.distributed.persistence.trash.dir"></trash-directory>
       </persistence-environment>
       <persistence-environment id="default-on-demand">
         <persistence-mode>on-demand</persistence-mode>
-        <active-directory   system-property="coherence.distributed.persistence.ondemand.active.dir"></active-directory>
-        <events-directory   system-property="coherence.distributed.persistence.ondemand.events.dir"></events-directory>
-        <snapshot-directory system-property="coherence.distributed.persistence.ondemand.snapshot.dir"></snapshot-directory>
-        <trash-directory    system-property="coherence.distributed.persistence.ondemand.trash.dir"></trash-directory>
+        <active-directory   system-property="coherence.distributed.persistence.active.dir"></active-directory>
+        <events-directory   system-property="coherence.distributed.persistence.events.dir"></events-directory>
+        <snapshot-directory system-property="coherence.distributed.persistence.snapshot.dir"></snapshot-directory>
+        <trash-directory    system-property="coherence.distributed.persistence.trash.dir"></trash-directory>
       </persistence-environment>
     </persistence-environments>
 
