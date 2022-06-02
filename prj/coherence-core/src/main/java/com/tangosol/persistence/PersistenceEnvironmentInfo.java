@@ -62,4 +62,12 @@ public interface PersistenceEnvironmentInfo
      * @return the total size
      */
     public long getPersistenceActiveSpaceUsed();
+
+    /**
+     * Return the total size in bytes used by the persistence layer to
+     * persist backups of mutating cache operations.
+     *
+     * @return the total size
+     */
+    public long getPersistenceBackupSpaceUsed();
     }

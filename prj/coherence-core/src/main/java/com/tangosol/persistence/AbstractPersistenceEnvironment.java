@@ -431,6 +431,28 @@ public abstract class AbstractPersistenceEnvironment
         return cBytes;
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getPersistenceBackupSpaceUsed()
+        {
+        long cBytes = 0L;
+
+        if (m_managerBackup != null && f_fileBackup != null)
+            {
+            // go through each directory owned by the backup manager and
+            // sum up the bytes used by the files in the directory
+            for (String sId : m_managerBackup.f_mapStores.keySet())
+                {
+                File fileDir = new File(f_fileBackup, sId);
+                cBytes += FileHelper.sizeDir(fileDir);
+                }
+            }
+
+        return cBytes;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -683,6 +705,7 @@ public abstract class AbstractPersistenceEnvironment
         {
         return ClassHelper.getSimpleName(getClass())
                 + "(ActiveDirectory=" + f_fileActive
+                + (f_fileBackup != null ? ", BackupDirectory=" + f_fileBackup : "")
                 + ", SnapshotDirectory=" + f_fileSnapshot
                 + ')';
         }

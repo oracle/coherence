@@ -97,6 +97,7 @@ public class MetricsSupportTests
         getCache(TEST_WRITE_BEHIND_CACHE);
         getCache(TEST_WRITE_THROUGH_CACHE);
         getCache("persistence-1234");
+        getCache("backup-persistence-1234");
 
         ExtensibleConfigurableCacheFactory.Dependencies deps
                 = ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance("client-cache-config-metrics.xml");
@@ -465,6 +466,64 @@ public class MetricsSupportTests
                                     "Coherence.Service.PersistenceActiveSpaceAvailable",
                                     "Coherence.Service.PersistenceActiveSpaceTotal",
                                     "Coherence.Service.PersistenceActiveSpaceUsed",
+                                    "Coherence.Service.PersistenceLatencyAverage",
+                                    "Coherence.Service.PersistenceLatencyMax",
+                                    "Coherence.Service.PersistenceSnapshotSpaceAvailable",
+                                    "Coherence.Service.PersistenceSnapshotSpaceTotal",
+                                    "Coherence.Service.RequestAverageDuration",
+                                    "Coherence.Service.RequestMaxDuration",
+                                    "Coherence.Service.RequestPendingCount",
+                                    "Coherence.Service.RequestPendingDuration",
+                                    "Coherence.Service.RequestTimeoutCount",
+                                    "Coherence.Service.RequestTotalCount",
+                                    "Coherence.Service.StatusHACode",
+                                    "Coherence.Service.StorageEnabledCount",
+                                    "Coherence.Service.TaskAverageDuration",
+                                    "Coherence.Service.TaskBacklog",
+                                    "Coherence.Service.TaskCount",
+                                    "Coherence.Service.TaskHungCount",
+                                    "Coherence.Service.TaskHungDuration",
+                                    "Coherence.Service.TaskMaxBacklog",
+                                    "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.ThreadAbandonedCount",
+                                    "Coherence.Service.ThreadAverageActiveCount",
+                                    "Coherence.Service.ThreadCount",
+                                    "Coherence.Service.ThreadIdleCount");
+        }
+
+    @Test
+    public void shouldGetCacheServiceWithActiveBackupPersistence()
+        {
+        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
+        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
+
+        metricSupport.register(getServiceMBeanName("DistributedCacheBackupPersistence"));
+
+        Map<String, String> mapTags = getCommonTagsWithNodeId();
+
+        mapTags.put("name", "DistributedCacheBackupPersistence");
+        mapTags.put("type", "DistributedCache");
+
+        assertMetricsWithoutAfterGC(adapter.getMetrics(),
+                                    mapTags,
+                                    "Coherence.Service.EventBacklog",
+                                    "Coherence.Service.EventCount",
+                                    "Coherence.Service.IndexingTotalMillis",
+                                    "Coherence.Service.MemberCount",
+                                    "Coherence.Service.MessagesLocal",
+                                    "Coherence.Service.MessagesReceived",
+                                    "Coherence.Service.MessagesSent",
+                                    "Coherence.Service.OwnedPartitionsBackup",
+                                    "Coherence.Service.OwnedPartitionsPrimary",
+                                    "Coherence.Service.PartitionsEndangered",
+                                    "Coherence.Service.PartitionsUnbalanced",
+                                    "Coherence.Service.PartitionsVulnerable",
+                                    "Coherence.Service.PersistenceActiveSpaceAvailable",
+                                    "Coherence.Service.PersistenceActiveSpaceTotal",
+                                    "Coherence.Service.PersistenceActiveSpaceUsed",
+                                    "Coherence.Service.PersistenceBackupSpaceAvailable",
+                                    "Coherence.Service.PersistenceBackupSpaceTotal",
+                                    "Coherence.Service.PersistenceBackupSpaceUsed",
                                     "Coherence.Service.PersistenceLatencyAverage",
                                     "Coherence.Service.PersistenceLatencyMax",
                                     "Coherence.Service.PersistenceSnapshotSpaceAvailable",

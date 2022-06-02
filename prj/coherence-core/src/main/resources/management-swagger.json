@@ -5537,7 +5537,13 @@
         "persistenceActiveSpaceTotal": {
           "type": "integer",
           "format": "int64",
-          "description": "The total size (in bytes) of the file system used by the persistence layer to persist persist active cache data.",
+          "description": "The total size (in bytes) of the file system used by the persistence layer to persist active cache data.",
+          "readOnly": true
+        },
+        "persistenceBackupSpaceTotal": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total size (in bytes) of the file system used by the persistence layer to persist backup cache data.",
           "readOnly": true
         },
         "threadIdleCount": {
@@ -5652,6 +5658,12 @@
           "type": "integer",
           "format": "int64",
           "description": "The total size (in bytes) used by the persistence layer to persist active cache data.",
+          "readOnly": true
+        },
+        "persistenceBackupSpaceUsed": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total size (in bytes) used by the persistence layer to persist backup cache data.",
           "readOnly": true
         },
         "persistenceLatencyAverage": {
@@ -5808,6 +5820,12 @@
           "type": "integer",
           "format": "int64",
           "description": "The total remaining free space (in bytes) of the file system used by the persistence layer to persist active cache data.",
+          "readOnly": true
+        },
+        "persistenceBackupSpaceAvailable": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total remaining free space (in bytes) of the file system used by the persistence layer to persist backup cache data.",
           "readOnly": true
         },
         "joinTime": {

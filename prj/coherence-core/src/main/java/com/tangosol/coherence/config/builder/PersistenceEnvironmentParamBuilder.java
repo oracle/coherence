@@ -469,6 +469,12 @@ public class PersistenceEnvironmentParamBuilder
             return 0L;
             }
 
+        @Override
+        public long getPersistenceBackupSpaceUsed()
+            {
+            return 0L;
+            }
+
         // ----- accessors --------------------------------------------------
 
         /**
