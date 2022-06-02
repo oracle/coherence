@@ -67,10 +67,23 @@ public class PersistenceModeTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        Properties props = System.getProperties();
+        try
+            {
+            File fileActive   = FileHelper.createTempDir();
+            File fileSnapshot = FileHelper.createTempDir();
+            File fileTrash    = FileHelper.createTempDir();
+            Properties props  = System.getProperties();
 
-        props.setProperty("coherence.distributed.localstorage", "true");
-        props.setProperty("test.partition-count", "11");
+            props.setProperty("coherence.distributed.localstorage", "true");
+            props.setProperty("test.partition-count", "11");
+            props.setProperty("coherence.distributed.persistence.active.dir", fileActive.getAbsolutePath());
+            props.setProperty("coherence.distributed.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+            props.setProperty("coherence.distributed.persistence.trash.dir", fileTrash.getAbsolutePath());
+            }
+        catch (IOException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
         }
 
     /**
@@ -130,34 +143,8 @@ public class PersistenceModeTests
         testPersistenceModeProperty("testModePropertyWithDot", "coherence.distributed.persistence.mode", "active");
         }
 
-    /**
-     * Test the default persistence properties for active-async mode.
-     *
-     * @since 14.1.1.0.9
-     */
-    @Test
-    public void testActiveAsyncProperties()
-        {
-        testPersistenceModeProperty("testActiveAsyncProperties", "coherence.distributed.persistence.mode", "active-async");
-        }
-
-    /**
-     * Test the default persistence properties for on-demand mode.
-     *
-     * @since 14.1.1.0.9
-     */
-    @Test
-    public void testOnDemandProperties()
-        {
-        testPersistenceModeProperty("testOnDemandProperties", "coherence.distributed.persistence.mode", "on-demand");
-        }
-
     private void testPersistenceModeProperty(String sServer, String sProperty, String sMode)
         {
-        File fileActive   = null;
-        File fileSnapshot = null;
-        File fileTrash    = null;
-
         Properties props = new Properties();
         props.setProperty("test.server.distributed.localstorage", String.valueOf(false));
         props.setProperty("coherence.management", "all");
@@ -166,10 +153,6 @@ public class PersistenceModeTests
         NamedCache<Integer, String> cache = null;
         try
             {
-            fileActive   = FileHelper.createTempDir();
-            fileSnapshot = FileHelper.createTempDir();
-            fileTrash    = FileHelper.createTempDir();
-
             if (sProperty == null || sMode == null)
                 {
                 System.clearProperty("coherence.distributed.persistence.mode");
@@ -178,29 +161,8 @@ public class PersistenceModeTests
                 }
             else
                 {
-                if (sMode.equals("active"))
-                    {
-                    props.setProperty("coherence.distributed.persistence.active.dir", fileActive.getAbsolutePath());
-                    props.setProperty("coherence.distributed.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
-                    props.setProperty("coherence.distributed.persistence.trash.dir", fileTrash.getAbsolutePath());
-                    }
-                else if (sMode.equals("on-demand"))
-                    {
-                    props.setProperty("test.server.distributed.localstorage", String.valueOf(true));
-                    props.setProperty("coherence.distributed.persistence.ondemand.active.dir", fileActive.getAbsolutePath());
-                    props.setProperty("coherence.distributed.persistence.ondemand.snapshot.dir", fileSnapshot.getAbsolutePath());
-                    props.setProperty("coherence.distributed.persistence.ondemand.trash.dir", fileTrash.getAbsolutePath());
-                    }
-                else if (sMode.equals("active-async"))
-                    {
-                    props.setProperty("test.server.distributed.localstorage", String.valueOf(true));
-                    props.setProperty("coherence.distributed.persistence.async.active.dir", fileActive.getAbsolutePath());
-                    props.setProperty("coherence.distributed.persistence.async.snapshot.dir", fileSnapshot.getAbsolutePath());
-                    props.setProperty("coherence.distributed.persistence.async.trash.dir", fileTrash.getAbsolutePath());
-                    }
                 System.setProperty(sProperty, sMode);
                 }
-
             AbstractFunctionalTest.setupProps();
 
             startCacheServer(sServer, getProjectName(), getCacheConfigPath(), props, false);
@@ -223,7 +185,7 @@ public class PersistenceModeTests
                     }
                 }
 
-            Registry         registry = CacheFactory.getCluster().getManagement();
+            Registry registry = CacheFactory.getCluster().getManagement();
             MBeanServerProxy mbsProxy = registry.getMBeanServerProxy();
 
             String sServiceName = cache.getCacheService().getInfo().getServiceName();
@@ -233,17 +195,10 @@ public class PersistenceModeTests
             Eventually.assertThat(invoking(mbsProxy).isMBeanRegistered(sMBean), Is.is(true));
             Assert.assertEquals(mbsProxy.getAttribute(sMBean, "PersistenceMode"), sMode);
             }
-        catch (IOException e)
-            {
-            throw Base.ensureRuntimeException(e);
-            }
         finally
             {
             cache.destroy();
             stopCacheServer(sServer);
-            fileActive.delete();
-            fileSnapshot.delete();
-            fileTrash.delete();
             }
         }
     }
