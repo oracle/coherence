@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -76,6 +76,18 @@
         <type>function</type>
         <header>PersistenceTotalActiveSpaceUsed</header>
         <column-ref>PersistenceActiveSpaceUsed</column-ref>
+        <function-name>sum</function-name>
+      </column>
+
+      <column id="PersistenceBackupSpaceUsed">
+        <name>PersistenceBackupSpaceUsed</name>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="PersistenceTotalBackupSpaceUsed">
+        <type>function</type>
+        <header>PersistenceTotalBackupSpaceUsed</header>
+        <column-ref>PersistenceBackupSpaceUsed</column-ref>
         <function-name>sum</function-name>
       </column>
 
