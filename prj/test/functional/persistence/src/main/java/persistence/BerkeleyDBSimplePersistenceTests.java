@@ -308,6 +308,9 @@ public class BerkeleyDBSimplePersistenceTests
             // always assert the size to ensure we have not lost data
             assertEquals(cache.size(), 5000);
 
+            // backups persistence is async., need some time to complete
+            Base.sleep(10_000);
+
             String sService = service.getInfo().getServiceName();
 
             // debugging - print the final ownership
@@ -463,6 +466,9 @@ public class BerkeleyDBSimplePersistenceTests
 
             // populate with some data, on non-default cache to trigger extents init
             PersistenceTestHelper.populateData(getNamedCache("simple-persistent-new"), 5000);
+
+            // backups persistence is async., need some time to complete
+            Base.sleep(10_000);
 
             String sService = service.getInfo().getServiceName();
 
