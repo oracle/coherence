@@ -299,6 +299,59 @@
       </build>
     </profile>
 
+    <profile>
+      <id>buildah</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+             <groupId>org.codehaus.mojo</groupId>
+             <artifactId>exec-maven-plugin</artifactId>
+             <executions>
+               <execution>
+                 <id>run-buildah</id>
+                 <goals>
+                   <goal>exec</goal>
+                 </goals>
+                 <phase>install</phase>
+                 <configuration>
+                   <executable>sh</executable>
+                   <arguments>
+                     <argument>${project.basedir}/run-buildah.sh</argument>
+                     <argument>EXEC</argument>
+                   </arguments>
+                   <environmentVariables>
+                     <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
+                     <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
+                     <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
+                     <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
+                     <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
+                     <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
+                     <PORT_MANAGEMENT>${docker.port.management}</PORT_MANAGEMENT>
+                     <PORT_METRICS>${docker.port.metrics}</PORT_METRICS>
+                     <PORT_HEALTH>${docker.port.health}</PORT_HEALTH>
+                     <MAIN_CLASS>com.tangosol.net.Coherence</MAIN_CLASS>
+                     <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                     <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                     <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                     <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
+                     <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                     <PROJECT_URL>${project.url}</PROJECT_URL>
+                     <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
+                     <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                   </environmentVariables>
+                 </configuration>
+               </execution>
+             </executions>
+           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- This profile is enabled if this build is running on amd64 hardware -->
     <profile>
       <id>arch-amd64</id>

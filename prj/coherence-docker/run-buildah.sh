@@ -22,10 +22,15 @@ then
   exit 1
 fi
 
+ARGS=
 
 if [ "$1" == "PUSH" ]
 then
   SCRIPT_NAME="${BASEDIR}/push-images.sh"
+elif [ "$1" == "EXEC" ]
+then
+  SCRIPT_NAME=
+  ARGS=-it
 else
   SCRIPT_NAME="${BASEDIR}/build-images.sh"
   # Ensure the AMD_BASE_IMAGE has been set - this is the name of the base image for amd64
@@ -60,7 +65,7 @@ else
     NO_DAEMON=false
   fi
   docker rm -f buildah || true
-  docker run --rm -v "${BASEDIR}:${BASEDIR}" \
+  docker run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
       -v /var/run/docker.sock:/var/run/docker.sock \
       --privileged --network host \
       -e IMAGE_NAME="${IMAGE_NAME}" \
@@ -85,6 +90,6 @@ else
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \
-      quay.io/buildah/stable:v1.23.3 "${SCRIPT_NAME}"
+      quay.io/buildah/stable:v1.23.3 ${SCRIPT_NAME}
 fi
 
