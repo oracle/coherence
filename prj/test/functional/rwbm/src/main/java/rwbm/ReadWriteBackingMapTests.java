@@ -1892,12 +1892,13 @@ public class ReadWriteBackingMapTests
                     invoking(this).getPerson(cache, i).getMotherId(), is("STORED"));
                 if (cDelay > 0)
                     {
+                    final int ii = i;
+
                     // allow async processing to finish
-                    definiteSleep(cDelay / 10);
-                    boolean hasDeco = ExternalizableHelper.isDecorated((Binary)
-                                                rwbm.getInternalCache().get(convDown.convert(i)),
-                                                ExternalizableHelper.DECO_STORE);
-                    assertFalse(testName + " should not have DECO_STORE:", hasDeco);
+                    Eventually.assertDeferred(() -> ExternalizableHelper.isDecorated((Binary)
+                                                         rwbm.getInternalCache().get(convDown.convert(ii)),
+                                                         ExternalizableHelper.DECO_STORE),
+                                              is (false));
                     }
                 }
             }
