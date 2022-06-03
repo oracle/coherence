@@ -842,12 +842,12 @@ public abstract class AbstractTaskExecutorServiceTests
                 .subscribe(subscriber1).subscribe(subscriber2).submit();
 
         Eventually.assertDeferred(subscriber1::isCompleted, is(true));
-        MatcherAssert.assertThat(subscriber1.isSubscribed(), is(false));
+        Eventually.assertDeferred(subscriber1::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber1.received("Hello World"), is(true));
         MatcherAssert.assertThat(subscriber1.size(), is(1));
 
         Eventually.assertDeferred(subscriber2::isCompleted, is(true));
-        MatcherAssert.assertThat(subscriber2.isSubscribed(), is(false));
+        Eventually.assertDeferred(subscriber2::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber2.received("Hello World"), is(true));
         MatcherAssert.assertThat(subscriber2.size(), is(1));
 
@@ -862,7 +862,7 @@ public abstract class AbstractTaskExecutorServiceTests
         coordinator.subscribe(subscriber1);
 
         Eventually.assertDeferred(subscriber1::isCompleted, is(true));
-        MatcherAssert.assertThat(subscriber1.isSubscribed(), is(false));
+        Eventually.assertDeferred(subscriber1::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber1.received("Hello World"), is(true));
         MatcherAssert.assertThat(subscriber1.size(), is(1));
 
@@ -895,12 +895,12 @@ public abstract class AbstractTaskExecutorServiceTests
             m_taskExecutorService.register(executorService, Role.of("foo"));
 
             Eventually.assertDeferred(subscriber1::isCompleted, is(true));
-            MatcherAssert.assertThat(subscriber1.isSubscribed(), is(false));
+            Eventually.assertDeferred(subscriber1::isSubscribed, is(false));
             MatcherAssert.assertThat(subscriber1.received("Hello World"), is(true));
             MatcherAssert.assertThat(subscriber1.size(), is(1));
 
             Eventually.assertDeferred(subscriber2::isCompleted, is(true));
-            MatcherAssert.assertThat(subscriber2.isSubscribed(), is(false));
+            Eventually.assertDeferred(subscriber2::isSubscribed, is(false));
             MatcherAssert.assertThat(subscriber2.received("Hello World"), is(true));
             MatcherAssert.assertThat(subscriber2.size(), is(1));
 
@@ -938,11 +938,11 @@ public abstract class AbstractTaskExecutorServiceTests
         MatcherAssert.assertThat(coordinator.cancel(true), is(true));
 
         Eventually.assertDeferred(subscriber3::isSubscribed, is(false));
-        MatcherAssert.assertThat(subscriber3.isCompleted(), is(false));
+        Eventually.assertDeferred(subscriber3::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber3.size(), is(1));
 
         Eventually.assertDeferred(subscriber4::isSubscribed, is(false));
-        MatcherAssert.assertThat(subscriber4.isCompleted(), is(false));
+        Eventually.assertDeferred(subscriber4::isSubscribed, is(false));
         MatcherAssert.assertThat(subscriber4.size(), is(1));
 
         MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), is(false));
