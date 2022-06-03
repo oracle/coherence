@@ -1872,7 +1872,7 @@ public class ReadWriteBackingMapTests
                     }
                 });
             // non-blocking needs delay
-            cDelay = 3000L;
+            cDelay = 5000L;
             }
 
         try
@@ -1892,6 +1892,8 @@ public class ReadWriteBackingMapTests
                     invoking(this).getPerson(cache, i).getMotherId(), is("STORED"));
                 if (cDelay > 0)
                     {
+                    // allow async processing to finish
+                    definiteSleep(cDelay / 10);
                     boolean hasDeco = ExternalizableHelper.isDecorated((Binary)
                                                 rwbm.getInternalCache().get(convDown.convert(i)),
                                                 ExternalizableHelper.DECO_STORE);
