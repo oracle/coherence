@@ -343,7 +343,11 @@ public abstract class AbstractPersistencePerformanceTest
         AbstractPersistentStore store = m_store;
         if (store == null)
             {
-            m_store = store = (AbstractPersistentStore) m_manager.open(TEST_STORE_ID, null);
+            Long t = new Date().getTime();
+
+            m_store = store = (AbstractPersistentStore) m_manager.open(
+                    GUIDHelper.generateGUID(1, 1L, t, GUIDHelperTest.getMockMember(1)),
+                    null);
             }
         return store;
         }
@@ -533,12 +537,6 @@ public abstract class AbstractPersistencePerformanceTest
     protected AbstractPersistentStore    m_store;
 
     // ----- constants ------------------------------------------------------
-
-    /**
-     * The name of the test persistent store identifier.
-     */
-    public static String TEST_STORE_ID = GUIDHelper.generateGUID(1, 1L,
-                                                                 new Date().getTime(), GUIDHelperTest.getMockMember(1));
 
     /**
      * Test Binary values.
