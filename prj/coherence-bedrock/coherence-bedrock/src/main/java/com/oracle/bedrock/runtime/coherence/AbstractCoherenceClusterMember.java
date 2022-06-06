@@ -14,6 +14,7 @@ import com.oracle.bedrock.runtime.Platform;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterMemberUIDs;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterName;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterSize;
+import com.oracle.bedrock.runtime.coherence.callables.GetExtendConnectionCount;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberId;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberMachineName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberName;
@@ -21,8 +22,10 @@ import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberRackName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberRoleName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberSiteName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberUID;
+import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberUUID;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.GetSessionCache;
+import com.oracle.bedrock.runtime.coherence.callables.HasExtendConnection;
 import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
@@ -38,6 +41,7 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import javax.management.MBeanInfo;
 import javax.management.ObjectName;
@@ -125,6 +129,13 @@ public abstract class AbstractCoherenceClusterMember
     public UID getLocalMemberUID()
         {
         return invoke(new GetLocalMemberUID());
+        }
+
+
+    @Override
+    public UUID getLocalMemberUUID()
+        {
+        return invoke(new GetLocalMemberUUID());
         }
 
 
@@ -350,5 +361,19 @@ public abstract class AbstractCoherenceClusterMember
     public ServiceStatus getServiceStatus(String serviceName)
         {
         return invoke(new GetServiceStatus(serviceName));
+        }
+
+
+    @Override
+    public int getExtendConnectionCount(String sProxyName)
+        {
+        return invoke(new GetExtendConnectionCount(sProxyName));
+        }
+
+
+    @Override
+    public boolean hasExtendConnection(String sProxyName, UUID uuid)
+        {
+        return invoke(new HasExtendConnection(sProxyName, uuid));
         }
     }

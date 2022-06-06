@@ -9,7 +9,6 @@ package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.Platform;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberMachineName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.MachineName;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
@@ -29,6 +28,7 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.io.NotSerializableException;
 import java.io.PipedInputStream;
@@ -63,6 +63,14 @@ public interface CoherenceClusterMember
      * @return the local member {@link UID}
      */
     UID getLocalMemberUID();
+
+
+    /**
+     * Obtains the local member {@link UUID} for the {@link CoherenceClusterMember}.
+     *
+     * @return the local member {@link UUID}
+     */
+    UUID getLocalMemberUUID();
 
 
     /**
@@ -399,6 +407,28 @@ public interface CoherenceClusterMember
      */
     ServiceStatus getServiceStatus(String serviceName);
 
+
+    /**
+     * Returns the number of Extend clients currently connected
+     * to a specific proxy service.
+     *
+     * @param sProxyName  the name of the Extend proxy service
+     *
+     * @return  the number of clients connected to the proxy service
+     */
+    int getExtendConnectionCount(String sProxyName);
+
+    /**
+     * Returns {@code true} if the specific proxy service has a
+     * connected client with the specified {@link UUID}.
+     * .
+     *
+     * @param sProxyName  the name of the Extend proxy service
+     * @param uuid        the client {@link UUID}
+     *
+     * @return  the number of clients connected to the proxy service
+     */
+    boolean hasExtendConnection(String sProxyName, UUID uuid);
 
     /**
      * Determines the status of a service being run by the {@link CoherenceClusterMember}.
