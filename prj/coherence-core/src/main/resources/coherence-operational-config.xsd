@@ -1822,8 +1822,9 @@
     <xsd:element name="max-bandwidth" type="coherence-string-type">
         <xsd:annotation>
             <xsd:documentation>
-                The max-bandwidth element specifies the maximum network bandwidth
-                that can be utilized for sending out the replication messages.
+                The max-bandwidth element specifies the maximum bandwidth, per member,
+                for sending federated data to a destination participant. This value is
+                loaded from the source member's configuration of the destination participant.
 
                 The legal values are decimal values with optional factor and unit descriptors.
 
