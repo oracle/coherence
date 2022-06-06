@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
@@ -14,6 +14,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.topic.Position;
+import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.EntryExtractor;
 
@@ -99,6 +100,16 @@ public class SubscriberInfo
         m_cTimeoutMillis = cTimeoutMillis;
         }
 
+    /**
+     * Returns the {@link UUID} of the owning member.
+     *
+     * @return the {@link UUID} of the owning member
+     */
+    public UUID getOwningUid()
+        {
+        return m_owningUid;
+        }
+
     // ----- EvolvablePortableObject methods --------------------------------
 
     @Override
@@ -110,8 +121,15 @@ public class SubscriberInfo
     @Override
     public void readExternal(PofReader in) throws IOException
         {
+        int nVersion = in.getVersionId();
+
         m_dtLastHeartbeat = in.readLocalDateTime(0);
         m_cTimeoutMillis  = in.readLong(1);
+
+        if (nVersion >= 2)
+            {
+            m_owningUid = in.readObject(2);
+            }
         }
 
     @Override
@@ -119,6 +137,7 @@ public class SubscriberInfo
         {
         out.writeDateTime(0, m_dtLastHeartbeat);
         out.writeLong(1, m_cTimeoutMillis);
+        out.writeObject(2, m_owningUid);
         }
 
     // ----- Object methods ---------------------------------------------
@@ -128,6 +147,7 @@ public class SubscriberInfo
         {
         return "SubscriberInfo(" +
                 "lastHeartbeat=" + m_dtLastHeartbeat +
+                "uid=" + m_owningUid +
                 ')';
         }
 
@@ -295,7 +315,7 @@ public class SubscriberInfo
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 1;
+    public static final int DATA_VERSION = 2;
 
     // ----- data members ---------------------------------------------------
 
@@ -308,4 +328,9 @@ public class SubscriberInfo
      * The subscriber timeout value.
      */
     private long m_cTimeoutMillis;
+
+    /**
+     * The {@link UUID} of the owning member.
+     */
+    private UUID m_owningUid;
     }

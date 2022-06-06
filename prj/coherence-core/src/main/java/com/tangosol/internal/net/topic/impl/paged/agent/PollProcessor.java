@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.AbstractEvolvable;
@@ -51,15 +52,15 @@ public class PollProcessor
      * @param lPage             the page to poll from
      * @param cElements         the desired number of elements to poll
      * @param nNotifyPostEmpty  notification key to delete when emptying the empty state, or zero for none
-     * @param nSubscriberId     the unique identifier of the subscriber, or zero for an anonymous subscriber
+     * @param subscriberId      the unique identifier of the subscriber, or zero for an anonymous subscriber
      */
-    public PollProcessor(long lPage, int cElements, int nNotifyPostEmpty, long nSubscriberId)
+    public PollProcessor(long lPage, int cElements, int nNotifyPostEmpty, SubscriberId subscriberId)
         {
         super(PagedTopicPartition::ensureTopic);
         m_lPage            = lPage;
         m_cElements        = cElements;
         m_nNotifyPostEmpty = nNotifyPostEmpty;
-        m_nSubscriberId    = nSubscriberId;
+        m_subscriberId     = subscriberId;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -72,7 +73,7 @@ public class PollProcessor
         // this.
 
         return ensureTopic(entry).pollFromPageHead((BinaryEntry<Subscription.Key, Subscription>) entry, m_lPage,
-                m_cElements, m_nNotifyPostEmpty, m_nSubscriberId);
+                m_cElements, m_nNotifyPostEmpty, m_subscriberId);
         }
 
     // ----- EvolvablePortableObject interface ------------------------------
@@ -92,7 +93,15 @@ public class PollProcessor
         m_nNotifyPostEmpty = in.readInt(2);
         if (getDataVersion() >= 2)
             {
-            m_nSubscriberId = in.readLong(3);
+            long nId = in.readLong(3);
+            if (getDataVersion() >= 3)
+                {
+                m_subscriberId = in.readObject(4);
+                }
+            else
+                {
+                m_subscriberId = new SubscriberId(nId, null);
+                }
             }
         }
 
@@ -103,37 +112,11 @@ public class PollProcessor
         out.writeLong(0, m_lPage);
         out.writeInt(1, m_cElements);
         out.writeInt(2, m_nNotifyPostEmpty);
-        out.writeLong(3, m_nSubscriberId);
+        out.writeLong(3, m_subscriberId.getId());
+        out.writeObject(4, m_subscriberId);
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * {@link EvolvablePortableObject} data version of this class.
-     */
-    public static final int DATA_VERSION = 2;
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The page to poll.
-     */
-    protected long m_lPage;
-
-    /**
-     * The desired number of elements.
-     */
-    protected int m_cElements;
-
-    /**
-     * Post empty notification key.
-     */
-    protected int m_nNotifyPostEmpty;
-
-    /**
-     * The unique identifier of the subscriber.
-     */
-    protected long m_nSubscriberId;
+    // ----- inner class: Result --------------------------------------------
 
     /**
      * A {@link Result} is returned to a consumer as the
@@ -249,7 +232,7 @@ public class PollProcessor
         /**
          * {@link EvolvablePortableObject} data version of this class.
          */
-        public static final int DATA_VERSION = 1;
+        public static final int DATA_VERSION = 2;
 
         /**
          * Special value indicating that the subscriber is unknown.
@@ -280,4 +263,33 @@ public class PollProcessor
          */
         private Queue<Binary> m_queueElements;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * {@link EvolvablePortableObject} data version of this class.
+     */
+    public static final int DATA_VERSION = 3;
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The page to poll.
+     */
+    protected long m_lPage;
+
+    /**
+     * The desired number of elements.
+     */
+    protected int m_cElements;
+
+    /**
+     * Post empty notification key.
+     */
+    protected int m_nNotifyPostEmpty;
+
+    /**
+     * The unique identifier of the subscriber.
+     */
+    private SubscriberId m_subscriberId;
     }

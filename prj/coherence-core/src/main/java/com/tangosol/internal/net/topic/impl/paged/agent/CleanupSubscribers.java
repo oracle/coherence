@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
@@ -25,6 +25,7 @@ import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
 
+import com.tangosol.util.UUID;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.PartitionedFilter;
 
@@ -32,6 +33,9 @@ import com.tangosol.util.processor.AbstractEvolvableProcessor;
 
 import java.io.IOException;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -209,15 +213,14 @@ public class CleanupSubscribers
         if (binaryEntry != null)
             {
             DistributedCacheService service   = (DistributedCacheService) binaryEntry.getContext().getCacheService();
-            Set<Integer>            setMember = ((Set<Member>) service.getInfo()
+            Map<Integer, Member>    mapMember = ((Set<Member>) service.getInfo()
                                                        .getServiceMembers())
                                                        .stream()
-                                                       .map(Member::getId)
-                                                       .collect(Collectors.toSet());
+                                                       .collect(Collectors.toMap(Member::getId, m -> m));
 
             for (InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry : setEntries)
                 {
-                if (process(entry, setMember))
+                if (process(entry, mapMember))
                     {
                     mapResult.put(entry.getKey(), true);
                     }
@@ -233,13 +236,12 @@ public class CleanupSubscribers
         if (entry.isPresent())
             {
             DistributedCacheService service   = (DistributedCacheService) entry.asBinaryEntry().getContext().getCacheService();
-            Set<Integer>            setMember = ((Set<Member>) service.getInfo()
+            Map<Integer, Member>    mapMember = ((Set<Member>) service.getInfo()
                                                        .getServiceMembers())
                                                        .stream()
-                                                       .map(Member::getId)
-                                                       .collect(Collectors.toSet());
+                                                       .collect(Collectors.toMap(Member::getId, m -> m));
 
-            return process(entry, setMember);
+            return process(entry, mapMember);
             }
         return false;
         }
@@ -269,18 +271,38 @@ public class CleanupSubscribers
      * member set then it will be removed.
      *
      * @param entry      the subscriber entry to potentially remove
-     * @param setMember  the current set of members
+     * @param mapMember  the current map of members, keyed by member Id
      *
      * @return {@code true} if the subscriber was removed
      */
-    Boolean process(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry, Set<Integer> setMember)
+    Boolean process(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry, Map<Integer, Member> mapMember)
         {
         if (entry.isPresent())
             {
-            long nId     = entry.getKey().getSubscriberId();
-            int  nMember = PagedTopicSubscriber.memberIdFromId(nId);
+            long           nId     = entry.getKey().getSubscriberId();
+            SubscriberInfo info    = entry.getValue();
+            UUID           uuid    = info.getOwningUid();
+            int            nMember = PagedTopicSubscriber.memberIdFromId(nId);
+            Member         member  = mapMember.get(nMember);
+            boolean        fRemove = false;
 
-            if (!setMember.contains(nMember))
+            if (member == null)
+                {
+                // owing member no longer exists
+                fRemove = true;
+                }
+            else if (uuid != null && !member.getUuid().equals(uuid))
+                {
+                // owing member exists, but with a different UUID
+                fRemove = true;
+                }
+            else if (Instant.ofEpochMilli(member.getTimestamp()).atZone(ZoneId.systemDefault()).toLocalDateTime().isAfter(info.getLastHeartbeat()))
+                {
+                // owing member exists, but has a timestamp after the last heartbeat time
+                fRemove = true;
+                }
+
+            if (fRemove)
                 {
                 entry.remove(false);
                 return true;
