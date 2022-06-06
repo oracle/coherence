@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
@@ -60,16 +61,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SuppressWarnings("unused")
 public class HealthCheckTests
     {
-    @BeforeAll
-    static void setup()
+    @BeforeEach
+    public void cleanupPersistence(TestInfo testInfo)
         {
         File fileBuild = MavenProjectFileUtils.locateBuildFolder(HealthCheckTests.class);
-        m_filePersistence = new File(fileBuild, "persistence");
-        }
+        File fileBase  = new File(fileBuild, "persistence");
+        m_filePersistence = new File(fileBase, testInfo.getTestMethod().get().getName());
 
-    @BeforeEach
-    public void cleanupPersistence()
-        {
         if (m_filePersistence.exists())
             {
             MavenProjectFileUtils.recursiveDelete(m_filePersistence);
