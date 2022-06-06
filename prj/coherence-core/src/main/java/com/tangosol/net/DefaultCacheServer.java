@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -373,6 +373,14 @@ public class DefaultCacheServer
                 {
                 CacheFactory.getCacheFactoryBuilder().setCacheConfiguration(null,
                     XmlHelper.loadFileOrResource(sArg, "cache configuration", null));
+                }
+            else if (sArg.equals("--version"))
+                {
+                System.out.println(CacheFactory.VERSION);
+                if (asArg.length == 1)
+                    {
+                    System.exit(0);
+                    }
                 }
             else if (Pattern.matches("[0-9]*", sArg))
                 {

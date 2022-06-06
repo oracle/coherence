@@ -691,6 +691,15 @@ public class Coherence
      */
     public static void main(String[] args)
         {
+        if (args.length > 0 && args[0].equals("--version"))
+            {
+            System.out.println(CacheFactory.VERSION);
+            if (args.length == 1)
+                {
+                System.exit(0);
+                }
+            }
+
         String sClient = Config.getProperty("coherence.client");
         Coherence coherence;
         if (sClient == null || !sClient.contains("remote"))
