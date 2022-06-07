@@ -9,6 +9,7 @@ package com.tangosol.internal.net.cluster;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.builder.InstanceBuilder;
 
 import com.tangosol.config.expression.NullParameterResolver;
@@ -299,6 +300,16 @@ public class DefaultMemberIdentity
         return this;
         }
 
+    /**
+     * Set the cluster dependencies.
+     *
+     * @param dependencies the cluster dependencies
+     */
+    public void setDependencies(ClusterDependencies dependencies)
+        {
+        m_dependencies = dependencies;
+        }
+
     // ----- DefaultMemberIdentity methods ----------------------------------
 
     /**
@@ -524,7 +535,7 @@ public class DefaultMemberIdentity
                         {
                         MemberIdentityProvider provider = null;
 
-                        String sClass = System.getProperty(MemberIdentityProvider.PROPERTY);
+                        String sClass = Config.getProperty(MemberIdentityProvider.PROPERTY);
                         if (sClass != null)
                             {
                             try
@@ -551,6 +562,7 @@ public class DefaultMemberIdentity
 
                             if (provider != null)
                                 {
+                                provider.setDependencies(m_dependencies);
                                 Logger.finer("Discovered MemberIdentityProvider: " + provider);
                                 }
                             }
@@ -619,4 +631,9 @@ public class DefaultMemberIdentity
      * An optional {@link MemberIdentityProvider}.
      */
     private volatile MemberIdentityProvider m_provider;
+
+    /**
+     * The cluster dependencies.
+     */
+    private ClusterDependencies m_dependencies;
     }

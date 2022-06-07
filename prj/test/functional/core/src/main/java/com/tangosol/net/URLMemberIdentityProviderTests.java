@@ -31,6 +31,8 @@ public class URLMemberIdentityProviderTests
     @BeforeClass
     public static void startServer() throws Exception
         {
+        System.setProperty(URLMemberIdentityProvider.PROP_RETRY_TIMEOUT, "1s");
+
         SimpleHttpHandler handler = new SimpleHttpHandler(BaseHttpHandler.StringBodyWriter.INSTANCE);
 
         RequestRouter router = handler.getRouter();
@@ -89,6 +91,19 @@ public class URLMemberIdentityProviderTests
         URLMemberIdentityProvider provider = new URLMemberIdentityProvider();
         String sResult = provider.getMachineName();
         assertThat(sResult, is(sExpected));
+        }
+
+    @Test
+    public void shouldLoadMachineFromURLWhenNotListening()
+        {
+        String sExpected = "test-machine";
+
+        int port = s_server.getListenPort() + 1;
+        System.setProperty(URLMemberIdentityProvider.PROP_MACHINE, "http://127.0.0.1:" + port + "/machine");
+        s_machineResponse = Response.ok(asStream(sExpected)).build();
+        URLMemberIdentityProvider provider = new URLMemberIdentityProvider();
+        String sResult = provider.getMachineName();
+        assertThat(sResult, is(nullValue()));
         }
 
     @Test

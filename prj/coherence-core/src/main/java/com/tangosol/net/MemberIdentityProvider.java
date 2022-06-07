@@ -62,6 +62,15 @@ public interface MemberIdentityProvider
     String getRoleName();
 
     /**
+     * Set the cluster dependencies.
+     *
+     * @param deps the cluster dependencies
+     */
+    default void setDependencies(ClusterDependencies deps)
+        {
+        }
+
+    /**
      * The System property to use to set the name of the identity provider
      * class to use.
      * <p>

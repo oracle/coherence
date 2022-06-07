@@ -2,14 +2,16 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.config.xml;
 
+import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
 
 import com.tangosol.config.ConfigurationException;
 
+import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.run.xml.XmlElement;
@@ -21,6 +23,8 @@ import org.junit.Assert;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -304,4 +308,28 @@ public class SystemPropertyPreprocessorTest
             dep.preprocess(ctx, xml);
             }
         }
+
+    @Test
+    public void shouldUseContextValuesFirst()
+        {
+        String                  sXml = "<config><test system-property=\"coherence.test\">one</test></config>\n";
+        XmlElement              xml  = XmlHelper.loadXml(sXml);
+        ProcessingContext       ctx  = mock(ProcessingContext.class);
+        ResolvableParameterList list = new ResolvableParameterList();
+
+        list.add(new Parameter("coherence.test", "two"));
+
+        when(ctx.getDefaultParameterResolver()).thenReturn(list);
+
+        DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
+
+        dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);
+
+        try (SystemPropertyResource p1 = new SystemPropertyResource("coherence.test", "three"))
+            {
+            dep.preprocess(ctx, xml);
+            assertThat(xml.getElement("test").getString(), is("two"));
+            }
+        }
+
     }

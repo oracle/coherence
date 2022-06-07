@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.preprocessor;
 
@@ -10,8 +10,10 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.config.ConfigurationException;
 
+import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
+import com.tangosol.config.expression.Value;
 import com.tangosol.config.expression.ValueMacroExpression;
 
 import com.tangosol.config.xml.ProcessingContext;
@@ -45,8 +47,9 @@ public class SystemPropertyPreprocessor
     public boolean preprocess(ProcessingContext context, XmlElement element)
             throws ConfigurationException
         {
-        boolean fUpdated = false;
-        XmlValue attribute = element.getAttribute(SYSTEM_PROPERTY);
+        boolean           fUpdated  = false;
+        XmlValue          attribute = element.getAttribute(SYSTEM_PROPERTY);
+        ParameterResolver resolver  = context.getDefaultParameterResolver();
         if (attribute != null)
             {
             // remove the attribute
@@ -55,13 +58,30 @@ public class SystemPropertyPreprocessor
             // set the element's value from the specified system property
             try
                 {
-                String sName  = attribute.getString();
-                String sValue = Config.getProperty(sName);
+                String sName = attribute.getString();
 
-                if (sValue != null)
+                // try the context's resolver first
+                Parameter parameter = resolver.resolve(sName);
+                if (parameter != null)
                     {
-                    element.setString(sValue);
-                    fUpdated = true;
+                    Value  value  = parameter.evaluate(resolver);
+                    Object oValue = value.get();
+                    if (oValue != null)
+                        {
+                        element.setString(String.valueOf(oValue));
+                        fUpdated = true;
+                        }
+                    }
+
+                if (!fUpdated)
+                    {
+                    String sValue = Config.getProperty(sName);
+
+                    if (sValue != null)
+                        {
+                        element.setString(sValue);
+                        fUpdated = true;
+                        }
                     }
                 }
             catch (Exception e)
@@ -70,7 +90,7 @@ public class SystemPropertyPreprocessor
                 }
             }
 
-        fUpdated |= processValueMacro(element, context.getDefaultParameterResolver());
+        fUpdated |= processValueMacro(element, resolver);
 
         return fUpdated;
         }
