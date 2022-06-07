@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-pof-config"
@@ -16,7 +16,7 @@
             Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -43,6 +43,7 @@
                 <xsd:element ref="allow-subclasses" minOccurs="0" />
                 <xsd:element ref="enable-references" minOccurs="0" />
                 <xsd:element ref="enable-type-discovery" minOccurs="0" />
+                <xsd:element ref="enable-config-discovery" minOccurs="0" />
                 <xsd:element ref="prefer-java-time" minOccurs="0" />
                 <xsd:element ref="default-serializer" minOccurs="0" />
             </xsd:sequence>
@@ -392,6 +393,20 @@
                 serialization is used.
 
                 Valid values are "true" or "false". Default value is false.
+
+                Used in: pof-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable-config-discovery" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enable-config-discovery element indicates whether
+                additional POF configurations will be loaded from
+                discovered PofConfigProvider instances.
+
+                Valid values are "true" or "false". Default value is true.
 
                 Used in: pof-config
             </xsd:documentation>

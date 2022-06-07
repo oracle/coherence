@@ -21,6 +21,7 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlConfigurable;
+import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -54,7 +55,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 
 
 /**
@@ -958,11 +963,12 @@ public class ConfigurablePofContext
         mergeIncludes(sURI, xmlConfig, getContextClassLoader());
 
         // extract options
-        boolean fAllowInterfaces     = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
-        boolean fAllowSubclasses     = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
-        boolean fEnableReferences    = xmlConfig.getSafeElement("enable-references").getBoolean();
-        boolean fEnableTypeDiscovery = xmlConfig.getSafeElement("enable-type-discovery").getBoolean();
-        boolean fPreferJavaTime      = xmlConfig.getSafeElement("prefer-java-time").getBoolean();
+        boolean fAllowInterfaces       = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
+        boolean fAllowSubclasses       = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
+        boolean fEnableReferences      = xmlConfig.getSafeElement("enable-references").getBoolean();
+        boolean fEnableTypeDiscovery   = xmlConfig.getSafeElement("enable-type-discovery").getBoolean();
+        boolean fEnableConfigDiscovery = xmlConfig.getSafeElement("enable-config-discovery").getBoolean(true);
+        boolean fPreferJavaTime        = xmlConfig.getSafeElement("prefer-java-time").getBoolean();
 
         Map<String, Integer> mapPortableTypes = new SafeHashMap<>();
 
@@ -1202,17 +1208,18 @@ public class ConfigurablePofContext
 
         // store off the reusable configuring in a PofConfig object
         PofConfig cfg = new PofConfig();
-        cfg.m_mapTypeIdByClass     = new CopyOnWriteMap(mapTypeIdByClass);
-        cfg.m_mapTypeIdByClassName = mapTypeIdByClassName;
-        cfg.m_mapClassNameByTypeId = mapClassNameByTypeId;
-        cfg.m_mapPortableTypes     = mapPortableTypes;
-        cfg.m_aClzByTypeId         = aClzByTypeId;
-        cfg.m_aSerByTypeId         = aSerByTypeId;
-        cfg.m_fInterfaceAllowed    = fAllowInterfaces;
-        cfg.m_fSubclassAllowed     = fAllowSubclasses;
-        cfg.m_fReferenceEnabled    = fEnableReferences;
-        cfg.m_fPreferJavaTime      = fPreferJavaTime;
-        cfg.m_fEnableTypeDiscovery = fEnableTypeDiscovery;
+        cfg.m_mapTypeIdByClass       = new CopyOnWriteMap(mapTypeIdByClass);
+        cfg.m_mapTypeIdByClassName   = mapTypeIdByClassName;
+        cfg.m_mapClassNameByTypeId   = mapClassNameByTypeId;
+        cfg.m_mapPortableTypes       = mapPortableTypes;
+        cfg.m_aClzByTypeId           = aClzByTypeId;
+        cfg.m_aSerByTypeId           = aSerByTypeId;
+        cfg.m_fInterfaceAllowed      = fAllowInterfaces;
+        cfg.m_fSubclassAllowed       = fAllowSubclasses;
+        cfg.m_fReferenceEnabled      = fEnableReferences;
+        cfg.m_fPreferJavaTime        = fPreferJavaTime;
+        cfg.m_fEnableTypeDiscovery   = fEnableTypeDiscovery;
+        cfg.m_fEnableConfigDiscovery = fEnableConfigDiscovery;
 
         return cfg;
         }
@@ -1284,7 +1291,7 @@ public class ConfigurablePofContext
      */
     protected PofSerializer instantiateSerializer(XmlElement xmlSer, int nTypeId, final Class clz)
         {
-        final Integer ITypeId    = Integer.valueOf(nTypeId);
+        final Integer ITypeId    = nTypeId;
         PofSerializer serializer = null;
         String        sURI       = m_sUri;
 
@@ -1549,36 +1556,64 @@ public class ConfigurablePofContext
     public static void mergeIncludes(String sURI, XmlElement xmlConfig, ClassLoader loader)
         {
         // extract options
-        boolean    fAllowInterfaces     = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
-        boolean    fAllowSubclasses     = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
-        boolean    fEnableReferences    = xmlConfig.getSafeElement("enable-references").getBoolean();
-        boolean    fEnableTypeDiscovery = xmlConfig.getSafeElement("enable-type-discovery").getBoolean();
-        XmlElement xmlAllTypes          = xmlConfig.getElement("user-type-list");
+        boolean    fAllowInterfaces       = xmlConfig.getSafeElement("allow-interfaces").getBoolean();
+        boolean    fAllowSubclasses       = xmlConfig.getSafeElement("allow-subclasses").getBoolean();
+        boolean    fEnableReferences      = xmlConfig.getSafeElement("enable-references").getBoolean();
+        boolean    fEnableTypeDiscovery   = xmlConfig.getSafeElement("enable-type-discovery").getBoolean();
+        boolean    fEnableConfigDiscovery = xmlConfig.getSafeElement("enable-config-discovery").getBoolean(true);
+        boolean    fAddedDiscovered       = false;
+        XmlElement xmlAllTypes            = xmlConfig.getElement("user-type-list");
+
+        if (!fEnableConfigDiscovery)
+            {
+            Logger.info("POF config discovery is disabled in " + sURI);
+            }
 
         // add default-serializer to each user-type
         appendDefaultSerializerToUserTypes(xmlConfig);
 
+        // discover any config providers and add their config URIs to the list of includes
+        Set<String> setDiscovered = ServiceLoader.load(PofConfigProvider.class)
+                .stream()
+                .flatMap(p -> p.get().getConfigURIs().stream())
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toSet());
+
+        if (fEnableConfigDiscovery && !xmlAllTypes.getElements("include").hasNext())
+            {
+            // there are no includes and discovery is enabled
+            fAddedDiscovered = true;
+            for (String sDiscovered : setDiscovered)
+                {
+                xmlAllTypes.addElement("include").setString(sDiscovered);
+                }
+            }
+
         // locate and add all included user types
-        for (List listURI = null; xmlAllTypes.getElement("include") != null; )
+        for (List<String> listURI = null; xmlAllTypes.getElement("include") != null; )
             {
             if (listURI == null)
                 {
-                listURI = new ArrayList();
+                listURI = new ArrayList<>();
                 listURI.add(sURI);
                 }
 
             // load included URIs, checking for duplicates
-            List listInclude = new ArrayList();
+            List<XmlDocument> listInclude = new ArrayList<>();
+            String            sIncludeURI = null;
             for (Iterator iter = xmlAllTypes.getElements("include"); iter.hasNext(); )
                 {
-                String sIncludeURI = ((XmlElement) iter.next()).getString();
+                sIncludeURI = ((XmlElement) iter.next()).getString();
                 iter.remove();
 
                 if (!listURI.contains(sIncludeURI))
                     {
                     listURI.add(sIncludeURI);
+                    String sReason = fAddedDiscovered && setDiscovered.contains(sIncludeURI)
+                            ? "discovered" : "included";
                     listInclude.add(XmlHelper.loadFileOrResource(
-                            sIncludeURI, "included POF configuration", loader));
+                            sIncludeURI, sReason + " POF configuration", loader));
                     }
                 }
 
@@ -1589,13 +1624,35 @@ public class ConfigurablePofContext
                 XmlElement xmlIncludeTypes = xmlInclude.getSafeElement("user-type-list");
 
                 appendDefaultSerializerToUserTypes(xmlInclude);
-                fAllowInterfaces     |= xmlInclude.getSafeElement("allow-interfaces").getBoolean();
-                fAllowSubclasses     |= xmlInclude.getSafeElement("allow-subclasses").getBoolean();
-                fEnableReferences    |= xmlInclude.getSafeElement("enable-references").getBoolean();
-                fEnableTypeDiscovery |= xmlInclude.getSafeElement("enable-type-discovery").getBoolean();
+                fAllowInterfaces       |= xmlInclude.getSafeElement("allow-interfaces").getBoolean();
+                fAllowSubclasses       |= xmlInclude.getSafeElement("allow-subclasses").getBoolean();
+                fEnableReferences      |= xmlInclude.getSafeElement("enable-references").getBoolean();
+                fEnableTypeDiscovery   |= xmlInclude.getSafeElement("enable-type-discovery").getBoolean();
+                fEnableConfigDiscovery &= xmlInclude.getSafeElement("enable-config-discovery").getBoolean(true);
+
+                if (!fEnableConfigDiscovery)
+                    {
+                    Logger.info("POF config discovery is disabled in " + sIncludeURI);
+                    }
 
                 XmlHelper.addElements(xmlAllTypes, xmlIncludeTypes.getElements("user-type"));
                 XmlHelper.addElements(xmlAllTypes, xmlIncludeTypes.getElements("include"));
+                }
+
+            // if we're done (no include elements left in xmlAllTypes)
+            // and discovery enabled (fEnableConfigDiscovery),
+            // and we have not added any discovered includes yet,
+            // then add any discovered
+            if (fEnableConfigDiscovery && !xmlAllTypes.getElements("include").hasNext() && !fAddedDiscovered)
+                {
+                fAddedDiscovered = true;
+                for (String sDiscovered : setDiscovered)
+                    {
+                    if (!listURI.contains(sDiscovered))
+                        {
+                        xmlAllTypes.addElement("include").setString(sDiscovered);
+                        }
+                    }
                 }
             }
 
@@ -1603,6 +1660,7 @@ public class ConfigurablePofContext
         xmlConfig.ensureElement("allow-subclasses").setBoolean(fAllowSubclasses);
         xmlConfig.ensureElement("enable-type-discovery").setBoolean(fEnableTypeDiscovery);
         xmlConfig.ensureElement("enable-references").setBoolean(fEnableReferences);
+        xmlConfig.ensureElement("enable-config-discovery").setBoolean(fEnableConfigDiscovery);
         }
 
     /**
@@ -1723,6 +1781,11 @@ public class ConfigurablePofContext
          * True iff discovery of PortableTypes is enabled.
          */
         public boolean m_fEnableTypeDiscovery;
+
+        /**
+         * A flag to enable POF config discovery.
+         */
+        public boolean m_fEnableConfigDiscovery = true;
         }
 
 
