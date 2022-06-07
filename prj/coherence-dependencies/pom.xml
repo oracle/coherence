@@ -176,7 +176,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.5.1-M1</helidon.version>
+    <helidon.version>2.5.1</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <jackson.version>2.13.2</jackson.version>

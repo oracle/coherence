@@ -21,7 +21,7 @@
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
-    <helidon.version>2.5.0</helidon.version>
+    <helidon.version>2.5.1</helidon.version>
 
     <java.version>11</java.version>
     <java.version.release>11</java.version.release>
