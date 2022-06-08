@@ -1978,6 +1978,7 @@
                 <excludes>
                   <!-- io - dynamic lambdas -->
                   <exclude>**/RemoteFunction*DynamicLambdaTests.java</exclude>
+                  <exclude>**/BacklogTests.java</exclude>
                   <!-- JVisualVM -->
                   <exclude>**/RestAggregatedDataRetrieverTests.java</exclude>
                   <exclude>**/RestDataRetrieverTests.java</exclude>
