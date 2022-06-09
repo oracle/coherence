@@ -6,6 +6,10 @@
  */
 package com.tangosol.net;
 
+import com.tangosol.coherence.config.ResolvableParameterList;
+import com.tangosol.config.expression.ChainedParameterResolver;
+import com.tangosol.config.expression.Expression;
+import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.net.events.EventInterceptor;
@@ -325,15 +329,65 @@ public interface SessionConfiguration
         /**
          * Set the optional {@link ParameterResolver} to use to resolve
          * configuration parameters.
+         * <p>
+         * Any parameter added directly with one of the {@code addParameter}
+         * methods will take precedence over the parameters in the specified
+         * resolver.
          *
          * @param resolver  the optional {@link ParameterResolver} to use
          *                  to resolve configuration parameters
          *
          * @return  this {@link Builder}
+         *
+         * @see #withParameter(String, Object)
+         * @see #withParameter(String, Expression)
+         * @see #withParameter(Parameter)
          */
         public Builder withParameterResolver(ParameterResolver resolver)
             {
             m_parameterResolver = resolver;
+            return this;
+            }
+
+        /**
+         * Add a named parameter to use when resolving
+         * configuration parameters.
+         *
+         * @param sName   the name of the parameter
+         * @param oValue  the parameter value
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder withParameter(String sName, Object oValue)
+            {
+            return withParameter(new Parameter(sName, oValue));
+            }
+
+        /**
+         * Add a named parameter to use when resolving
+         * configuration parameters.
+         *
+         * @param sName       the name of the parameter
+         * @param expression  the parameter {@link Expression} to use to resolve the parameter value
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder withParameter(String sName, Expression<?> expression)
+            {
+            return withParameter(new Parameter(sName, expression));
+            }
+
+        /**
+         * Add a named parameter to use when resolving
+         * configuration parameters.
+         *
+         * @param parameter   the named {@link Parameter}
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder withParameter(Parameter parameter)
+            {
+            m_parameterList.add(parameter);
             return this;
             }
 
@@ -385,6 +439,11 @@ public interface SessionConfiguration
          * An optional {@link ParameterResolver} to use to resolve configuration parameters.
          */
         private ParameterResolver m_parameterResolver;
+
+        /**
+         * An optional list of parameters.
+         */
+        private final ResolvableParameterList m_parameterList = new ResolvableParameterList();
         }
 
     // ----- inner class: ConfigurableCacheFactorySessionConfig -------------
@@ -403,14 +462,38 @@ public interface SessionConfiguration
          */
         ConfigurableCacheFactorySessionConfig(Builder builder)
             {
-            f_sName             = builder.m_sName == null || builder.m_sName.trim().isEmpty()
-                                        ? Coherence.DEFAULT_NAME : builder.m_sName;
-            f_sURI              = builder.m_sURI;
-            f_loader            = builder.m_loader;
-            f_listInterceptor   = new ArrayList<>(builder.f_listInterceptor);
-            f_nPriority         = builder.m_nPriority;
-            f_sScope            = builder.m_sScope == null ? Coherence.DEFAULT_SCOPE : builder.m_sScope;
-            f_parameterResolver = builder.m_parameterResolver;
+            f_sName           = builder.m_sName == null || builder.m_sName.trim().isEmpty()
+                                      ? Coherence.DEFAULT_NAME : builder.m_sName;
+            f_sURI            = builder.m_sURI;
+            f_loader          = builder.m_loader;
+            f_listInterceptor = new ArrayList<>(builder.f_listInterceptor);
+            f_nPriority       = builder.m_nPriority;
+            f_sScope          = builder.m_sScope == null ? Coherence.DEFAULT_SCOPE : builder.m_sScope;
+
+            ParameterResolver resolver;
+            if (!builder.m_parameterList.isEmpty())
+                {
+                ResolvableParameterList list = new ResolvableParameterList();
+                for (Parameter parameter : builder.m_parameterList)
+                    {
+                    list.add(parameter);
+                    }
+
+                if (builder.m_parameterResolver == null)
+                    {
+                    resolver = list;
+                    }
+                else
+                    {
+                    resolver = new ChainedParameterResolver(list, builder.m_parameterResolver);
+                    }
+                }
+            else
+                {
+                resolver = builder.m_parameterResolver;
+                }
+
+            f_parameterResolver = resolver;
             }
 
         // ----- SessionConfiguration methods -------------------------------
@@ -494,7 +577,7 @@ public interface SessionConfiguration
         /**
          * An optional {@link ParameterResolver} to use to resolve configuration parameters.
          */
-        private ParameterResolver f_parameterResolver;
+        private final ParameterResolver f_parameterResolver;
         }
 
     // ----- constants --------------------------------------------------
