@@ -173,6 +173,23 @@ public class Coherence
         }
 
     /**
+     * Create a default {@link Coherence} client instance.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client using a fixed address configured with the parameters
+     * {@code coherence.extend.address} and {@code coherence.extend.port}.
+     *
+     * @return a default {@link Coherence} instance
+     */
+    public static Coherence fixedClient()
+        {
+        return fixedClientBuilder(CoherenceConfiguration.create()).build();
+        }
+
+    /**
      * Create a client {@link Coherence} instance from the specified {@link CoherenceConfiguration}.
      * <p>
      * If using the default Coherence cache configuration file, this will configure Coherence
@@ -189,6 +206,26 @@ public class Coherence
     public static Coherence client(CoherenceConfiguration config)
         {
         return clientBuilder(config).build();
+        }
+
+    /**
+     * Create a client {@link Coherence} instance from the specified {@link CoherenceConfiguration}.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client using a fixed address configured with the parameters
+     * {@code coherence.extend.address} and {@code coherence.extend.port}.
+     *
+     * @param config  the configuration to use to create the
+     *                {@link Coherence} instance
+     *
+     * @return a {@link Coherence} instance from the specified {@link CoherenceConfiguration}
+     */
+    public static Coherence fixedClient(CoherenceConfiguration config)
+        {
+        return fixedClientBuilder(config).build();
         }
 
     /**
@@ -226,6 +263,28 @@ public class Coherence
     public static Builder clientBuilder(CoherenceConfiguration config)
         {
         return new Builder(config, Mode.Client);
+        }
+
+    /**
+     * Returns a {@link Builder} instance that can build a {@link Coherence}
+     * instance using the specified {@link CoherenceConfiguration}.
+     * <p>
+     * The {@link Coherence} instance built by the {@code Builder} will be a client
+     * using a fixed Extend address, it will not start or join a Coherence cluster.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client using a fixed address configured with the parameters
+     * {@code coherence.extend.address} and {@code coherence.extend.port}.
+     * <p>
+     * If using the default Coherence Concurrent extensions, this will configure Coherence
+     * Concurrent to be an Extend client.
+     *
+     * @return a {@link Builder} instance that can build a {@link Coherence}
+     *         instance using the specified {@link CoherenceConfiguration}
+     */
+    public static Builder fixedClientBuilder(CoherenceConfiguration config)
+        {
+        return new Builder(config, Mode.ClientFixed);
         }
 
     /**
@@ -1154,17 +1213,37 @@ public class Coherence
          * Typically, this would be something like an Extend or gRPC client.
          * For an Extend client, the proxy will be discovered using the name service.
          */
-        Client,
+        Client("remote"),
         /**
          * The {@link Coherence} instance should run as a non-cluster member client.
          * Typically, this would be something like an Extend or gRPC client.
          * For an Extend client, the proxy be configured with a fixed address and port.
          */
-        ClientFixed,
+        ClientFixed("remote-fixed"),
         /**
          * The {@link Coherence} instance should run as a cluster member client.
          */
-        ClusterMember
+        ClusterMember("direct");
+
+        Mode(String sClient)
+            {
+            f_sClient = sClient;
+            }
+
+        /**
+         * Returns the default {@code coherence.client} property.
+         *
+         * @return the default {@code coherence.client} property
+         */
+        public String getClient()
+            {
+            return f_sClient;
+            }
+
+        /**
+         * The default {@code coherence.client} property for this mode.
+         */
+        private String f_sClient;
         }
 
     // ----- inner interface LifecycleListener ------------------------------

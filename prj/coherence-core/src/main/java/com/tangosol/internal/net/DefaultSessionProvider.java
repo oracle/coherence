@@ -12,9 +12,11 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.config.expression.ChainedParameterResolver;
+import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.PropertiesParameterResolver;
 
+import com.tangosol.config.expression.Value;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
@@ -147,21 +149,15 @@ public class DefaultSessionProvider
         ParameterResolver resolverCfg       = configuration.getParameterResolver().orElse(null);
         Coherence.Mode    mode              = context.getMode();
 
-        if (mode == Coherence.Mode.Client)
+        String sProp = Config.getProperty("coherence.client", mode.getClient());
+        Map<String, String> map = Collections.singletonMap("coherence.client", sProp);
+        if (resolverCfg == null)
             {
-            // If this is a client we override the coherence.client property if it has not already
-            // been set to be "remote" so that we force any session using the default cache config
-            // file to be an Extend client.
-            String sProp = Config.getProperty("coherence.client", "remote");
-            Map<String, String> map = Collections.singletonMap("coherence.client", sProp);
-            if (resolverCfg == null)
-                {
-                resolverCfg = new PropertiesParameterResolver(map);
-                }
-            else
-                {
-                resolverCfg = new ChainedParameterResolver(resolverCfg, new PropertiesParameterResolver(map));
-                }
+            resolverCfg = new PropertiesParameterResolver(map);
+            }
+        else
+            {
+            resolverCfg = new ChainedParameterResolver(resolverCfg, new PropertiesParameterResolver(map));
             }
 
         // this request assumes the class loader for the session can be used

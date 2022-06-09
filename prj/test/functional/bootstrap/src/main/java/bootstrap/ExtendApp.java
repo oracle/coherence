@@ -44,7 +44,6 @@ public class ExtendApp
                         .withScopeName(m_sTenant)
                         .withParameter("coherence.extend.address", m_sHostName)
                         .withParameter("coherence.extend.port", m_nPort)
-                        .withParameter("coherence.client", "remote-fixed")
                         .build();
 
                 CoherenceConfiguration config = CoherenceConfiguration.builder()
@@ -52,7 +51,7 @@ public class ExtendApp
                         .withSession(sessionConfig)
                         .build();
 
-                m_coherence = Coherence.client(config)
+                m_coherence = Coherence.fixedClient(config)
                         .start().join();
                 }
             }
