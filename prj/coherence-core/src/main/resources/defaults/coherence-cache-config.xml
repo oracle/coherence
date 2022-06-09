@@ -89,7 +89,7 @@ meaningful to other cache configurations unless similarly defined there.
     <remote-cache-scheme>
       <scheme-name>thin-remote</scheme-name>
       <service-name>RemoteCache</service-name>
-      <proxy-service-name>Proxy</proxy-service-name>
+      <proxy-service-name system-property="coherence.extend.proxy.service">Proxy</proxy-service-name>
     </remote-cache-scheme>
 
     <!-- near caching scheme for extend clients -->
@@ -107,7 +107,6 @@ meaningful to other cache configurations unless similarly defined there.
     <remote-cache-scheme>
       <scheme-name>thin-remote-fixed</scheme-name>
       <service-name>RemoteCache</service-name>
-      <proxy-service-name>Proxy</proxy-service-name>
       <initiator-config>
         <tcp-initiator>
           <remote-addresses>

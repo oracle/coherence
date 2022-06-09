@@ -1,11 +1,15 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.tangosol.coherence.config.ResolvableParameterList;
+import com.tangosol.config.expression.LiteralExpression;
+import com.tangosol.config.expression.Parameter;
+import com.tangosol.config.expression.ParameterResolver;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -16,6 +20,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -174,5 +179,72 @@ public class SessionConfigurationTest
         assertThat(option, is(notNullValue()));
         assertThat(option.isPresent(), is(true));
         assertThat(option.get(), is("foo.xml"));
+        }
+
+    @Test
+    public void shouldBuildWithParameters()
+        {
+        SessionConfiguration cfg = SessionConfiguration
+                .builder()
+                .withParameter("param1", "test")
+                .withParameter("param2", 100)
+                .withParameter("param3", new LiteralExpression<>(1234))
+                .withParameter(new Parameter("param4", 999L))
+                .build();
+
+        Optional<ParameterResolver> optional = cfg.getParameterResolver();
+        assertThat(optional.isPresent(), is(true));
+        ParameterResolver resolver = optional.get();
+        assertThat(resolver.resolve("param1").evaluate(resolver).get(), is("test"));
+        assertThat(resolver.resolve("param2").evaluate(resolver).get(), is(100));
+        assertThat(resolver.resolve("param3").evaluate(resolver).get(), is(1234));
+        assertThat(resolver.resolve("param4").evaluate(resolver).get(), is(999L));
+        }
+
+    @Test
+    public void shouldBuildWithParameterResolver()
+        {
+        ResolvableParameterList list = new ResolvableParameterList();
+        list.add(new Parameter("param1", "test"));
+        list.add(new Parameter("param2", 100));
+        list.add(new Parameter("param3", new LiteralExpression<>(1234)));
+        list.add(new Parameter("param4", 999L));
+
+        SessionConfiguration cfg = SessionConfiguration
+                .builder()
+                .withParameterResolver(list)
+                .build();
+
+        Optional<ParameterResolver> optional = cfg.getParameterResolver();
+        assertThat(optional.isPresent(), is(true));
+        ParameterResolver resolver = optional.get();
+        assertThat(resolver.resolve("param1").evaluate(resolver).get(), is("test"));
+        assertThat(resolver.resolve("param2").evaluate(resolver).get(), is(100));
+        assertThat(resolver.resolve("param3").evaluate(resolver).get(), is(1234));
+        assertThat(resolver.resolve("param4").evaluate(resolver).get(), is(999L));
+        }
+
+    @Test
+    public void shouldBuildWithParametersAndParameterResolver()
+        {
+        ResolvableParameterList list = new ResolvableParameterList();
+        list.add(new Parameter("param1", "testA"));
+        list.add(new Parameter("param2", 100));
+        list.add(new Parameter("param4", 999L));
+
+        SessionConfiguration cfg = SessionConfiguration
+                .builder()
+                .withParameter("param1", "testB")
+                .withParameter("param3", new LiteralExpression<>(1234))
+                .withParameterResolver(list)
+                .build();
+
+        Optional<ParameterResolver> optional = cfg.getParameterResolver();
+        assertThat(optional.isPresent(), is(true));
+        ParameterResolver resolver = optional.get();
+        assertThat(resolver.resolve("param1").evaluate(resolver).get(), is("testB"));
+        assertThat(resolver.resolve("param2").evaluate(resolver).get(), is(100));
+        assertThat(resolver.resolve("param3").evaluate(resolver).get(), is(1234));
+        assertThat(resolver.resolve("param4").evaluate(resolver).get(), is(999L));
         }
     }
