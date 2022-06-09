@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package quorum;
@@ -405,19 +405,16 @@ public class QuorumTests
             testCacheReadOperations(cache, /*fAllowed*/true);
             testCacheWriteOperations(cache, /*fAllowed*/true);
             }
+        catch (Throwable t)
+            {
+            Base.log("testPartitionedCache0 failed with exception: \n" + Base.getStackTrace(t));
+            throw t;
+            }
         finally
             {
             // cleanup
-            stopCacheServer("testPartitionedCache0-9");
-            stopCacheServer("testPartitionedCache0-8");
-            stopCacheServer("testPartitionedCache0-7");
-            stopCacheServer("testPartitionedCache0-6");
-            stopCacheServer("testPartitionedCache0-5");
-            stopCacheServer("testPartitionedCache0-4");
-            stopCacheServer("testPartitionedCache0-3"); // no-op in the common case
-            stopCacheServer("testPartitionedCache0-2"); // no-op in the common case
-            stopCacheServer("testPartitionedCache0-1"); // no-op in the common case
-            stopCacheServer("testPartitionedCache0-0"); // no-op in the common case
+            stopAllApplications();
+            CacheFactory.shutdown();
             }
         }
 
@@ -464,11 +461,16 @@ public class QuorumTests
             testCacheReadOperations(cache, /*fAllowed*/true);
             testCacheWriteOperations(cache, /*fAllowed*/true);
             }
+        catch (Throwable t)
+            {
+            Base.log("testPartitionedCache1 failed with exception: \n" + Base.getStackTrace(t));
+            throw t;
+            }
         finally
             {
             // cleanup
-            stopCacheServer("testPartitionedCache1-1");
-            stopCacheServer("testPartitionedCache1-0"); // no-op in the common case
+            stopAllApplications();
+            CacheFactory.shutdown();
             }
         }
 
@@ -523,12 +525,16 @@ public class QuorumTests
             testCacheReadOperations(cache, /*fAllowed*/true);
             testCacheWriteOperations(cache, /*fAllowed*/true);
             }
+        catch (Throwable t)
+            {
+            Base.log("testPartitionedCache2 failed with exception: \n" + Base.getStackTrace(t));
+            throw t;
+            }
         finally
             {
             // cleanup
-            stopCacheServer("testPartitionedCache2-2");
-            stopCacheServer("testPartitionedCache2-1");
-            stopCacheServer("testPartitionedCache2-0");
+            stopAllApplications();
+            CacheFactory.shutdown();
             }
         }
 
@@ -624,7 +630,8 @@ public class QuorumTests
         assertTrue(0 != cOrphans);
 
         // cleanup
-        stopCacheServer("testPartitionedCache3-3");
+        stopAllApplications();
+        CacheFactory.shutdown();
         }
 
     /**
@@ -769,12 +776,12 @@ public class QuorumTests
                 "test.machine.quorum", "3",
                 "coherence.machine", "machine-0",
                 }),
-            new ServerConfig("testMemberQuorum-1-1", new String[]
+            new ServerConfig("testMachineQuorum-1-1", new String[]
                 {
                 "test.machine.quorum", "3",
                 "coherence.machine", "machine-1",
                 }),
-            new ServerConfig("testMemberQuorum-2-1", new String[]
+            new ServerConfig("testMachineQuorum-2-1", new String[]
                 {
                 "test.machine.quorum", "3",
                 "coherence.machine", "machine-2",
@@ -873,7 +880,6 @@ public class QuorumTests
             }
         public final String Name;
         public final Properties Props;
-
         }
 
     /**
