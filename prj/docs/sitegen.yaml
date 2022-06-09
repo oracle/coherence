@@ -1,6 +1,6 @@
-# Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+# https://oss.oracle.com/licenses/upl.
 
 engine:
   asciidoctor:
@@ -8,7 +8,7 @@ engine:
     libraries:
       - "asciidoctor-diagram"
     attributes:
-      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0"
+      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206"
       source-highlighter: "highlight.js"
       highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"
@@ -16,7 +16,7 @@ engine:
       javadoc-root: "https://coherence.community/${revision}/api/java/"
       version-coherence-maven: "${revision}"
       version-coherence: "${project.version.official}"
-      version-commercial-docs: "14.1.1.0"
+      version-commercial-docs: "14.1.1.2206"
       version-helidon: "${helidon.version}"
 assets:
   - target: "/"
@@ -57,7 +57,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "import_contacts"
-              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/"
             - title: "About"
               pathprefix: "/docs/about"
               glyph:
@@ -66,74 +66,6 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
-            - title: "Core Improvements"
-              pathprefix: "/core"
-              glyph:
-                type: "icon"
-                value: "fa-cubes"
-              items:
-                - includes:
-                    - "docs/core/*.adoc"
-            - title: "Topics (Messaging)"
-              pathprefix: "/topics"
-              glyph:
-                type: "icon"
-                value: "forward_to_inbox"
-              items:
-                - includes:
-                    - "docs/topics/*.adoc"
-            - title: "Distributed Concurrency"
-              pathprefix: "/coherence-concurrent"
-              glyph:
-                type: "icon"
-                value: "fa-bolt"
-              items:
-                - includes:
-                    - "coherence-concurrent/README.adoc"
-            - title: "CDI Support"
-              pathprefix: "/coherence-cdi-server"
-              glyph:
-                type: "icon"
-                value: "extension"
-              items:
-                - includes:
-                    - "coherence-cdi-server/README.adoc"
-            - title: "MicroProfile Support"
-              pathprefix: "/coherence-mp"
-              glyph:
-                type: "icon"
-                value: "fa-cogs"
-              items:
-                - includes:
-                    - "coherence-mp/README.adoc"
-                    - "coherence-mp/config/README.adoc"
-                    - "coherence-mp/metrics/README.adoc"
-            - title: "Coherence gRPC"
-              pathprefix: "/coherence-grpc"
-              glyph:
-                type: "icon"
-                value: "settings_ethernet"
-              items:
-                - includes:
-                    - "coherence-grpc/README.adoc"
-                    - "coherence-grpc-proxy/README.adoc"
-                    - "coherence-java-client/README.adoc"
-            - title: "Coherence Metrics"
-              pathprefix: "/coherence-micrometer"
-              glyph:
-                type: "icon"
-                value: "speed"
-              items:
-                - includes:
-                    - "coherence-micrometer/README.adoc"
-            - title: "Plugins"
-              pathprefix: "/plugins"
-              glyph:
-                type: "icon"
-                value: "fa-plug"
-              items:
-                - includes:
-                    - "plugins/maven/pof-maven-plugin/README.adoc"
             - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:
