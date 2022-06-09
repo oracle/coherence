@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.maven.pof;
 
@@ -79,14 +79,16 @@ public abstract class PortableTypeMojo
     public void execute()
             throws MojoExecutionException
         {
-        if (m_fSkip)
-            {
-            return;
-            }
-
         try
             {
-            MavenLogger           log            = new MavenLogger(getLog());
+            MavenLogger log = new MavenLogger(getLog());
+
+            if (m_fSkip)
+                {
+                log.info("PortableTypeGenerator code generation is skipped");
+                return;
+                }
+            
             SchemaBuilder         builder        = new SchemaBuilder();
             ClassFileSchemaSource source         = new ClassFileSchemaSource();
             File[]                aDirs          = getClassesDirectories();
