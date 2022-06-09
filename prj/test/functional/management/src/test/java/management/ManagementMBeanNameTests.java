@@ -2,15 +2,16 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package management;
 
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.tangosol.discovery.NSLookup;
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Cluster;
 
+import com.tangosol.net.Cluster;
+import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.util.Base;
@@ -59,7 +60,9 @@ public class ManagementMBeanNameTests
         System.setProperty("coherence.management.extendedmbeanname", "true");
         System.setProperty("coherence.management.port", String.valueOf(ports.next()));
 
-        s_cluster = CacheFactory.ensureCluster();
+        s_cluster     = CacheFactory.ensureCluster();
+        s_cacheServer = DefaultCacheServer.startServerDaemon();
+        s_cacheServer.waitForServiceStart();
         s_client = ClientBuilder.newBuilder().build();
 
         registerMBean();
@@ -68,7 +71,7 @@ public class ManagementMBeanNameTests
     @AfterClass
     public static void cleanup()
         {
-        s_cluster.shutdown();
+        s_cacheServer.shutdownServer();
         s_client.close();
         }
 
@@ -155,9 +158,11 @@ public class ManagementMBeanNameTests
 
     // ----- data members ---------------------------------------------------
 
-    private static Cluster s_cluster;
+    private static DefaultCacheServer s_cacheServer;
 
     private static Client s_client;
+
+    private static Cluster s_cluster;
 
     private URI m_baseURI;
     }
