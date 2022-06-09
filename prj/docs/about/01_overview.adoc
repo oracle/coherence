@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Overview
 :description: Oracle Coherence CE Documentation
@@ -16,7 +16,7 @@
 ====
 The documentation on this site covers new features and improvements that are currently only available in the open source https://github.com/oracle/coherence[Coherence Community Edition] (CE).
 
-For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html[Official Documentation].
+For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/index.html[Official Documentation].
 ====
 
 Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably storing data.
@@ -61,70 +61,12 @@ Guides, examples and tutorial about Coherence features and best practice.
 --
 Oracle Coherence commercial edition product documentation.
 --
+
 [CARD]
 .API Docs
 [icon=library_books,link=../api/java/index.html,link-type=url]
 --
 Browse the Coherence CE API Docs.
---
-====
-
-== New Features
-
-[PILLARS]
-====
-[CARD]
-.Core
-[icon=fa-cubes,link=docs/core/01_overview.adoc]
---
-Coherence Core Improvements.
---
-
-[CARD]
-.Topics
-[icon=forward_to_inbox,link=docs/topics/01_introduction.adoc]
---
-Coherence Topics (Messaging, Streams) Improvements.
---
-
-[CARD]
-.Distributed Concurrency
-[icon=fa-bolt,link=coherence-concurrent/README.adoc]
---
-Distributed implementations of executors, locks, atomics, etc.
---
-
-[CARD]
-.CDI
-[icon=extension,link=coherence-cdi-server/README.adoc]
---
-Coherence CDI extensions.
---
-
-[CARD]
-.Microprofile
-[icon=fa-cogs,link=coherence-mp/README.adoc]
---
-Coherence Microprofile support.
---
-
-[CARD]
-.gRPC
-[icon=settings_ethernet,link=coherence-grpc-proxy/README.adoc]
---
-Coherence gRPC server and client.
---
-====
-
-== Tools
-
-[PILLARS]
-====
-[CARD]
-.Plugins
-[icon=fa-plug,link=plugins/maven/pof-maven-plugin/README.adoc]
---
-Build tool plugins to aid Coherence application development.
 --
 
 [CARD]
