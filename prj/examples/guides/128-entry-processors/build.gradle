@@ -14,8 +14,8 @@ version = '${coherenceVersion}'
 sourceCompatibility = '1.8'
 
 repositories {
-    mavenCentral()
     mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
