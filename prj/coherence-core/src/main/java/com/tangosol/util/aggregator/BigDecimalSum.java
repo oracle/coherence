@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -14,7 +14,6 @@ import com.tangosol.util.ValueExtractor;
 
 import java.math.BigDecimal;
 
-
 /**
 * Calculates an sum for values of any numberic type extracted from a set of
 * entries in a Map in a form of a {@link java.math.BigDecimal} value.  All
@@ -24,7 +23,8 @@ import java.math.BigDecimal;
 *
 * @param <T>  the type of the value to extract from
 *
-* @author gg  2006.07.18
+* @author gg              2006.07.18
+* @author Gunnar Hillert  2022.06.01
 * @since Coherence 3.2
 */
 public class BigDecimalSum<T>
@@ -67,7 +67,12 @@ public class BigDecimalSum<T>
     @Override
     public InvocableMap.StreamingAggregator<Object, Object, Object, BigDecimal> supply()
         {
-        return new BigDecimalSum<>(getValueExtractor());
+        BigDecimalSum bigDecimalSum = new BigDecimalSum<>(getValueExtractor());
+        bigDecimalSum.setScale(this.getScale());
+        bigDecimalSum.setRoundingMode(this.getRoundingMode());
+        bigDecimalSum.setStripTrailingZeros(this.isStripTrailingZeros());
+        bigDecimalSum.setMathContext(this.getMathContext());
+        return bigDecimalSum;
         }
 
     @Override
