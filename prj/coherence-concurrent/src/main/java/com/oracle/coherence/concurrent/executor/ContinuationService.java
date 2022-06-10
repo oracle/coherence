@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -71,13 +71,13 @@ public class ContinuationService<T>
      */
     public boolean submit(ComposableContinuation continuation, final T object)
         {
+        ExecutorTrace.entering(ContinuationService.class, "submit", continuation, object);
+
+        boolean fResult = false;
+
         if (f_state.get() == State.RUNNING)
             {
-            if (continuation == null)
-                {
-                return false;
-                }
-            else
+            if (continuation != null)
                 {
                 T key = object;
 
@@ -99,8 +99,12 @@ public class ContinuationService<T>
                 synchronized (key)
                     {
                     ComposableContinuation existing = f_mapPendingContinuations.get(key);
-                    ComposableContinuation composed = existing == null ? continuation : existing.compose(continuation);
+                    ComposableContinuation composed = existing == null
+                                                      ? continuation
+                                                      : existing.compose(continuation);
 
+                    ExecutorTrace.log(String.format("Composing existing [%s] with provided [%s]; result [%s]",
+                                                    existing, continuation, composed));
                     // only submit non-null composed continuations
                     if (composed != null)
                         {
@@ -118,18 +122,23 @@ public class ContinuationService<T>
                                 index = 0;
                                 }
 
-                            f_aContinuationServices[index].submit(new ContinuationRunnable(key, index));
+                            int idx = index;
+                            ExecutorService service = f_aContinuationServices[idx];
+
+                            ExecutorTrace.log(() -> String.format("Submitting continuation to executor [%s] at index [%s]", service, idx));
+
+                            f_aContinuationServices[index].submit(new ContinuationRunnable(key, idx));
                             }
                         }
 
-                    return true;
+                    fResult = true;
                     }
                 }
             }
-        else
-            {
-            return false;
-            }
+
+            ExecutorTrace.exiting(ContinuationService.class, "submit", fResult);
+
+            return fResult;
         }
 
     /**
