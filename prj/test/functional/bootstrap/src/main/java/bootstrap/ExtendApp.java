@@ -35,28 +35,34 @@ public class ExtendApp
 
     private Session ensureCoherenceSession()
         {
-        if (m_coherence == null)
+        if (m_session == null)
             {
             synchronized (this)
                 {
-                SessionConfiguration sessionConfig = SessionConfiguration.builder()
-                        .named(m_sTenant)
-                        .withScopeName(m_sTenant)
-                        .withParameter("coherence.extend.address", m_sHostName)
-                        .withParameter("coherence.extend.port", m_nPort)
-                        .build();
+                if (m_session == null)
+                    {
+                    SessionConfiguration sessionConfig = SessionConfiguration.builder()
+                            .named(m_sTenant)
+                            .clientFixed()
+                            .withScopeName(m_sTenant)
+                            .withParameter("coherence.extend.address", m_sHostName)
+                            .withParameter("coherence.extend.port", m_nPort)
+                            .build();
 
-                CoherenceConfiguration config = CoherenceConfiguration.builder()
-                        .named(m_sTenant)
-                        .withSession(sessionConfig)
-                        .build();
+                    // Ensure there is a Coherence client instance, add the session configuration,
+                    // and ensure Coherence is started
+                    Coherence coherence = Coherence.client()
+                            .addSession(sessionConfig)
+                            .start()
+                            .join();
 
-                m_coherence = Coherence.fixedClient(config)
-                        .start().join();
+                    // obtain the actual session from the Coherence instance
+                    m_session = coherence.getSession(sessionConfig.getName());
+                    }
                 }
             }
 
-        return m_coherence.getSession(m_sTenant);
+        return m_session;
         }
 
     // ----- data members ---------------------------------------------------
@@ -67,5 +73,5 @@ public class ExtendApp
 
     private final int m_nPort;
 
-    private volatile Coherence m_coherence;
+    private volatile Session m_session;
     }
