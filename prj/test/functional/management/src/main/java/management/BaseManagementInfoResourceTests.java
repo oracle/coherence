@@ -49,7 +49,6 @@ import com.tangosol.coherence.management.internal.MapProvider;
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.internal.management.MBeanResponse;
-import com.tangosol.net.management.MapJsonBodyHandler;
 
 import com.tangosol.internal.management.resources.AbstractManagementResource;
 import com.tangosol.internal.management.resources.ClusterMemberResource;
@@ -61,10 +60,14 @@ import com.tangosol.io.FileHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.management.MapJsonBodyHandler;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
+
+import org.glassfish.jersey.logging.LoggingFeature;
 
 import org.hamcrest.Matchers;
 
@@ -125,6 +128,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
@@ -906,8 +910,8 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         String result = response.readEntity(String.class);
-        assertThat(result.indexOf(SERVER_PREFIX + "-1"), greaterThan(0));
-        assertThat(result.indexOf(SERVER_PREFIX + "-2"), greaterThan(0));
+        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-1"), greaterThan(0));
+        assertThat("Result returned: " + result, result.indexOf(SERVER_PREFIX + "-2"), greaterThan(0));
 
         File   folder   = s_dirJFR;
         String sJfr1    = folder.getAbsolutePath() + File.separator + "all1.jfr";
@@ -3784,7 +3788,7 @@ public abstract class BaseManagementInfoResourceTests
     protected Map readEntity(WebTarget target, Response response, Entity entity)
         {
         int cAttempt    = 0;
-        int cMaxAttempt = 2;
+        int cMaxAttempt = 0;
 
         while (true)
             {
@@ -3991,6 +3995,10 @@ public abstract class BaseManagementInfoResourceTests
 
         m_client = ClientBuilder.newBuilder()
                 .register(MapProvider.class)
+                .register(new LoggingFeature(java.util.logging.Logger.getLogger("coherence.management.rest.diagnostic"),
+                Level.INFO,
+                LoggingFeature.Verbosity.PAYLOAD_TEXT,
+                4096))
                 .build();
         }
 
