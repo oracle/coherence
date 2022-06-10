@@ -30,6 +30,8 @@ This partitioning enables applications to not only distribute (and therefore sca
 The Coherence interface `NamedMap<K,V>` (an extension of `Map<K,V>` provides methods to query, aggregate (map/reduce style), and compute (send functions to storage nodes for locally executed mutations) the data set.
 These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust, distributed applications.
 
+NOTE: Please see https://github.com/oracle/coherence/releases[here] for the latest release notes.
+
 == Get Going
 
 [PILLARS]
