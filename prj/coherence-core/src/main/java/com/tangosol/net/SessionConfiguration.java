@@ -137,6 +137,18 @@ public interface SessionConfiguration
         return Optional.empty();
         }
 
+    /**
+     * Return an optional {@link com.tangosol.net.Coherence.Mode} that the session
+     * should use to set the {@code coherence.client} property.
+     *
+     * @return an optional {@link com.tangosol.net.Coherence.Mode} that the session
+     *         should use to set the {@code coherence.client} property
+     */
+    default Optional<Coherence.Mode> getMode()
+        {
+        return Optional.empty();
+        }
+
     // ----- factory methods ------------------------------------------------
 
     /**
@@ -392,6 +404,50 @@ public interface SessionConfiguration
             }
 
         /**
+         * Set the session's {@code coherence.client} parameter to "remote".
+         *
+         * @return this {@link Builder}
+         */
+        public Builder clientRemote()
+            {
+            return withMode(Coherence.Mode.Client);
+            }
+
+        /**
+         * Set the session's {@code coherence.client} parameter to "remote-fixed".
+         *
+         * @return this {@link Builder}
+         */
+        public Builder clientFixed()
+            {
+            return withMode(Coherence.Mode.ClientFixed);
+            }
+
+        /**
+         * Set the session's {@code coherence.client} parameter to "direct".
+         *
+         * @return this {@link Builder}
+         */
+        public Builder clientDirect()
+            {
+            return withMode(Coherence.Mode.ClusterMember);
+            }
+
+        /**
+         * Set the {@link Coherence.Mode} to use, which will override any mode used
+         * by the {@link Coherence} instance.
+         *
+         * @param mode  the {@link Coherence.Mode} to use
+         *
+         * @return this {@link Builder}
+         */
+        public Builder withMode(Coherence.Mode mode)
+            {
+            m_mode = mode;
+            return this;
+            }
+
+        /**
          * Build the {@link SessionConfiguration}.
          *
          * @return the {@link SessionConfiguration}
@@ -444,6 +500,11 @@ public interface SessionConfiguration
          * An optional list of parameters.
          */
         private final ResolvableParameterList m_parameterList = new ResolvableParameterList();
+
+        /**
+         * The {@link Coherence.Mode} to use, which will override any mode used by the {@link Coherence} instance.
+         */
+        private Coherence.Mode m_mode;
         }
 
     // ----- inner class: ConfigurableCacheFactorySessionConfig -------------
@@ -469,6 +530,7 @@ public interface SessionConfiguration
             f_listInterceptor = new ArrayList<>(builder.f_listInterceptor);
             f_nPriority       = builder.m_nPriority;
             f_sScope          = builder.m_sScope == null ? Coherence.DEFAULT_SCOPE : builder.m_sScope;
+            f_mode = builder.m_mode;
 
             ParameterResolver resolver;
             if (!builder.m_parameterList.isEmpty())
@@ -540,6 +602,12 @@ public interface SessionConfiguration
             return Optional.ofNullable(f_loader);
             }
 
+        @Override
+        public Optional<Coherence.Mode> getMode()
+            {
+            return Optional.ofNullable(f_mode);
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -578,6 +646,11 @@ public interface SessionConfiguration
          * An optional {@link ParameterResolver} to use to resolve configuration parameters.
          */
         private final ParameterResolver f_parameterResolver;
+
+        /**
+         * The {@link Coherence.Mode} to use, which will override any mode used by the {@link Coherence} instance.
+         */
+        private final Coherence.Mode f_mode;
         }
 
     // ----- constants --------------------------------------------------

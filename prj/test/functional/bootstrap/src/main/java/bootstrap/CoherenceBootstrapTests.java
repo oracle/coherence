@@ -17,10 +17,13 @@ import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.util.Resources;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -112,5 +115,90 @@ class CoherenceBootstrapTests
         coherence.start().join();
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(false));
+        }
+
+    @Test
+    void shouldAddSessionBeforeStart() throws Exception
+        {
+        SessionConfiguration sessionOne = SessionConfiguration.builder()
+                .named("One")
+                .withScopeName("One")
+                .build();
+
+        SessionConfiguration sessionTwo = SessionConfiguration.builder()
+                .named("Two")
+                .withScopeName("Two")
+                .build();
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                .withSession(sessionOne)
+                .withSession(sessionTwo)
+                .build();
+
+        Coherence coherence = Coherence.create(configuration);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+
+        SessionConfiguration sessionThree = SessionConfiguration.builder()
+                .named("Three")
+                .withScopeName("Three")
+                .build();
+
+        coherence.addSession(sessionThree);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+        assertThat(coherence.hasSession("Three"), is(true));
+
+        coherence.start().get(5, TimeUnit.MINUTES);
+
+        assertThat(coherence.getSession("One"), is(notNullValue()));
+        assertThat(coherence.getSession("One").isActive(), is(true));
+        assertThat(coherence.getSession("Two"), is(notNullValue()));
+        assertThat(coherence.getSession("Two").isActive(), is(true));
+        assertThat(coherence.getSession("Three"), is(notNullValue()));
+        assertThat(coherence.getSession("Three").isActive(), is(true));
+        }
+
+    @Test
+    void shouldAddSessionAfterStart() throws Exception
+        {
+        SessionConfiguration sessionOne = SessionConfiguration.builder()
+                .named("One")
+                .withScopeName("One")
+                .build();
+
+        SessionConfiguration sessionTwo = SessionConfiguration.builder()
+                .named("Two")
+                .withScopeName("Two")
+                .build();
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                .withSession(sessionOne)
+                .withSession(sessionTwo)
+                .build();
+
+        Coherence coherence = Coherence.create(configuration);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+
+        coherence.start().get(5, TimeUnit.MINUTES);
+
+        assertThat(coherence.getSession("One"), is(notNullValue()));
+        assertThat(coherence.getSession("One").isActive(), is(true));
+        assertThat(coherence.getSession("Two"), is(notNullValue()));
+        assertThat(coherence.getSession("Two").isActive(), is(true));
+
+        SessionConfiguration sessionThree = SessionConfiguration.builder()
+                .named("Three")
+                .withScopeName("Three")
+                .build();
+
+        coherence.addSession(sessionThree);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+        assertThat(coherence.hasSession("Three"), is(true));
+
+        assertThat(coherence.getSession("Three"), is(notNullValue()));
+        assertThat(coherence.getSession("Three").isActive(), is(true));
         }
     }
