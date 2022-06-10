@@ -722,6 +722,7 @@ public abstract class AbstractTaskExecutorServiceTests
                     .until(Predicates.is(Predicates.notNullValue()))
                     .subscribe(subscriber)
                     .submit();
+            Logger.info(String.format("Task[1][%s] submitted", coordinator.getTaskId()));
 
             Eventually.assertDeferred(subscriber::isCompleted, is(true));
             MatcherAssert.assertThat(subscriber.isSubscribed(), is(false));
@@ -738,6 +739,7 @@ public abstract class AbstractTaskExecutorServiceTests
                     .limit(3)
                     .collect(TaskCollectors.firstOf())
                     .until(Predicates.is(Predicates.notNullValue())).subscribe(subscriber).submit();
+            Logger.info(String.format("Task [2][%s] submitted", coordinator.getTaskId()));
 
             Eventually.assertDeferred(subscriber::isCompleted, is(true));
             MatcherAssert.assertThat(subscriber.isSubscribed(), is(false));
@@ -762,6 +764,7 @@ public abstract class AbstractTaskExecutorServiceTests
                     .until(Predicates.is(Predicates.notNullValue()))
                     .subscribe(subscriber)
                     .submit();
+            Logger.info(String.format("Task [3][%s] submitted", coordinator.getTaskId()));
 
             Repetitively.assertThat(invoking(subscriber).isCompleted(), is(false), Timeout.of(20, TimeUnit.SECONDS));
 
@@ -769,7 +772,7 @@ public abstract class AbstractTaskExecutorServiceTests
             m_taskExecutorService.register(executorService5);
             m_taskExecutorService.register(executorService6);
 
-            Eventually.assertDeferred(subscriber::isCompleted, is(true));
+            Eventually.assertDeferred(subscriber::isCompleted, is(true), Timeout.of(2, TimeUnit.MINUTES));
             MatcherAssert.assertThat(subscriber.isSubscribed(), is(false));
             MatcherAssert.assertThat(subscriber.received("Hello World"), is(true));
             MatcherAssert.assertThat(subscriber.size(), is(1));
@@ -2157,7 +2160,7 @@ public abstract class AbstractTaskExecutorServiceTests
                                       Caches.tasks(service),
                                       Caches.properties(service));
 
-        //Utils.heapdump(getCluster());
+        Utils.heapdump(getCluster());
         }
 
     // ----- inner class: SleeperTask ---------------------------------------
