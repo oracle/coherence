@@ -65,6 +65,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -90,7 +92,8 @@ import static org.junit.Assert.fail;
 * A collection of functional tests for the various
 * {@link InvocableMap.EntryAggregator} implementations.
 *
-* @author jh  2005.12.21
+* @author jh              2005.12.21
+* @author Gunnar Hillert  2022.06.01
 *
 * @see InvocableMap
 */
@@ -488,6 +491,98 @@ public abstract class AbstractEntryAggregatorTests
         }
 
     /**
+     * Test of the {@link BigDecimalAverage} aggregator.
+     */
+    @Test
+    public void bigDecimalAverageWithAdditionalBigDecimalProperties()
+        {
+        NamedCache cache = getNamedCache();
+        BigDecimalAverage agent = new BigDecimalAverage(IdentityExtractor.INSTANCE);
+
+        testEmpty(cache, agent);
+
+        fillBigNumbers(cache, 1, 10);
+
+        Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
+        assertTrue("Result=" + oResult, oResult == null);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1.00000000"));
+
+        oResult = cache.aggregate((Filter) null, agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("5.50000000"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("5.50000000"));
+
+        BigDecimalAverage bigDecimalAverageStrippingZeros = new BigDecimalAverage(IdentityExtractor.INSTANCE);
+        bigDecimalAverageStrippingZeros.setStripTrailingZeros(true);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), bigDecimalAverageStrippingZeros);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1"));
+
+        oResult = cache.aggregate((Filter) null, bigDecimalAverageStrippingZeros);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("5.5"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, bigDecimalAverageStrippingZeros);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("5.5"));
+
+        BigDecimalAverage bigDecimalAverageAndScaleOf0 = new BigDecimalAverage(IdentityExtractor.INSTANCE);
+        bigDecimalAverageAndScaleOf0.setScale(0);
+        bigDecimalAverageAndScaleOf0.setRoundingMode(RoundingMode.CEILING);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), bigDecimalAverageAndScaleOf0);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1"));
+
+        oResult = cache.aggregate((Filter) null, bigDecimalAverageAndScaleOf0);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("6"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, bigDecimalAverageAndScaleOf0);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("6"));
+
+
+        BigDecimalAverage bigDecimalAverageWithMathContext = new BigDecimalAverage(IdentityExtractor.INSTANCE);
+
+        MathContext mathContext = new MathContext(1, RoundingMode.HALF_UP);
+        bigDecimalAverageWithMathContext.setMathContext(mathContext);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), bigDecimalAverageWithMathContext);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1"));
+
+        oResult = cache.aggregate((Filter) null, bigDecimalAverageWithMathContext);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("6"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, bigDecimalAverageWithMathContext);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("6"));
+        }
+
+    /**
+     * Test of the {@link BigDecimalAverage} aggregator.
+     */
+    @Test
+    public void bigDecimalAverageWithScaleAndNullRoundingMode()
+        {
+        NamedCache cache = getNamedCache();
+        BigDecimalAverage agent = new BigDecimalAverage(IdentityExtractor.INSTANCE);
+        agent.setScale(5);
+
+        testEmpty(cache, agent);
+
+        fillBigNumbers(cache, 1, 10);
+
+        try
+            {
+            cache.aggregate(Collections.singletonList("1"), agent);
+            }
+        catch (IllegalArgumentException ex)
+            {
+            assertEquals(ex.getMessage(), "If scale is specified, the rounding mode must be specified as well");
+            return;
+            }
+        fail("Expected an IllegalArgumentException to be thrown.");
+        }
+
+    /**
     * Test of the {@link BigDecimalMax} aggregator.
     */
     @Test
@@ -514,8 +609,101 @@ public abstract class AbstractEntryAggregatorTests
         }
 
     /**
+     * Test of the {@link BigDecimalMax} aggregator.
+     */
+    @Test
+    public void bigDecimalMaxWithAdditionalBigDecimalProperties()
+        {
+        NamedCache cache = getNamedCache();
+        BigDecimalMax agent = new BigDecimalMax(IdentityExtractor.INSTANCE);
+
+        testEmpty(cache, agent);
+
+        fillBigNumbers(cache, 1, 10);
+        cache.put("11", new BigDecimal("50.000500000"));
+
+        Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
+        assertTrue("Result=" + oResult, oResult == null);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1"));
+
+        oResult = cache.aggregate((Filter) null, agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("50.000500000"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("50.000500000"));
+
+        BigDecimalMax bigDecimalMax2 = new BigDecimalMax(IdentityExtractor.INSTANCE);
+        bigDecimalMax2.setScale(3);
+        bigDecimalMax2.setRoundingMode(RoundingMode.HALF_UP);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), bigDecimalMax2);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1.000"));
+
+        oResult = cache.aggregate((Filter) null, bigDecimalMax2);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("50.001"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, bigDecimalMax2);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("50.001"));
+        }
+
+    /**
     * Test of the {@link BigDecimalMin} aggregator.
     */
+    @Test
+    public void bigDecimalMinWithAdditionalBigDecimalProperties()
+        {
+        NamedCache cache = getNamedCache();
+        BigDecimalMin agent = new BigDecimalMin(IdentityExtractor.INSTANCE);
+        agent.setScale(1);
+        agent.setRoundingMode(RoundingMode.HALF_UP);
+        testEmpty(cache, agent);
+
+        fillBigNumbers(cache, 1, 10);
+
+        cache.put("11", new BigDecimal("0.05000000"));
+
+        Object oResult = cache.aggregate(Collections.singletonList("1"), agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1.0"));
+
+        oResult = cache.aggregate((Filter) null, agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("0.1"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("0.1"));
+
+        BigDecimalMin bigDecimalMin2 = new BigDecimalMin(IdentityExtractor.INSTANCE);
+        bigDecimalMin2.setScale(3);
+        bigDecimalMin2.setRoundingMode(RoundingMode.HALF_DOWN);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), bigDecimalMin2);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1.000"));
+
+        oResult = cache.aggregate((Filter) null, bigDecimalMin2);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("0.050"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, bigDecimalMin2);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("0.050"));
+
+        BigDecimalMin bigDecimalMin3 = new BigDecimalMin(IdentityExtractor.INSTANCE);
+        bigDecimalMin3.setScale(3);
+        bigDecimalMin3.setRoundingMode(RoundingMode.HALF_DOWN);
+        bigDecimalMin3.setStripTrailingZeros(true);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), bigDecimalMin3);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1"));
+
+        oResult = cache.aggregate((Filter) null, bigDecimalMin3);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("0.05"));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, bigDecimalMin3);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("0.05"));
+        }
+
+    /**
+     * Test of the {@link BigDecimalMin} aggregator.
+     */
     @Test
     public void bigDecimalMin()
         {
@@ -567,6 +755,84 @@ public abstract class AbstractEntryAggregatorTests
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
         assertTrue("Result=" + oResult, equalsDec((BigDecimal) oResult, new BigDecimal(55.0D)));
+        }
+
+    /**
+     * Test of the {@link BigDecimalSum} aggregator.
+     */
+    @Test
+    public void bigDecimalSumWithAdditionalBigDecimalProperties()
+        {
+        NamedCache<String, BigDecimal> cache = getNamedCache();
+        BigDecimalSum agent = new BigDecimalSum(IdentityExtractor.INSTANCE);
+        agent.setScale(3);
+        agent.setRoundingMode(RoundingMode.HALF_UP);
+        agent.setStripTrailingZeros(true);
+
+        testEmpty(cache, agent);
+
+        fillBigNumbers(cache, 1, 10);
+        cache.put("11", new BigDecimal("5.0005"));
+        cache.put("12", new BigDecimal("5.1000000000"));
+
+        Map<String, BigDecimal> map = new HashMap<>();
+        map.putAll(cache);
+
+        System.out.println("--> CONTENTS: " + map);
+
+        Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
+        assertTrue("Result=" + oResult, oResult == null);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1"));
+
+        oResult = cache.aggregate((Filter) null, agent);
+        assertTrue("Result=" + oResult, equalsDec((BigDecimal) oResult, new BigDecimal("65.101")));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
+        assertTrue("Result=" + oResult, equalsDec((BigDecimal) oResult, new BigDecimal("65.101")));
+
+        oResult = cache.aggregate(Collections.singletonList("12"), agent);
+        assertTrue("Result=" + oResult, equalsDec((BigDecimal) oResult, new BigDecimal("5.1")));
+        }
+
+    /**
+     * Test of the {@link BigDecimalSum} aggregator.
+     */
+    @Test
+    public void bigDecimalSumWithKeepTrailingZeros()
+        {
+        NamedCache<String, BigDecimal> cache = getNamedCache();
+        BigDecimalSum agent = new BigDecimalSum(IdentityExtractor.INSTANCE);
+        agent.setScale(3);
+        agent.setRoundingMode(RoundingMode.HALF_UP);
+        agent.setStripTrailingZeros(false);
+
+        testEmpty(cache, agent);
+
+        fillBigNumbers(cache, 1, 10);
+        cache.put("11", new BigDecimal("5.0005"));
+        cache.put("12", new BigDecimal("5.1000000000"));
+
+        Map<String, BigDecimal> map = new HashMap<>();
+        map.putAll(cache);
+
+        System.out.println("--> CONTENTS: " + map);
+
+        Object oResult = cache.aggregate(NullImplementation.getSet(), agent);
+        assertTrue("Result=" + oResult, oResult == null);
+
+        oResult = cache.aggregate(Collections.singletonList("1"), agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("1.000"));
+
+        oResult = cache.aggregate((Filter) null, agent);
+        assertTrue("Result=" + oResult, equalsDec((BigDecimal) oResult, new BigDecimal("65.101")));
+
+        oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
+        assertTrue("Result=" + oResult, equalsDec((BigDecimal) oResult, new BigDecimal("65.101")));
+
+        oResult = cache.aggregate(Collections.singletonList("12"), agent);
+        assertEquals("Result=" + oResult, (BigDecimal) oResult, new BigDecimal("5.100"));
         }
 
     /**

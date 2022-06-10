@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -13,6 +13,7 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 
 /**
@@ -67,7 +68,12 @@ public class BigDecimalAverage<T>
     @Override
     public InvocableMap.StreamingAggregator<Object, Object, Object, BigDecimal> supply()
         {
-        return new BigDecimalAverage<>(getValueExtractor());
+        BigDecimalAverage bigDecimalAverage = new BigDecimalAverage<>(getValueExtractor());
+        bigDecimalAverage.setScale(this.getScale());
+        bigDecimalAverage.setMathContext(this.getMathContext());
+        bigDecimalAverage.setRoundingMode(this.getRoundingMode());
+        bigDecimalAverage.setStripTrailingZeros(this.isStripTrailingZeros());
+        return bigDecimalAverage;
         }
 
     @Override
@@ -114,22 +120,50 @@ public class BigDecimalAverage<T>
     */
     protected Object finalizeResult(boolean fFinal)
         {
-        int        c         = m_count;
-        BigDecimal decResult = m_decResult;
-
+        if (m_count == 0)
+            {
+                return null;
+            }
         if (fFinal)
             {
+            if (this.m_mathContext != null)
+                {
+                m_decResult = m_decResult
+                        .divide(BigDecimal.valueOf(m_count), m_mathContext);
+                }
+            else if (this.m_roundingMode != null && this.m_scale != null)
+                {
+                m_decResult = m_decResult
+                        .divide(BigDecimal.valueOf(m_count), m_scale, m_roundingMode);
+                }
+            else if (this.m_roundingMode != null && this.m_scale == null)
+                {
+                m_decResult = m_decResult
+                        .divide(BigDecimal.valueOf(m_count), m_roundingMode);
+                }
+            else if (m_roundingMode == null && m_scale != null)
+                {
+                throw new IllegalArgumentException("If scale is specified, the rounding mode must be specified as well");
+                }
+            else
+                {
+                m_decResult = m_decResult.divide(BigDecimal.valueOf(m_count),
+                        m_decResult.scale() + 8, // 'cause Cam said so
+                        RoundingMode.HALF_UP);
+                }
+
+            if (isStripTrailingZeros())
+                {
+                m_decResult = m_decResult.stripTrailingZeros();
+                }
             // return the final aggregated result
-            return c == 0 ? null :
-                decResult.divide(BigDecimal.valueOf(c),
-                    decResult.scale() + 8, // 'cause Cam said so
-                    BigDecimal.ROUND_HALF_UP);
+            return m_decResult;
             }
         else
             {
             // return partial aggregation data wrapped in SerializationWrapper to ensure
             // there's enough context for all serialization formats to function as expected.
-            return c > 0 ? new BigDecimalSerializationWrapper(m_count, m_decResult) : null;
+            return new BigDecimalSerializationWrapper(m_count, m_decResult);
             }
         }
     }

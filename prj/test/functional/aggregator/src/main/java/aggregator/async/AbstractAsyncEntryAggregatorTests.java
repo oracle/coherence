@@ -26,6 +26,7 @@ import com.tangosol.util.aggregator.AbstractAggregator;
 import com.tangosol.util.aggregator.AsynchronousAggregator;
 import com.tangosol.util.extractor.IdentityExtractor;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.DataInput;
@@ -193,7 +194,14 @@ public abstract class AbstractAsyncEntryAggregatorTests
         asyncAggr.get(1000, TimeUnit.MILLISECONDS);
         }
 
-    protected static class CustomKey
+        @Override
+        @Test
+        @Ignore
+        public void bigDecimalAverageWithScaleAndNullRoundingMode()
+            {
+            }
+
+        protected static class CustomKey
             implements ExternalizableLite
         {
         public void readExternal(DataInput in) throws IOException

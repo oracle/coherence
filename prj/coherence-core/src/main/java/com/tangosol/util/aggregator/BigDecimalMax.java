@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -67,7 +67,12 @@ public class BigDecimalMax<T>
     @Override
     public InvocableMap.StreamingAggregator<Object, Object, Object, BigDecimal> supply()
         {
-        return new BigDecimalMax<>(getValueExtractor());
+        BigDecimalMax bigDecimalMax = new BigDecimalMax(getValueExtractor());
+        bigDecimalMax.setScale(this.getScale());
+        bigDecimalMax.setRoundingMode(this.getRoundingMode());
+        bigDecimalMax.setMathContext(this.getMathContext());
+        bigDecimalMax.setStripTrailingZeros(this.isStripTrailingZeros());
+        return bigDecimalMax;
         }
 
     @Override
