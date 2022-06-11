@@ -41,6 +41,7 @@ import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
+import com.tangosol.util.Processors;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.WrapperException;
@@ -51,6 +52,7 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.processor.ConditionalPut;
 import com.tangosol.util.processor.ExtractorProcessor;
 
+import com.tangosol.util.processor.MethodInvocationProcessor;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -181,6 +183,7 @@ public class ClusteredRegistration
             }
         }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void entryUpdated(MapEvent mapEvent)
         {
@@ -199,7 +202,10 @@ public class ClusteredRegistration
                 if (executionThread != null)
                     {
                     ExecutorTrace.log(() -> String.format("Executor [%s] attempting interrupt of task [%s] running on thread [%s]", f_sExecutorId, sTaskId, executionThread));
+
                     executionThread.interrupt();
+
+                    tasks().invoke(sTaskId, new MethodInvocationProcessor("cancelled", true));
                     }
                 }
             }
