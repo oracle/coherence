@@ -861,6 +861,10 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/management/ta
     permission java.net.SocketPermission "*", "connect,resolve,accept,listen";
 };
 
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/events/target/-" {
+  permission java.lang.RuntimePermission "getenv.*";
+};
+
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/extend/target/-" {
   // required by extend.AcceptorAddressProvider
   permission java.net.SocketPermission "*", "resolve";
