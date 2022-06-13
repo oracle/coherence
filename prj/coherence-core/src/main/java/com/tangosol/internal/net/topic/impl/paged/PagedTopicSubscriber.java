@@ -16,6 +16,7 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
 
+import com.tangosol.internal.net.LimitBasedFlowControl;
 import com.tangosol.internal.net.metrics.Meter;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor;
@@ -98,6 +99,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
@@ -559,6 +561,14 @@ public class PagedTopicSubscriber<V>
     @Override
     public Map<Integer, Position> seek(Map<Integer, Position> mapPosition)
         {
+        try (Sentry<?> ignored = f_gate.close())
+            {
+            return seekInternal(mapPosition);
+            }
+        }
+
+    private Map<Integer, Position> seekInternal(Map<Integer, Position> mapPosition)
+        {
         ensureActive();
 
         List<Integer> listUnallocated = mapPosition.keySet().stream()
@@ -610,59 +620,62 @@ public class PagedTopicSubscriber<V>
     @Override
     public Position seek(int nChannel, Instant timestamp)
         {
-        ensureActive();
-
-        if (!isOwner(nChannel))
+        try (Sentry<?> ignored = f_gate.close())
             {
-            throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
-            }
+            ensureActive();
 
-        Objects.requireNonNull(timestamp);
-
-        try
-            {
-            // pause receives while we seek
-            f_queueReceiveOrders.pause();
-
-            ValueExtractor<Object, Integer>  extractorChannel   = Page.ElementExtractor.chained(Element::getChannel);
-            ValueExtractor<Object, Instant>  extractorTimestamp = Page.ElementExtractor.chained(Element::getTimestamp);
-            ValueExtractor<Object, Position> extractorPosition  = Page.ElementExtractor.chained(Element::getPosition);
-
-            Binary bin = m_caches.Data.aggregate(
-                    Filters.equal(extractorChannel, nChannel).and(Filters.greater(extractorTimestamp, timestamp)),
-                    new ComparableMin<>(extractorPosition));
-
-            @SuppressWarnings("unchecked")
-            PagedPosition position = (PagedPosition) m_caches.getCacheService().getBackingMapManager()
-                    .getContext().getValueFromInternalConverter().convert(bin);
-
-            if (position == null)
+            if (!isOwner(nChannel))
                 {
-                // nothing found greater than the timestamp so either the topic is empty
-                // or all elements are earlier, in either case seek to the tail
-                return seekToTail(nChannel).get(nChannel);
+                throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
                 }
 
-            PagedPosition positionSeek;
-            int           nOffset = position.getOffset();
+            Objects.requireNonNull(timestamp);
 
-            if (nOffset == 0)
+            try
                 {
-                // The position found is the head of a page so we actually want to seek to the previous element
-                // We don;t know the tail of that page so we can use Integer.MAX_VALUE
-                positionSeek = new PagedPosition(position.getPage() - 1, Integer.MAX_VALUE);
+                // pause receives while we seek
+                f_queueReceiveOrders.pause();
+
+                ValueExtractor<Object, Integer>  extractorChannel   = Page.ElementExtractor.chained(Element::getChannel);
+                ValueExtractor<Object, Instant>  extractorTimestamp = Page.ElementExtractor.chained(Element::getTimestamp);
+                ValueExtractor<Object, Position> extractorPosition  = Page.ElementExtractor.chained(Element::getPosition);
+
+                Binary bin = m_caches.Data.aggregate(
+                        Filters.equal(extractorChannel, nChannel).and(Filters.greater(extractorTimestamp, timestamp)),
+                        new ComparableMin<>(extractorPosition));
+
+                @SuppressWarnings("unchecked")
+                PagedPosition position = (PagedPosition) m_caches.getCacheService().getBackingMapManager()
+                        .getContext().getValueFromInternalConverter().convert(bin);
+
+                if (position == null)
+                    {
+                    // nothing found greater than the timestamp so either the topic is empty
+                    // or all elements are earlier, in either case seek to the tail
+                    return seekToTail(nChannel).get(nChannel);
+                    }
+
+                PagedPosition positionSeek;
+                int           nOffset = position.getOffset();
+
+                if (nOffset == 0)
+                    {
+                    // The position found is the head of a page so we actually want to seek to the previous element
+                    // We don;t know the tail of that page so we can use Integer.MAX_VALUE
+                    positionSeek = new PagedPosition(position.getPage() - 1, Integer.MAX_VALUE);
+                    }
+                else
+                    {
+                    // we are not at the head of a page so seek to the page and previous offset
+                    positionSeek = new PagedPosition(position.getPage(), nOffset - 1);
+                    }
+                return seekChannel(nChannel, positionSeek);
                 }
-            else
+            finally
                 {
-                // we are not at the head of a page so seek to the page and previous offset
-                positionSeek = new PagedPosition(position.getPage(), nOffset - 1);
+                // resume receives from the new position
+                f_queueReceiveOrders.resetTrigger();
                 }
-            return seekChannel(nChannel, positionSeek);
-            }
-        finally
-            {
-            // resume receives from the new position
-            f_queueReceiveOrders.resetTrigger();
             }
         }
 
@@ -1375,7 +1388,7 @@ public class PagedTopicSubscriber<V>
                 }
             }
 
-        return seek(mapSeek);
+        return seekInternal(mapSeek);
         }
 
     /**
@@ -1383,7 +1396,7 @@ public class PagedTopicSubscriber<V>
      *
      * @throws IllegalStateException if not active
      */
-    private void ensureActive()
+    protected void ensureActive()
         {
         if (!isActive())
             {
@@ -1426,7 +1439,7 @@ public class PagedTopicSubscriber<V>
      */
     protected void ensureConnected()
         {
-        if (m_nState != STATE_CONNECTED)
+        if (isActive() && m_nState != STATE_CONNECTED)
             {
             synchronized (this)
                 {
@@ -1436,10 +1449,15 @@ public class PagedTopicSubscriber<V>
                 long                    now          = System.currentTimeMillis();
                 long                    timeout      = now + dependencies.getReconnectTimeoutMillis();
                 Throwable               error        = null;
+
                 if (m_nState != STATE_CONNECTED)
                     {
                     while (now < timeout)
                         {
+                        if (!isActive())
+                            {
+                            break;
+                            }
                         try
                             {
                             m_caches.ensureConnected();
@@ -1678,12 +1696,22 @@ public class PagedTopicSubscriber<V>
 
     private void updateChannelOwnership(List<Integer> listChannels, boolean fLost)
         {
+        if (!isActive())
+            {
+            return;
+            }
+
         Collections.sort(listChannels);
         int[] aChannel = listChannels.stream().mapToInt(i -> i).toArray();
 
         // channel ownership change must be done under a lock
         try (Sentry<?> ignored = f_gate.close())
             {
+            if (!isActive())
+                {
+                return;
+                }
+
             if (!Arrays.equals(m_aChannelOwned, aChannel))
                 {
                 Set<Integer> setNew     = new HashSet<>(listChannels);
@@ -1702,7 +1730,7 @@ public class PagedTopicSubscriber<V>
                 Set<Integer> setAdded = new HashSet<>(listChannels);
                 setAdded = Collections.unmodifiableSet(setAdded);
 
-                Logger.fine(String.format("Subscriber %d channel allocation changed, assigned=%s revoked=%s",
+                Logger.finest(String.format("Subscriber %d channel allocation changed, assigned=%s revoked=%s",
                                           f_id.getId(), setAdded, setRevoked));
 
                 m_aChannelOwned = aChannel;
@@ -1899,7 +1927,7 @@ public class PagedTopicSubscriber<V>
         {
         int nChannel = channel.subscriberPartitionSync.getChannelId();
 
-        // check that there is no error and we still own the channel
+        // check that there is no error, and we still own the channel
         if (e == null )
             {
             Queue<Binary> queueValues = result.getElements();
@@ -2919,11 +2947,14 @@ public class PagedTopicSubscriber<V>
         @SuppressWarnings("rawtypes")
         public void entryDeleted(MapEvent evt)
             {
-            // destroy subscriber group
-            Logger.fine("Detected removal of subscriber group "
-                + f_subscriberGroupId.getGroupName() + ", closing subscriber "
-                + PagedTopicSubscriber.this);
-            closeInternal(true);
+            if (isActive())
+                {
+                // destroy subscriber group
+                Logger.fine("Detected removal of subscriber group "
+                                    + f_subscriberGroupId.getGroupName() + ", closing subscriber "
+                                    + PagedTopicSubscriber.this);
+                closeInternal(true);
+                }
             }
         }
 
@@ -3001,6 +3032,11 @@ public class PagedTopicSubscriber<V>
 
         private void onChannelAllocation(MapEvent<Subscription.Key, Subscription> evt)
             {
+            if (!isActive())
+                {
+                return;
+                }
+
             if (evt.isDelete())
                 {
                 updateChannelOwnership(Collections.emptyList(), true);

@@ -28,7 +28,10 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Jonathan Knight  2020.12.13
@@ -200,5 +203,75 @@ class CoherenceBootstrapTests
 
         assertThat(coherence.getSession("Three"), is(notNullValue()));
         assertThat(coherence.getSession("Three").isActive(), is(true));
+        }
+
+    @Test
+    void shouldAddExistingSessionIfAbsentAfterStart() throws Exception
+        {
+        SessionConfiguration sessionOne = SessionConfiguration.builder()
+                .named("One")
+                .withScopeName("One")
+                .build();
+
+        SessionConfiguration sessionTwo = SessionConfiguration.builder()
+                .named("Two")
+                .withScopeName("Two")
+                .build();
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                .withSession(sessionOne)
+                .withSession(sessionTwo)
+                .build();
+
+        Coherence coherence = Coherence.create(configuration);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+
+        coherence.start().get(5, TimeUnit.MINUTES);
+
+        Session session = coherence.getSession("Two");
+
+        assertThat(coherence.getSession("One"), is(notNullValue()));
+        assertThat(coherence.getSession("One").isActive(), is(true));
+        assertThat(coherence.getSession("Two"), is(notNullValue()));
+        assertThat(coherence.getSession("Two").isActive(), is(true));
+
+        coherence.addSessionIfAbsent(sessionTwo);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+
+        assertThat(coherence.getSession("Two"), is(sameInstance(session)));
+        }
+
+    @Test
+    void shouldNotAddExistingSessionAfterStart() throws Exception
+        {
+        SessionConfiguration sessionOne = SessionConfiguration.builder()
+                .named("One")
+                .withScopeName("One")
+                .build();
+
+        SessionConfiguration sessionTwo = SessionConfiguration.builder()
+                .named("Two")
+                .withScopeName("Two")
+                .build();
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                .withSession(sessionOne)
+                .withSession(sessionTwo)
+                .build();
+
+        Coherence coherence = Coherence.create(configuration);
+        assertThat(coherence.hasSession("One"), is(true));
+        assertThat(coherence.hasSession("Two"), is(true));
+
+        coherence.start().get(5, TimeUnit.MINUTES);
+
+        assertThat(coherence.getSession("One"), is(notNullValue()));
+        assertThat(coherence.getSession("One").isActive(), is(true));
+        assertThat(coherence.getSession("Two"), is(notNullValue()));
+        assertThat(coherence.getSession("Two").isActive(), is(true));
+
+        assertThrows(IllegalStateException.class, () -> coherence.addSession(sessionTwo));
         }
     }

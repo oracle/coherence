@@ -6,8 +6,6 @@
  */
 package topics;
 
-import com.oracle.bedrock.deferred.DeferredHelper;
-
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -78,7 +76,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -160,7 +157,7 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.isOneOf;
+import static org.hamcrest.Matchers.oneOf;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
@@ -173,7 +170,7 @@ import static org.junit.Assert.fail;
 /**
  * @author jk 2015.05.28
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked", "rawtypes", "resource"})
 public abstract class AbstractNamedTopicTests
     {
     // ----- constructors ---------------------------------------------------
@@ -201,16 +198,19 @@ public abstract class AbstractNamedTopicTests
     @After
     public void cleanup()
         {
+        System.err.println(">>>>> Starting cleanup: " + m_testName.getMethodName());
         try
             {
             if (m_topic != null)
                 {
+                System.err.println("Destroying topic " + m_topic);
                 m_topic.destroy();
                 m_topic = null;
                 m_sTopicName = null;
                 }
             else if (m_sTopicName != null)
                 {
+                System.err.println("Destroying topic " + m_sTopicName + " by first getting from Session");
                 NamedTopic<?> topic = getSession().getTopic(m_sTopicName);
                 topic.destroy();
                 m_sTopicName = null;
@@ -320,28 +320,39 @@ public abstract class AbstractNamedTopicTests
         {
         Session                  session = getSession();
         String                   sName   = ensureTopicName(m_sSerializer + "-test");
-        final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+        final NamedTopic<String> topic   = session.getTopic(sName);
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
             populate(publisher, 20);
             }
 
-        assertThat("assert topic is active", topic.isActive(), is(true));
-        assertFalse("assert topic is not destroyed", topic.isDestroyed());
+        assertThat(topic.isActive(), is(true));
+        assertThat(topic.isDestroyed(), is(false));
+
+        CacheService     service = (CacheService) topic.getService();
+        PagedTopicCaches caches  = new PagedTopicCaches(sName, service);
+
+        for (NamedCache<?, ?> cache : caches.getCaches())
+            {
+            assertThat(cache.isActive(), is(true));
+            }
 
         topic.destroy();
 
-        assertDeferred("Assert topic " + sName + " is not active",
-                       topic::isActive, Matchers.is(false),
-                       DeferredHelper.within(30, TimeUnit.SECONDS));
-        assertDeferred("Assert topic " + sName + " is destroyed",
-                       topic::isDestroyed, Matchers.is(true),
-                       DeferredHelper.within(30, TimeUnit.SECONDS));
+        assertDeferred(topic::isActive, is(false));
+        assertDeferred(topic::isDestroyed, is(true));
         assertThat(topic.isReleased(), is(true));
 
+        for (NamedCache<?, ?> cache : caches.getCaches())
+            {
+            assertThat(cache.isActive(), is(false));
+            assertThat(cache.isDestroyed(), is(true));
+            }
 
-        NamedTopic<String> topic2 = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+        NamedTopic<String> topic2 = session.getTopic(sName);
+        assertThat(topic2.isActive(), is(true));
+        assertThat(topic2.isDestroyed(), is(false));
 
         try (Publisher<String> publisher = topic2.createPublisher())
             {
@@ -354,24 +365,47 @@ public abstract class AbstractNamedTopicTests
         {
         Session                  session = getSession();
         String                   sName   = ensureTopicName(m_sSerializer + "-test");
-        final NamedTopic<String> topic   = session.getTopic(sName, ValueTypeAssertion.withType(String.class));
+        final NamedTopic<String> topic   = session.getTopic(sName);
 
         try (Publisher<String> publisher = topic.createPublisher())
             {
             populate(publisher, 20);
             }
 
-        assertThat("assert topic is active", topic.isActive(), is(true));
-        assertFalse("assert topic is not released", topic.isReleased());
+        assertThat(topic.isActive(), is(true));
+        assertThat(topic.isReleased(), is(false));
+
+        CacheService     service = (CacheService) topic.getService();
+        PagedTopicCaches caches  = new PagedTopicCaches(sName, service);
+
+        for (NamedCache<?, ?> cache : caches.getCaches())
+            {
+            assertThat(cache.isActive(), is(true));
+            }
 
         topic.release();
 
-        assertDeferred("Assert topic " + sName + " is released",
-                       topic::isReleased, Matchers.is(true),
-                       DeferredHelper.within(15, TimeUnit.SECONDS));
+        assertDeferred(topic::isActive, is(false));
+        assertThat(topic.isReleased(), is(true));
+        assertThat(topic.isDestroyed(), is(false));
 
-        assertFalse(topic.isActive());
+        for (NamedCache<?, ?> cache : caches.getCaches())
+            {
+            assertThat(cache.getCacheName(), cache.isReleased(), is(true));
+            assertThat(cache.getCacheName(), cache.isDestroyed(), is(false));
+            assertThat(cache.getCacheName(), cache.isActive(), is(false));
+            }
+
+        NamedTopic<String> topic2 = session.getTopic(sName);
+        assertThat(topic2.isActive(), is(true));
+        assertThat(topic2.isReleased(), is(false));
+
+        try (Publisher<String> publisher = topic2.createPublisher())
+            {
+            populate(publisher, 20);
+            }
         }
+
 
     @Test
     public void shouldRunOnPublisherClose()
@@ -1490,11 +1524,11 @@ public abstract class AbstractNamedTopicTests
             assertThat(subscriberOfName.receive().get(2, TimeUnit.MINUTES).getValue(), is("Mr Smith 4"));
             assertThat(subscriberOfName.receive().get(2, TimeUnit.MINUTES).getValue(), is("Mr Smith 5"));
 
-            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), isOneOf(Address.arrAddress));
-            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), isOneOf(Address.arrAddress));
-            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), isOneOf(Address.arrAddress));
-            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), isOneOf(Address.arrAddress));
-            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), isOneOf(Address.arrAddress));
+            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), is(oneOf(Address.arrAddress)));
+            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), is(oneOf(Address.arrAddress)));
+            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), is(oneOf(Address.arrAddress)));
+            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), is(oneOf(Address.arrAddress)));
+            assertThat(subscriberOfAddress.receive().get(2, TimeUnit.MINUTES).getValue(), is(oneOf(Address.arrAddress)));
             }
         }
 
@@ -2449,16 +2483,22 @@ public abstract class AbstractNamedTopicTests
                 }
 
             long start = System.currentTimeMillis();
-            while (cReceive.get() < cMessage)
+            try
                 {
-                //noinspection BusyWait
-                Thread.sleep(1);
-                long now = System.currentTimeMillis();
-                assertThat("Timed out - received " + cReceive.get() + " out of " + cMessage,
-                           now - start, is(lessThan(10000L)));
+                while (cReceive.get() < cMessage)
+                    {
+                    //noinspection BusyWait
+                    Thread.sleep(1);
+                    long now = System.currentTimeMillis();
+                    assertThat("Timed out - received " + cReceive.get() + " out of " + cMessage + " " + subscriber,
+                               now - start, is(lessThan(30000L)));
+                    }
+                }
+            finally
+                {
+                thread.interrupt(); // the thread may be blocked on flow control
                 }
 
-            thread.interrupt(); // the thread may be blocked on flow control
             Eventually.assertDeferred(thread::isAlive, is(false));
             thread.join();
 
@@ -2952,15 +2992,17 @@ public abstract class AbstractNamedTopicTests
                 ValueTypeAssertion.withoutTypeChecking()
                 };
 
-        NamedTopic<Customer> topic1 = null;
-        NamedTopic<Customer> topic2;
+        String               sMethodName = m_testName.getMethodName();
+        NamedTopic<Customer> topic1      = null;
+        NamedTopic<Customer> topic2      = null;
 
         Session session = getSession();
         for (int i = 0; i < assertion1.length; i++)
             {
             assertEquals(assertion1[i], assertion2[i]);
-            topic1 = session.getTopic(m_sSerializer + "-XXX", assertion1[i]);
-            topic2 = session.getTopic(m_sSerializer + "-XXX", assertion2[i]);
+            String sName = m_sSerializer + "-" + sMethodName + "-" + i;
+            topic1 = session.getTopic(sName, assertion1[i]);
+            topic2 = session.getTopic(sName, assertion2[i]);
             assertThat("testing " + assertion1[i], topic1 == topic2);
             }
 
@@ -3434,7 +3476,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages, so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
         int                       i;
@@ -4333,8 +4375,32 @@ public abstract class AbstractNamedTopicTests
             CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
             CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
 
+            Thread.sleep(5000);
+            
+            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne heads");
+            System.err.println(subscriberOne.getHeads());
+            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne tails");
+            System.err.println(subscriberOne.getTails());
+            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo heads");
+            System.err.println(subscriberTwo.getHeads());
+            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo tails");
+            System.err.println(subscriberTwo.getTails());
+
             Map<Integer, Position> mapTailOne = subscriberOne.seekToTailAndCommit(subscriberOne.getChannels());
             Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTailAndCommit(subscriberTwo.getChannels());
+            System.err.println(">>>>> 2: shouldCountRemainingMessagesAfterSeekToTailWithCommit: mapTailOne");
+            System.err.println(mapTailOne);
+            System.err.println(">>>>> 2: shouldCountRemainingMessagesAfterSeekToTailWithCommit: mapTailTwo");
+            System.err.println(mapTailTwo);
+
+            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne heads");
+            System.err.println(subscriberOne.getHeads());
+            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne tails");
+            System.err.println(subscriberOne.getTails());
+            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo heads");
+            System.err.println(subscriberTwo.getHeads());
+            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo tails");
+            System.err.println(subscriberTwo.getTails());
 
             // We did seek and commit so the remaining count should be zero
             assertThat(subscriberOne.getRemainingMessages(), is(0));
@@ -4349,9 +4415,13 @@ public abstract class AbstractNamedTopicTests
                 }
 
             Element<String> elementOneBefore = futureOneBefore.get(1, TimeUnit.MINUTES);
+            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementOneBefore " + elementOneBefore);
             Element<String> elementOneAfter  = futureOne.get(1, TimeUnit.MINUTES);
+            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementOneAfter " + elementOneAfter);
             Element<String> elementTwoBefore = futureTwoBefore.get(1, TimeUnit.MINUTES);
+            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementTwoBefore " + elementTwoBefore);
             Element<String> elementTwoAfter  = futureTwo.get(1, TimeUnit.MINUTES);
+            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementTwoAfter " + elementTwoAfter);
 
             assertThat(elementOneBefore.getValue(), startsWith("Before-"));
             assertThat(elementOneAfter.getValue(), startsWith("After-"));
@@ -4406,7 +4476,9 @@ public abstract class AbstractNamedTopicTests
             CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
             CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
 
+            @SuppressWarnings("unused")
             Map<Integer, Position> mapTailOne = subscriberOne.seekToTail(subscriberOne.getChannels());
+            @SuppressWarnings("unused")
             Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTail(subscriberTwo.getChannels());
 
             // We did not seek and commit so the remaining count should not have changed,
@@ -4737,7 +4809,8 @@ public abstract class AbstractNamedTopicTests
         if (m_topic == null)
             {
             String sName = ensureTopicName();
-            m_topic = getSession().getTopic(sName, ValueTypeAssertion.withType(String.class));
+            System.err.println("Ensuring NamedTopic " + sName);
+            m_topic = getSession().getTopic(sName);
             }
 
         return (NamedTopic<String>) m_topic;
