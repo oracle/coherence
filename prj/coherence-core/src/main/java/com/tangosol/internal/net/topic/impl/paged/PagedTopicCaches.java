@@ -121,8 +121,8 @@ public class PagedTopicCaches
      * @param cacheService   the {@link CacheService} owning the underlying caches
      * @param functionCache  the function to invoke to obtain each underlying cache
      */
-    public PagedTopicCaches(String sName, CacheService cacheService,
-                            BiFunction<String, ClassLoader, NamedCache> functionCache)
+    PagedTopicCaches(String sName, CacheService cacheService,
+            BiFunction<String, ClassLoader, NamedCache> functionCache)
         {
         if (sName == null || sName.isEmpty())
             {
@@ -1112,7 +1112,7 @@ public class PagedTopicCaches
                 {
                 m_state = fDestroy ? State.Destroyed : State.Released;
 
-                Consumer<NamedCache> function    = fDestroy ? this::destroyCache : this::releaseCache;
+                Consumer<NamedCache> function    = fDestroy ? NamedCache::destroy : NamedCache::release;
                 Set<Listener>        setListener = m_mapListener.keySet();
 
                 for (Listener listener : setListener)
@@ -1148,22 +1148,6 @@ public class PagedTopicCaches
                         }
                     }
                 }
-            }
-        }
-
-    private void destroyCache(NamedCache<?, ?> cache)
-        {
-        if (cache.isActive())
-            {
-            cache.destroy();
-            }
-        }
-
-    private void releaseCache(NamedCache<?, ?> cache)
-        {
-        if (cache.isActive())
-            {
-            cache.release();
             }
         }
 

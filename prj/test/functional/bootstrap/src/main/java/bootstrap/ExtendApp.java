@@ -51,7 +51,7 @@ public class ExtendApp
 
                     // Ensure there is a Coherence client instance, add the session configuration,
                     // and ensure Coherence is started
-                    Coherence coherence = Coherence.client()
+                    Coherence coherence = Coherence.fixedClient()
                             .addSession(sessionConfig)
                             .start()
                             .join();

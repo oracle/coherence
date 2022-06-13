@@ -38,12 +38,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import java.util.stream.Collectors;
@@ -547,12 +549,57 @@ public class Coherence
      * @param config  the {@link SessionConfiguration configuration} of the session to add
      *
      * @return this {@link Coherence} instance
+     *
+     * @throws IllegalArgumentException  if the configuration does not have a name
+     * @throws IllegalStateException     if this {@link Coherence} instance is closed
      */
     public synchronized Coherence addSession(SessionConfiguration config)
         {
         assertNotClosed();
 
+        String sName = config.getName();
+        if (hasSession(sName))
+            {
+            throw new IllegalStateException("A Session with the name '" + sName
+                    + "' already exists in this Coherence instance '" + getName() + "'");
+            }
+
+        return addSessionInternal(config);
+        }
+
+    /**
+     * Add a {@link SessionConfiguration session} to this {@link Coherence} instance, iff a
+     * session configuration is not already present in this {@link Coherence} instance with
+     * the specified name.
+     * <p>
+     * The {@link SessionConfiguration#getName() session name} must be globally unique across
+     * all {@link Coherence} instances.
+     * <p>
+     * If this {@link Coherence} instance is already running, then the session will be started
+     * immediately.
+     *
+     * @param config  the {@link SessionConfiguration configuration} of the session to add
+     *
+     * @return this {@link Coherence} instance
+     *
+     * @throws IllegalArgumentException  if the configuration does not have a name
+     * @throws IllegalStateException     if this {@link Coherence} instance is closed
+     */
+    public synchronized Coherence addSessionIfAbsent(SessionConfiguration config)
+        {
+        assertNotClosed();
+
+        if (hasSession(config.getName()))
+            {
+            return this;
+            }
+        return addSessionInternal(config);
+        }
+
+    private Coherence addSessionInternal(SessionConfiguration config)
+        {
         validate(config);
+
         f_mapAdditionalSessionConfig.put(config.getName(), config);
 
         if (isStarted())
@@ -1193,9 +1240,17 @@ public class Coherence
      */
     private static void validate(CoherenceConfiguration configuration)
         {
-        for (SessionConfiguration sessionConfiguration : configuration.getSessionConfigurations().values())
+        Collection<SessionConfiguration> sessions = configuration.getSessionConfigurations().values();
+        Set<String>                      setName  = new HashSet<>();
+        for (SessionConfiguration sessionConfiguration : sessions)
             {
             validate(sessionConfiguration);
+            String sName = sessionConfiguration.getName();
+            if (!setName.add(sName))
+                {
+                throw new IllegalStateException("A Session with the name '" + sName
+                        + "' already exists in this Coherence configuration");
+                }
             }
         }
 
@@ -1210,14 +1265,6 @@ public class Coherence
         if (sName == null)
             {
             throw new IllegalArgumentException("A session configuration must provide a non-null name");
-            }
-        for (Coherence coherence : s_mapInstance.values())
-            {
-            if (coherence.hasSession(sName))
-                {
-                throw new IllegalStateException("A Session with the name '" + sName
-                        + "' already exists in Coherence instance '" + coherence.getName() + "'");
-                }
             }
         }
 

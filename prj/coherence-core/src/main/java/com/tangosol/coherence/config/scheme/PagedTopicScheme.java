@@ -654,8 +654,6 @@ public class PagedTopicScheme
         configuration.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
         configuration.setReconnectTimeoutMillis(getReconnectTimeoutMillis(resolver).as(Duration.Magnitude.MILLI));
         configuration.setReconnectRetryMillis(getReconnectRetryMillis(resolver).as(Duration.Magnitude.MILLI));
-
-        Logger.finer("PagedTopicScheme configuration: " + configuration);
         return configuration;
         }
 

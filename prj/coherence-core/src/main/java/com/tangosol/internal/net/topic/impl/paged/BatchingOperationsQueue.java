@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -381,14 +381,15 @@ public class BatchingOperationsQueue<V, R>
             while(element != null)
                 {
                 V value = element.getValue();
+                long lSize = f_backlogCalculator.applyAsLong(value);
                 try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
                     {
-                    f_backlog.adjustBacklog(-f_backlogCalculator.applyAsLong(value));
+                    f_backlog.adjustBacklog(-lSize);
                     }
                 if (!element.isDone())
                     {
                     queueCurrent.add(element);
-                    long cbBatch = m_cbCurrentBatch += f_backlogCalculator.applyAsLong(value);
+                    long cbBatch = m_cbCurrentBatch += lSize;
 
                     if (cbBatch >= cbMaxElements)
                         {

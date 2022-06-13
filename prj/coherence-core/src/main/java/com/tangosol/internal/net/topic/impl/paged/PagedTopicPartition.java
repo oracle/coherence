@@ -1099,7 +1099,7 @@ public class PagedTopicPartition
                                 {
                                 // we only log the update for the sync partition
                                 // (no need to repeat the same message for every partition)
-                                Logger.fine(String.format("Added subscriber %s in group %s allocations %s",
+                                Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
                                         subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
                                 if (!mapRemoved.isEmpty())
                                     {
@@ -1204,8 +1204,8 @@ public class PagedTopicPartition
         {
         for (Map.Entry<Integer, Set<SubscriberId>> entry : mapRemoved.entrySet())
             {
-            Logger.info("Removed the following subscribers from topic '" + sTopic
-                        + "' due to departure of member " + entry.getKey() + " [Group='" + sGroup
+            Logger.finest("Removed the following subscribers from topic '" + sTopic
+                        + "' owningMember=" + entry.getKey() + " [Group='" + sGroup
                         + "' Subscribers=" + PagedTopicSubscriber.subscriberIdToString(entry.getValue()) + "]");
             }
         }
