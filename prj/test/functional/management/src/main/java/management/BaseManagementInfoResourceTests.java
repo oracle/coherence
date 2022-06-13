@@ -4040,9 +4040,9 @@ public abstract class BaseManagementInfoResourceTests
                 sPrefix = sScope + ":";
                 }
 
-            Eventually.assertDeferred(() -> member.isServiceRunning(sPrefix + SERVICE_NAME), is(true));
+            Eventually.assertDeferred(() -> member.isServiceRunning(sPrefix + SERVICE_NAME), is(true), within(5, TimeUnit.MINUTES));
             Eventually.assertDeferred(() -> member.getServiceStatus(sPrefix + SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
-            Eventually.assertDeferred(() -> member.isServiceRunning(sPrefix + ACTIVE_SERVICE), is(true));
+            Eventually.assertDeferred(() -> member.isServiceRunning(sPrefix + ACTIVE_SERVICE), is(true), within(3, TimeUnit.MINUTES));
             Eventually.assertDeferred(() -> member.getServiceStatus(sPrefix + ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE));
             Eventually.assertDeferred(() -> member.invoke(IsReady.INSTANCE), is(true), within(3, TimeUnit.MINUTES));
             }
