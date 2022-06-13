@@ -254,7 +254,12 @@ public abstract class AbstractTestInfrastructure
         // test static lambdas when testing security
         if (Boolean.getBoolean("test.security.enabled"))
             {
-            props.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY));
+            String sValue = Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY);
+            if (sValue != null)
+                {
+                // will throw an NPE is sValue is null
+                props.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, sValue);
+                }
             }
         }
 
