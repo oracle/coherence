@@ -127,7 +127,10 @@ public class ClusteredTaskCoordinator<T>
     @Override
     public boolean cancel(boolean fMayInterruptIfRunning)
         {
-        ClusteredTaskManager taskManager = (ClusteredTaskManager) Caches.tasks(getCacheService()).get(f_sTaskId);
+        String               sTaskId     = getTaskId();
+        CacheService         service     = getCacheService();
+        ClusteredTaskManager taskManager = (ClusteredTaskManager) Caches.tasks(service).get(sTaskId);
+
         if (taskManager != null)
             {
             SpanContext  parentSpanContext = taskManager.getParentSpanContext();
@@ -138,17 +141,23 @@ public class ClusteredTaskCoordinator<T>
 
             try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
                 {
+                boolean fResult = (boolean) Caches.tasks(service).invoke(sTaskId, new ClusteredTaskManager.CancellationProcessor());
+
                 if (fMayInterruptIfRunning)
                     {
-                    ClusteredAssignment.cancelAssignments(f_sTaskId, f_cacheService);
+                    // Notify the clustered registrations running assignments
+                    // to interrupt the execution thread
+                    ClusteredAssignment.cancelAssignments(sTaskId, service);
                     }
-                return (Boolean) Caches.tasks(getCacheService()).invoke(getTaskId(), new ClusteredTaskManager.TerminateProcessor(true));
+
+                return fResult;
                 }
             finally
                 {
                 executionSpan.end();
                 }
             }
+
         return false;
         }
 

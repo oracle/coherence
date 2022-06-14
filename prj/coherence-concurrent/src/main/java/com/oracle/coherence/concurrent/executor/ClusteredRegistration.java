@@ -204,8 +204,6 @@ public class ClusteredRegistration
                     ExecutorTrace.log(() -> String.format("Executor [%s] attempting interrupt of task [%s] running on thread [%s]", f_sExecutorId, sTaskId, executionThread));
 
                     executionThread.interrupt();
-
-                    tasks().invoke(sTaskId, new MethodInvocationProcessor("cancelled", true));
                     }
                 }
             }

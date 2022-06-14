@@ -1619,34 +1619,14 @@ public class ClusteredTaskManager<T, A, R>
         protected ExecutionPlan.Action m_desired;
         }
 
-    // ----- inner class: TerminateProcessor --------------------------------
+    // ----- inner class: CancellationProcessor --------------------------------
 
     /**
      * An {@link InvocableMap.EntryProcessor} to terminate a running {@link Task}.
      */
-    public static class TerminateProcessor
+    public static class CancellationProcessor
             extends PortableAbstractProcessor
         {
-        // ----- constructors -----------------------------------------------
-
-        /**
-         * Constructs an {@link TerminateProcessor} (required for serialization).
-         */
-        @SuppressWarnings("unused")
-        public TerminateProcessor()
-            {
-            }
-
-        /**
-         * Constructs a {@link TerminateProcessor}.
-         *
-         * @param fCancelled  is the termination due to cancellation
-         */
-        public TerminateProcessor(boolean fCancelled)
-            {
-            m_fCancelled = fCancelled;
-            }
-
         // ----- PortableAbstractProcessor ----------------------------------
 
         @Override
@@ -1656,44 +1636,21 @@ public class ClusteredTaskManager<T, A, R>
                 {
                 ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
 
+                Logger.info(String.format("### DEBUG Task [%s] state=%s\n", manager.getTaskId(), manager.getState()));
+
                 if (manager.m_state == State.ORCHESTRATED)
                     {
-                    manager.m_fCancelled = m_fCancelled;
+                    manager.m_fCancelled = true;
                     manager.m_state = State.TERMINATING;
 
                     entry.setValue(manager);
 
                     return true;
                     }
-                else
-                    {
-                    return false;
-                    }
                 }
-            else
-                {
-                return false;
-                }
+
+            return false;
             }
-
-        @Override
-        public void readExternal(PofReader in) throws IOException
-            {
-            m_fCancelled = in.readBoolean(0);
-            }
-
-        @Override
-        public void writeExternal(PofWriter out) throws IOException
-            {
-            out.writeBoolean(0, m_fCancelled);
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * Was the termination due to cancellation?
-         */
-        private boolean m_fCancelled;
         }
 
     // ----- inner class UpdateCollectedResultProcessor ---------------------
