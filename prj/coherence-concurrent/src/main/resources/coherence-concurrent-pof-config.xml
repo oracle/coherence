@@ -229,7 +229,7 @@
     </user-type>
     <user-type>
       <type-id>822</type-id>
-      <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$TerminateProcessor</class-name>
+      <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$CancellationProcessor</class-name>
     </user-type>
     <user-type>
       <type-id>823</type-id>
