@@ -6,6 +6,7 @@
  */
 package cache;
 
+import com.oracle.coherence.caffeine.CaffeineCache;
 import com.tangosol.io.nio.BinaryMap;
 
 import com.tangosol.net.NamedCache;
@@ -99,6 +100,37 @@ public class BackingMapTests
          {
          NamedCache cache = getNamedCache("dist-backing-map-non-partitioned");
          TestHelper.validateBackingMapType(cache, LocalCache.class);
+         CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
+         cache.release();
+         }
+
+    @Test
+    public void testBackupMapPartitionCaffeine() throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-backing-map-caffeine");
+        TestHelper.validateBackingMapType(cache, CaffeineCache.class);
+        CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
+        cache.release();
+        }
+
+    @Test
+    public void testBackupMapPartitionedCaffeine() throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-backing-map-partitioned-caffeine");
+        TestHelper.validateBackingMapType(cache, ObservableSplittingBackingCache.class);
+        CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
+        cache.release();
+        }
+
+     /**
+      * Test that the backup map for a distributed cache is partitioned even when the partitioned
+      * flag is false.
+      */
+     @Test
+     public void testBackupMapNonPartitionedCaffeine() throws Exception
+         {
+         NamedCache cache = getNamedCache("dist-backing-map-non-partitioned-caffeine");
+         TestHelper.validateBackingMapType(cache, CaffeineCache.class);
          CacheTestHelper.validateBackupMapType(cache, PartitionSplittingBackingMap.class);
          cache.release();
          }
