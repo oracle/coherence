@@ -23,6 +23,18 @@
       <scheme-name>dist-backing-map-non-partitioned-scheme</scheme-name>
     </cache-mapping>
     <cache-mapping>
+      <cache-name>dist-backing-map-caffeine*</cache-name>
+      <scheme-name>dist-backing-map-caffeine-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-map-partitioned-caffeine*</cache-name>
+      <scheme-name>dist-backing-map-partitioned-caffeine-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-backing-map-non-partitioned-caffeine*</cache-name>
+      <scheme-name>dist-backing-map-non-partitioned-caffeine-scheme</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
       <cache-name>dist-backup-storage-nio-file</cache-name>
       <scheme-name>dist-backup-storage-nio-file-scheme</scheme-name>
     </cache-mapping>
@@ -56,6 +68,32 @@
       <backing-map-scheme>
         <partitioned>false</partitioned>
         <local-scheme/>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-backing-map-caffeine-scheme</scheme-name>
+      <service-name>DistBackingMapCaffeineService</service-name>
+      <backing-map-scheme>
+        <caffeine-scheme/>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-backing-map-partitioned-caffeine-scheme</scheme-name>
+      <service-name>DistBackingMapPartitionedCaffeineService</service-name>
+      <backing-map-scheme>
+        <partitioned>true</partitioned>
+        <caffeine-scheme/>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>dist-backing-map-non-partitioned-caffeine-scheme</scheme-name>
+      <service-name>DistBackingMapNonPartitionedCaffeineService</service-name>
+      <backing-map-scheme>
+        <partitioned>false</partitioned>
+        <caffeine-scheme/>
       </backing-map-scheme>
     </distributed-scheme>
 

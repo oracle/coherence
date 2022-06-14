@@ -222,6 +222,7 @@ public class CaffeineCache
     @Override
     public void setLowUnits(int units)
         {
+        // no-op; not needed or supported by Caffeine
         }
 
     @Override
@@ -333,25 +334,25 @@ public class CaffeineCache
     @Override
     public EvictionApprover getEvictionApprover()
         {
-        throw new UnsupportedOperationException();
+        return null;
         }
 
     @Override
     public void setEvictionApprover(EvictionApprover approver)
         {
-        throw new UnsupportedOperationException();
+        // no-op; not needed or supported by Caffeine
         }
 
     @Override
     public EvictionPolicy getEvictionPolicy()
         {
-        throw new UnsupportedOperationException();
+        return null;
         }
 
     @Override
     public void setEvictionPolicy(EvictionPolicy policy)
         {
-        throw new UnsupportedOperationException();
+        // no-op; not needed or supported by Caffeine
         }
 
     // ---- ObservableMap interface -----------------------------------------
@@ -1252,7 +1253,7 @@ public class CaffeineCache
         @Override
         public void setUnits(int cUnits)
             {
-            throw new UnsupportedOperationException();
+            // no-op; not needed or supported by Caffeine
             }
 
         // ---- data members ------------------------------------------------

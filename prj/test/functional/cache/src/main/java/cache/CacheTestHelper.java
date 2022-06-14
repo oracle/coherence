@@ -44,6 +44,6 @@ public class CacheTestHelper
      */
     public static void validateBackupMapType(NamedCache cache, Class clz)
         {
-        assertEquals(getBackupMap(cache).getClass(), clz);
+        assertEquals(clz, getBackupMap(cache).getClass());
         }
     }
