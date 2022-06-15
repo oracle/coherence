@@ -62,7 +62,7 @@
 
     <cache-mapping>
       <cache-name>locks-*</cache-name>
-      <scheme-name>concurrent</scheme-name>
+      <scheme-name>transient-concurrent</scheme-name>
     </cache-mapping>
 
     <cache-mapping>
@@ -72,11 +72,22 @@
 
     <cache-mapping>
       <cache-name>semaphores</cache-name>
-      <scheme-name>concurrent</scheme-name>
+      <scheme-name>transient-concurrent</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>transient-concurrent</scheme-name>
+      <scheme-ref>concurrent</scheme-ref>
+      <backing-map-scheme>
+        <transient>true</transient>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
     <distributed-scheme>
       <scheme-name>concurrent</scheme-name>
       <service-name>Concurrent</service-name>
