@@ -772,7 +772,7 @@ public abstract class AbstractTestInfrastructure
 
         for (String sServiceName : setServiceNames)
             {
-            Eventually.assertDeferred(() -> server.isServiceRunning(sServiceName), is(true), within(2, TimeUnit.MINUTES));
+            Eventually.assertDeferred(() -> server.isServiceRunning(sServiceName), is(true), within(5, TimeUnit.MINUTES));
             }
         }
 
