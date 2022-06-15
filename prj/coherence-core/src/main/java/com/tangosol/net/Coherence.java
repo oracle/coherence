@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.health.HealthCheckWrapper;
 
@@ -48,6 +49,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -391,10 +393,13 @@ public class Coherence
         {
         for (Coherence coherence : s_mapInstance.values())
             {
-            Session session = coherence.getSession(sName);
-            if (session != null)
+            if (coherence.hasSession(sName))
                 {
-                return Optional.of(session);
+                Session session = coherence.getSession(sName);
+                if (session != null)
+                    {
+                    return Optional.of(session);
+                    }
                 }
             }
         return Optional.empty();
@@ -513,28 +518,37 @@ public class Coherence
      *
      * @param sName  the name of the {@link Session} to return
      *
-     * @return the named {@link Session}
+     * @return an {@link Optional} containing the named {@link Session} or an
+     *         empty {@link Optional} if this {@link Coherence} instance does
+     *         not contain the named session
      *
      * @throws IllegalStateException  if this instance has been closed
+     */
+    public Optional<Session> getSessionIfPresent(String sName)
+        {
+        assertNotClosed();
+        return getSessionInternal(sName);
+        }
+
+    /**
+     * Obtain the {@link Session} from the {@link Coherence} instance that was
+     * configured with the specified configuration name.
+     *
+     * @param sName  the name of the {@link Session} to return
+     *
+     * @return the named {@link Session}
+     *
+     * @throws IllegalArgumentException if no session exists for the specified name
+     * @throws IllegalStateException    if this instance has been closed
      */
     public Session getSession(String sName)
         {
         assertNotClosed();
 
-        if (Coherence.SYSTEM_SESSION.equals(sName))
-            {
-            return initializeSystemSession(Collections.emptyList(), f_mode);
-            }
-
         String sSessionName = sName == null ? Coherence.DEFAULT_NAME : sName;
 
-        SessionConfiguration configuration = getSessionConfiguration(sSessionName);
-        if (configuration == null || !configuration.isEnabled())
-            {
-            throw new IllegalArgumentException("No Session has been configured with the name " + sSessionName);
-            }
-
-        return f_mapSession.get(sSessionName);
+        return getSessionInternal(sName)
+                .orElseThrow(() -> new IllegalArgumentException("No Session has been configured with the name " + sSessionName));
         }
 
     /**
@@ -585,13 +599,45 @@ public class Coherence
      * @throws IllegalArgumentException  if the configuration does not have a name
      * @throws IllegalStateException     if this {@link Coherence} instance is closed
      */
-    public synchronized Coherence addSessionIfAbsent(SessionConfiguration config)
+    public Coherence addSessionIfAbsent(SessionConfiguration config)
+        {
+        return addSessionIfAbsent(config.getName(), () -> config);
+        }
+
+    /**
+     * Add a {@link SessionConfiguration session} to this {@link Coherence} instance, iff a
+     * session configuration is not already present in this {@link Coherence} instance with
+     * the specified name.
+     * <p>
+     * The {@link SessionConfiguration#getName() session name} must be globally unique across
+     * all {@link Coherence} instances.
+     * <p>
+     * If this {@link Coherence} instance is already running, then the session will be started
+     * immediately.
+     *
+     * @param sName     the name of the session to add
+     * @param supplier  a {@link Supplier} used to provide the {@link SessionConfiguration configuration}
+     *                  of the session to add, if the session is not present
+     *
+     * @return this {@link Coherence} instance
+     *
+     * @throws IllegalArgumentException  if the configuration name does not match the name argument
+     * @throws IllegalArgumentException  if the configuration does not have a name
+     * @throws IllegalStateException     if this {@link Coherence} instance is closed
+     */
+    public synchronized Coherence addSessionIfAbsent(String sName, Supplier<SessionConfiguration> supplier)
         {
         assertNotClosed();
 
-        if (hasSession(config.getName()))
+        if (hasSession(sName))
             {
             return this;
+            }
+        SessionConfiguration config = supplier.get();
+        if (Objects.equals(sName, config.getName()))
+            {
+            throw new IllegalArgumentException("The configuration name '" + config.getName()
+                + "' does not match the name argument '" + sName + "'");
             }
         return addSessionInternal(config);
         }
@@ -599,6 +645,7 @@ public class Coherence
     private Coherence addSessionInternal(SessionConfiguration config)
         {
         validate(config);
+        String s;
 
         f_mapAdditionalSessionConfig.put(config.getName(), config);
 
@@ -908,6 +955,34 @@ public class Coherence
             {
             throw new IllegalStateException("This " + getClass().getSimpleName() + " instance has been closed");
             }
+        }
+
+    /**
+     * Obtain the {@link Session} from the {@link Coherence} instance that was
+     * configured with the specified configuration name.
+     *
+     * @param sName  the name of the {@link Session} to return
+     *
+     * @return an {@link Optional} containing the named {@link Session} or an
+     *         empty {@link Optional} if this {@link Coherence} instance does
+     *         not contain the named session
+     */
+    private Optional<Session> getSessionInternal(String sName)
+        {
+        if (Coherence.SYSTEM_SESSION.equals(sName))
+            {
+            return Optional.ofNullable(initializeSystemSession(Collections.emptyList(), f_mode));
+            }
+
+        String sSessionName = sName == null ? Coherence.DEFAULT_NAME : sName;
+
+        SessionConfiguration configuration = getSessionConfiguration(sSessionName);
+        if (configuration == null || !configuration.isEnabled())
+            {
+            return Optional.empty();
+            }
+
+        return Optional.ofNullable(f_mapSession.get(sSessionName));
         }
 
     /**
@@ -1577,7 +1652,7 @@ public class Coherence
     /**
      * A {@link Map} of additional {@link SessionConfiguration session configurations}.
      */
-    private final Map<String, SessionConfiguration> f_mapAdditionalSessionConfig = new HashMap<>();
+    private final Map<String, SessionConfiguration> f_mapAdditionalSessionConfig = new ConcurrentHashMap<>();
 
     /**
      * The map of named {@link PriorityHolder} instances containing a {@link DefaultCacheServer}

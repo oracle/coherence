@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -63,9 +64,15 @@ class CoherenceBootstrapTests
 
         coherence.start().join();
 
+        Optional<Session> optional = coherence.getSessionIfPresent(Coherence.DEFAULT_NAME);
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(true));
+
         Session session = coherence.getSession();
         assertThat(session, is(notNullValue()));
         assertThat(session, is(instanceOf(ConfigurableCacheFactorySession.class)));
+
+        assertThat(optional.get(), is(sameInstance(session)));
 
         ExtensibleConfigurableCacheFactory ccf = (ExtensibleConfigurableCacheFactory)
                 ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
@@ -106,6 +113,13 @@ class CoherenceBootstrapTests
         coherence.start().join();
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(true));
+
+        Optional<Session> optional = coherence.getSessionIfPresent(Coherence.SYSTEM_SESSION);
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(true));
+
+        Session session = coherence.getSession(Coherence.SYSTEM_SESSION);
+        assertThat(optional.get(), is(sameInstance(session)));
         }
 
     @Test
@@ -118,6 +132,12 @@ class CoherenceBootstrapTests
         coherence.start().join();
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(false));
+
+        Optional<Session> optional = coherence.getSessionIfPresent(Coherence.SYSTEM_SESSION);
+        assertThat(optional, is(notNullValue()));
+        assertThat(optional.isPresent(), is(false));
+
+        assertThrows(IllegalArgumentException.class, () -> coherence.getSession(Coherence.SYSTEM_SESSION));
         }
 
     @Test
