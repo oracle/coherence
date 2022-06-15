@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package management;
 
@@ -193,9 +193,9 @@ public class ManagementInfoResourceTests
         propsServer2.setProperty("coherence.member", SERVER_PREFIX + "-2");
         CoherenceClusterMember member2 = startCacheServer(SERVER_PREFIX + "-2", "rest", CACHE_CONFIG, propsServer2);
 
-        Eventually.assertThat(invoking(member2).getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE));
+        Eventually.assertThat(invoking(member2).getServiceStatus(SERVICE_NAME), is(ServiceStatus.NODE_SAFE), within(5, TimeUnit.MINUTES));
 
-        Eventually.assertThat(invoking(member2).getServiceStatus(ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE));
+        Eventually.assertThat(invoking(member2).getServiceStatus(ACTIVE_SERVICE), is(ServiceStatus.NODE_SAFE), within(3, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> member2.invoke(new CalculateUnbalanced("dist-persistence-test")),
                 Matchers.is(0),
                 within(3, TimeUnit.MINUTES));
