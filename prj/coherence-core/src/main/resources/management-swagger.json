@@ -16,64 +16,69 @@
       "x-priority":1
     },
     {
+      "name": "Health",
+      "description": "The Health resource provides a set of endpoints for querying the status of health checks.",
+      "x-priority":2
+    },
+    {
       "name": "Service",
       "description": "The Service resource provides a set of endpoints for managing the services that are running in a Coherence cluster. Use this resource to access operational information and performance statistics and to control the lifecycle of services. Applications should initially use this resource to discover the services in a cluster and their associated service names. Service names are required to access management resources and endpoints that are specific to a service.",
-      "x-priority":2
+      "x-priority":3
     },
     {
       "name": "Cache",
       "description": "The Cache resource provides a set of endpoints for managing Coherence caches based on the cache service instance to which it belongs. Use this resource to access operational information and performance statistics. Cache data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover caches and their associated cache names. Cache names are required to access management data.",
-      "x-priority":3
+      "x-priority":4
     },
     {
       "name": "Cache (Short Form)",
       "description": "The Cache (Short Form) resource provides a set of endpoints for managing Coherence caches and does not require the service name to which the cache belongs. Use this resource to access operational information and performance statistics. Cache data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover caches and their associated cache names. Cache names are required to access management data.",
-      "x-priority":4
+      "x-priority":5
     },
     {
       "name": "Journal",
       "description": "The Journal resource provides a set of endpoints for managing Elastic Data journals that are used to store cache data. Use this resource to access operational information and performance statistics and to force journals to remove stale values. Cache data is aggregated across all cluster members or it can be viewed for each cluster member. This API is available only when you use the Coherence Grid Edition.",
-      "x-priority":5
+      "x-priority":6
     },
     {
       "name": "Persistence",
       "description": "The Persistence resource provides a set of endpoints for managing persistence for a service. Use this resource to access operational information and to perform persistence operations.",
-      "x-priority":6
+      "x-priority":7
     },
     {
       "name": "Federation",
       "description": "The Federation resource provides a set of endpoints for managing federation for a service. Use this resource to access operational information and performance statistics and to perform federation operations. This API is available only when you use the Coherence Grid Edition.",
-      "x-priority":7
+      "x-priority":8
     },
     {
       "name": "Coherence*Web",
       "description": "The Coherence*Web resource provides a set of endpoints for managing caches that are used for storing HTTP session data. Use this resource to access operational information and performance statistics. Management data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover web application IDs. Application IDs are required to access management data. This API is available only when you use the Coherence Enterprise Edition.",
-      "x-priority":8
+      "x-priority":9
     },
     {
       "name": "HotCache",
       "description": "The HotCache resource provides a set of endpoints for managing caches that are integrated with Oracle GoldenGate. Use this resource to access operational information. This API is available only when you use the Coherence Grid Edition.",
-      "x-priority":9
+      "x-priority":10
     },
     {
       "name": "Platform",
       "description": "The Platform resource provides a set of endpoints for managing the JVMs and operating systems on which Coherence cluster members run. Use this resource to access operational information. JVM Memory data can be aggregated across all cluster members or it can be viewed for each cluster member. When querying GarbageCollectorMXBean or MemoryPoolMXBean, use the appropriate attribute names in the path for the GC used by the JVM.  As examples, we documented Parallel GC (PS) and G1 GC (G1).",
-      "x-priority":10
+      "x-priority":11
     },
     {
       "name": "Search",
       "description": "The Search resource provides a single endpoint for searching the entire Coherence management API hierarchy.",
-      "x-priority":11
+      "x-priority":12
     },
     {
       "name": "JMX",
       "description": "The JMX management resource provides a set of endpoints for viewing and changing how Coherence JMX management is configured.",
-      "x-priority":12
+      "x-priority":13
     },
     {
       "name": "Executor",
       "description": "The Executor resource provides a set of endpoints for managing executor service. Use this resource to access operational information and performance statistics for executor operations.",
-      "x-priority":13
+      "x-priority":14
     }
   ],
   "paths": {
@@ -390,6 +395,271 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "View the List of health checks",
+        "description": "Use this endpoint to list the health checks in a Coherence cluster.",
+        "operationId": "/management/coherence/cluster/health GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the health checks in a Coherence cluster",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/health"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/started": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Check started status of all the health checks",
+        "description": "Use this endpoint to check the started status of all the health checks in a Coherence cluster.",
+        "operationId": "/management/coherence/cluster/health/started GET",
+        "responses": {
+          "200": {
+            "description": "All the health checks in the cluster are started."
+          },
+          "503": {
+            "description": "One or more health checks is not started."
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/ready": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Check readiness of all the health checks",
+        "description": "Use this endpoint to check the ready status of all the health checks in a Coherence cluster.",
+        "operationId": "/management/coherence/cluster/health/ready GET",
+        "responses": {
+          "200": {
+            "description": "All the health checks in the cluster are ready."
+          },
+          "503": {
+            "description": "One or more health checks is not ready."
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/live": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Check liveness of all the health checks",
+        "description": "Use this endpoint to check the liveness status of all the health checks in a Coherence cluster.",
+        "operationId": "/management/coherence/cluster/health/live GET",
+        "responses": {
+          "200": {
+            "description": "All the health checks in the cluster are alive."
+          },
+          "503": {
+            "description": "One or more health checks is not alive."
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/safe": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Check safe status of all the health checks",
+        "description": "Use this endpoint to check the safe status of all the health checks in a Coherence cluster.",
+        "operationId": "/management/coherence/cluster/health/safe GET",
+        "responses": {
+          "200": {
+            "description": "All the health checks in the cluster are safe."
+          },
+          "503": {
+            "description": "One or more health checks is not safe."
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/{healthIdentifier}": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "View a named health check",
+        "description": "Use this endpoint to view a specific named health check in a Coherence cluster. This is an aggregated view of the named health check from all cluster members that it is present on.",
+        "operationId": "/management/coherence/cluster/health/{healthIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/healthIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the information for the named health check",
+            "schema": {
+              "$ref": "#/definitions/health"
+            }
+          },
+          "404": {
+            "description": "No health check exists for the specified name"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/{healthIdentifier}/members": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "View the specific health check in all members",
+        "description": "Use this endpoint to view the specific health checks in all Coherence cluster members.",
+        "operationId": "/management/coherence/cluster/health/{healthIdentifier}/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/healthIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the health checks in a Coherence cluster",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/health"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No health check exists for the specified name"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/{healthIdentifier}/members/{memberIdentifier}": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "View the specific health check in a specific members",
+        "description": "Use this endpoint to view the specific health checks in a specific Coherence cluster member.",
+        "operationId": "/management/coherence/cluster/health/{healthIdentifier}/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/healthIdentifier"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the specified health checks for specified member.",
+            "schema": {
+              "$ref": "#/definitions/health"
+            }
+          },
+          "404": {
+            "description": "No health check exists for the specified name, or no cluster member existes with the specified id."
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/members": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "View the List of health checks for all members",
+        "description": "Use this endpoint to list the health checks in all Coherence cluster members.",
+        "operationId": "/management/coherence/cluster/health/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the health checks for all members in a Coherence cluster",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/health"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/health/members/{memberIdentifier}": {
+      "get": {
+          "tags": [
+          "Health"
+        ],
+        "summary": "View the List of health checks for a specific member",
+        "description": "Use this endpoint to list the health checks in a Coherence cluster member.",
+        "operationId": "/management/coherence/cluster/health/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the health checks for the specific Coherence cluster member.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/health"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The specified member does not exist."
           }
         }
       }
@@ -4052,6 +4322,60 @@
         }
       }
     },
+    "health": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The ID of member to which the health check belongs",
+          "readOnly": true
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the MBean",
+          "enum": [
+            "Health"
+          ],
+          "readOnly": true
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the health check",
+          "readOnly": true
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the health check",
+          "readOnly": true
+        },
+        "ready": {
+          "type": "boolean",
+          "description": "The ready status service represented by the health check",
+          "readOnly": true
+        },
+        "started": {
+          "type": "boolean",
+          "description": "The started status service represented by the health check",
+          "readOnly": true
+        },
+        "live": {
+          "type": "boolean",
+          "description": "The live status service represented by the health check",
+          "readOnly": true
+        },
+        "safe": {
+          "type": "boolean",
+          "description": "The safe status service represented by the health check",
+          "readOnly": true
+        },
+        "memberHealthCheck": {
+          "type": "boolean",
+          "description": "A flag indicating whether this health check contributes to the member's overall health",
+          "readOnly": true
+        }
+      }
+    },
     "member": {
       "type": "object",
       "properties": {
@@ -7445,6 +7769,13 @@
       "name": "clusterName",
       "in": "path",
       "description": "Name of the Coherence cluster.",
+      "required": true,
+      "type": "string"
+    },
+    "healthIdentifier": {
+      "name": "healthIdentifier",
+      "in": "path",
+      "description": "An identifier of a health check.",
       "required": true,
       "type": "string"
     },
