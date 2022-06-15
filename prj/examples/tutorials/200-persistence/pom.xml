@@ -20,7 +20,7 @@
     <revision>22.06-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>${revision}</coherence.version>
+    <coherence.version>${project.version}</coherence.version>
 
     <java.version>1.8</java.version>
     <java.version.release>8</java.version.release>

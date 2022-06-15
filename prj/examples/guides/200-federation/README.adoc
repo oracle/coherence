@@ -84,7 +84,7 @@ include::../../internal/includes/what-you-need.adoc[tag=text]
 
 Because Coherence Federation is only available in Grid Edition, you must carry out the following changes to the project before building and running:
 
-1. Update the `revision` property in your `pom.xml` and `coherence.version` in `gradle.properties` to the Coherence Grid Edition version you are going to use.
+1. Update the `coherence.version` property in your `pom.xml` and `gradle.properties` to the Coherence Grid Edition version you are going to use.
 2. Change the `coherence.group.id` in the above files to `com.oracle.coherence`.
 3. Install Coherence Grid Edition into your local Maven repository by running the following:
 +
