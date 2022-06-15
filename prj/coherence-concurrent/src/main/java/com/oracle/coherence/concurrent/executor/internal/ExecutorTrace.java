@@ -2,7 +2,7 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.internal;
@@ -28,7 +28,7 @@ public class ExecutorTrace
     /**
      * Return true if executor trace logging is enabled; false otherwise.
      *
-     * @return true if executor trace logging is enabled
+     * @return {@code true} if executor trace logging is enabled
      */
     public static boolean isEnabled()
         {
@@ -63,7 +63,7 @@ public class ExecutorTrace
     /**
      * Log the specified message at the Debugging severity level. Default
      * severity level is Logger.FINEST.
-     *
+     * <p>
      * The message is provided by the {@link Supplier}, which will only be
      * evaluated if the messages should be logged at the specified severity
      * level. This avoids potentially expensive message construction if the
@@ -82,10 +82,10 @@ public class ExecutorTrace
 
     /**
      * Log the specified message with the given debugging option.
-     *
+     * <p>
      * The message is provided by the {@link Supplier}, which will only be
      * evaluated if the messages should be logged at the specified severity
-     * level. This avoids potentially expensive message construction if the
+     * level.  This avoids potentially expensive message construction if the
      * message isn't going to be logged.
      *
      * @param supplierMessage  the supplier of the message to log; only evaluated
@@ -112,6 +112,26 @@ public class ExecutorTrace
         if (isEnabled())
             {
             Logger.entering(clz, sMethod, params);
+            }
+        }
+
+    /**
+     * Entry logging.
+     *
+     * @param clz      the source {@link Class}
+     * @param sMethod  the source method
+     * @param params   zero or more parameters to log
+     *
+     * @throws NullPointerException if either {@code clz} or {@code sMethod}
+     *                              are {@code null}
+     *
+     * @since 22.06
+     */
+    public static void entering(Class<?> clz, String sMethod, Supplier<Object> params)
+        {
+        if (isEnabled())
+            {
+            Logger.entering(clz, sMethod, params.get());
             }
         }
 
@@ -148,6 +168,27 @@ public class ExecutorTrace
         if (isEnabled())
             {
             Logger.exiting(clz, sMethod, result, additionalInfo);
+            }
+        }
+
+    /**
+     * Exit logging.
+     *
+     * @param clz      the source {@link Class}
+     * @param sMethod  the source method
+     * @param result   the result returned by the exiting method
+     * @param params   zero or more additional state details at the time of exit
+     *
+     * @throws NullPointerException if either {@code clz} or {@code sMethod}
+     *                              are {@code null}
+     *
+     * @since 22.06
+     */
+    public static void exiting(Class<?> clz, String sMethod, Object result, Supplier<Object> params)
+        {
+        if (isEnabled())
+            {
+            Logger.exiting(clz, sMethod, result, params.get());
             }
         }
 
