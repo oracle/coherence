@@ -22,8 +22,8 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
 
-    <java.version>1.8</java.version>
-    <java.version.release>8</java.version.release>
+    <java.version>11</java.version>
+
     <jline.version>3.20.0</jline.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
