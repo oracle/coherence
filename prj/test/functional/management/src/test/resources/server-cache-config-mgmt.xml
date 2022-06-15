@@ -49,6 +49,7 @@
     <distributed-scheme>
       <scheme-name>dist-persistence</scheme-name>
       <service-name>DistributedCachePersistence</service-name>
+      <partition-count system-property="coherence.partition.count">17</partition-count>
       <backing-map-scheme>
         <local-scheme/>
       </backing-map-scheme>
