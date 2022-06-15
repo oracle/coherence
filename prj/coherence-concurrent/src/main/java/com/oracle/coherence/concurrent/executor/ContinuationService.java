@@ -81,6 +81,8 @@ public class ContinuationService<T>
                 {
                 T key = object;
 
+                ExecutorTrace.log("ContinuationService.submit -> Current pending continuations: " + f_mapPendingContinuations);
+
                 // get the map key object for synchronization
                 if (f_mapPendingContinuations.containsKey(key))
                     {
@@ -114,6 +116,8 @@ public class ContinuationService<T>
                     if (composed != null)
                         {
                         f_mapPendingContinuations.put(key, composed);
+
+                        ExecutorTrace.log("ContinuationService.submit -> Updated pending continuations: " + f_mapPendingContinuations);
 
                         // we schedule a Runnable to execute the continuation for the first non-null continuation
                         if (existing == null)
@@ -264,8 +268,12 @@ public class ContinuationService<T>
 
             synchronized (f_object)
                 {
+                ExecutorTrace.log("ContinuationRunnable -> current pending continuations: " + f_mapPendingContinuations);
+
                 // remove the current continuation
                 continuation = f_mapPendingContinuations.remove(f_object);
+
+                ExecutorTrace.log("ContinuationRunnable -> current pending after remove: " + f_mapPendingContinuations);
                 }
 
             if (continuation == null)
