@@ -96,6 +96,11 @@ public class ContinuationService<T>
                         }
                     }
 
+                if (ExecutorTrace.isEnabled())
+                    {
+                    ExecutorTrace.log(String.format("Using key [%s][%s] for synchronization", key, Integer.toHexString(key.hashCode())));
+                    }
+
                 synchronized (key)
                     {
                     ComposableContinuation existing = f_mapPendingContinuations.get(key);
@@ -103,8 +108,8 @@ public class ContinuationService<T>
                                                       ? continuation
                                                       : existing.compose(continuation);
 
-                    ExecutorTrace.log(String.format("Composing existing [%s] with provided [%s]; result [%s]",
-                                                    existing, continuation, composed));
+                    ExecutorTrace.log(() -> String.format("Composing existing [%s] with provided [%s]; result [%s]",
+                                                          existing, continuation, composed));
                     // only submit non-null composed continuations
                     if (composed != null)
                         {
@@ -122,12 +127,12 @@ public class ContinuationService<T>
                                 index = 0;
                                 }
 
-                            int idx = index;
-                            ExecutorService service = f_aContinuationServices[idx];
+                            int             nIdx    = index;
+                            ExecutorService service = f_aContinuationServices[nIdx];
 
-                            ExecutorTrace.log(() -> String.format("Submitting continuation to executor [%s] at index [%s]", service, idx));
+                            ExecutorTrace.log(() -> String.format("Submitting continuation to executor [%s] at index [%s]", service, nIdx));
 
-                            f_aContinuationServices[index].submit(new ContinuationRunnable(key, idx));
+                            f_aContinuationServices[nIdx].submit(new ContinuationRunnable(key, nIdx));
                             }
                         }
 
@@ -243,8 +248,8 @@ public class ContinuationService<T>
          */
         public ContinuationRunnable(T object, int serviceIndex)
             {
-            m_object        = object;
-            m_nServiceIndex = serviceIndex;
+            f_object        = object;
+            f_nServiceIndex = serviceIndex;
             }
 
         // ----- Runnable interface -----------------------------------------
@@ -252,26 +257,27 @@ public class ContinuationService<T>
         @Override
         public void run()
             {
-            ExecutorTrace.entering(ContinuationRunnable.class, "run", m_object, m_nServiceIndex);
+            ExecutorTrace.entering(ContinuationRunnable.class,
+                    "run", f_object, Integer.toHexString(f_object.hashCode()), f_nServiceIndex);
 
             ComposableContinuation continuation;
 
-            synchronized (m_object)
+            synchronized (f_object)
                 {
                 // remove the current continuation
-                continuation = f_mapPendingContinuations.remove(m_object);
+                continuation = f_mapPendingContinuations.remove(f_object);
                 }
 
             if (continuation == null)
                 {
                 Logger.fine(() -> String.format(
-                        "ComposableContinuation for [%s] has been removed (ignoring request)", m_object));
+                        "ComposableContinuation for [%s] has been removed (ignoring request)", f_object));
                 }
             else
                 {
                 try
                     {
-                    ExecutorTrace.log(() -> String.format("Executing continuation [%s] for [%s]", continuation, m_object));
+                    ExecutorTrace.log(() -> String.format("Executing continuation [%s] for [%s]", continuation, f_object));
 
                     // attempt to execute the continuation
                     continuation.proceed(null);
@@ -280,7 +286,7 @@ public class ContinuationService<T>
                     {
                     // failed to execute the continuation!
                     Logger.warn(() -> String.format("Failed to execute continuation [%s] for [%s]",
-                                                    continuation, m_object));
+                                                    continuation, f_object));
                     Logger.warn("ComposableContinuation encountered", t);
                     }
                 }
@@ -293,12 +299,12 @@ public class ContinuationService<T>
         /**
          * The object.
          */
-        protected final T m_object;
+        protected final T f_object;
 
         /**
          * The service index.
          */
-        protected final int m_nServiceIndex;
+        protected final int f_nServiceIndex;
         }
 
     // ----- data members ---------------------------------------------------

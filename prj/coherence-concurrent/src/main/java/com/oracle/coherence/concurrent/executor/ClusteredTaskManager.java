@@ -768,6 +768,22 @@ public class ClusteredTaskManager<T, A, R>
         out.writeObject(19, TracingHelper.getTracer().inject(m_parentSpanContext));
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "ClusteredTaskManager{" +
+               "taskId='" + m_sTaskId + '\'' +
+               ", resultVersion=" + m_nResultVersion +
+               ", currentResultGeneration=" + m_lCurrentResultGeneration +
+               ", processedResultGeneration=" + m_lProcessedResultGeneration +
+               ", completed=" + m_fCompleted +
+               ", cancelled=" + m_fCancelled +
+               ", state=" + m_state +
+               '}';
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -1127,6 +1143,7 @@ public class ClusteredTaskManager<T, A, R>
             f_cacheService = cacheService;
             f_sTaskId      = sTaskId;
             f_cause        = cause;
+            f_sId          = Integer.toHexString(hashCode());
             }
 
         // ----- ComposableContinuation methods -----------------------------
@@ -1150,7 +1167,7 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public String toString()
             {
-            return "AsyncProcessChangesContinuation{" + "taskId='" + f_sTaskId + '\'' + ", cause=" + f_cause + '}';
+            return "AsyncProcessChangesContinuation{id=" + f_sId + ", taskId=" + f_sTaskId +  ", cause=" + f_cause + '}';
             }
 
         // ----- data members -----------------------------------------------
@@ -1169,6 +1186,12 @@ public class ClusteredTaskManager<T, A, R>
          * The {@link ComposableContinuation} failure cause.
          */
         protected final Cause f_cause;
+
+        /**
+         * An internal identifier for debugging to allow picking continuations
+         * different continuation instances.
+         */
+        protected final String f_sId;
         }
 
     // ----- inner class: ChainedProcessor ----------------------------------
@@ -1396,7 +1419,9 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            ExecutorTrace.entering(OptimizeExecutionPlanProcessor.class, "process", entry);
+            ExecutorTrace.entering(OptimizeExecutionPlanProcessor.class,
+                                   "process",
+                                   () -> String.format("key=%s, value=%s", entry.getKey(), entry.getValue()));
 
             if (entry.isPresent())
                 {
@@ -1545,7 +1570,9 @@ public class ClusteredTaskManager<T, A, R>
             // assume the action was not set
             boolean result = false;
 
-            ExecutorTrace.entering(SetActionProcessor.class, "process", entry);
+            ExecutorTrace.entering(SetActionProcessor.class,
+                                   "process",
+                                   () -> String.format("key=%s, value=%s", entry.getKey(), entry.getValue()));
 
             if (entry.isPresent())
                 {
@@ -1693,7 +1720,9 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            ExecutorTrace.entering(UpdateCollectedResultProcessor.class, "process", entry);
+            ExecutorTrace.entering(UpdateCollectedResultProcessor.class,
+                                   "process",
+                                   () -> String.format("key=%s, value=%s", entry.getKey(), entry.getValue()));
 
             if (entry.isPresent())
                 {
@@ -1828,7 +1857,9 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            ExecutorTrace.entering(UpdateContributedResultProcessor.class, "process", entry);
+            ExecutorTrace.entering(UpdateContributedResultProcessor.class,
+                                   "process",
+                                   () -> String.format("key=%s, value=%s", entry.getKey(), entry.getValue()));
 
             try
                 {
@@ -1941,7 +1972,9 @@ public class ClusteredTaskManager<T, A, R>
         @Override
         public Object process(InvocableMap.Entry entry)
             {
-            ExecutorTrace.entering(UpdateExecutionPlanProcessor.class, "process", entry);
+            ExecutorTrace.entering(UpdateExecutionPlanProcessor.class,
+                                   "process",
+                                   () -> String.format("key=%s, value=%s", entry.getKey(), entry.getValue()));
 
             if (entry.isPresent())
                 {
