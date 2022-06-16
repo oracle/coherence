@@ -634,7 +634,7 @@ public class Coherence
             return this;
             }
         SessionConfiguration config = supplier.get();
-        if (Objects.equals(sName, config.getName()))
+        if (!Objects.equals(sName, config.getName()))
             {
             throw new IllegalArgumentException("The configuration name '" + config.getName()
                 + "' does not match the name argument '" + sName + "'");
