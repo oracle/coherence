@@ -99,7 +99,7 @@ import static com.tangosol.net.cache.TypeAssertion.withTypes;
  */
 @SuppressWarnings("rawtypes")
 public class PagedTopicCaches
-    implements ClassLoaderAware
+    implements ClassLoaderAware, AutoCloseable
     {
     // ----- constructors ---------------------------------------------------
 
@@ -180,6 +180,12 @@ public class PagedTopicCaches
     public Serializer getSerializer()
         {
         return f_cacheService.getSerializer();
+        }
+
+    @Override
+    public void close()
+        {
+        release();
         }
 
     /**
