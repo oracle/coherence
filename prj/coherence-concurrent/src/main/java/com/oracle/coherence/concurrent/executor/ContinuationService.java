@@ -64,10 +64,10 @@ public class ContinuationService<T>
      * @param continuation  the {@link ComposableContinuation}
      * @param object        the object
      *
-     * @return <code>true</code> if the {@link ComposableContinuation} was accepted
-     *         <code>false</code> if the {@link ComposableContinuation} was rejected
+     * @return {@code true} if the {@link ComposableContinuation} was accepted
+     *         {@code false} if the {@link ComposableContinuation} was rejected
      *         (due to the service being unavailable or the continuation being
-     *         invalid ie: null)
+     *         invalid ie: {@code null})
      */
     public boolean submit(ComposableContinuation continuation, final T object)
         {
@@ -79,51 +79,28 @@ public class ContinuationService<T>
             {
             if (continuation != null)
                 {
-                T key = object;
+                Map<T, ComposableContinuation> mapPendingContinuations = f_mapPendingContinuations;
+                ExecutorService[]              aExecutorServices       = f_aContinuationServices;
 
-                ExecutorTrace.log("ContinuationService.submit -> Current pending continuations: " + f_mapPendingContinuations);
-
-                //// get the map key object for synchronization
-                //if (f_mapPendingContinuations.containsKey(key))
-                //    {
-                //    for (Map.Entry<T, ComposableContinuation> entry : f_mapPendingContinuations.entrySet())
-                //        {
-                //        T entryKey = entry.getKey();
-                //        if (entryKey.equals(key))
-                //            {
-                //            // use existing key object for synchronization below
-                //            key = entryKey;
-                //            }
-                //        break;
-                //        }
-                //    }
-
-                if (ExecutorTrace.isEnabled())
+                synchronized (mapPendingContinuations)
                     {
-                    ExecutorTrace.log(String.format("Using key [%s][%s] for synchronization", key, Integer.toHexString(key.hashCode())));
-                    }
-
-                synchronized (f_mapPendingContinuations)
-                    {
-                    ComposableContinuation existing = f_mapPendingContinuations.get(key);
+                    ComposableContinuation existing = mapPendingContinuations.get(object);
                     ComposableContinuation composed = existing == null
-                                                      ? continuation
-                                                      : existing.compose(continuation);
+                                                          ? continuation
+                                                          : existing.compose(continuation);
 
                     ExecutorTrace.log(() -> String.format("Composing existing [%s] with provided [%s]; result [%s]",
                                                           existing, continuation, composed));
                     // only submit non-null composed continuations
                     if (composed != null)
                         {
-                        f_mapPendingContinuations.put(key, composed);
-
-                        ExecutorTrace.log("ContinuationService.submit -> Updated pending continuations: " + f_mapPendingContinuations);
+                        mapPendingContinuations.put(object, composed);
 
                         // we schedule a Runnable to execute the continuation for the first non-null continuation
                         if (existing == null)
                             {
                             // determine the Executor to use based on the object hashcode
-                            int index = Math.abs(key.hashCode()) % f_aContinuationServices.length;
+                            int index = Math.abs(object.hashCode()) % aExecutorServices.length;
 
                             // ensure we have a valid index (as abs may yield a negative!)
                             if (index < 0)
@@ -132,11 +109,11 @@ public class ContinuationService<T>
                                 }
 
                             int             nIdx    = index;
-                            ExecutorService service = f_aContinuationServices[nIdx];
+                            ExecutorService service = aExecutorServices[nIdx];
 
                             ExecutorTrace.log(() -> String.format("Submitting continuation to executor [%s] at index [%s]", service, nIdx));
 
-                            f_aContinuationServices[nIdx].submit(new ContinuationRunnable(key, nIdx));
+                            aExecutorServices[nIdx].submit(new ContinuationRunnable(object, nIdx));
                             }
                         }
 
@@ -261,31 +238,32 @@ public class ContinuationService<T>
         @Override
         public void run()
             {
-            ExecutorTrace.entering(ContinuationRunnable.class,
-                    "run", f_object, Integer.toHexString(f_object.hashCode()), f_nServiceIndex);
-
-            ComposableContinuation continuation;
-
-            synchronized (f_mapPendingContinuations)
+            if (ExecutorTrace.isEnabled())
                 {
-                ExecutorTrace.log("ContinuationRunnable -> current pending continuations: " + f_mapPendingContinuations);
+                ExecutorTrace.entering(ContinuationRunnable.class,
+                                       "run", f_object, Integer.toHexString(f_object.hashCode()), f_nServiceIndex);
+                }
 
+            Map<T, ComposableContinuation> mapPendingContinuations = f_mapPendingContinuations;
+            T                              key                     = f_object;
+            ComposableContinuation         continuation;
+
+            synchronized (mapPendingContinuations)
+                {
                 // remove the current continuation
-                continuation = f_mapPendingContinuations.remove(f_object);
-
-                ExecutorTrace.log("ContinuationRunnable -> current pending after remove: " + f_mapPendingContinuations);
+                continuation = mapPendingContinuations.remove(key);
                 }
 
             if (continuation == null)
                 {
                 Logger.fine(() -> String.format(
-                        "ComposableContinuation for [%s] has been removed (ignoring request)", f_object));
+                        "ComposableContinuation for [%s] has been removed (ignoring request)", key));
                 }
             else
                 {
                 try
                     {
-                    ExecutorTrace.log(() -> String.format("Executing continuation [%s] for [%s]", continuation, f_object));
+                    ExecutorTrace.log(() -> String.format("Executing continuation [%s] for [%s]", continuation, key));
 
                     // attempt to execute the continuation
                     continuation.proceed(null);
@@ -294,7 +272,7 @@ public class ContinuationService<T>
                     {
                     // failed to execute the continuation!
                     Logger.warn(() -> String.format("Failed to execute continuation [%s] for [%s]",
-                                                    continuation, f_object));
+                                                    continuation, key));
                     Logger.warn("ComposableContinuation encountered", t);
                     }
                 }
