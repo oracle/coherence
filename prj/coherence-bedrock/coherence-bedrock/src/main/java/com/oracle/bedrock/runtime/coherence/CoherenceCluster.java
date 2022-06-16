@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.AbstractAssembly;
 import com.oracle.bedrock.runtime.Assembly;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
+import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceStorageEnabled;
@@ -272,6 +273,27 @@ public class CoherenceCluster
 
             return true;
             };
+            }
+
+        /**
+         * A {@link Predicate} to determine if {@link CoherenceCluster}
+         *  is running.
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isCoherenceRunning()
+            {
+            return (cluster) ->
+                {
+                for (CoherenceClusterMember member : cluster)
+                    {
+                    if (!member.invoke(new IsCoherenceRunning()))
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                };
             }
         }
     }

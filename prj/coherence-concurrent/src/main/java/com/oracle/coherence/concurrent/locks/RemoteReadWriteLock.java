@@ -13,7 +13,6 @@ import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.Processors;
-import com.tangosol.util.UID;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
@@ -193,10 +192,10 @@ public class RemoteReadWriteLock
             {
             Member localMember = locks.getService().getCluster().getLocalMember();
 
-            f_sName    = sName;
-            f_locks    = locks;
-            f_memberId = localMember.getUid();
-            readHolds  = new Sync.ThreadLocalHoldCounter();
+            f_sName       = sName;
+            f_locks       = locks;
+            f_localMember = localMember;
+            readHolds     = new Sync.ThreadLocalHoldCounter();
 
             setState(getState()); // ensures visibility of readHolds
             }
@@ -226,7 +225,7 @@ public class RemoteReadWriteLock
             if (exclusiveCount(c) == 0)
                 {
                 // final release of the lock; we should release the lock on the server
-                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                final LockOwner owner = new LockOwner(f_localMember, thread.getId());
                 fUnlocked = f_locks.invoke(f_sName, entry ->
                         {
                         ReadWriteLockHolder lock = entry.getValue();
@@ -287,7 +286,7 @@ public class RemoteReadWriteLock
             // try to obtain lock from the server
             if (!writerShouldBlock())
                 {
-                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                final LockOwner owner = new LockOwner(f_localMember, thread.getId());
                 boolean fLocked = f_locks.invoke(f_sName, entry ->
                 {
                 ReadWriteLockHolder lock = entry.getValue(ReadWriteLockHolder::new);
@@ -321,7 +320,7 @@ public class RemoteReadWriteLock
 
                 // no more holds on this member; we should release the lock on the server
                 final Thread    thread = Thread.currentThread();
-                final LockOwner owner  = new LockOwner(f_memberId, thread.getId());
+                final LockOwner owner  = new LockOwner(f_localMember, thread.getId());
                 boolean fUnlocked = f_locks.invoke(f_sName, entry ->
                         {
                         ReadWriteLockHolder lock = entry.getValue();
@@ -368,7 +367,7 @@ public class RemoteReadWriteLock
         final boolean tryReadLock()
             {
             Thread thread = Thread.currentThread();
-            final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+            final LockOwner owner = new LockOwner(f_localMember, thread.getId());
             boolean fLocked = false;
 
             for (; ; )
@@ -456,7 +455,7 @@ public class RemoteReadWriteLock
         private void onHolderChange(MapEvent<? extends String, ? extends ReadWriteLockHolder> event)
             {
             ReadWriteLockHolder holder = event.getNewValue();
-            if (holder.isWriteLocked() && !holder.isWriteLockedByMember(f_memberId))
+            if (holder.isWriteLocked() && !holder.isWriteLockedByMember(f_localMember.getUuid()))
                 {
                 acquire(-1);
                 }
@@ -576,7 +575,7 @@ public class RemoteReadWriteLock
         /**
          * Local member/current process identifier.
          */
-        private final UID f_memberId;
+        private final Member f_localMember;
 
         /**
          * The name of the remote lock; used as a key in the NamedMap containing

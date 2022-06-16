@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.internal;
 
@@ -115,15 +115,15 @@ public class Cleaner
 
                 Locks.exclusiveLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
-                        new ExclusiveLockHolder.RemoveLocks(memberLeft.getUid()));
+                        new ExclusiveLockHolder.RemoveLocks(memberLeft.getUuid()));
 
                 Locks.readWriteLocksMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
-                        new ReadWriteLockHolder.RemoveLocks(memberLeft.getUid()));
+                        new ReadWriteLockHolder.RemoveLocks(memberLeft.getUuid()));
 
                 Semaphores.semaphoresMap().async().invokeAll(
                         new PartitionedFilter<>(AlwaysFilter.INSTANCE(), partsOwned),
-                        new SemaphoreStatus.RemovePermits(memberLeft.getUid()));
+                        new SemaphoreStatus.RemovePermits(memberLeft.getUuid()));
                 }
             };
 

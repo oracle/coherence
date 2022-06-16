@@ -11,8 +11,10 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.net.Member;
+
 import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -21,7 +23,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * The identity of a acquirer, represented by the UID of the member, and the ID
+ * The identity of a acquirer, represented by the UUID of the member, and the ID
  * of a thread holding or attempting to acquire permit.
  *
  * @author Vaso Putica  2021.11.30
@@ -39,21 +41,22 @@ public class PermitAcquirer
     /**
      * Construct {@code PermitAcquirer} instance.
      *
-     * @param memberId  the member UID
+     * @param member    the member
      * @param threadId  the thread ID
      */
-    public PermitAcquirer(UID memberId, long threadId)
+    public PermitAcquirer(Member member, long threadId)
         {
-        f_memberId = memberId;
+        f_memberId = member.getUuid();
         f_threadId = threadId;
+        f_client   = member.getId() == 0;
         }
 
     /**
-     * Return the member UID.
+     * Return the member UUID.
      *
-     * @return the member UID
+     * @return the member UUID
      */
-    public UID getMemberId()
+    public UUID getMemberId()
         {
         return f_memberId;
         }
@@ -68,6 +71,16 @@ public class PermitAcquirer
         return f_threadId;
         }
 
+    /**
+     * Return {@code true} if this permit acquirer is a remote client (Extend or gRPC).
+     *
+     * @return {@code true} if this permit acquirer is a remote client (Extend or gRPC)
+     */
+    public boolean isClient()
+        {
+        return f_client;
+        }
+
     @Override
     public boolean equals(Object o)
         {
@@ -80,13 +93,13 @@ public class PermitAcquirer
             return false;
             }
         PermitAcquirer acquirer = (PermitAcquirer) o;
-        return f_threadId == acquirer.f_threadId && f_memberId.equals(acquirer.f_memberId);
+        return f_threadId == acquirer.f_threadId && f_memberId.equals(acquirer.f_memberId) && f_client == acquirer.f_client;
         }
 
     @Override
     public int hashCode()
         {
-        return Objects.hash(f_memberId, f_threadId);
+        return Objects.hash(f_memberId, f_threadId, f_client);
         }
 
     @Override
@@ -95,6 +108,7 @@ public class PermitAcquirer
         return "PermitAcquirer{" +
                "memberId=" + f_memberId +
                ", threadId=" + f_threadId +
+               ", client=" + f_client +
                '}';
         }
 
@@ -105,6 +119,7 @@ public class PermitAcquirer
         {
         f_memberId = ExternalizableHelper.readObject(in);
         f_threadId = ExternalizableHelper.readLong(in);
+        f_client   = in.readBoolean();
         }
 
     @Override
@@ -112,6 +127,7 @@ public class PermitAcquirer
         {
         ExternalizableHelper.writeObject(out, f_memberId);
         ExternalizableHelper.writeLong(out, f_threadId);
+        out.writeBoolean(f_client);
         }
 
     // ----- PortableObject interface -------------------------------
@@ -121,6 +137,7 @@ public class PermitAcquirer
         {
         f_memberId = in.readObject(0);
         f_threadId = in.readLong(1);
+        f_client   = in.readBoolean(2);
         }
 
     @Override
@@ -128,10 +145,12 @@ public class PermitAcquirer
         {
         out.writeObject(0, f_memberId);
         out.writeLong(1, f_threadId);
+        out.writeBoolean(2, f_client);
         }
 
     // ---- data members ----------------------------------------------------
 
-    private UID f_memberId;
+    private UUID f_memberId;
     private long f_threadId;
+    private boolean f_client;
     }
