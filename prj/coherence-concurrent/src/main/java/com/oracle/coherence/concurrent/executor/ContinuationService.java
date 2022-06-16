@@ -83,27 +83,27 @@ public class ContinuationService<T>
 
                 ExecutorTrace.log("ContinuationService.submit -> Current pending continuations: " + f_mapPendingContinuations);
 
-                // get the map key object for synchronization
-                if (f_mapPendingContinuations.containsKey(key))
-                    {
-                    for (Map.Entry<T, ComposableContinuation> entry : f_mapPendingContinuations.entrySet())
-                        {
-                        T entryKey = entry.getKey();
-                        if (entryKey.equals(key))
-                            {
-                            // use existing key object for synchronization below
-                            key = entryKey;
-                            }
-                        break;
-                        }
-                    }
+                //// get the map key object for synchronization
+                //if (f_mapPendingContinuations.containsKey(key))
+                //    {
+                //    for (Map.Entry<T, ComposableContinuation> entry : f_mapPendingContinuations.entrySet())
+                //        {
+                //        T entryKey = entry.getKey();
+                //        if (entryKey.equals(key))
+                //            {
+                //            // use existing key object for synchronization below
+                //            key = entryKey;
+                //            }
+                //        break;
+                //        }
+                //    }
 
                 if (ExecutorTrace.isEnabled())
                     {
                     ExecutorTrace.log(String.format("Using key [%s][%s] for synchronization", key, Integer.toHexString(key.hashCode())));
                     }
 
-                synchronized (key)
+                synchronized (f_mapPendingContinuations)
                     {
                     ComposableContinuation existing = f_mapPendingContinuations.get(key);
                     ComposableContinuation composed = existing == null
@@ -266,7 +266,7 @@ public class ContinuationService<T>
 
             ComposableContinuation continuation;
 
-            synchronized (f_object)
+            synchronized (f_mapPendingContinuations)
                 {
                 ExecutorTrace.log("ContinuationRunnable -> current pending continuations: " + f_mapPendingContinuations);
 
