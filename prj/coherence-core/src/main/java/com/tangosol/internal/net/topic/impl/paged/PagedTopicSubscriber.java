@@ -16,7 +16,6 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.DebouncedFlowControl;
 
-import com.tangosol.internal.net.LimitBasedFlowControl;
 import com.tangosol.internal.net.metrics.Meter;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor;
@@ -99,7 +98,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
@@ -2035,7 +2033,7 @@ public class PagedTopicSubscriber<V>
      */
     public static void destroy(PagedTopicCaches pagedTopicCaches, SubscriberGroupId subscriberGroupId)
         {
-        if (pagedTopicCaches.isActive())
+        if (pagedTopicCaches.isActive() && pagedTopicCaches.Subscriptions.isActive())
             {
             int                   cParts      = ((PartitionedService) pagedTopicCaches.Subscriptions.getCacheService()).getPartitionCount();
             Set<Subscription.Key> setSubParts = new HashSet<>(cParts);
@@ -2361,7 +2359,7 @@ public class PagedTopicSubscriber<V>
             {
             GroupDeactivationListener listenerGroup = m_listenerGroupDeactivation;
 
-            if (listenerGroup != null)
+            if (listenerGroup != null && m_caches.Subscriptions.isActive())
                 {
                 m_caches.Subscriptions.removeMapListener(listenerGroup, f_aChannel[0].subscriberPartitionSync);
                 }
