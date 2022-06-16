@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.concurrent.internal;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.concurrent.PermitAcquirer;
 
 import com.tangosol.io.ExternalizableLite;
@@ -19,7 +20,7 @@ import com.tangosol.net.ServiceInfo;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -167,7 +168,7 @@ public class SemaphoreStatus
      *
      * @return the identity of member who most recently updated the semaphore.
      */
-    public UID getMember()
+    public UUID getMember()
         {
         return m_memberId;
         }
@@ -178,11 +179,18 @@ public class SemaphoreStatus
      * @param member the identity of member who most recently updated the
      *               semaphore
      */
-    public void setMember(UID member)
+    public void setMember(UUID member)
         {
         m_memberId = member;
         }
 
+    /**
+     * Return {@code true} if this semaphore is currently acquired by the specified
+     * {@link PermitAcquirer}.
+     *
+     * @return {@code true} if this semaphore is currently acquired by the specified
+     *                      {@link PermitAcquirer}
+     */
     public boolean isAcquiredBy(PermitAcquirer acquirer)
         {
         return m_permitsMap.containsKey(acquirer);
@@ -192,18 +200,19 @@ public class SemaphoreStatus
      * Remove all the permits that are not acquired by one of the specified
      * members.
      *
-     * @param setMemberIds theUIDs of the member to retain the locks for
+     * @param setMemberIds the UUIDs of the member to retain the permits for
      *
      * @return {@code true} if this semaphore was modified
      */
-    protected boolean retainPermitsFor(Set<UID> setMemberIds)
+    protected boolean retainPermitsFor(Set<UUID> setMemberIds)
         {
         boolean fModified = false;
         Iterator<Map.Entry<PermitAcquirer, Integer>> it = m_permitsMap.entrySet().iterator();
         while (it.hasNext())
             {
             Map.Entry<PermitAcquirer, Integer> entry = it.next();
-            if (!setMemberIds.contains(entry.getKey().getMemberId()))
+            PermitAcquirer acquirer = entry.getKey();
+            if (!acquirer.isClient() && !setMemberIds.contains(acquirer.getMemberId()))
                 {
                 it.remove();
                 fModified = true;
@@ -216,11 +225,11 @@ public class SemaphoreStatus
     /**
      * Remove all the permits that are acquired by a specified member.
      *
-     * @param memberId the UID of a member to remove the permits for
+     * @param memberId the UUID of a member to remove the permits for
      *
      * @return {@code true} if this holder was modified
      */
-    protected boolean removePermitsFor(UID memberId)
+    protected boolean removePermitsFor(UUID memberId)
         {
         boolean fModified = false;
         Iterator<Map.Entry<PermitAcquirer, Integer>> it = m_permitsMap.entrySet().iterator();
@@ -329,9 +338,9 @@ public class SemaphoreStatus
         /**
          * Create an instance of {@code SemaphoreStatus}.
          *
-         * @param memberId the UID of the Coherence member
+         * @param memberId the UUID of the Coherence member
          */
-        public RemovePermits(UID memberId)
+        public RemovePermits(UUID memberId)
             {
             m_memberId = memberId;
             }
@@ -341,13 +350,13 @@ public class SemaphoreStatus
         public Void process(InvocableMap.Entry<String, SemaphoreStatus> entry)
             {
             SemaphoreStatus status = entry.getValue();
-            if (m_memberId == null) // clean up for invalid member UIDs
+            if (m_memberId == null) // clean up for invalid member UUIDs
                 {
                 ServiceInfo info = ((BinaryEntry<String, SemaphoreStatus>)entry)
                         .getContext().getCacheService().getInfo();
                 Set<Member> setServiceMembers = info.getServiceMembers();
-                Set<UID> setValidMemberIds = setServiceMembers.stream()
-                        .map(Member::getUid)
+                Set<UUID> setValidMemberIds = setServiceMembers.stream()
+                        .map(Member::getUuid)
                         .collect(Collectors.toSet());
                 if (status.retainPermitsFor(setValidMemberIds))
                     {
@@ -395,9 +404,9 @@ public class SemaphoreStatus
         // ---- data members ----------------------------------------------------
 
         /**
-         * The member UID to remove all the permits for.
+         * The member UUID to remove all the permits for.
          */
-        protected UID m_memberId;
+        protected UUID m_memberId;
         }
 
     // ---- data members ----------------------------------------------------
@@ -410,7 +419,7 @@ public class SemaphoreStatus
     /**
      * The identity of a member who most recently updated the semaphore.
      */
-    private UID m_memberId;
+    private UUID m_memberId;
 
     /**
      * Number of permits used to initialise

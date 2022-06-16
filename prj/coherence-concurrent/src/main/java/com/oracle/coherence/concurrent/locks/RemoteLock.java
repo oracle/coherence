@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.locks;
 
@@ -13,7 +13,6 @@ import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.Processors;
-import com.tangosol.util.UID;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
@@ -462,9 +461,9 @@ public class RemoteLock
             {
             Member localMember = locks.getService().getCluster().getLocalMember();
 
-            f_sName    = sName;
-            f_locks    = locks;
-            f_memberId = localMember.getUid();
+            f_sName       = sName;
+            f_locks       = locks;
+            f_localMember = localMember;
             }
 
         // ---- AbstractQueuedLongSynchronizer methods ----------------------
@@ -486,7 +485,7 @@ public class RemoteLock
             if (c == 0)
                 {
                 // no thread in this process owns the lock; try to obtain it
-                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                final LockOwner owner = new LockOwner(f_localMember, thread.getId());
                 boolean fLocked = f_locks.invoke(f_sName, entry ->
                         {
                         ExclusiveLockHolder lock = entry.getValue(ExclusiveLockHolder::new);
@@ -541,7 +540,7 @@ public class RemoteLock
             if (c == 0)
                 {
                 // final release of the lock; we should release the lock on the server
-                final LockOwner owner = new LockOwner(f_memberId, thread.getId());
+                final LockOwner owner = new LockOwner(f_localMember, thread.getId());
                 boolean fUnlocked = f_locks.invoke(f_sName, entry ->
                         {
                         ExclusiveLockHolder lock = entry.getValue();
@@ -585,7 +584,7 @@ public class RemoteLock
         private void onHolderChange(MapEvent<? extends String, ? extends ExclusiveLockHolder> event)
             {
             ExclusiveLockHolder holder = event.getNewValue();
-            if (holder.isLocked() && !holder.isLockedByMember(f_memberId))
+            if (holder.isLocked() && !holder.isLockedByMember(f_localMember.getUuid()))
                 {
                 acquire(-1);
                 }
@@ -615,7 +614,7 @@ public class RemoteLock
         /**
          * Local member/current process identifier.
          */
-        private final UID f_memberId;
+        private final Member f_localMember;
 
         /**
          * The name of the remote lock; used as a key in the NamedMap containing the locks.

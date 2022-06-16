@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent;
 
@@ -13,7 +13,6 @@ import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.Processors;
-import com.tangosol.util.UID;
 import com.tangosol.util.function.Remote;
 import com.tangosol.util.listener.SimpleMapListener;
 
@@ -477,7 +476,7 @@ public class RemoteSemaphore
 
             f_sName          = sName;
             f_semaphores     = semaphores;
-            f_memberId       = localMember.getUid();
+            f_localMember    = localMember;
             f_initialPermits = permits;
 
             setState(permits);
@@ -495,7 +494,7 @@ public class RemoteSemaphore
 
             final Thread thread = Thread.currentThread();
             final int initialPermits = f_initialPermits;
-            final PermitAcquirer acquirer = new PermitAcquirer(f_memberId, thread.getId());
+            final PermitAcquirer acquirer = new PermitAcquirer(f_localMember, thread.getId());
             final Remote.Supplier<SemaphoreStatus> supplier = () -> new SemaphoreStatus(initialPermits);
             Integer acquired = f_semaphores.invoke(f_sName, entry ->
                 {
@@ -524,7 +523,7 @@ public class RemoteSemaphore
                 }
             final Thread thread = Thread.currentThread();
 
-            final PermitAcquirer acquirer = new PermitAcquirer(f_memberId, thread.getId());
+            final PermitAcquirer acquirer = new PermitAcquirer(f_localMember, thread.getId());
             Integer state = f_semaphores.invoke(f_sName, entry ->
                 {
                 SemaphoreStatus status = entry.getValue();
@@ -548,7 +547,7 @@ public class RemoteSemaphore
         final int drainPermits()
             {
             final Thread thread = Thread.currentThread();
-            final PermitAcquirer acquirer = new PermitAcquirer(f_memberId, thread.getId());
+            final PermitAcquirer acquirer = new PermitAcquirer(f_localMember, thread.getId());
             Integer cur = f_semaphores.invoke(f_sName, entry ->
                 {
                 SemaphoreStatus status = entry.getValue();
@@ -563,7 +562,7 @@ public class RemoteSemaphore
         final void reducePermits(int reductions)
             {
             final Thread thread = Thread.currentThread();
-            final PermitAcquirer acquirer = new PermitAcquirer(f_memberId, thread.getId());
+            final PermitAcquirer acquirer = new PermitAcquirer(f_localMember, thread.getId());
             Integer nextState = f_semaphores.invoke(f_sName, entry ->
                 {
                 SemaphoreStatus status = entry.getValue();
@@ -596,7 +595,7 @@ public class RemoteSemaphore
 
         final boolean isAcquiredByThread(Thread thread)
             {
-            final PermitAcquirer acquirer = new PermitAcquirer(f_memberId, thread.getId());
+            final PermitAcquirer acquirer = new PermitAcquirer(f_localMember, thread.getId());
             return f_semaphores.invoke(f_sName, entry ->
                 {
                 SemaphoreStatus status = entry.getValue();
@@ -619,15 +618,14 @@ public class RemoteSemaphore
                 {
                 return;
                 }
-
-            if (status.getPermits() <= 0 && !f_memberId.equals(status.getMember()))
+            if (status.getPermits() <= 0 && !f_localMember.getUuid().equals(status.getMember()))
                 {
                 // other node acquired last permit; prevent anyone local from acquiring permit
                 acquireShared(-1);
                 }
             else if (status.getPermits() > 0
                      && status.getPermits() > oldStatus.getPermits()
-                     && !f_memberId.equals(status.getMember()))
+                     && !f_localMember.getUuid().equals(status.getMember()))
                 {
                 // other node released permits; put local semaphore back in business
                 releaseShared(-1);
@@ -639,7 +637,7 @@ public class RemoteSemaphore
         /**
          * Local member/current process identifier.
          */
-        private final UID f_memberId;
+        private final Member f_localMember;
 
         /**
          * The name of the remote semaphore; used as a key in the NamedMap containing the semaphores.

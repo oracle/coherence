@@ -12,8 +12,10 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.net.Member;
+
 import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -42,13 +44,14 @@ public class LockOwner
     /**
      * Construct {@code LockOwner} instance.
      *
-     * @param memberId  the member UID
+     * @param member    the member
      * @param threadId  the thread ID
      */
-    public LockOwner(UID memberId, long threadId)
+    public LockOwner(Member member, long threadId)
         {
-        m_memberId = memberId;
+        m_memberId = member.getUuid();
         m_threadId = threadId;
+        m_fClient  = member.getId() == 0;
         }
 
     /**
@@ -56,7 +59,7 @@ public class LockOwner
      *
      * @return the member UID
      */
-    public UID getMemberId()
+    public UUID getMemberId()
         {
         return m_memberId;
         }
@@ -71,6 +74,16 @@ public class LockOwner
         return m_threadId;
         }
 
+    /**
+     * Return {@code true} if this lock owner is a remote client (Extend or gRPC).
+     *
+     * @return {@code true} if this lock owner is a remote client (Extend or gRPC)
+     */
+    public boolean isClient()
+        {
+        return m_fClient;
+        }
+
     @Override
     public boolean equals(Object o)
         {
@@ -83,13 +96,13 @@ public class LockOwner
             return false;
             }
         LockOwner lockOwner = (LockOwner) o;
-        return m_threadId == lockOwner.m_threadId && m_memberId.equals(lockOwner.m_memberId);
+        return m_threadId == lockOwner.m_threadId && m_memberId.equals(lockOwner.m_memberId) && m_fClient == lockOwner.m_fClient;
         }
 
     @Override
     public int hashCode()
         {
-        return Objects.hash(m_memberId, m_threadId);
+        return Objects.hash(m_memberId, m_threadId, m_fClient);
         }
 
     @Override
@@ -98,6 +111,7 @@ public class LockOwner
         return "LockOwner{" +
                "memberId=" + m_memberId +
                ", threadId=" + m_threadId +
+               ", client=" + m_fClient +
                '}';
         }
 
@@ -109,6 +123,7 @@ public class LockOwner
         {
         m_memberId = ExternalizableHelper.readObject(in);
         m_threadId = in.readLong();
+        m_fClient  = in.readBoolean();
         }
 
     @Override
@@ -117,6 +132,7 @@ public class LockOwner
         {
         ExternalizableHelper.writeObject(out, m_memberId);
         out.writeLong(m_threadId);
+        out.writeBoolean(m_fClient);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -127,6 +143,7 @@ public class LockOwner
         {
         m_memberId = in.readObject(1);
         m_threadId = in.readLong(2);
+        m_fClient  = in.readBoolean(3);
         }
 
     @Override
@@ -135,10 +152,12 @@ public class LockOwner
         {
         out.writeObject(1, m_memberId);
         out.writeLong(2, m_threadId);
+        out.writeBoolean(3, m_fClient);
         }
 
     // ---- data members ----------------------------------------------------
 
-    private UID m_memberId;
+    private UUID m_memberId;
     private long m_threadId;
+    private boolean m_fClient;
     }

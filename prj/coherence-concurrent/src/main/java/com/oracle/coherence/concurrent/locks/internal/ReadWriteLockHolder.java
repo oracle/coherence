@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.locks.internal;
 
@@ -20,7 +20,7 @@ import com.tangosol.net.ServiceInfo;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -107,7 +107,7 @@ public class ReadWriteLockHolder
      * @return {@code true} if this lock is currently owned exclusively by
      *         the specified member
      */
-    public boolean isWriteLockedByMember(UID memberId)
+    public boolean isWriteLockedByMember(UUID memberId)
         {
         return isWriteLocked() && m_writeLock.getMemberId().equals(memberId);
         }
@@ -135,7 +135,7 @@ public class ReadWriteLockHolder
      * @return {@code true} if this lock is currently locked for reads by
      *         the specified member
      */
-    public boolean isReadLockedByMember(UID memberId)
+    public boolean isReadLockedByMember(UUID memberId)
         {
         return isReadLocked() && m_setReadLocks.stream().anyMatch(lo -> lo.getMemberId().equals(memberId));
         }
@@ -163,9 +163,21 @@ public class ReadWriteLockHolder
      * @return {@code true} if this lock is currently locked for either reads or writes by
      *         the specified member
      */
-    public boolean isLockedByMember(UID memberId)
+    public boolean isLockedByMember(UUID memberId)
         {
         return isWriteLockedByMember(memberId) || isReadLockedByMember(memberId);
+        }
+
+    /**
+     * Return {@code true} if this lock is currently owned exclusively
+     * by a client.
+     *
+     * @return {@code true} if this lock is currently owned exclusively by
+     *         a client
+     */
+    public boolean isWriteLockedByClient()
+        {
+        return isWriteLocked() && m_writeLock.isClient();
         }
 
     /**
@@ -287,7 +299,7 @@ public class ReadWriteLockHolder
      *
      * @return {@code true} if this holder was modified
      */
-    protected boolean removeLocksFor(UID memberId)
+    protected boolean removeLocksFor(UUID memberId)
         {
         boolean fModified = false;
 
@@ -309,7 +321,7 @@ public class ReadWriteLockHolder
      *
      * @return {@code true} if the set was modified
      */
-    private boolean removeLocksFor(Set<LockOwner> set, UID memberId)
+    private boolean removeLocksFor(Set<LockOwner> set, UUID memberId)
         {
         boolean fModified = false;
 
@@ -334,11 +346,11 @@ public class ReadWriteLockHolder
      *
      * @return {@code true} if this holder was modified
      */
-    protected boolean retainLocksFor(Set<UID> setMemberIds)
+    protected boolean retainLocksFor(Set<UUID> setMemberIds)
         {
         boolean fModified = false;
 
-        if (isWriteLocked() && !setMemberIds.contains(m_writeLock.getMemberId()))
+        if (isWriteLocked() && !isWriteLockedByClient() && !setMemberIds.contains(m_writeLock.getMemberId()))
             {
             m_writeLock = null;
             fModified = true;
@@ -357,7 +369,7 @@ public class ReadWriteLockHolder
      *
      * @return {@code true} if this holder was modified
      */
-    private boolean retainLocksFor(Set<LockOwner> set, Set<UID> setMemberIds)
+    private boolean retainLocksFor(Set<LockOwner> set, Set<UUID> setMemberIds)
         {
         boolean fModified = false;
 
@@ -365,7 +377,7 @@ public class ReadWriteLockHolder
         while (it.hasNext())
             {
             LockOwner owner = it.next();
-            if (!setMemberIds.contains(owner.getMemberId()))
+            if (!owner.isClient() && !setMemberIds.contains(owner.getMemberId()))
                 {
                 it.remove();
                 fModified = true;
@@ -451,7 +463,7 @@ public class ReadWriteLockHolder
          *                  cluster any longer (if the specified member ID is
          *                  {@code null}).
          */
-        public RemoveLocks(UID memberId)
+        public RemoveLocks(UUID memberId)
             {
             m_memberId = memberId;
             }
@@ -467,8 +479,8 @@ public class ReadWriteLockHolder
                 ServiceInfo info = ((BinaryEntry<String, ReadWriteLockHolder>) entry)
                         .getContext().getCacheService().getInfo();
                 Set<Member> setServiceMembers = info.getServiceMembers();
-                Set<UID>    setValidMemberIds = setServiceMembers.stream()
-                        .map(Member::getUid)
+                Set<UUID>   setValidMemberIds = setServiceMembers.stream()
+                        .map(Member::getUuid)
                         .collect(Collectors.toSet());
                 if (holder.retainLocksFor(setValidMemberIds))
                     {
@@ -520,9 +532,9 @@ public class ReadWriteLockHolder
         // ----- data members -----------------------------------------------
 
         /**
-         * The member UID to remove all the locks for.
+         * The member UUID to remove all the locks for.
          */
-        protected UID m_memberId;
+        protected UUID m_memberId;
         }
 
     // ---- data members ----------------------------------------------------

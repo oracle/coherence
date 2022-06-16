@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.locks.internal;
 
@@ -20,7 +20,7 @@ import com.tangosol.net.ServiceInfo;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -76,9 +76,20 @@ public class ExclusiveLockHolder
      * @return {@code true} if this lock is currently owned by he specified
      *                      member
      */
-    public boolean isLockedByMember(UID memberId)
+    public boolean isLockedByMember(UUID memberId)
         {
         return isLocked() && m_lockOwner.getMemberId().equals(memberId);
+        }
+
+    /**
+     * Return {@code true} if this lock is currently owned by the remote client
+     * (Extend or gRPC).
+     *
+     * @return {@code true} if this lock is currently owned by the remote client
+     */
+    public boolean isLockedByClient()
+        {
+        return isLocked() && m_lockOwner.isClient();
         }
 
     /**
@@ -140,7 +151,7 @@ public class ExclusiveLockHolder
      *
      * @return {@code true} if this holder was modified
      */
-    protected boolean removeLocksFor(UID memberId)
+    protected boolean removeLocksFor(UUID memberId)
         {
         if (isLockedByMember(memberId))
             {
@@ -152,15 +163,16 @@ public class ExclusiveLockHolder
         }
 
     /**
-     * Remove the lock if it's NOT owned by one of the specified members.
+     * Remove the lock if it's NOT owned by one of the specified cluster members
+     * or a remote client (Extend or gRPC).
      *
-     * @param setMemberIds  the UIDs of the member to retain the locks for
+     * @param setMemberIds  the UUIDs of the cluster members to retain the locks for
      *
      * @return {@code true} if this holder was modified
      */
-    protected boolean retainLocksFor(Set<UID> setMemberIds)
+    protected boolean retainLocksFor(Set<UUID> setMemberIds)
         {
-        if (isLocked() && !setMemberIds.contains(m_lockOwner.getMemberId()))
+        if (isLocked() && !isLockedByClient() && !setMemberIds.contains(m_lockOwner.getMemberId()))
             {
             m_lockOwner = null;
             return true;
@@ -237,7 +249,7 @@ public class ExclusiveLockHolder
          *                  cluster any longer (if the specified member ID is
          *                  {@code null}).
          */
-        public RemoveLocks(UID memberId)
+        public RemoveLocks(UUID memberId)
             {
             m_memberId = memberId;
             }
@@ -253,8 +265,8 @@ public class ExclusiveLockHolder
                 ServiceInfo info = ((BinaryEntry<String, ExclusiveLockHolder>) entry)
                         .getContext().getCacheService().getInfo();
                 Set<Member> setServiceMembers = info.getServiceMembers();
-                Set<UID>    setValidMemberIds = setServiceMembers.stream()
-                        .map(Member::getUid)
+                Set<UUID>   setValidMemberIds = setServiceMembers.stream()
+                        .map(Member::getUuid)
                         .collect(Collectors.toSet());
                 if (holder.retainLocksFor(setValidMemberIds))
                     {
@@ -308,7 +320,7 @@ public class ExclusiveLockHolder
         /**
          * The member UID to remove all the locks for.
          */
-        protected UID m_memberId;
+        protected UUID m_memberId;
         }
 
     // ---- data members ----------------------------------------------------
