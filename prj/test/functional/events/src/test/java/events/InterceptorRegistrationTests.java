@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package events;
 
@@ -899,33 +899,79 @@ public class InterceptorRegistrationTests
      * Test register multiple unnamed interceptors with DCCF.
      */
     @Test
-    public void testRegisterUnnamedInterceptorsWithDCCF() throws Exception
+    public void testRegisterUnnamedInterceptorsWithDCCF()
+            throws Exception
         {
-        ConfigurableCacheFactory ccf = new DefaultConfigurableCacheFactory(new SimpleParser(true).parseXml(m_sConfig));
-        CacheFactory.ensureCluster();
-        ccf.ensureCache("distributed-test", null).put(1, 1);
-        assertEquals(1, TestInterceptor.count);
-        ccf.ensureCache("nearcache-test", null).put(2, 2);
-        assertEquals(2, TestInterceptor.count);
-        //reset the counter
-        TestInterceptor.count = 0;
-        CacheFactory.shutdown();
+        try
+            {
+            ConfigurableCacheFactory ccf = new DefaultConfigurableCacheFactory(new SimpleParser(true).parseXml(m_sConfig));
+
+            CacheFactory.ensureCluster();
+
+            ccf.ensureCache("distributed-test", null).put(1, 1);
+            assertEquals(1, TestInterceptor.count);
+            ccf.ensureCache("nearcache-test", null).put(2, 2);
+            assertEquals(2, TestInterceptor.count);
+
+            //reset the counter
+            TestInterceptor.count = 0;
+            }
+        finally
+            {
+            CacheFactory.shutdown();
+            }
         }
 
     /**
      * Test register near-cache interceptor with ECCF.
      */
     @Test
-    public void testRegisterNearCacheInterceptorWithECCF() throws Exception
+    public void testRegisterNearCacheInterceptorWithECCF()
+            throws Exception
         {
-        Dependencies dependencies = DependenciesHelper.newInstance(new SimpleParser(true).parseXml(m_sConfig));
-        ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(dependencies);
-        CacheFactory.ensureCluster();
-        eccf.ensureCache("nearcache-test", getClassLoader()).put(4,4);
-        assertEquals(1, TestInterceptor.count);
-        //reset the counter
-        TestInterceptor.count = 0;
-        CacheFactory.shutdown();
+        try
+            {
+            Dependencies dependencies = DependenciesHelper.newInstance(new SimpleParser(true).parseXml(m_sConfig));
+
+            ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(dependencies);
+            CacheFactory.ensureCluster();
+
+            eccf.ensureCache("nearcache-test", getClassLoader()).put(4,4);
+            assertEquals(1, TestInterceptor.count);
+
+            //reset the counter
+            TestInterceptor.count = 0;
+            }
+        finally
+            {
+            CacheFactory.shutdown();
+            }
+        }
+
+    /**
+     * Test register near-cache interceptor with ECCF and subclass.
+     */
+    @Test
+    public void testRegisterNearCacheInterceptorWithECCFAndSubclass()
+            throws Exception
+        {
+        try
+            {
+            Dependencies dependencies = DependenciesHelper.newInstance(new SimpleParser(true).parseXml(m_sConfigSubclass));
+
+            ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(dependencies);
+            CacheFactory.ensureCluster();
+
+            eccf.ensureCache("nearcache-test", getClassLoader()).put(4,4);
+            assertEquals(1, TestInterceptorSubclass.count);
+
+            //reset the counter
+            TestInterceptorSubclass.count = 0;
+            }
+        finally
+            {
+            CacheFactory.shutdown();
+            }
         }
 
     // ----- helpers --------------------------------------------------------
@@ -1008,6 +1054,17 @@ public class InterceptorRegistrationTests
              }
         }
 
+    /**
+     * Simple TestInterceptorSubclass to test fix for Bug 33125540.
+     */
+    public static class TestInterceptorSubclass extends TestInterceptor
+        {
+        public TestInterceptorSubclass()
+            {
+            super();
+            }
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -1047,6 +1104,68 @@ public class InterceptorRegistrationTests
            "          <interceptor>\n" +
            "              <instance>\n" +
            "                  <class-name>events.InterceptorRegistrationTests$TestInterceptor</class-name>\n" +
+           "              </instance>\n" +
+           "          </interceptor>\n" +
+           "      </interceptors>\n" +
+           "    </cache-mapping>\n" +
+           "  </caching-scheme-mapping>\n" +
+           "\n" +
+           "  <caching-schemes>\n" +
+           "\n" +
+           "    <distributed-scheme>\n" +
+           "      <scheme-name>dist</scheme-name>\n" +
+           "      <scheme-ref>dist3</scheme-ref>\n" +
+           "    </distributed-scheme>\n" +
+           "\n" +
+           "    <near-scheme>\n" +
+           "      <scheme-name>near</scheme-name>\n" +
+           "      <front-scheme>\n" +
+           "        <local-scheme/>\n" +
+           "      </front-scheme>\n" +
+           "      <back-scheme>\n" +
+           "        <distributed-scheme>\n" +
+           "          <scheme-ref>dist3</scheme-ref>\n" +
+           "        </distributed-scheme>\n" +
+           "      </back-scheme>\n" +
+           "    </near-scheme>\n" +
+           "\n" +
+           "    <distributed-scheme>\n" +
+           "      <scheme-name>dist3</scheme-name>\n" +
+           "      <backing-map-scheme>\n" +
+           "        <local-scheme/>\n" +
+           "      </backing-map-scheme>\n" +
+           "    </distributed-scheme>\n" +
+           "\n" +
+           "  </caching-schemes>\n" +
+           "</cache-config>\n";
+
+    /**
+     *  Local Cache Config used for tests for TestInterceptorSubclass.
+     */
+    String m_sConfigSubclass =
+           "<cache-config xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+           "              xmlns=\"http://xmlns.oracle.com/coherence/coherence-cache-config\"\n" +
+           "              xsi:schemaLocation=\"http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd\">\n" +
+           "\n" +
+           "  <caching-scheme-mapping>\n" +
+           "    <cache-mapping>\n" +
+           "      <cache-name>distributed-*</cache-name>\n" +
+           "      <scheme-name>dist</scheme-name>\n" +
+           "      <interceptors>\n" +
+           "          <interceptor>\n" +
+           "              <instance>\n" +
+           "                  <class-name>events.InterceptorRegistrationTests$TestInterceptorSubclass</class-name>\n" +
+           "              </instance>\n" +
+           "          </interceptor>\n" +
+           "      </interceptors>\n" +
+           "    </cache-mapping>\n" +
+           "    <cache-mapping>\n" +
+           "      <cache-name>nearcache-*</cache-name>\n" +
+           "      <scheme-name>near</scheme-name>\n" +
+           "      <interceptors>\n" +
+           "          <interceptor>\n" +
+           "              <instance>\n" +
+           "                  <class-name>events.InterceptorRegistrationTests$TestInterceptorSubclass</class-name>\n" +
            "              </instance>\n" +
            "          </interceptor>\n" +
            "      </interceptors>\n" +
