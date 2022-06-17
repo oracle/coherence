@@ -701,6 +701,8 @@
                     <exclude>com/tangosol/util/StringMap.java</exclude>
                   </sourceFileExcludes>
 
+                  <excludePackageNames>com.oracle.coherence.concurrent.atomic.internal.cdi,com.oracle.coherence.concurrent.locks.internal.cdi,com.tangosol.coherence.dslquery.internal</excludePackageNames>
+
                   <groups>
                     <group>
                       <title>Coherence</title>
