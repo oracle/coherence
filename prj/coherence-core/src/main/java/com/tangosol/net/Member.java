@@ -81,4 +81,16 @@ public interface Member
         {
         throw new UnsupportedOperationException();
         }
+
+    /**
+     * Check whether or not the Member represents a remote client.
+     *
+     * @return true if the Member is a remote client; false otherwise
+     *
+     * @since 22.06
+     */
+    default boolean isRemoteClient()
+        {
+        return getId() == 0;
+        }
     }

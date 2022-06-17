@@ -279,7 +279,7 @@ public class ExtendClientMemberEventTests
             {
             Member member = evt.getMember();
 
-            if (member.getId() == 0)
+            if (member.isRemoteClient())
                 {
                 Logger.info("ExtendClientMemberListener joined : svc=" + evt.getService().getInfo().getServiceName() + " evt= " + evt + " uuid=" + evt.getMember().getUid());
 
@@ -290,17 +290,13 @@ public class ExtendClientMemberEventTests
 
         public void memberLeaving(MemberEvent evt)
             {
-            Member member = evt.getMember();
-            if (member.getId() == 0)
-                {
-                Logger.info("ExtendClientMemberListener leaving : evt= " + evt + " uuid=" + evt.getMember().getUid());
-                }
+            // not applicable for remote client
             }
 
         public void memberLeft(MemberEvent evt)
             {
             Member member = evt.getMember();
-            if (member.getId() == 0)
+            if (member.isRemoteClient())
                 {
                 String sExecutingMember = CacheFactory.getCluster().getLocalMember().getMemberName();
 
