@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -36,6 +36,16 @@ public interface ConfigurableCacheFactory
     public void activate();
 
     /**
+     * Returns {@code true} if this {@link ConfigurableCacheFactory} is activated.
+     *
+     * @return {@code true} if this {@link ConfigurableCacheFactory} is activated
+     */
+    public default boolean isActive()
+        {
+        return true;
+        }
+
+    /**
      * Dispose of this factory. This will stop all services that were started by this
      * factory and dispose of all resources registered via {@link #getResourceRegistry()}.
      *
@@ -44,6 +54,17 @@ public interface ConfigurableCacheFactory
      * @since Coherence 12.1.2
      */
     public void dispose();
+
+    /**
+     * Return true if this factory has been disposed via invocation of
+     * {@link #dispose()}.
+     *
+     * @return true if this factory has been disposed
+     */
+    public default boolean isDisposed()
+        {
+        return false;
+        }
 
     /**
     * Ensure an cache for the given name and classloader (using raw types).

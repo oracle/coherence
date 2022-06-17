@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -700,7 +700,7 @@ public class ExtensibleConfigurableCacheFactory
      *
      * @return true if this factory has been disposed
      */
-    protected boolean isDisposed()
+    public boolean isDisposed()
         {
         return m_fDisposed;
         }

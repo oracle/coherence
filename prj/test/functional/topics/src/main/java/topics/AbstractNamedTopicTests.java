@@ -1111,7 +1111,7 @@ public abstract class AbstractNamedTopicTests
                 positionOne = (PagedPosition) elementOne.getPosition();
                 }
 
-            // Commit the element, which is the the tail of the first page so we have fully read it
+            // Commit the element, which is the tail of the first page, so we have fully read it
             // this should remove subscriber one's ref count but not remove the page
             assertThat(elementOne.commit().isSuccess(), is(true));
 
@@ -1133,7 +1133,7 @@ public abstract class AbstractNamedTopicTests
                 positionTwo = (PagedPosition) elementTwo.getPosition();
                 }
 
-            // Commit the element, which is the the tail of the first page so we have fully read it
+            // Commit the element, which is the tail of the first page, so we have fully read it
             // this should remove subscriber two's ref count and so remove the page
             assertThat(elementTwo.commit().isSuccess(), is(true));
 
@@ -1159,7 +1159,7 @@ public abstract class AbstractNamedTopicTests
             nTail = page.getTail();
             if (positionOne.getOffset() == nTail)
                 {
-                // we have just read a tail element, so read another so we're into the next page
+                // we have just read a tail element, so read another, so we're into the next page
                 elementOne  = subscriberOne.receive().get(2, TimeUnit.MINUTES);
                 positionOne = (PagedPosition) elementOne.getPosition();
                 elementTwo  = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
@@ -1661,7 +1661,7 @@ public abstract class AbstractNamedTopicTests
             // none of the entries should have a previous page (i.e. they are the first page in each partition)
             assertThat(setPage.stream().allMatch(entry -> entry.getValue().getPreviousPartitionPage() == Page.NULL_PAGE), is(true));
 
-            // Read all of the elements with subscriber A
+            // Read all the elements with subscriber A
             Element<String> elementA = null;
             int             i        = 0;
 
@@ -1694,7 +1694,7 @@ public abstract class AbstractNamedTopicTests
             // should not have removed anything
             assertThat(caches.Pages.size(), is(cExpected));
 
-            // Read all of the elements with subscriber B
+            // Read all the elements with subscriber B
             Element<String> elementB = null;
             for (int j = 0; j < cRecords; ++j)
                 {
@@ -2025,7 +2025,7 @@ public abstract class AbstractNamedTopicTests
                 listSubscriber.add(topic.createSubscriber(inGroup(sGroup), completeOnEmpty()));
                 }
 
-            // Channel allocation changes are notified async so we need to wait until all subscribers have one channel
+            // Channel allocation changes are notified async, so we need to wait until all subscribers have one channel
             // and all channels are allocated to a subscriber
             try
                 {
@@ -2091,7 +2091,7 @@ public abstract class AbstractNamedTopicTests
             AtomicInteger              nOrder      = new AtomicInteger();
             int                        cMessages   = 0;
 
-            // publish to all of the channels to ensure all subscribers have messages
+            // publish to all the channels to ensure all subscribers have messages
             try (Publisher<String> publisher = topic.createPublisher(OrderBy.value(v -> nOrder.get())))
                 {
                 cChannel = publisher.getChannelCount();
@@ -2120,7 +2120,7 @@ public abstract class AbstractNamedTopicTests
             Map<Integer, Position> commits1  = new HashMap<>();
             Map<Integer, Position> commits2  = new HashMap<>();
             Map<Integer, Position> commits3  = new HashMap<>();
-            int                    cRecieved = 0;
+            int                    cReceived = 0;
 
             System.err.println("Subscriber 1 " + subscriber1);
             System.err.println("Subscriber 2 " + subscriber2);
@@ -2147,7 +2147,7 @@ public abstract class AbstractNamedTopicTests
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits3.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                cRecieved += 3;
+                cReceived += 3;
                 }
 
             // commit all commit maps
@@ -2171,7 +2171,7 @@ public abstract class AbstractNamedTopicTests
             subscriber1.close();
 
             // Wait for the channels to all be reallocated
-            // In real life we don't do this as we do not guarantee once only but we need to do
+            // In real life we don't do this as we do not guarantee once only, but we need to do
             // this for the test to be stable
             Eventually.assertDeferred(() -> subscriber2.getChannels().length, is(not(0)));
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(is(not(0))));
@@ -2206,7 +2206,7 @@ public abstract class AbstractNamedTopicTests
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 commits3.put(element.getChannel(), element.getPosition());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                cRecieved += 2;
+                cReceived += 2;
                 }
 
             // commit remaining subscribers
@@ -2228,7 +2228,7 @@ public abstract class AbstractNamedTopicTests
             subscriber2.close();
 
             // Wait for the channels to all be reallocated
-            // In real life we don't do this as we do not guarantee once only but we need to do
+            // In real life we don't do this as we do not guarantee once only, but we need to do
             // this for the test to be stable
             System.err.println("Waiting for Subscriber 3 to have " + cChannel + " channels");
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(cChannel));
@@ -2236,14 +2236,14 @@ public abstract class AbstractNamedTopicTests
             System.err.println("Subscriber 3 has channels " + subscriber3);
 
             // read all messages left using subscriber 3
-            while (cRecieved < cMessages)
+            while (cReceived < cMessages)
                 {
                 element = subscriber3.receive().get(1, TimeUnit.MINUTES);
                 assertThat(element, is(notNullValue()));
                 listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
                 mapReceived.get(element.getChannel()).add(element.getValue());
                 assertThat("Duplicate " + element.getValue(), setPosn.add(new ChannelPosition(element)), is(true));
-                cRecieved++;
+                cReceived++;
                 }
 
             for (int i = 0; i < mapSent.size(); i++)
@@ -2558,7 +2558,7 @@ public abstract class AbstractNamedTopicTests
                     }
                 });
 
-            // will throw if the backlog is too big or it takes more than five minutes - which is a crazy amount of time
+            // will throw if the backlog is too big, or it takes more than five minutes - which is a crazy amount of time
             future.get(5, TimeUnit.MINUTES);
             }
         }
@@ -2638,7 +2638,7 @@ public abstract class AbstractNamedTopicTests
         }
 
     @Test
-    @Ignore("Skipped until we can figure out whhy the test hangs")
+    @Ignore("Skipped until we can figure out why the test hangs")
     public void shouldThrowWhenFull()
         {
         NamedTopic<String> topic = ensureTopic(m_sSerializer + "-limited");
@@ -2680,7 +2680,7 @@ public abstract class AbstractNamedTopicTests
         }
 
     @Test
-    @Ignore("Skipped until we can figure out whhy the test hangs")
+    @Ignore("Skipped until we can figure out why the test hangs")
     public void shouldCloseWhenFull()
         {
         NamedTopic<String> topic = ensureTopic(m_sSerializer + "-limited");
@@ -2690,7 +2690,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has per server capacity of " + SERVER_CAPACITY + " configured",
                           getDependencies(topic).getServerCapacity(), is(SERVER_CAPACITY));
 
-        try (Subscriber<String> unused = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
+        try (Subscriber<String> ignored = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber")))
             {
             int  cbValue = ExternalizableHelper.toBinary( "Element-" + 0, topic.getService().getSerializer()).length();
             long nHigh   = SERVER_CAPACITY / cbValue; // from config
@@ -2871,7 +2871,7 @@ public abstract class AbstractNamedTopicTests
 
                 // commit element-2
                 element.commit();
-                // receieve element-3
+                // receive element-3
                 element = subscriber1.receive().get(1, TimeUnit.MINUTES);
                 assertThat(element.getValue(), is(sPrefix + 3));
 
@@ -3043,7 +3043,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages, so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3082,9 +3082,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3108,7 +3108,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3163,9 +3163,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3206,9 +3206,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3248,9 +3248,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3343,7 +3343,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3387,7 +3387,7 @@ public abstract class AbstractNamedTopicTests
                 pagedPosition = (PagedPosition) element.getPosition();
                 }
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
 
             // Seek subscriber one to the last position read by subscription two
@@ -3397,7 +3397,7 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
 
             // the two lots of Subscriptions should match
@@ -3423,7 +3423,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3555,7 +3555,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3609,7 +3609,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3656,9 +3656,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3682,7 +3682,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3736,9 +3736,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3767,7 +3767,7 @@ public abstract class AbstractNamedTopicTests
         try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "one"));
              PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName() + "two")))
             {
-            // publish a lot os messages so we have multiple pages spread over all of the partitions
+            // publish a lot os messages so we have multiple pages spread over all the partitions
             CompletableFuture<Status> futurePublish = null;
             int                       nChannel      = 1;
 
@@ -3816,9 +3816,9 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
             // the two lots of Subscriptions should match
             assertSubscriptions(mapSubscriptionOne, mapSubscriptionTwo, pagedPosition);
@@ -3842,7 +3842,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3893,7 +3893,7 @@ public abstract class AbstractNamedTopicTests
                 pagedPosition = (PagedPosition) element.getPosition();
                 }
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
 
             // Seek subscriber one to the last position read by subscription two
@@ -3902,7 +3902,7 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
 
             // the two lots of Subscriptions should match
@@ -3927,7 +3927,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3964,7 +3964,7 @@ public abstract class AbstractNamedTopicTests
             Element<String> element       = future.get(2, TimeUnit.MINUTES);
             PagedPosition   pagedPosition = (PagedPosition) element.getPosition();
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
 
             // Seek subscriber one to the last position read by subscription two
@@ -3973,7 +3973,7 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result, is(pagedPosition));
 
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
 
             // the two lots of Subscriptions should match
@@ -3998,7 +3998,7 @@ public abstract class AbstractNamedTopicTests
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
 
-        // publish a lot os messages so we have multiple pages spread over all of the partitions
+        // publish a lot os messages so we have multiple pages spread over all the partitions
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -4035,7 +4035,7 @@ public abstract class AbstractNamedTopicTests
             Element<String> element       = future.get(2, TimeUnit.MINUTES);
             PagedPosition   pagedPosition = (PagedPosition) element.getPosition();
 
-            // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberTwo, nChannel, caches);
 
             // Seek subscriber one to the last position read by subscription two
@@ -4044,7 +4044,7 @@ public abstract class AbstractNamedTopicTests
             // should have seeked to the correct position
             assertThat(result.getPage(), is(pagedPosition.getPage() - 1));
 
-            // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+            // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
             SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberOne, nChannel, caches);
 
             // the two lots of Subscriptions should match
@@ -4597,10 +4597,10 @@ public abstract class AbstractNamedTopicTests
     protected void assertSubscribersAtTail(Subscriber<String> subscriberTest, Subscriber<String> subscriberExpected,
                                            PagedTopicCaches caches, int nChannel, PagedPosition position) throws Exception
         {
-        // Collect all of the Subscriptions for the published channel for subscriber two (sorted by partition id)
+        // Collect all the Subscriptions for the published channel for subscriber two (sorted by partition id)
         SortedMap<Subscription.Key, Subscription> mapSubscriptionTwo = getSubscriptions(subscriberExpected, nChannel, caches);
 
-        // Collect all of the Subscriptions for the published channel for subscriber one (sorted by partition id)
+        // Collect all the Subscriptions for the published channel for subscriber one (sorted by partition id)
         SortedMap<Subscription.Key, Subscription> mapSubscriptionOne = getSubscriptions(subscriberTest, nChannel, caches);
 
         // the two lots of Subscriptions should match
