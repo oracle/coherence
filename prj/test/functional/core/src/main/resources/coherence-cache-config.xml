@@ -130,6 +130,13 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
     </cache-mapping>
   </caching-scheme-mapping>
 
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>*</topic-name>
+      <scheme-name>topic-server</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
   <caching-schemes>
     <!--
     Distributed caching scheme.
@@ -389,6 +396,15 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
       <scheme-name>example-transactional</scheme-name>
       <service-name>TransactionalCache</service-name>
     </transactional-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>topic-server</scheme-name>
+      <service-name>${coherence.service.name Partitioned}Topic</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <partition-count system-property="coherence.distributed.partitions">257</partition-count>
+      <autostart system-property="coherence.topic.enabled">true</autostart>
+      <high-units>{topic-high-units-bytes 0B}</high-units>
+    </paged-topic-scheme>
 
   </caching-schemes>
 </cache-config>

@@ -1118,9 +1118,7 @@ public class PagedTopicCaches
                 {
                 m_state = fDestroy ? State.Destroyed : State.Released;
 
-                Consumer<NamedCache> function    = fDestroy ? NamedCache::destroy : NamedCache::release;
-                Set<Listener>        setListener = m_mapListener.keySet();
-
+                Set<Listener> setListener = m_mapListener.keySet();
                 for (Listener listener : setListener)
                     {
                     try
@@ -1144,6 +1142,7 @@ public class PagedTopicCaches
 
                 if (f_setCaches != null)
                     {
+                    Consumer<NamedCache> function = fDestroy ? this::destroyCache : this::releaseCache;
                     synchronized (this)
                         {
                         if (f_setCaches != null)
@@ -1154,6 +1153,22 @@ public class PagedTopicCaches
                         }
                     }
                 }
+            }
+        }
+
+    private void releaseCache(NamedCache<?, ?> cache)
+        {
+        if (cache.isActive() && !cache.isReleased())
+            {
+            cache.release();
+            }
+        }
+
+    private void destroyCache(NamedCache<?, ?> cache)
+        {
+        if (cache.isActive() && !cache.isDestroyed())
+            {
+            cache.destroy();
             }
         }
 

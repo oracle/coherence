@@ -181,35 +181,30 @@ public class MemberIdentityTests
         @Override
         public String getMachineName()
             {
-            Logger.finer("****** Called DiscoveredIdentity.getMachineName()");
             return "machine-two";
             }
 
         @Override
         public String getMemberName()
             {
-            Logger.finer("****** Called DiscoveredIdentity.getMemberName()");
             return "member-two";
             }
 
         @Override
         public String getRackName()
             {
-            Logger.finer("****** Called DiscoveredIdentity.getRackName()");
             return "rack-two";
             }
 
         @Override
         public String getRoleName()
             {
-            Logger.finer("****** Called DiscoveredIdentity.getRoleName()");
             return "role-two";
             }
 
         @Override
         public String getSiteName()
             {
-            Logger.finer("****** Called DiscoveredIdentity.getSiteName()");
             return "site-two";
             }
         }

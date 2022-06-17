@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
@@ -37,6 +37,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.util.Base;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.ResourceRegistry;
+import com.tangosol.util.SimpleResourceRegistry;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,6 +80,7 @@ public class ConfigurableCacheFactorySession
         f_mapCaches       = new ConcurrentHashMap<>();
         f_mapTopics       = new ConcurrentHashMap<>();
         f_eventDispatcher = new SessionEventDispatcher(this);
+        f_registry        = f_ccf.getResourceRegistry();
 
         // if there is a session name add it as a resource to the CCF resource registry
         if (f_sName != null)
@@ -101,8 +103,7 @@ public class ConfigurableCacheFactorySession
 
         if (f_ccf instanceof ExtensibleConfigurableCacheFactory)
             {
-            ResourceRegistry        registry      = f_ccf.getResourceRegistry();
-            EventDispatcherRegistry dispatcherReg = registry.getResource(EventDispatcherRegistry.class);
+            EventDispatcherRegistry dispatcherReg = f_registry.getResource(EventDispatcherRegistry.class);
             dispatcherReg.registerEventDispatcher(f_eventDispatcher);
             // register an interceptor so that this session will close if the CCF is disposed
             f_ccf.getInterceptorRegistry().registerEventInterceptor(new LifecycleInterceptor());
@@ -123,10 +124,8 @@ public class ConfigurableCacheFactorySession
         {
         if (!m_fClosed)
             {
-            ResourceRegistry registry = f_ccf.getResourceRegistry();
-
             // ensure we have a reference counter for the named cache
-            registry.registerResource(
+            f_registry.registerResource(
                     NamedCacheReferenceCounter.class, sName,
                     NamedCacheReferenceCounter::new,
                     RegistrationBehavior.IGNORE, null);
@@ -167,8 +166,7 @@ public class ConfigurableCacheFactorySession
                         typeAssertion);
 
                 // increment the reference count for the underlying NamedCache
-                registry.getResource(NamedCacheReferenceCounter.class,
-                        sName).incrementAndGet();
+                f_registry.getResource(NamedCacheReferenceCounter.class, sName).incrementAndGet();
 
                 return cache;
                 });
@@ -186,10 +184,8 @@ public class ConfigurableCacheFactorySession
         {
         if (!m_fClosed)
             {
-            ResourceRegistry registry = f_ccf.getResourceRegistry();
-
             // ensure we have a reference counter for the named topic
-            registry.registerResource(
+            f_registry.registerResource(
                     NamedTopicReferenceCounter.class, sName,
                     NamedTopicReferenceCounter::new,
                     RegistrationBehavior.IGNORE, null);
@@ -224,7 +220,7 @@ public class ConfigurableCacheFactorySession
                                                                      loader, typeAssertion);
 
                 // increment the reference count for the underlying NamedTopic
-                registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
+                f_registry.getResource(NamedTopicReferenceCounter.class, sName).incrementAndGet();
 
                 return topic;
                 });
@@ -260,7 +256,7 @@ public class ConfigurableCacheFactorySession
 
             f_eventDispatcher.dispatchStopping();
 
-            // close all of the named caches created by this session
+            // close all the named caches created by this session
             f_mapCaches.values().stream()
                        .flatMap(
                                mapCachesByAssertion -> mapCachesByAssertion.values().stream())
@@ -269,7 +265,7 @@ public class ConfigurableCacheFactorySession
             // drop the references to caches
             f_mapCaches.clear();
 
-            // close all of the named topics created by this session
+            // close all the named topics created by this session
             f_mapTopics.values().stream()
                        .flatMap(mapTopicsByAssertion -> mapTopicsByAssertion.values().stream())
                        .forEach(SessionNamedTopic::close);
@@ -285,7 +281,7 @@ public class ConfigurableCacheFactorySession
     @Override
     public ResourceRegistry getResourceRegistry()
         {
-        return f_ccf.getResourceRegistry();
+        return f_registry;
         }
 
     @Override
@@ -357,9 +353,7 @@ public class ConfigurableCacheFactorySession
         topic.onClosing();
 
         // decrement the reference count for the underlying NamedTopic
-        ResourceRegistry registry = f_ccf.getResourceRegistry();
-
-        if (registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).decrementAndGet() == 0)
+        if (f_registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).decrementAndGet() == 0)
             {
             f_ccf.releaseTopic(topic.getInternalNamedTopic());
             }
@@ -374,17 +368,15 @@ public class ConfigurableCacheFactorySession
         topic.onDestroying();
 
         // reset the reference count for the underlying NamedCache
-        ResourceRegistry registry = f_ccf.getResourceRegistry();
-
-        registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).reset();
+        f_registry.getResource(NamedTopicReferenceCounter.class, topic.getName()).reset();
 
         f_ccf.destroyTopic(topic.getInternalNamedTopic());
 
         topic.onDestroyed();
         }
 
-    @SuppressWarnings({"rawtypes", "SuspiciousMethodCalls"})
-    <V> void dropNamedTopic(SessionNamedTopic<V> namedTopic)
+    @SuppressWarnings({"rawtypes", "resource"})
+    private <V> void dropNamedTopic(SessionNamedTopic<V> namedTopic)
         {
         // drop the NamedTopic from this session
         ConcurrentHashMap<ValueTypeAssertion, SessionNamedTopic> mapTopicsByTypeAssertion =
@@ -403,10 +395,7 @@ public class ConfigurableCacheFactorySession
         namedCache.onClosing();
 
         // decrement the reference count for the underlying NamedCache
-        ResourceRegistry registry = f_ccf.getResourceRegistry();
-
-        if (registry.getResource(NamedCacheReferenceCounter.class,
-                                 namedCache.getCacheName()).decrementAndGet() == 0)
+        if (f_registry.getResource(NamedCacheReferenceCounter.class, namedCache.getCacheName()).decrementAndGet() == 0)
             {
             f_ccf.releaseCache(namedCache.getInternalNamedCache());
             }
@@ -421,17 +410,14 @@ public class ConfigurableCacheFactorySession
         namedCache.onDestroying();
 
         // reset the reference count for the underlying NamedCache
-        ResourceRegistry registry = f_ccf.getResourceRegistry();
-
-        registry.getResource(NamedCacheReferenceCounter.class,
-                                 namedCache.getCacheName()).reset();
+        f_registry.getResource(NamedCacheReferenceCounter.class, namedCache.getCacheName()).reset();
 
         f_ccf.destroyCache(namedCache.getInternalNamedCache());
 
         namedCache.onDestroyed();
         }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "resource"})
     <K, V> void dropNamedCache(SessionNamedCache<K, V> namedCache)
         {
         // drop the NamedCache from this session
@@ -582,4 +568,9 @@ public class ConfigurableCacheFactorySession
      * The event dispatcher for lifecycle events.
      */
     private final SessionEventDispatcher f_eventDispatcher;
+
+    /**
+     * The CCF's resource registry.
+     */
+    private final ResourceRegistry f_registry;
     }
