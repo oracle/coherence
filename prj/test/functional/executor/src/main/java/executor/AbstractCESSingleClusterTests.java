@@ -229,14 +229,14 @@ public abstract class AbstractCESSingleClusterTests
         }
 
     @Override
-    @Test
+    @Test(timeout = 300000) // timeout after five minutes
     public void shouldHandleTasksFailingInInvokeAny()
         {
         Utils.assertWithFailureAction(super::shouldHandleTasksFailingInInvokeAny, this::dumpExecutorCacheStates);
         }
 
     @Override
-    @Test
+    @Test(timeout = 300000) // timeout after five minutes
     public void shouldUseDefaultExecutor()
         {
         Utils.assertWithFailureAction(super::shouldUseDefaultExecutor, this::dumpExecutorCacheStates);
