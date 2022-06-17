@@ -46,28 +46,4 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration combine.children="append">
-          <reuseSystemClassLoader>false</reuseSystemClassLoader>
-          <forkedProcessExitTimeoutInSeconds>300</forkedProcessExitTimeoutInSeconds>
-          <enableProcessChecker>native</enableProcessChecker>
-          <shutdown>kill</shutdown>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration combine.children="append">
-          <reuseSystemClassLoader>false</reuseSystemClassLoader>
-          <forkedProcessExitTimeoutInSeconds>300</forkedProcessExitTimeoutInSeconds>
-          <enableProcessChecker>native</enableProcessChecker>
-          <shutdown>kill</shutdown>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
