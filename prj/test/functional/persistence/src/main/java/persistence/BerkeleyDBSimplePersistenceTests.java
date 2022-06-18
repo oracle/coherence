@@ -115,7 +115,7 @@ public class BerkeleyDBSimplePersistenceTests
     public void testBackupPersistence2()
             throws IOException, MBeanException
         {
-        testBackupPersistence("active-backup", 2, "simple-persistent");
+        testBackupPersistence("active-backup", 2, "simple-persistent", false);
         }
 
     /**
@@ -126,6 +126,7 @@ public class BerkeleyDBSimplePersistenceTests
             throws IOException, MBeanException
         {
         testBackupPersistence3("active-backup");
+        //testBackupPersistence3("active");
         }
 
     /**
@@ -136,7 +137,18 @@ public class BerkeleyDBSimplePersistenceTests
     public void testBackupPersistence4()
             throws IOException, MBeanException
         {
-        testBackupPersistence("active-backup", 4, "simple-persistent");
+        testBackupPersistence("active-backup", 4, "simple-persistent", false);
+        }
+
+    /**
+     * Test 4 server storage, 1 server restart with backup persistence and
+     * backup count at 2, and after rolling restarts.
+     */
+    @Test
+    public void testBackupPersistence4Rolling()
+            throws IOException, MBeanException
+        {
+        testBackupPersistence("active-backup", 4, "simple-persistent", true);
         }
 
     /**
@@ -362,7 +374,7 @@ public class BerkeleyDBSimplePersistenceTests
 
             Eventually.assertDeferred(cache::size, is(5000));
 
-            stopCacheServer(sServer3);
+            stopCacheServer(sServer4);
             }
         finally
             {
@@ -384,17 +396,17 @@ public class BerkeleyDBSimplePersistenceTests
     /**
      * Test N server restart with backup persistence.
      */
-    public void testBackupPersistence(String sMode, int nServers, String sCacheName)
+    public void testBackupPersistence(String sMode, int nServers, String sCacheName, boolean fRolling)
             throws IOException, MBeanException
         {
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
 
-        File[]       fileActive = new File[nServers];
-        File[]       fileBackup = new File[nServers];
-        Properties[] props      = new Properties[nServers];
+        File[]       fileActive = new File[nServers + 1];
+        File[]       fileBackup = new File[nServers + 1];
+        Properties[] props      = new Properties[nServers + 1];
 
-        for (int i = 0; i < nServers; i++)
+        for (int i = 0; i < nServers + 1; i++)
             {
             fileActive[i] = FileHelper.createTempDir();
             fileBackup[i] = FileHelper.createTempDir();
@@ -419,6 +431,10 @@ public class BerkeleyDBSimplePersistenceTests
             // 0 and 2 point to the same location
             props[2].setProperty("test.persistence.active.dir", props[0].getProperty("test.persistence.active.dir"));
             props[2].setProperty("test.persistence.backup.dir", fileBackup[0].getAbsolutePath());
+
+            // most times distribution among 2 servers is complete; in rare cases it may still leave some partitions
+            // with other members, use extra backup of member 1 to be sure
+            props[1].setProperty("test.persistence.backup.dir", fileBackup[0].getAbsolutePath());
 
             System.setProperty("coherence.distributed.backupcount", "2");
 
@@ -457,6 +473,30 @@ public class BerkeleyDBSimplePersistenceTests
 
             Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(nServers));
             waitForBalanced(service);
+
+            if (fRolling)
+                {
+                for (int i = 0; i < 5; i++)
+                    {
+                    String sServerExtra = sServer + "-X-" + i;
+
+                    startCacheServer(sServerExtra, getProjectName(), getCacheConfigPath(), props[nServers]);
+
+                    Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(nServers + 1));
+                    waitForBalanced(service);
+
+                    // populate with some data
+                    PersistenceTestHelper.populateData(cache, 5000);
+                    assertEquals(cache.size(), 5000);
+
+                    cache.clear();
+
+                    stopCacheServer(sServerExtra);
+
+                    Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(nServers));
+                    waitForBalanced(service);
+                    }
+                }
 
             // populate with some data
             PersistenceTestHelper.populateData(cache, 5000);
