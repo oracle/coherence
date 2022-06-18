@@ -51,7 +51,7 @@ public class LockOwner
         {
         m_memberId = member.getUuid();
         m_threadId = threadId;
-        m_fClient  = member.getId() == 0;
+        m_fClient  = member.isRemoteClient();
         }
 
     /**

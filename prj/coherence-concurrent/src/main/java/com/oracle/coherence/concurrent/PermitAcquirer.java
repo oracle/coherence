@@ -48,7 +48,7 @@ public class PermitAcquirer
         {
         f_memberId = member.getUuid();
         f_threadId = threadId;
-        f_client   = member.getId() == 0;
+        f_client   = member.isRemoteClient();
         }
 
     /**
