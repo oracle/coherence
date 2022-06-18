@@ -144,7 +144,7 @@ public class BerkeleyDBSimplePersistenceTests
      * Test 4 server storage, 1 server restart with backup persistence and
      * backup count at 2, and after rolling restarts.
      */
-    @Test
+    //@Test
     public void testBackupPersistence4Rolling()
             throws IOException, MBeanException
         {
