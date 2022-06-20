@@ -23,6 +23,7 @@ import com.tangosol.util.Base;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import java.nio.file.Files;
 import org.hamcrest.core.Is;
 
 import org.junit.After;
@@ -110,9 +111,9 @@ public class PersistenceModeTests
         stopAllApplications();
         CacheFactory.shutdown();
 
-        m_fileActive.delete();
-        m_fileSnapshot.delete();
-        m_fileTrash.delete();
+        FileHelper.deleteDirSilent(m_fileActive);
+        FileHelper.deleteDirSilent(m_fileSnapshot);
+        FileHelper.deleteDirSilent(m_fileTrash);
 
         // don't use the out() method, as it will restart the cluster
         System.out.println(createMessageHeader() + " <<<<<<< Stopped cluster");
@@ -253,7 +254,7 @@ public class PersistenceModeTests
             stopCacheServer(sServer);
             if (fileBackup != null)
                 {
-                fileBackup.delete();
+                FileHelper.deleteDirSilent(fileBackup);
                 }
             }
         }
