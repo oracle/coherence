@@ -83,9 +83,9 @@ public interface Member
         }
 
     /**
-     * Check whether or not the Member represents a remote client.
+     * Check whether or not this {@code Member} represents a remote client.
      *
-     * @return true if the Member is a remote client; false otherwise
+     * @return {@code true} if this {@code Member} is a remote client; {@code false} otherwise
      *
      * @since 22.06
      */
