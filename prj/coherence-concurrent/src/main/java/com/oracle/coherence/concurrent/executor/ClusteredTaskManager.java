@@ -1663,8 +1663,6 @@ public class ClusteredTaskManager<T, A, R>
                 {
                 ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
 
-                Logger.info(String.format("### DEBUG Task [%s] state=%s\n", manager.getTaskId(), manager.getState()));
-
                 if (manager.m_state == State.ORCHESTRATED)
                     {
                     manager.m_fCancelled = true;
