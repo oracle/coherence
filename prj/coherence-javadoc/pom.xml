@@ -499,6 +499,22 @@
                 <configuration>
                   <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
                   <reportOutputDirectory>${project.build.directory}/javadoc</reportOutputDirectory>
+
+                  <!--
+                     The following is required to work around JDK Bug (JDK-8215291) to ensure "/undefined" is
+                     not appended to the javadoc URL when searching.
+                  -->
+                  <bottom>
+                  <![CDATA[
+                      <script>
+                      if (typeof useModuleDirectories !== 'undefined') {
+                        useModuleDirectories = false;
+                      }
+                      </script>
+                  ]]>
+                  </bottom>
+                  <additionalJOption>--allow-script-in-comments</additionalJOption>
+
                   <skip>false</skip>
                   <sourceFileIncludes>
                     <include>com/oracle/coherence/common/base/*.java</include>
