@@ -625,25 +625,36 @@ public class ClusteredExecutorInfo
             // remove task assignments for the Executor
             ExecutorTrace.log(() -> String.format("Determining Tasks Assigned to Executor [%s]", sExecutorId));
 
-            // determine all tasks assigned to the executor
-            Map<String, String> assignmentMap = assignments()
-                    .invokeAll(new EqualsFilter<String, String>("getExecutorId", sExecutorId),
-                               new ExtractorProcessor<>("getTaskId"));
+            try
+                {
+                // determine all tasks assigned to the executor
+                Map<String, String> assignmentMap = assignments()
+                        .invokeAll(new EqualsFilter<String, String>("getExecutorId", sExecutorId),
+                                   new ExtractorProcessor<>("getTaskId"));
 
-            Logger.finer(() -> String.format("Found %d Tasks Assigned to Executor [%s].  Notifying them of the Closing Executor", assignmentMap.size(), sExecutorId));
+                Logger.finer(() -> String.format("Found %d Tasks Assigned to Executor [%s].  Notifying them of the Closing Executor",
+                                                 assignmentMap.size(), sExecutorId));
 
-            // notify the Tasks assigned to the Executor to re-assign
-            tasks().invokeAll(assignmentMap.values(), new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
+                // notify the Tasks assigned to the Executor to re-assign
+                tasks().invokeAll(assignmentMap.values(), new ClusteredTaskManager.NotifyExecutionStrategyProcessor());
 
-            Logger.finer(() -> String.format("Removing Assignments for Executor [%s]", sExecutorId));
+                Logger.finer(() -> String.format("Removing Assignments for Executor [%s]", sExecutorId));
 
-            // now remove the assignments for the tasks
-            tasks().invokeAll(assignmentMap.keySet(), new ConditionalRemove<>(AlwaysFilter.INSTANCE));
+                // now remove the assignments for the tasks
+                tasks().invokeAll(assignmentMap.keySet(), new ConditionalRemove<>(AlwaysFilter.INSTANCE));
 
-            Logger.finer(() -> String.format("Notifying Executor [%s] that it is now Closed", sExecutorId));
+                Logger.finer(() -> String.format("Notifying Executor [%s] that it is now Closed", sExecutorId));
 
-            // change the state of the Executor to be CLOSED
-            executors().invoke(sExecutorId, new SetStateProcessor(State.CLOSED));
+                // change the state of the Executor to be CLOSED
+                executors().invoke(sExecutorId, new SetStateProcessor(State.CLOSED));
+                }
+            catch (Exception e)
+                {
+                if (ExecutorTrace.isEnabled())
+                    {
+                    Logger.warn("Exception cleaning up executor resources", e);
+                    }
+                }
             }
 
         @Override
