@@ -41,7 +41,6 @@ import com.tangosol.util.Filters;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
-import com.tangosol.util.Processors;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.WrapperException;
@@ -52,7 +51,6 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.processor.ConditionalPut;
 import com.tangosol.util.processor.ExtractorProcessor;
 
-import com.tangosol.util.processor.MethodInvocationProcessor;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -647,76 +645,89 @@ public class ClusteredRegistration
                     else if (existing.equals(ClusteredAssignment.State.ASSIGNED)
                              || (isResuming() && existing.equals(ClusteredAssignment.State.EXECUTING)))
                         {
-                        ClusteredTaskManager          taskManager       = (ClusteredTaskManager) tasks().get(f_sTaskId);
-                        SpanContext                   parentSpanContext = taskManager.getParentSpanContext();
+                        ClusteredTaskManager taskManager = (ClusteredTaskManager) tasks().get(f_sTaskId);
 
-                        Span executionSpan = createSpan(parentSpanContext);
-
-                        // attempt to execute the task (passing in this executor as the context)
-                        try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
+                        if (taskManager == null)
                             {
-                            ExecutorTrace.log(() -> String.format("Executor [%s] Task [%s]",
-                                                                  isResuming()
-                                                                  ? "Resuming"
-                                                                  : "Executing", f_sTaskId));
+                            ExecutorTrace.log(() -> String.format("Executor [%s] skipping execution of Task [%s] (no longer exists)",
+                                                                  f_sExecutorId, f_sTaskId));
 
-                            executionSpan.log(String.format("%s %s",
-                                    isResuming() ? "Resuming" : "Executing", f_sTaskId));
+                            // we skip executing the task as it has been completed
+                            fUpdateExecutionStatus          = false;
+                            fCleanupLocalExecutionResources = true;
+                            }
 
-                            // Store a reference to the current thread at this point in time.
-                            // Then clear the reference after execution returns.
-                            // If the reference is available when an update is received for the assignment
-                            // (see entryUpdated()) indicating cancellation, then interrupt the thread,
-                            // otherwise, we continue executing as normal.
-                            m_executionThread = Thread.currentThread();
-                            try
+                        else
+                            {
+                            SpanContext parentSpanContext = taskManager.getParentSpanContext();
+                            Span        executionSpan     = createSpan(parentSpanContext);
+
+                            // attempt to execute the task (passing in this executor as the context)
+                            try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
                                 {
-                                setResult(Result.of(m_task.execute((this))), true);
+                                ExecutorTrace.log(() -> String.format("Executor [%s] Task [%s]",
+                                                                      isResuming()
+                                                                      ? "Resuming"
+                                                                      : "Executing", f_sTaskId));
+
+                                executionSpan.log(String.format("%s %s",
+                                        isResuming() ? "Resuming" : "Executing", f_sTaskId));
+
+                                // Store a reference to the current thread at this point in time.
+                                // Then clear the reference after execution returns.
+                                // If the reference is available when an update is received for the assignment
+                                // (see entryUpdated()) indicating cancellation, then interrupt the thread,
+                                // otherwise, we continue executing as normal.
+                                m_executionThread = Thread.currentThread();
+                                try
+                                    {
+                                    setResult(Result.of(m_task.execute((this))), true);
+                                    }
+                                finally
+                                    {
+                                    m_executionThread = null;
+                                    }
+
+                                executionSpan.log("Execution completed");
+
+                                // we've provided a result; assume we're finished executing
+                                fUpdateExecutionStatus          = true;
+                                fCleanupLocalExecutionResources = true;
+                                }
+                            catch (Task.Yield yield)
+                                {
+                                // increase the yield count (to indicate that we've yielded)
+                                m_cYield++;
+
+                                ExecutorTrace.log(() -> String.format("Executor [%s] scheduling Task [%s] to resume in %s",
+                                                                      f_sExecutorId, f_sTaskId, yield.getDuration()));
+
+                                executionSpan.log("Yielding execution for " + yield.getDuration());
+
+                                TaskExecutor taskExecutor = this;
+                                f_clusteredExecutorService.getScheduledExecutorService()
+                                        .schedule(() -> executingTask(taskExecutor, f_sTaskId, f_sExecutorId),
+                                                  yield.getDuration().toNanos(), TimeUnit.NANOSECONDS);
+
+                                // we've yielded, so we're not finished
+                                fUpdateExecutionStatus         = false;
+                                fCleanupLocalExecutionResources = false;
+                                }
+                            catch (Throwable throwable)
+                                {
+                                // update the result indicating the exception
+                                setResult(Result.throwable(throwable));
+
+                                TracingHelper.augmentSpanWithErrorDetails(executionSpan, true, throwable);
+
+                                // we're finished executing!
+                                fUpdateExecutionStatus          = true;
+                                fCleanupLocalExecutionResources = true;
                                 }
                             finally
                                 {
-                                m_executionThread = null;
+                                executionSpan.end();
                                 }
-
-                            executionSpan.log("Execution completed");
-
-                            // we've provided a result; assume we're finished executing
-                            fUpdateExecutionStatus          = true;
-                            fCleanupLocalExecutionResources = true;
-                            }
-                        catch (Task.Yield yield)
-                            {
-                            // increase the yield count (to indicate that we've yielded)
-                            m_cYield++;
-
-                            ExecutorTrace.log(() -> String.format("Executor [%s] scheduling Task [%s] to resume in %s",
-                                                                  f_sExecutorId, f_sTaskId, yield.getDuration()));
-
-                            executionSpan.log("Yielding execution for " + yield.getDuration());
-
-                            TaskExecutor taskExecutor = this;
-                            f_clusteredExecutorService.getScheduledExecutorService()
-                                    .schedule(() -> executingTask(taskExecutor, f_sTaskId, f_sExecutorId),
-                                              yield.getDuration().toNanos(), TimeUnit.NANOSECONDS);
-
-                            // we've yielded, so we're not finished
-                            fUpdateExecutionStatus         = false;
-                            fCleanupLocalExecutionResources = false;
-                            }
-                        catch (Throwable throwable)
-                            {
-                        // update the result indicating the exception
-                            setResult(Result.throwable(throwable));
-
-                            TracingHelper.augmentSpanWithErrorDetails(executionSpan, true, throwable);
-
-                            // we're finished executing!
-                            fUpdateExecutionStatus          = true;
-                            fCleanupLocalExecutionResources = true;
-                            }
-                        finally
-                            {
-                            executionSpan.end();
                             }
                         }
                     else
@@ -747,9 +758,9 @@ public class ClusteredRegistration
                                          new ClusteredAssignment.SetStateProcessor(ClusteredAssignment.State.EXECUTING,
                                                                                    ClusteredAssignment.State.EXECUTED));
                             }
-                        catch (IllegalStateException e)
+                        catch (IllegalStateException | NullPointerException e) // CQC will throw NPE if released
                             {
-                            if (!f_fShutdownCalled.get())
+                            if (!f_fCloseCalled.get() && !f_fShutdownCalled.get())
                                 {
                                 // unexpected if we're not in shutdown
                                 throw e;
@@ -1190,21 +1201,28 @@ public class ClusteredRegistration
                 {
                 NamedCache        esCache       = executors();
                 ExecutorMBeanImpl executorMBean = m_executorMBean;
+                String            sExecutorId   = f_sExecutorId;
 
-                unregisterExecutiveServiceMBean(
-                        f_clusteredExecutorService.getCacheService(),
-                        executorMBean.getName());
-
-                if (esCache.isActive())
+                try
                     {
-                    // deregister Executor entry listener
-                    esCache.removeMapListener(f_listener, f_sExecutorId);
+                    unregisterExecutiveServiceMBean(
+                            f_clusteredExecutorService.getCacheService(),
+                            executorMBean.getName());
+
+                    if (esCache.isActive())
+                        {
+                        // deregister Executor entry listener
+                        esCache.removeMapListener(f_listener, sExecutorId);
+                        esCache.invoke(sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(
+                                TaskExecutorService.ExecutorInfo.State.CLOSING));
+                        }
                     }
-
-                if (esCache.isActive())
+                catch (Exception e)
                     {
-                    esCache.invoke(f_sExecutorId, new ClusteredExecutorInfo.SetStateProcessor(
-                            TaskExecutorService.ExecutorInfo.State.CLOSING));
+                    if (ExecutorTrace.isEnabled())
+                        {
+                        Logger.warn("Exception cleaning up executor resources", e);
+                        }
                     }
                 };
 
