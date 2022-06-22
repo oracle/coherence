@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.common.base.TimeHelper;
 import com.oracle.coherence.common.util.Options;
 import com.oracle.coherence.common.util.Sentry;
 
@@ -175,6 +176,8 @@ public class PagedTopicSubscriber<V>
 
         Convert convert = optionsMap.get(Convert.class);
         f_fnConverter = convert == null ? null : convert.getFunction();
+
+        f_taskReconnect = new ReconnectTask(this);
 
         f_daemon = new TaskDaemon("Subscriber-" + m_caches.getTopicName() + "-" + f_id);
         f_daemon.start();
@@ -843,6 +846,16 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
+     * Returns the auto-reconnect task execution count.
+     *
+     * @return the auto-reconnect task execution count
+     */
+    public int getAutoReconnectTaskCount()
+        {
+        return f_taskReconnect.getExecutionCount();
+        }
+
+    /**
      * Returns the number of polls of the topic for messages.
      * <p>
      * This is typically larger than the number of messages received due to polling empty pages,
@@ -870,7 +883,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of times the subscriber has waited on empty channels
      */
-    public long getWait()
+    public long getWaitCount()
         {
         return m_cWait;
         }
@@ -1535,7 +1548,11 @@ public class PagedTopicSubscriber<V>
                 }
             // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
             m_queueValuesPrefetched.clear();
-            Logger.fine("Disconnected Subscriber " + this);
+
+            PagedTopic.Dependencies dependencies = m_caches.getDependencies();
+            long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
+            Logger.finer("Disconnected Subscriber " + this);
+            f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
             }
         }
 
@@ -2232,8 +2249,9 @@ public class PagedTopicSubscriber<V>
             if (cache.isActive())
                 {
                 // cache is still active, so log the error
+                String sId = SubscriberId.NullSubscriber.equals(subscriberId) ? "<ALL>" : idToString(subscriberId.getId());
                 Logger.err("Caught exception closing subscription for subscriber "
-                    + idToString(subscriberId.getId()) + " in group " + subscriberGroupId.getGroupName(), t);
+                    + sId + " in group " + subscriberGroupId.getGroupName(), t);
                 }
             }
         }
@@ -3053,9 +3071,7 @@ public class PagedTopicSubscriber<V>
                     }
                 else if (isActive() && !f_fAnonymous && !isDisconnected() && !isInitialising())
                     {
-                    Logger.fine("Disconnecting Subscriber due to subscriber timeout "
-                                        + PagedTopicSubscriber.this);
-
+                    Logger.fine("Disconnecting Subscriber " + PagedTopicSubscriber.this);
                     updateChannelOwnership(Collections.emptyList(), true);
                     disconnect();
                     }
@@ -3134,22 +3150,26 @@ public class PagedTopicSubscriber<V>
             SubscriberGroupId  groupId        = key.getGroupId();
             String             sTopicName     = PagedTopicCaches.Names.getTopicName(event.getCacheName());
             String             sSubscriptions = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
+            CacheService       cacheService   = event.getService();
+            int                nMember        = memberIdFromId(nId);
 
             if (event.getEntry().isSynthetic())
                 {
                 Logger.fine(String.format(
                         "Subscriber expired after %d ms - groupId='%s', memberId=%d, notificationId=%d, last heartbeat at %s",
-                        info.getTimeoutMillis(), groupId.getGroupName(), memberIdFromId(nId), notificationIdFromId(nId), info.getLastHeartbeat()));
+                        info.getTimeoutMillis(), groupId.getGroupName(), nMember, notificationIdFromId(nId), info.getLastHeartbeat()));
                 }
             else
                 {
+                boolean fManual = ((Set<Member>) cacheService.getInfo().getServiceMembers()).stream().anyMatch(m -> m.getId() == nMember);
+                String  sReason = fManual ? "manual removal of subscriber(s)" : "departure of member " + nMember;
                 Logger.fine(String.format(
-                        "Subscriber %d in group '%s' removed due to departure of member %d",
-                        nId, groupId.getGroupName(), memberIdFromId(nId)));
+                        "Subscriber %d in group '%s' removed due to %s",
+                        nId, groupId.getGroupName(), sReason));
                 }
 
             SubscriberId subscriberId = new SubscriberId(nId, info.getOwningUid());
-            notifyClosed(event.getService().ensureCache(sSubscriptions, null), groupId, subscriberId);
+            notifyClosed(cacheService.ensureCache(sSubscriptions, null), groupId, subscriberId);
             }
 
         // ----- constants --------------------------------------------------
@@ -3159,6 +3179,70 @@ public class PagedTopicSubscriber<V>
         // ----- data members -----------------------------------------------
 
         private final Executor f_executor;
+        }
+
+    // ----- inner class: ReconnectTask -------------------------------------
+
+    /**
+     * A daemon task to reconnect the subscriber iff the subscriber
+     * has outstanding receive requests.
+     */
+    protected static class ReconnectTask
+            implements Runnable
+        {
+        /**
+         * Create a reconnection task.
+         *
+         * @param subscriber  the subscriber to reconnect
+         */
+        protected ReconnectTask(PagedTopicSubscriber subscriber)
+            {
+            m_subscriber = subscriber;
+            }
+
+        @Override
+        public void run()
+            {
+            try
+                {
+                if (m_subscriber.f_queueReceiveOrders.size() > 0)
+                    {
+                    Logger.finer("Running reconnect task, reconnecting " + m_subscriber);
+                    m_subscriber.ensureConnected();
+                    }
+                else
+                    {
+                    Logger.finer("Skipping reconnect task, no pending receives for subscriber " + m_subscriber);
+                    }
+                }
+            catch (Throwable t)
+                {
+                Logger.err("Failed to reconnect subscriber " + m_subscriber, t);
+                }
+            f_cExecution.incrementAndGet();
+            }
+
+        /**
+         * Returns the task execution count.
+         *
+         * @return the task execution count
+         */
+        public int getExecutionCount()
+            {
+            return f_cExecution.get();
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The subscriber to reconnect.
+         */
+        private final PagedTopicSubscriber m_subscriber;
+
+        /**
+         * The number of time the task has executed.
+         */
+        private final AtomicInteger f_cExecution = new AtomicInteger();
         }
 
     // ----- constants ------------------------------------------------------
@@ -3452,4 +3536,9 @@ public class PagedTopicSubscriber<V>
      * The number of disconnections.
      */
     private final Meter m_cDisconnect = new Meter();
+
+    /**
+     * The {@link ReconnectTask} to use to reconnect this subscriber.
+     */
+    private final ReconnectTask f_taskReconnect;
     }

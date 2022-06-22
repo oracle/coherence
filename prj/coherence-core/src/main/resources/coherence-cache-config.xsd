@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-cache-config"
             xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -475,6 +475,7 @@
         <xsd:element ref="allow-unowned-commits" minOccurs="0"/>
         <xsd:element ref="subscriber-timeout" minOccurs="0"/>
         <xsd:element ref="element-calculator" minOccurs="0"/>
+        <xsd:element ref="reconnect-wait" minOccurs="0"/>
         <xsd:element ref="reconnect-timeout" minOccurs="0"/>
         <xsd:element ref="reconnect-retry" minOccurs="0"/>
 
@@ -4155,6 +4156,42 @@
             Default value is BINARY.
 
             Used in: paged-topic-scheme
+          </xsd:documentation>
+      </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="reconnect-wait" type="coherence-time-type">
+      <xsd:annotation>
+          <xsd:documentation>
+              The reconnect-wait element specifies the maximum
+              time that publishers and subscribers will wait
+              before attempting to reconnect after being
+              disconnected from a topic.
+
+              The minimum accepted value is one second, values less than 1s will
+              be rounded up to 1s.
+
+              The value of this element must be in the following
+              format:
+
+              (\d)+((.)(\d)+)?(MS|ms|S|s|M|m|H|h|D|d)?
+
+              where the first
+              non-digits (from left to right) indicate the unit of time
+              duration:
+
+              -MS or ms (milliseconds)
+              -S or s (seconds)
+              -M or m (minutes)
+              -H or h
+              (hours)
+              -D or d (days)
+
+              If the value does not contain a unit, a unit of
+              seconds is assumed.
+              The default value is 10 seconds.
+
+              Used in: paged-topic-scheme
           </xsd:documentation>
       </xsd:annotation>
   </xsd:element>

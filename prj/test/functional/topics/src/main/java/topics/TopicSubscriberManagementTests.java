@@ -18,13 +18,16 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 
 import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -66,9 +69,21 @@ public class TopicSubscriberManagementTests
         {
         System.setProperty(LocalStorage.PROPERTY, "true");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
+        System.setProperty(PagedTopicPartition.PROP_PUBLISHER_NOTIFICATION_EXPIRY_MILLIS, "10s");
 
-        s_coherence = Coherence.clusterMember();
-        s_coherence.start().join();
+        SessionConfiguration sessionConfiguration = SessionConfiguration.builder()
+                .withParameter("coherence.profile", "thin")
+                .withParameter("coherence.topic.reconnect.wait", "15s")
+                .build();
+
+        CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                .withSession(sessionConfiguration)
+                .build();
+
+        s_coherence = Coherence.clusterMember(configuration)
+                .start()
+                .join();
+        
         s_session = s_coherence.getSession();
         }
 
@@ -129,339 +144,487 @@ public class TopicSubscriberManagementTests
         }
 
     @Test
-        public void shouldDisconnectSingleSubscriberByKey() throws Exception
+    public void shouldDisconnectSingleSubscriberByKey() throws Exception
+        {
+        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service       = (DistributedCacheService) topic.getService();
+        String                  sGroupOne     = "group-one";
+        String                  sGroupTwo     = "group-two";
+        OwnershipListener       listenerOne   = new OwnershipListener();
+        OwnershipListener       listenerTwo   = new OwnershipListener();
+        OwnershipListener       listenerThree = new OwnershipListener();
+
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
-            NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-            DistributedCacheService service       = (DistributedCacheService) topic.getService();
-            String                  sGroupOne     = "group-one";
-            String                  sGroupTwo     = "group-two";
-            OwnershipListener       listenerOne   = new OwnershipListener();
-            OwnershipListener       listenerTwo   = new OwnershipListener();
-            OwnershipListener       listenerThree = new OwnershipListener();
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
-            try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-                 PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-                 PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-                 PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+            Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+
+            int cNotification = caches.Notifications.size();
+            assertThat(cNotification, is(0));
+
+            // receive - should not complete as topic is empty
+            CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
+            CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
+            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
+
+            // wait for the notifications to appear, so we know the subscribers are waiting
+            // there will be one notification per channel, per subscriber group
+            Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
+
+            CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            // disconnect subscriberOne *only* using its key
+            caches.disconnectSubscriber(subscriberOne.getKey());
+
+            Eventually.assertDeferred(futureLostOne::isDone, is(true));
+            assertThat(futureLostTwo.isDone(), is(false));
+            assertThat(futureLostThree.isDone(), is(false));
+
+            // all channels should eventually be allocated to subscriberTwo
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
+            Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
+            assertThat(mapAllocation.size(), is(1));
+            assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
+
+            // receive futures should still be waiting
+            assertThat(futureOne.isDone(), is(false));
+            assertThat(futureTwo.isDone(), is(false));
+            assertThat(futureThree.isDone(), is(false));
+
+            // publish messages
+            try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
                 {
-                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
-
-                Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
-
-                Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-                Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
-
-                assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-                assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
-
-                int cNotification = caches.Notifications.size();
-                assertThat(cNotification, is(0));
-
-                // receive - should not complete as topic is empty
-                CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
-                CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
-                CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
-
-                // wait for the notifications to appear, so we know the subscribers are waiting
-                // there will be one notification per channel, per subscriber group
-                Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
-
-                CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
-
-                // disconnect subscriberOne *only* using its key
-                caches.disconnectSubscriber(subscriberOne.getKey());
-
-                Eventually.assertDeferred(futureLostOne::isDone, is(true));
-                assertThat(futureLostTwo.isDone(), is(false));
-                assertThat(futureLostThree.isDone(), is(false));
-
-                // all channels should eventually be allocated to subscriberTwo
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
-                Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-                assertThat(mapAllocation.size(), is(1));
-                assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
-
-                // receive futures should still be waiting
-                assertThat(futureOne.isDone(), is(false));
-                assertThat(futureTwo.isDone(), is(false));
-                assertThat(futureThree.isDone(), is(false));
-
-                // publish messages
-                try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
+                for (int i = 0; i < publisher.getChannelCount(); i++)
                     {
-                    for (int i = 0; i < publisher.getChannelCount(); i++)
-                        {
-                        String sMessage = "foo bar " + i;
-                        publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
-                        }
+                    String sMessage = "foo bar " + i;
+                    publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
                     }
-
-                // The subscribers should reconnect and receive the message
-                Subscriber.Element<String> element;
-
-                element = futureOne.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureTwo.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureThree.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
                 }
-            }
 
-        @Test
-        public void shouldDisconnectSingleSubscriberByGroupAndId() throws Exception
+            // The subscribers should reconnect and receive the message
+            Subscriber.Element<String> element;
+
+            element = futureOne.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+
+            element = futureTwo.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+
+            element = futureThree.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+            }
+        }
+
+    @Test
+    public void shouldDisconnectSingleSubscriberByGroupAndId() throws Exception
+        {
+        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service       = (DistributedCacheService) topic.getService();
+        String                  sGroupOne     = "group-one";
+        String                  sGroupTwo     = "group-two";
+        OwnershipListener       listenerOne   = new OwnershipListener();
+        OwnershipListener       listenerTwo   = new OwnershipListener();
+        OwnershipListener       listenerThree = new OwnershipListener();
+
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
-            NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-            DistributedCacheService service       = (DistributedCacheService) topic.getService();
-            String                  sGroupOne     = "group-one";
-            String                  sGroupTwo     = "group-two";
-            OwnershipListener       listenerOne   = new OwnershipListener();
-            OwnershipListener       listenerTwo   = new OwnershipListener();
-            OwnershipListener       listenerThree = new OwnershipListener();
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
-            try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-                 PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-                 PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-                 PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+            Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+
+            int cNotification = caches.Notifications.size();
+            assertThat(cNotification, is(0));
+
+            // receive - should not complete as topic is empty
+            CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
+            CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
+            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
+
+            // wait for the notifications to appear, so we know the subscribers are waiting
+            // there will be one notification per channel, per subscriber group
+            Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
+
+            CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            // disconnect subscriberOne *only* using the subscriber group name and subscriber id
+            caches.disconnectSubscriber(sGroupOne, subscriberOne.getId());
+
+            Eventually.assertDeferred(futureLostOne::isDone, is(true));
+            assertThat(futureLostTwo.isDone(), is(false));
+            assertThat(futureLostThree.isDone(), is(false));
+
+            // all channels should eventually be allocated to subscriberTwo
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
+            Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
+            assertThat(mapAllocation.size(), is(1));
+            assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
+
+            // receive futures should still be waiting
+            assertThat(futureOne.isDone(), is(false));
+            assertThat(futureTwo.isDone(), is(false));
+            assertThat(futureThree.isDone(), is(false));
+
+            // publish messages
+            try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
                 {
-                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
-
-                Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
-
-                Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-                Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
-
-                assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-                assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
-
-                int cNotification = caches.Notifications.size();
-                assertThat(cNotification, is(0));
-
-                // receive - should not complete as topic is empty
-                CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
-                CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
-                CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
-
-                // wait for the notifications to appear, so we know the subscribers are waiting
-                // there will be one notification per channel, per subscriber group
-                Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
-
-                CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
-
-                // disconnect subscriberOne *only* using the subscriber group name and subscriber id
-                caches.disconnectSubscriber(sGroupOne, subscriberOne.getId());
-
-                Eventually.assertDeferred(futureLostOne::isDone, is(true));
-                assertThat(futureLostTwo.isDone(), is(false));
-                assertThat(futureLostThree.isDone(), is(false));
-
-                // all channels should eventually be allocated to subscriberTwo
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
-                Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-                assertThat(mapAllocation.size(), is(1));
-                assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
-
-                // receive futures should still be waiting
-                assertThat(futureOne.isDone(), is(false));
-                assertThat(futureTwo.isDone(), is(false));
-                assertThat(futureThree.isDone(), is(false));
-
-                // publish messages
-                try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
+                for (int i = 0; i < publisher.getChannelCount(); i++)
                     {
-                    for (int i = 0; i < publisher.getChannelCount(); i++)
-                        {
-                        String sMessage = "foo bar " + i;
-                        publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
-                        }
+                    String sMessage = "foo bar " + i;
+                    publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
                     }
-
-                // The subscribers should reconnect and receive the message
-                Subscriber.Element<String> element;
-
-                element = futureOne.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureTwo.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureThree.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
                 }
-            }
 
-        @Test
-        public void shouldDisconnectAllSubscribersInGroup() throws Exception
+            // The subscribers should reconnect and receive the message
+            Subscriber.Element<String> element;
+
+            element = futureOne.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+
+            element = futureTwo.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+
+            element = futureThree.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+            }
+        }
+
+    @Test
+    public void shouldDisconnectAllSubscribersInGroup() throws Exception
+        {
+        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service       = (DistributedCacheService) topic.getService();
+        String                  sGroupOne     = "group-one";
+        String                  sGroupTwo     = "group-two";
+        OwnershipListener       listenerOne   = new OwnershipListener();
+        OwnershipListener       listenerTwo   = new OwnershipListener();
+        OwnershipListener       listenerThree = new OwnershipListener();
+
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
-            NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-            DistributedCacheService service       = (DistributedCacheService) topic.getService();
-            String                  sGroupOne     = "group-one";
-            String                  sGroupTwo     = "group-two";
-            OwnershipListener       listenerOne   = new OwnershipListener();
-            OwnershipListener       listenerTwo   = new OwnershipListener();
-            OwnershipListener       listenerThree = new OwnershipListener();
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
-            try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-                 PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-                 PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-                 PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+            Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+
+            int cNotification = caches.Notifications.size();
+            assertThat(cNotification, is(0));
+
+            // receive - should not complete as topic is empty
+            CompletableFuture<Subscriber.Element<String>> futureOne   = subscriberOne.receive();
+            CompletableFuture<Subscriber.Element<String>> futureTwo   = subscriberTwo.receive();
+            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
+
+            // wait for the notifications to appear, so we know the subscribers are waiting
+            // there will be one notification per channel, per subscriber group
+            Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
+
+            CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            // disconnect ALL subscribers for group one
+            long[] alDisconnected = caches.disconnectAllSubscribers(sGroupOne);
+            assertThat(alDisconnected.length, is(2));
+
+            assertThat(caches.Subscribers.get(subscriberThree.getKey()), is(notNullValue()));
+
+            Eventually.assertDeferred(futureLostOne::isDone, is(true));
+            Eventually.assertDeferred(futureLostTwo::isDone, is(true));
+            assertThat(futureLostThree.isDone(), is(false));
+
+            // receive futures should still be waiting
+            assertThat(futureOne.isDone(), is(false));
+            assertThat(futureTwo.isDone(), is(false));
+            assertThat(futureThree.isDone(), is(false));
+
+            // publish messages
+            try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
                 {
-                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
-
-                Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
-
-                Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-                Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
-
-                assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-                assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
-
-                int cNotification = caches.Notifications.size();
-                assertThat(cNotification, is(0));
-
-                // receive - should not complete as topic is empty
-                CompletableFuture<Subscriber.Element<String>> futureOne   = subscriberOne.receive();
-                CompletableFuture<Subscriber.Element<String>> futureTwo   = subscriberTwo.receive();
-                CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
-
-                // wait for the notifications to appear, so we know the subscribers are waiting
-                // there will be one notification per channel, per subscriber group
-                Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
-
-                CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
-
-                // disconnect ALL subscribers for group one
-                long[] alDisconnected = caches.disconnectAllSubscribers(sGroupOne);
-                assertThat(alDisconnected.length, is(2));
-
-                assertThat(caches.Subscribers.get(subscriberThree.getKey()), is(notNullValue()));
-                
-                Eventually.assertDeferred(futureLostOne::isDone, is(true));
-                Eventually.assertDeferred(futureLostTwo::isDone, is(true));
-                assertThat(futureLostThree.isDone(), is(false));
-
-                // receive futures should still be waiting
-                assertThat(futureOne.isDone(), is(false));
-                assertThat(futureTwo.isDone(), is(false));
-                assertThat(futureThree.isDone(), is(false));
-
-                // publish messages
-                try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
+                for (int i = 0; i < publisher.getChannelCount(); i++)
                     {
-                    for (int i = 0; i < publisher.getChannelCount(); i++)
-                        {
-                        String sMessage = "foo bar " + i;
-                        publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
-                        }
+                    String sMessage = "foo bar " + i;
+                    publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
                     }
-
-                // The subscribers should reconnect and receive the message
-                Subscriber.Element<String> element;
-
-                element = futureOne.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureTwo.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureThree.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
                 }
-            }
 
-        @Test
-        public void shouldDisconnectAllSubscribers() throws Exception
+            // The subscribers should reconnect and receive the message
+            Subscriber.Element<String> element;
+
+            element = futureOne.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+
+            element = futureTwo.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+
+            element = futureThree.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+            }
+        }
+
+    @Test
+    public void shouldDisconnectAllSubscribersAndReconnectOnPublishNotification() throws Exception
+        {
+        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service       = (DistributedCacheService) topic.getService();
+        String                  sGroupOne     = "group-one";
+        String                  sGroupTwo     = "group-two";
+        OwnershipListener       listenerOne   = new OwnershipListener();
+        OwnershipListener       listenerTwo   = new OwnershipListener();
+        OwnershipListener       listenerThree = new OwnershipListener();
+
+        Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
+
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
-            NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-            DistributedCacheService service       = (DistributedCacheService) topic.getService();
-            String                  sGroupOne     = "group-one";
-            String                  sGroupTwo     = "group-two";
-            OwnershipListener       listenerOne   = new OwnershipListener();
-            OwnershipListener       listenerTwo   = new OwnershipListener();
-            OwnershipListener       listenerThree = new OwnershipListener();
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
-            try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-                 PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-                 PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-                 PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+            Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+
+            int cNotification = caches.Notifications.size();
+            assertThat(cNotification, is(0));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Calling receive()");
+
+            // receive - should not complete as topic is empty
+            CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
+            CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
+            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for notification insertions");
+
+            // wait for the notifications to appear, so we know the subscribers are waiting
+            // there will be one notification per channel, per subscriber group
+            Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
+
+            CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnecting subscribers");
+
+            // disconnect ALL subscribers for topic
+            caches.disconnectAllSubscribers();
+
+            Eventually.assertDeferred(futureLostOne::isDone, is(true));
+            Eventually.assertDeferred(futureLostTwo::isDone, is(true));
+            Eventually.assertDeferred(futureLostThree::isDone, is(true));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnected subscribers - received channel lost events");
+
+            // receive futures should still be waiting
+            assertThat(futureOne.isDone(), is(false));
+            assertThat(futureTwo.isDone(), is(false));
+            assertThat(futureThree.isDone(), is(false));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Publishing messages");
+
+            // publish messages
+            try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
                 {
-                Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
-                Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
-
-                Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
-
-                Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-                Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
-
-                assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-                assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
-
-                int cNotification = caches.Notifications.size();
-                assertThat(cNotification, is(0));
-
-                // receive - should not complete as topic is empty
-                CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
-                CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
-                CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
-
-                // wait for the notifications to appear, so we know the subscribers are waiting
-                // there will be one notification per channel, per subscriber group
-                Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
-
-                CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
-                CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
-
-                // disconnect ALL subscribers for topic
-                caches.disconnectAllSubscribers();
-
-                Eventually.assertDeferred(futureLostOne::isDone, is(true));
-                Eventually.assertDeferred(futureLostTwo::isDone, is(true));
-                Eventually.assertDeferred(futureLostThree::isDone, is(true));
-
-                // receive futures should still be waiting
-                assertThat(futureOne.isDone(), is(false));
-                assertThat(futureTwo.isDone(), is(false));
-                assertThat(futureThree.isDone(), is(false));
-
-                // publish messages
-                try (Publisher<String> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
+                for (int i = 0; i < publisher.getChannelCount(); i++)
                     {
-                    for (int i = 0; i < publisher.getChannelCount(); i++)
-                        {
-                        String sMessage = "foo bar " + i;
-                        publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
-                        }
+                    String sMessage = "foo bar " + i;
+                    publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
                     }
-
-                // The subscribers should reconnect and receive the message
-                Subscriber.Element<String> element;
-
-                element = futureOne.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureTwo.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
-
-                element = futureThree.get(5, TimeUnit.MINUTES);
-                assertThat(element.getValue(), startsWith("foo bar"));
                 }
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for subscriber receives");
+
+            // The subscribers should reconnect and receive the message
+            Subscriber.Element<String> element;
+
+            element = futureOne.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber 1 received");
+
+            element = futureTwo.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber 2 received");
+
+            element = futureThree.get(5, TimeUnit.MINUTES);
+            assertThat(element.getValue(), startsWith("foo bar"));
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber 3 received");
             }
+        }
+
+    @Test
+    public void shouldDisconnectAndAutoReconnectSubscribersWithPendingReceives()
+        {
+        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service       = (DistributedCacheService) topic.getService();
+        String                  sGroupOne     = "group-one";
+        String                  sGroupTwo     = "group-two";
+        OwnershipListener       listenerOne   = new OwnershipListener();
+        OwnershipListener       listenerTwo   = new OwnershipListener();
+        OwnershipListener       listenerThree = new OwnershipListener();
+
+        Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
+
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+            {
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
+
+            Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+
+            int cNotification = caches.Notifications.size();
+            assertThat(cNotification, is(0));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Calling receive()");
+
+            // receive - should not complete as topic is empty
+            CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
+            CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
+            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for notification insertions");
+
+            // wait for the notifications to appear, so we know the subscribers are waiting
+            // there will be one notification per channel, per subscriber group
+            Eventually.assertDeferred(() -> caches.Notifications.size(), is(topic.getChannelCount() * 2));
+
+            CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnecting subscribers");
+            caches.disconnectAllSubscribers();
+
+            Eventually.assertDeferred(futureLostOne::isDone, is(true));
+            Eventually.assertDeferred(futureLostTwo::isDone, is(true));
+            Eventually.assertDeferred(futureLostThree::isDone, is(true));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnected subscribers - received channel lost events");
+
+            // receive futures should still be waiting
+            assertThat(futureOne.isDone(), is(false));
+            assertThat(futureTwo.isDone(), is(false));
+            assertThat(futureThree.isDone(), is(false));
+
+            
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for subscriber auto-reconnects");
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
+            }
+        }
+
+    @Test
+    public void shouldDisconnectAndNotReconnectInactiveSubscribers()
+        {
+        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
+        DistributedCacheService service       = (DistributedCacheService) topic.getService();
+        String                  sGroupOne     = "group-one";
+        String                  sGroupTwo     = "group-two";
+        OwnershipListener       listenerOne   = new OwnershipListener();
+        OwnershipListener       listenerTwo   = new OwnershipListener();
+        OwnershipListener       listenerThree = new OwnershipListener();
+
+        Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
+
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+            {
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
+
+            Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+
+            CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
+            CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            int cBeforeOne   = subscriberOne.getAutoReconnectTaskCount();
+            int cBeforeTwo   = subscriberTwo.getAutoReconnectTaskCount();
+            int cBeforeThree = subscriberThree.getAutoReconnectTaskCount();
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnecting subscribers");
+            caches.disconnectAllSubscribers();
+
+            Eventually.assertDeferred(futureLostOne::isDone, is(true));
+            Eventually.assertDeferred(futureLostTwo::isDone, is(true));
+            Eventually.assertDeferred(futureLostThree::isDone, is(true));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnected subscribers - received channel lost events");
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for subscriber auto-reconnects");
+
+            Eventually.assertDeferred(subscriberOne::getAutoReconnectTaskCount, is(greaterThan(cBeforeOne)));
+            Eventually.assertDeferred(subscriberTwo::getAutoReconnectTaskCount, is(greaterThan(cBeforeTwo)));
+            Eventually.assertDeferred(subscriberThree::getAutoReconnectTaskCount, is(greaterThan(cBeforeThree)));
+
+            assertThat(subscriberOne.isDisconnected(), is(true));
+            assertThat(subscriberTwo.isDisconnected(), is(true));
+            assertThat(subscriberThree.isDisconnected(), is(true));
+            }
+        }
 
     @Test
     public void shouldDisconnectSubscribersOnSpecificMember()

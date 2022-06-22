@@ -27,7 +27,6 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -319,6 +318,32 @@ public class Subscription
         else if (Objects.equals(m_owningSubscriber, subscriberId))
             {
             int nMember = subscriberId.getMemberId();
+            m_owningSubscriber = null;
+            return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
+            }
+
+        return Collections.emptyMap();
+        }
+
+    /**
+     * Remove all subscribers from the subscription.
+     *
+     * @param cChannel   the number of channels to distribute across the subscribers
+     * @param setMember  the set of current member identifiers
+     *
+     * @return a map of any removed subscribers, keyed by departed member identifier
+     */
+    public synchronized Map<Integer, Set<SubscriberId>> removeAllSubscribers(int cChannel, Set<Member> setMember)
+        {
+        if (m_mapSubscriber != null)
+            {
+            m_mapSubscriber.clear();
+            return refresh(m_mapSubscriber, cChannel, setMember);
+            }
+        else if (m_owningSubscriber != null)
+            {
+            SubscriberId subscriberId = m_owningSubscriber;
+            int          nMember      = m_owningSubscriber.getMemberId();
             m_owningSubscriber = null;
             return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
             }

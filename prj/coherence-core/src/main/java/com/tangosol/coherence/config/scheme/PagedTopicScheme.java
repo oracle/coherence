@@ -491,6 +491,35 @@ public class PagedTopicScheme
                 : expr;
         }
 
+    /**
+     * Return the amount of time publishers and subscribers will wait before
+     * attempts to reconnect after being disconnected.
+     *
+     * @param resolver  the parameter resolver
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         wait before attempts to reconnect after being disconnected
+     */
+    public Seconds getReconnectWaitMillis(ParameterResolver resolver)
+        {
+        return m_exprReconnectWait.evaluate(resolver);
+        }
+
+    /**
+     * Set the amount of time publishers and subscribers will wait before
+     * attempts to reconnect after being disconnected.
+     *
+     * @param expr  the maximum amount of time publishers and subscribers will
+     *              wait before attempts to reconnect after being disconnected
+     */
+    @Injectable("reconnect-wait")
+    public void setReconnectWaitMillis(Expression<Seconds> expr)
+        {
+        m_exprReconnectWait = expr == null
+                ? new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_WAIT_SECONDS)
+                : expr;
+        }
+
     // ----- ServiceScheme methods ------------------------------------------
 
     @Override
@@ -654,6 +683,7 @@ public class PagedTopicScheme
         configuration.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
         configuration.setReconnectTimeoutMillis(getReconnectTimeoutMillis(resolver).as(Duration.Magnitude.MILLI));
         configuration.setReconnectRetryMillis(getReconnectRetryMillis(resolver).as(Duration.Magnitude.MILLI));
+        configuration.setReconnectWaitMillis(getReconnectWaitMillis(resolver).as(Duration.Magnitude.MILLI));
         return configuration;
         }
 
@@ -757,4 +787,9 @@ public class PagedTopicScheme
      * The reconnection retry value.
      */
     private Expression<Seconds> m_exprReconnectRetry = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS);
+
+    /**
+     * The reconnection wait value.
+     */
+    private Expression<Seconds> m_exprReconnectWait = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_WAIT_SECONDS);
     }

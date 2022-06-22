@@ -235,6 +235,36 @@ public class BatchingOperationsQueue<V, R>
         }
 
     /**
+     * Return the combined size of the current batch and pending queues.
+     *
+     * @return the combined size of the current batch and pending queues
+     */
+    public int size()
+        {
+        return getCurrentBatchSize() + getPendingSize();
+        }
+
+    /**
+     * Return the size of the current batch queue.
+     *
+     * @return the size of the current batch queue
+     */
+    public int getCurrentBatchSize()
+        {
+        return f_queueCurrentBatch.size();
+        }
+
+    /**
+     * Return the size of the pending queue.
+     *
+     * @return the size of the pending queue
+     */
+    public int getPendingSize()
+        {
+        return f_queuePending.size();
+        }
+
+    /**
      * Handle the error that occurred processing the current batch.
      *
      * @param function  the function to create the actual error to complete the future with

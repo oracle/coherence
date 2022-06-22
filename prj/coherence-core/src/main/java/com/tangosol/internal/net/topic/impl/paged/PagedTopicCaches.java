@@ -740,6 +740,11 @@ public class PagedTopicCaches
                             .mapToLong(SubscriberInfo.Key::getSubscriberId)
                             .toArray();
 
+        for (SubscriberGroupId id : getSubscriberGroupsIds(false))
+            {
+            PagedTopicSubscriber.notifyClosed(Subscriptions, id, SubscriberId.NullSubscriber);
+            }
+
         Subscribers.clear();
 
         return alId;
