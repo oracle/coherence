@@ -3,7 +3,7 @@
   "info": {
     "title": "RESTful Management Interface for Oracle Coherence MBeans",
     "description": "RESTful Management Interface for Oracle Coherence MBeans",
-    "version": "14.1.2.0.0"
+    "version": "22.09"
   },
   "schemes": [
     "http",
@@ -221,7 +221,7 @@
           "Cluster"
         ],
         "summary": "Shutdown the Cluster",
-        "description": "Use this endpoint to shutdown all the members of a Coherence cluster.",
+        "description": "Use this endpoint to shutdown the cluster service on this node.",
         "operationId": "/management/coherence/cluster/shutdown POST",
         "produces": [
           "application/json"
