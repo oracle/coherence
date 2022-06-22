@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -312,6 +312,7 @@ public class Configuration
      * @return the maximum amount of time publishers and subscribers will
      *         attempt to reconnect after being disconnected
      */
+    @Override
     public long getReconnectTimeoutMillis()
         {
         return m_cReconnectTimeoutMillis;
@@ -336,6 +337,7 @@ public class Configuration
      * @return the maximum amount of time publishers and subscribers will
      *         wait between attempts to reconnect after being disconnected
      */
+    @Override
     public long getReconnectRetryMillis()
         {
         return m_cReconnectRetryMillis;
@@ -353,6 +355,24 @@ public class Configuration
         m_cReconnectRetryMillis = cMillis <= 0 ? 0 : Math.max(1000L, cMillis);
         }
 
+    @Override
+    public long getReconnectWaitMillis()
+        {
+        return m_cReconnectWaitMillis;
+        }
+
+    /**
+     * Set the amount of time publishers and subscribers will wait before
+     * attempting to reconnect after being disconnected.
+     *
+     * @param cMillis  the maximum amount of time publishers and subscribers will
+     *                 wait before attempting to reconnect after being disconnected
+     */
+    public void setReconnectWaitMillis(long cMillis)
+        {
+        m_cReconnectWaitMillis = cMillis <= 0 ? 1000L : Math.max(1000L, cMillis);
+        }
+
     // ----- Object methods -------------------------------------------------
 
     @Override
@@ -365,8 +385,9 @@ public class Configuration
                 "RetainConsumed=" + m_fRetainConsumed + ", " +
                 "ElementCalculator=" + m_calculator.getName() + ", " +
                 "SubscriberTimeout=" + m_cSubscriberTimeoutMillis + "ms " +
-                "ReconnectTimeout=" + m_cReconnectTimeoutMillis +
-                "ReconnectRetry=" + m_cReconnectRetryMillis +
+                "ReconnectWait=" + m_cReconnectWaitMillis + "ms " +
+                "ReconnectTimeout=" + m_cReconnectTimeoutMillis + "ms " +
+                "ReconnectRetry=" + m_cReconnectRetryMillis + "ms " +
                 "AllowUnownedCommits=" + m_fAllowUnownedCommits;
         }
 
@@ -429,10 +450,15 @@ public class Configuration
     /**
      * The maximum amount of time that publishers and subscribers will attempt to reconnect.
      */
-    private long m_cReconnectTimeoutMillis;
+    private long m_cReconnectTimeoutMillis = PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
 
     /**
      * The amount of time that publishers and subscribers will wait between attempts to reconnect.
      */
-    private long m_cReconnectRetryMillis;
+    private long m_cReconnectRetryMillis = PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS.as(Duration.Magnitude.MILLI);
+
+    /**
+     * The amount of time that publishers and subscribers will wait before attempting to reconnect.
+     */
+    private long m_cReconnectWaitMillis = PagedTopic.DEFAULT_RECONNECT_WAIT_SECONDS.as(Duration.Magnitude.MILLI);
     }

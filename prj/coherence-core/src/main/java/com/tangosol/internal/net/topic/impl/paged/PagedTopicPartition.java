@@ -1143,12 +1143,12 @@ public class PagedTopicPartition
      * Close a subscription for a specific subscriber in a subscriber group
      * <p>
      * This will trigger a reallocation of channels across any remaining subscribers in the same group.
-     * @param key            the subscription key
-     * @param nSubscriberId  the unique subscriber identifier
+     * @param key           the subscription key
+     * @param subscriberId  the unique subscriber identifier
      *
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public void closeSubscription(Subscription.Key key, SubscriberId nSubscriberId)
+    public void closeSubscription(Subscription.Key key, SubscriberId subscriberId)
         {
         BackingMapContext ctxSubscriptions  = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
         long[]            alResult          = new long[getChannelCount()];
@@ -1174,8 +1174,9 @@ public class PagedTopicPartition
                     {
                     int cChannel     = getChannelCount();
                     subscriptionZero = subscription;
-                    Map<Integer, Set<SubscriberId>> mapRemoved =
-                            subscriptionZero.removeSubscriber(nSubscriberId, cChannel, getMemberSet());
+                    Map<Integer, Set<SubscriberId>> mapRemoved = SubscriberId.NullSubscriber.equals(subscriberId)
+                            ? subscriptionZero.removeAllSubscribers(cChannel, getMemberSet())
+                            : subscriptionZero.removeSubscriber(subscriberId, cChannel, getMemberSet());
 
                     if (fSyncPartition && !mapRemoved.isEmpty())
                         {
@@ -2271,11 +2272,13 @@ public class PagedTopicPartition
 
     // ----- constants ------------------------------------------------------
 
+    public static final String PROP_PUBLISHER_NOTIFICATION_EXPIRY_MILLIS = "coherence.pagedTopic.publisherNotificationExpiry";
+
     /**
      * The interval at which publisher notifications will expire.
      */
     public static final long PUBLISHER_NOTIFICATION_EXPIRY_MILLIS = new Duration(
-            Config.getProperty("coherence.pagedTopic.publisherNotificationExpiry", "10s"))
+            Config.getProperty(PROP_PUBLISHER_NOTIFICATION_EXPIRY_MILLIS, "10s"))
                 .as(Duration.Magnitude.MILLI);
 
     // ----- data members ---------------------------------------------------

@@ -18,6 +18,7 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.util.InvocableMap;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * An entry processor to close a topic subscription.
@@ -41,13 +42,18 @@ public class CloseSubscriptionProcessor
 
     /**
      * Construct the processor.
+     * <p>
+     * Passing {@link SubscriberId#NullSubscriber} as the subscriber identifier
+     * will cause all subscribers to be disconnected.
      *
-     * @param nSubscriberId  the subscriber being closed
+     * @param subscriberId  the subscriber being closed
+     *
+     * @throws NullPointerException if the subscriber identifier is {@code null}
      */
-    public CloseSubscriptionProcessor(SubscriberId nSubscriberId)
+    public CloseSubscriptionProcessor(SubscriberId subscriberId)
         {
         super(PagedTopicPartition::ensureTopic);
-        m_subscriberId = nSubscriberId;
+        m_subscriberId = Objects.requireNonNull(subscriberId);
         }
 
     // ----- AbstractProcessor methods --------------------------------------

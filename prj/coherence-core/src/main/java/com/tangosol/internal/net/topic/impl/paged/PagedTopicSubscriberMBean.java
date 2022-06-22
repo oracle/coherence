@@ -206,7 +206,7 @@ public class PagedTopicSubscriberMBean
     @Override
     protected long getWaits()
         {
-        return f_subscriber.getWait();
+        return f_subscriber.getWaitCount();
         }
 
     @Override

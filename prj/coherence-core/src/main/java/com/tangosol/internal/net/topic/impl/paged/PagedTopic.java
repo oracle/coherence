@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -365,6 +365,15 @@ public class PagedTopic<V>
          *         wait between attempts to reconnect after being disconnected
          */
         long getReconnectRetryMillis();
+
+        /**
+         * Return the amount of time publishers and subscribers will wait before attempting
+         * to reconnect after being disconnected.
+         *
+         * @return the maximum amount of time publishers and subscribers will
+         *         wait before attempting to reconnect after being disconnected
+         */
+        long getReconnectWaitMillis();
         }
 
     // ----- constants ------------------------------------------------------
@@ -393,6 +402,11 @@ public class PagedTopic<V>
      * The default reconnect retry.
      */
     public static final Seconds DEFAULT_RECONNECT_RETRY_SECONDS = new Seconds(5);
+
+    /**
+     * The default reconnect wait.
+     */
+    public static final Seconds DEFAULT_RECONNECT_WAIT_SECONDS = new Seconds(10);
 
     // ----- data members ---------------------------------------------------
 

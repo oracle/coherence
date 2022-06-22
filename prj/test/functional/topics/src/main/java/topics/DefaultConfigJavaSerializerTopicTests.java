@@ -14,12 +14,15 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
+import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.tangosol.coherence.config.Config;
 
@@ -124,12 +127,16 @@ public class DefaultConfigJavaSerializerTopicTests
         new CoherenceClusterResource()
             .with(ClusterName.of(DefaultConfigJavaSerializerTopicTests.class.getSimpleName() + "Cluster"),
                   CacheConfig.of(CACHE_CONFIG_FILE),
-                  Logging.at(9),
+                  Logging.atMax(),
                   Pof.disabled(),
-                  SystemProperty.of("coherence.localhost", "127.0.0.1"),
                   SystemProperty.of("coherence.management", "all"),
                   SystemProperty.of("coherence.management.remote", "true"),
                   SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
+                  LocalHost.only(),
                   SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
-            .include(STORAGE_MEMBER_COUNT, CoherenceClusterMember.class, s_testLogs.builder(), LocalStorage.enabled());
+            .include(STORAGE_MEMBER_COUNT, CoherenceClusterMember.class,
+                     RoleName.of("DefaultConfigJavaSerializerTopicTestsStorage"),
+                     DisplayName.of("storage"),
+                     s_testLogs.builder(),
+                     LocalStorage.enabled());
     }

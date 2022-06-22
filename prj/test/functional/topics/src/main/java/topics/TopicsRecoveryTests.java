@@ -54,7 +54,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -81,7 +83,7 @@ public class TopicsRecoveryTests
     @BeforeClass
     public static void setup()
         {
-        System.setProperty(Logging.PROPERTY_LEVEL, "5");
+        System.setProperty(Logging.PROPERTY_LEVEL, "9");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
         System.setProperty(LocalStorage.PROPERTY, "false");
 
@@ -99,7 +101,7 @@ public class TopicsRecoveryTests
         {
         if (s_coherence != null)
             {
-            s_coherence.close();
+            Coherence.closeAll();
             }
         }
 
@@ -144,7 +146,7 @@ public class TopicsRecoveryTests
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
-                                                             DisplayName.of("storage")))
+                                                             DisplayName.of(m_testName.getMethodName())))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -201,7 +203,7 @@ public class TopicsRecoveryTests
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
-                                                             DisplayName.of("storage")))
+                                                             DisplayName.of(m_testName.getMethodName())))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -276,7 +278,7 @@ public class TopicsRecoveryTests
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
                                                              LaunchLogging.disabled(),
-                                                             DisplayName.of("storage")))
+                                                             DisplayName.of(m_testName.getMethodName())))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -351,7 +353,7 @@ public class TopicsRecoveryTests
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
                                                              LaunchLogging.disabled(),
-                                                             DisplayName.of("storage")))
+                                                             DisplayName.of(m_testName.getMethodName())))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -420,7 +422,7 @@ public class TopicsRecoveryTests
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              LaunchLogging.disabled(),
                                                              s_testLogs.builder(),
-                                                             DisplayName.of("storage")))
+                                                             DisplayName.of(m_testName.getMethodName())))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -467,7 +469,7 @@ public class TopicsRecoveryTests
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              LaunchLogging.disabled(),
                                                              s_testLogs.builder(),
-                                                             DisplayName.of("storage")))
+                                                             DisplayName.of(m_testName.getMethodName())))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
@@ -809,6 +811,9 @@ public class TopicsRecoveryTests
 
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
+
+    @Rule
+    public final TestName m_testName = new TestName();
 
     private NamedTopic<?> m_topic;
 

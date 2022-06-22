@@ -149,6 +149,9 @@ meaningful to other cache configurations unless similarly defined there.
       <partition-count system-property="coherence.distributed.partitions">257</partition-count>
       <autostart system-property="coherence.topic.enabled">true</autostart>
       <high-units>{topic-high-units-bytes 0B}</high-units>
+      <reconnect-wait system-property="coherence.topic.reconnect.wait"/>
+      <reconnect-timeout system-property="coherence.topic.reconnect.timeout"/>
+      <reconnect-retry system-property="coherence.topic.reconnect.retry"/>
     </paged-topic-scheme>
 
     <!--

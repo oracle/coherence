@@ -198,7 +198,6 @@ public class TopicRollingRestartTests
             .include(3, CoherenceClusterMember.class, LocalStorage.enabled())
             .with(ClusterName.of("TopicRolling"),
                   CacheConfig.of("topic-cache-config.xml"),
-                  Pof.config("pof-config.xml"),
                   OperationalOverride.of("tangosol-coherence-override.xml"),
                   SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
 

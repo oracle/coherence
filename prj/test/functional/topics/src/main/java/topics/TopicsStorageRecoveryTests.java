@@ -52,7 +52,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -95,7 +97,7 @@ public class TopicsStorageRecoveryTests
     public void setupTest()
         {
         // make sure persistence files are not left from a previous test
-        File filePersistence = new File("target/store-bdb-active/" + TopicsStorageRecoveryTests.class.getSimpleName());
+        File filePersistence = new File("target/store-bdb-active/" + m_testName.getMethodName());
         if (filePersistence.exists())
             {
             MavenProjectFileUtils.recursiveDelete(filePersistence);
@@ -104,6 +106,7 @@ public class TopicsStorageRecoveryTests
         s_storageCluster = startCluster("initial");
 
         OptionsByType options = OptionsByType.of(s_options);
+        options.add(ClusterName.of(m_testName.getMethodName()));
         options.add(RoleName.of("client"));
         options.add(LocalStorage.disabled());
 
@@ -681,7 +684,7 @@ public class TopicsStorageRecoveryTests
         return sPrefix + "-" + s_count.get();
         }
 
-    private static CoherenceCluster startCluster(String suffix)
+    private CoherenceCluster startCluster(String suffix)
         {
         CoherenceClusterBuilder builder = new CoherenceClusterBuilder();
         OptionsByType options = OptionsByType.of(s_options)
@@ -691,7 +694,9 @@ public class TopicsStorageRecoveryTests
                                 DisplayName.of("storage-" + suffix),
                                 s_testLogs.builder());
 
-        builder.include(2, CoherenceClusterMember.class, options.asArray());
+        builder.with(ClusterName.of(m_testName.getMethodName()),
+                     SystemProperty.of("coherence.distributed.partitioncount", "13"))
+               .include(2, CoherenceClusterMember.class, options.asArray());
 
         return builder.build(LocalPlatform.get());
         }
@@ -745,15 +750,16 @@ public class TopicsStorageRecoveryTests
 
     // ----- data members ---------------------------------------------------
 
+    @Rule
+    public final TestName m_testName = new TestName();
+
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
 
     private static final OptionsByType s_options = OptionsByType.of(
             SystemProperty.of("coherence.guard.timeout", 60000),
             CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
-            OperationalOverride.of("common-tangosol-coherence-override.xml"),
-            ClusterName.of(TopicsStorageRecoveryTests.class.getSimpleName())
-    );
+            OperationalOverride.of("common-tangosol-coherence-override.xml"));
 
     private static CoherenceCluster s_storageCluster;
 
