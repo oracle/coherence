@@ -75,7 +75,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
         <configuration combine.self="override">
           <skip>false</skip>
         </configuration>
@@ -102,7 +101,7 @@
 
   <profiles>
     <profile>
-      <id>release-coherence</id>
+      <id>release-modules</id>
       <build>
         <plugins>
           <plugin>
@@ -112,28 +111,13 @@
             <configuration>
               <skip>false</skip>
             </configuration>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
 
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>${nexus.staging.maven.plugin.version}</version>
-            <extensions>true</extensions>
             <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
               <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
-              <skipLocalStaging>true</skipLocalStaging>
             </configuration>
           </plugin>
         </plugins>

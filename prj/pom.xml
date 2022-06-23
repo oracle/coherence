@@ -630,11 +630,9 @@
       <modules>
         <!-- distributed modules -->
         <module>coherence-core</module>
+        <module>coherence-core-components</module>
         <module>coherence-discovery</module>
         <module>coherence-tracing</module>
-
-        <module>coherence-testing-support</module>
-
         <module>coherence-bom</module>
         <module>coherence</module>
       </modules>
@@ -670,14 +668,21 @@
     </profile>
 
     <!--
-    The release-coherence is used to select the modules to release to Maven central
+    The release-modules is used to select the modules to release to Maven central
     that depend on coherence.jar
     -->
     <profile>
       <id>release-modules</id>
 
       <modules>
+        <!-- internal modules -->
+        <module>coherence-dependencies</module>
+
+        <module>coherence-testing-data</module>
+        <module>coherence-testing-support</module>
+
         <!-- distributed modules -->
+        <module>coherence-bedrock</module>
         <module>coherence-jcache</module>
         <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
@@ -697,6 +702,8 @@
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
         <module>coherence-bom</module>
+        <module>coherence-helidon-grpc</module>
+        <module>coherence-helidon-grpc-proxy</module>
         <module>plugins</module>
       </modules>
 
