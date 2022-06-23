@@ -40,6 +40,7 @@
     <module>guides/145-durable-events</module>
     <module>guides/190-cache-stores</module>
     <module>guides/200-federation</module>
+    <module>guides/210-ssl</module>
     <module>guides/460-topics</module>
     <module>tutorials/200-persistence</module>
     <module>tutorials/500-graphql/initial</module>

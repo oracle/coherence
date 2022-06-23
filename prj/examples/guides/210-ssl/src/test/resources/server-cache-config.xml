@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2022 Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>  <!--1-->
+      <scheme-name>server</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>server</scheme-name>
+      <service-name>PartitionedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <high-units>{back-limit 0B}</high-units>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <!-- tag::proxy[] -->
+    <proxy-scheme>
+      <service-name>Proxy</service-name>
+      <acceptor-config>
+        <tcp-acceptor>
+          <socket-provider system-property="test.socket.provider">provider</socket-provider>
+          <local-address>
+            <address system-property="test.extend.address"/>
+            <port system-property="test.extend.port"/>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart system-property="test.proxy.enabled">false</autostart>
+    </proxy-scheme>
+    <!-- end::proxy[] -->
+  </caching-schemes>
+</cache-config>

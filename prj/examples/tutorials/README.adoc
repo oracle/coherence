@@ -33,6 +33,13 @@ This tutorial shows you how to access Coherence Data using GraphQL.
 This tutorial shows you how to use Persistence from CohQL and how to monitor Persistence events.
 --
 
+[CARD]
+.Securing with SSL
+[link=examples/tutorials/210-ssl/README.adoc]
+--
+This tutorial walks you through how to secure Coherence using SSL/TLS
+--
+
 ====
 
 

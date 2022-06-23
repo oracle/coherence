@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing.util;
 
@@ -138,7 +138,7 @@ public class KeyTool
         File  fileP12       = new File(fileCerts, sName + ".p12");
         File  fileKeystore  = new File(fileCerts, sName + ".jks");
         String sKeyPass     = "pa55w0rd";
-        String sStorePass   = "s3cr37";
+        String sStorePass   = "pa55w0rd";
 
         if (fileCerts.exists())
             {
@@ -191,7 +191,7 @@ public class KeyTool
 
         // Create Java keystore
         runKeytool(Arguments.of("-importkeystore", "-storepass", sStorePass, "-noprompt",
-                "-srcstoretype", "jks", "-destkeypass", sStorePass,
+                "-srcstoretype", "jks", "-destkeypass", sKeyPass,
                 "-srcstorepass", sStorePass,
                 "-srckeystore", fileP12.getAbsolutePath(),
                 "-destkeystore", fileKeystore.getAbsolutePath()));
