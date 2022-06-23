@@ -30,7 +30,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
     <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
-    <maven.jandex.plugin.version>1.0.8</maven.jandex.plugin.version>
+    <maven.jandex.plugin.version>1.2.2</maven.jandex.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
