@@ -1617,17 +1617,18 @@ public class PagedTopicSubscriber<V>
      */
     private void onChannelEmpty(int nChannel, long lVersion)
         {
+        if (f_aChannel == null || !isActive())
+            {
+            // not initialised yet or no longer active
+            return;
+            }
+
         // Channel operations are done under a lock
         Gate<?> gate = f_gate;
         // Wait to enter the gate
         gate.enter(-1);
         try
             {
-            if (f_aChannel == null || !isActive())
-                {
-                // not initialised yet or no longer active
-                return;
-                }
             f_aChannel[nChannel].setEmpty(lVersion);
             }
         finally
