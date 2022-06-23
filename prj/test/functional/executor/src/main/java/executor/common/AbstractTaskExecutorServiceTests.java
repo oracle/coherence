@@ -2521,9 +2521,12 @@ public abstract class AbstractTaskExecutorServiceTests
 
             context.setResult("started");
 
-            Properties properties = context.getProperties();
-            properties.put("key1", "newValue1");
-            properties.put("key2", "newValue2");
+            if (!context.isDone())
+                {
+                Properties properties = context.getProperties();
+                properties.put("key1", "newValue1");
+                properties.put("key2", "newValue2");
+                }
 
             Blocking.sleep(5000);
 
