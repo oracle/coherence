@@ -1617,9 +1617,9 @@ public class PagedTopicSubscriber<V>
      */
     private void onChannelEmpty(int nChannel, long lVersion)
         {
-        if (f_aChannel == null || !isActive())
+        if (isDisconnected())
             {
-            // not initialised yet or no longer active
+            // we're disconnected, nothing to do.
             return;
             }
 
@@ -1629,6 +1629,12 @@ public class PagedTopicSubscriber<V>
         gate.enter(-1);
         try
             {
+            if (f_aChannel == null || !isActive() || isDisconnected())
+                {
+                // not initialised yet or no longer active
+                return;
+                }
+
             f_aChannel[nChannel].setEmpty(lVersion);
             }
         finally
@@ -1849,6 +1855,12 @@ public class PagedTopicSubscriber<V>
      */
     protected boolean switchChannel()
         {
+        if (f_aChannel == null || !isActive() || isDisconnected())
+            {
+            // disconnected or no longer active
+            return false;
+            }
+
         // channel access must be done under a lock to ensure channel
         // state does not change while switching
         Gate<?> gate = f_gate;
