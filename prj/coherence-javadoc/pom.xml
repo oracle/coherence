@@ -34,9 +34,6 @@
     <!-- ignore default javadoc execution -->
     <skip.docs>true</skip.docs>
 
-    <stylesheet.file>${project.build.directory}/stylesheet.css</stylesheet.file>
-    <old-stylesheet.file>${project.basedir}/src/main/javadoc/stylesheet.css</old-stylesheet.file>
-    <new-stylesheet.file>${project.basedir}/src/main/javadoc/new-stylesheet.css</new-stylesheet.file>
   </properties>
 
   <dependencies>
@@ -353,44 +350,6 @@
       </activation>
       <build>
         <plugins>
-          <!-- set css file to use based on the version of jdk in use
-               as generated javadoc is different between jdk 17 and jdk 11 -->
-          <plugin>
-            <groupId>org.codehaus.gmaven</groupId>
-            <artifactId>groovy-maven-plugin</artifactId>
-            <version>${maven.groovy.plugin.version}</version>
-            <executions>
-              <execution>
-                <id>copy-css</id>
-                <phase>process-resources</phase>
-                <goals>
-                  <goal>execute</goal>
-                </goals>
-                <configuration>
-                  <source>
-                    import java.nio.file.Paths
-                    import java.nio.file.Files
-
-                    props = project.properties
-
-                    javaVersion = Integer.valueOf(System.getProperty("java.version").split('-|\\.')[0])
-
-                    if (javaVersion >= 17)
-                      {
-                      cssSource = Paths.get(props.get("new-stylesheet.file"))
-                      }
-                    else
-                      {
-                      cssSource = Paths.get(props.get("old-stylesheet.file"))
-                      }
-
-                    Files.copy(cssSource, Paths.get(props.get("stylesheet.file")))
-                  </source>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
           <!-- create a source tree from which to generate javadoc -->
 
           <!--
@@ -484,7 +443,6 @@
 
             <!-- shared javadoc configuration -->
             <configuration>
-              <stylesheetfile>${stylesheet.file}</stylesheetfile>
               <sourcepath>${javadoc.src}</sourcepath>
               <doclint>${doclint.check}</doclint>
             </configuration>
@@ -721,17 +679,17 @@
 
                   <groups>
                     <group>
-                      <title>Coherence</title>
+                      <title>Core</title>
                       <packages>
                         com.tangosol.injection*:com.tangosol.io*:com.tangosol.net*:com.tangosol.run*:com.tangosol.util*:com.oracle.coherence.common.base*
                       </packages>
                     </group>
                     <group>
-                      <title>Coherence Concurrent</title>
+                      <title>Concurrent</title>
                       <packages>com.oracle.coherence.concurrent:com.oracle.coherence.concurrent.atomic:com.oracle.coherence.concurrent.cdi:com.oracle.coherence.concurrent.executor:com.oracle.coherence.concurrent.executor.management:com.oracle.coherence.concurrent.locks</packages>
                     </group>
                     <group>
-                      <title>Coherence Configuration</title>
+                      <title>Configuration</title>
                       <packages>com.tangosol.config*:com.tangosol.coherence.config*</packages>
                     </group>
                     <group>
@@ -739,7 +697,7 @@
                       <packages>com.oracle.coherence.persistence*:com.tangosol.persistence*</packages>
                     </group>
                     <group>
-                      <title>Query Language (CohQL)</title>
+                      <title>CohQL</title>
                       <packages>
                           com.tangosol.coherence.dsl*
                       </packages>
