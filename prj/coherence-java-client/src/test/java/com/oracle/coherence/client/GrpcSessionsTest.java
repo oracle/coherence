@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.client;
@@ -63,7 +63,7 @@ public class GrpcSessionsTest
     public void shouldNotGetSessionForNonGrpcSessionConfiguration()
         {
         GrpcSessions      factory  = new GrpcSessions();
-        Optional<Session> optional = factory.createSession(SessionConfiguration.defaultSession(), Coherence.Mode.Client);
+        Optional<Session> optional = factory.createSession(SessionConfiguration.builder().named("foo").build(), Coherence.Mode.Client);
         assertThat(optional, is(notNullValue()));
         assertThat(optional.isPresent(), is(false));
         }

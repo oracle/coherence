@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.client;
 
@@ -359,8 +359,16 @@ public interface GrpcSessionConfiguration
                     ? Coherence.DEFAULT_SCOPE
                     : m_sScope;
 
+            String sFormat = m_sFormat;
+            if (sFormat == null || sFormat.isBlank())
+                {
+                sFormat = getProperty(PROP_SERIALIZER_FORMAT, sName);
+                }
+
+            boolean fEnabled = Boolean.parseBoolean(getProperty(PROP_SESSION_ENABLED, sName, "true"));
+
             return new DefaultConfiguration(sName, sScope, m_nPriority, channel, m_serializer,
-                                                m_sFormat, m_fTracing);
+                    sFormat, m_fTracing, fEnabled);
             }
 
         /**
@@ -432,14 +440,22 @@ public interface GrpcSessionConfiguration
             return Optional.empty();
             }
 
-        private String getProperty(String sProperty, String sChannelName)
+        private String getProperty(String sProperty, String sName)
             {
-            return Config.getProperty(String.format(sProperty, sChannelName));
+            if (sName == null || sName.isBlank())
+                {
+                sName = ChannelProvider.DEFAULT_CHANNEL_NAME;
+                }
+            return Config.getProperty(String.format(sProperty, sName));
             }
 
-        private String getProperty(String sProperty, String sChannelName, String sDefault)
+        private String getProperty(String sProperty, String sName, String sDefault)
             {
-            return Config.getProperty(String.format(sProperty, sChannelName), sDefault);
+            if (sName == null || sName.isBlank())
+                {
+                sName = ChannelProvider.DEFAULT_CHANNEL_NAME;
+                }
+            return Config.getProperty(String.format(sProperty, sName), sDefault);
             }
 
         /**
@@ -510,7 +526,8 @@ public interface GrpcSessionConfiguration
                                      Channel    channel,
                                      Serializer serializer,
                                      String     sFormat,
-                                     boolean    fTracing)
+                                     boolean    fTracing,
+                                     boolean    fEnabled)
             {
             f_sName      = sName;
             f_sScopeName = sScope;
@@ -519,15 +536,23 @@ public interface GrpcSessionConfiguration
             f_serializer = serializer;
             f_sFormat    = sFormat;
             f_fTracing   = fTracing;
+            f_fEnabled   = fEnabled;
             }
 
         // ----- GrpcSessionConfiguration methods -------------------------------
+
+        @Override
+        public boolean isEnabled()
+            {
+            return f_fEnabled;
+            }
 
         /**
          * Returns the gRPC {@link Channel} to use.
          *
          * @return  the gRPC {@link Channel} to use
          */
+        @Override
         public Channel getChannel()
             {
             return f_channel;
@@ -539,6 +564,7 @@ public interface GrpcSessionConfiguration
          *
          * @return the {@link Serializer} to use
          */
+        @Override
         public Optional<Serializer> getSerializer()
             {
             return Optional.ofNullable(f_serializer);
@@ -550,6 +576,7 @@ public interface GrpcSessionConfiguration
          *
          * @return the name of the serialization format
          */
+        @Override
         public Optional<String> getFormat()
             {
             return Optional.ofNullable(f_sFormat);
@@ -560,6 +587,7 @@ public interface GrpcSessionConfiguration
          *
          * @return {@code true} if client gRPC tracing should be enabled
          */
+        @Override
         public boolean enableTracing()
             {
             return f_fTracing;
@@ -594,6 +622,11 @@ public interface GrpcSessionConfiguration
             }
 
         // ----- data members -----------------------------------------------
+
+        /**
+         * A flag to enable or disable this configuration.
+         */
+        private final boolean f_fEnabled;
 
         /**
          * The name of the gRPC session.
@@ -642,7 +675,7 @@ public interface GrpcSessionConfiguration
     int DEFAULT_PRIORITY = SessionConfiguration.DEFAULT_PRIORITY - 1;
 
     /**
-     * The the default host name to use for the default channel.
+     * The default host name to use for the default channel.
      */
     String DEFAULT_HOST = "localhost";
 
@@ -671,4 +704,14 @@ public interface GrpcSessionConfiguration
      * method will be used to create the channel builder.
      */
     String PROP_TARGET = "coherence.grpc.channels.%s.target";
+
+    /**
+     * The system property that sets the value to use for the serializer format.
+     */
+    String PROP_SERIALIZER_FORMAT = "coherence.grpc.session.%s.serializer";
+
+    /**
+     * The system property that sets whether a session is enabled.
+     */
+    String PROP_SESSION_ENABLED = "coherence.grpc.session.%s.enabled";
     }
