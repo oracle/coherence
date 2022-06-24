@@ -1,23 +1,36 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.client;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
+import com.tangosol.coherence.config.ResolvableParameterList;
+
+import com.tangosol.coherence.config.builder.ParameterizedBuilder;
+import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
+
+import com.tangosol.config.expression.SystemPropertyParameterResolver;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
+
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.OperationalContext;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 
 import com.tangosol.internal.net.DefaultSessionProvider;
+
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 
@@ -79,6 +92,7 @@ public class GrpcSessions
      */
     @Override
     @Deprecated
+    @SuppressWarnings("deprecation")
     public Session createSession(Session.Option... options)
         {
         throw new UnsupportedOperationException("Cannot create a gRPC session using optiona");
@@ -110,7 +124,47 @@ public class GrpcSessions
         {
         if (configuration instanceof GrpcSessionConfiguration)
             {
-            GrpcSessionConfiguration grpcConfig  = (GrpcSessionConfiguration) configuration;
+            return buildSession((GrpcSessionConfiguration) configuration, context);
+            }
+        else if (Coherence.DEFAULT_NAME.equals(configuration.getName()))
+            {
+            // this is the default configuration, so return a default gRPC configuration
+            GrpcSessionConfiguration grpcConfig = createDefaultConfiguration();
+            return buildSession(grpcConfig, context);
+            }
+        return context;
+        }
+
+    private GrpcSessionConfiguration createDefaultConfiguration()
+        {
+        OperationalContext                                     context  = (OperationalContext) CacheFactory.getCluster();
+        ParameterizedBuilderRegistry                           registry = context.getBuilderRegistry();
+        ParameterizedBuilder<GrpcSessionConfiguration.Builder> builder  = registry.getBuilder(GrpcSessionConfiguration.Builder.class);
+        GrpcSessionConfiguration                               config;
+
+        if (builder != null)
+            {
+            SystemPropertyParameterResolver resolver = new SystemPropertyParameterResolver();
+            ResolvableParameterList         list     = new ResolvableParameterList();
+
+            config = builder.realize(resolver, Classes.getContextClassLoader(), list)
+                    .withPriority(SessionConfiguration.DEFAULT_PRIORITY + 1)
+                    .build();
+            }
+        else
+            {
+            config = GrpcSessionConfiguration.builder()
+                    .withPriority(SessionConfiguration.DEFAULT_PRIORITY + 1)
+                    .build();
+            }
+
+        return config;
+        }
+
+    private Context buildSession(GrpcSessionConfiguration grpcConfig, Context context)
+        {
+        if (grpcConfig.isEnabled())
+            {
             Channel                  channel     = Objects.requireNonNull(grpcConfig.getChannel());
             String                   sName       = grpcConfig.getName();
             String                   sScope      = grpcConfig.getScopeName();
