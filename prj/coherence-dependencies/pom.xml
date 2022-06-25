@@ -132,7 +132,8 @@
      <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
      <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
      <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
-     <maven.jandex.plugin.version>1.2.2</maven.jandex.plugin.version>
+     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
+     <maven.jandex.plugin.version>1.1.1</maven.jandex.plugin.version>
      <maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
      <maven.javadoc.plugin.version>3.4.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>

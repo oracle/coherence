@@ -30,7 +30,8 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
     <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
-    <maven.jandex.plugin.version>1.2.2</maven.jandex.plugin.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
+    <maven.jandex.plugin.version>1.1.1</maven.jandex.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
