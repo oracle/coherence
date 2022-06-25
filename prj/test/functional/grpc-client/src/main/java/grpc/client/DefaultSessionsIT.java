@@ -26,7 +26,7 @@ public class DefaultSessionsIT
     @AfterEach
     public void cleanup()
         {
-        System.clearProperty(PROP_ENABLED);
+        System.clearProperty(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED);
         Coherence.closeAll();
         }
 
@@ -44,7 +44,7 @@ public class DefaultSessionsIT
     @Test
     public void shouldNotUseGrpcForDefaultSession() throws Exception
         {
-        System.setProperty(PROP_ENABLED, "false");
+        System.setProperty(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, "false");
 
         Coherence coherence = Coherence.client()
                 .start()
@@ -57,7 +57,7 @@ public class DefaultSessionsIT
     @Test
     public void shouldSpecificallyEnableGrpForDefaultSession() throws Exception
         {
-        System.setProperty(PROP_ENABLED, "true");
+        System.setProperty(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, "true");
 
         Coherence coherence = Coherence.client()
                 .start()
@@ -66,6 +66,4 @@ public class DefaultSessionsIT
         Session session = coherence.getSession();
         assertThat(session, is(instanceOf(GrpcRemoteSession.class)));
         }
-
-    public static final String PROP_ENABLED = String.format(GrpcSessionConfiguration.PROP_SESSION_ENABLED, "default");
     }
