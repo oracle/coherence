@@ -714,4 +714,9 @@ public interface GrpcSessionConfiguration
      * The system property that sets whether a session is enabled.
      */
     String PROP_SESSION_ENABLED = "coherence.grpc.session.%s.enabled";
+
+    /**
+     * The system property that sets whether the default gRPC session is enabled.
+     */
+    String PROP_DEFAULT_SESSION_ENABLED = String.format(PROP_SESSION_ENABLED, "default");
     }

@@ -153,15 +153,16 @@ public class DockerImageTests
             int           concurrentPort = container.getMappedPort(CONCURRENT_EXTEND_PORT);
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
-                                                                 SystemProperty.of("coherence.client", "remote-fixed"),
-                                                                 SystemProperty.of("coherence.extend.address", "127.0.0.1"),
-                                                                 SystemProperty.of("coherence.extend.port", extendPort),
-                                                                 SystemProperty.of("coherence.concurrent.extend.address", "127.0.0.1"),
-                                                                 SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
-                                                                 IPv4Preferred.yes(),
-                                                                 LocalHost.only(),
-                                                                 DisplayName.of("client"),
-                                                                 m_testLogs))
+                    SystemProperty.of("coherence.client", "remote-fixed"),
+                    SystemProperty.of("coherence.extend.address", "127.0.0.1"),
+                    SystemProperty.of("coherence.extend.port", extendPort),
+                    SystemProperty.of("coherence.concurrent.extend.address", "127.0.0.1"),
+                    SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
+                    SystemProperty.of(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, false),
+                    IPv4Preferred.yes(),
+                    LocalHost.only(),
+                    DisplayName.of("client"),
+                    m_testLogs))
                 {
                 Eventually.assertDeferred(client::isCoherenceRunning, is(true));
 
