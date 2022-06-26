@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@
 
 This tutorial walks through the steps to enable access to Coherence data from GraphQL using Helidon’s
 https://helidon.io/docs/v2/#/mp/graphql/01_mp_graphql[MicroProfile (MP) GraphQL support]
-and xref:coherence-cdi-server/README.adoc[Coherence CDI].
+and {commercial-docs-base-url}/develop-applications/using-contexts-and-dependency-injection.html[Coherence CDI].
 
 === Table of Contents
 

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -22,7 +22,7 @@ you are able to register for all events, events based upon a filter or events fo
 
 More advanced use cases for Durable Events include the ability to replay all events for a `NamedMap`.
 
-Please see <<docs/core/06_durable_events.adoc, Durable Events Documentation>> for more information on Durable Events.
+Please see {commercial-docs-base-url}/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4[Durable Events Documentation] for more information on Durable Events.
 
 NOTE: Durable events are an experimental feature only and should not be used in product as yet.
 
@@ -172,6 +172,6 @@ In this example you ran a test that demonstrated using Durable Events by:
 [#see-also]
 === See Also
 
-* <<docs/core/06_durable_events.adoc, Durable Events Overview>>
+* {commercial-docs-base-url}/develop-applications/using-map-events.html#GUID-35236F52-2815-494F-9231-1363B8206AE4[Durable Events Documentation]
 * <<examples/guides/140-client-events/README.adoc, Client Events>>
 * {commercial-docs-base-url}/develop-applications/using-map-events.html[Develop Applications using Map Events]
