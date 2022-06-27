@@ -162,12 +162,33 @@ public class Coherence
      * cluster member. Coherence auto-start services will be managed by a
      * {@link DefaultCacheServer} instance for each configured session.
      *
+     * @param config the {@link CoherenceConfiguration} to use to build the {@link Coherence} instance
+     *
      * @return a {@link Builder} instance that can build a {@link Coherence}
      *         instance using the specified {@link CoherenceConfiguration}
      */
     public static Builder builder(CoherenceConfiguration config)
         {
         return clusterMemberBuilder(config);
+        }
+
+    /**
+     * Returns a {@link Builder} instance that can build a {@link Coherence}
+     * instance using the specified {@link CoherenceConfiguration}.
+     * <p>
+     * The {@link Coherence} instance built by the {@code Builder} will be a
+     * cluster member. Coherence auto-start services will be managed by a
+     * {@link DefaultCacheServer} instance for each configured session.
+     *
+     * @param config the {@link CoherenceConfiguration} to use to build the {@link Coherence} instance
+     * @param mode   the {@link Mode} the {@link Coherence} instance will run in
+     *
+     * @return a {@link Builder} instance that can build a {@link Coherence}
+     *         instance using the specified {@link CoherenceConfiguration}
+     */
+    public static Builder builder(CoherenceConfiguration config, Mode mode)
+        {
+        return new Builder(config, mode);
         }
 
     /**
