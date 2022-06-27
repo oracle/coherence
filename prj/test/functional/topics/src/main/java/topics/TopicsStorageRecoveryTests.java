@@ -8,8 +8,9 @@ package topics;
 
 import com.oracle.bedrock.OptionsByType;
 
-import com.oracle.bedrock.junit.SessionBuilders;
+import com.oracle.bedrock.junit.CoherenceBuilder;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
@@ -39,9 +40,10 @@ import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
-import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DistributedCacheService;
 
+import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -85,44 +87,56 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
  */
 public class TopicsStorageRecoveryTests
     {
-    @BeforeClass
-    public static void setup()
-        {
-        System.setProperty(LocalStorage.PROPERTY, "false");
-        System.setProperty(Logging.PROPERTY, "9");
-        System.setProperty(OperationalOverride.PROPERTY, "common-tangosol-coherence-override.xml");
-        System.setProperty(CacheConfig.PROPERTY, "simple-persistence-bdb-cache-config.xml");
-        }
-
     @Before
     public void setupTest()
         {
+        String sMethodName = m_testName.getMethodName();
+        System.err.println(">>>> Entering setupTest() " + sMethodName);
+
+        System.setProperty(ClusterName.PROPERTY, sMethodName);
+        System.setProperty(LocalStorage.PROPERTY, "false");
+        System.setProperty("test.log.level", "9");
+        System.setProperty("test.log", "stderr");
+        System.setProperty(OperationalOverride.PROPERTY, "common-tangosol-coherence-override.xml");
+        System.setProperty(CacheConfig.PROPERTY, "simple-persistence-bdb-cache-config.xml");
+
         // make sure persistence files are not left from a previous test
-        File filePersistence = new File("target/store-bdb-active/" + m_testName.getMethodName());
+        File filePersistence = new File("target/store-bdb-active/" + sMethodName);
         if (filePersistence.exists())
             {
             MavenProjectFileUtils.recursiveDelete(filePersistence);
             }
 
+        System.err.println("Starting cluster for " + sMethodName);
         s_storageCluster = startCluster("initial");
 
+        Eventually.assertDeferred(s_storageCluster::isReady, is(true));
+        System.err.println("Cluster for " + sMethodName + " is ready");
+
         OptionsByType options = OptionsByType.of(s_options);
-        options.add(ClusterName.of(m_testName.getMethodName()));
+        options.add(ClusterName.of(sMethodName));
         options.add(RoleName.of("client"));
         options.add(LocalStorage.disabled());
 
-        s_ccf = SessionBuilders.storageDisabledMember().build(LocalPlatform.get(), s_storageCluster, options);
+        System.err.println("Starting local Coherence instance for " + sMethodName);
+        s_coherence = CoherenceBuilder.clusterMember().build(LocalPlatform.get(), s_storageCluster, options);
+        s_session   = s_coherence.getSession();
+        System.err.println("Started local Coherence instance for " + sMethodName);
 
         Cluster cluster = CacheFactory.ensureCluster();
         Eventually.assertDeferred(cluster::isRunning, is(true));
-        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
+        System.err.println("Waiting for local Coherence instance to join cluster " + sMethodName);
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3), Timeout.after(5, TimeUnit.MINUTES));
 
         s_count.incrementAndGet();
+        System.err.println(">>>> Exiting setupTest() " + sMethodName);
         }
 
     @After
     public void cleanupTest()
         {
+        String sMethodName = m_testName.getMethodName();
+        System.err.println(">>>> Entering cleanupTest() " + sMethodName);
         if (m_topic != null)
             {
             try
@@ -137,9 +151,16 @@ public class TopicsStorageRecoveryTests
 
         s_storageCluster.close();
         s_storageCluster = null;
-        s_ccf.dispose();
-        s_ccf = null;
+        Cluster cluster = s_coherence.getCluster();
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1), Timeout.after(5, TimeUnit.MINUTES));
+        if (s_coherence != null)
+            {
+            s_coherence.close();
+            s_coherence = null;
+            }
+        Coherence.closeAll();
         CacheFactory.shutdown();
+        System.err.println(">>>> Exiting cleanupTest() " + sMethodName);
         }
 
     @Test
@@ -676,7 +697,7 @@ public class TopicsStorageRecoveryTests
         if (m_topic == null)
             {
             int cTopic = f_cTopic.getAndIncrement();
-            m_topic = s_ccf.ensureTopic(getCacheName("simple-persistent-topic-" + sPrefix + "-" + cTopic));
+            m_topic = s_session.getTopic(getCacheName("simple-persistent-topic-" + sPrefix + "-" + cTopic));
             }
         return (NamedTopic<V>) m_topic;
         }
@@ -688,16 +709,16 @@ public class TopicsStorageRecoveryTests
 
     private CoherenceCluster startCluster(String suffix)
         {
-        CoherenceClusterBuilder builder = new CoherenceClusterBuilder();
-        OptionsByType options = OptionsByType.of(s_options)
-                        .addAll(LocalStorage.enabled(),
-                                StabilityPredicate.none(),
-                                Logging.at(9),
-                                DisplayName.of("storage-" + suffix),
-                                s_testLogs.builder());
+        CoherenceClusterBuilder builder     = new CoherenceClusterBuilder();
+        String                  sMethodName = m_testName.getMethodName();
+        OptionsByType           options     = OptionsByType.of(s_options)
+                                                .addAll(LocalStorage.enabled(),
+                                                        StabilityPredicate.none(),
+                                                        Logging.at(9),
+                                                        DisplayName.of(sMethodName + '-' + suffix),
+                                                        s_testLogs.builder());
 
-        builder.with(ClusterName.of(m_testName.getMethodName()),
-                     SystemProperty.of("coherence.distributed.partitioncount", "13"))
+        builder.with(ClusterName.of(sMethodName))
                .include(2, CoherenceClusterMember.class, options.asArray());
 
         return builder.build(LocalPlatform.get());
@@ -761,11 +782,14 @@ public class TopicsStorageRecoveryTests
     private static final OptionsByType s_options = OptionsByType.of(
             SystemProperty.of("coherence.guard.timeout", 60000),
             CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
-            OperationalOverride.of("common-tangosol-coherence-override.xml"));
+            OperationalOverride.of("common-tangosol-coherence-override.xml"),
+            SystemProperty.of("coherence.distributed.partitioncount", "13"));
 
     private static CoherenceCluster s_storageCluster;
 
-    private static ConfigurableCacheFactory s_ccf;
+    private static Coherence s_coherence;
+
+    private static Session s_session;
 
     private final AtomicInteger f_cTopic = new AtomicInteger(0);
 
