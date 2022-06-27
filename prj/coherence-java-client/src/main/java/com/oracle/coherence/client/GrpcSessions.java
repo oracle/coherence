@@ -126,12 +126,12 @@ public class GrpcSessions
             {
             return buildSession((GrpcSessionConfiguration) configuration, context);
             }
-        else if (Coherence.DEFAULT_NAME.equals(configuration.getName()))
-            {
-            // this is the default configuration, so return a default gRPC configuration
-            GrpcSessionConfiguration grpcConfig = createDefaultConfiguration();
-            return buildSession(grpcConfig, context);
-            }
+//        else if (Coherence.DEFAULT_NAME.equals(configuration.getName()))
+//            {
+//            // this is the default configuration, so return a default gRPC configuration
+//            GrpcSessionConfiguration grpcConfig = createDefaultConfiguration();
+//            return buildSession(grpcConfig, context);
+//            }
         return context;
         }
 

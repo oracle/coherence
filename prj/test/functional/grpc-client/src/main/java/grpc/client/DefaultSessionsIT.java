@@ -11,6 +11,7 @@ import com.oracle.coherence.client.GrpcRemoteSession;
 import com.oracle.coherence.client.GrpcSessionConfiguration;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -26,26 +27,12 @@ public class DefaultSessionsIT
     @AfterEach
     public void cleanup()
         {
-        System.clearProperty(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED);
         Coherence.closeAll();
-        }
-
-    @Test
-    public void shouldUseGrpcForDefaultSession() throws Exception
-        {
-        Coherence coherence = Coherence.client()
-                .start()
-                .get(5, TimeUnit.MINUTES);
-
-        Session session = coherence.getSession();
-        assertThat(session, is(instanceOf(GrpcRemoteSession.class)));
         }
 
     @Test
     public void shouldNotUseGrpcForDefaultSession() throws Exception
         {
-        System.setProperty(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, "false");
-
         Coherence coherence = Coherence.client()
                 .start()
                 .get(5, TimeUnit.MINUTES);
@@ -57,9 +44,12 @@ public class DefaultSessionsIT
     @Test
     public void shouldSpecificallyEnableGrpForDefaultSession() throws Exception
         {
-        System.setProperty(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, "true");
+        GrpcSessionConfiguration sessionConfiguration = GrpcSessionConfiguration.builder().build();
 
-        Coherence coherence = Coherence.client()
+        CoherenceConfiguration   configuration        = CoherenceConfiguration.builder()
+                .withSession(sessionConfiguration).build();
+
+        Coherence coherence = Coherence.client(configuration)
                 .start()
                 .get(5, TimeUnit.MINUTES);
 
