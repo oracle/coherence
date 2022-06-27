@@ -46,7 +46,7 @@ public class GrpcSessionsTest
     public void shouldGetSessionFromCoherenceSessionsFactory()
         {
         Channel                  channel       = mock(Channel.class);
-        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).named("foo").build();
         Optional<Session>        optional      = Session.create(configuration);
 
         assertThat(optional, is(notNullValue()));
@@ -72,7 +72,7 @@ public class GrpcSessionsTest
     public void shouldGetSameSessionForSameChannel()
         {
         Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).named("foo").build();
         GrpcSessions             factory       = new GrpcSessions();
         GrpcRemoteSession session1   = factory.createSession(configuration, Coherence.Mode.Client)
                                               .map(GrpcRemoteSession.class::cast).get();
@@ -86,7 +86,7 @@ public class GrpcSessionsTest
     public void shouldGetNewSessionIfOriginalSessionClosed()
         {
         Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
-        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).build();
+        GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).named("foo").build();
         GrpcSessions             factory       = new GrpcSessions();
         GrpcRemoteSession        session1      = factory.createSession(configuration, Coherence.Mode.Client)
                                                         .map(GrpcRemoteSession.class::cast).get();
@@ -105,6 +105,7 @@ public class GrpcSessionsTest
         {
         Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
         GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withScopeName("foo")
                 .build();
 
@@ -123,9 +124,11 @@ public class GrpcSessionsTest
         {
         Channel                  channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
         GrpcSessionConfiguration configuration1 = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withScopeName("foo")
                 .build();
         GrpcSessionConfiguration configuration2 = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withScopeName("bar")
                 .build();
 
@@ -142,6 +145,7 @@ public class GrpcSessionsTest
         {
         Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
         GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withSerializerFormat("pof")
                 .build();
 
@@ -160,9 +164,11 @@ public class GrpcSessionsTest
         {
         Channel                  channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
         GrpcSessionConfiguration configuration1 = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withSerializerFormat("pof")
                 .build();
         GrpcSessionConfiguration configuration2 = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withSerializerFormat("java")
                 .build();
 
@@ -179,6 +185,7 @@ public class GrpcSessionsTest
         {
         Channel                  channel       = ManagedChannelBuilder.forAddress("localhost", 1408).build();
         GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withSerializer(new ConfigurablePofContext())
                 .build();
 
@@ -197,10 +204,12 @@ public class GrpcSessionsTest
         {
         Channel                  channel        = ManagedChannelBuilder.forAddress("localhost", 1408).build();
         GrpcSessionConfiguration configuration1 = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withSerializerFormat("pof")
                 .withSerializer(new ConfigurablePofContext())
                 .build();
         GrpcSessionConfiguration configuration2 = GrpcSessionConfiguration.builder(channel)
+                .named("foo")
                 .withSerializerFormat("pof")
                 .withSerializer(new ConfigurablePofContext())
                 .build();

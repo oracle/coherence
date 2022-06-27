@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -100,12 +100,20 @@ public class CoherenceProducer
             }
         else
             {
+            List<SessionConfiguration> sessionConfiguration = configurations.stream().collect(Collectors.toList());
+            
+            boolean fHasDefault = sessionConfiguration.stream().anyMatch(cfg -> Coherence.DEFAULT_NAME.equals(cfg.getName()));
+
             // else there is no CoherenceConfiguration.Builder bean so we create one
             builder = CoherenceConfiguration.builder()
-                        .withSession(SessionConfiguration.defaultSession())
-                        .withSessions(configurations)
+                        .withSessions(sessionConfiguration)
                         .withEventInterceptors(listInterceptor)
                         .discoverSessions();
+
+            if (!fHasDefault)
+                {
+                builder.withSession(SessionConfiguration.defaultSession());
+                }
             }
 
         // build the configuration - ensuring the correct name is set

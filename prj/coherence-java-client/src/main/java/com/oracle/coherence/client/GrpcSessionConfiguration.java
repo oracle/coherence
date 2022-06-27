@@ -365,10 +365,8 @@ public interface GrpcSessionConfiguration
                 sFormat = getProperty(PROP_SERIALIZER_FORMAT, sName);
                 }
 
-            boolean fEnabled = Boolean.parseBoolean(getProperty(PROP_SESSION_ENABLED, sName, "true"));
-
             return new DefaultConfiguration(sName, sScope, m_nPriority, channel, m_serializer,
-                    sFormat, m_fTracing, fEnabled);
+                    sFormat, m_fTracing, true);
             }
 
         /**
