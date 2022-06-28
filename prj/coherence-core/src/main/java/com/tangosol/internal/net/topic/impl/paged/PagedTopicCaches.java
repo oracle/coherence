@@ -50,6 +50,7 @@ import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.HashHelper;
@@ -532,9 +533,8 @@ public class PagedTopicCaches
      */
     public Set<SubscriberInfo.Key> getSubscribers(String sSubscriberGroup)
         {
-        ReflectionExtractor<SubscriberInfo.Key, SubscriberGroupId> extractor
-                = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
-
+        ValueExtractor<SubscriberInfo.Key, SubscriberGroupId> extractor
+                = ValueExtractor.of(SubscriberInfo.Key::getGroupId).fromKey();
         return Subscribers.keySet(Filters.equal(extractor, SubscriberGroupId.withName(sSubscriberGroup)));
         }
 
