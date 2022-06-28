@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi.events;
 
@@ -93,7 +93,8 @@ public class EventObserverSupport
 
     /**
      * An observer of a specific event type.
-     * @param <E>
+     *
+     * @param <E>  event type
      */
     @SuppressWarnings("rawtypes")
     public interface EventObserver<E extends com.tangosol.net.events.Event>

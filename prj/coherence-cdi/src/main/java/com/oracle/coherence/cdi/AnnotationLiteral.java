@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -24,7 +24,7 @@ import java.util.Arrays;
 /**
  * Supports inline instantiation of annotation type instances.
  * <p>
- * An instance of an annotation type may be obtained by subclassing <tt>AnnotationLiteral</tt>.
+ * An instance of an annotation type may be obtained by subclassing {@code AnnotationLiteral}.
  * <pre>
  * public abstract class PayByQualifier
  *       extends AnnotationLiteral&lt;PayBy&gt;

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi.events;
 
@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
 /**
  * {@link MapListener} implementation that dispatches {@code MapEvent}s
  * to a CDI observer.
+ *
+ * @param <K>  the type of the map entry keys
+ * @param <V>  the type of the map entry values
  *
  * @author Aleks Seovic  2020.04.14
  * @since 20.06
@@ -427,6 +430,7 @@ public class AnnotatedMapListener<K, V>
          * Produce a {@link Filter} instance from a set of annotations.
          *
          * @param annotations  the annotations to use to produce the {@link Filter}
+         * @param <T>          the type of the input argument to the filter
          *
          * @return an instance of a {@link Filter}
          */
@@ -445,6 +449,9 @@ public class AnnotatedMapListener<K, V>
          * Produce a {@link MapEventTransformer} instance from a set of annotations.
          *
          * @param annotations  the annotations to use to produce the {@link MapEventTransformer}
+         * @param <K>          the type of the event's key
+         * @param <V>          the type of event's value
+         * @param <U>          the type of resulting transformed value
          *
          * @return an instance of a {@link MapEventTransformer}
          */
