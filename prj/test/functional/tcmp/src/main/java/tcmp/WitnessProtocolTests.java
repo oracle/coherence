@@ -56,6 +56,7 @@ public class WitnessProtocolTests
 
         client.close();
         ClusteringTests.stopServers("server-witness", cServers);
+        AbstractFunctionalTest.stopCacheServer("client-witness");
         }
 
     /**
@@ -84,6 +85,7 @@ public class WitnessProtocolTests
         client.close();
         server.close();
         ClusteringTests.stopServers("server-witness2", cServers);
+        AbstractFunctionalTest.stopCacheServer("client-witness2");
         }
 
     public static class ConnectionDestroyer
