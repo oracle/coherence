@@ -146,6 +146,7 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectSingleSubscriberByKey() throws Exception
         {
+        System.err.println(">>>>> Entering shouldDisconnectSingleSubscriberByKey");
         NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
         DistributedCacheService service       = (DistributedCacheService) topic.getService();
         String                  sGroupOne     = "group-one";
@@ -154,19 +155,27 @@ public class TopicSubscriberManagementTests
         OwnershipListener       listenerTwo   = new OwnershipListener();
         OwnershipListener       listenerThree = new OwnershipListener();
 
+        System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - awaiting subscriber channel allocation");
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - awaiting three subscribers");
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers " + caches.Subscribers.keySet());
 
             Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
             Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers groupOne " + setSubscriberGroupOne);
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers groupTwo " + setSubscriberGroupTwo);
 
             assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
             assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
