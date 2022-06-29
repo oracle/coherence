@@ -628,10 +628,6 @@
       <id>release-coherence</id>
 
       <modules>
-        <!-- internal/shaded modules -->
-        <module>coherence-core</module>
-        <module>coherence-core-components</module>
-
         <!-- distributed modules -->
         <module>coherence-bom</module>
         <module>coherence-discovery</module>
