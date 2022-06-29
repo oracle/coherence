@@ -630,7 +630,6 @@
       <modules>
         <!-- internal/shaded modules -->
         <module>coherence-core</module>
-        <module>coherence-tracing</module>
 
         <!-- distributed modules -->
         <module>coherence-bom</module>

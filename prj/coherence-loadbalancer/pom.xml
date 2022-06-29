@@ -46,12 +46,6 @@
         </configuration>
       </plugin>
 
-      <!-- flatten POM to remove build-specific content -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-      </plugin>
-
       <!-- generate module-info.java -->
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
@@ -85,7 +79,6 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -103,6 +96,11 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <!-- flatten POM to remove build-specific content -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
