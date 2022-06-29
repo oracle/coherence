@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -174,6 +174,7 @@ public @interface PofExtractor
         /**
          * Create a {@link PofExtractor.Literal}.
          *
+         * @param type  the type to extract property from
          * @param value the POF indexes to use to extract the value
          *
          * @return a {@link PofExtractor.Literal} with the specified value
@@ -186,7 +187,8 @@ public @interface PofExtractor
        /**
          * Create a {@link PofExtractor.Literal}.
          *
-         * @param sPath  the POF indexes to use to extract the value
+         * @param type   the type to extract property from
+         * @param sPath  the property path to use to extract the value
          *
          * @return a {@link PofExtractor.Literal} with the specified value
          */

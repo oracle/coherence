@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi.server;
 
@@ -14,7 +14,7 @@ import javax.enterprise.inject.se.SeContainerInitializer;
 /**
  * This class bootstraps the CDI container, which will in turn start Coherence
  * server via CDI extension.
- * <p/>
+ * <p>
  * This class should only be used when Coherence CDI is used in a standalone
  * mode. When used with Helidon 2.0, Helidon's {@code io.helidon.microprofile.cdi.Main}
  * should be used instead and will ensure that both Helidon and Coherence

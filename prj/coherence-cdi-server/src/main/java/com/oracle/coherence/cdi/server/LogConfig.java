@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi.server;
 
@@ -19,11 +19,11 @@ import java.util.logging.Logger;
 
 /**
  * Logging configuration utility.
- * <p/>
+ * <p>
  * Eliminates the need to explicitly configure Java Util logging as long as a
  * file {@code logging.properties} is on the classpath or in the current
  * directory, or you configure logging explicitly using System properties.
- * <p/>
+ * <p>
  * Both {@value #SYS_PROP_LOGGING_CLASS} and {@value #SYS_PROP_LOGGING_FILE} are
  * honored. If you wish to configure the logging system differently, just do not
  * include the file and/or system properties.
