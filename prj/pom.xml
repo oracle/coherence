@@ -628,12 +628,13 @@
       <id>release-coherence</id>
 
       <modules>
-        <!-- distributed modules -->
+        <!-- internal/shaded modules -->
         <module>coherence-core</module>
-        <module>coherence-core-components</module>
-        <module>coherence-discovery</module>
         <module>coherence-tracing</module>
+
+        <!-- distributed modules -->
         <module>coherence-bom</module>
+        <module>coherence-discovery</module>
         <module>coherence</module>
       </modules>
 
@@ -676,8 +677,6 @@
 
       <modules>
         <!-- internal modules -->
-        <module>coherence-dependencies</module>
-
         <module>coherence-testing-data</module>
         <module>coherence-testing-support</module>
 
