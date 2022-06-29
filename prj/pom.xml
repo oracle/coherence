@@ -394,11 +394,11 @@
         <!-- internal/shaded modules -->
         <module>coherence-core</module>
         <module>coherence-core-components</module>
+        <module>coherence-discovery</module>
         <module>coherence-tracing</module>
 
         <!-- distributed modules -->
         <module>coherence-bom</module>
-        <module>coherence-discovery</module>
         <module>coherence</module>
       </modules>
     </profile>
@@ -430,10 +430,12 @@
         <module>coherence-javadoc</module>
         <module>coherence-jcache</module>
         <module>coherence-json</module>
+        <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
         <module>coherence-metrics</module>
         <module>coherence-micrometer</module>
+        <module>coherence-mock</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
         <module>coherence-cdi</module>
@@ -628,6 +630,7 @@
       <modules>
         <!-- internal/shaded modules -->
         <module>coherence-core</module>
+        <module>coherence-core-components</module>
 
         <!-- distributed modules -->
         <module>coherence-bom</module>
@@ -680,11 +683,9 @@
         <!-- distributed modules -->
         <module>coherence-bedrock</module>
         <module>coherence-jcache</module>
-        <module>coherence-loadbalancer</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
         <module>coherence-metrics</module>
-        <module>coherence-mock</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
         <module>coherence-json</module>
