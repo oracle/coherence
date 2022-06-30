@@ -260,6 +260,8 @@ public class PersistenceResourceTests
         List<String> objSnapshots = (List<String>) mapResponse.get("archiveStores");
 
         assertThat(objSnapshots, notNullValue());
+
+        Eventually.assertDeferred(() -> this.isPersistenceManagerIdle(m_client), is(true));
         }
 
     private void testArchivePresent()
