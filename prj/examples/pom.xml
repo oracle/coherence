@@ -26,6 +26,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>guides/050-bootstrap</module>
     <module>guides/090-health-checks</module>
     <module>guides/100-put-get-remove</module>
     <module>guides/110-queries</module>
@@ -42,6 +43,7 @@
     <module>guides/200-federation</module>
     <module>guides/210-ssl</module>
     <module>guides/460-topics</module>
+    <module>guides/905-key-association</module>
     <module>tutorials/200-persistence</module>
     <module>tutorials/500-graphql/initial</module>
     <module>tutorials/500-graphql/complete</module>

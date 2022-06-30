@@ -1,22 +1,24 @@
 /*
- * Copyright (c) 2000, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.durableevents;
 
-import com.oracle.bedrock.OptionsByType;
-import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
+import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
-import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.io.FileHelper;
@@ -30,19 +32,17 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.Processors;
 import com.tangosol.util.listener.SimpleMapListener;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -53,6 +53,10 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author Tim Middleton 2021.06.02
  */
 public class DurableEventsTest {
+    /**
+     * The Coherence cluster name to be used by the storage members and test
+     */
+    public static final String CLUSTER_NAME = "Events";
 
     /**
      * Directory to use for persistence and events.
@@ -60,52 +64,48 @@ public class DurableEventsTest {
     private static File persistenceDir;
 
     /**
-     * Cache servers.
+     * The Coherence storage member cluster.
      */
-    private static CoherenceCacheServer member1;
-    private static CoherenceCacheServer member2;
-
-    /**
-     * Properties for server startup.
-     */
-    private static Properties props;
+    private static CoherenceCluster cluster;
 
     /**
      * OS file separator.
      */
     private static final String FILE_SEP = System.getProperty("file.separator");
 
+    @RegisterExtension
+    static final TestLogsExtension testLogs = new TestLogsExtension(DurableEventsTest.class);
+
     // tag::startup[]
     /**
-     * Startup 2 cache servers using Oracle Bedrock.
+     * Start a Coherence cluster with two cache servers using Oracle Bedrock.
      *
      * @throws IOException if any errors creating temporary directory
      */
     @BeforeAll
     public static void startup() throws IOException {
         persistenceDir = FileHelper.createTempDir();
-        String path = persistenceDir.getAbsolutePath();
-        LocalPlatform platform = LocalPlatform.get();
+        File eventsDir = new File(persistenceDir, "events");
 
-        props = new Properties();
-        props.put("coherence.distributed.partitions", "23");  // <1>
-        props.put("coherence.distributed.persistence.mode", "active"); // <2>
-        props.put("coherence.distributed.persistence.base.dir", path); // <3>
-        props.put("coherence.distributed.persistence.events.dir", path + FILE_SEP + "events"); // <4>
+        CoherenceClusterBuilder builder = new CoherenceClusterBuilder()
+            .with(SystemProperty.of("coherence.distributed.partitions", 23),  // <1>
+                  SystemProperty.of("coherence.distributed.persistence.mode", "active"), // <2>
+                  SystemProperty.of("coherence.distributed.persistence.base.dir", persistenceDir.getAbsolutePath()), // <3>
+                  SystemProperty.of("coherence.distributed.persistence.events.dir", eventsDir.getAbsolutePath()), // <4>
+                  ClusterName.of(CLUSTER_NAME),
+                  RoleName.of("storage"),
+                  DisplayName.of("storage"),
+                  Multicast.ttl(0))
+            .include(2, CoherenceClusterMember.class, testLogs,
+                     LocalStorage.enabled());
 
-        OptionsByType optionsByType = OptionsByType.empty();
-        optionsByType.addAll(LocalStorage.enabled(), Multicast.ttl(0), Logging.at(2));
+        cluster = builder.build();
 
-        // add the properties to the Bedrock startup
-        props.forEach((k,v) -> optionsByType.add(SystemProperty.of((String) k, (String) v)));
-
-        OptionsByType optionsByTypeMember1 = OptionsByType.of(optionsByType).add(RoleName.of("member1"));
-        OptionsByType optionsByTypeMember2 = OptionsByType.of(optionsByType).add(RoleName.of("member2"));
-
-        member1 = platform.launch(CoherenceCacheServer.class, optionsByTypeMember1.asArray());
-        member2 = platform.launch(CoherenceCacheServer.class, optionsByTypeMember2.asArray());
-
-        Eventually.assertThat(invoking(member1).getClusterSize(), CoreMatchers.is(2));
+        Eventually.assertDeferred(() -> cluster.getClusterSize(), is(2));
+        for (CoherenceClusterMember member : cluster)
+            {
+            Eventually.assertDeferred(member::isReady, is(true));
+            }
     }
     // end::startup[]
 
@@ -116,19 +116,18 @@ public class DurableEventsTest {
      * missed while the client was disconnected.
      */
     @Test
-    public void testDurableEvents()  {
-        try {
-            final AtomicInteger eventCount = new AtomicInteger();
-            final String CACHE_NAME = "customers";
+    public void testDurableEvents() throws Exception {
+        AtomicInteger eventCount = new AtomicInteger();
+        String cacheName = "customers";
 
-            System.getProperties().putAll(props); // <1>
-            System.setProperty("coherence.distributed.localstorage", "false");
-            System.setProperty("coherence.log.level", "3");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
+        System.setProperty("coherence.role", "client");
+        System.setProperty("coherence.distributed.localstorage", "false");
 
-            Coherence coherence = Coherence.clusterMember();
-            coherence.start().join();
+        try (Coherence coherence = Coherence.clusterMember()) {
+            coherence.start().get(5, TimeUnit.MINUTES);
 
-            NamedMap<Long, Customer> customers = coherence.getSession().getMap(CACHE_NAME);
+            NamedMap<Long, Customer> customers = coherence.getSession().getMap(cacheName);
 
             MapListener<Long, Customer> mapListener = new SimpleMapListener<Long, Customer>() // <2>
                                            .addEventHandler(System.out::println) // <3>
@@ -153,8 +152,8 @@ public class DurableEventsTest {
             Logger.info("Remotely insert, update and delete a new customer");
             // do a remote invocation to insert, update and delete a customer. This is done
             // remotely via Oracle Bedrock as not to reconnect the client
-            member2.invoke(() -> { // <8>
-                NamedMap<Long, Customer> customerMap = CacheFactory.getCache(CACHE_NAME);
+            cluster.getAny().invoke(() -> { // <8>
+                NamedMap<Long, Customer> customerMap = CacheFactory.getCache(cacheName);
                 Customer newCustomer = new Customer(100L, "Customer 101", "Customer address", Customer.SILVER, 100);
                 customerMap.put(newCustomer.getId(), newCustomer);
                 customerMap.invoke(100L, Processors.update(Customer::setAddress, "New Address"));
@@ -171,21 +170,14 @@ public class DurableEventsTest {
 
             // we should now see the 3 events we missed because we were disconnected
             Eventually.assertDeferred(eventCount::get, is(6)); // <10>
-            }
-        finally {
-            Coherence coherence = Coherence.getInstance();
-            coherence.close();
         }
     }
     // end::testDurableEvents[]
 
     @AfterAll
     public static void shutdown() {
-        if (member1 != null) {
-            member1.close();
-        }
-        if (member2 != null) {
-            member2.close();
+        if (cluster != null) {
+            cluster.close();
         }
         FileHelper.deleteDirSilent(persistenceDir);
     }
@@ -195,7 +187,7 @@ public class DurableEventsTest {
      *
      * @param cache  the cache hosted by the service to stop
      */
-    protected void causeServiceDisruption(NamedMap cache)
+    protected void causeServiceDisruption(NamedMap<?, ?> cache)
         {
         CacheService serviceSafe = cache.getService();
         try

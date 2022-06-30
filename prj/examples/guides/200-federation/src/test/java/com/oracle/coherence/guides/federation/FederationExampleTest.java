@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.federation;
@@ -29,6 +29,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,14 +47,12 @@ public class FederationExampleTest {
     protected static CoherenceCacheServer  secondaryMember = null;
     private static final String CACHE_CONFIG = "federation-cache-config.xml";
     private static final String CACHE = "test-cache";
-    private static String edition = CacheFactory.getEdition();
+    private static final String edition = CacheFactory.getEdition();
 
     @BeforeAll
     public static void _startup() {
         // ignore test if we are running under community edition
-        if (isCommunityEdition()) {
-            return;
-        }
+        Assumptions.assumeFalse("CE".equals(edition));
 
         LocalPlatform platform = LocalPlatform.get();
         availablePortIteratorWKA = platform.getAvailablePorts();
@@ -79,9 +78,7 @@ public class FederationExampleTest {
     @AfterAll
     public static void _shutdown() {
         // ignore test if we are running under community edition
-        if (isCommunityEdition()) {
-            return;
-        }
+        Assumptions.assumeFalse("CE".equals(edition));
         CacheFactory.shutdown();
         destroyMember(primaryMember);
         destroyMember(secondaryMember);
@@ -90,9 +87,7 @@ public class FederationExampleTest {
     @Test
     public void runTest() {
         // ignore test if we are running under community edition
-        if (isCommunityEdition()) {
-            return;
-        }
+        Assumptions.assumeFalse("CE".equals(edition));
         final int COUNT = 1000;
 
         NamedCache<Integer, String> ncPrimary = primaryMember.getCache(CACHE);
@@ -153,9 +148,5 @@ public class FederationExampleTest {
         catch (Throwable thrown) {
             // ignored
         }
-    }
-
-    private static boolean isCommunityEdition() {
-       return edition.equals("CE");
     }
 }

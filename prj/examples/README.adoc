@@ -30,6 +30,12 @@ versions and best practice and approaches recommended by the Coherence team for 
 [icon=fa-graduation-cap,link=examples/tutorials/000-overview.adoc]
 --
 --
+
+[CARD]
+.Miscellaneous
+[icon=widgets,link=examples/miscellaneous/000-overview.adoc]
+--
+--
 ====
 
 [#simple]
@@ -37,3 +43,10 @@ include::guides/README.adoc[tag=text]
 
 [#tutorials]
 include::tutorials/README.adoc[tag=text]
+
+[#miscellaneous]
+== Miscellaneous Examples
+
+Simple, typically single class, examples.
+
+include::miscellaneous/README.adoc[tag=text]

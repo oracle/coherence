@@ -12,14 +12,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.oracle.coherence.guides</groupId>
-  <artifactId>sample</artifactId>
+  <artifactId>key-association</artifactId>
   <version>${revision}</version>
-  <name>Coherence Guides - Sample</name>
+  <name>Coherence Guides - Key Association</name>
 
   <properties>
-    <revision>22.09-SNAPSHOT</revision>
+    <revision>14.1.2-0-0-SNAPSHOT</revision>
 
-    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
+    <coherence.group.id>com.oracle.coherence</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
 
     <java.version>11</java.version>
@@ -28,8 +28,10 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
+    <maven.jandex.plugin.version>1.2.2</maven.jandex.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
 
+    <hamcrest.version>2.2</hamcrest.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -55,6 +57,18 @@
     </dependency>
 
     <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
+      <version>${hamcrest.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit.jupiter.version}</version>
@@ -71,9 +85,51 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>pof-maven-plugin</artifactId>
+        <version>${coherence.version}</version>
+        <executions>
+          <execution>
+            <id>instrument</id>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>instrument-tests</id>
+            <goals>
+              <goal>instrument-tests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jboss.jandex</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <version>${maven.jandex.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${maven.failsafe.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>

@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.cachestores;
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.net.cache.NonBlockingEntryStore;
 import com.tangosol.net.cache.StoreObserver;
+
 import com.tangosol.util.BinaryEntry;
 
 import io.r2dbc.spi.Connection;
@@ -74,7 +76,7 @@ public class H2R2DBCEntryStore
     public void load(BinaryEntry<Long, Person> binEntry, StoreObserver<Long, Person> observer)
         {
         Long lKey = binEntry.getKey();
-        CacheFactory.log("H2R2DBCEntryStore load key: " + lKey);
+        Logger.info("H2R2DBCEntryStore load key: " + lKey);
 
         databaseRead(binEntry, observer);
         }
@@ -85,7 +87,7 @@ public class H2R2DBCEntryStore
     @Override
     public void loadAll(Set<? extends BinaryEntry<Long, Person>> setBinEntries, StoreObserver<Long, Person> observer)
         {
-        CacheFactory.log("H2R2DBCEntryStore loadAll");
+        Logger.info("H2R2DBCEntryStore loadAll");
 
         for (Iterator iter = setBinEntries.iterator(); iter.hasNext(); )
             {
@@ -102,7 +104,7 @@ public class H2R2DBCEntryStore
     @Override
     public void store(BinaryEntry<Long, Person> binEntry, StoreObserver<Long, Person> observer)
         {
-        CacheFactory.log("H2R2DBCEntryStore store");
+        Logger.info("H2R2DBCEntryStore store");
 
         databaseWrite(binEntry, observer);
         }
@@ -113,7 +115,7 @@ public class H2R2DBCEntryStore
     @Override
     public void storeAll(Set<? extends BinaryEntry<Long, Person>> setBinEntries, StoreObserver<Long, Person> observer)
         {
-        CacheFactory.log("H2R2DBCEntryStore storeAll");
+        Logger.info("H2R2DBCEntryStore storeAll");
 
         for (Iterator iter = setBinEntries.iterator(); iter.hasNext(); )
             {
@@ -129,7 +131,7 @@ public class H2R2DBCEntryStore
     @Override
     public void erase(BinaryEntry<Long, Person> binEntry)
         {
-        CacheFactory.log("H2R2DBCEntryStore erase");
+        Logger.info("H2R2DBCEntryStore erase");
 
         databaseDelete(binEntry.getKey());
         }
@@ -140,7 +142,7 @@ public class H2R2DBCEntryStore
     @Override
     public void eraseAll(Set<? extends BinaryEntry<Long, Person>> setBinEntries)
         {
-        CacheFactory.log("H2R2DBCEntryStore eraseAll");
+        Logger.info("H2R2DBCEntryStore eraseAll");
 
         for (Iterator iter = setBinEntries.iterator(); iter.hasNext(); )
             {
@@ -178,11 +180,11 @@ public class H2R2DBCEntryStore
                            {
                            if (t instanceof IndexOutOfBoundsException)
                                {
-                               CacheFactory.log("Could not find row for key: " + lKey);
+                               Logger.info("Could not find row for key: " + lKey);
                                }
                            else
                                {
-                               CacheFactory.log("Error: " + t);
+                               Logger.info("Error: " + t);
                                }
                            observer.onError(binEntry, new Exception(t));
                            })
@@ -225,8 +227,8 @@ public class H2R2DBCEntryStore
                         .bind("$1", lKey)
                         .execute())
                 .flatMap(Result::getRowsUpdated)
-                .doOnNext(r -> CacheFactory.log("Rows updated: " + r))
-                .doOnError(t -> CacheFactory.log("Error: " + t.toString()))
+                .doOnNext(r -> Logger.info("Rows updated: " + r))
+                .doOnError(t -> Logger.info("Error: " + t.toString()))
                 .blockLast();
         }
 
