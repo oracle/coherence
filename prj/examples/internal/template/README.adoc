@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -21,7 +21,7 @@
 // Do not change this part.
 // If your example requires Java 11+ change the 1.8 below to 11
 === What You Need
-:java_version: 1.8
+:java_version: 11
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

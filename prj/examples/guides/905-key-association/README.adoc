@@ -1,0 +1,624 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Key Association
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides
+
+== Key Association
+
+Key association in Coherence is a way of associating related data together in a single partition.
+This data could be entries in a single cache, or it could be entries in multiple caches managed by the same cache service.
+If related data is known to exist in a single partition, then this allows those related entries to be accessed as part of
+a single atomic partition level transaction. For example a single entry processor call could atomically update multiple
+related entries, possibly across multiple caches. Queries could also make use of this, for example a custom aggregator could
+aggregate results from multiple entries possibly from multiple caches, in a single partition.
+This can be a way to simulate certain types of join query for related data.
+
+Key association can be used to implement similar behaviour to a multi-map, where a single key maps to a list or set of related data.
+Using key association and related caches instead of a single multi-map offers a lot more flexibility for supporting various use-cases.
+
+== What You Will Build
+
+This example is going to demonstrate a simple use case of handling notifications sent to customers.
+A customer can have zero or more notifications. A customer may span regions, so notifications are region specific.
+A notification also has an expiry time, so it will be automatically evicted when the expiry time is reached.
+Using key association, notifications for a customer will be co-located in the same partition.
+
+// Do not change this part.
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+== The Example Data Model
+
+The data model used in this example is very simple and is made up of two entities, a `Customer` and a `Notification`. A customer can have zero or more notifications. A notification is specific to a region and has an expiry time.
+
+For example, in json the customer notification data may look like this:
+
+[source,json]
+.customers.json
+----
+[
+    {
+        "id": "User01",
+        "notificationsByRegion": [
+            {
+                "region": "US",
+                "notifications": [
+                    {
+                        "body": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                        "ttl": "24:00:00"
+                    },
+                    {
+                        "body": "Eu turpis egestas pretium aenean.",
+                        "ttl": "12:00:00"
+                    }
+                ]
+            },
+            {
+                "region": "EU",
+                "notifications":  [
+                    {
+                        "body": "Tincidunt id aliquet risus feugiat.",
+                        "ttl": "06:00:00"
+                    },
+                    {
+                        "body": "Quis risus sed vulputate odio ut enim blandit volutpat.",
+                        "ttl": "48:00:00"
+                    },
+                    {
+                        "body": "Sem et tortor consequat id porta nibh.",
+                        "ttl": "01:00:00"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "User02",
+        "notificationsByRegion": [
+            {
+                "region": "US",
+                "notifications": [
+                    {
+                        "body": "Et malesuada fames ac turpis egestas sed tempus urna.",
+                        "ttl": "01:23:45"
+                    }
+                ]
+            }
+        ]
+    }
+]
+----
+
+This structure could be contained in Java, and hence in Coherence, in a `Map<String, Map<String, List<Notification>>>` or some other multi-map type of data structure. The disadvantages of this are that a customers' notifications are then treated as a single blob of data which could make certain operations less efficient. Any mutation or addition of notifications would require everything to be deserialized.
+
+There is also a requirement in this example to automatically expire notifications from the cache based on their TTL is reached.
+If all the notifications for a customer are in a single map structure, this would require some complex server side logic whereas holding each notification as a separate cache entry can leverage Coherence's built in expiry functionality.
+
+The json data above is really just notification data and this example could use just a single cache, but using two entities and two caches, for Customer and Notification, will make the example a bit more interesting.
+
+=== Model Classes
+
+In this example there will be two Java mode classes, `Customer` and `Notification`.
+The `Customer` has a `String` id field and `String` first name and last name fields.
+
+[source,java]
+.Customer.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/model/Customer.java[tag=src]
+----
+
+The `Notification` has a `String` body and a Java time `LocalDateTime` ttl field, to represent its expiry time.
+
+[source,java]
+.Notification.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/model/Notification.java[tag=src]
+----
+
+Both of the model classes are annotated with the `@PortableType`.
+This annotation is used by the Coherence POF Maven plugin to generate Portable Object code for the classes.
+Using the Coherence POF generator in this way avoids having to manually write serialization code and ensures that the
+serialization code generated is supports evolvability between versions.
+
+=== Caches
+
+The `customers` cache will be used to store customer data. The cache key will be the `String` customer `id`.
+
+The `notifications` cache will be used to store notification data. A `NotificationId` class will be used for the key of the cache. The `NotificationId` will hold the notification's corresponding customer id, region and a unique UUID identifier for the notifications.
+
+The caches in this example do not require and special functionality, so the default cache configuration file will support everything required.
+
+== Coherence Key Association
+
+In this use case key association will be used to co-locate a `Customer` and all the `Notification` entries for that customer in the same Coherence partition. This will allow notifications to be added and queried for as specific customer as an atomic operation.
+
+To use key association, the key classes fo the caches to be associated must either be the same or implement the Coherence
+`com.tangosol.net.cache.KeyAssociation` interface. If notifications for a customer were going to be held in a map or list in a single cache entry, we could just use the same String customer identifier as the key and the customer and the notification map would automatically be assigned to the same partition, as they would have the same key value. In this case though, there will be many notification entries for a single customer so the notifications cache requires a custom key class that implements `KeyAssociation`.
+
+The `NotificationId` class is shown below:
+
+[source,java]
+.NotificationId.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/model/NotificationId.java[tag=src]
+----
+
+Like the `Customer` and `Notification` classes, the `NotificationId` class is annotated with `@PortableType` to automatically generate the `PortableObject` serialization code.
+
+All classes that will be used as cache keys in Coherence must properly implement the `equals` and `hashCode` methods and include all fields in those methods.
+
+The important method for this example is the `getAssociatedKey()` method from the `KeyAssociation` interface.
+This method should return the value that this key is to be associated with. In this case notifications are associated to customers, so the customer identifier is returned. This will then guarantee that a customer and its notifications are all located in the same partition in Coherence.
+
+[source,java]
+.NotificationId.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/model/NotificationId.java[tag=ka]
+----
+
+== The Customer Repository
+
+This example is going to use the "repository" functionality in Coherence. A repository is a simple class that provides CRUD operations for an entity. In this case the repository will be for the `Customer` entity, because that is the root entry point for all operations, including those on notifications. Making all updates and queries access caches via the customer in this way, ensures that updates to notifications are treated as a single atomic operation.
+
+The example does not require the use of a repository class, but it is a nice way to group all the customer related operations together in a single class.
+
+The minimum amount of code to implement a repository is shown below.
+The `CustomerRepository` class extends the `com.oracle.coherence.repository.AbstractRepository` base class and implements the required abstract methods.
+
+[source,java]
+.CustomerRepository.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/CustomerRepository.java[tag=one]
+include::src/main/java/com/oracle/coherence/guides/notifications/CustomerRepository.java[tag=two]
+
+    public CustomerRepository(NamedCache<String, Customer> customers)
+        {
+        this.customers = customers;
+        }
+
+include::src/main/java/com/oracle/coherence/guides/notifications/CustomerRepository.java[tag=three]
+    }
+----
+
+In the rest of the example the `CustomerRepository` will be enhanced to add additional functionality for notifications.
+
+== Adding Notifications
+
+The obvious starting point would be to enhance the repository to be able to add notifications for a customer. Read operations will come later, as they'd be a bit pointless without first having add operations.
+
+The use case here is to allow multiple notifications to be added to a customer is a single atomic operations. Notifications are specific to a region, so the obvious structure to hold the notifications to be added would be a map of the form `Map<String, List<Notification>>` where the key is the region and the value is a list of notifications for that region.
+
+
+=== The AddNotifications Entry Processor
+
+To perform the add operation, a custom Coherence entry processor can be written.
+This entry processor will take the map of notifications and apply it to the customer.
+As key association is being used, the entry processor will be executed against the customer identifier in the customer cache and apply all the notifications in a single atomic partition level transaction.
+For the duration of the operation on the server the customer will effectively be locked, guaranteeing that only a single concurrent mutation operation can happen to a customer.
+
+The boilerplate code for the `AddNotifications` entry processor is shown below.
+As with other classes, the entry processor is annotated with `@PortableType` to generate `PortableObject` code.
+
+The result returned from this entry processor's `process` method is `Void` as there is no information that the caller requires as a result.
+
+[source,java]
+.AddNotifications.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/processors/AddNotifications.java[tag=src-one]
+        {
+        return null;
+        }
+----
+
+A new `addNotifications` method can be added to the repository, which will invoke the `AddNotifications` entry processor against a specific customer identifier. The `addNotifications` first ensures the repository is initialized and then invokes the entry processor. using the map of notifications.
+The method will throw a `NullPointerException` if the customer identifier is `null`.
+
+[source,java]
+.CustomerRepository.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/CustomerRepository.java[tag=add]
+----
+
+==== Implement the Process Method
+
+Although the `CustomerRepository.addNotifications` method could be called and would execute,
+the `AddNotifications.process` method is empty, so no notifications will actually be added.
+The next step is to implement the `process` method to add the notifications to the notifications cache.
+
+At this point it is worth going over what the process method must do for each entry in the notification map.
+
+* Check the ttl of the entry, if it has already passed then ignore the notification as there i sno point adding it to be immediately expired
+* Create a `NotificationId` for the key of the new notification cache entry.
+* Use the key to obtain the cache entry to insert
+* Set the notification as the value for the cache entry
+* Set the expiry value for the new entry based on the `ttl` value of the notification.
+
+*Iterate Over the Notifications*
+
+The process method can simply iterate over the map of notifications like this:
+
+[source,java]
+----
+public Void process(InvocableMap.Entry<String, Customer> entry)
+    {
+    notifications.forEach((region, notificationsForRegion) ->
+        {
+        notificationsForRegion.forEach(notification ->
+            {
+            // process notification...
+            });
+        });
+    }
+----
+
+*Work out the Expiry Delay*
+
+A Coherence cache entry expects the expiry for an entry to be the number of milliseconds after the entry is inserted or updated before it expires. The `ttl` value in the `Notification` class is a Java `LocalDateTime` so the expiry is the difference between now and the `ttl` in milliseconds. In Java that can be written as shown below:
+
+[source,java]
+----
+long ttlInMillis = ChronoUnit.MILLIS.between(LocalDateTime.now(), notification.getTTL());
+----
+
+If the `ttlInMillis` is greater than zero the notification can be added. If it is less than or equal to zero, then there is no point adding the notification as the `ttl` is already in the past.
+
+[source,java]
+----
+public Void process(InvocableMap.Entry<String, Customer> entry)
+    {
+    notifications.forEach((region, notificationsForRegion) ->
+        {
+        notificationsForRegion.forEach(notification ->
+            {
+            long ttlInMillis = ChronoUnit.MILLIS.between(LocalDateTime.now(), notification.getTTL());
+            if (ttlInMillis > 0)
+                {
+                // add the notification...
+                }
+            });
+        });
+    }
+----
+
+*Create a NotificationId*
+
+Creating the `NotificationId` is simple.
+The customer identifier can be taken from the key of the entry passed to the process method `String customerId = entry.getKey();`,
+the region comes from the notifications map and the UUID is just a new UUID created at runtime.
+
+[source,java]
+----
+String customerId = entry.getKey();
+NotificationId id = new NotificationId(customerId, region, new UUID());
+----
+
+*Obtain the Notification Cache Entry*
+
+When using Coherence partition level transactions to atomically update other cache entries in an entry processor, those additional entries must be properly obtained from the relevant cache's `BackingMapContext`. Coherence will then ensure that all mutations are properly handled, backup messages sent, events fired, etc. Each additional entry enlisted in this sort of lite partition transactions, will be locked until the entry processor completes processing.
+
+This can cause issues if two entry processors run that try to enlist the same set of entries but in different orders. Each processor may be holding locks on a sub-set of the entries, and then each is unable to obtain locks on the remaining entries it requires. The safest way around this is to sort the keys that will be enlisted so both processors always enlist entries in the same order. In this example, notifications are only ever inserted, so there is no chance of two processors enlisting the same entries.
+
+The entry processor is executing on an entry from the customers cache, so to obtain the `BackingMapContext` for the notifications cache can be obtained via the customer entry.
+
+[source,java]
+----
+BackingMapManagerContext context = entry.asBinaryEntry().getContext();
+BackingMapContext ctxNotifications = context.getBackingMapContext("notifications");
+----
+
+To obtain the entry to insert from the `BackingMapContext` the `BackingMapContext.getBackingMapEntry()` method is used. This method takes the key of the entry to obtain, but this key must be in serialized `Binary` format, not a plain `NotificationId`. The `BackingMapManagerContext` conveniently has a converter that can do the serialization.
+
+[source,java]
+----
+String customerId = entry.getKey();
+NotificationId id = new NotificationId(customerId, region, new UUID());
+BackingMapManagerContext context = entry.asBinaryEntry().getContext();
+BackingMapContext ctxNotifications = context.getBackingMapContext("notifications");
+Converter<NotificationId, Binary> converter = context.getKeyToInternalConverter();
+Binary binaryKey = converter.convert(id);
+
+BinaryEntry<NotificationId, Notification> binaryEntry =
+        (BinaryEntry<NotificationId, Notification>) ctxNotifications.getBackingMapEntry(binaryKey);
+----
+
+The notification is then set as the entry value using the `setValue()` method and the expiry set using the `expire()` method.
+
+[source,java]
+----
+binaryEntry.setValue(notification);
+binaryEntry.expire(ttlInMillis);
+----
+
+This can all be put together in the final process method:
+
+[source,java]
+.AddNotifications.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/processors/AddNotifications.java[tag=process]
+----
+
+
+=== Adding Notifications via the CustomerRepository
+
+The `CustomerRepository` can then be used to add customers and notifications, this can be seen in the functional tests that are part of this example.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/notifications/CustomerRepositoryIT.java[tag=shouldAddNotification]
+----
+
+== Getting Notifications
+
+Now that notifications can be added for a customer, the read functions can be added to get notifications for a customer. There are two use cases to implement, first get all notifications for a customer, second get notification for a customer and specific region.
+
+As notifications are in their own cache, the notifications for a customer and customer/region could be obtained by simply running a filter query on the notifications cache. This example is all about uses of key association though, so the method used here will be slightly more complex, but it will show how key association can be used for reading entries as well as updating entries.
+
+Reading notifications could be implemented using an entry processor, which is invoked against the customer cache, that then returns the required notifications, either all for the customer or for a specific region. An entry processor is typically used for mutations and will cause an entry (or entries) to be locked for the duration of its execution. For read operations an aggregator is more efficient as it will not involve locking entries.
+
+To recap the use case, the aggregator needs to return either all the notifications for a customer, or just the notifications for a region. At this point a custom aggregator could be written, but sometimes writing aggregators can be complex and Coherence already has an aggregator that does most of what is required.
+
+*The ReducerAggregator*
+
+Coherence contains a built-in aggregator named `com.tangosol.util.aggregator.ReducerAggregator`.
+This aggregator takes a `ValueExtractor` and executes it against each entry and returns the results.
+The results returned will be a map of with the keys of the entries the aggregator ran over and the extracted values.
+By using the `ReducerAggregator` aggregator in this use case all that is required is a custom `ValueExtractor`.
+In this example the aggregator will only be run against a single entry (the customer) and the custom `ValueExtractor` will "extract" the required notifications.
+
+=== The NotificationExtractor
+
+The purpose of the custom `ValueExtractor` will be to obtain the notifications for a customer.
+The notifications are all co-located in a single partition, so when the extractor is run against an entry in the customer cache, all the notifications are also stored locally.
+This particular `ValueExtract` is going to need access to the entry the aggregator is executing on, so it needs to extend the Coherence `com.tangosol.util.extractor.AbstractExtractor` class.
+The `AbstractExtractor` is treated as a special case by Coherence when it is extracting data from a cache entry, where Coherence will call its `extractFromEntry` method.
+
+The boilerplate code for a custom extractor is shown below.
+All `ValueExtractor` implementations should have a correct `equals()` and `hashCode()` methods.
+The `extractFromEntry` method returns `null`, and will be completed in the next section.
+
+[source,java]
+.NotificationExtractor.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/extractors/NotificationExtractor.java[tag=one]
+
+    @Override
+    public List<Notification> extractFromEntry(Map.Entry entry)
+        {
+        return null;
+        }
+
+include::src/main/java/com/oracle/coherence/guides/notifications/extractors/NotificationExtractor.java[tag=two]
+----
+
+
+==== Find the Customer's Notifications
+
+When the extractor's `extractFromEntry` method executes, in this case the entry passed in by the aggregator will be an instance of `BinaryEntry`, so just like in the entry processor above, the `BackingMapContext` for the notifications cache can be obtained and from there access to the notification entries.
+
+Coherence does not currently have an API on a `BackingMapContext` that allows the data to be queried.
+For example, in this case some sort of filter query over all the entries in the partition with a specific customer id would get the notification required. This can be worked around by using cache indexes. The indexes on a cache are accessible via the `BackingMapContext` and from the index contents the required cache entries can be obtained.
+
+Take the first requirement, all notifications for a customer. By creating an index of customer id on the notifications cache, the keys of the entries for a given customer can be obtained from the index and the corresponding notifications returned from the extractor.
+
+*Customer Id Index*
+
+Indexes are created on a cache using a `ValueExtractor` to extract the values to be indexed.
+In the case of the customer id for a notification, this is a field in the `NotificationId`, which is the key to the notifications cache. An extractor to extract customer id can be created as shown below:
+
+[source,java]
+----
+ValueExtractor<?, ?> extractor = ValueExtractor.of(NotificationId::getCustomerId).fromKey();
+----
+
+This extractor can be used as an index by calling the `addIndex` method on `NamedCache` or `NamedMap`.
+
+[source,java]
+----
+ValueExtractor<?, ?> extractor = ValueExtractor.of(NotificationId::getCustomerId).fromKey();
+notifications.addIndex(extractor);
+----
+
+*The Region Index*
+
+The second index required is to be able to find notifications for a customer and region.
+In theory this index is not required, the index to find all notifications for a customer could be used, then those notifications filtered to only return those for the required region.
+If there will only be a small number of notifications per customer, that may be a suitable approach.
+This is one of the typical pros and cons that needs to be weighed up when using indexes. Does the cost in memory usage of the index and time to maintain the index on every mutation outweigh the benefits in speed gained by queries.
+
+This example is going to add an index on region, because it is an example there are no concerns over performance, and it will show how to perform an indexed query.
+
+The extractor to extract region from the `NotificationId` cache entry key is shown below:
+
+[source,java]
+----
+ValueExtractor<?, ?> extractor = ValueExtractor.of(NotificationId::getRegion).fromKey();
+----
+
+This can be used to create an index:
+
+[source,java]
+----
+ValueExtractor<?, ?> extractor = ValueExtractor.of(NotificationId::getRegion).fromKey();
+notifications.addIndex(extractor);
+----
+
+
+*Creating the Indexes*
+
+The repository class already has a method that is called to create any required indexes when it is initialized.
+This method can be overridden and used to ensure the notifications indexes are added.
+
+[source,java]
+.CustomerRepository.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/CustomerRepository.java[tag=index]
+----
+
+Note, that the super class `createIndicies()` method must be called to ensure any other indicies required by the customer repository are created.
+
+==== Write the NotificationExtractor extractFromEntry method
+
+Now that the required indexes will be present the `NotificationExtractor.extractFromEntry()` method can be written.
+The techniques used below rely on the indexes being present and would not work if there were no indexes.
+Without indexes other less efficient methods would be required.
+The steps the extract method must perform are shown below:
+
+* Obtain the map of indexes for the notifications cache
+* From the index map, obtain the customer id index
+* From the customer id index obtain the set of notification keys matching the customer id
+* If the region is specified, reduce the set of keys to only those matching the required region
+* For each remaining key, obtain the read-only cache entry containing the notification and add it to the results list
+* return the list of notifications found
+
+Each step is covered in detail below:
+
+*Obtain the map of indexes for the notifications cache*
+
+The entry passed to the `NotificationExtractor.extractFromEntry` method when used in an aggregator will be an instance of a `BinaryEntry` so the entry can safely be cast to `BinaryEntry`.
+From a `BinaryEntry` it is possible to obtain the `BackingMapManagerContext` and from there the `BackingMapContext` of other caches.
+Remember, in this example the aggregator is executed on an entry in the customers cache, so the extractor needs to obtain the `BackingMapContext` of the notifications cache. From the notifications cache `BackingMapContext` the map of indexes can be obtained.
+
+[source,java]
+----
+BinaryEntry binaryEntry = (BinaryEntry) entry;
+BackingMapContext ctx = binaryEntry.getContext().getBackingMapContext("notifications");
+Map<ValueExtractor, MapIndex> indexMap = ctx.getIndexMap();
+----
+
+*From the index map, obtain the customer id index*
+
+The index map is a map of `MapIndex` instances keyed by the `ValueExtractor` used to create the index.
+To obtain the customer id index just call the `get()` method using the same customer id extractor used to create the index above.
+This is one of the main reasons that all `ValueExtractor` implementations must properly implement `equals()` and `hashCode()` so that they can be used in indexes.
+
+[source,java]
+----
+BinaryEntry binaryEntry = (BinaryEntry) entry;
+BackingMapContext ctx = binaryEntry.getContext().getBackingMapContext("notifications");
+Map<ValueExtractor, MapIndex> indexMap = ctx.getIndexMap();
+
+MapIndex<Binary, Notification, String> index = indexMap
+        .get(ValueExtractor.of(NotificationId::getCustomerId).fromKey());
+----
+
+*From the customer id index obtain the set of notification keys matching the customer id*
+
+A Coherence `MapIndex` typically holds two internal indexes.
+The keys in the index are in serialized binary format, that is, they can be used directly to obtain corresponding entries.
+
+* A map of cache key to the extracted index value for that key
+* A map of extracted index value to the set of keys that match that value
+
+In the case of the customer id index that means the index holds a map of binary key to corresponding customer id and a map of customer id to keys of entries for that customer id. The second map is the one required for this use case, which can be obtained from the `MapIndex.getIndexContents()` method. The set of keys for the customer can then be obtained with a simple `get(customerId)` on the index contents map (the customer id is just the key of the entry passed to the `extractFromEntry` method.
+
+[source,java]
+----
+BinaryEntry binaryEntry = (BinaryEntry) entry;
+BackingMapContext ctx = binaryEntry.getContext().getBackingMapContext("notifications");
+Map<ValueExtractor, MapIndex> indexMap = ctx.getIndexMap();
+
+MapIndex<Binary, Notification, String> index = indexMap
+        .get(ValueExtractor.of(NotificationId::getCustomerId).fromKey());
+
+String customerId = (String) entry.getKey();
+Set<Binary> keys = index.getIndexContents().get(customerId);
+----
+
+At this point the `keys` set is the key of all the notification entries for the customer.
+
+*Further Filter by Region*
+
+If the region has been specified, the set of keys needs to be further filtered to just those for the required region.
+This could be achieved a number of ways, but this example is going to show how Coherence filters and indexes can be used to reduce a set of keys. Almost all filters in Coherence implement `IndexAwareFilter` which means they have an `applyIndex` method:
+
+[source,java]
+----
+public <RK> Filter<V> applyIndex(
+    Map<? extends ValueExtractor<? extends V, Object>, ? extends MapIndex<? extends RK, ? extends V, Object>> mapIndexes,
+    Set<? extends RK> setKeys);
+----
+
+When the `applyIndex` method is called, the `Set` of keys passed in will be reduced to only those keys matching the filter.
+This means that an `EqualsFilter` using the region extractor can be used to reduce the set of all keys for the customer down to just those keys matching the region too.
+
+Again, the extractor used in the `EqualsFilter` must be the same extractor used to create the region index.
+
+[source,java]
+----
+if (region != null && !region.isBlank())
+    {
+    ValueExtractor<NotificationId, String> extractor = ValueExtractor.of(NotificationId::getRegion).fromKey();
+    EqualsFilter<NotificationId, String> filter = new EqualsFilter<>(extractor, region);
+    filter.applyIndex(indexMap, keys);
+    }
+----
+
+Now the `keys` set has been reduced to only key matching both customer id and region.
+
+*Obtain the Notifications*
+
+The set of keys can be used to obtain notification from the notifications cache.
+The safest way to do this is to use the `BackingMapContext.getReadOnlyEntry()` method.
+The final list of notifications will be ordered by creation data. This is possible because the `NotificationId` class used in this example implements `Comparable` and makes use of the fact that the Coherence `UUID` used as a unique id in the notification contains a timestamp.
+
+The example used Java streams to process the keys into a list of notifications, the code is shown below:
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/extractors/NotificationExtractor.java[tag=streams]
+----
+
+<1> The key is mapped to a read-only `InvocableMap.Entry`
+<2> Only process entries that are present for the key (in case it has just been removed)
+<3> Sort the entries using the comparator to sort by key (i.e. `NotificationId`)
+<4> Map the entry to just the value (i.e. the `Notification`)
+<5> Cast the value to a `Notification` (this is because Java does not know the `InvocableMap.Entry` generic types)
+<6> Collect the final `Notification` instances into a list
+
+*The Final Method*
+
+All the code above can be combined into the final `extractFromEntry()` method.
+
+[source,java]
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/extractors/NotificationExtractor.java[tag=extract]
+----
+
+[NOTE]
+====
+Looking at the source code, or JavaDoc, for `BackingMapContext` will show the `getBackingMap()` method, which returns the actual map of `Binary` keys and values in the cache; it should also be obvious that this method is deprecated. It may seem like this is a good way to access the data in the cache for the use case above, but directly accessing the data this way can break the guarantees and locks provided by Coherence. Ideally this method would have been removed, but backwards compatibility constraints mean it is still there, but it should not be used.
+====
+
+=== Add Get Notification Methods to the CustomerRepository
+
+Now the `NotificationExtractor` is complete, methods can now be added to the `CustomerRepository` to get notifications for a customer and optionally a region.
+
+[source,java]
+.CustomerRepository.java
+----
+include::src/main/java/com/oracle/coherence/guides/notifications/CustomerRepository.java[tag=get]
+----
+
+The `getNotifications()` method calls the `getAll()` method on the `AbstractRepository` super class, which takes a collection of keys and a `ValueExtractor`. Under the covers, the `AbstractRepository.getAll()` method just runs a `ReducerAggregator` with the provided `ValueExtractor` after ensuring the repository is properly initialized. The map of results returned by `getAll()` will only ever contain a single entry, as it is only ever called here with a singleton list of keys. The result map will be a map of customer id to a list of notifications.
+
+== A Poor Man's Join
+
+A question often asked about Coherence is whether it can support joins in queries like a database, the answer is that it does not.
+Efficiently performing distributed joins in queries is extremely difficult to do, and typically data ends up being pulled back to a single member where it is joined. Using key association to guarantee associated data is in a single partition can be used to implement join type aggregations across those related entities. These techniques have been used by customers to implement quite complex join and data enrichment queries in large Coherence applications.
+
+== Summary
+
+The examples above show just some uses of key association in Coherence.
+It can be quite a powerful concept if used wisely. There are some downsides, mainly in cases where the amount of associated data is not very even. For example, in the use case above, if some customers has a very large number of notifications, all those would be stored in single partition. This can lead to some partitions and hence some cluster members using a larger amount of memory than others. Generally in a Coherence cache, keys are reasonably evenly distributed over partitions and cache entry sizes are relatively consistent so uneven memory usage is not an issue, but when using key association it is something to be aware of.
+
+

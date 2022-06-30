@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+    <output url="file://$MODULE_DIR$/target/classes" />
+    <output-test url="file://$MODULE_DIR$/target/test-classes" />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="coherence" />
+    <orderEntry type="module" module-name="coherence-discovery" />
+    <orderEntry type="module" module-name="coherence-core" />
+    <orderEntry type="module" module-name="coherence-core-components" />
+    <orderEntry type="module" module-name="coherence-transaction-core" />
+    <orderEntry type="module" module-name="opentracing-common" />
+    <orderEntry type="module" module-name="opentracing-0.33" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm:9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm-analysis:9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm-commons:9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm-tree:9.3" level="project" />
+    <orderEntry type="library" name="Maven: org.ow2.asm:asm-util:9.3" level="project" />
+    <orderEntry type="library" name="Maven: com.sleepycat:je:6.2.31" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.codemodel:codemodel:2.6" level="project" />
+    <orderEntry type="library" name="Maven: org.jboss:jandex:2.4.2.Final" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-api:5.8.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.opentest4j:opentest4j:1.2.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.junit.platform:junit-platform-commons:1.8.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apiguardian:apiguardian-api:1.1.2" level="project" />
+  </component>
+</module>

@@ -38,6 +38,7 @@ pages:
         - "examples/HOW_TO_WRITE_GUIDES.adoc"
         - "examples/guides/README.adoc"
         - "examples/tutorials/README.adoc"
+        - "examples/miscellaneous/README.adoc"
 backend:
     name: "vuetify"
     homePage: "docs/about/01_overview.adoc"
@@ -98,6 +99,14 @@ backend:
               items:
                 - includes:
                     - "examples/tutorials/**/*.adoc"
+            - title: "Miscellaneous"
+              pathprefix: "/miscellaneous"
+              glyph:
+                type: "icon"
+                value: "widgets"
+              items:
+                - includes:
+                    - "examples/miscellaneous/**/*.adoc"
         - title: "API Documentation"
           pathprefix: "/api-docs"
           items:
