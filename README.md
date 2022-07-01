@@ -66,7 +66,7 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>21.12</version>
+        <version>22.06</version>
     </dependency>
 </dependencies>
 ```
@@ -161,10 +161,8 @@ our own [operator](https://github.com/oracle/coherence-operator).
 
 ### Prerequisites
 
-  1. Java - JDK 8 or higher
-  2. Maven - 3.6.3 or higher
-
-> **Note:** When _building_ Coherence, JDK 11 is required.
+  1. Java - JDK 11 or higher
+  2. Maven - 3.8.5 or higher
 
 ### CLI Hello Coherence
 
@@ -186,9 +184,9 @@ and data is once again retrieved to illustrate the permanence of the data.
 
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=21.12 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.06 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/21.12/coherence-21.12.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.06/coherence-22.06.jar
 
 $> java -jar $COH_JAR &
 
@@ -225,9 +223,9 @@ $> kill %1
 #### <a name="coh-console"></a>Coherence Console
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=21.12 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.06 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/21.12/coherence-21.12.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.06/coherence-22.06.jar
 
 $> java -jar $COH_JAR &
 
@@ -285,7 +283,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>21.12</version>
+        <version>22.06</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
@@ -339,11 +337,6 @@ inserts and retrieves data from the Coherence server.
 ```
 
 ## <a name="build"></a>Building
-
-In order to **build** Coherence CE, please ensure that you have **JDK 11** installed.
-
-> **Note:** When using Coherence merely as a dependency in a project, without intending
-> to build the project from source code, then an installed JDK 8 version is sufficient.
 
 ```shell
 
