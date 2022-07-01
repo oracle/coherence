@@ -12,8 +12,8 @@
 
 === Prerequisites
 
-. Java - jdk8 or higher
-. Maven - 3.6.3 or higher
+. Java - JDK 11 or higher
+. Maven - 3.8.5 or higher
 
 === How to Get Coherence Community Edition
 
