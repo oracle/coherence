@@ -343,14 +343,17 @@ inserts and retrieves data from the Coherence server.
 $> git clone git@github.com:oracle/coherence.git
 $> cd coherence/prj
 
-# build all modules
+# build Coherence module
 $> mvn clean install
 
-# build all modules skipping tests
+# build Coherence module skipping tests
 $> mvn clean install -DskipTests
 
-# build a specific module, including all dependent modules and run tests
-$> mvn -am -pl test/functional/persistence clean verify
+# build all other modules skipping tests
+$> mvn -Pmodules clean install -DskipTests
+
+# build specific module, including all dependent modules and run tests
+$> mvn -Pmodules -am -pl test/functional/persistence clean verify
 
 # only build coherence.jar without running tests
 $> mvn -am -pl coherence clean install -DskipTests
