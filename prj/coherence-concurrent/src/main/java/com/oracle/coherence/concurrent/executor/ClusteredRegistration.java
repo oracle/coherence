@@ -169,6 +169,7 @@ public class ClusteredRegistration
 
         m_cTasksInProgressCount++;
 
+        //noinspection StatementWithEmptyBody
         if (existing == null)
             {
             // submit the TaskExecutor for execution using the ExecutionService
@@ -181,7 +182,6 @@ public class ClusteredRegistration
             }
         }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void entryUpdated(MapEvent mapEvent)
         {
@@ -1140,6 +1140,7 @@ public class ClusteredRegistration
             ClusteredExecutorInfo existingInfo = (ClusteredExecutorInfo)
                     executors().invoke(f_sExecutorId, new ConditionalPut(Filters.not(Filters.present()), info, true));
 
+            //noinspection StatementWithEmptyBody
             if (existingInfo == null)
                 {
                 m_executorMBean = new ExecutorMBeanImpl(info.getExecutorName(),
@@ -1197,9 +1198,14 @@ public class ClusteredRegistration
 
             // don't use the local ClusteredExecutorService's ExecutorService as it may
             // be in the process of shutting down
+
+            // Obtain reference to cache now to avoid this thread running
+            // later than normally expected causing the service to be
+            // re-started
+            NamedCache esCache = executors();
+
             Runnable runnable = () ->
                 {
-                NamedCache        esCache       = executors();
                 ExecutorMBeanImpl executorMBean = m_executorMBean;
                 String            sExecutorId   = f_sExecutorId;
 
