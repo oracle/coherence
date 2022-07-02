@@ -22,6 +22,8 @@ import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.util.Caches;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
+import com.tangosol.coherence.component.util.SafeNamedCache;
+
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.tracing.Scope;
@@ -1202,7 +1204,12 @@ public class ClusteredRegistration
             // Obtain reference to cache now to avoid this thread running
             // later than normally expected causing the service to be
             // re-started
-            NamedCache esCache = executors();
+            NamedCache cacheTmp = executors();
+            if (cacheTmp instanceof SafeNamedCache)
+                {
+                cacheTmp = ((SafeNamedCache) cacheTmp).getNamedCache();
+                }
+            NamedCache esCache = cacheTmp;
 
             Runnable runnable = () ->
                 {
