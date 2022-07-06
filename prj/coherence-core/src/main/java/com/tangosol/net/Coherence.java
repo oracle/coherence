@@ -1452,13 +1452,6 @@ public class Coherence
                 return prev;
                 }
 
-            // discover any lifecycle listeners via the ServiceLoader
-            InterceptorRegistry registry = coherence.getInterceptorRegistry();
-            for (LifecycleListener listener : ServiceLoader.load(LifecycleListener.class))
-                {
-                registry.registerEventInterceptor(listener);
-                }
-
             return coherence;
             }
 
