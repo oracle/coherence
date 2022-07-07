@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <Project>
   <Name>core-net</Name>
@@ -43,12 +43,12 @@
         </StorageInfo>
       </Library>
       <Library>
-        <Name>log4j-api-2.17.1.jar</Name>
+        <Name>log4j-api-2.18.0.jar</Name>
         <Description/>
         <Customizable>true</Customizable>
         <Visibility>standard</Visibility>
         <StorageInfo>
-          <Location>./3.0/lib/log4j-api-2.17.1.jar</Location>
+          <Location>./3.0/lib/log4j-api-2.18.0.jar</Location>
         </StorageInfo>
       </Library>
       <Library>
