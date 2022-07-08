@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2022, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -31,7 +31,6 @@
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
-    <oracle.bedrock.version>6.0.0</oracle.bedrock.version>
     <hamcrest.version>2.2</hamcrest.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
