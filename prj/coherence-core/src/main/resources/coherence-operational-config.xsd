@@ -2918,7 +2918,7 @@
                 The logger-name element allows to specify a logger name within chosen
                 logging system that should be used to log Coherence related messages.
 
-                This value is only used by the "jdk, "log4j", and "slf4j" logging systems.
+                This value is only used by the "jdk, "log4j2", and "slf4j" logging systems.
 
                 Default value is "Coherence".
 

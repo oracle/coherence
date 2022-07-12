@@ -255,67 +255,6 @@
      <cve>CVE-2021-21295</cve>
   </suppress>
 
-  <!-- Log4J - version 1.2.17 is the last 1.2.x version from 2012.
-   We do not ship this and the dependency is optional.
-   Customers should really be using Log4J 2.x -->
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <cpe>cpe:/a:apache:log4j</cpe>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <cve>CVE-2020-9488</cve>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <vulnerabilityName>CVE-2019-17571</vulnerabilityName>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <vulnerabilityName>CVE-2021-44228</vulnerabilityName>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <vulnerabilityName>CVE-2021-4104</vulnerabilityName>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <vulnerabilityName>CVE-2022-23302</vulnerabilityName>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <vulnerabilityName>CVE-2022-23305</vulnerabilityName>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: log4j-1.2.17.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/log4j/log4j@.*$</packageUrl>
-     <vulnerabilityName>CVE-2022-23307</vulnerabilityName>
-  </suppress>
-  
-
   <!-- Commons IO pulled in by Maven Plugin API - not shipped by us and no later version available -->
   <suppress>
      <notes><![CDATA[
