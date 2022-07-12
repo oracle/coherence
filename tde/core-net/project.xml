@@ -34,15 +34,6 @@
         </StorageInfo>
       </Library>
       <Library>
-        <Name>log4j-1.2.17.jar</Name>
-        <Description/>
-        <Customizable>true</Customizable>
-        <Visibility>standard</Visibility>
-        <StorageInfo>
-          <Location>./3.0/lib/log4j-1.2.17.jar</Location>
-        </StorageInfo>
-      </Library>
-      <Library>
         <Name>log4j-api-2.18.0.jar</Name>
         <Description/>
         <Customizable>true</Customizable>

@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified"
@@ -217,10 +217,10 @@
                 The destination element specifies the output device used by the logging
                 system.
 
-                Valid values are "stdout", "stderr", "jdk", "log4j", "log4j2", "slf4j",
+                Valid values are "stdout", "stderr", "jdk", "log4j2", "slf4j",
                 or a file name; the default is "stderr".
 
-                If "log4j", "log4j2" or "slf4j" is specified, the corresponding logging
+                If "log4j2" or "slf4j" is specified, the corresponding logging
                 libraries must be in the classpath. In all cases, the appropriate
                 logging configuration mechanism (system properties, property files, etc.)
                 should be used to configure the logging libraries.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.logging;
 
@@ -260,7 +260,7 @@ public class DefaultLoggingDependencies
     private int m_cCharLimit = DEFAULT_LOGGING_CHAR_LIMIT;
 
     /**
-     * The logging destination. Can be one of stderr, stdout, jdk, log4j, or a file name.
+     * The logging destination. Can be one of stderr, stdout, jdk, log4j2, or a file name.
      */
     private String m_sDestination = DEFAULT_LOGGING_DESTINATION;
 

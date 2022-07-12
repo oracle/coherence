@@ -179,13 +179,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Log4J -->
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <optional>true</optional>
-    </dependency>
-
     <!-- SLF4J -->
     <dependency>
       <groupId>org.slf4j</groupId>

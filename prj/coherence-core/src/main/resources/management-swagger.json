@@ -4449,7 +4449,7 @@
         },
         "loggingDestination": {
           "type": "string",
-          "description": "The output device used by the logging system. Valid values are stdout, stderr, jdk, log4j, or a file name.",
+          "description": "The output device used by the logging system. Valid values are stdout, stderr, jdk, log4j2, or a file name.",
           "readOnly": true
         },
         "multicastTTL": {
