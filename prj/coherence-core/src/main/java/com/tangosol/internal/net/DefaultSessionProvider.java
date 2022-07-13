@@ -140,16 +140,16 @@ public class DefaultSessionProvider
 
     protected Context ensureSession(SessionConfiguration configuration, Context context)
         {
-        String            sConfigLocation = configuration.getConfigUri().orElse(CacheFactoryBuilder.URI_DEFAULT);
-        String            scopeName       = configuration.getScopeName();
-        ClassLoader       loader          = configuration.getClassLoader().orElse(Classes.getContextClassLoader());
-        String            name            = configuration.getName();
-        String            sConfigUri      = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);
-        ParameterResolver resolverCfg     = configuration.getParameterResolver().orElse(null);
-        Coherence.Mode    mode            = configuration.getMode().orElse(context.getMode());
+        String              sConfigLocation = configuration.getConfigUri().orElse(CacheFactoryBuilder.URI_DEFAULT);
+        String              scopeName       = configuration.getScopeName();
+        ClassLoader         loader          = configuration.getClassLoader().orElse(Classes.getContextClassLoader());
+        String              name            = configuration.getName();
+        String              sConfigUri      = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);
+        ParameterResolver   resolverCfg     = configuration.getParameterResolver().orElse(null);
+        Coherence.Mode      mode            = configuration.getMode().orElse(context.getMode());
+        String              sProp           = Config.getProperty("coherence.client", mode.getClient());
+        Map<String, String> map             = Collections.singletonMap("coherence.client", sProp);
 
-        String sProp = Config.getProperty("coherence.client", mode.getClient());
-        Map<String, String> map = Collections.singletonMap("coherence.client", sProp);
         if (resolverCfg == null)
             {
             resolverCfg = new PropertiesParameterResolver(map);

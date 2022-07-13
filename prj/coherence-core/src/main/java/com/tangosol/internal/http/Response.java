@@ -2,12 +2,13 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import com.tangosol.io.WriteBuffer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -180,6 +181,18 @@ public class Response
         }
 
     /**
+     * Create a new {@link Builder} that contains a representation.
+     *
+     * @param entity the response entity data
+     *
+     * @return a new response {@link Builder}
+     */
+    public static Builder ok(WriteBuffer entity)
+        {
+        return ok().entity(entity);
+        }
+
+    /**
      * Create a new {@link Builder} with a not found status.
      *
      * @return a new response {@link Builder}
@@ -245,6 +258,18 @@ public class Response
         public Builder entity(InputStream stream)
             {
             return setEntity(stream);
+            }
+
+        /**
+         * Set the response entity in this {@link Builder}.
+         *
+         * @param buf the response entity
+         *
+         * @return this {@link Builder}
+         */
+        public Builder entity(WriteBuffer buf)
+            {
+            return setEntity(buf);
             }
 
         /**

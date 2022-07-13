@@ -530,7 +530,7 @@ public interface SessionConfiguration
             f_listInterceptor = new ArrayList<>(builder.f_listInterceptor);
             f_nPriority       = builder.m_nPriority;
             f_sScope          = builder.m_sScope == null ? Coherence.DEFAULT_SCOPE : builder.m_sScope;
-            f_mode = builder.m_mode;
+            f_mode            = builder.m_mode;
 
             ParameterResolver resolver;
             if (!builder.m_parameterList.isEmpty())

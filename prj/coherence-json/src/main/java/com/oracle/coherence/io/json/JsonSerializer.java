@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,6 +47,7 @@ import com.oracle.coherence.io.json.internal.VersionableSerializer;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ByteArrayReadBuffer;
+import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.SerializationSupport;
@@ -361,6 +362,22 @@ public class JsonSerializer
         {
         ByteArrayReadBuffer buf = new ByteArrayReadBuffer(abJson);
         return deserialize(buf.getBufferInput(), clazz);
+        }
+
+    /**
+     * Serialize a value to a {@link WriteBuffer}.
+     *
+     * @param o  the value to serialize
+     *
+     * @return a {@link WriteBuffer} containing the serialized value
+     *
+     * @throws IOException if an error occurs
+     */
+    public WriteBuffer serialize(Object o) throws IOException
+        {
+        ByteArrayWriteBuffer buf = new ByteArrayWriteBuffer(512);
+        serialize(buf.getBufferOutput(), o);
+        return buf;
         }
 
     /**

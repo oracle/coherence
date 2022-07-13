@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+  <id>image</id>
+  <formats>
+    <format>dir</format>
+  </formats>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+    <!-- copy the module's compiled classes -->
+    <fileSet>
+      <directory>target/classes</directory>
+      <outputDirectory>app/classes</outputDirectory>
+      <fileMode>755</fileMode>
+      <filtered>false</filtered>
+    </fileSet>
+    <!-- copy the Dockerfile -->
+    <fileSet>
+      <directory>${project.basedir}/src/main/docker</directory>
+      <outputDirectory/>
+      <fileMode>755</fileMode>
+    </fileSet>
+  </fileSets>
+
+  <!-- copy the application dependencies -->
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>app/libs</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>755</fileMode>
+      <unpack>false</unpack>
+      <useProjectArtifact>false</useProjectArtifact>
+      <!-- strip the version from the jar files -->
+      <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
+    </dependencySet>
+  </dependencySets>
+</assembly>

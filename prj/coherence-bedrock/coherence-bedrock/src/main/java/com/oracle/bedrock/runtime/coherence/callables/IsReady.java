@@ -8,12 +8,9 @@ package com.oracle.bedrock.runtime.coherence.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
-import com.oracle.coherence.common.base.Logger;
-
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Cluster;
-
 import com.tangosol.net.management.Registry;
+
+import com.tangosol.util.HealthCheck;
 
 /**
  * A {@link RemoteCallable} to determine whether a Coherence member is ready
@@ -23,38 +20,41 @@ import com.tangosol.net.management.Registry;
  * @since 22.06
  */
 public class IsReady
+        extends AbstractHealthCheckCallable
         implements RemoteCallable<Boolean>
     {
-    @Override
-    public Boolean call() throws Exception
+    /**
+     * Create a {@link IsReady} to verify all member health checks are ready.
+     */
+    public IsReady()
         {
-        try
-            {
-            Cluster cluster = CacheFactory.getCluster();
-            if (cluster != null && cluster.isRunning())
-                {
-                boolean fReady = cluster.getManagement().allHealthChecksReady();
-                if (!fReady)
-                    {
-                    Logger.info("Bedrock: IsReady check failed");
-                    }
-                return true;
-                }
-            else
-                {
-                Logger.info("Bedrock: IsReady check - cluster is null or not running");
-                return false;
-                }
-            }
-        catch (Exception e)
-            {
-            Logger.err("Bedrock: IsReady check failed", e);
-            return false;
-            }
+        this(null);
+        }
+
+    /**
+     * Create a {@link IsReady} to verify all member health checks are ready.
+     *
+     * @param sName  the name of an additional HealthCheck to test
+     */
+    public IsReady(String sName)
+        {
+        super(sName);
+        }
+
+    @Override
+    protected boolean check(Registry registry)
+        {
+        return registry.allHealthChecksReady();
+        }
+
+    @Override
+    protected boolean check(HealthCheck healthCheck)
+        {
+        return healthCheck.isReady();
         }
 
     /**
      * A singleton instance of an {@link IsReady} callable.
      */
-    public static final IsReady INSTANCE = new IsReady();
+    public static final IsReady INSTANCE = new IsReady(null);
     }
