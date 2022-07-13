@@ -6,21 +6,12 @@
  */
 package com.oracle.coherence.guides.client;
 
-import com.oracle.bedrock.runtime.Application;
-import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.Platform;
-
-import com.oracle.bedrock.runtime.options.Argument;
-
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 
-import com.oracle.coherence.guides.client.model.TenantMetaData;
-import com.tangosol.io.WriteBuffer;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -33,14 +24,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * An integration test that uses the Testcontainers framework to start the
@@ -48,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 @SuppressWarnings("resource")
 @Testcontainers
+@Disabled("Disabled as the images will not have been built in most CI environments")
 public class MultiClusterContainerIT
         extends AbstractMultiClusterClientIT
     {
