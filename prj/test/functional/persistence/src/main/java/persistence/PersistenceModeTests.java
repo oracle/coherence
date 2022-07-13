@@ -256,7 +256,10 @@ public class PersistenceModeTests
             }
         finally
             {
-            cache.destroy();
+            if (cache != null)
+                {
+                cache.destroy();
+                }
             stopCacheServer(sServer);
             if (fileBackup != null)
                 {
