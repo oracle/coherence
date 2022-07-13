@@ -8,12 +8,9 @@ package com.oracle.bedrock.runtime.coherence.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
-import com.oracle.coherence.common.base.Logger;
-
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Cluster;
-
 import com.tangosol.net.management.Registry;
+
+import com.tangosol.util.HealthCheck;
 
 /**
  * A {@link RemoteCallable} to determine whether a Coherence member is "safe"
@@ -23,34 +20,37 @@ import com.tangosol.net.management.Registry;
  * @since 22.06
  */
 public class IsSafe
+        extends AbstractHealthCheckCallable
         implements RemoteCallable<Boolean>
     {
-    @Override
-    public Boolean call() throws Exception
+    /**
+     * Create a {@link IsSafe} to verify all member health checks are safe.
+     */
+    public IsSafe()
         {
-        try
-            {
-            Cluster cluster = CacheFactory.getCluster();
-            if (cluster != null && cluster.isRunning())
-                {
-                boolean fReady = cluster.getManagement().allHealthChecksSafe();
-                if (!fReady)
-                    {
-                    Logger.info("Bedrock: IsSafe check failed");
-                    }
-                return true;
-                }
-            else
-                {
-                Logger.info("Bedrock: IsSafe check - cluster is null or not running");
-                return false;
-                }
-            }
-        catch (Exception e)
-            {
-            Logger.err("Bedrock: IsSafe check failed", e);
-            return false;
-            }
+        this(null);
+        }
+
+    /**
+     * Create a {@link IsSafe} to verify all member health checks are safe.
+     *
+     * @param sName  the name of an additional HealthCheck to test
+     */
+    public IsSafe(String sName)
+        {
+        super(sName);
+        }
+
+    @Override
+    protected boolean check(Registry registry)
+        {
+        return registry.allHealthChecksSafe();
+        }
+
+    @Override
+    protected boolean check(HealthCheck healthCheck)
+        {
+        return healthCheck.isSafe();
         }
 
     /**

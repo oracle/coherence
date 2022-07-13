@@ -1,0 +1,14 @@
+[
+  {
+    "tenant": "marvel",
+    "type": "extend",
+    "hostName": "marvel",
+    "port": 20000
+  },
+  {
+    "tenant": "star-wars",
+    "type": "grpc",
+    "hostName": "star-wars",
+    "port": 1408
+  }
+]

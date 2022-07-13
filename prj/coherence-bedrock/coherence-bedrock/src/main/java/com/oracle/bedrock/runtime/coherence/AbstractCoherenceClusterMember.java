@@ -339,14 +339,14 @@ public abstract class AbstractCoherenceClusterMember
     @Override
     public boolean isSafe()
         {
-        return invoke(new IsSafe());
+        return invoke(IsSafe.INSTANCE);
         }
 
 
     @Override
     public boolean isReady()
         {
-        return invoke(new IsReady());
+        return invoke(IsReady.INSTANCE);
         }
 
 

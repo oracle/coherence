@@ -138,6 +138,12 @@ This guide walks you through how to secure Coherence using SSL/TLS
 This guide walks you through a use case for key association in Coherence
 --
 
+[CARD]
+.Multi-Cluster Client
+[link=examples/guides/910-multi-cluster-client/README.adoc]
+--
+An example of how to connect an Extend or gRPC client to multiple Coherence clusters.
+--
 
 ====
 

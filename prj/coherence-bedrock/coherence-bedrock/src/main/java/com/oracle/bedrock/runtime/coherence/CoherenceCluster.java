@@ -12,7 +12,6 @@ import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.options.Decoration;
 import com.oracle.bedrock.options.Decorations;
 import com.oracle.bedrock.runtime.AbstractAssembly;
-import com.oracle.bedrock.runtime.Assembly;
 import com.oracle.bedrock.runtime.coherence.callables.GetAutoStartServiceNames;
 import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
@@ -273,6 +272,50 @@ public class CoherenceCluster
 
             return true;
             };
+        }
+
+        /**
+         * A {@link Predicate} to determine if all health checks in the
+         * {@link CoherenceCluster} are ready.
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isReady()
+            {
+            return (cluster) ->
+                {
+                for (CoherenceClusterMember member : cluster)
+                    {
+                    if (!member.invoke(IsReady.INSTANCE))
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                };
+            }
+
+        /**
+         * A {@link Predicate} to determine if all health checks in the
+         * {@link CoherenceCluster} are ready.
+         *
+         * @param sHealthCheck  the name of an additional health check to verify
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isReady(String sHealthCheck)
+            {
+            return (cluster) ->
+                {
+                for (CoherenceClusterMember member : cluster)
+                    {
+                    if (!member.invoke(new IsReady(sHealthCheck)))
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                };
             }
 
         /**

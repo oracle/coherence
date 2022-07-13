@@ -1,0 +1,14 @@
+[
+  {
+    "tenant": "foo",
+    "type": "extend",
+    "hostName": "foo.com",
+    "port": 20000
+  },
+  {
+    "tenant": "bar",
+    "type": "grpc",
+    "hostName": "bar.com",
+    "port": 1408
+  }
+]

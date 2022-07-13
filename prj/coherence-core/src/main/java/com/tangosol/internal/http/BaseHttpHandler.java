@@ -14,6 +14,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpsExchange;
 
+import com.tangosol.io.WriteBuffer;
 import com.tangosol.net.Service;
 
 import com.tangosol.net.management.MapJsonBodyHandler;
@@ -201,7 +202,17 @@ public abstract class BaseHttpHandler
             {
             try (OutputStream out = fGzip ? new GZIPOutputStream(exchange.getResponseBody()) : exchange.getResponseBody())
                 {
-                if (oEntity instanceof InputStream)
+                if (oEntity instanceof WriteBuffer)
+                    {
+                    oEntity = ((WriteBuffer) oEntity).getBufferOutput();
+                    }
+
+                if (oEntity instanceof WriteBuffer.BufferOutput)
+                    {
+                    WriteBuffer buffer = ((WriteBuffer.BufferOutput) oEntity).getBuffer();
+                    buffer.getReadBuffer().writeTo(out);
+                    }
+                else if (oEntity instanceof InputStream)
                     {
                     InputStream in = (InputStream) oEntity;
                     byte[]      ab = new byte[8192];
