@@ -39,7 +39,7 @@
           <trust-manager>
             <algorithm>SunX509</algorithm>
             <key-store>  <!--2-->
-              <url system-property="test.trust.keystore">>file:trust.jks</url>
+              <url system-property="test.trust.keystore">file:trust.jks</url>
               <password system-property="test.trust.keystore.password">password</password>
             </key-store>
           </trust-manager>
