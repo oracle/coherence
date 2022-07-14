@@ -96,6 +96,7 @@ CMD="${CMD} -cp ${CLASSPATH}"
 CMD="${CMD} -XshowSettings:all"
 CMD="${CMD} -XX:+PrintCommandLineFlags"
 CMD="${CMD} -XX:+PrintFlagsFinal"
+CMD="${CMD} -Djava.net.preferIPv4Stack=true"
 CMD="${CMD} @/args/jvm-args.txt"
 
 # The health check command line
@@ -106,6 +107,7 @@ HEALTH_CMD="${HEALTH_CMD} http://127.0.0.1:${PORT_HEALTH}/ready"
 
 # Build the environment variable options
 ENV_VARS=""
+ENV_VARS="${ENV_VARS} -e COHERENCE_WKA=localhost"
 ENV_VARS="${ENV_VARS} -e COHERENCE_EXTEND_PORT=${PORT_EXTEND}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_CONCURRENT_EXTEND_PORT=${PORT_CONCURRENT_EXTEND}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_GRPC_ENABLED=true"
