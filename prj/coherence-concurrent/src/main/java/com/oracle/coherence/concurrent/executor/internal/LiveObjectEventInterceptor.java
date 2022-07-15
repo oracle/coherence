@@ -488,7 +488,7 @@ public class LiveObjectEventInterceptor
      * it has expired.
      */
     public static class ExpiredProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, Leased, Boolean>
         {
         // ----- constructors -----------------------------------------------
 
@@ -502,7 +502,7 @@ public class LiveObjectEventInterceptor
         // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Boolean process(InvocableMap.Entry entry)
             {
             if (entry.isPresent() && entry.getValue() instanceof Leased)
                 {
@@ -579,7 +579,7 @@ public class LiveObjectEventInterceptor
      * An {@link InvocableMap.EntryProcessor} to notify a {@link ClusterMemberAware} of a {@link MemberEvent}.
      */
     public static class MemberAwareProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusterMemberAware, Boolean>
         {
         // ----- constructors -----------------------------------
 
@@ -604,7 +604,7 @@ public class LiveObjectEventInterceptor
         // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Boolean process(InvocableMap.Entry entry)
             {
             if (entry.isPresent() && entry.getValue() instanceof ClusterMemberAware)
                 {

@@ -848,7 +848,7 @@ public class ClusteredExecutorInfo
      * the previous state.
      */
     public static class SetStateProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredExecutorInfo, State>
         {
         // ----- constructors -----------------------------------------------
 
@@ -883,14 +883,14 @@ public class ClusteredExecutorInfo
             m_desired  = desired;
             }
 
-        // ----- PortableAbstractProcessor methods --------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(@SuppressWarnings("rawtypes") InvocableMap.Entry entry)
+        public State process(InvocableMap.Entry<String, ClusteredExecutorInfo> entry)
             {
             if (entry.isPresent())
                 {
-                ClusteredExecutorInfo info     = (ClusteredExecutorInfo) entry.getValue();
+                ClusteredExecutorInfo info     = entry.getValue();
                 State                 existing = info.getState();
 
                 if ((existing.equals(m_previous) || m_previous == null) && !existing.equals(m_desired))
@@ -958,7 +958,6 @@ public class ClusteredExecutorInfo
 
                     info.setState(m_desired);
 
-                    //noinspection unchecked
                     entry.setValue(info);
                     }
 
@@ -1006,7 +1005,7 @@ public class ClusteredExecutorInfo
      * of a {@link ClusteredExecutorInfo}.
      */
     public static class TouchProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredExecutorInfo, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1020,15 +1019,14 @@ public class ClusteredExecutorInfo
         // ----- PortableAbstractProcessor methods --------------------------
 
         @Override
-        public Object process(@SuppressWarnings("rawtypes") Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredExecutorInfo> entry)
             {
             if (entry.isPresent())
                 {
-                ClusteredExecutorInfo info = (ClusteredExecutorInfo) entry.getValue();
+                ClusteredExecutorInfo info = entry.getValue();
 
                 info.touch();
 
-                //noinspection unchecked
                 entry.setValue(info);
                 }
 
@@ -1084,7 +1082,7 @@ public class ClusteredExecutorInfo
      * An {@link InvocableMap.EntryProcessor} to update the state of an {@link TaskExecutorService.ExecutorInfo}.
      */
     public static class UpdateInfoProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredExecutorInfo, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1120,15 +1118,15 @@ public class ClusteredExecutorInfo
             m_cTasksInProgress = cTasksInProgress;
             }
 
-        // ----- PortableAbstractProcessor methods --------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(@SuppressWarnings("rawtypes") InvocableMap.Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredExecutorInfo> entry)
             {
             // only update when there's an entry
             if (entry.isPresent())
                 {
-                ClusteredExecutorInfo info = (ClusteredExecutorInfo) entry.getValue();
+                ClusteredExecutorInfo info = entry.getValue();
 
                 // update the info
                 info.setMaxMemory(m_cMaxMemory);
@@ -1150,7 +1148,6 @@ public class ClusteredExecutorInfo
                 // touch the info (to mark is as updated)
                 info.touch();
 
-                //noinspection unchecked
                 entry.setValue(info);
                 }
 
@@ -1169,7 +1166,6 @@ public class ClusteredExecutorInfo
             m_cTasksCompleted  = in.readLong(4);
             m_cTasksFailed     = in.readLong(5);
             m_cTasksInProgress = in.readLong(6);
-
             }
 
         @Override
@@ -1182,7 +1178,6 @@ public class ClusteredExecutorInfo
             out.writeLong(4,    m_cTasksCompleted);
             out.writeLong(5,    m_cTasksFailed);
             out.writeLong(6,    m_cTasksInProgress);
-
             }
 
         // ----- data members -----------------------------------------------

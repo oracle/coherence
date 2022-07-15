@@ -4,7 +4,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.concurrent.executor.internal;
 
 import com.oracle.coherence.common.base.Logger;
@@ -577,7 +576,7 @@ public class ClusteredTaskInterceptor
      * {@link ClusteredTaskManager}, returning the previous state.
      */
     public static class SetTaskStateProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, ClusteredTaskManager.State>
         {
         // ----- constructors -----------------------------------------------
 
@@ -614,10 +613,10 @@ public class ClusteredTaskInterceptor
             m_desired  = desired;
             }
 
-        // ----- PortableAbstractProcessor interface ------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public ClusteredTaskManager.State process(InvocableMap.Entry entry)
             {
             if (entry.isPresent())
                 {
@@ -639,7 +638,7 @@ public class ClusteredTaskInterceptor
                 }
             }
 
-        // ----- PortableAbstractProcessor methods --------------------------
+        // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in) throws IOException

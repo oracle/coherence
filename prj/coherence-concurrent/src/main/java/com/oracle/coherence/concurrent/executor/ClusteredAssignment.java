@@ -338,7 +338,7 @@ public class ClusteredAssignment
      * An {@link InvocableMap.EntryProcessor} which updates an assignment due to an assignment {@link Action}.
      */
     public static class AssignmentProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredAssignment, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -363,11 +363,10 @@ public class ClusteredAssignment
             m_assignment = assignment;
             }
 
-        // ----- PortableAbstractProcessor methods --------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
-        @SuppressWarnings("rawtypes")
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredAssignment> entry)
             {
             ExecutorTrace.log(() -> String.format("ClusteredAssignment State for Executor [%s] being configured because of [%s]", entry.getKey(), m_action));
 
@@ -376,7 +375,7 @@ public class ClusteredAssignment
                 case ASSIGN:
                 case RECOVER:
 
-                    ClusteredAssignment current = (ClusteredAssignment) entry.getValue();
+                    ClusteredAssignment current = entry.getValue();
 
                     // only update when it doesn't exist or is not equal
                     if (!entry.isPresent() || entry.isPresent() && !current.equals(m_assignment))
@@ -384,7 +383,6 @@ public class ClusteredAssignment
                         m_assignment.setState(State.ASSIGNED);
                         m_assignment.setRecovered(m_action == Action.RECOVER);
 
-                        //noinspection unchecked
                         entry.setValue(m_assignment);
                         }
 
@@ -440,7 +438,7 @@ public class ClusteredAssignment
      * the previous state.
      */
     public static class SetStateProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredAssignment, State>
         {
         // ----- constructors -----------------------------------------------
 
@@ -477,20 +475,20 @@ public class ClusteredAssignment
             m_desired  = desired;
             }
 
-        @SuppressWarnings("rawtypes")
+        // ----- EntryProcessor interface -----------------------------------
+
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public State process(InvocableMap.Entry<String, ClusteredAssignment> entry)
             {
             if (entry.isPresent())
                 {
-                ClusteredAssignment assignment = (ClusteredAssignment) entry.getValue();
+                ClusteredAssignment assignment = entry.getValue();
                 State               existing   = assignment.getState();
 
                 if (existing != null && existing.equals(m_previous) || m_previous == null)
                     {
                     assignment.setState(m_desired);
 
-                    //noinspection unchecked
                     entry.setValue(assignment);
 
                     ExecutorTrace.log(() -> String.format("ClusteredAssignment State for Executor [%s] changed from [%s] to [%s]", entry.getKey(), m_previous, m_desired));

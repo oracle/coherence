@@ -372,5 +372,10 @@
       <class-name>com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor$ExpiredProcessor</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>895</type-id>
+      <class-name>com.oracle.coherence.concurrent.executor.ClusteredProperties$SetPropertyValueProcessor</class-name>
+    </user-type>
+
   </user-type-list>
 </pof-config>
