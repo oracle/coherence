@@ -8,6 +8,7 @@ package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.tangosol.io.ExternalizableLite;
@@ -21,7 +22,9 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.KeyAssociation;
 
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.InvocableMap;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -75,11 +78,12 @@ public class ClusteredProperties
         m_sTaskId = sTaskId;
         m_service = service;
 
-        NamedCache<PropertyKey, PropertyValue> propertyCache = Caches.properties(service);
+        NamedCache<PropertyKey<Serializable>, PropertyValue<Serializable>> propertyCache = Caches.properties(service);
         for (Object o : properties.getProperties().entrySet())
             {
             Map.Entry entry = (Map.Entry) o;
-            propertyCache.put(new PropertyKey(sTaskId, entry.getKey()), new PropertyValue(sTaskId, entry.getValue()));
+            propertyCache.put(new PropertyKey(sTaskId, (Serializable) entry.getKey()),
+                              new PropertyValue(sTaskId, (Serializable) entry.getValue()));
             }
         }
 
@@ -106,10 +110,11 @@ public class ClusteredProperties
             {
             NamedCache<PropertyKey, PropertyValue> propertyCache = Caches.properties(getCacheService());
 
-            PropertyValue oldValue = propertyCache.put(new PropertyKey(m_sTaskId, sKey),
-                    new PropertyValue(m_sTaskId, value));
+            PropertyValue<V> oldValue = (PropertyValue<V>) propertyCache
+                    .invoke(new PropertyKey(m_sTaskId, sKey),
+                            new SetPropertyValueProcessor(new PropertyValue(m_sTaskId, value)));
 
-            return oldValue == null ? null : (V) oldValue.getValue();
+            return oldValue == null ? null : oldValue.getValue();
             }
         else
             {
@@ -170,8 +175,8 @@ public class ClusteredProperties
      * Property key.
      */
     @SuppressWarnings("rawtypes")
-    public static class PropertyKey
-            implements ExternalizableLite, KeyAssociation, PortableObject
+    public static class PropertyKey<T extends Serializable>
+            implements ExternalizableLite, KeyAssociation<String>, PortableObject
         {
         // ----- constructors -----------------------------------------------
 
@@ -189,7 +194,7 @@ public class ClusteredProperties
          * @param sTaskId  task ID
          * @param oKey     property key
          */
-        public PropertyKey(String sTaskId, Object oKey)
+        public PropertyKey(String sTaskId, T oKey)
             {
             m_sTaskId = sTaskId;
             m_oKey    = oKey;
@@ -200,7 +205,7 @@ public class ClusteredProperties
         /**
          * {@inheritDoc}
          */
-        public Object getAssociatedKey()
+        public String getAssociatedKey()
             {
             return m_sTaskId;
             }
@@ -263,7 +268,7 @@ public class ClusteredProperties
          *
          * @return property key
          */
-        public Object getKey()
+        public T getKey()
             {
             return m_oKey;
             }
@@ -310,7 +315,7 @@ public class ClusteredProperties
         /**
          * Property key.
          */
-        protected Object m_oKey;
+        protected T m_oKey;
         }
 
     // ----- inner class: PropertyValue -------------------------------------
@@ -318,7 +323,7 @@ public class ClusteredProperties
     /**
      * Property value.
      */
-    public static class PropertyValue
+    public static class PropertyValue<T extends Serializable>
             implements ExternalizableLite, PortableObject
         {
         // ----- constructors -----------------------------------------------
@@ -337,10 +342,10 @@ public class ClusteredProperties
          * @param sTaskId  task ID
          * @param oValue   property value
          */
-        public PropertyValue(String sTaskId, Object oValue)
+        public PropertyValue(String sTaskId, T oValue)
             {
             m_sTaskId = sTaskId;
-            m_oValue = oValue;
+            m_oValue  = oValue;
             }
 
         // ----- Object methods ---------------------------------------------
@@ -401,7 +406,7 @@ public class ClusteredProperties
          *
          * @return property value
          */
-        public Object getValue()
+        public T getValue()
             {
             return m_oValue;
             }
@@ -448,7 +453,121 @@ public class ClusteredProperties
         /**
          * Property value.
          */
-        protected Object m_oValue;
+        protected T m_oValue;
+        }
+
+    // ----- inner class: SetPropertyValueProcessor -------------------------
+
+    /**
+     * An {@link InvocableMap.EntryProcessor} for inserting/updating
+     * {@link PropertyKey}/{@link PropertyValue} mappings.
+     *
+     * @param <K>  the property key type
+     * @param <V>  the property value type
+     *
+     * @since 22.06.1
+     */
+    public static class SetPropertyValueProcessor<K extends Serializable, V extends Serializable>
+            extends PortableAbstractProcessor<PropertyKey<K>, PropertyValue<V>, PropertyValue<V>>
+            implements ExternalizableLite
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Constructs a new {@code SetPropertyValueProcessor}
+         * (required for serialization)
+         */
+        @SuppressWarnings("unused")
+        public SetPropertyValueProcessor()
+            {
+            }
+
+        /**
+         * Constructs a new {@code SetPropertyValueProcessor}
+         *
+         * @param oValue  the property value
+         */
+        public SetPropertyValueProcessor(PropertyValue<V> oValue)
+            {
+            m_oValue = oValue;
+            }
+
+        // ----- EntryProcessor interface -----------------------------------
+
+        @Override
+        public PropertyValue<V> process(InvocableMap.Entry<PropertyKey<K>, PropertyValue<V>> entry)
+            {
+            String               sTaskId = entry.getKey().getTaskId();
+            ClusteredTaskManager manager = null;
+
+            ExecutorTrace.entering(SetPropertyValueProcessor.class, "process", sTaskId);
+
+            BinaryEntry managerEntry = ((BinaryEntry) entry)
+                    .getAssociatedEntry(Caches.TASKS_CACHE_NAME, sTaskId);
+
+            PropertyValue<V> result = null;
+
+            if (managerEntry != null)
+                {
+                manager = (ClusteredTaskManager) managerEntry.getValue();
+                }
+
+            if (manager != null && !manager.isCompleted())
+                {
+                if (entry.isPresent())
+                    {
+                    result = entry.getValue();
+                    }
+
+                entry.setValue(m_oValue);
+                }
+            else
+                {
+                // task is no longer preset or has been completed; this is a no-op
+                ExecutorTrace.log(() -> String.format("Ignoring attempt to set property [%s]"
+                                                      + " for task [%s] as it has been completed or no longer exists",
+                                                      m_oValue, sTaskId));
+                }
+
+            ExecutorTrace.exiting(SetPropertyValueProcessor.class, "process", sTaskId);
+
+            return result;
+            }
+
+        // ----- PortableObject interface -----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_oValue = in.readObject(0);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeObject(0, m_oValue);
+            }
+
+        // ----- ExternalizableHelper interface -----------------------------
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_oValue = ExternalizableHelper.readObject(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeObject(out, m_oValue);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The property value.
+         */
+        protected PropertyValue<V> m_oValue;
         }
 
     // ----- data members ---------------------------------------------------

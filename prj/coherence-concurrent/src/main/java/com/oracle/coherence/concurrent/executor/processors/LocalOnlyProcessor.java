@@ -2,9 +2,8 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.coherence.concurrent.executor.processors;
 
 import com.oracle.coherence.concurrent.executor.Result;
@@ -28,10 +27,14 @@ import java.util.Map;
  * {@link InvocableMap.EntryProcessor} only on {@link Map.Entry}s that are located
  * in the process that created the {@link LocalOnlyProcessor}.
  *
+ * @param <K> the type of the Map entry key
+ * @param <V> the type of the Map entry value
+ * @param <R> the type of value returned by the EntryProcessor
+ *
  * @since 21.12
  */
-public class LocalOnlyProcessor
-        extends PortableAbstractProcessor
+public class LocalOnlyProcessor<K, V, R>
+        extends PortableAbstractProcessor<K, V, R>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -49,26 +52,27 @@ public class LocalOnlyProcessor
      *
      * @param processor  the {@link InvocableMap.EntryProcessor}
      */
-    public LocalOnlyProcessor(InvocableMap.EntryProcessor processor)
+    public LocalOnlyProcessor(InvocableMap.EntryProcessor<K, V, R> processor)
         {
         m_processor        = processor;
         f_submittingMember = CacheFactory.getCluster().getLocalMember();
         }
 
-    // ----- PortableAbstractProcessor methods ------------------------------
+    // ----- EntryProcessor interface ---------------------------------------
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object process(InvocableMap.Entry entry)
+    public R process(InvocableMap.Entry<K, V> entry)
         {
         Member localMember = CacheFactory.getCluster().getLocalMember();
 
         if (localMember.equals(f_submittingMember))
             {
-            return Result.of(m_processor.process(entry));
+            return (R) Result.of(m_processor.process(entry));
             }
         else
             {
-            return Result.none();
+            return (R) Result.none();
             }
         }
 
@@ -82,9 +86,9 @@ public class LocalOnlyProcessor
      *
      * @return a {@link LocalOnlyProcessor}
      */
-    public static LocalOnlyProcessor of(InvocableMap.EntryProcessor processor)
+    public static <K, V, R> LocalOnlyProcessor<K, V, R> of(InvocableMap.EntryProcessor<K, V, R> processor)
         {
-        return new LocalOnlyProcessor(processor);
+        return new LocalOnlyProcessor<>(processor);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -106,7 +110,7 @@ public class LocalOnlyProcessor
     /**
      * The {@link InvocableMap.EntryProcessor} to invoke.
      */
-    protected InvocableMap.EntryProcessor m_processor;
+    protected InvocableMap.EntryProcessor<K, V, R> m_processor;
 
     /**
      * The {@link Member} that submitted the {@link LocalOnlyProcessor}.

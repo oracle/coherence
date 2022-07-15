@@ -1202,7 +1202,7 @@ public class ClusteredTaskManager<T, A, R>
      * {@link InvocableMap.Entry} as a single transaction.
      */
     public static class ChainedProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1223,7 +1223,7 @@ public class ClusteredTaskManager<T, A, R>
          *
          * @return this {@link ChainedProcessor} to permit fluent-style method calls
          */
-        public ChainedProcessor andThen(InvocableMap.EntryProcessor processor)
+        public ChainedProcessor andThen(InvocableMap.EntryProcessor<String, ClusteredTaskManager, ?> processor)
             {
             m_listProcessors.add(processor);
 
@@ -1251,10 +1251,10 @@ public class ClusteredTaskManager<T, A, R>
             return m_listProcessors.isEmpty();
             }
 
-        // ----- PortableAbstractProcessor interface ------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             for (InvocableMap.EntryProcessor processor : m_listProcessors)
                 {
@@ -1263,6 +1263,8 @@ public class ClusteredTaskManager<T, A, R>
 
             return null;
             }
+
+        // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in) throws IOException
@@ -1349,7 +1351,7 @@ public class ClusteredTaskManager<T, A, R>
      * has occurred which requires the {@link ExecutionStrategy} to be re-evaluated.
      */
     public static class NotifyExecutionStrategyProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Boolean>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1360,14 +1362,14 @@ public class ClusteredTaskManager<T, A, R>
             {
             }
 
-        // ----- PortableAbstractProcessor interface ------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Boolean process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             if (entry.isPresent())
                 {
-                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                ClusteredTaskManager manager = entry.getValue();
 
                 if (!manager.isCompleted())
                     {
@@ -1390,7 +1392,7 @@ public class ClusteredTaskManager<T, A, R>
      * An {@link InvocableMap.EntryProcessor} to optimize the {@link ExecutionPlan} for a {@link Task}.
      */
     public static class OptimizeExecutionPlanProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1417,7 +1419,7 @@ public class ClusteredTaskManager<T, A, R>
         // ----- PortableAbstractProcessor interface ------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             ExecutorTrace.entering(OptimizeExecutionPlanProcessor.class,
                                    "process",
@@ -1425,7 +1427,7 @@ public class ClusteredTaskManager<T, A, R>
 
             if (entry.isPresent())
                 {
-                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                ClusteredTaskManager manager = entry.getValue();
                 Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
 
                 if (manager.isCompleted())
@@ -1471,6 +1473,8 @@ public class ClusteredTaskManager<T, A, R>
             return null;
             }
 
+        // ----- PortableObject interface -----------------------------------
+
         @Override
         public void readExternal(PofReader in) throws IOException
             {
@@ -1506,7 +1510,7 @@ public class ClusteredTaskManager<T, A, R>
      * is set, false otherwise.
      */
     public static class SetActionProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Boolean>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1562,10 +1566,10 @@ public class ClusteredTaskManager<T, A, R>
             m_desired     = desired;
             }
 
-        // ----- PortableAbstractProcessor interface ------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Boolean process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             // assume the action was not set
             boolean result = false;
@@ -1576,7 +1580,7 @@ public class ClusteredTaskManager<T, A, R>
 
             if (entry.isPresent())
                 {
-                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                ClusteredTaskManager manager = entry.getValue();
 
                 ExecutionPlan.Action existing = manager.m_executionPlan.getAction(m_sExecutorId);
 
@@ -1603,6 +1607,8 @@ public class ClusteredTaskManager<T, A, R>
 
             return result;
             }
+
+        // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in) throws IOException
@@ -1652,16 +1658,16 @@ public class ClusteredTaskManager<T, A, R>
      * An {@link InvocableMap.EntryProcessor} to terminate a running {@link Task}.
      */
     public static class CancellationProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Boolean>
         {
-        // ----- PortableAbstractProcessor ----------------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Boolean process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             if (entry.isPresent())
                 {
-                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                ClusteredTaskManager manager = entry.getValue();
 
                 if (manager.m_state == State.ORCHESTRATED)
                     {
@@ -1686,7 +1692,7 @@ public class ClusteredTaskManager<T, A, R>
      * @param <T> the result type
      */
     public static class UpdateCollectedResultProcessor<T>
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1713,10 +1719,10 @@ public class ClusteredTaskManager<T, A, R>
             m_fCompleted                    = fCompleted;
             }
 
-        // ----- PortableAbstractProcessor ----------------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             ExecutorTrace.entering(UpdateCollectedResultProcessor.class,
                                    "process",
@@ -1724,7 +1730,7 @@ public class ClusteredTaskManager<T, A, R>
 
             if (entry.isPresent())
                 {
-                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                ClusteredTaskManager manager = entry.getValue();
                 Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
 
                 if (manager.m_collector != null)
@@ -1784,6 +1790,8 @@ public class ClusteredTaskManager<T, A, R>
             return null;
             }
 
+        // ----- PortableObject interface -----------------------------------
+
         @Override
         public void readExternal(PofReader in) throws IOException
             {
@@ -1826,7 +1834,7 @@ public class ClusteredTaskManager<T, A, R>
      * was successful, <code>false</code> otherwise.
      */
     public static class UpdateContributedResultProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Boolean>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1850,10 +1858,10 @@ public class ClusteredTaskManager<T, A, R>
             m_result      = result;
             }
 
-        // ----- PortableAbstractProcessor ----------------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Boolean process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             ExecutorTrace.entering(UpdateContributedResultProcessor.class,
                                    "process",
@@ -1863,7 +1871,7 @@ public class ClusteredTaskManager<T, A, R>
                 {
                 if (entry.isPresent())
                     {
-                    ClusteredTaskManager taskManager = (ClusteredTaskManager) entry.getValue();
+                    ClusteredTaskManager taskManager = entry.getValue();
                     Debugging            debug       = taskManager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : taskManager.m_debugging;
 
                     if (taskManager.isOwner(m_sExecutorId))
@@ -1909,6 +1917,8 @@ public class ClusteredTaskManager<T, A, R>
                 }
             }
 
+        // ----- PortableObject interface -----------------------------------
+
         @Override
         public void readExternal(PofReader in) throws IOException
             {
@@ -1941,7 +1951,7 @@ public class ClusteredTaskManager<T, A, R>
      * ExecutionStrategy} has been evaluated.
      */
     public static class UpdateExecutionPlanProcessor
-            extends PortableAbstractProcessor
+            extends PortableAbstractProcessor<String, ClusteredTaskManager, Void>
         {
         // ----- constructors -----------------------------------------------
 
@@ -1965,10 +1975,10 @@ public class ClusteredTaskManager<T, A, R>
             m_cPendingExecutionStrategyUpdateCount = cPendingExecutionStrategyUpdateCount;
             }
 
-        // ----- PortableAbstractProcessor interface ------------------------
+        // ----- EntryProcessor interface -----------------------------------
 
         @Override
-        public Object process(InvocableMap.Entry entry)
+        public Void process(InvocableMap.Entry<String, ClusteredTaskManager> entry)
             {
             ExecutorTrace.entering(UpdateExecutionPlanProcessor.class,
                                    "process",
@@ -1976,7 +1986,7 @@ public class ClusteredTaskManager<T, A, R>
 
             if (entry.isPresent())
                 {
-                ClusteredTaskManager manager = (ClusteredTaskManager) entry.getValue();
+                ClusteredTaskManager manager = entry.getValue();
                 Debugging            debug   = manager.m_debugging.getLogLevel() < Logger.FINEST ? new Debugging() : manager.m_debugging;
 
                 if (manager.isCompleted())
@@ -2007,6 +2017,8 @@ public class ClusteredTaskManager<T, A, R>
 
             return null;
             }
+
+        // ----- PortableObject interface -----------------------------------
 
         @Override
         public void readExternal(PofReader in) throws IOException
