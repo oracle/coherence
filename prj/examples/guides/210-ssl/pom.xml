@@ -79,7 +79,7 @@
     
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-testing-support</artifactId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
       <version>${coherence.version}</version>
     </dependency>
   </dependencies>
