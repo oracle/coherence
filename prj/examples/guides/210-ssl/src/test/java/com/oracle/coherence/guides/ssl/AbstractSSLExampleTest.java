@@ -27,7 +27,6 @@ import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.coherence.testing.util.KeyTool;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.net.CacheFactory;
@@ -167,16 +166,16 @@ public abstract class AbstractSSLExampleTest {
                 ClusterName.of("ssl-cluster"),
                 MemberName.of(memberName),
                 SystemProperty.of("test.socket.provider", socketProvider),
-                SystemProperty.of("test.server.keystore", serverKeyAndCert.m_fileKeystore.getAbsolutePath()),
-                SystemProperty.of("test.trust.keystore", serverCACert.m_fileKeystore.getAbsolutePath()),
+                SystemProperty.of("test.server.keystore", serverKeyAndCert.fileKeystore.getAbsolutePath()),
+                SystemProperty.of("test.trust.keystore", serverCACert.fileKeystore.getAbsolutePath()),
                 SystemProperty.of("test.server.keystore.password", serverKeyAndCert.storePasswordString()),
                 SystemProperty.of("test.server.key.password", serverKeyAndCert.keyPasswordString()),
                 SystemProperty.of("test.trust.keystore.password", serverCACert.storePasswordString()),
 
-                SystemProperty.of("test.client.ca.cert", clientCACert.m_fileCert.getAbsolutePath()),
-                SystemProperty.of("test.server.key", serverKeyAndCert.m_fileKeyPEMNoPass.getAbsolutePath()),
-                SystemProperty.of("test.server.cert", serverKeyAndCert.m_fileCert.getAbsolutePath()),
-                SystemProperty.of("test.server.ca.cert", serverCACert.m_fileCert.getAbsolutePath()),
+                SystemProperty.of("test.client.ca.cert", clientCACert.fileCert.getAbsolutePath()),
+                SystemProperty.of("test.server.key", serverKeyAndCert.fileKeyPEMNoPass.getAbsolutePath()),
+                SystemProperty.of("test.server.cert", serverKeyAndCert.fileCert.getAbsolutePath()),
+                SystemProperty.of("test.server.ca.cert", serverCACert.fileCert.getAbsolutePath()),
 
                 ClusterPort.of(clusterPort));
 
@@ -208,16 +207,16 @@ public abstract class AbstractSSLExampleTest {
         System.setProperty("test.extend.address", hostName);
         System.setProperty("test.extend.port", Integer.toString(extendPort));
 
-        System.setProperty("test.server.keystore", serverKeyAndCert.m_fileKeystore.getAbsolutePath());
-        System.setProperty("test.trust.keystore", serverCACert.m_fileKeystore.getAbsolutePath());
+        System.setProperty("test.server.keystore", serverKeyAndCert.fileKeystore.getAbsolutePath());
+        System.setProperty("test.trust.keystore", serverCACert.fileKeystore.getAbsolutePath());
         System.setProperty("test.server.keystore.password", serverKeyAndCert.storePasswordString());
         System.setProperty("test.server.key.password", serverKeyAndCert.keyPasswordString());
         System.setProperty("test.trust.keystore.password", serverCACert.storePasswordString());
         
-        System.setProperty("test.client.ca.cert", clientCACert.m_fileCert.getAbsolutePath());
-        System.setProperty("test.server.key", serverKeyAndCert.m_fileKeyPEMNoPass.getAbsolutePath());
-        System.setProperty("test.server.cert", serverKeyAndCert.m_fileCert.getAbsolutePath());
-        System.setProperty("test.server.ca.cert", serverCACert.m_fileCert.getAbsolutePath());
+        System.setProperty("test.client.ca.cert", clientCACert.fileCert.getAbsolutePath());
+        System.setProperty("test.server.key", serverKeyAndCert.fileKeyPEMNoPass.getAbsolutePath());
+        System.setProperty("test.server.cert", serverKeyAndCert.fileCert.getAbsolutePath());
+        System.setProperty("test.server.ca.cert", serverCACert.fileCert.getAbsolutePath());
 
         return CacheFactory.getCache("test-cache");
     }

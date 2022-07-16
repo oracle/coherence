@@ -24,7 +24,7 @@ dependencies {
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
-    testImplementation "${coherenceGroupId}:coherence-testing-support:${coherenceVersion}"
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support:${coherenceVersion}"
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
