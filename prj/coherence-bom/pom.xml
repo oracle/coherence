@@ -180,11 +180,6 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-loadbalancer</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-login</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -201,11 +196,6 @@
       <dependency>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-micrometer</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-mock</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
