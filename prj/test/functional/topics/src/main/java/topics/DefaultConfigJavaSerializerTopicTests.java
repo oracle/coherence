@@ -19,6 +19,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
@@ -133,6 +134,7 @@ public class DefaultConfigJavaSerializerTopicTests
                   SystemProperty.of("coherence.management.remote", "true"),
                   SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                   LocalHost.only(),
+                  WellKnownAddress.of("127.0.0.1"),
                   SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))
             .include(STORAGE_MEMBER_COUNT, CoherenceClusterMember.class,
                      RoleName.of("DefaultConfigJavaSerializerTopicTestsStorage"),

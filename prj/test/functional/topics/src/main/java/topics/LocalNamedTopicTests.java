@@ -115,6 +115,7 @@ public class LocalNamedTopicTests
         String      sHost  = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         ClassLoader loader = Base.getContextClassLoader();
 
+        System.setProperty("coherence.wka", sHost);
         System.setProperty("coherence.localhost", sHost);
 
         URL urlCacheConfig = Resources.findFileOrResource("topic-cache-config.xml", LocalNamedTopicTests.class.getClassLoader());
