@@ -193,23 +193,24 @@ public class CustomerRepositoryIT
         Customer customer = new Customer("AF01", "Mathieu", "van der Poel");
         repository.save(customer);
 
-        LocalDateTime ttl15 = LocalDateTime.now().plusSeconds(15);
+        LocalDateTime ttl10 = LocalDateTime.now().plusSeconds(10);
+        LocalDateTime ttl20 = LocalDateTime.now().plusSeconds(20);
         LocalDateTime ttl30 = LocalDateTime.now().plusSeconds(30);
-        Notification notification1 = new Notification("one", ttl15);
-        Notification notification2 = new Notification("one", ttl30);
+        LocalDateTime ttl40 = LocalDateTime.now().plusSeconds(40);
+        Notification notification1 = new Notification("one", ttl10);
+        Notification notification2 = new Notification("two", ttl30);
 
         repository.addNotifications(customer, "NL", List.of(notification1, notification2));
 
         List<Notification> list = repository.getNotifications(customer);
         assertThat(list.size(), is(2));
 
-        Eventually.assertDeferred(() -> ttl15.isBefore(LocalDateTime.now()), is(true));
+        Eventually.assertDeferred(() -> ttl20.isBefore(LocalDateTime.now()), is(true));
         list = repository.getNotifications(customer);
         assertThat(list.size(), is(1));
 
-        Eventually.assertDeferred(() -> ttl30.isBefore(LocalDateTime.now()), is(true));
+        Eventually.assertDeferred(() -> ttl40.isBefore(LocalDateTime.now()), is(true));
         list = repository.getNotifications(customer);
         assertThat(list.size(), is(0));
         }
-
     }
