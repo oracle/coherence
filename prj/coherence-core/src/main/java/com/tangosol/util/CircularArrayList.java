@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -759,24 +759,19 @@ public class CircularArrayList
     *
     * @param s  The stream to read from
     *
-    * @throws IOException
-    * @throws ClassNotFoundException
+    * @throws IOException            if an I/O error occurs reading this object
+    * @throws ClassNotFoundException if the class for an object being
+    *                                read cannot be found
     */
     private void readObject(ObjectInputStream s)
             throws IOException, ClassNotFoundException
         {
-        int      cElements = s.readInt();
-        Object[] aoData    = new Object[cElements + 1];
+        Object[] aoData = readObjectArray(s);
 
         m_iFirst    = 0;
-        m_iLast     = cElements + 1;
-        m_cElements = cElements;
+        m_iLast     = aoData.length;
+        m_cElements = aoData.length - 1;
         m_aoData    = aoData;
-
-        for (int i= 0; i < cElements; ++i)
-            {
-            aoData[i] = s.readObject();
-            }
         }
 
 
@@ -813,6 +808,91 @@ public class CircularArrayList
 
 
     // ----- helpers --------------------------------------------------------
+
+    /**
+     * Read an array of objects from a DataInput stream.
+     *
+     * @param in  a ObjectInputStream stream to read from
+     *
+     * @return an array of objects
+     *
+     * @throws IOException if an I/O exception occurs
+     *
+     * @since 22.09
+     */
+    private static Object[] readObjectArray(ObjectInputStream in)
+            throws IOException, ClassNotFoundException
+        {
+        int c = in.readInt();
+
+        // JEP-290 - ensure we can allocate this array
+        ExternalizableHelper.validateLoadArray(Object[].class, c, in);
+
+        return c <= 0
+               ? new Object[0]
+               : c < ExternalizableHelper.CHUNK_THRESHOLD >> 4
+                   ? readObjectArray(in, c, true)
+                   : readLargeObjectArray(in, c);
+        }
+
+    /**
+     * Read an array of the specified number of objects from a DataInput stream.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     * @param fPad     if the returned array should be padded by one
+     *
+     * @return an array of objects
+     *
+     * @throws IOException if an I/O exception occurs
+     *
+     * @since 22.09
+     */
+    private static Object[] readObjectArray(ObjectInputStream in, int cLength, boolean fPad)
+            throws IOException, ClassNotFoundException
+        {
+        Object[] ao = new Object[cLength + (fPad ? 1 : 0)];
+        for (int i = 0; i < cLength; i++)
+            {
+            ao[i] = in.readObject();
+            }
+
+        return ao;
+        }
+
+    /**
+     * Read an array of objects with length larger than {@link ExternalizableHelper#CHUNK_THRESHOLD} {@literal >>} 4.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of objects
+     *
+     * @throws IOException if an I/O exception occurs
+     *
+     * @since 22.09
+     */
+    private static Object[] readLargeObjectArray(ObjectInputStream in, int cLength)
+            throws IOException, ClassNotFoundException
+        {
+        int      cBatchMax = ExternalizableHelper.CHUNK_SIZE >> 4;
+        int      cBatch    = cLength / cBatchMax + 1;
+        Object[] aMerged   = null;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+
+        Object[] ao;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ao      = readObjectArray(in, cAllocate, cAllocate < cBatchMax);
+            aMerged = ExternalizableHelper.mergeArray(aMerged, ao);
+            cRead  += ao.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
 
     /**
     * Calculate the effective index taking into account offsets and the
