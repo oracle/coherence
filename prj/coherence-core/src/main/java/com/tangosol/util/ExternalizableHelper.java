@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -7366,12 +7366,12 @@ public abstract class ExternalizableHelper
      * A threshold used to decide whether to perform deserialization using a chunking
      * algorithm; default is greater than 128MB.
      */
-    protected static final int CHUNK_THRESHOLD = 0x7FFFFFF;
+    public static final int CHUNK_THRESHOLD = 0x7FFFFFF;
 
     /**
      * When using the chunking algorithm each chunk is constrained to 64MB by default.
      */
-    protected static final int CHUNK_SIZE = 0x3FFFFFF;
+    public static final int CHUNK_SIZE = 0x3FFFFFF;
 
     /**
      * An array of Stats objects, indexed by the modulo of a swizzled class

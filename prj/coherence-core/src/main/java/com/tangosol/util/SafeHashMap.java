@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -40,6 +40,7 @@ import java.util.WeakHashMap;
 *
 * @author cp 1999.04.27
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class SafeHashMap<K, V>
         extends AbstractMap<K, V>
         implements Cloneable, Serializable
@@ -646,28 +647,47 @@ public class SafeHashMap<K, V>
         RESIZING = new Object();
 
         // read map stats
-        int     cBuckets = in.readInt();
-        Entry[] aeBucket = new Entry[cBuckets];
+        int  cBuckets    = in.readInt();
+        int  cCapacity   = in.readInt();
+        float flLoadFactor = in.readFloat();
+        float flGrowthRate = in.readFloat();
+        int  cEntries    = in.readInt();
 
-        m_aeBucket     = aeBucket;
-        m_cCapacity    = in.readInt();
-        m_flLoadFactor = in.readFloat();
-        m_flGrowthRate = in.readFloat();
-
-        int cEntries = in.readInt();
-        m_cEntries   = cEntries;
-
-        // read entries
-        for (int i = 0; i < cEntries; ++i)
+        if (cBuckets <= ExternalizableHelper.CHUNK_THRESHOLD)
             {
-            K      oKey    = (K) in.readObject();
-            V      oValue  = (V) in.readObject();
-            int    nHash   = (oKey == null ? 0 : oKey.hashCode());
-            int    nBucket = getBucketIndex(nHash, cBuckets);
-            Entry<K, V> entry = instantiateEntry(oKey, oValue, nHash);
+            m_cCapacity   = cCapacity;
+            m_flLoadFactor = flLoadFactor;
+            m_flGrowthRate = flGrowthRate;
+            m_cEntries    = cEntries;
 
-            entry.m_eNext     = aeBucket[nBucket];
-            aeBucket[nBucket] = entry;
+            // JEP-290 - ensure we can allocate this array
+            ExternalizableHelper.validateLoadArray(SafeHashMap.Entry[].class, cBuckets, in);
+
+            Entry[] aeBucket = m_aeBucket = new Entry[cBuckets];
+
+            // read entries
+            for (int i = 0; i < cEntries; ++i)
+                {
+                K   oKey    = (K) in.readObject();
+                V   oValue  = (V) in.readObject();
+                int nHash   = (oKey == null ? 0 : oKey.hashCode());
+                int nBucket = getBucketIndex(nHash, cBuckets);
+
+                Entry<K, V> entry = instantiateEntry(oKey, oValue, nHash);
+
+                entry.m_eNext     = aeBucket[nBucket];
+                aeBucket[nBucket] = entry;
+                }
+            }
+        else
+            {
+            // if the cBuckets exceeds the threshold, consider the
+            // deserialized map parameters are invalid, and grow
+            // the structures using defaults by calling put.
+            for (int i = 0; i < cEntries; ++i)
+                {
+                put((K) in.readObject(), (V) in.readObject());
+                }
             }
         }
 
