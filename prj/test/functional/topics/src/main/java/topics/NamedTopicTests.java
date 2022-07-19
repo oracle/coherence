@@ -10,6 +10,7 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
@@ -80,6 +81,12 @@ public class NamedTopicTests
         super(sSerializer);
 
         m_fExtend = fExtend;
+        }
+
+    @BeforeClass
+    public static void setupClass()
+        {
+        System.setProperty(LocalStorage.PROPERTY, "false");
         }
 
     @Before
