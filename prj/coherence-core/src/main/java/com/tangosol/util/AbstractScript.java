@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -13,6 +13,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import javax.json.bind.annotation.JsonbProperty;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -39,12 +40,9 @@ public class AbstractScript
     /**
      * Create a AbstractScriptBase.
      *
-     * @param language  the language the script is written. Currently, only
-     *                  {@code "js"} (for JavaScript) is supported
-     * @param name      the name of the {@link Filter} that needs to
-     *                  be evaluated
-     * @param args      the arguments to be passed to the script during
-     *                  evaluation
+     * @param language  the language the script is written
+     * @param name      the name of the script that needs to be evaluated
+     * @param args      the arguments to be passed to the script during evaluation
      */
     public AbstractScript(String language, String name, Object... args)
         {
@@ -53,6 +51,37 @@ public class AbstractScript
         m_aoArgs    = args;
         }
 
+    // ----- accessors -------------------------------------------------------
+
+    /**
+     * Return the language the script is written.
+     *
+     * @return the language the script is written
+     */
+    public String getLanguage()
+        {
+        return m_sLanguage;
+        }
+
+    /**
+     * Return the name of the script that needs to be evaluated.
+     *
+     * @return the name of the script that needs to be evaluated
+     */
+    public String getName()
+        {
+        return m_sName;
+        }
+
+    /**
+     * Return the arguments to be passed to the script during evaluation.
+     *
+     * @return the arguments to be passed to the script during evaluation
+     */
+    public Object[] getArgs()
+        {
+        return m_aoArgs;
+        }
 
     // ----- ExternalizableLite interface ------------------------------------
 
@@ -108,15 +137,18 @@ public class AbstractScript
     /**
      * The language the script is written.
      */
+    @JsonbProperty("language")
     protected String m_sLanguage;
 
     /**
      * The name of the script object to execute.
      */
+    @JsonbProperty("name")
     protected String m_sName;
 
     /**
      * The arguments to be passed to the script during evaluation.
      */
+    @JsonbProperty("args")
     protected Object[] m_aoArgs;
     }

@@ -70,4 +70,28 @@ module.exports = {
     }
   },
 
+    DummyAggregator: class DummyAggregator {
+
+    constructor(argOne, argTwo) {
+      this.min = argOne;
+      this.max =  argTwo;
+    }
+
+    accumulate(entry) {
+      return true;
+    }
+
+    combine(partialResult) {
+      return true;
+    }
+
+    getPartialResult() {
+      return JSON.stringify({min: this.min, max: this.max});
+    }
+
+    finalizeResult() {
+      return {min: this.min, max: this.max}
+    }
+  },
+
 }
