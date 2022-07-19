@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
 
@@ -158,12 +158,73 @@ public class QuorumInfo
         {
         int c = ExternalizableHelper.readInt(in);
 
-        int [] ai = new int[c];
+        // JEP-290 - ensure we can allocate this array
+        ExternalizableHelper.validateLoadArray(int[].class, c, in);
+
+        return c <= 0
+                   ? new int[0]
+                   : c < ExternalizableHelper.CHUNK_THRESHOLD >> 2
+                       ? readIntArray(in, c)
+                       : readLargeIntArray(in, c);
+        }
+
+    /**
+     * Read an array of the specified number of ints by calling
+     * {@link ExternalizableHelper#readInt(DataInput)}.
+     *
+     * @param in  a DataInput stream to read from
+     * @param c   length to read
+     *
+     * @return an array of ints
+     *
+     * @throws IOException  if an I/O exception occurs
+     * 
+     * @since 22.09
+     */
+    private static int[] readIntArray(DataInput in, int c)
+            throws IOException
+        {
+        int[] ai = new int[c];
         for (int i = 0; i < c; i++)
             {
             ai[i] = ExternalizableHelper.readInt(in);
             }
+
         return ai;
+        }
+
+    /**
+     * Read an array of ints with length larger than {@link ExternalizableHelper#CHUNK_THRESHOLD} {@literal >>} 2.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of ints
+     *
+     * @throws IOException  if an I/O exception occurs
+     * 
+     * @since 22.09
+     */
+    private static int[] readLargeIntArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int    cBatchMax = ExternalizableHelper.CHUNK_SIZE >> 2;
+        int    cBatch    = cLength / cBatchMax + 1;
+        int[]  aMerged   = null;
+        int    cRead     = 0;
+        int    cAllocate = cBatchMax;
+        int[]  ai;
+
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ai      = readIntArray(in, cAllocate);
+            aMerged = ExternalizableHelper.mergeIntArray(aMerged, ai);
+            cRead  += ai.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
         }
 
     /*
