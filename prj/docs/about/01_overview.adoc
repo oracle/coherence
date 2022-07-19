@@ -58,8 +58,8 @@ A quick-start guide to using Coherence.
 Oracle Coherence commercial edition product documentation.
 --
 [CARD]
-.JavaDocs
-[icon=library_books,link=https://coherence.community/14.1.1.0/api/java/index.html,link-type=url]
+.API Docs
+[icon=library_books,link=https://coherence.community/latest/14.1.1.0/api/java/index.html,link-type=url]
 --
 Browse the Coherence CE API Docs.
 --
