@@ -4375,8 +4375,6 @@ public abstract class AbstractNamedTopicTests
             CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
             CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
 
-            Thread.sleep(5000);
-            
             System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne heads");
             System.err.println(subscriberOne.getHeads());
             System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne tails");
@@ -4441,7 +4439,8 @@ public abstract class AbstractNamedTopicTests
              Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup));
              Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin()))
             {
-            for (int i = 0; i < 1000; i++)
+            System.err.println(">>>>> 1: Publishing " + cTotal + " messages");
+            for (int i = 0; i < cTotal; i++)
                 {
                 publisher.publish("Before-Messages-" + i).get(1, TimeUnit.MINUTES);
                 }
@@ -4473,13 +4472,17 @@ public abstract class AbstractNamedTopicTests
                 assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
                 }
 
+            System.err.println(">>>>> 2: Receiving messages");
             CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
+            futureOneBefore.thenAccept(e -> System.err.println(">>>>> 2.5: Completed futureOneBefore"));
             CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
+            futureTwoBefore.thenAccept(e -> System.err.println(">>>>> 2.5: Completed futureTwoBefore"));
 
             @SuppressWarnings("unused")
             Map<Integer, Position> mapTailOne = subscriberOne.seekToTail(subscriberOne.getChannels());
             @SuppressWarnings("unused")
             Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTail(subscriberTwo.getChannels());
+            System.err.println(">>>>> 3: Done seeking messages");
 
             // We did not seek and commit so the remaining count should not have changed,
             // If the subscribers were closed we would roll all the way back

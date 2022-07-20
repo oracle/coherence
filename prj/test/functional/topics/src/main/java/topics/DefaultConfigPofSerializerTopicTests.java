@@ -63,6 +63,7 @@ public class DefaultConfigPofSerializerTopicTests
         {
         String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         System.setProperty("coherence.localhost", sHost);
+        System.setProperty(LocalStorage.PROPERTY, "false");
         }
 
     @Before
