@@ -67,24 +67,10 @@ public class PersistenceModeTests
     @BeforeClass
     public static void _startup()
         {
-        // this test requires local storage to be enabled
-        try
-            {
-            m_fileActive   = FileHelper.createTempDir();
-            m_fileSnapshot = FileHelper.createTempDir();
-            m_fileTrash    = FileHelper.createTempDir();
-            Properties props  = System.getProperties();
+        Properties props  = System.getProperties();
 
-            props.setProperty("coherence.distributed.localstorage", "true");
-            props.setProperty("test.partition-count", "11");
-            props.setProperty("coherence.distributed.persistence.active.dir", m_fileActive.getAbsolutePath());
-            props.setProperty("coherence.distributed.persistence.snapshot.dir", m_fileSnapshot.getAbsolutePath());
-            props.setProperty("coherence.distributed.persistence.trash.dir", m_fileTrash.getAbsolutePath());
-            }
-        catch (IOException e)
-            {
-            throw Base.ensureRuntimeException(e);
-            }
+        props.setProperty("coherence.distributed.localstorage", "true");
+        props.setProperty("test.partition-count", "11");
         }
 
     /**
@@ -95,6 +81,22 @@ public class PersistenceModeTests
     @Before
     public void _initTest()
         {
+        try
+            {
+            m_fileActive   = FileHelper.createTempDir();
+            m_fileSnapshot = FileHelper.createTempDir();
+            m_fileTrash    = FileHelper.createTempDir();
+            Properties props  = System.getProperties();
+
+            props.setProperty("coherence.distributed.persistence.active.dir", m_fileActive.getAbsolutePath());
+            props.setProperty("coherence.distributed.persistence.snapshot.dir", m_fileSnapshot.getAbsolutePath());
+            props.setProperty("coherence.distributed.persistence.trash.dir", m_fileTrash.getAbsolutePath());
+            }
+        catch (IOException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+
         setupProps();
 
         startCluster();
@@ -114,6 +116,10 @@ public class PersistenceModeTests
         FileHelper.deleteDirSilent(m_fileActive);
         FileHelper.deleteDirSilent(m_fileSnapshot);
         FileHelper.deleteDirSilent(m_fileTrash);
+
+        m_fileActive = null;
+        m_fileSnapshot = null;
+        m_fileTrash = null;
 
         // don't use the out() method, as it will restart the cluster
         System.out.println(createMessageHeader() + " <<<<<<< Stopped cluster");
