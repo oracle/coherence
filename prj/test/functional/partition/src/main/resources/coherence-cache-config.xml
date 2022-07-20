@@ -332,7 +332,7 @@
           <class-name>java.util.HashMap</class-name>
         </class-scheme>
       </backing-map-scheme>
-      <autostart>false</autostart>
+      <autostart>true</autostart>
     </distributed-scheme>
 
     <distributed-scheme>

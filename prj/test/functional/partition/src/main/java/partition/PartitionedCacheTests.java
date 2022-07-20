@@ -522,7 +522,7 @@ public class PartitionedCacheTests
     @Test
     public void testNonObservableBackingMap()
         {
-        final int CACHE_SIZE = 20;
+        final int CACHE_SIZE = 200;
         NamedCache cache = getNamedCache("custom-backing-map");
         try
             {
