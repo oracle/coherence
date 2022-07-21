@@ -4375,30 +4375,12 @@ public abstract class AbstractNamedTopicTests
             CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
             CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
 
-            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne heads");
-            System.err.println(subscriberOne.getHeads());
-            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne tails");
-            System.err.println(subscriberOne.getTails());
-            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo heads");
-            System.err.println(subscriberTwo.getHeads());
-            System.err.println(">>>>> 1: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo tails");
-            System.err.println(subscriberTwo.getTails());
+            // work around for BUG 34164633 - possible race between an async receive and seek.
+            futureOneBefore.get(5, TimeUnit.MINUTES);
+            futureTwoBefore.get(5, TimeUnit.MINUTES);
 
             Map<Integer, Position> mapTailOne = subscriberOne.seekToTailAndCommit(subscriberOne.getChannels());
             Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTailAndCommit(subscriberTwo.getChannels());
-            System.err.println(">>>>> 2: shouldCountRemainingMessagesAfterSeekToTailWithCommit: mapTailOne");
-            System.err.println(mapTailOne);
-            System.err.println(">>>>> 2: shouldCountRemainingMessagesAfterSeekToTailWithCommit: mapTailTwo");
-            System.err.println(mapTailTwo);
-
-            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne heads");
-            System.err.println(subscriberOne.getHeads());
-            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberOne tails");
-            System.err.println(subscriberOne.getTails());
-            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo heads");
-            System.err.println(subscriberTwo.getHeads());
-            System.err.println(">>>>> 3: shouldCountRemainingMessagesAfterSeekToTailWithCommit: subscriberTwo tails");
-            System.err.println(subscriberTwo.getTails());
 
             // We did seek and commit so the remaining count should be zero
             assertThat(subscriberOne.getRemainingMessages(), is(0));
@@ -4413,13 +4395,9 @@ public abstract class AbstractNamedTopicTests
                 }
 
             Element<String> elementOneBefore = futureOneBefore.get(1, TimeUnit.MINUTES);
-            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementOneBefore " + elementOneBefore);
             Element<String> elementOneAfter  = futureOne.get(1, TimeUnit.MINUTES);
-            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementOneAfter " + elementOneAfter);
             Element<String> elementTwoBefore = futureTwoBefore.get(1, TimeUnit.MINUTES);
-            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementTwoBefore " + elementTwoBefore);
             Element<String> elementTwoAfter  = futureTwo.get(1, TimeUnit.MINUTES);
-            System.err.println(">>>>> 4: shouldCountRemainingMessagesAfterSeekToTailWithCommit: elementTwoAfter " + elementTwoAfter);
 
             assertThat(elementOneBefore.getValue(), startsWith("Before-"));
             assertThat(elementOneAfter.getValue(), startsWith("After-"));
@@ -4472,17 +4450,17 @@ public abstract class AbstractNamedTopicTests
                 assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
                 }
 
-            System.err.println(">>>>> 2: Receiving messages");
             CompletableFuture<Element<String>> futureOneBefore = subscriberOne.receive();
-            futureOneBefore.thenAccept(e -> System.err.println(">>>>> 2.5: Completed futureOneBefore"));
             CompletableFuture<Element<String>> futureTwoBefore = subscriberTwo.receive();
-            futureTwoBefore.thenAccept(e -> System.err.println(">>>>> 2.5: Completed futureTwoBefore"));
+
+            // work around for BUG 34164633 - possible race between an async receive and seek.
+            futureOneBefore.get(5, TimeUnit.MINUTES);
+            futureTwoBefore.get(5, TimeUnit.MINUTES);
 
             @SuppressWarnings("unused")
             Map<Integer, Position> mapTailOne = subscriberOne.seekToTail(subscriberOne.getChannels());
             @SuppressWarnings("unused")
             Map<Integer, Position> mapTailTwo = subscriberTwo.seekToTail(subscriberTwo.getChannels());
-            System.err.println(">>>>> 3: Done seeking messages");
 
             // We did not seek and commit so the remaining count should not have changed,
             // If the subscribers were closed we would roll all the way back
