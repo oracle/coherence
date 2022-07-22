@@ -168,6 +168,7 @@ public class TopicSubscriberManagementTests
 
             System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - awaiting three subscribers");
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+            Eventually.assertDeferred(() -> caches.Subscribers.keySet().size(), is(3));
 
             System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers " + caches.Subscribers.keySet());
 
@@ -259,6 +260,7 @@ public class TopicSubscriberManagementTests
             Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
+            Eventually.assertDeferred(() -> caches.Subscribers.keySet().size(), is(3));
 
             Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
             Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
