@@ -692,7 +692,7 @@
     <log4j.version>1.2.17</log4j.version>
     <log4j2.version>2.17.1</log4j2.version>
     <mvel.version>2.4.12.Final</mvel.version>
-    <netty.version>4.1.73.Final</netty.version>
+    <netty.version>4.1.78.Final</netty.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.jaeger.version>1.0.0</opentracing.jaeger.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
