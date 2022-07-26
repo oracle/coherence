@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.docker;
 
@@ -80,6 +80,7 @@ import static com.tangosol.net.cache.TypeAssertion.withTypes;
 
 import static org.hamcrest.CoreMatchers.both;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.either;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -345,7 +346,8 @@ public class DockerImageTests
                 {
                 DockerContainer container2 = app2.get(DockerContainer.class);
                 assertStarted(platform, container2);
-                assertThat(tailLogs(platform, container2), hasItem(containsString("ActualMemberSet=MemberSet(Size=2")));
+                assertThat(tailLogs(platform, container2), hasItem(either(containsString("ActualMemberSet=MemberSet(Size=2"))
+                              .or(containsString("Service StorageService joined the cluster with senior service member 1"))));
                 }
             }
         }
