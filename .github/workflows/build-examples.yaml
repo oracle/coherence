@@ -1,0 +1,79 @@
+# Copyright 2020, 2022, Oracle Corporation and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence CE GitHub Actions Examples - Build.
+# ---------------------------------------------------------------------------
+
+name: Examples - Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+    - gh-pages
+    - p4-integ*
+    - last-p4-*
+  pull_request:
+    types:
+      - opened
+      - committed
+    branches:
+    - '*'
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    - name: Print Maven & Java version
+      run: mvn -version
+
+    - name: Cache Maven packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2-
+
+      # Build and Test examples
+    - name: build-test-examples
+      timeout-minutes: 120
+      shell: bash
+      env:
+        MAVEN_USER: ${{ secrets.MavenUser }}
+        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
+      run: |
+        echo "Building and Running - Examples"
+        export DEV_ROOT=$(pwd)
+        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -Pexamples -nsu clean install
+    # Upload build artifacts for diagnosing failures
+    - name: Build Artifacts test logs
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: test-output
+        path: prj/examples/**/target/test-output/**/*
+
+    - name: Build Artifacts test reports
+      uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: test-reports
+        path: prj/examples/**/target/*-reports/**/*
