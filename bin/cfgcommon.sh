@@ -1,11 +1,9 @@
 #!/bin/bash
 
+# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 #
-#  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-#
-#  Licensed under the Universal Permissive License v 1.0 as shown at
-#  http://oss.oracle.com/licenses/upl.
-#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
 
 #
 # This script sets all environment variables necessary to build Coherence,
@@ -103,7 +101,7 @@ function setup
   _JAVA_HOME=$JAVA_HOME
   _VERSION_REQUIRED=1.8
 
-  if [ -z $JAVA_HOME ] || [ "$($JAVA_HOME/bin/java -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1.\2/; 1q')" != "$_VERSION_REQUIRED" ]; then
+  if [ -z $JAVA_HOME ] || [ "$($JAVA_HOME/bin/java -version 2>&1 | sed 's/.*version "\(.*\)\.\(.*\)\..*"/\1.\2/; 1q')" != "$_VERSION_REQUIRED" ]; then
     # Try to find the correct version
     JAVA_HOME=`eval $_JAVA_HOME_CMD`
     echo JAVA_HOME evaluated to $JAVA_HOME
@@ -114,7 +112,7 @@ function setup
       _ERROR="Set JAVA_HOME as Java version $_VERSION_REQUIRED could not be located using command: $_JAVA_HOME_CMD"
     else
       # Ensure that it has been found
-      _VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1.\2/; 1q')
+      _VERSION=$($JAVA_HOME/bin/java -version 2>&1 | sed 's/.*version "\(.*\)\.\(.*\)\..*"/\1.\2/; 1q')
 
       if [ "$_VERSION" != "$_VERSION_REQUIRED" ]; then
         _ERROR="Incorrect JDK version $_VERSION at $JAVA_HOME; $_VERSION_REQUIRED is required, please export JAVA_HOME appropriately."
