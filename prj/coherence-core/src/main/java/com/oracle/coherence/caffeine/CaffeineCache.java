@@ -56,8 +56,8 @@ import static java.util.Objects.requireNonNull;
  * amortized {@code O(1)} expiration.
  * <p>
  * This implementation does not support providing an {@link EvictionPolicy} or
- * {@link EvictionApprover}, and always uses TinyLFU policy. The maximum size is
- * set by {@link #setHighUnits(int)} and the low watermark, {@link
+ * {@link EvictionApprover}, and always uses the TinyLFU policy. The maximum
+ * size is set by {@link #setHighUnits(int)} and the low watermark, {@link
  * #setLowUnits(int)}, has no effect. Cache entries do not support {@code
  * touch()}, {@code getTouchCount()}, {@code getLastTouchMillis()}, or {@code
  * setUnits(c)}. By default, the cache is unbounded and will not be limited by
@@ -196,7 +196,7 @@ public class CaffeineCache
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public int getUnits()
         {
-        return (int) Math.min(f_eviction.weightedSize().getAsLong(), Integer.MAX_VALUE);
+        return toExternalUnits(f_eviction.weightedSize().getAsLong(), getUnitFactor());
         }
 
     // ---- ConfigurableCacheMap interface ----------------------------------
@@ -204,13 +204,13 @@ public class CaffeineCache
     @Override
     public int getHighUnits()
         {
-        return (int) Math.min(f_eviction.getMaximum(), Integer.MAX_VALUE);
+        return toExternalUnits(f_eviction.getMaximum(), getUnitFactor());
         }
 
     @Override
     public synchronized void setHighUnits(int units)
         {
-        f_eviction.setMaximum(units);
+        f_eviction.setMaximum(toInternalUnits(units, getUnitFactor()));
         }
 
     @Override
@@ -243,7 +243,19 @@ public class CaffeineCache
             throw new IllegalStateException(
                     "The unit factor cannot be set after the cache has been populated");
             }
-        this.m_nUnitFactor = nUnitFactor;
+
+        // only adjust the max units if there was no unit factor set previously
+        if (m_nUnitFactor == 1)
+            {
+            long cCurrentMaxUnits = f_eviction.getMaximum();
+            if (cCurrentMaxUnits < (Long.MAX_VALUE - Integer.MAX_VALUE))
+                {
+                long cMaxUnits = (cCurrentMaxUnits * nUnitFactor);
+                f_eviction.setMaximum((cMaxUnits < 0) ? Long.MAX_VALUE : cMaxUnits);
+                }
+            }
+
+        m_nUnitFactor = nUnitFactor;
         }
 
     @Override
@@ -264,6 +276,41 @@ public class CaffeineCache
             f_expiration.getExpiresAfter(oKey).ifPresent(duration ->
                     f_expiration.compute(oKey, (k, oValue) -> oValue, duration));
             }
+        }
+
+    /**
+    * Convert from an external 32-bit unit value to an internal 64-bit unit
+    * value using the configured units factor.
+    *
+    * @param cUnits   an external 32-bit units value
+    * @param nFactor  the unit factor
+    *
+    * @return an internal 64-bit units value
+    */
+    protected static long toInternalUnits(int cUnits, int nFactor)
+        {
+        return (cUnits <= 0) || (cUnits == Integer.MAX_VALUE)
+               ? Long.MAX_VALUE
+               : ((long) cUnits) * nFactor;
+        }
+
+    /**
+    * Convert from an internal 64-bit unit value to an external 32-bit unit
+    * value using the configured units factor.
+    *
+    * @param cUnits   an internal 64-bit units value
+    * @param nFactor  the unit factor
+    *
+    * @return an external 32-bit units value
+    */
+    protected static int toExternalUnits(long cUnits, int nFactor)
+        {
+        if (nFactor > 1)
+            {
+            cUnits = (cUnits + nFactor - 1) / nFactor;
+            }
+
+        return (cUnits > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) cUnits;
         }
 
     @Override
@@ -705,13 +752,7 @@ public class CaffeineCache
      */
     private int weigh(Object oKey, Object oValue)
         {
-        int cUnits = m_unitCalculator.calculateUnits(oKey, oValue);
-        if (cUnits < 0)
-            {
-            throw new IllegalStateException(String.format(
-                    "Negative unit (%s) for %s=%s", cUnits, oKey, oValue));
-            }
-        return (cUnits / m_nUnitFactor);
+        return m_unitCalculator.calculateUnits(oKey, oValue);
         }
 
     /**
@@ -722,8 +763,12 @@ public class CaffeineCache
      */
     private void notifyCreate(Object oKey, Object oValueNew)
         {
-        fireEvent(new CacheEvent(this, MapEvent.ENTRY_INSERTED,
-                                 oKey, null, oValueNew, false));
+        if (!f_listeners.isEmpty())
+            {
+            CacheEvent event = new CacheEvent(this, MapEvent.ENTRY_INSERTED,
+                                              oKey, null, oValueNew, false);
+            f_listeners.fireEvent(event, false);
+            }
         }
 
     /**
@@ -735,8 +780,12 @@ public class CaffeineCache
      */
     private void notifyUpdate(Object oKey, Object oValueOld, Object oValueNew)
         {
-        fireEvent(new CacheEvent(this, MapEvent.ENTRY_UPDATED,
-                                 oKey, oValueOld, oValueNew, false));
+        if (!f_listeners.isEmpty())
+            {
+            CacheEvent event = new CacheEvent(this, MapEvent.ENTRY_UPDATED,
+                                              oKey, oValueOld, oValueNew, false);
+            f_listeners.fireEvent(event, false);
+            }
         }
 
     /**
@@ -748,8 +797,12 @@ public class CaffeineCache
      */
     private void notifyDelete(Object oKey, Object oValueOld)
         {
-        fireEvent(new CacheEvent(this, MapEvent.ENTRY_DELETED,
-                                 oKey, oValueOld, null, false));
+        if (!f_listeners.isEmpty())
+            {
+            CacheEvent event = new CacheEvent(this, MapEvent.ENTRY_DELETED,
+                                              oKey, oValueOld, null, false);
+            f_listeners.fireEvent(event, false);
+            }
         }
 
     /**
@@ -762,21 +815,12 @@ public class CaffeineCache
      */
     private void notifyEvicted(Object oKey, Object oValueOld, RemovalCause removalCause)
         {
-        boolean fExpired = removalCause == RemovalCause.EXPIRED;
-        fireEvent(new CacheEvent(this, MapEvent.ENTRY_DELETED,
-                                 oKey, oValueOld, null, true,
-                                 TransformationState.TRANSFORMABLE, false, fExpired));
-        }
-
-    /**
-     * Fire the specified cache event.
-     *
-     * @param event the cache event to fire
-     */
-    private void fireEvent(CacheEvent event)
-        {
         if (!f_listeners.isEmpty())
             {
+            boolean fExpired = removalCause == RemovalCause.EXPIRED;
+            CacheEvent event = new CacheEvent(this, MapEvent.ENTRY_DELETED, oKey, oValueOld,
+                                              null, true, TransformationState.TRANSFORMABLE,
+                                              false, fExpired);
             f_listeners.fireEvent(event, false);
             }
         }
@@ -1247,7 +1291,7 @@ public class CaffeineCache
         @Override
         public int getUnits()
             {
-            return f_nWeight * m_nUnitFactor;
+            return f_nWeight;
             }
 
         @Override
