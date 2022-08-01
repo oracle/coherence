@@ -83,6 +83,7 @@
                 <xsd:element ref="persistence-environments" minOccurs="0" />
                 <xsd:element ref="snapshot-archivers" minOccurs="0" />
                 <xsd:element ref="address-providers" minOccurs="0" />
+                <xsd:element ref="global-socket-provider" minOccurs="0"/>
                 <xsd:element ref="socket-providers" minOccurs="0" />
                 <xsd:element ref="cluster-quorum-policy" minOccurs="0" />
                 <xsd:element ref="journaling-config" minOccurs="0" />
@@ -2978,6 +2979,22 @@
                 </xsd:element>
             </xsd:sequence>
         </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="global-socket-provider" type="socket-provider-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The global-socket-provider element contains the configuration info for
+                a socket and channel factory that will be applied to all sockets and
+                channels that do not specify a specific provider.
+
+                In addition to defining a socket-provider, it is also acceptable
+                and in fact preferred to provide the name of a provider from the
+                socket-providers configuration within the operational configuration.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="journaling-config">

@@ -1456,7 +1456,7 @@ public class ExtensibleConfigurableCacheFactory
          */
         public static Dependencies newInstance(String sPath, ClassLoader contextClassLoader)
             {
-            XmlElement xmlConfig = XmlHelper.loadFileOrResource(sPath,
+            XmlElement xmlConfig = XmlHelper.loadFileOrResourceOrDefault(sPath,
                 "Cache Configuration from:" + sPath, contextClassLoader);
             return newInstance(xmlConfig, contextClassLoader, null);
             }

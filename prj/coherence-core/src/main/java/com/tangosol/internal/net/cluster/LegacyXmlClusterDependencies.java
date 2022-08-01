@@ -154,6 +154,13 @@ public class LegacyXmlClusterDependencies
         ctxSocketProviders.processDocument(xmlSocketProviders);
         ctxSocketProviders.close();
 
+        // process the <global-socket-provider> definition. This must be after processing the <socket-providers>
+        // definitions becuase the global provider may be a reference to an exiting provider.
+        XmlElement xmlGlobalSocketProvider = xml.getSafeElement("global-socket-provider");
+        DefaultProcessingContext ctxGlobalSocketProvider = new DefaultProcessingContext(ctxClusterConfig, xmlGlobalSocketProvider);
+        ctxGlobalSocketProvider.processDocument(xmlGlobalSocketProvider);
+        ctxGlobalSocketProvider.close();
+
         // ------------------------------------------------------------------------
         // SUSPEND: Use CODI to parse the operational configuration
         // ------------------------------------------------------------------------

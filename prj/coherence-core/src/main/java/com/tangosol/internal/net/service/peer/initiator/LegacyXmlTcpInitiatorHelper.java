@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.peer.initiator;
 
@@ -14,6 +14,7 @@ import com.tangosol.internal.net.LegacyXmlConfigHelper;
 import com.tangosol.net.AddressProviderFactory;
 import com.tangosol.net.OperationalContext;
 
+import com.tangosol.net.SocketProviderFactory;
 import com.tangosol.run.xml.XmlElement;
 
 /**
@@ -47,8 +48,8 @@ public class LegacyXmlTcpInitiatorHelper
         XmlElement xmlCat = xml.getSafeElement("tcp-initiator");
 
         // <socket-provider/>
-        deps.setSocketProviderBuilder(new SocketProviderBuilder(ctx.getSocketProviderFactory().getSocketProvider(
-                xmlCat.getSafeElement("socket-provider"))));
+        deps.setSocketProviderBuilder(ctx.getSocketProviderFactory()
+                .getSocketProviderBuilder(xmlCat.getElement("socket-provider")));
 
         // <local-address>
         XmlElement xmlSub = xmlCat.getSafeElement("local-address");

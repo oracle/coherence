@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.peer.initiator;
 
@@ -144,7 +144,7 @@ public class DefaultTcpInitiatorDependencies
                 {
                 options.setOption(SocketOptions.SO_KEEPALIVE, Boolean.TRUE);
                 options.setOption(SocketOptions.TCP_NODELAY, Boolean.TRUE);
-                options.setOption(SocketOptions.SO_LINGER, Integer.valueOf(0));
+                options.setOption(SocketOptions.SO_LINGER, 0);
                 }
             catch (SocketException e)
                 {
@@ -258,7 +258,7 @@ public class DefaultTcpInitiatorDependencies
     /**
      * The SocketProviderBuilder.
      */
-    private SocketProviderBuilder m_builderSocketProvider = new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER);
+    private SocketProviderBuilder m_builderSocketProvider = new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER, true);
 
     /**
      * Whether the remote AddressProvider is for connections to a NameService.

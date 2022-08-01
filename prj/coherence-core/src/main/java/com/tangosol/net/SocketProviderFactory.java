@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -19,7 +19,15 @@ import com.oracle.coherence.common.net.TcpSocketProvider;
 
 import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
+import com.tangosol.config.ConfigurationException;
+
+import com.tangosol.config.xml.ProcessingContext;
+
 import com.tangosol.internal.net.LegacyXmlSocketProviderFactoryDependencies;
+
+import com.tangosol.internal.net.cluster.DefaultClusterDependencies;
+
 import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
 
 import com.tangosol.run.xml.XmlElement;
@@ -60,6 +68,7 @@ public class SocketProviderFactory
                              ? new DefaultDependencies()
                              : dependencies;
          m_Dependencies.setSocketProviderFactory(this);
+         f_defaultSocketProviderBuilder = new SocketProviderBuilder(null, m_Dependencies, true);
          }
 
     /**
@@ -73,6 +82,16 @@ public class SocketProviderFactory
         }
 
     /**
+     * Return the default {@link SocketProviderBuilder}.
+     *
+     * @return the default {@link SocketProviderBuilder}
+     */
+    public SocketProviderBuilder getDefaultSocketProviderBuilder()
+        {
+        return f_defaultSocketProviderBuilder;
+        }
+
+    /**
      * Return a Socket provider. Only there for Proxy till they move to use
      * MultiplexedSocketProvider
      *
@@ -81,6 +100,7 @@ public class SocketProviderFactory
      * @return the provider
      */
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public SocketProvider getLegacySocketProvider(XmlElement xml)
         {
         String sId = LegacyXmlSocketProviderFactoryDependencies.getProviderId(xml);
@@ -99,6 +119,53 @@ public class SocketProviderFactory
         }
 
     /**
+     * Return a {@link SocketProviderBuilder} configured from the specified xml.
+     *
+     * @param xml  provider definition, or null for the default provider
+     *
+     * @return the {@link SocketProviderBuilder}
+     */
+    @Deprecated
+    public SocketProviderBuilder getSocketProviderBuilder(XmlElement xml)
+        {
+        return getSocketProviderBuilder(xml, true);
+        }
+
+    /**
+     * Return a {@link SocketProviderBuilder} configured from the specified xml.
+     *
+     * @param xml            provider definition, or null for the default provider
+     * @param fCanUseGlobal  {@code true} to allow use of a global provider
+     *
+     * @return the {@link SocketProviderBuilder}
+     */
+    @Deprecated
+    public SocketProviderBuilder getSocketProviderBuilder(XmlElement xml, boolean fCanUseGlobal)
+        {
+        String sId = LegacyXmlSocketProviderFactoryDependencies.getProviderId(xml);
+        if (sId == null)
+            {
+            return new SocketProviderBuilder(DEFAULT_SOCKET_PROVIDER, fCanUseGlobal);
+            }
+
+        SocketProvider provider;
+
+        if (sId.equals(UNNAMED_PROVIDER_ID))
+            {
+            LegacyXmlSocketProviderFactoryDependencies depsUnnamed =
+                        new LegacyXmlSocketProviderFactoryDependencies(sId, xml);
+            depsUnnamed.setSocketProviderFactory(this);
+            provider = ensureSocketProvider(sId, depsUnnamed, 0);
+            }
+        else
+            {
+            provider = ensureSocketProvider(sId, getDependencies(), 0);
+            }
+
+        return new SocketProviderBuilder(provider, false);
+        }
+
+    /**
      * Return a Socket provider
      *
      * @param xml  provider definition, or null for the default provider
@@ -111,6 +178,10 @@ public class SocketProviderFactory
         String sId = LegacyXmlSocketProviderFactoryDependencies.getProviderId(xml);
         if (sId == null)
             {
+            if (s_globalSocketProviderBuilder != null)
+                {
+                return s_globalSocketProviderBuilder.realize(null, null, null);
+                }
             return DEFAULT_SOCKET_PROVIDER;
             }
         else if (sId.equals(UNNAMED_PROVIDER_ID))
@@ -138,19 +209,20 @@ public class SocketProviderFactory
     /**
      * Return a Socket provider
      *
-     * @param sId  provider name defined in &lt;socket-providers&gt;
-     * @param deps anonymous {@link SocketProviderFactory.Dependencies}
-     * @param nSubport  Subport for Demultiplexed socket provider.
+     * @param sId       provider name defined in &lt;socket-providers&gt;
+     * @param deps      anonymous {@link SocketProviderFactory.Dependencies}
+     * @param nSubport  Sub-port for De-multiplexed socket provider.
      *                  If it is 0, then it implies Multiplexed socket provider.
      *
      * @return the provider
      */
+    @SuppressWarnings("unused")
     public SocketProvider getSocketProvider(String sId, Dependencies deps, int nSubport)
         {
             if (sId == null)
-            {
+                {
                 return DEFAULT_SOCKET_PROVIDER;
-            }
+                }
             return ensureSocketProvider(sId, deps , 0);
         }
 
@@ -164,6 +236,7 @@ public class SocketProviderFactory
      * @return the provider
      */
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public SocketProvider getDemultiplexedSocketProvider(XmlElement xml, int nSubport)
         {
         String sId = LegacyXmlSocketProviderFactoryDependencies.getProviderId(xml);
@@ -184,15 +257,26 @@ public class SocketProviderFactory
     /**
      * Return a Demultiplexed Socket provider
      *
-     * @param sId       provider definition identifier or {@link #UNNAMED_PROVIDER_ID} for inlined, anonymous socketprovider
-     * @param deps      inlined socket provider dependencies, must be non-null if <code>sId</code> is set to {@link #UNNAMED_PROVIDER_ID}
-     * @param nSubport  subport for demultiplexed socket provider.
+     * @param sId            provider definition identifier or {@link #UNNAMED_PROVIDER_ID} for inlined,
+     *                       anonymous socket provider
+     * @param deps           inlined socket provider dependencies, must be non-null if {@code sId} is
+     *                       set to {@link #UNNAMED_PROVIDER_ID}
+     * @param nSubport       subport for demultiplexed socket provider
+     * @param fCanUseGlobal  {@code true} if the global socket provider can be used
      *
      * @return a {@link DemultiplexedSocketProvider} based on method parameters.
      */
-    public SocketProvider getDemultiplexedSocketProvider(String sId, SocketProviderFactory.Dependencies deps, int nSubport)
+    public SocketProvider getDemultiplexedSocketProvider(String sId, SocketProviderFactory.Dependencies deps,
+            int nSubport, boolean fCanUseGlobal)
         {
-        return sId == null ? new DemultiplexedSocketProvider(TcpSocketProvider.MULTIPLEXED, nSubport) : ensureSocketProvider(sId, deps, nSubport);
+        if (fCanUseGlobal && s_globalSocketProviderBuilder != null)
+            {
+            return s_globalSocketProviderBuilder.getDemultiplexedSocketProvider(nSubport);
+            }
+
+        return sId == null
+                ? new DemultiplexedSocketProvider(TcpSocketProvider.MULTIPLEXED, nSubport)
+                : ensureSocketProvider(sId, deps, nSubport);
         }
 
     /**
@@ -205,7 +289,8 @@ public class SocketProviderFactory
      */
     public SocketProvider getDemultiplexedSocketProvider(SocketProviderBuilder builder, int nSubport)
         {
-        return getDemultiplexedSocketProvider(builder.getId(), builder.getDependencies(), nSubport);
+        return getDemultiplexedSocketProvider(builder.getId(), builder.getDependencies(),
+                nSubport, builder.canUseGlobal());
         }
 
     /**
@@ -218,6 +303,7 @@ public class SocketProviderFactory
      * @return the provider
      */
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public DatagramSocketProvider getDatagramSocketProvider(XmlElement xml, int nSubport)
         {
         String sId = LegacyXmlSocketProviderFactoryDependencies.getProviderId(xml);
@@ -238,14 +324,23 @@ public class SocketProviderFactory
     /**
      * Return an instance of the specified DatagramSocketProvider, creating it if necessary.
      *
-     * @param sId       provider definition identifier or {@link #UNNAMED_PROVIDER_ID} for inlined, anonymous socketprovider
-     * @param deps      inlined socket provider dependencies, must be non-null if <code>sId</code> is set to {@link #UNNAMED_PROVIDER_ID}
-     * @param nSubport  subport for {@link DatagramSocketProvider}.
+     * @param sId            provider definition identifier or {@link #UNNAMED_PROVIDER_ID} for inlined,
+     *                       anonymous socket provider
+     * @param deps           inlined socket provider dependencies, must be non-null if {@code sId}
+     *                       is set to {@link #UNNAMED_PROVIDER_ID}
+     * @param nSubport       subport for {@link DatagramSocketProvider}.
+     * @param fCanUseGlobal  {@code true} if the global socket provider can be used
      *
      * @return a {@link DatagramSocketProvider} configured via method parameters
      */
-    public DatagramSocketProvider getDatagramSocketProvider(String sId, SocketProviderFactory.Dependencies deps, int nSubport)
+    public DatagramSocketProvider getDatagramSocketProvider(String sId, SocketProviderFactory.Dependencies deps,
+            int nSubport, boolean fCanUseGlobal)
         {
+        if (fCanUseGlobal && s_globalSocketProviderBuilder != null)
+            {
+            sId  = s_globalSocketProviderBuilder.getId();
+            deps = s_globalSocketProviderBuilder.getDependencies();
+            }
         return sId == null ? DEFAULT_DATAGRAM_SOCKET_PROVIDER : ensureDatagramSocketProvider(sId, deps, nSubport);
         }
 
@@ -257,9 +352,10 @@ public class SocketProviderFactory
      *
      * @return a {@link DatagramSocketProvider} configured via method parameters
      */
+    @SuppressWarnings("unused")
     public DatagramSocketProvider getDefaultDatagramSocketProvider(SocketProviderBuilder builder, int nSubport)
         {
-        return getDatagramSocketProvider(builder.getId(), builder.getDependencies(), nSubport);
+        return getDatagramSocketProvider(builder.getId(), builder.getDependencies(), nSubport, builder.canUseGlobal());
         }
 
     /**
@@ -345,10 +441,75 @@ public class SocketProviderFactory
         return null;
         }
 
+    /**
+     * Returns the global {@link SocketProviderBuilder} or {@code null}
+     * if no global provider has been set.
+     *
+     * @return the global {@link SocketProviderBuilder} or {@code null}
+     *         if no global provider has been set
+     */
+    public static SocketProviderBuilder getGlobalSocketProviderBuilder()
+        {
+        return s_globalSocketProviderBuilder;
+        }
+
+    /**
+     * Set the global {@link SocketProviderBuilder}.
+     *
+     * @param builder  the global {@link SocketProviderBuilder}
+     */
+    public static void setGlobalSocketProviderBuilder(SocketProviderBuilder builder)
+        {
+        if (builder != null && builder.canUseGlobal())
+            {
+            throw new IllegalArgumentException("The global socket provider builder cannot be set to also use the global provider");
+            }
+        s_globalSocketProviderBuilder = builder;
+        }
+
+    /**
+     * Set the global {@link SocketProviderBuilder}.
+     *
+     * @param builder  the global {@link SocketProviderBuilder}
+     */
+    public static void setGlobalSocketProvider(SocketProviderBuilder builder)
+        {
+        SocketProviderFactory.setGlobalSocketProviderBuilder(builder);
+        }
+
     // ----- Helper methods ---------------------------------------------
 
     /**
-     * Return an SSLSettings initilize via {@link SSLSocketProvider.Dependencies}
+     * Return the cluster's {@link SocketProviderFactory}.
+     * @param ctx  Cluster operational context
+     * @param xml  socket-provider xml fragment being processed.
+     * @return the cluster's {@link SocketProviderFactory}
+     */
+    public static SocketProviderFactory getSocketProviderFactory(ProcessingContext ctx, XmlElement xml)
+        {
+        // grab the operational context from which we can look up the socket provider factory
+        OperationalContext ctxOperational = ctx.getCookie(OperationalContext.class);
+
+        if (ctxOperational == null)
+            {
+            DefaultClusterDependencies deps = ctx.getCookie(DefaultClusterDependencies.class);
+            if (deps == null)
+                {
+                throw new ConfigurationException("Attempted to resolve the OperationalContext in [" + xml
+                        + "] but it was not defined", "The registered ElementHandler for the <"
+                        + xml.getName()
+                        + "> element is not operating in an OperationalContext");
+                }
+            return deps.getSocketProviderFactory();
+            }
+        else
+            {
+            return ctxOperational.getSocketProviderFactory();
+            }
+        }
+
+    /**
+     * Return an SSLSettings initialize via {@link SSLSocketProvider.Dependencies}
      *
      * @param depsSSL SSL Dependencies info
      *
@@ -387,7 +548,7 @@ public class SocketProviderFactory
                                     : sId + ":" + nSubport;
         if (!sId.equals(UNNAMED_PROVIDER_ID))
             {
-            provider = (SocketProvider) m_mapSocketProvider.get(sKey);
+            provider = m_mapSocketProvider.get(sKey);
             }
         if (provider == null)
             {
@@ -448,7 +609,7 @@ public class SocketProviderFactory
         }
 
     /**
-     * Create DatatgramSocketProvider
+     * Create a {@link DatagramSocketProvider}
      *
      * @param sId           DatagramSocketProviderId
      *
@@ -468,7 +629,7 @@ public class SocketProviderFactory
                                               : sId + ":" + nSubport;
         if (!sId.equals(UNNAMED_PROVIDER_ID))
             {
-            provider = (DatagramSocketProvider) m_mapDatagramSocketProvider.get(sKey);
+            provider = m_mapDatagramSocketProvider.get(sKey);
             }
         if (provider == null)
             {
@@ -509,7 +670,7 @@ public class SocketProviderFactory
                         public MulticastSocket openMulticastSocket()
                                 throws IOException
                             {
-                            // We don't have a way to secure this so we can't provide MulticastSockets
+                            // We don't have a way to secure this, so we can't provide MulticastSockets
                             throw new IOException("MulticastSocket is not supported with SSL");
                             }
 
@@ -569,7 +730,7 @@ public class SocketProviderFactory
                 }
 
             final String m_sName;
-            };
+            }
 
         /**
          * Get the provider type for the given socket provider id
@@ -618,7 +779,7 @@ public class SocketProviderFactory
      * DefaultDependencies is a basic implementation of the Dependencies
      * interface.
      * <p>
-     * Additionally this class serves as a source of default dependency values.
+     * Additionally, this class serves as a source of default dependency values.
      */
     public static class DefaultDependencies
         implements Dependencies
@@ -628,7 +789,7 @@ public class SocketProviderFactory
          */
         public DefaultDependencies()
             {
-            Map mapProvider = m_mapProvider;
+            Map<String, ProviderType> mapProvider = m_mapProvider;
             mapProvider.put(ProviderType.SYSTEM.getName(), ProviderType.SYSTEM);
             mapProvider.put(ProviderType.TCP.getName(), ProviderType.TCP);
             mapProvider.put(ProviderType.SSL.getName(), ProviderType.SSL);
@@ -642,7 +803,7 @@ public class SocketProviderFactory
         @Override
         public TcpDatagramSocketProvider.Dependencies getTcpDatagramSocketDependencies(String sId)
             {
-            return (TcpDatagramSocketProvider.Dependencies) m_mapTCPDatagramDependencies.get(sId);
+            return m_mapTCPDatagramDependencies.get(sId);
             }
 
         /**
@@ -651,10 +812,10 @@ public class SocketProviderFactory
         @Override
         synchronized public SSLSocketProvider.Dependencies getSSLDependencies(String sId)
             {
-            SSLSocketProvider.Dependencies deps = (SSLSocketProvider.Dependencies) m_mapSSLDependencies.get(sId);
+            SSLSocketProvider.Dependencies deps = m_mapSSLDependencies.get(sId);
             if (deps == null)
                 {
-                SSLSocketProviderDependenciesBuilder bldr = (SSLSocketProviderDependenciesBuilder) m_mapSSLDependenciesBuilder.get(sId);
+                SSLSocketProviderDependenciesBuilder bldr = m_mapSSLDependenciesBuilder.get(sId);
                 if (bldr != null)
                     {
                     deps = bldr.realize();
@@ -671,7 +832,7 @@ public class SocketProviderFactory
         @Override
         public ProviderType getProviderType(String sId)
             {
-            return (ProviderType) m_mapProvider.get(sId);
+            return m_mapProvider.get(sId);
             }
 
         /**
@@ -735,7 +896,7 @@ public class SocketProviderFactory
             m_mapSSLDependenciesBuilder.put(sId, bldr);
             }
 
-        public Map getSSLDependenciesBuilderMap()
+        public Map<String, SSLSocketProviderDependenciesBuilder> getSSLDependenciesBuilderMap()
             {
             return Collections.unmodifiableMap(m_mapSSLDependenciesBuilder);
             }
@@ -743,25 +904,25 @@ public class SocketProviderFactory
         // ----- data members ---------------------------------------------------
 
         /**
-         * A map of SSL provider dependencies, key'd by id.
+         * A map of SSL provider dependencies, keyed by id.
          */
-        protected Map m_mapSSLDependencies = new SafeHashMap();
+        protected Map<String, SSLSocketProvider.Dependencies> m_mapSSLDependencies = new SafeHashMap<>();
 
         /**
-         * A map of SSL provider dependencies builder, key'd by id.
+         * A map of SSL provider dependencies builder, keyed by id.
          * Builder is removed from this map when realized SSLDependencies is placed in {@link #m_mapSSLDependencies}
          */
-        protected Map m_mapSSLDependenciesBuilder = new SafeHashMap();
+        protected Map<String, SSLSocketProviderDependenciesBuilder> m_mapSSLDependenciesBuilder = new SafeHashMap<>();
 
         /**
-         * A map of TCP Datagram provider dependencies, key'd by id.
+         * A map of TCP Datagram provider dependencies, keyed by id.
          */
-        protected Map m_mapTCPDatagramDependencies = new SafeHashMap();
+        protected Map<String, TcpDatagramSocketProvider.Dependencies> m_mapTCPDatagramDependencies = new SafeHashMap<>();
 
         /**
-         * A map of provider types, key'd by id.
+         * A map of provider types, keyed by id.
          */
-        protected Map m_mapProvider = new SafeHashMap();
+        protected Map<String, ProviderType> m_mapProvider = new SafeHashMap<>();
 
         /**
          * SocketProviderFactory referencing this Dependency object.
@@ -772,19 +933,24 @@ public class SocketProviderFactory
     // ----- data members ---------------------------------------------------
 
     /**
-    * A map of instantiated socket providers, key'd by id.
+    * A map of instantiated socket providers, keyed by id.
     */
-    protected Map m_mapSocketProvider = new SafeHashMap();
+    protected Map<String, SocketProvider> m_mapSocketProvider = new SafeHashMap<>();
 
     /**
-     * A map of instantiated datagram socket providers, key'd by id.
+     * A map of instantiated datagram socket providers, keyed by id.
      */
-     protected Map m_mapDatagramSocketProvider = new SafeHashMap();
+     protected Map<String, DatagramSocketProvider> m_mapDatagramSocketProvider = new SafeHashMap<>();
 
     /**
      * Dependencies
      */
     protected Dependencies m_Dependencies;
+
+    /**
+     * A default {@link SocketProviderBuilder}.
+     */
+    private final SocketProviderBuilder f_defaultSocketProviderBuilder;
 
     // ----- constants ------------------------------------------------------
 
@@ -807,4 +973,14 @@ public class SocketProviderFactory
      * Default id for unnamed socket and datagram socket providers
      */
     public static final String UNNAMED_PROVIDER_ID = "";
+
+    /**
+     * The global socket provider builder.
+     */
+    private static SocketProviderBuilder s_globalSocketProviderBuilder;
+
+    /**
+     * The name of the system property used to set the global socket provider id.
+     */
+    public static final String PROP_GLOBAL_PROVIDER = "coherence.global.socketprovider";
     }

@@ -51,7 +51,7 @@ It will be loaded automatically when CDI integration is used.
       <acceptor-config>
         <http-acceptor>
           <class-name>com.tangosol.coherence.http.JavaHttpServer</class-name>
-          <socket-provider system-property="coherence.health.http.provider"/>
+          <socket-provider system-property="coherence.health.http.provider">tcp</socket-provider>
           <local-address>
             <address system-property="coherence.health.http.address"/>
             <port    system-property="coherence.health.http.port">0</port>
@@ -62,7 +62,6 @@ It will be loaded automatically when CDI integration is used.
               <class-name>com.tangosol.internal.health.HealthHttpHandler</class-name>
             </instance>
           </resource-config>
-          <auth-method system-property="coherence.health.http.auth"/>
         </http-acceptor>
       </acceptor-config>
       <autostart>true</autostart>

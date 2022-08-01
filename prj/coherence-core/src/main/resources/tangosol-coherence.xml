@@ -4,11 +4,11 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
-<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
-            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
-            xml-override="/tangosol-coherence-override-{mode}.xml">
+  -->
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+           xml-override="/tangosol-coherence-override-{mode}.xml">
 
 <!--
 Note: This XML is set up for a development mode; search for "Note:"
@@ -655,7 +655,7 @@ to find specific notes on changes suggested for production use.
 
       <!-- Reserved service id=12 -->
 
-      <service id="13">
+     <service id="13">
         <service-type>PagedTopic</service-type>
         <service-component>PartitionedService.PartitionedCache.PagedTopic</service-component>
         <use-filters>
@@ -849,6 +849,8 @@ to find specific notes on changes suggested for production use.
         <trash-directory    system-property="coherence.distributed.persistence.trash.dir"></trash-directory>
       </persistence-environment>
     </persistence-environments>
+
+    <global-socket-provider system-property="coherence.global.socketprovider" />
 
     <socket-providers>
       <!--

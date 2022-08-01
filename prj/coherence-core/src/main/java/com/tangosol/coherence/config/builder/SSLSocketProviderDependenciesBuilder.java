@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
@@ -60,8 +60,8 @@ import javax.net.ssl.TrustManager;
 
 /**
  * {@link SSLSocketProviderDependenciesBuilder} enables lazy instantiation of SSL SocketProvider.
- *
- * Builder includes methods that allows one to specify whether to get a datagram or demultiplexed
+ * <p>
+ * This builder includes methods that allows one to specify whether to get a datagram or demultiplexed
  * {@link SocketProvider} and what subport to use for the socketprovider.
  *
  * @author jf  2015.11.11
@@ -82,7 +82,7 @@ public class SSLSocketProviderDependenciesBuilder
     public SSLSocketProviderDependenciesBuilder(SSLSocketProviderDefaultDependencies deps)
         {
         m_deps                       = deps;
-        m_bldrDelegateSocketProvider = new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER);
+        m_bldrDelegateSocketProvider = new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER, false);
         m_sNameProtocol              = SSLSocketProviderDefaultDependencies.DEFAULT_SSL_PROTOCOL;
         }
 
@@ -314,8 +314,8 @@ public class SSLSocketProviderDependenciesBuilder
 
     /**
      * Realize a SSLSocketProviderDefaultDependencies based on configured/defaulted values for config element ssl.
-     *
-     * Note: unlike typical builders, this is realize once since sensitive password data is nulled after realizing.
+     * <p>
+     * Note: unlike typical builders, this is realized once, since sensitive password data is nullified after realizing.
      *
      * @return {@link SSLSocketProviderDefaultDependencies}
      */

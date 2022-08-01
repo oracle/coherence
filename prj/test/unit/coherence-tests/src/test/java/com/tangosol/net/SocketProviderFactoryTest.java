@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -11,8 +11,11 @@ import com.oracle.coherence.common.net.SdpSocketProvider;
 import com.oracle.coherence.common.net.SocketProvider;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.TcpSocketProvider;
+
 import com.oracle.coherence.common.internal.net.DemultiplexedSocketProvider;
 import com.oracle.coherence.common.internal.net.MultiplexedSocketProvider;
+
+import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -20,7 +23,13 @@ import com.tangosol.run.xml.XmlHelper;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -33,172 +42,201 @@ public class SocketProviderFactoryTest
     @Before
     public void init()
         {
-        FACTORY = new SocketProviderFactory();
+        m_factory = new SocketProviderFactory();
+        SocketProviderFactory.setGlobalSocketProvider(null);
         }
 
     @Test
     public void testDefaultProvider()
         {
-        assertEquals(FACTORY.getSocketProvider((XmlElement)null),
-                SocketProviderFactory.DEFAULT_SOCKET_PROVIDER);
+        assertThat(m_factory.getSocketProvider((XmlElement)null),
+                   is(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER));
 
         XmlElement xml = XmlHelper.loadXml("<socket-provider/>");
-        assertEquals(FACTORY.getSocketProvider(xml),
-                SocketProviderFactory.DEFAULT_SOCKET_PROVIDER);
+        assertThat(m_factory.getSocketProvider(xml),
+                   is(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER));
+        }
+
+    @Test
+    public void testDefaultProviderWithGlobalProvider()
+        {
+        SocketProviderBuilder bldrGlobal     = mock(SocketProviderBuilder.class);
+        SocketProvider        providerGlobal = mock(SocketProvider.class);
+
+        when(bldrGlobal.realize(any(), any(), any())).thenReturn(providerGlobal);
+
+        SocketProviderFactory.setGlobalSocketProviderBuilder(bldrGlobal);
+
+        XmlElement xml = XmlHelper.loadXml("<socket-provider/>");
+        assertThat(m_factory.getSocketProvider(xml),
+                   is(providerGlobal));
         }
 
     @Test
     public void testSSLProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl/></socket-provider>");
-        SocketProvider provider = FACTORY.getSocketProvider(xml);
-        assertTrue(provider instanceof SSLSocketProvider);
+        SocketProvider provider = m_factory.getSocketProvider(xml);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
         SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
-        assertTrue(delegate instanceof MultiplexedSocketProvider);
-        assertTrue(((MultiplexedSocketProvider) delegate).getDependencies().getDelegateProvider() instanceof TcpSocketProvider);
+        assertThat(delegate, is(instanceOf(MultiplexedSocketProvider.class)));
+        assertThat(((MultiplexedSocketProvider) delegate).getDependencies().getDelegateProvider(), is(instanceOf(TcpSocketProvider.class)));
+        }
+
+    @Test
+    public void testSSLProviderWithGlobalProvider()
+        {
+        SocketProviderFactory.setGlobalSocketProviderBuilder(mock(SocketProviderBuilder.class));
+        
+        XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl/></socket-provider>");
+        SocketProvider provider = m_factory.getSocketProvider(xml);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
+        SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
+        assertThat(delegate, is(instanceOf(MultiplexedSocketProvider.class)));
+        assertThat(((MultiplexedSocketProvider) delegate).getDependencies().getDelegateProvider(), is(instanceOf(TcpSocketProvider.class)));
         }
 
     @Test
     public void testSystemProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><system/></socket-provider>");
-        SocketProvider provider = FACTORY.getSocketProvider(xml);
-        assertTrue(provider instanceof MultiplexedSocketProvider);
-        assertTrue(((MultiplexedSocketProvider) provider).getDependencies().getDelegateProvider() instanceof TcpSocketProvider);
+        SocketProvider provider = m_factory.getSocketProvider(xml);
+        assertThat(provider, is(instanceOf(MultiplexedSocketProvider.class)));
+        assertThat(((MultiplexedSocketProvider) provider).getDependencies().getDelegateProvider(), is(instanceOf(TcpSocketProvider.class)));
         }
 
     @Test
     public void testTcpProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><tcp/></socket-provider>");
-        SocketProvider provider = FACTORY.getSocketProvider(xml);
-        assertTrue(provider instanceof MultiplexedSocketProvider);
-        assertTrue(((MultiplexedSocketProvider) provider).getDependencies().getDelegateProvider() instanceof TcpSocketProvider);
+        SocketProvider provider = m_factory.getSocketProvider(xml);
+        assertThat(provider, is(instanceOf(MultiplexedSocketProvider.class)));
+        assertThat(((MultiplexedSocketProvider) provider).getDependencies().getDelegateProvider(), is(instanceOf(TcpSocketProvider.class)));
         }
 
     @Test
     public void testSDPProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><sdp/></socket-provider>");
-        SocketProvider provider = FACTORY.getSocketProvider(xml);
-        assertTrue(provider instanceof MultiplexedSocketProvider);
-        assertTrue(((MultiplexedSocketProvider) provider).getDependencies().getDelegateProvider() instanceof SdpSocketProvider);
+        SocketProvider provider = m_factory.getSocketProvider(xml);
+        assertThat(provider, is(instanceOf(MultiplexedSocketProvider.class)));
+        assertThat(((MultiplexedSocketProvider) provider).getDependencies().getDelegateProvider(), is(instanceOf(SdpSocketProvider.class)));
         }
 
     @Test
     public void testSdpsProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl><socket-provider>sdp</socket-provider></ssl></socket-provider>");
-        SocketProvider provider = FACTORY.getSocketProvider(xml);
-        assertTrue(provider instanceof SSLSocketProvider);
+        SocketProvider provider = m_factory.getSocketProvider(xml);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
         SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
-        assertTrue(delegate instanceof MultiplexedSocketProvider);
-        assertTrue(((MultiplexedSocketProvider) delegate).getDependencies().getDelegateProvider() instanceof SdpSocketProvider);
+        assertThat(delegate, is(instanceOf(MultiplexedSocketProvider.class)));
+        assertThat(((MultiplexedSocketProvider) delegate).getDependencies().getDelegateProvider(), is(instanceOf(SdpSocketProvider.class)));
         }
 
     @Test
     public void testDemultiplexedSSLProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl/></socket-provider>");
-        SocketProvider provider = FACTORY.getDemultiplexedSocketProvider(xml, 1);
-        assertTrue(provider instanceof SSLSocketProvider);
+        SocketProvider provider = m_factory.getDemultiplexedSocketProvider(xml, 1);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
         SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
-        assertTrue(delegate instanceof DemultiplexedSocketProvider);
+        assertThat(delegate, is(instanceOf(DemultiplexedSocketProvider.class)));
         }
 
     @Test
     public void testDemultiplexedSystemProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><system/></socket-provider>");
-        SocketProvider provider = FACTORY.getDemultiplexedSocketProvider(xml, 1);
-        assertTrue(provider instanceof DemultiplexedSocketProvider);
+        SocketProvider provider = m_factory.getDemultiplexedSocketProvider(xml, 1);
+        assertThat(provider, is(instanceOf(DemultiplexedSocketProvider.class)));
         }
 
     @Test
     public void testDemultiplexedTcpProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><tcp/></socket-provider>");
-        SocketProvider provider = FACTORY.getDemultiplexedSocketProvider(xml, 1);
-        assertTrue(provider instanceof DemultiplexedSocketProvider);
+        SocketProvider provider = m_factory.getDemultiplexedSocketProvider(xml, 1);
+        assertThat(provider, is(instanceOf(DemultiplexedSocketProvider.class)));
         }
 
     @Test
     public void testDemultiplexedSDPProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><sdp/></socket-provider>");
-        SocketProvider provider = FACTORY.getDemultiplexedSocketProvider(xml, 1);
-        assertTrue(provider instanceof DemultiplexedSocketProvider);
+        SocketProvider provider = m_factory.getDemultiplexedSocketProvider(xml, 1);
+        assertThat(provider, is(instanceOf(DemultiplexedSocketProvider.class)));
         }
 
     @Test
     public void testDemultiplexedSdpsProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl><socket-provider>sdp</socket-provider></ssl></socket-provider>");
-        SocketProvider provider = FACTORY.getDemultiplexedSocketProvider(xml, 1);
-        assertTrue(provider instanceof SSLSocketProvider);
+        SocketProvider provider = m_factory.getDemultiplexedSocketProvider(xml, 1);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
         SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
-        assertTrue(delegate instanceof DemultiplexedSocketProvider);
+        assertThat(delegate, is(instanceOf(DemultiplexedSocketProvider.class)));
         }
 
     @Test
     public void testLegacyDefaultProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider/>");
-        assertEquals(FACTORY.getLegacySocketProvider(xml),SocketProviderFactory.DEFAULT_LEGACY_SOCKET_PROVIDER);
+        assertThat(m_factory.getLegacySocketProvider(xml), is(SocketProviderFactory.DEFAULT_LEGACY_SOCKET_PROVIDER));
         }
 
     @Test
     public void testLegacySSLProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl/></socket-provider>");
-        SocketProvider provider = FACTORY.getLegacySocketProvider(xml);
-        assertTrue(provider instanceof SSLSocketProvider);
+        SocketProvider provider = m_factory.getLegacySocketProvider(xml);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
         SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
-        assertTrue(delegate instanceof DemultiplexedSocketProvider);
+        assertThat(delegate, is(instanceOf(DemultiplexedSocketProvider.class)));
         delegate = ((DemultiplexedSocketProvider) delegate).getDelegate().getDependencies().getDelegateProvider();
-        assertTrue(delegate instanceof TcpSocketProvider);
+        assertThat(delegate, is(instanceOf(TcpSocketProvider.class)));
         }
 
     @Test
     public void testLegacySystemProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><system/></socket-provider>");
-        SocketProvider providerSystem = FACTORY.getLegacySocketProvider(xml);
+        SocketProvider providerSystem = m_factory.getLegacySocketProvider(xml);
         SocketProvider providerDelegate = ((DemultiplexedSocketProvider) providerSystem).getDelegate()
                 .getDependencies().getDelegateProvider();
-        assertEquals(providerDelegate, TcpSocketProvider.INSTANCE);
+        assertThat(providerDelegate, is(TcpSocketProvider.INSTANCE));
         }
 
     @Test
     public void testLegacyTcpProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><tcp/></socket-provider>");
-        SocketProvider provider = FACTORY.getLegacySocketProvider(xml);
+        SocketProvider provider = m_factory.getLegacySocketProvider(xml);
         SocketProvider providerDelegate = ((DemultiplexedSocketProvider) provider).getDelegate()
                 .getDependencies().getDelegateProvider();
-        assertEquals(providerDelegate, TcpSocketProvider.INSTANCE);
+        assertThat(providerDelegate, is(TcpSocketProvider.INSTANCE));
         }
 
     @Test
     public void testLegacySdpProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><sdp/></socket-provider>");
-        SocketProvider provider = FACTORY.getLegacySocketProvider(xml);
+        SocketProvider provider = m_factory.getLegacySocketProvider(xml);
         SocketProvider providerDelegate = ((DemultiplexedSocketProvider) provider).getDelegate()
                 .getDependencies().getDelegateProvider();
-        assertEquals(providerDelegate, SdpSocketProvider.INSTANCE);
+        assertThat(providerDelegate, is(SdpSocketProvider.INSTANCE));
         }
 
     @Test
     public void testLegacySdpsProvider()
         {
         XmlElement xml = XmlHelper.loadXml("<socket-provider><ssl><socket-provider>sdp</socket-provider></ssl></socket-provider>");
-        SocketProvider provider = FACTORY.getLegacySocketProvider(xml);
-        assertTrue(provider instanceof SSLSocketProvider);
+        SocketProvider provider = m_factory.getLegacySocketProvider(xml);
+        assertThat(provider, is(instanceOf(SSLSocketProvider.class)));
         SocketProvider delegate = ((SSLSocketProvider) provider).getDependencies().getDelegateSocketProvider();
-        assertTrue(delegate instanceof DemultiplexedSocketProvider);
+        assertThat(delegate, is(instanceOf(DemultiplexedSocketProvider.class)));
         delegate = ((DemultiplexedSocketProvider) delegate).getDelegate().getDependencies().getDelegateProvider();
-        assertTrue(delegate instanceof SdpSocketProvider);
+        assertThat(delegate, is(instanceOf(SdpSocketProvider.class)));
         }
 
     /*
@@ -217,5 +255,5 @@ public class SocketProviderFactoryTest
         }
         */
 
-    public SocketProviderFactory FACTORY;
+    public SocketProviderFactory m_factory;
     }

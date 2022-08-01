@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
@@ -40,6 +40,7 @@ import java.net.SocketException;
  * @author pfm 2011.06.27
  * @since 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public class DefaultTcpAcceptorDependencies
         extends AbstractAcceptorDependencies
         implements TcpAcceptorDependencies
@@ -331,7 +332,7 @@ public class DefaultTcpAcceptorDependencies
                 fSubPortEphemeral = lBldr.getPortMinOriginal() == -1;
 
                 // set host and port at realize() time if needed
-                AddressProviderBuilder newBldr = new AddressProviderBuilder()
+                bldr = new AddressProviderBuilder()
                     {
                     @Override
                     public AddressProvider createAddressProvider(ClassLoader loader)
@@ -357,9 +358,8 @@ public class DefaultTcpAcceptorDependencies
                         return m_LBldr.realize(resolver, loader, listParameters);
                         }
 
-                    private LocalAddressProviderBuilder m_LBldr = (LocalAddressProviderBuilder) lBldr;
+                    private final LocalAddressProviderBuilder m_LBldr = lBldr;
                     };
-                bldr = newBldr;
                 }
 
             setLocalSocketAddressProviderBuilder(new WrapperSocketAddressProviderBuilder(bldr)
@@ -419,7 +419,7 @@ public class DefaultTcpAcceptorDependencies
                 {
                 options.setOption(SocketOptions.SO_KEEPALIVE, Boolean.TRUE);
                 options.setOption(SocketOptions.TCP_NODELAY, Boolean.TRUE);
-                options.setOption(SocketOptions.SO_LINGER, Integer.valueOf(0));
+                options.setOption(SocketOptions.SO_LINGER, 0);
                 }
             catch (SocketException e)
                 {
@@ -449,9 +449,8 @@ public class DefaultTcpAcceptorDependencies
         {
         if (m_builderSocketProvider == null)
             {
-            m_builderSocketProvider = new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER);
+            m_builderSocketProvider = createDefaultSocketProviderBuilder();
             }
-
         return m_builderSocketProvider;
         }
 
@@ -497,6 +496,16 @@ public class DefaultTcpAcceptorDependencies
         return this;
         }
 
+    /**
+     * Return {@code true} if these dependencies can be configured to use the global socket provider builder.
+     *
+     * @return {@code true} if these dependencies can be configured to use the global socket provider builder
+     */
+    public boolean canUseGlobalSocketProvider()
+        {
+        return true;
+        }
+
     // ----- Object methods -------------------------------------------------
 
     /**
@@ -517,6 +526,16 @@ public class DefaultTcpAcceptorDependencies
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Create the default {@link SocketProviderBuilder} to use if one has not been set.
+     *
+     * @return the default {@link SocketProviderBuilder} to use if one has not been set
+     */
+    protected SocketProviderBuilder createDefaultSocketProviderBuilder()
+        {
+        return new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER, true);
+        }
 
     /**
      * Get the {@link OperationalContext} in which the
