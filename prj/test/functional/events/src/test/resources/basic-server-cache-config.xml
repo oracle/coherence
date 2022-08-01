@@ -3,8 +3,8 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
--->
+  https://oss.oracle.com/licenses/upl.
+  -->
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
@@ -44,7 +44,20 @@
           </interceptor>
       </interceptors>
     </cache-mapping>
+    <!--    EntryProcessor Testing Cache-->
     <cache-mapping>
+      <cache-name>dist-ep-*</cache-name>
+      <scheme-name>dist-default</scheme-name>
+      <interceptors>
+        <interceptor>
+          <instance>
+            <class-name>events.common.EntryProcessorInterceptor</class-name>
+          </instance>
+        </interceptor>
+      </interceptors>
+    </cache-mapping>
+    
+<cache-mapping>
       <cache-name>dist-rwbm-exp</cache-name>
       <scheme-name>dist-rwbm-expiring</scheme-name>
     </cache-mapping>
