@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
@@ -32,26 +32,31 @@ public class SocketProviderBuilder implements ParameterizedBuilder<SocketProvide
     /**
      * Construct a {@link SocketProviderBuilder} from its definition id and its dependencies.
      *
-     * @param sId  provider definition id. {@link #UNNAMED_PROVIDER_ID} indicates an inlined anonymous socket provider
-     * @param deps SocketProvider dependencies
+     * @param sId            provider definition id. {@link #UNNAMED_PROVIDER_ID} indicates an inlined
+     *                       anonymous socket provider
+     * @param deps           SocketProvider dependencies
+     * @param fCanUseGlobal  {@code true} if the global provider builder can be used over this builder
      */
-    public SocketProviderBuilder(String sId, SocketProviderFactory.Dependencies deps)
+    public SocketProviderBuilder(String sId, SocketProviderFactory.Dependencies deps, boolean fCanUseGlobal)
         {
-        f_sId      = sId;
-        f_deps     = deps;
-        f_provider = null;
+        f_sId        = sId;
+        f_deps       = deps;
+        f_provider   = null;
+        f_fUseGlobal = fCanUseGlobal;
         }
 
     /**
      * Wrapper an existing {@link SocketProvider} into a Builder so it can be registered in cluster BuilderRegistry.
      *
-     * @param provider a SocketProvider
+     * @param provider       a {@link SocketProvider}
+     * @param fCanUseGlobal  {@code true} if the global provider builder can be used over this builder
      */
-    public SocketProviderBuilder(SocketProvider provider)
+    public SocketProviderBuilder(SocketProvider provider, boolean fCanUseGlobal)
         {
-        f_sId      = null;
-        f_deps     = null;
-        f_provider = provider;
+        f_sId        = null;
+        f_deps       = null;
+        f_provider   = provider;
+        f_fUseGlobal = fCanUseGlobal;
         }
 
     // ----- SocketProviderBuilder methods -----------------------------------
@@ -83,10 +88,15 @@ public class SocketProviderBuilder implements ParameterizedBuilder<SocketProvide
      * @param nSubport  subport for demultiplexed socket provider.
      *
      * @return the provider
+     * @throws NullPointerException if this builders {@link #f_deps} field is {@code null}
      */
     public SocketProvider getDemultiplexedSocketProvider(int nSubport)
         {
-        return f_deps.getSocketProviderFactory().getDemultiplexedSocketProvider(f_sId, f_deps, nSubport);
+        if (f_deps == null)
+            {
+            throw new NullPointerException("The SocketProviderFactory dependencies field is null");
+            }
+        return f_deps.getSocketProviderFactory().getDemultiplexedSocketProvider(f_sId, f_deps, nSubport, f_fUseGlobal);
         }
 
     /**
@@ -95,22 +105,60 @@ public class SocketProviderBuilder implements ParameterizedBuilder<SocketProvide
      * @param  nSubport  subport for a demultiplexed socket provider.
      *
      * @return the provider
+     * @throws NullPointerException if this builders {@link #f_deps} field is {@code null}
      */
     public DatagramSocketProvider getDatagramSocketProvider(int nSubport)
         {
-        return f_deps.getSocketProviderFactory().getDatagramSocketProvider(f_sId, f_deps, nSubport);
+        if (f_deps == null)
+            {
+            throw new NullPointerException("The SocketProviderFactory dependencies field is null");
+            }
+        return f_deps.getSocketProviderFactory().getDatagramSocketProvider(f_sId, f_deps, nSubport, f_fUseGlobal);
         }
 
 
     /**
      * Return SSLSettings for {@link SocketProviderBuilder}.
+     * <p>
+     * If this builder's {@link #canUseGlobal()} method returns {@code} and there is a
+     * global {@link SocketProviderBuilder} configured, then the result of calling the
+     * global builder's getSSLSettings() method will be returned.
      *
      * @return the sslSettings if the socket provider builder has a ssl settings directly or via delegate.
+     * @throws NullPointerException if the global builder is not used and this builders {@link #f_deps}
+     *                              field is {@code null}
      */
     public SSLSettings getSSLSettings()
         {
+        if (canUseGlobal())
+            {
+            SocketProviderBuilder builder = SocketProviderFactory.getGlobalSocketProviderBuilder();
+            if (builder != null)
+                {
+                return builder.getSSLSettings();
+                }
+            }
+
+        if (f_deps == null)
+            {
+            throw new NullPointerException("The SocketProviderFactory dependencies field is null");
+            }
+
         SSLSocketProvider.Dependencies depsSSL = f_deps.getSSLDependencies(f_sId);
         return depsSSL == null ? null : SocketProviderFactory.createSSLSettings(depsSSL);
+        }
+
+    /**
+     * Returns {@code true} if the {@link SocketProviderFactory} can use the
+     * global provider builder over this builder, if a global builder is
+     * present.
+     *
+     * @return  {@code true} if the {@link SocketProviderFactory} can use the
+     *          global provider builder over this builder
+     */
+    public boolean canUseGlobal()
+        {
+        return f_fUseGlobal;
         }
 
     // ----- ParameterizedBuilder methods ------------------------------------
@@ -118,7 +166,26 @@ public class SocketProviderBuilder implements ParameterizedBuilder<SocketProvide
     @Override
     public SocketProvider realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
         {
-        return f_provider == null ?  f_deps.getSocketProviderFactory().getSocketProvider(f_sId, f_deps, 0) : f_provider;
+        if (f_fUseGlobal)
+            {
+            SocketProviderBuilder builder = SocketProviderFactory.getGlobalSocketProviderBuilder();
+            if (builder != null)
+                {
+                return builder.realize(resolver, loader, listParameters);
+                }
+            }
+
+        if (f_provider != null)
+            {
+            return f_provider;
+            }
+
+        if (f_deps == null)
+            {
+            throw new NullPointerException("The SocketProviderFactory dependencies field is null");
+            }
+
+        return f_deps.getSocketProviderFactory().getSocketProvider(f_sId, f_deps, 0);
         }
 
     // ----- constants -------------------------------------------------------
@@ -133,7 +200,7 @@ public class SocketProviderBuilder implements ParameterizedBuilder<SocketProvide
     /**
      * SocketProvider definition id
      */
-    private final String                             f_sId;
+    private final String f_sId;
 
     /**
      * Either an anonymous SocketProviderFactory dependencies for an inlined socket-provider or
@@ -144,5 +211,11 @@ public class SocketProviderBuilder implements ParameterizedBuilder<SocketProvide
     /**
      * A Wrapped SocketProvider.
      */
-    private final SocketProvider                     f_provider;
+    private final SocketProvider f_provider;
+
+    /**
+     * If {@code true} the {@link SocketProviderFactory} can supply the global
+     * {@link SocketProviderBuilder} over this builder, if one is present.
+     */
+    private final boolean f_fUseGlobal;
     }

@@ -1,21 +1,22 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
 import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
 import com.tangosol.config.ConfigurationException;
+
 import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
 
-import com.tangosol.internal.net.cluster.DefaultClusterDependencies;
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
-import com.tangosol.net.OperationalContext;
+
 import com.tangosol.net.SocketProviderFactory;
 import com.tangosol.net.TcpDatagramSocketProvider;
 
@@ -26,7 +27,7 @@ import com.tangosol.run.xml.XmlValue;
 import java.util.Iterator;
 
 /**
- * An {@link ElementProcessor} that will parse an &lt;socket-provider&gt; and
+ * An {@link ElementProcessor} that will parse a &lt;socket-provider&gt; and
  * produce a {@link SocketProviderBuilder}.
  *
  * @author bo  2013.07.02
@@ -39,19 +40,20 @@ public class SocketProviderProcessor
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("rawtypes")
     @Override
     public SocketProviderBuilder process(ProcessingContext context, XmlElement xmlElement)
             throws ConfigurationException
         {
         String  sId                                    = getProviderDefinitionId(xmlElement);
         boolean fInlinedProvider                       = SocketProviderFactory.UNNAMED_PROVIDER_ID.equals(sId);
-        SocketProviderFactory factory                  = getSocketProviderFactory(context, xmlElement);
+        SocketProviderFactory factory                  = SocketProviderFactory.getSocketProviderFactory(context, xmlElement);
         SocketProviderFactory.DefaultDependencies deps =
                 (SocketProviderFactory.DefaultDependencies) factory.getDependencies();
 
         if (XmlHelper.isEmpty(xmlElement))
             {
-            return new SocketProviderBuilder(null, factory.getDependencies());
+            return factory.getDefaultSocketProviderBuilder();
             }
 
         if (fInlinedProvider)
@@ -64,7 +66,7 @@ public class SocketProviderProcessor
 
             if (sName != null && sName.length() > 0)
                 {
-                return new SocketProviderBuilder(sName, factory.getDependencies());
+                return new SocketProviderBuilder(sName, factory.getDependencies(), false);
                 }
 
             // inlined, anonymous socket-provider, create an anonymous dependencies
@@ -124,46 +126,17 @@ public class SocketProviderProcessor
                 }
             }
 
-        return new SocketProviderBuilder(sId, deps);
+        return new SocketProviderBuilder(sId, deps, false);
         }
 
     // ----- helpers ---------------------------------------------------------
-
-    /**
-     * Return the cluster's {@link SocketProviderFactory}.
-     * @param ctx  Cluster operational context
-     * @param xml  socket-provider xml fragment being processed.
-     * @return the cluster's {@link SocketProviderFactory}
-     */
-    private static SocketProviderFactory getSocketProviderFactory(ProcessingContext ctx, XmlElement xml)
-        {
-        // grab the operational context from which we can lookup the socket provider factory
-        OperationalContext ctxOperational = ctx.getCookie(OperationalContext.class);
-
-        if (ctxOperational == null)
-            {
-            DefaultClusterDependencies deps = ctx.getCookie(DefaultClusterDependencies.class);
-            if (deps == null)
-                {
-                throw new ConfigurationException("Attempted to resolve the OperationalContext in [" + xml
-                        + "] but it was not defined", "The registered ElementHandler for the <"
-                        + xml.getName()
-                        + "> element is not operating in an OperationalContext");
-                }
-            return deps.getSocketProviderFactory();
-            }
-        else
-            {
-            return ctxOperational.getSocketProviderFactory();
-            }
-        }
 
     /**
      * Get the reference to a ProviderId stored as text on the element.
      *
      * @param xmlSocketProvider a socket-provider element
      *
-     * @return the provider id reference found in socket-provider element or null if no reference found.
+     * @return the provider id reference, found in socket-provider element or null if no reference found.
      */
     private static String getProviderIdReference(XmlElement xmlSocketProvider)
         {

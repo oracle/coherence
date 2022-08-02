@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NameService;
 
+import com.tangosol.net.SocketProviderFactory;
+import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Base;
 
 import java.net.InetAddress;
@@ -80,5 +83,18 @@ public class DefaultNSTcpAcceptorDependencies
             }
 
         return CacheFactory.getCluster().getDependencies().getLocalDiscoveryAddress();
+        }
+
+    @Override
+    protected SocketProviderBuilder createDefaultSocketProviderBuilder()
+        {
+        // never allow the NameService default provider to be overridden by the global provider
+        return new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER, false);
+        }
+
+    @Override
+    public boolean canUseGlobalSocketProvider()
+        {
+        return false;
         }
     }

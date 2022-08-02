@@ -94,7 +94,7 @@ public class MetricsFormatTests
                     IPv4Preferred.yes(),
                     LocalHost.only()))
             {
-            Eventually.assertDeferred(() -> member.isServiceRunning("MetricsHttpProxy"), is(true));
+            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
 
             String sURL = "http://127.0.0.1:" + port.get() + "/metrics";
 

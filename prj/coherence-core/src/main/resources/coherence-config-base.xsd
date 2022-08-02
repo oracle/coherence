@@ -1008,7 +1008,7 @@
           sub-elements also have to be moved into this base definition file.
     -->
 
-    <xsd:element name="socket-provider">
+    <xsd:element name="socket-provider" type="socket-provider-type">
         <xsd:annotation>
             <xsd:documentation>
                 The socket-provider element contains the configuration info for
@@ -1021,20 +1021,21 @@
                 Used in: tcp-initiator, tcp-acceptor, defaults, unicast-listener, ssl
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType mixed="true">
-            <xsd:sequence>
-                <xsd:choice minOccurs="0">
-                    <xsd:element ref="system" />
-                    <xsd:element ref="ssl" />
-                    <xsd:element ref="tcp" />
-                    <xsd:element ref="sdp" />
-                </xsd:choice>
-                <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
-            </xsd:sequence>
-            <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
-            <xsd:anyAttribute namespace="##other" processContents="lax"/>
-        </xsd:complexType>
     </xsd:element>
+
+    <xsd:complexType name="socket-provider-type" mixed="true">
+        <xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:element ref="system" />
+                <xsd:element ref="ssl" />
+                <xsd:element ref="tcp" />
+                <xsd:element ref="sdp" />
+            </xsd:choice>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+        <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
 
     <xsd:element name="system">
         <xsd:annotation>
@@ -2074,5 +2075,15 @@
         </xsd:sequence>
         <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional"/>
         <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
+    </xsd:complexType>
+
+    <xsd:complexType name="serializer-type" mixed="true">
+        <xsd:sequence>
+            <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
+            <xsd:any namespace="##other" processContents="lax"
+                minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+        <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
 </xsd:schema>

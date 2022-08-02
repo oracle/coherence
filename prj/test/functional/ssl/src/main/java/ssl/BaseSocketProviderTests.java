@@ -90,7 +90,7 @@ public abstract class BaseSocketProviderTests
         SocketProviderFactory factory = new SocketProviderFactory();
         if (sFile == null)
             {
-            return factory.getDemultiplexedSocketProvider(null, null, 1);
+            return factory.getDemultiplexedSocketProvider(null, null, 1,false);
             }
         if (sFile.length() == 0)
             {
