@@ -8,6 +8,8 @@ package com.tangosol.internal.health;
 
 import com.tangosol.net.management.Registry;
 
+import com.tangosol.net.management.annotation.Description;
+
 import com.tangosol.util.HealthCheck;
 
 /**
@@ -24,6 +26,7 @@ public interface HealthCheckWrapperMBean
      *
      * @return the {@link HealthCheck health check's} subtype
      */
+    @Description("The sub-type of this health check.")
     String getSubType();
 
     /**
@@ -31,6 +34,7 @@ public interface HealthCheckWrapperMBean
      *
      * @return the name of the wrapped {@link HealthCheck} class
      */
+    @Description("The name of the class implementing this health check.")
     String getClassName();
 
     /**
@@ -38,6 +42,7 @@ public interface HealthCheckWrapperMBean
      *
      * @return the result of calling {code toString()} on the wrapped {@link HealthCheck}
      */
+    @Description("The description of this health check.")
     String getDescription();
 
     /**
