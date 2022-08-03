@@ -6,6 +6,8 @@
  */
 package com.tangosol.util;
 
+import com.tangosol.net.management.annotation.Description;
+
 /**
  * A class that can return its health status
  * <p>
@@ -24,7 +26,6 @@ package com.tangosol.util;
  * @see com.tangosol.net.management.Registry#unregister(HealthCheck)
  * @see com.tangosol.net.management.Registry#getHealthChecks()
  */
-// tag::doc[]
 public interface HealthCheck
     {
     /**
@@ -32,6 +33,7 @@ public interface HealthCheck
      *
      * @return the unique name of this health check
      */
+    @Description("The unique name of this health check.")
     String getName();
 
     /**
@@ -42,6 +44,7 @@ public interface HealthCheck
      * @return {@code true} if this {@link HealthCheck} should
      *         be included in the member's health status
      */
+    @Description("Indicates if this health check should be included when working out this Coherence member's health status.")
     default boolean isMemberHealthCheck()
         {
         return true;
@@ -58,6 +61,7 @@ public interface HealthCheck
      * @return {@link true} if the resource represented by this
      *         {@link HealthCheck} is ready, otherwise {@code false}
      */
+    @Description("Indicates if the resource represented by this health check is ready.")
     boolean isReady();
 
     /**
@@ -72,6 +76,7 @@ public interface HealthCheck
      *         {@link HealthCheck} is alive, otherwise returns
      *         {@code false}
      */
+    @Description("Indicates if the resource represented by this health check is alive.")
     boolean isLive();
 
     /**
@@ -86,6 +91,7 @@ public interface HealthCheck
      *         {@link HealthCheck} is started, otherwise returns
      *         {@code false}
      */
+    @Description("Indicates if the resource represented by this health check is started.")
     boolean isStarted();
 
     /**
@@ -101,8 +107,8 @@ public interface HealthCheck
      *         a rolling upgrade to proceed, otherwise returns
      *         {@code false}
      */
+    @Description("Indicates if the resource represented by this health check is safe.")
     boolean isSafe();
-// end::doc[]
 
     /**
      * The http request path for the ready endpoint.
