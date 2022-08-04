@@ -69,10 +69,13 @@ public class WitnessProtocolTests
         int cServers = 3;
         Properties propsClient = new Properties();
         propsClient.put("coherence.distributed.localstorage", "false");
-        ClusteringTests.startServers("server-witness2", "witness2", null, cServers);
-        CoherenceClusterMember server = startCacheServer("bad-server2", "witness2", null, null);
-        CoherenceClusterMember client = startCacheServer("client-witness2", "witness2", null, propsClient);
+        CoherenceClusterMember server = ClusteringTests.startServers("server-witness2", "witness2", null, cServers);
+        Eventually.assertThat(invoking(server).getClusterSize(), is(4));
 
+        server = startCacheServer("bad-server2", "witness2", null, null);
+        Eventually.assertThat(invoking(server).getClusterSize(), is(5));
+
+        CoherenceClusterMember client = startCacheServer("client-witness2", "witness2", null, propsClient);
         Eventually.assertThat(invoking(client).getClusterSize(), is(6));
 
         UID uidServer = server.getLocalMemberUID();
