@@ -1,0 +1,630 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Bulk Loading Caches
+:description: Bulk loading data into caches
+:keywords: coherence, java, documentation, guides, data, bulk, db
+
+== Bulk Loading Caches
+
+A common use case in Coherence is for caches to hold data that comes from other sources, typically a database. Often there is a requirement to preload data into caches when an application starts up. Using a `CacheLoader` to load data on demand may be suitable for many caching use cases, but other use cases such as querying and aggregating caches require all the data to be present in the cache. Over the years, there have been a number of patters to achieve preloading, this guide will cover some currently recommended approaches to preloading data.
+
+Whilst this guide reads data from a database and pushes it into caches, the same patterns can apply to any data source, for example, preloading from files, messaging systems, data streaming systems, etc.
+
+
+== What You Will Build
+
+The example in this guide builds a simple application that uses different techniques to preload caches from a database. This includes examples of preloading from a database into a cache that uses a cachestore to write cache data to the same database.
+
+// Do not change this part.
+// If your example requires Java 11+ change the 1.8 below to 11
+=== What You Need
+:java_version: 11
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+=== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+
+== Typical Preloading Use Case
+
+The typical preloading use case is to pull data from a datasource and load it into caches as fast as possible. This means ideally scaling out the preloading to be batched and multi-threaded, to load multiple caches at once. The pre-loaders in this example will be written as simple Java `Runnable` implementations. This allows them to be easily scaled up by running them in a Java `Executor` or daemon thread pool. A separate Coherence example will show how to use Coherence concurrent Executor Service module to scale out preloading by distributing the preload runnables to execute on Coherence cluster members.
+
+=== Extend Client or Cluster Member?
+
+The cache preloader is typically implemented as a process that is run after the storage enabled cluster members have started. This is typically a simple Java class with a main method that runs and controls loading the data. As this application will need to communicate with the Coherence storage members, it can obviously run in two modes, either as a storage disabled cluster member or as an Extend client. As the preload application's only job is to push a large amount of data into Coherence caches as fast as possible, it is recommended to run the preloader as a storage disabled cluster member. Running as an Extend client would cause a bottleneck trying to push all the data over a single Extend connection to the proxy, where it is then distributed across the cluster.
+
+=== A Simple Preload Runnable
+
+A simple preload task might look like the example below:
+
+[source,java]
+----
+public class CustomerPreloadTask
+        implements Runnable
+    {
+    private final Connection connection;
+
+    private final Session session;
+
+    public PreloadTask(Connection connection, Session session)
+        {
+        this.connection = connection;
+        this.session = session;
+        }
+
+    @Override
+    public void run()
+        {
+        NamedMap<Integer, Customer> namedMap = session.getMap("customers");     // <1>
+        String query = "SELECT id, name, address, creditLimit FROM customers";
+        int batchSize = 10;
+        
+        try (PreparedStatement statement = connection.prepareStatement(query);  // <2>
+             ResultSet resultSet = statement.executeQuery())
+            {
+            Map<Integer, Customer> batch = new HashMap<>(batchSize);            // <3>
+
+            while (resultSet.next())                                            // <4>
+                {
+                int key = resultSet.getInt("id");                               // <5>
+
+                Customer value = new Customer(resultSet.getInt("id"),           // <6>
+                                              resultSet.getString("name"),
+                                              resultSet.getString("address"),
+                                              resultSet.getInt("creditLimit"));
+
+                batch.put(key, value);                                          // <7>
+
+                if (batch.size() >= batchSize)                                  // <8>
+                    {
+                    namedMap.putAll(batch);
+                    batch.clear();
+                    }
+                }
+
+            if (!batch.isEmpty())                                               // <9>
+                {
+                namedMap.putAll(batch);
+                batch.clear();
+                }
+            }
+        catch (SQLException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+    }
+----
+
+<1> Obtain the cache to be loaded from the Coherence `Session`, in this case the "customers" cache.
+
+<2> Perform the query on the database to get the data to load. There are many ways this could be done depending on the database. This is a very simple approach using a `PreparedStatement`.
+
+<3> Create a `Map` to hold a batch of entries to load. This preload task will call `NamedMap.putAll()` to load the dat ain batches into the cache. This is more efficient that multiple single put calls.
+
+<4> Iterate over all the rows of data returned by the `ResultSet`.
+
+<5> Create the cache key from the current row in the `ResultSet` (in this case the key is just the "id" int).
+
+<6> Create the cache value from the current row in the `ResultSet`.
+
+<7> Add the key and new `Customer` to the batch map.
+
+<8> If the batch map is >= the batch size, put the batch into the cache using `putAll()`, then clear the batch map.
+
+<9> After all the rows in the `ResultSet` have been iterated over, there may be entries in the batch map that need to be loaded, so put them in the cache,
+
+A different implementation of this class can be created to load different caches from different database tables.
+Ideally the common code would be extracted into an abstract base class.
+This is what the example code does in the `AbstractJdbcPreloadTask`, which is a base class for loading caches from a database. Concrete implementations are in the example test code in the `CustomerJdbcLoader` and `OrderJdbcLoader` classes.
+
+=== Running the Loaders
+
+If the cache loaders are written as `Runnable` instances, as shown above, they can easily be run in parallel using a Java `Executor`.
+
+For example, if there were three preload tasks, written like the example above, to load Customers, Orders, and Products, they could be submitted to an `ExecutorService` as shown below.
+
+[source,java]
+----
+Session session = Coherence.getInstance().getSession();
+
+ExecutorService executor = Executors.newCachedThreadPool();
+
+executor.submit(new CustomerPreloadTask(session));
+executor.submit(new OrdersPreloadTask(session));
+executor.submit(new ProductsPreloadTask(session));
+----
+
+The loader application can wait for the executor to complete all the tasks, ideally with a timeout so that if there is an issue, it does not run forever.
+
+[source,java]
+----
+Session session = Coherence.getInstance().getSession();
+
+ExecutorService executor = Executors.newCachedThreadPool();
+
+executor.submit(new CustomerPreloadTask(session));
+executor.submit(new OrdersPreloadTask(session));
+executor.submit(new ProductsPreloadTask(session));
+
+executor.shutdown();  // <1>
+boolean terminated = executor.awaitTermination(1, TimeUnit.HOURS); // <2>
+if (!terminated)
+    {
+    executor.shutdownNow(); // <3>
+    }
+----
+
+<1> Stop the executor accepting any more requests.
+<2> Wait a maximum of one hour for the executor to complete running the tasks.
+<3> If the executor has not terminated in one hour, forcefully terminate.
+
+=== Summary
+
+The basic code to load a simple cache from a database (or other data source) is usually very simple, as shown above.
+There are many variations on this pattern to make loading scale better and execute faster.
+
+== CacheStore Complications
+
+As already shown, a basic cache loader can be very simple. Where it gets complicated is when the cache being loaded has a `CacheStore` configured that writes data to the same data source that the loader is loading from.
+It should be obvious what the issue is, the data is read from the database, put into the cache, and the re-written back to the database - this is not desirable.
+
+The solution to this problem is to have a `CacheStore` implementation that can determine whether an entry should be written to the database or not. There are a few ways to do this, a controllable `CacheStore` that can be turned on or off, or a `CacheStore` that can check a flag on a value to determine whether that value should be stored or not. In this example we will cover both of these options.
+
+=== Controllable CacheStore
+
+As the name suggests, a controllable `CacheStore` can be turned on or off.
+The `CacheStore` would be turned off before the preload tasks ran, then turned back on after the preload is complete.
+
+There have been a few patterns for controllable cache stores suggested in the past, including an example in the official Coherence documentation where the enable/disable flag is a boolean value stored in another cache.
+With a little more thought we can see that this is not really a good idea. Consider what a bulk preload is doing, it is loading a very large amount of data into caches, that will then call the `CacheStore` methods. If the `CacheStore` needed to look up a distributed cache value on every store call, that would be massively inefficient.
+Even accessing a cache from inside a `CacheStore` could be problematic due to making a remote call from a cache service worker thread, which may cause a deadlock. Even introducing near caching or a view cache would not necessarily help, as updates to the flag would be async.
+
+Checking the flag that controls the `CacheStore` needs to be as efficient as possible. For that reason, the example here just uses a simple `boolean` field in the controller itself. An `EntryProcessor` is then used to directly set the flag for the controller. How this works will be explained below.
+
+The code in this example has a https://{github-source-root}/examples/guides/195-bulk-loading-caches/src/main/java/com/oracle/coherence/guides/preload/cachestore/ControllableCacheStore.java[`ControllableCacheStore` class] that implements `CacheStore` and has a `Controller` that enables or disables operations. This allows the `ControllableCacheStore` to be controlled in different ways just by implementing different types of `Controller`. The `ControllableCacheStore` also just delegates operations to another `CacheStore`, it does not do anything itself. The `ControllableCacheStore` calls the delegate if the controller says it is enabled, otherwise it does nothing. This makes the `ControllableCacheStore` a simple class that can be reused to make any existing, or new, `CacheStore` implementation be controllable.
+
+A small section of the `ControllableCacheStore` class is shown below:
+
+[source,java]
+.ControllableCacheStore.java
+----
+public class ControllableCacheStore<K, V>
+        implements CacheStore<K, V>
+    {
+    private final Controller controller;
+
+    private final CacheStore<K, V> delegate;
+    
+    public ControllableCacheStore(Controller controller, CacheStore<K, V> delegate)
+        {
+        this.controller = controller;
+        this.delegate = delegate;
+        }
+
+    @Override
+    public void store(K key, V value)
+        {
+        if (controller.isEnabled())
+            {
+            delegate.store(key, value);
+            }
+        }
+
+    @Override
+    public void storeAll(Map<? extends K, ? extends V> mapEntries)
+        {
+        if (controller.isEnabled())
+            {
+            delegate.storeAll(mapEntries);
+            }
+        }
+
+    // other methods omitted ...
+
+    /**
+     * Implementations of {@link Controller} can 
+     * control a {@link ControllableCacheStore}.
+     */
+    public interface Controller
+        {
+        boolean isEnabled();
+        }
+    }
+----
+
+It should be obvious how the class works. The `Controller` is an inner interface, and an implementation of this is passed to the constructor, along with the delegate `CacheStore`. 
+
+Each method call (only `store` and `storeAll` are shown above) calls the controller's `isEnabled()` method to determine whether the delegate should be called.
+
+==== The Controller Implementation
+
+In this example, a simple controller is used with a `boolean` field for enabling or disabling the `CacheStore`.
+The example source code contains the https://{github-source-root}/examples/guides/195-bulk-loading-caches/src/main/java/com/oracle/coherence/guides/preload/cachestore/SimpleController.java[`SimpleController` class] shown below:
+
+[source,java]
+.SimpleController.java
+----
+public class SimpleController
+        implements ControllableCacheStore.Controller
+    {
+    @Override
+    public boolean isEnabled()
+        {
+        return enabled;
+        }
+
+    public void setEnabled(boolean enabled)
+        {
+        this.enabled = enabled;
+        }
+    }
+----
+
+==== Configuring and Creating the CacheStore
+
+For a cache to use a cache store, it needs to be configured in the cache configuration file to use a `<read-write-backing-map>`, which in turn configures the `CacheStore` implementation to use.
+There are a few ways to configure the `CacheStore`, either using the implementation class name directly, or using a factory class and static factory method.
+In this example we will use the second approach, this means determining the cache store to use will be done in a factory class rather than in configuration, but this fits our use case better.
+
+The `<distributed-scheme>` used in the example test code is shown below:
+
+[source,xml]
+.controllable-cachestore-cache-config.xml
+----
+    <distributed-scheme>
+      <scheme-name>db-storage</scheme-name>
+      <service-name>StorageService</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme/>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <class-scheme>
+              <class-factory-name>
+                com.oracle.coherence.guides.preload.cachestore.CacheStoreFactory  <1>
+              </class-factory-name>
+              <method-name>createControllableCacheStore</method-name>             <2>
+              <init-params>
+                <init-param>
+                  <param-type>java.lang.String</param-type>                       <3>
+                  <param-value>{cache-name}</param-value>
+                </init-param>
+                <init-param>
+                  <param-type>java.lang.String</param-type>                       <4>
+                  <param-value system-property="jdbc.url">
+                    jdbc:hsqldb:mem:test
+                  </param-value>
+                </init-param>
+              </init-params>
+            </class-scheme>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+----
+
+<1> The `CacheStore` factory class is https://{github-source-root}/examples/guides/195-bulk-loading-caches/src/main/java/com/oracle/coherence/guides/preload/cachestore/CacheStoreFactory.java[`com.oracle.coherence.guides.preload.cachestore.CacheStoreFactory`]
+<2> The static factory method on the `CacheStoreFactory` class that will be called to create a `CacheStore` is `createControllableCacheStore`
+<3> The `createControllableCacheStore` has two parameters, which are configured in the `<init-params>`, the first is the name of the cache. The Coherence configuration macro `{cache-name}` will pass the name of the cache being created to the factory method.
+<4> The second parameter is the JDBC URL of the database to load data from, in the example this defaults to the HSQL in-memory test database.
+
+The `CacheStoreFactory` method `createControllableCacheStore` used in the example is shown below
+
+[source,java]
+.filename.java
+----
+public static CacheStore createControllableCacheStore(String cacheName, String jdbcURL) throws Exception
+    {
+    CacheStore delegate;
+    switch (cacheName.toLowerCase())                        // <1>
+        {
+        case "customers":                                   // <2>
+            delegate = new CustomerCacheStore(jdbcURL);
+            break;
+        case "orders":                                      // <3>
+            delegate = new OrderCacheStore(jdbcURL);
+            break;
+        default:                                            // <4>
+            throw new IllegalArgumentException("Cannot create cache store for cache " + cacheName);
+        }
+
+    return new ControllableCacheStore<>(new SimpleController(), delegate); // <5>
+    }
+----
+
+<1> The code does a simple switch on the cache name to determine the actual `CacheStore` to create.
+<2> If the cache name is "customers", then the `CustomerCacheStore` is created
+<3> If the cache name is "orders", then the `OrderCacheStore` is created
+<4> An exception is thrown for an unknown cache name
+<5> Finally, a `ControllableCacheStore` is returned that uses a `SimpleController` and wraps the delegate `CacheStore`
+
+Now, when application code first requests either the "customers" cache or the "orders" cache, the cache Coherence will create the cache and call the `CacheStoreFactory.createControllableCacheStore` method to create the `CacheStore`.
+
+==== Enabling and Disabling the ControllableCacheStore
+
+Now we have caches that are configured to use the `ControllableCacheStore` with the `SimpleController`, the next step is to actually be able to enable or disable the controller so that the preload can run.
+
+In the `SimpleController` the `setEnabled()` method needs to be called to set the controlling `boolean` flag.
+For each cache configured to use the `ControllableCacheStore` there will be an instance of `SimpleController` in every storage enabled cluster member. A method is needed of calling the `setEnabled()` method on all these instances, and this can be done with an `EntryProcessor`.
+
+A section of the source for the
+https://{github-source-root}/examples/guides/195-bulk-loading-caches/src/main/java/com/oracle/coherence/guides/preload/cachestore/SimpleController.java[`SetEnabledProcessor`]
+is shown below (the methods for serialization have been omitted here, but are in the actual GitHub source).
+
+[source,java]
+.SetEnabledProcessor.java
+----
+public static class SetEnabledProcessor<K, V>
+        implements InvocableMap.EntryProcessor<K, V, Void>,
+                PortableObject, ExternalizableLite
+    {
+    private boolean enabled;
+
+    public SetEnabledProcessor()
+        {
+        }
+
+    public SetEnabledProcessor(boolean enabled)
+        {
+        this.enabled = enabled;
+        }
+
+    @Override
+    public Void process(InvocableMap.Entry<K, V> entry)
+        {
+        ObservableMap<? extends K, ? extends V> backingMap = entry.asBinaryEntry().getBackingMap();
+        if (backingMap instanceof ReadWriteBackingMap)
+            {
+            ReadWriteBackingMap.StoreWrapper wrapper = ((ReadWriteBackingMap) backingMap).getCacheStore();
+            Object o = wrapper.getStore();
+
+            if (o instanceof ControllableCacheStore)
+                {
+                ControllableCacheStore.Controller controller = ((ControllableCacheStore) o).getController();
+                if (controller instanceof SimpleController)
+                    {
+                    ((SimpleController) controller).setEnabled(enabled);
+                    }
+                }
+            }
+        return null;
+        }
+
+    // PortableObject and ExternalizableLite method are omitted here...
+    }
+----
+
+In the `process` method, the backing map is obtained from the `entry`.
+The `getBackingMap()` is deprecated, mainly as a warning that this is quite a dangerous thing to do if you are not careful. The backing map is the internal structure used by Coherence to hold cache data, and directly manipulating it can have adverse effects. In this case we are not manipulating the backing map, so we are safe.
+If the cache is configured as with a `<read-write-backing-map>` then the implementation of the backing map here will be `ReadWriteBackingMap`.
+We can obtain the `CacheStore` being used from the `ReadWriteBackingMap` API, and check whether it is a `ControllableCacheStore`. If it is, we can get the `Controller` being used, and if it is a `SimpleController` set the flag.
+
+Now we have the `SetEnabledProcessor` we need to execute it so that we guarantee it runs on every storage enabled member. Using something like `cache.invokeAll(Filters.always(), new SetEnabledProcessor())` will not work, because this will only execute on members where there are entries, and there are none as we are about to do a preload.
+
+One of the things to remember about methods like `cache.invokeAll(keySet, new SetEnabledProcessor())` is that the `keySet` can contain keys that do not need to exist in the cache. As long as the entry processor does not call `entry.setValue()` the entry it executes against will never exist.
+
+Another feature of Coherence is the ability to influence the partition a key belongs to by writing a key class that implements the `com.tangosol.net.partition.KeyPartitioningStrategy.PartitionAwareKey` interface. Coherence has a built-in implementation of this class called `com.tangosol.net.partition.SimplePartitionKey`.
+
+We can make use of both these features to create a set of keys where we can guarantee we have one key for each partition in a cache. If we use this as the key set in an `invokeAll` method, we will guarantee to execute the `EntryProcessor` in every partition, and hence on every storage enable cluster member.
+
+The snippet of code below shows how to execute the `SetEnabledProcessor` to disable the cache stores for a cache.
+Changing the line `new SetEnabledProcessor(false)` to `new SetEnabledProcessor(true)` will instead enable the cache stores.
+
+[source,java]
+.SimpleController.java
+----
+public static void disableCacheStores(NamedMap<?, ?> namedMap)
+    {
+    CacheService service = namedMap.getService();                                    // <1>
+    int partitionCount = ((DistributedCacheService) service).getPartitionCount();    // <2>
+    Set<SimplePartitionKey> keys = new HashSet<>();                                  // <3>
+    for (int i = 0; i < partitionCount; i++)
+        {
+        keys.add(SimplePartitionKey.getPartitionKey(i));                             // <4>
+        }
+    namedMap.invokeAll(keys, new SetEnabledProcessor(false));                         // <5>
+    }
+----
+
+<1> Obtain the cache service for the `NamedMap` that has the `ControllableCacheSTore` to enable
+<2> The cache service should actually be an instance of `DistributedCacheService`, from which we can get the partition count. The default is 257, but this could have been changed.
+<3> Create a `Set<SimplePartitionKey>` that will hold the keys for the `invokeAll`
+<4> In a for loop, create a `SimplePartitionKey` for every partition, and add it to the `keys` set
+<5> The `keys` set can be used in the `invokeAll` call to invoke the `SetEnabledProcessor` on every partition
+
+Running the `SetEnabledProcessor` on every partition means it actually executes more times than it needs to, but this is not a problem, as repeated executions in the same JVM just set the same flag for the `enabled` value.
+
+Now we have a way to enable and disable the `ControllableCacheStore`, we can execute this code before running the preload, and then re-enable the cache stores after running the preload.
+
+==== ControllableCacheStore Caveats
+
+A controllable cache store is reasonably simple, but it will really not work in cases where the cache is configured to use write-behind. With write-behind enabled, if the controllable cache store is turned back on too soon after loading (i.e. within the write delay time) then the data loaded to the cache that is still in the write-behind queue will be written to the database.
+
+A controllable cache store is also not going to work in situations where the application could be updating entries in the cache while the preload is still running. If there are a mixture of entries, some needing to be written and some not, the controllable cache store will not be suitable.
+
+Another caveat with the `SimpleController` above, is what happens during failure of a storage member. If a storage member in the cluster fails, that is not an issue, but in environments such as Kubernetes, where that failed member will be replaced automatically, that can be a problem. The new member will join the cluster, caches will be created on it, including the `ControllableCacheStore` for configured caches. The problem is that the `boolean` flag in the new member's `SimpleController` will not be set to `false`, so the new member will start storing entries it receives to the database. Ideally, new members do not join during preload, but this may be out of the developers control. This could require a more complex controller, for example checking an entry in a cache for its initial state, etc.
+
+=== Smart CacheStore
+
+A smart cache store is a solution to the caveats that a controllable cache store has.
+The code for a smart cache store and for preloading is slightly more complex, but it can be applied to more use cases.
+
+Basically a smart cache store can use some sort of flag on the cache value to determine whether an entry should be stored in the data store. This could be a `boolean` field in the cache value itself, but this means corrupting the application data model with Coherence control data. This is not ideal, and in fact some applications may not actually own the class files that are being used in the cache and cannot add fields. A better way that leaves the cache value unchanged is to use a feature in Coherence that allows decorations to be added to the serialized binary values in a cache. Coherence uses decorations itself for a number of reasons (for example marking an entry as being successfully stored). In this case we can add a simple decoration to indicate whether an entry should be stored or not, the actual value of the decoration does not matter, we can just use the presence of the decoration to indicate that the entry should not be written. The preloader would then load the cache with decorated values, which would not be stored by the smart cache store. Any other entries updated by the application would be stored, even if they were updated while the preload was running.
+
+A normal `CacheStore` does not have access to the binary values in the cache.
+To be able to do this, the cache store needs to be an implementation of `com.tangosol.net.cache.BinaryEntryStore`.
+The https://{github-source-root}/examples/guides/195-bulk-loading-caches/src/main/java/com/oracle/coherence/guides/preload/cachestore/SmartCacheStore.java[`SmartCacheStore`] class in the example source code is an implementation of a `BinaryEntryStore`.
+Like the `ControllableCacheStore` in the example above, the `SmartCacheStore` wraps a delagate `CacheStore` so it can be used to make any `CacheStore` implementation smart.
+
+==== Decorating a Binary
+
+A `com.tangosol.util.Binary` is usually used to hold a serialized binary value (occasionally it may also be a `com.tangosol.io.ReadBuffer`). As well as the serialized data, that could have been serialized using any serializer configured in Coherence (Java, POF, json, etc) a `Binary` can be decorated with other information.
+Each decoration has an `int` identifier that is used to add, remove or obtain a specific decoration.
+Coherence itself uses decorations for a number of functions, so a number of decoration identifiers values are reserved. The identifiers are all stored in constants in `com.tangosol.util.ExternalizableHelper` class and all have the prefix `DECO_`, for example `DECO_EXPIRY`. There are three identifiers reserved for use by application code, `DECO_APP_1`, `DECO_APP_2` and `DECO_APP_3` which Coherence will not use, so for this example we can use `ExternalizableHelper.DECO_APP_1` for the `SmartCacheStore` decoration.
+
+The method used to decorate a `Binary` is `ExternalizableHelper` method:
+
+[source,java]
+----
+public static Binary decorate(Binary bin, int nId, Binary binDecoration)
+----
+
+A `Binary` is decorated with another `Binary` value.
+For the `SmartCacheStore` we do not care what the value of the decoration is, we only check whether it is present or not. Obviously we do not want to use a large `Binary` decoration, as this will add to the serialized size of the value, the smallest possible `Binary` is the constant value `Binary.NO_BINARY`, which is actually zero bytes, but still a `Binary`.
+
+We can therefore decorate a `Binary` for use in the `SmartCacheStore` like this:
+
+[source,java]
+----
+Binary binary = // create the serialized binary value
+Binary decorated = ExternalizableHelper.decorate(binary, ExternalizableHelper.DECO_APP_1, Binary.NO_BINARY);
+----
+
+
+==== The SmartCacheStore Implementation
+
+The example below shows part of the `SmartCacheStore` implementation.
+The `store` and `storeAll` methods are shown, but the other `BinaryEntryStore` are omitted here to make things clearer.
+
+[source,java]
+.SmartCacheStore.java
+----
+public class SmartCacheStore<K, V>
+        implements BinaryEntryStore<K, V>
+    {
+    private final BinaryEntryStore<K, V> delegate;
+
+    public SmartCacheStore(CacheStore<K, V> delegate)
+        {
+        this.delegate = new WrapperBinaryEntryStore<>(Objects.requireNonNull(delegate));  // <1>
+        }
+
+    @Override
+    public void store(BinaryEntry<K, V> entry)                                            // <2>
+        {
+        if (shouldStore(entry))
+            {
+            delegate.store(entry);
+            }
+        }
+
+    @Override
+    public void storeAll(Set<? extends BinaryEntry<K, V>> entries)                        // <3>
+        {
+        Set<? extends BinaryEntry<K, V>> entriesToStore = entries.stream()
+                .filter(this::shouldStore)
+                .collect(Collectors.toSet());
+
+        if (entriesToStore.size() > 0)
+            {
+            delegate.storeAll(entriesToStore);
+            }
+        }
+
+    private boolean shouldStore(BinaryEntry<K, V> entry)                                  // <4>
+        {
+        return !ExternalizableHelper.isDecorated(entry.getBinaryValue(), ExternalizableHelper.DECO_APP_1);
+        }
+
+    // other BinaryEntryStore omitted...
+    }
+----
+
+<1> The delegate `CacheStore` passed to the constructor is wrapped in a `WrapperBinaryEntryStore` to make it look like a `BinaryEntryStore` that the `SmartCacheStore` can delegate to.
+<2> The `store` method is passed the `BinaryEntry` to be stored. To check whether the delegate should be called, it calls the `shouldStore` method. If `shouldStore` returns `true` the delegate is called to store the entry.
+<3> The `storeAll` method is similar to the `store` method, but is passed a `Set` of entries to store. The set is filtered to create a new `Set` containing only entries that should be stored. If there are any entries to store the delegate is called.
+<4> The `shouldStore` method checks to see whether an entry should be stored. The `Binary` value is obtained from the `BinaryEntry` and checked to see whether the `ExternalizableHelper.DECO_APP_1` decoration is present.
+
+==== Loading Decorated Binary Values
+
+Now we have a `SmartCacheStore` that only stores non-decorated values, how do we load decorated `Binary` values into a cache?
+
+This example only works on a cluster member, because it requires access to the server side cache service that the cache being loaded is using. This will allow the preloader to create serialized `Binary` keys and values using the correct serilzation method for the cache.
+
+*Obtain a Binary NamedMap or NamedCache*
+
+The usual way to obtain a `NamedMap` (or `NamedCache`) from a Coherence `Session` is to just call `session.getMap(cacheName);` but the `getMap()` and `getCache()` method allow options to be passed in to control the cache returned. One of these is the `WithClassLoader` option, that takes a `ClassLoader`. Coherence has a special class loader obtained from `com.tangosol.util.NullImplementation.getClassLoader()`. If this is used, the cache returned is a binary cache, this means that values passed to methods such as `get`, `put`, putAll` etc., must be instances of `Binary`, i.e. a binary cache gives access to the actual serialized data in the cache.
+
+
+The code below gets the normal "customers" cache, with `Integer` keys and `Customer` values.
+
+[source,java]
+----
+NamedMap<Integer, Customer> namedMap = session.getMap("customers");
+----
+
+Whereas the code below gets the same "customers" cache but with `Binary` keys (serializer `Integer` instances in this example) and `Binary` values (serialized `Customer` instances in this example).
+
+[source,java]
+----
+NamedMap<Binary, Binary> namedMap = session.getMap("customers",
+        WithClassLoader.using(NullImplementation.getClassLoader()));
+----
+
+
+*Load Data to a Binary NamedMap or NamedCache*
+
+Now we can obtain a binary cache to use to load decorated binary values, we can put everything together to load data from the data source, convert it to decorated binaty values, and call `putAll`.
+
+The method below from the `AbstractBinaryJdbcPreloadTask` class in the example source loads a batch of decorated values into a cache.  The method is passed a batch of values to load (in a `Map`), and a binary `NamedMap` to load the batch of data into,
+
+[source,java]
+.AbstractBinaryJdbcPreloadTask.java
+----
+private void load(Map<K, V> batch, NamedMap<Binary, Binary> namedMap)
+    {
+    BackingMapManagerContext context = namedMap.getService().getBackingMapManager().getContext(); // <1>
+    Converter<K, Binary> keyConverter = context.getKeyToInternalConverter();                      // <2>
+    Converter<V, Binary> valueConverter = context.getValueToInternalConverter();                  // <3>
+
+    Map<Binary, Binary> decoratedBatch = new HashMap<>();                                         // <4>
+    for (Map.Entry<K, V> entry : batch.entrySet())
+        {
+        Binary binary = valueConverter.convert(entry.getValue());                                 // <5>
+        Binary decorated = ExternalizableHelper.decorate(binary, decorationId, Binary.NO_BINARY);
+        decoratedBatch.put(keyConverter.convert(entry.getKey()), decorated);                      // <6>
+        }
+
+    namedMap.putAll(decoratedBatch);    // <7>
+    batch.clear();
+    }
+----
+
+<1> First the `BackingMapManagerContext` is obtained from the `NamedMap`. This will allow access to the converters to use to serialize the keys and values into `Binary` values.
+<2> Obtain the key converter to serialize keys to `Binary`. Coherence uses different converters to serialize the key and value, because different logic is used internally to decorate a serialized key. If a key is converted to a `Binary` incorrectly it will not be possible to get the value back out again with something like a `get()` call.
+<3> Obtain the converter to use to serialize values to `Binary`
+<4> Create a `Map` to hold the `Binary` keys and value we will put into the cache, them iterate over the values in the batch.
+<5> Convert the value to a `Binary` and add the decoration to it.
+<6> Put the serialized key and decorated value into the `decoratedBatch` map
+<7> After converting all th keys and value to `Binary` keys and decorated `Binary` values the map of binaries can be passed to the `namedMap.putAll` method. As all the data is already serialized, Coherence will send it unchanged to the storage enabled cluster members that own those entries.
+
+
+The `SmartCacheStore` works around the caveats of a `ControllableCacheStore`
+
+* As the decoration on the value controls whether it is written, this method will work with write-behind.
+* There is no need to turn on or off the cache stores
+* If application code updates caches during the preload, those updated values will not be decorated and will be stored by the cache store
+* If a new cluster member joins and becomes the owner of a number of entries, those entries will still have the decoration present and will not be written by the cache store.
+
+
+//=== Synthetic Puts
+//
+//Another solution would be for the putAll operation used by the preloader to be a synthetic operation.
+//When using an `EntryProcessor` to update or delete an entry in a cache, the operation can be marked as synthetic. A synthetic operation is one that it will not cause cache events to fire, or cause `CacheStores` to be called. At the time of writing this example, there is no way to perform a synthetic putAll on a cache outside an `EntryProcessor`. It is possible to write reasonably efficient code that performs the equivalent of a synthetic putAll using an `EntryProcessor`, where the entries are split into batches by owning cache partition, this is more complex code that shown in the other options. If not having cache events fired during the preload is ok, then a synthetic putAll may be a valid solution. This option will only work on a cluster member, not over Extend, as an Extend client cannot work out a partition owner.
+//
+// ToDo...
+
+=== Summary
+
+This guide has shown a few solutions to the preload use case.
+Which one is suitable depends on your applications requirements.
+The example code has been built in such a way that it can be taken as a starting framework for a preloader and controllable/smart cache stores and expanded to suit application use cases.
+

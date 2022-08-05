@@ -18,6 +18,7 @@ engine:
       version-coherence: "${project.version.official}"
       version-commercial-docs: "14.1.1.2206"
       version-helidon: "${helidon.version}"
+      github-source-root: "github.com/oracle/coherence/tree/master/prj"
 assets:
   - target: "/"
     includes:
@@ -37,6 +38,8 @@ pages:
       excludes:
         - "examples/HOW_TO_WRITE_GUIDES.adoc"
         - "examples/guides/README.adoc"
+        - "examples/guides/999-standalone/**/*.adoc"
+        - "examples/internal/**/*.adoc"
         - "examples/tutorials/README.adoc"
         - "examples/miscellaneous/README.adoc"
 backend:

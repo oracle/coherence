@@ -40,6 +40,7 @@
     <module>guides/142-server-events</module>
     <module>guides/145-durable-events</module>
     <module>guides/190-cache-stores</module>
+    <module>guides/195-bulk-loading-caches</module>
     <module>guides/200-federation</module>
     <module>guides/210-ssl</module>
     <module>guides/460-topics</module>
