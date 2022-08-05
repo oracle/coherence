@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.providers;
 
@@ -14,20 +14,20 @@ import java.io.IOException;
 
 import java.security.Principal;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
 
-import javax.ws.rs.container.PreMatching;
+import jakarta.ws.rs.container.PreMatching;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.Provider;
 
 /**
  * Simple authentication filter.
@@ -44,7 +44,7 @@ import javax.ws.rs.ext.Provider;
 public class SecurityFilter implements ContainerRequestFilter
     {
     @Inject
-    javax.inject.Provider<UriInfo> uriInfo;
+    jakarta.inject.Provider<UriInfo> uriInfo;
 
     @Override
     public void filter(ContainerRequestContext filterContext) throws IOException

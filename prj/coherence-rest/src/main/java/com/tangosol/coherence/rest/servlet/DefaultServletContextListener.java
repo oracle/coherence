@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.servlet;
 
@@ -28,7 +28,7 @@ import javax.servlet.ServletContextListener;
  *     &lt;servlet-name&gt;Coherence REST&lt;/servlet-name&gt;
  *     &lt;servlet-class&gt;org.glassfish.jersey.servlet.ServletContainer&lt;/servlet-class&gt;
  *     &lt;init-param&gt;
- *       &lt;param-name&gt;javax.ws.rs.Application&lt;/param-name&gt;
+ *       &lt;param-name&gt;jakarta.ws.rs.Application&lt;/param-name&gt;
  *       &lt;param-value&gt;com.tangosol.coherence.rest.server.DefaultResourceConfig&lt;/param-value&gt;
  *     &lt;/init-param&gt;
  *     &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;

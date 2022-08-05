@@ -17,7 +17,7 @@ package com.oracle.coherence.io.json.genson.reflect;
 
 import com.oracle.coherence.io.json.genson.annotation.JsonIgnore;
 
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 import java.util.HashMap;
 import java.util.Map;
 

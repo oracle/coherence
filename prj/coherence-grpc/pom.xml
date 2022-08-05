@@ -26,8 +26,6 @@
 
   <properties>
     <module.name>com.oracle.coherence.grpc</module.name>
-    <!-- override dependent version -->
-    <jakarta.inject.version>1.0</jakarta.inject.version>
   </properties>
 
   <dependencies>
@@ -105,6 +103,11 @@
     </dependency>
 
     <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
     </dependency>
@@ -146,6 +149,30 @@
             io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
           </pluginArtifact>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>maven-replacer-plugin</artifactId>
+        <version>1.4.1</version>
+        <executions>
+          <execution>
+            <id>filter-javax</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <file>target/generated-sources/protobuf/grpc-java/com/oracle/coherence/grpc/NamedCacheServiceGrpc.java</file>
+              <replacements>
+                <replacement>
+                  <token>javax.annotation</token>
+                  <value>jakarta.annotation</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- we deploy this module to a Maven repository -->

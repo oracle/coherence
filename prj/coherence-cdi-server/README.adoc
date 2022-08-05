@@ -2,7 +2,7 @@
     Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence CDI
 
@@ -81,7 +81,7 @@ In order to inject an instance of a `NamedMap` into your CDI bean, you simply ne
 
 [source,java]
 ----
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private NamedMap<Long, Person> people;
@@ -94,7 +94,7 @@ If that's not the case, you can use `@Name` qualifier to specify the name of the
 [source,java]
 ----
 import com.oracle.coherence.cdi.Name;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @Name("people")
@@ -106,7 +106,7 @@ This is also what you have to do if you are using constructor injection or sette
 [source,java]
 ----
 import com.oracle.coherence.cdi.Name;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 public MyClass(@Name("people") NamedMap<Long, Person> people) {
@@ -129,7 +129,7 @@ that will be used to supply the cache or map:
 [source,java]
 ----
 import com.oracle.coherence.cdi.SessionName;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @SessionName("Products")
@@ -146,7 +146,7 @@ respectively, in order to inject  asynchronous variant of those APIs:
 [source,java]
 ----
 import com.oracle.coherence.cdi.SessionName;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private AsyncNamedMap<Long, Person> people;
@@ -163,7 +163,7 @@ You can also inject *views*, by simply adding `View` qualifier to either `NamedM
 [source,java]
 ----
 import com.oracle.coherence.cdi.View;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @View
@@ -184,7 +184,7 @@ If you want to limit the data in the view to a subset, you can implement a <<fil
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.View;
 import com.oracle.coherence.cdi.WhereFilter;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @View
@@ -212,7 +212,7 @@ In that case, you can implement a custom <<custom-extractor,ExtractorBinding>> (
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.View;
 import com.oracle.coherence.cdi.PropertyExtractor;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @View
@@ -232,7 +232,7 @@ In order to inject an instance of a `NamedTopic` into your CDI bean, you simply 
 [source,java]
 ----
 import com.tangosol.net.NamedTopic;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private NamedTopic<Order> orders;
@@ -246,7 +246,7 @@ If that's not the case, you  can use `@Name` qualifier to specify the name of th
 ----
 import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedTopic;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @Name("orders")
@@ -259,7 +259,7 @@ This is also what you have to do if you are using constructor or setter injectio
 ----
 import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedTopic;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 public MyClass(@Name("orders") NamedTopic<Order> orders) {
@@ -283,7 +283,7 @@ that will be used to supply the topic:
 ----
 import com.oracle.coherence.cdi.SessionName;
 import com.tangosol.net.NamedTopic;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @SessionName("Finance")
@@ -303,7 +303,7 @@ This can be easily accomplished by replacing `NamedTopic<T>` in any of the examp
 ----
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.SessionName;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private Publisher<Order> orders;
@@ -323,7 +323,7 @@ or `Subscriber<T>`:
 ----
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.SessionName;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private Subscriber<Order> orders;
@@ -347,7 +347,7 @@ queue), you can easily accomplish that by adding `@SubscriberGroup` qualifier to
 [source,java]
 ----
 import com.oracle.coherence.cdi.SubscriberGroup;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @SubscriberGroup("orders-queue")
@@ -369,7 +369,7 @@ If you need an instance of a `Cluster` interface somewhere in your application, 
 [source,java]
 ----
 import com.tangosol.net.Cluster;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private Cluster cluster;
@@ -380,7 +380,7 @@ You can do the same if you need an instance of an `OperationalContext`:
 [source,java]
 ----
 import com.tangosol.net.OperationalContext;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private OperationalContext ctx;
@@ -400,7 +400,7 @@ For example:
 [source,java]
 ----
 import com.oracle.coherence.cdi.SessionInitializer;
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class MySession
@@ -424,8 +424,8 @@ For example:
 import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
 @ApplicationScoped
 @Named("Foo")
@@ -445,7 +445,7 @@ class which needs to use it:
 [source,java]
 ----
 import com.tangosol.net.Session;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private Session session;
@@ -457,7 +457,7 @@ specifying the `Session` name:
 [source,java]
 ----
 import com.oracle.coherence.cdi.Name;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @Name("SessionOne")
@@ -479,7 +479,7 @@ To get a default `Serializer` for the current context class loader, you can simp
 [source,java]
 ----
 import com.tangosol.io.Serializer;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 private Serializer defaultSerializer;
@@ -491,7 +491,7 @@ can be easily accomplished using `@Name` qualifier:
 [source,java]
 ----
 import com.oracle.coherence.cdi.Name;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @Name("java")
@@ -510,8 +510,8 @@ That means that if you implemented a custom `Serializer` bean, such as:
 [source,java]
 ----
 import com.tangosol.io.Serializer;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
 @Named("json")
 @ApplicationScoped
@@ -526,7 +526,7 @@ as the named serializers defined in the operational config:
 [source,java]
 ----
 import com.oracle.coherence.cdi.Name;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @Name("json")
@@ -542,7 +542,7 @@ which uses a specific POF configuration file.
 ----
 import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.Name;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 @Inject
 @Name("pof")

@@ -2,7 +2,7 @@
  * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -21,24 +21,24 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.MapEvent;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Initialized;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized;
 
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Observes;
 
-import javax.enterprise.inject.Default;
-import javax.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.Instance;
 
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.AnnotatedType;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeShutdown;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.ProcessObserverMethod;
-import javax.enterprise.inject.spi.WithAnnotations;
+import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.AnnotatedType;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeforeShutdown;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
+import jakarta.enterprise.inject.spi.ProcessObserverMethod;
+import jakarta.enterprise.inject.spi.WithAnnotations;
 
 import java.util.ArrayList;
 import java.util.HashMap;

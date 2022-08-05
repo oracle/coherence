@@ -17,12 +17,12 @@ import com.oracle.coherence.cdi.Remote;
 import com.oracle.coherence.concurrent.atomic.LocalAtomicStampedReference;
 import com.oracle.coherence.concurrent.atomic.RemoteAtomicStampedReference;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.Typed;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Typed;
 
-import javax.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 
 /**
  * CDI producers for {@link AsyncAtomicStampedReference} values.

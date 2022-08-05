@@ -54,12 +54,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Observes;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
@@ -285,7 +285,7 @@ class CdiNamespaceHandlerIT
         private boolean activated = false;
 
         @Inject
-        private javax.enterprise.event.Event<LifecycleEvent> lifecycleEvent;
+        private jakarta.enterprise.event.Event<LifecycleEvent> lifecycleEvent;
 
         synchronized boolean isActivated()
             {
@@ -320,7 +320,7 @@ class CdiNamespaceHandlerIT
         private final Set<String> caches = new HashSet<>();
 
         @Inject
-        private javax.enterprise.event.Event<CacheLifecycleEvent> cacheLifecycleEvent;
+        private jakarta.enterprise.event.Event<CacheLifecycleEvent> cacheLifecycleEvent;
 
         synchronized boolean hasCache(String cacheName)
             {

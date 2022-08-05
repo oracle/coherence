@@ -18,8 +18,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import java.math.BigDecimal;
 
 public class JsonBuildersTest {

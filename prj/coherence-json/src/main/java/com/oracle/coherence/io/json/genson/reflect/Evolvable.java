@@ -15,7 +15,7 @@
 package com.oracle.coherence.io.json.genson.reflect;
 
 
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 import java.util.Map;
 
 /**

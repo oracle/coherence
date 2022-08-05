@@ -100,6 +100,31 @@
       </plugin>
 
       <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>maven-replacer-plugin</artifactId>
+        <version>1.4.1</version>
+        <executions>
+          <execution>
+            <id>filter-javax</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <file>target/generated-sources/protobuf/grpc-java/grpc/proxy/routeguide/RouteGuideGrpc.java</file>
+              <replacements>
+                <replacement>
+                  <token>javax.annotation</token>
+                  <value>jakarta.annotation</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
         <executions>

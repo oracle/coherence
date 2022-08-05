@@ -18,8 +18,8 @@ import io.helidon.config.Config;
 import io.helidon.config.spi.ConfigSource;
 import org.junit.jupiter.api.Test;
 
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.spi.BeanManager;
 import java.util.Collections;
 import java.util.stream.Stream;
 

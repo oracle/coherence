@@ -14,7 +14,7 @@ import io.grpc.MethodDescriptor;
 
 import io.helidon.grpc.core.MarshallerSupplier;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * gRPC Marshaller that uses POF for serialization.

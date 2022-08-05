@@ -20,6 +20,14 @@
   <artifactId>coherence-tests</artifactId>
   <name>Coherence Unit Tests</name>
 
+  <properties>
+    <surefire.modules.argline>
+      ${default.surefire.modules.argline}
+      --add-opens java.base/java.net=ALL-UNNAMED
+       --add-exports java.management/sun.management=ALL-UNNAMED
+    </surefire.modules.argline>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

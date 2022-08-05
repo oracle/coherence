@@ -17,9 +17,9 @@ import com.oracle.coherence.concurrent.locks.RemoteReadWriteLock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.oracle.coherence.concurrent.locks.internal.cdi.ReadWriteLockProducer;
 import org.jboss.weld.junit5.WeldInitiator;

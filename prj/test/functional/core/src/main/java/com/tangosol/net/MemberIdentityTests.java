@@ -22,6 +22,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.component.util.SafeCluster;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,6 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class MemberIdentityTests
     {
     @Test
+    @Ignore
     public void shouldUseSystemProperties()
         {
         try (CoherenceClusterMember member = s_platform.launch(CoherenceClusterMember.class,

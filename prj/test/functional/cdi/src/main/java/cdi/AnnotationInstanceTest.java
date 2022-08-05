@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import javax.enterprise.util.Nonbinding;
+import jakarta.enterprise.util.Nonbinding;
 
 import com.oracle.coherence.cdi.AnnotationInstance;
 import org.junit.jupiter.api.Test;

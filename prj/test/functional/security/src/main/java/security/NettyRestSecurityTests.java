@@ -18,8 +18,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;

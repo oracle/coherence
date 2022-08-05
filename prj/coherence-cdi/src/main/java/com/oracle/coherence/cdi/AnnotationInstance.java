@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -14,12 +14,12 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
 
-import javax.enterprise.util.Nonbinding;
+import jakarta.enterprise.util.Nonbinding;
 
 /**
  * A representation of an {@link Annotation} that can be used for equality tests
  * where methods in the {@link Annotation} annotated with {@link
- * javax.enterprise.util.Nonbinding} are ignored.
+ * jakarta.enterprise.util.Nonbinding} are ignored.
  *
  * @author Jonathan Knight  2019.10.24
  * @since 20.06

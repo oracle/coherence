@@ -17,7 +17,7 @@ import org.glassfish.jersey.jettison.JettisonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.management.MBeanServer;
-import javax.ws.rs.ApplicationPath;
+import jakarta.ws.rs.ApplicationPath;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

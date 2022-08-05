@@ -43,13 +43,13 @@ import org.junit.jupiter.api.Test;
 
 import com.oracle.coherence.testing.util.EventsHelper;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Observes;
 
-import javax.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.spi.CDI;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.Collections;

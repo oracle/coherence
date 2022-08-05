@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +71,7 @@ class CdiMetricsRegistryAdapterIT
 
         public void register(MBeanMetric metric)
             {
+            System.out.println("### DEBUG Metric: " + metric);
             metrics.put(metric.getName(), metric.getValue());
             }
 

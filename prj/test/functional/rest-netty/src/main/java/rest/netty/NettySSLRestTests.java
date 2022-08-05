@@ -7,7 +7,7 @@
 package rest.netty;
 import rest.AbstractServerSentEventsTests;
 
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientBuilder;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

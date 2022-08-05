@@ -17,9 +17,9 @@ import com.oracle.coherence.concurrent.locks.RemoteLock;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.oracle.coherence.concurrent.locks.internal.cdi.LockProducer;
 import org.jboss.weld.junit5.WeldInitiator;

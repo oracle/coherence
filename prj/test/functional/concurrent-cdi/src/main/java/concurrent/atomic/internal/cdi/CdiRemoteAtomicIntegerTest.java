@@ -21,7 +21,7 @@ import com.oracle.coherence.cdi.SessionName;
 
 import com.tangosol.net.NamedMap;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;

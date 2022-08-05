@@ -28,14 +28,15 @@ import com.tangosol.util.MapEvent;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Event;
+import jakarta.enterprise.event.Observes;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.config.Config;
 
@@ -86,6 +87,14 @@ public class CoherenceConfigSource
         return m_configMap == null
                ? Collections.emptyMap()
                : Collections.unmodifiableMap(m_configMap);
+        }
+
+    @Override
+    public Set<String> getPropertyNames()
+        {
+        return m_configMap == null
+               ? Collections.emptySet()
+               : Collections.unmodifiableSet(m_configMap.keySet());
         }
 
     @Override

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor.internal.cdi;
 
@@ -11,12 +11,12 @@ import com.oracle.coherence.concurrent.executor.RemoteExecutor;
 
 import java.lang.reflect.Member;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.Typed;
-import javax.enterprise.inject.spi.DefinitionException;
-import javax.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Typed;
+import jakarta.enterprise.inject.spi.DefinitionException;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 
 /**
  * CDI producers for {@link RemoteExecutor}

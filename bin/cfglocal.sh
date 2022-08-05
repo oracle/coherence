@@ -1,7 +1,7 @@
 # Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+# https://oss.oracle.com/licenses/upl.
 
 #
 # This script by default uses JDK 11 and set JAVA_HOME pointing to
@@ -13,7 +13,7 @@
 # enqueue -j 17 [-c changelist]
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"
-JAVA_VERSION_TO_USE=${RBT_JV:-11}
+JAVA_VERSION_TO_USE=${RBT_JV:-17}
 
 while [ -h "${SCRIPT_PATH}" ]; do
   LS=`ls -ld "${SCRIPT_PATH}"`

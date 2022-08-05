@@ -7,7 +7,7 @@
 package com.tangosol.util.comparator;
 
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 
 import java.util.Comparator;
 import java.util.ServiceLoader;

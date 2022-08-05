@@ -21,8 +21,6 @@
 
   <properties>
     <module.name>com.oracle.coherence.helidon.grpc</module.name>
-    <!-- override dependent version -->
-    <jakarta.inject.version>1.0</jakarta.inject.version>
   </properties>
 
   <dependencies>
@@ -40,6 +38,10 @@
     <dependency>
       <groupId>io.helidon.grpc</groupId>
       <artifactId>helidon-grpc-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.config</groupId>
+      <artifactId>helidon-config-metadata</artifactId>
     </dependency>
 
     <dependency>

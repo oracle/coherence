@@ -9,7 +9,7 @@ package com.tangosol.util.comparator;
 import org.glassfish.hk2.api.AnnotationLiteral;
 import org.junit.Test;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;

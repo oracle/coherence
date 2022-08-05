@@ -22,7 +22,7 @@ import com.oracle.coherence.io.json.genson.ext.jsr353.JSR353Bundle;
 import com.oracle.coherence.io.json.genson.stream.ObjectReader;
 import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
 
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 
 import java.util.Map;
 import java.util.function.Consumer;

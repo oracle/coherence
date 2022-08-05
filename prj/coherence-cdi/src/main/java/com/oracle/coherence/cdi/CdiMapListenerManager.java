@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -13,11 +13,11 @@ import com.tangosol.net.events.partition.cache.CacheLifecycleEvent;
 
 import com.tangosol.util.MapListener;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Observes;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.concurrent.CompletableFuture;
 
 /**

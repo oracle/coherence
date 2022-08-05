@@ -17,9 +17,9 @@ import com.oracle.coherence.concurrent.atomic.RemoteAtomicInteger;
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.oracle.coherence.concurrent.atomic.internal.cdi.AtomicIntegerProducer;
 import org.jboss.weld.junit5.WeldInitiator;

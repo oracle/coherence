@@ -29,6 +29,7 @@
       --add-reads com.oracle.coherence.cdi.server=ALL-UNNAMED
       --add-reads com.oracle.coherence.mp.config=ALL-UNNAMED
       --add-opens java.base/java.lang=weld.core.impl
+      --add-opens java.base/java.lang=ALL-UNNAMED
     </failsafe.modules.argline>
   </properties>
 
@@ -48,6 +49,12 @@
     <dependency>
       <groupId>io.helidon.microprofile.metrics</groupId>
       <artifactId>helidon-microprofile-metrics</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.helidon.microprofile.weld</groupId>
+          <artifactId>weld-se-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

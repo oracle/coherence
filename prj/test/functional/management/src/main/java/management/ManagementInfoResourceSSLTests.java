@@ -17,8 +17,8 @@ import com.tangosol.run.xml.XmlHelper;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.BeforeClass;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 
 /**
  * ManagementInfoResourceSSLTests tests the ManagementInfoResource over SSL.

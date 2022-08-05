@@ -24,6 +24,8 @@ import java.util.Collection;
 import lambda.framework.LambdaTestCluster;
 
 import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -68,6 +70,13 @@ public class DoubleStreamTests
         super(fParallel);
         m_bldrSession = bldrSession;
         m_sSerializer = sSerializer;
+        }
+
+    @Test
+    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-26081")
+    public void testSummaryStatistics()
+        {
+        super.testSummaryStatistics();
         }
 
     @Override

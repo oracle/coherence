@@ -15,7 +15,7 @@
 package com.oracle.coherence.io.json.genson.ext.jsr353;
 
 
-import javax.json.*;
+import jakarta.json.*;
 
 import java.util.Collection;
 import java.util.Map;

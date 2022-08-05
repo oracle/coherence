@@ -30,6 +30,7 @@
       --add-reads com.oracle.coherence.cdi=ALL-UNNAMED
       --add-reads com.oracle.coherence.cdi.server=ALL-UNNAMED
       --add-reads io.helidon.config=ALL-UNNAMED
+      --add-reads io.helidon.config=weld.core.impl
       --add-reads io.helidon.microprofile.grpc.server=ALL-UNNAMED
       --add-opens io.helidon.microprofile.grpc.server/io.helidon.microprofile.grpc.server=weld.core.impl
       --add-opens io.helidon.microprofile.grpc.server/io.helidon.microprofile.grpc.server=io.helidon.microprofile.cdi
@@ -67,6 +68,10 @@
     <dependency>
       <groupId>jakarta.json.bind</groupId>
       <artifactId>jakarta.json.bind-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.interceptor</groupId>
+      <artifactId>jakarta.interceptor-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.glassfish</groupId>

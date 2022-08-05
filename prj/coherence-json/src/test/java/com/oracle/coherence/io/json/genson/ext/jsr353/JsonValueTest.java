@@ -14,7 +14,7 @@
 
 package com.oracle.coherence.io.json.genson.ext.jsr353;
 
-import javax.json.*;
+import jakarta.json.*;
 
 import com.oracle.coherence.io.json.genson.GensonBuilder;
 import com.oracle.coherence.io.json.genson.stream.ValueType;

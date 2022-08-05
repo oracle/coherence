@@ -20,6 +20,13 @@
   <artifactId>osgi</artifactId>
   <name>Coherence OSGI Tests</name>
   <packaging>jar</packaging>
+ 
+  <properties>
+    <surefire.modules.argline>
+      ${default.surefire.modules.argline}
+      --add-opens java.base/java.net=ALL-UNNAMED
+    </surefire.modules.argline>
+  </properties>
 
   <dependencies>
     <dependency>

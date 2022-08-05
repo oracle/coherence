@@ -19,6 +19,8 @@ import data.pof.Person;
 import lambda.framework.LambdaTestCluster;
 
 import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -54,6 +56,27 @@ public class ExtendStreamTests
         {
         super(fParallel);
         m_sSerializer = sSerializer;
+        }
+
+    @Test
+    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-26081")
+    public void testSummarizingIntCollector()
+        {
+        super.testSummarizingIntCollector();
+        }
+
+    @Test
+    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-26081")
+    public void testSummarizingLongCollector()
+        {
+        super.testSummarizingLongCollector();
+        }
+
+    @Test
+    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-26081")
+    public void testSummarizingDoubleCollector()
+        {
+        super.testSummarizingDoubleCollector();
         }
 
     @Override

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.helidon.client;
@@ -17,15 +17,15 @@ import com.oracle.coherence.common.base.Exceptions;
 
 import com.tangosol.net.Session;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Initialized;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized;
 
-import javax.enterprise.event.Observes;
+import jakarta.enterprise.event.Observes;
 
-import javax.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Instance;
 
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.Extension;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

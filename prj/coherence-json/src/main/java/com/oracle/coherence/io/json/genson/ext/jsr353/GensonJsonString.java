@@ -15,7 +15,7 @@
 package com.oracle.coherence.io.json.genson.ext.jsr353;
 
 
-import javax.json.JsonString;
+import jakarta.json.JsonString;
 
 class GensonJsonString implements JsonString {
   private final String value;

@@ -10,9 +10,9 @@ import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.concurrent.executor.RemoteExecutor;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.oracle.coherence.concurrent.executor.internal.cdi.RemoteExecutorProducer;
 import org.jboss.weld.junit5.WeldInitiator;

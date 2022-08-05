@@ -22,14 +22,14 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map.Entry;
 
-import javax.json.JsonArray;
-import javax.json.JsonException;
-import javax.json.JsonNumber;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
-import javax.json.stream.JsonGenerationException;
-import javax.json.stream.JsonGenerator;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonException;
+import jakarta.json.JsonNumber;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
+import jakarta.json.stream.JsonGenerationException;
+import jakarta.json.stream.JsonGenerator;
 
 import com.oracle.coherence.io.json.genson.stream.JsonStreamException;
 import com.oracle.coherence.io.json.genson.stream.JsonType;
@@ -196,28 +196,28 @@ public class GensonJsonGenerator implements JsonGenerator {
 
   @Override
   public JsonGenerator write(JsonValue value) {
-    javax.json.JsonValue.ValueType type = value.getValueType();
-    if (javax.json.JsonValue.ValueType.ARRAY == type) {
+    jakarta.json.JsonValue.ValueType type = value.getValueType();
+    if (jakarta.json.JsonValue.ValueType.ARRAY == type) {
       writeStartArray();
       JsonArray array = (JsonArray) value;
       for (JsonValue elem : array)
         write(elem);
       writeEnd();
-    } else if (javax.json.JsonValue.ValueType.OBJECT == type) {
+    } else if (jakarta.json.JsonValue.ValueType.OBJECT == type) {
       writeStartObject();
       JsonObject object = (JsonObject) value;
       for (Entry<String, JsonValue> entry : object.entrySet())
         write(entry.getKey(), entry.getValue());
       writeEnd();
-    } else if (javax.json.JsonValue.ValueType.FALSE == type) {
+    } else if (jakarta.json.JsonValue.ValueType.FALSE == type) {
       write(false);
-    } else if (javax.json.JsonValue.ValueType.TRUE == type) {
+    } else if (jakarta.json.JsonValue.ValueType.TRUE == type) {
       write(true);
-    } else if (javax.json.JsonValue.ValueType.NULL == type) {
+    } else if (jakarta.json.JsonValue.ValueType.NULL == type) {
       writeNull();
-    } else if (javax.json.JsonValue.ValueType.STRING == type) {
+    } else if (jakarta.json.JsonValue.ValueType.STRING == type) {
       write(((JsonString) value).getString());
-    } else if (javax.json.JsonValue.ValueType.NUMBER == type) {
+    } else if (jakarta.json.JsonValue.ValueType.NUMBER == type) {
       JsonNumber num = (JsonNumber) value;
       if (num.isIntegral()) write(num.bigIntegerValueExact());
       else write(num.bigDecimalValue());

@@ -2800,13 +2800,13 @@
 
                 The context-path element provides the base URI path for this
                 REST application. When the optional context-path element is not present,
-                an <tt>javax.ws.rs.ApplicationPath</tt> annotation on the
+                an <tt>jakarta.ws.rs.ApplicationPath</tt> annotation on the
                 REST application class declaration provides an application-specific
                 default context-path.
 
                 If no resource-config child element is present in an http-acceptor
                 element, then all REST applications implementing
-                <tt>javax.ws.rs.core.Application</tt> on the classpath are discovered
+                <tt>jakarta.ws.rs.core.Application</tt> on the classpath are discovered
                 and loaded. Coherence Cache REST API is discovered in class
                 <tt>com.tangosol.coherence.rest.server.DefaultResourceConfig</tt> and has a
                 <tt>ApplicationPath</tt> annotation of "/api".

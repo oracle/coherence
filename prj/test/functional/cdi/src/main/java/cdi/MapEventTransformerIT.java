@@ -30,11 +30,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.util.Nonbinding;
+import jakarta.enterprise.util.Nonbinding;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;

@@ -15,7 +15,7 @@ import com.tangosol.net.options.WithConfiguration;
 
 import org.junit.Test;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

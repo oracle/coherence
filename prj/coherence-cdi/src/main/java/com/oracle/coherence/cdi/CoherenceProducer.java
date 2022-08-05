@@ -14,18 +14,18 @@ import com.tangosol.net.SessionConfiguration;
 
 import com.tangosol.net.events.NamedEventInterceptor;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
 
-import javax.enterprise.inject.literal.NamedLiteral;
+import jakarta.enterprise.inject.literal.NamedLiteral;
 
-import javax.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeanManager;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import java.util.List;
 

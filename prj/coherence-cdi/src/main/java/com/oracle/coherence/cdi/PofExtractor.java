@@ -9,7 +9,7 @@ package com.oracle.coherence.cdi;
 import com.tangosol.io.pof.generator.PortableTypeGenerator;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
-import javax.enterprise.util.Nonbinding;
+import jakarta.enterprise.util.Nonbinding;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;

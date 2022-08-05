@@ -21,8 +21,6 @@
 
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy</module.name>
-    <!-- override dependent version -->
-    <jakarta.inject.version>1.0</jakarta.inject.version>
   </properties>
 
   <dependencies>

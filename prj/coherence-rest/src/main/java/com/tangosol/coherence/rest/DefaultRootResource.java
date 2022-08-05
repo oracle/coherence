@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest;
 
@@ -17,11 +17,11 @@ import com.tangosol.coherence.rest.server.InjectionBinder;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
 import org.glassfish.hk2.api.ServiceLocator;
 

@@ -15,14 +15,14 @@ import com.tangosol.coherence.rest.events.SimpleMapEvent;
 
 import com.tangosol.net.NamedCache;
 
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 
 import rest.data.Persona;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.client.WebTarget;
+import jakarta.ws.rs.client.WebTarget;
 
 import org.glassfish.jersey.media.sse.EventSource;
 import org.glassfish.jersey.media.sse.InboundEvent;

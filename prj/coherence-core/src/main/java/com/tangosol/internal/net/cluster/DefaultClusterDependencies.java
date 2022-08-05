@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * DefaultClusterDependencies is a base implementation for ClusterDependencies.

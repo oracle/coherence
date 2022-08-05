@@ -26,7 +26,7 @@ import io.helidon.grpc.core.MarshallerSupplier;
 import java.io.DataInputStream;
 import java.io.InputStream;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * gRPC {@code Marshaller} implementation that delegates to the specified {@link

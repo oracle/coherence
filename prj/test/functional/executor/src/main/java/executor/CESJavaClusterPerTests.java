@@ -35,6 +35,7 @@ import executor.common.LogOutput;
 import executor.common.NewClusterPerTest;
 
 import java.io.File;
+import org.junit.Ignore;
 import org.junit.Rule;
 
 import org.junit.experimental.categories.Category;
@@ -47,6 +48,7 @@ import org.junit.experimental.categories.Category;
  * @since 21.12
  */
 @Category(NewClusterPerTest.class)
+@Ignore
 public class CESJavaClusterPerTests
         extends AbstractCESClusterPerTests
     {

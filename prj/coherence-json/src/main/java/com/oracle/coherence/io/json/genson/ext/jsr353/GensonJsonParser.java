@@ -19,10 +19,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.NoSuchElementException;
 
-import javax.json.JsonException;
-import javax.json.stream.JsonLocation;
-import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParsingException;
+import jakarta.json.JsonException;
+import jakarta.json.stream.JsonLocation;
+import jakarta.json.stream.JsonParser;
+import jakarta.json.stream.JsonParsingException;
 
 import com.oracle.coherence.io.json.genson.stream.JsonStreamException;
 import com.oracle.coherence.io.json.genson.stream.JsonType;

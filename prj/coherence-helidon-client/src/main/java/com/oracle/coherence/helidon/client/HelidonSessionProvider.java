@@ -21,8 +21,8 @@ import io.grpc.Channel;
 
 import io.helidon.config.Config;
 
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.CDI;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.CDI;
 
 import java.util.Map;
 import java.util.Optional;

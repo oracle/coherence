@@ -9,7 +9,7 @@ package com.oracle.coherence.cdi.server;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 
-import javax.enterprise.inject.se.SeContainerInitializer;
+import jakarta.enterprise.inject.se.SeContainerInitializer;
 
 /**
  * This class bootstraps the CDI container, which will in turn start Coherence

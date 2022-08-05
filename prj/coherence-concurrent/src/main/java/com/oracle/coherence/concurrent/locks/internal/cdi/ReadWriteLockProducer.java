@@ -15,12 +15,12 @@ import com.oracle.coherence.concurrent.locks.Locks;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.Typed;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Typed;
 
-import javax.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 
 /**
  * CDI producers for {@link ReadWriteLock} values.

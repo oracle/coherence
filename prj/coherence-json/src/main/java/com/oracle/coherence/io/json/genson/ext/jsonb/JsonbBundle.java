@@ -18,9 +18,9 @@ import com.oracle.coherence.io.json.genson.GensonBuilder;
 
 import com.oracle.coherence.io.json.genson.ext.GensonBundle;
 
-import javax.json.bind.annotation.JsonbCreator;
-import javax.json.bind.annotation.JsonbProperty;
-import javax.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 import static com.oracle.coherence.io.json.genson.reflect.PropertyNameResolver.AnnotationPropertyNameResolver;
 import static com.oracle.coherence.io.json.genson.reflect.BeanMutatorAccessorResolver.AnnotationPropertyResolver;

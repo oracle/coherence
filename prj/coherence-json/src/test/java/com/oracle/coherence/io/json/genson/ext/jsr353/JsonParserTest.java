@@ -21,9 +21,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import javax.json.*;
-import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParser.Event;
+import jakarta.json.*;
+import jakarta.json.stream.JsonParser;
+import jakarta.json.stream.JsonParser.Event;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

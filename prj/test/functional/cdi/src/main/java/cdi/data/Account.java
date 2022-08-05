@@ -15,10 +15,10 @@ import com.tangosol.io.pof.PortableObject;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Event;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A simple class representing a bank account that can be used in tests requiring

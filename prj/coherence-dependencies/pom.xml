@@ -27,7 +27,7 @@
 
   <organization>
     <name>Oracle</name>
-    <url>http://www.oracle.com</url>
+    <url>https://www.oracle.com</url>
   </organization>
 
   <scm>
@@ -106,6 +106,9 @@
     <failsafe.modules.argline/>
     <failsafe.coverage.argline/>
 
+    <default.surefire.modules.argline/>
+    <surefire.modules.argline/>
+
     <!--
     These are extra args added to the jdeps command used by Moditect when running the code coverage build.
     We would ideally have had an empty property here, but Moditect blows up with an empty extraArgs parameter,
@@ -128,7 +131,7 @@
      <maven.exec.plugin.version>1.4.0</maven.exec.plugin.version>
      <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
      <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
-     <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
+     <maven.gmaven.plugin.version>1.13.1</maven.gmaven.plugin.version>
      <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
      <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
      <maven.install.plugin.version>2.5.1</maven.install.plugin.version>
@@ -160,9 +163,9 @@
     <codemodel.version>2.6</codemodel.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
-    <eclipse.mp.config.version>1.4</eclipse.mp.config.version>
+    <eclipse.mp.config.version>3.0.1</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
-    <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
+    <eclipse.mp.metrics.version>4.0</eclipse.mp.metrics.version>
     <felix.version>6.0.4</felix.version>
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
     <glassfish.el.version>3.0.1-b08</glassfish.el.version>
@@ -177,34 +180,38 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>2.5.1</helidon.version>
+    <helidon.version>3.0.0</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
-    <jackson.version>2.13.2</jackson.version>
-    <jackson.databind.version>2.13.2.1</jackson.databind.version>
+    <groovy.version>3.0.12</groovy.version>
+    <jackson.version>2.13.3</jackson.version>
+    <jackson.databind.version>2.13.3</jackson.databind.version>
     <jacoco.version>0.8.8</jacoco.version>
     <jaeger.version>1.6.0</jaeger.version>
-    <jakarta.activation.version>1.2.2</jakarta.activation.version>
-    <jakarta.annotation.version>1.3.5</jakarta.annotation.version>
-    <jakarta.enterprise.cdi.version>2.0.2</jakarta.enterprise.cdi.version>
-    <jakarta.inject.version>1.0</jakarta.inject.version>
-    <jakarta.jms.version>2.0.3</jakarta.jms.version>
-    <jakarta.json.version>1.1.6</jakarta.json.version>
-    <jakarta.json.bind.version>1.0.2</jakarta.json.bind.version>
-    <jakarta.json.impl.version>1.1.6</jakarta.json.impl.version>
-    <jakarta.resource.version>1.7.4</jakarta.resource.version>
+    <!-- NOTE: these Jakarta versions should ideally be in sync' with that used by Helidon -->
+    <jakarta.activation.version>2.0.1</jakarta.activation.version>
+    <jakarta.annotation.version>2.0.0</jakarta.annotation.version>
+    <jakarta.enterprise.cdi.version>3.0.0</jakarta.enterprise.cdi.version>
+    <jakarta.inject.version>2.0.1</jakarta.inject.version>
+    <jakarta.interceptor.version>2.0.0</jakarta.interceptor.version>
+    <jakarta.jms.version>3.0.0</jakarta.jms.version>
+    <jakarta.json.version>2.0.2</jakarta.json.version>
+    <jakarta.json.bind.version>2.0.0</jakarta.json.bind.version>
+    <jakarta.json.impl.version>2.0.1</jakarta.json.impl.version>
+    <jakarta.resource.version>2.0.0</jakarta.resource.version>
     <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
     <jakarta.servlet.jsp.version>2.3.6</jakarta.servlet.jsp.version>
-    <jakarta.ws.rs.version>2.1.6</jakarta.ws.rs.version>
-    <jakarta.xml.bind.version>2.3.3</jakarta.xml.bind.version>
+    <jakarta.ws.rs.version>3.0.0</jakarta.ws.rs.version>
+    <jakarta.xml.bind.version>3.0.1</jakarta.xml.bind.version>
     <jandex.version>2.4.2.Final</jandex.version>
     <javax.cache.version>1.1.1</javax.cache.version>
     <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
-    <jaxb-core.version>2.3.0.1</jaxb-core.version>
-    <jaxb-impl.version>2.3.5</jaxb-impl.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
+    <jaxb-core.version>3.0.2</jaxb-core.version>
+    <jaxb-impl.version>3.0.2</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>2.35</jersey.version>
+    <jersey.version>3.0.5</jersey.version>
     <jettison.version>1.4.1</jettison.version>
     <jline.version>3.20.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
@@ -225,8 +232,9 @@
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
     <slf4j.version>1.7.36</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
-    <weld.version>3.1.6.Final</weld.version>
-    <weld-junit.version>2.0.1.Final</weld-junit.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
+    <weld.version>4.0.3.Final</weld.version>
+    <weld-junit.version>3.1.0.Final</weld-junit.version>
 
     <!-- commercial dependencies   -->
 
@@ -440,7 +448,7 @@
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-module-jaxb-annotations</artifactId>
+        <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
         <version>${jackson.version}</version>
         <!-- exclude conflicting dependency on older version of jackson
              than ${jackson.version} and ${jackson.databind.version} -->
@@ -482,6 +490,13 @@
         <groupId>jakarta.resource</groupId>
         <artifactId>jakarta.resource-api</artifactId>
         <version>${jakarta.resource.version}</version>
+      </dependency>
+
+      <!-- Jakarta Interceptors -->
+      <dependency>
+        <groupId>jakarta.interceptor</groupId>
+        <artifactId>jakarta.interceptor-api</artifactId>
+        <version>${jakarta.interceptor.version}</version>
       </dependency>
 
       <!-- javax.cache -->
@@ -547,7 +562,7 @@
           </exclusion>
           <exclusion>
             <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-jaxb-annotations</artifactId>
+            <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -1022,8 +1037,8 @@
 
         <!-- gmaven-plugin -->
         <plugin>
-          <groupId>org.codehaus.gmaven</groupId>
-          <artifactId>gmaven-plugin</artifactId>
+          <groupId>org.codehaus.gmavenplus</groupId>
+          <artifactId>gmavenplus-plugin</artifactId>
           <version>${maven.gmaven.plugin.version}</version>
           <executions>
             <execution>
@@ -1033,8 +1048,8 @@
                 <goal>execute</goal>
               </goals>
               <configuration>
-                <providerSelection>${maven.gmaven.providerSelection.version}</providerSelection>
-                <source>
+                <scripts>
+                <script><![CDATA[
 
                   import java.nio.file.Files
                   import java.nio.file.Path
@@ -1068,8 +1083,8 @@
                       }
 
                   // project version properties 20.06 | 20.06.1
-                  matcher = project.version =~ /^(\\d+)\\.(\\d+)\\.*(\\d*)-*(.*)/
-                  matcher.matches()
+                  matcher = project.version =~ /^(\d+)\.(\d+)\.*(\d*)-*(.*)/
+                  assert matcher.matches()
 
                   // version components
                   result = matcher.toMatchResult()
@@ -1132,11 +1147,20 @@
                           props.setProperty("java.home.path",
                                   Paths.get(javaHome, "..").toFile().getCanonicalPath())
                           }
-                      }
-                </source>
+                      }]]>
+                </script>
+                </scripts>
               </configuration>
             </execution>
           </executions>
+          <dependencies>
+            <dependency>
+              <groupId>org.codehaus.groovy</groupId>
+              <artifactId>groovy-all</artifactId>
+              <version>${groovy.version}</version>
+              <type>pom</type>
+            </dependency>
+          </dependencies>
         </plugin>
 
         <plugin>
@@ -1502,7 +1526,7 @@
               <exclude>**/Abstract*Test.java</exclude>
               <exclude>**/**PerformanceTest.java</exclude>
             </excludes>
-            <argLine>${surefire.argLine} ${surefire.coverage.argline}</argLine>
+            <argLine>${surefire.argLine} ${surefire.coverage.argline} ${surefire.modules.argline}</argLine>
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>

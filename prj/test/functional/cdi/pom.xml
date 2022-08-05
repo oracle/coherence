@@ -49,6 +49,10 @@
       <groupId>jakarta.inject</groupId>
       <artifactId>jakarta.inject-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>jakarta.interceptor</groupId>
+      <artifactId>jakarta.interceptor-api</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>

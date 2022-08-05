@@ -2,13 +2,13 @@
  * Copyright (c) 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.http;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -17,7 +17,7 @@ import org.glassfish.jersey.server.ResourceConfig;
  * should be deployed to {@code http-acceptor} via {@code ServiceLoader}.
  * <p/>
  * This interface should only be implemented by the classes that extend
- * {@link Application javax.ws.rs.core.Application} either directly, or
+ * {@link Application jakarta.ws.rs.core.Application} either directly, or
  * indirectly (typically by extending Jersey {@link ResourceConfig}).
  *
  * @author Aleks Seovic  2022.04.13

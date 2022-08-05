@@ -14,8 +14,8 @@ import com.oracle.coherence.common.base.Logger;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.WebTarget;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.WebTarget;
 import java.net.URI;
 
 import static org.hamcrest.CoreMatchers.is;

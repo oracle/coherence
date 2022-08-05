@@ -17,9 +17,9 @@ import com.oracle.coherence.concurrent.RemoteSemaphore;
 
 import com.oracle.coherence.concurrent.cdi.Permits;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.oracle.coherence.concurrent.internal.cdi.SemaphoreProducer;
 import org.jboss.weld.junit5.WeldInitiator;

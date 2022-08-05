@@ -19,9 +19,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonWriter;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 

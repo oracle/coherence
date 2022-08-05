@@ -247,8 +247,8 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.gmaven</groupId>
-        <artifactId>gmaven-plugin</artifactId>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
       </plugin>
 
       <plugin>
@@ -876,6 +876,13 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
           --add-opens=java.base/java.lang.invoke=com.oracle.coherence
         </default.failsafe.modules.argline>
+        <default.surefire.modules.argline>
+          --add-exports java.management/sun.management=com.oracle.coherence
+          --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+          --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+        </default.surefire.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
       </properties>
       <build>

@@ -27,7 +27,7 @@ import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
 import com.oracle.coherence.io.json.genson.stream.ValueType;
 import com.oracle.coherence.io.json.internal.SerializationGate;
 import java.lang.reflect.Type;
-import javax.json.JsonValue;
+import jakarta.json.JsonValue;
 
 /**
  * Converter responsible of writing and reading @class metadata. This is useful if you want to be

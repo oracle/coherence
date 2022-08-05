@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.mp.metrics;
 
@@ -26,7 +26,7 @@ import org.eclipse.microprofile.metrics.MetricID;
 
 /**
  * Allows us to register Coherence-specific tags by augmenting the value
- * returned by the {@link MetricID#GLOBAL_TAGS_VARIABLE} config property.
+ * returned by the {@link #GLOBAL_TAGS_VARIABLE} config property.
  *
  * @author Aleks Seovic  2020.03.26
  * @since 20.06
@@ -40,7 +40,7 @@ public class CoherenceTagsConfigSource
     public Map<String, String> getProperties()
         {
         return m_fInit
-               ? Collections.singletonMap(MetricID.GLOBAL_TAGS_VARIABLE, getValue(MetricID.GLOBAL_TAGS_VARIABLE))
+               ? Collections.singletonMap(GLOBAL_TAGS_VARIABLE, getValue(GLOBAL_TAGS_VARIABLE))
                : Collections.emptyMap();
         }
 
@@ -59,7 +59,7 @@ public class CoherenceTagsConfigSource
     @Override
     public String getValue(String propertyName)
         {
-        if (!MetricID.GLOBAL_TAGS_VARIABLE.equals(propertyName))
+        if (!GLOBAL_TAGS_VARIABLE.equals(propertyName))
             {
             return null;
             }
@@ -94,7 +94,7 @@ public class CoherenceTagsConfigSource
                     ConfigBuilder builder = resolver.getBuilder();
                     Config config = builder.addDefaultSources().build();
 
-                    Optional<String> globalTags = config.getOptionalValue(MetricID.GLOBAL_TAGS_VARIABLE, String.class);
+                    Optional<String> globalTags = config.getOptionalValue(GLOBAL_TAGS_VARIABLE, String.class);
                     globalTags.ifPresent(gt -> sb.append(gt).append(','));
 
                     Cluster cluster = CacheFactory.ensureCluster();
@@ -146,10 +146,17 @@ public class CoherenceTagsConfigSource
     // ---- data members ----------------------------------------------------
 
     /**
+     * Constant for global tags variable name.
+     *
+     * @since 22.06.2
+     */
+    private static final String GLOBAL_TAGS_VARIABLE = "mp.metrics.tags";
+
+    /**
      * A set of property names managed by this config source.
      */
     private static final Set<String> PROPERTY_NAMES =
-            Collections.singleton(MetricID.GLOBAL_TAGS_VARIABLE);
+            Collections.singleton(GLOBAL_TAGS_VARIABLE);
 
     /**
      * A flag specifying whether this config source has been initialized.

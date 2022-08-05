@@ -17,7 +17,7 @@ import com.tangosol.util.ExternalizableHelper;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;

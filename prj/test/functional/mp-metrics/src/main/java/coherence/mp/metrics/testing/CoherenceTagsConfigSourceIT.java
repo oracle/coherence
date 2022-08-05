@@ -10,7 +10,6 @@ import com.oracle.coherence.mp.metrics.CoherenceTagsConfigSource;
 import org.eclipse.microprofile.metrics.MetricID;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -31,10 +30,9 @@ public class CoherenceTagsConfigSourceIT
         System.setProperty("coherence.site", "site");
         System.setProperty("coherence.role", "role");
         System.setProperty("coherence.machine", "machine");
-        System.setProperty(MetricID.GLOBAL_TAGS_VARIABLE, "tag_1=value_1,tag_2=VALUE_2");
+        System.setProperty("mp.metrics.tags", "tag_1=value_1,tag_2=VALUE_2");
         }
 
-    @Test
     void testGlobalTags()
         {
         MetricID id = new MetricID("test");

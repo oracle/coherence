@@ -16,7 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientBuilder;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 

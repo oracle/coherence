@@ -15,7 +15,7 @@
 package com.oracle.coherence.io.json.genson.ext.jsr353;
 
 
-import javax.json.JsonNumber;
+import jakarta.json.JsonNumber;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 

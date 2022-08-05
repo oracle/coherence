@@ -10,12 +10,12 @@ import com.oracle.coherence.cdi.CoherenceProducer;
 import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.Coherence;
 
-import javax.annotation.Priority;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.inject.Singleton;
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.inject.Singleton;
 
 /**
  * A bean that produces the server-side Coherence instance.

@@ -11,7 +11,7 @@ import com.oracle.coherence.concurrent.atomic.internal.cdi.AsyncAtomicIntegerPro
 import concurrent.atomic.AsyncAtomicIntegerTest;
 import com.oracle.coherence.concurrent.atomic.AsyncLocalAtomicInteger;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;

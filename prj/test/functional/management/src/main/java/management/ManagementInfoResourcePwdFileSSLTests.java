@@ -13,7 +13,7 @@ import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
 import org.junit.BeforeClass;
 
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientBuilder;
 
 /**
  * ManagementInfoResourceSSLTests tests the ManagementInfoResource over SSL.

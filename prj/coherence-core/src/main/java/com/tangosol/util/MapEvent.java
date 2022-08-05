@@ -22,7 +22,7 @@ import java.util.EventListener;
 import java.util.EventObject;
 import java.util.Map;
 
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 
 /**

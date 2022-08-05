@@ -40,7 +40,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexReader;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import java.io.IOException;
 import java.io.InputStream;

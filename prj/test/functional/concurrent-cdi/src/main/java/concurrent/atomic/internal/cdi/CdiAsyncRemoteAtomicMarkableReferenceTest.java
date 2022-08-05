@@ -23,7 +23,7 @@ import com.tangosol.net.NamedMap;
 
 import java.util.concurrent.atomic.AtomicMarkableReference;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;

@@ -71,9 +71,9 @@ import java.net.InetSocketAddress;
 
 import java.nio.charset.StandardCharsets;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * JSON Serializer using {@code Genson}.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.inject;
 
@@ -15,7 +15,7 @@ package com.oracle.coherence.inject;
  * <p>
  * If multiple instances of {@link Injector} are discovered by the
  * {@link java.util.ServiceLoader} the one with annotated with the
- * {@link javax.annotation.Priority} annotation with the highest
+ * {@link jakarta.annotation.Priority} annotation with the highest
  * value will be used. If all instances discovered have the same
  * or no priority the instance used will be random.
  * <p>

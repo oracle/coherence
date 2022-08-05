@@ -22,8 +22,8 @@ import com.oracle.coherence.io.json.genson.ext.jsr353.JSR353Bundle;
 
 import org.junit.Test;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;

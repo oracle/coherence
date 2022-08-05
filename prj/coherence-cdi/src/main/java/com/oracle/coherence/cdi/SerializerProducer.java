@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -28,15 +28,15 @@ import java.util.Map;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.literal.NamedLiteral;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.literal.NamedLiteral;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A CDI producer of {@link Serializer} instances.
@@ -131,7 +131,7 @@ public class SerializerProducer
      * <p>
      * Named Serializers are first looked up in the Coherence operational
      * configuration and if not found there they will be looked up in as a
-     * {@link javax.inject.Named} CDI bean of type {@link Serializer}.
+     * {@link jakarta.inject.Named} CDI bean of type {@link Serializer}.
      *
      * @param ip the {@link InjectionPoint} that the {@link Serializer} will be
      *           injected into

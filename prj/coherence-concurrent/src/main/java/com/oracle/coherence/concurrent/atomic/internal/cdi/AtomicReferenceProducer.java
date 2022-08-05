@@ -14,12 +14,12 @@ import com.oracle.coherence.concurrent.atomic.RemoteAtomicReference;
 import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.Remote;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.Typed;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.Typed;
 
-import javax.enterprise.inject.spi.InjectionPoint;
+import jakarta.enterprise.inject.spi.InjectionPoint;
 
 /**
  * CDI producers for {@link AtomicReference} values.

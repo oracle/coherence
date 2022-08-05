@@ -17,18 +17,18 @@ package com.oracle.coherence.io.json.genson.ext.jsr353;
 
 import com.oracle.coherence.io.json.genson.EncodingAwareReaderFactory;
 
-import javax.json.*;
-import javax.json.stream.JsonParser;
-import javax.json.stream.JsonParser.Event;
+import jakarta.json.*;
+import jakarta.json.stream.JsonParser;
+import jakarta.json.stream.JsonParser.Event;
 
-import static javax.json.stream.JsonParser.Event.*;
+import static jakarta.json.stream.JsonParser.Event.*;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map;
 
-public class GensonJsonReaderFactory implements javax.json.JsonReaderFactory {
+public class GensonJsonReaderFactory implements jakarta.json.JsonReaderFactory {
   private final GensonJsonParserFactory parserFactory;
   private final GensonJsonBuilderFactory builderFactory;
   private final EncodingAwareReaderFactory encodingAwareReaderFactory = new EncodingAwareReaderFactory();

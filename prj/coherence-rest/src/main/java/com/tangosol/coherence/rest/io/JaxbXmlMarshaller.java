@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.io;
 
@@ -12,12 +12,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.PropertyException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.PropertyException;
+import jakarta.xml.bind.Unmarshaller;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -62,7 +62,7 @@ public class JaxbXmlMarshaller<T>
         {
         try
             {
-            javax.xml.bind.Marshaller marshaller = m_ctx.createMarshaller();
+            jakarta.xml.bind.Marshaller marshaller = m_ctx.createMarshaller();
             configureJaxbMarshaller(marshaller);
             marshaller.marshal(value, out);
             }
@@ -77,9 +77,9 @@ public class JaxbXmlMarshaller<T>
         {
         try
             {
-            javax.xml.bind.Marshaller marshaller = m_ctx.createMarshaller();
+            jakarta.xml.bind.Marshaller marshaller = m_ctx.createMarshaller();
             configureJaxbMarshaller(marshaller);
-            marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FRAGMENT, true);
+            marshaller.setProperty(jakarta.xml.bind.Marshaller.JAXB_FRAGMENT, true);
             marshaller.marshal(value, out);
             }
         catch (JAXBException e)
@@ -121,10 +121,10 @@ public class JaxbXmlMarshaller<T>
      * @throws PropertyException when there is an error processing a property
      *         or value
      */
-    protected void configureJaxbMarshaller(javax.xml.bind.Marshaller marshaller)
+    protected void configureJaxbMarshaller(jakarta.xml.bind.Marshaller marshaller)
             throws PropertyException
         {
-        marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT,
+        marshaller.setProperty(jakarta.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT,
                                Config.getBoolean(FORMAT_OUTPUT));
         }
 
