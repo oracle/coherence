@@ -3,7 +3,7 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
 #
-FROM gcr.io/distroless/java11
+FROM gcr.io/distroless/java11-debian11
 
 ADD coherence.jar /coherence/lib/coherence.jar
 

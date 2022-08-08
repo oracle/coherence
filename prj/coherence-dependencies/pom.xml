@@ -167,7 +167,15 @@
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
     <glassfish.el.version>3.0.1-b08</glassfish.el.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
+    <!--
+    NOTE: The Graal version and the Graal image tag should ideally be kept as close as possible
+    When bumping the Graal version, check here https://github.com/graalvm/container/pkgs/container/graalvm-ce
+    to see what the latest corresponding image tag is. Sometimes the Graal version in Maven central is a later
+    patch than the latest available image tag.
+    -->
     <graal.version>19.3.1</graal.version>
+    <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
+    <graal.image.tag>ol8-java11-22.1.0</graal.image.tag>
     <grpc.version>1.45.1</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:

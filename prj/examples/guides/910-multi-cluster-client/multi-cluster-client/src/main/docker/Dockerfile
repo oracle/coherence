@@ -3,7 +3,7 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
 #
-FROM gcr.io/distroless/java11
+FROM gcr.io/distroless/java11-debian11
 
 # Configure the image's health check command
 # Health checks will only work with Coherence 22.06 and later
