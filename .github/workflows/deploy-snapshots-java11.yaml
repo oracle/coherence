@@ -5,13 +5,13 @@
 # The "build" job only runs if the "CI Build" action completed successfully.
 # The deployed artifacts will be built from the same commit that the "CI Build" action used.
 #
-name: Deploy to Maven Central
+name: Deploy to Maven Central (Java 11)
 
 on:
   workflow_run:
     workflows: ["CI Build"]
-    # Only add branches that build with Java 17
-    branches: [ master ]
+    # Only add branches that build on Java 11
+    branches: [ v20.12, v21.06, v21.12, v22.06, v14.1.1.0 ]
     types:
     - completed
 
@@ -32,7 +32,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up Java 11
+    - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: 11
