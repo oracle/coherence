@@ -6,23 +6,19 @@
  */
 package com.oracle.coherence.docker;
 
-import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.Platform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.oracle.bedrock.runtime.options.Argument;
 
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
-
 import com.oracle.coherence.client.GrpcSessionConfiguration;
 
 import com.oracle.coherence.concurrent.atomic.Atomics;
@@ -40,7 +36,6 @@ import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -52,28 +47,19 @@ import com.tangosol.net.SessionConfiguration;
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
-
 import org.junit.jupiter.api.extension.RegisterExtension;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
-
-import org.testcontainers.images.ImagePullPolicy;
 
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-
-import java.lang.reflect.Method;
 
 import java.net.URI;
 
@@ -100,35 +86,34 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 @SuppressWarnings("resource")
 public class DockerImageTests
+        extends BaseDockerImageTests
     {
     // ----- test lifecycle -------------------------------------------------
 
     @BeforeAll
     static void setup()
         {
-        s_fImageExists = checkImageExists();
+        ImageNames.verifyTestAssumptions();
         }
 
-    @BeforeEach
-    void setUp(TestInfo testInfo)
+    /**
+     * Return the image names for paramterized tests.
+     *
+     * @return the image names for paramterized tests
+     */
+    static String[] getImageNames()
         {
-        m_sTestMethod = testInfo.getTestMethod().map(Method::getName).orElse("unknown");
-        }
-
-    @AfterEach
-    void afterTest()
-        {
-        // clean up Coherence
-        CacheFactory.shutdown();
+        return ImageNames.getImageNames();
         }
 
     // ----- test methods ---------------------------------------------------
 
-    @Test
-    void shouldStartContainerWithNoArgs()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartContainerWithNoArgs(String sImageName)
         {
-        verifyTestAssumptions();
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        ImageNames.verifyTestAssumptions();
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))))
             {
@@ -136,12 +121,13 @@ public class DockerImageTests
             }
         }
 
-    @Test
-    void shouldStartContainerWithExtend()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartContainerWithExtend(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
@@ -208,14 +194,15 @@ public class DockerImageTests
             }
         }
 
-    @Test
-    void shouldStartWithJavaOpts()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartWithJavaOpts(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
         File fileArgsDir = createJvmArgsFile("-Dcoherence.role=storage", "-Dcoherence.cluster=datagrid");
 
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
@@ -226,10 +213,11 @@ public class DockerImageTests
             }
         }
 
-    @Test
-    void shouldAddToClasspath()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldAddToClasspath(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
         File fileBuild = MavenProjectFileUtils.locateBuildFolder(getClass());
         assertThat(fileBuild, is(notNullValue()));
@@ -237,7 +225,7 @@ public class DockerImageTests
         File   fileTestClasses = new File(fileBuild, "test-classes");
         String sLibs           = fileTestClasses.getAbsolutePath();
 
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)
@@ -258,12 +246,13 @@ public class DockerImageTests
             }
         }
 
-    @Test
-    void shouldStartRestManagementServer() throws Exception
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartRestManagementServer(String sImageName) throws Exception
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withExposedPorts(MANAGEMENT_PORT)))
@@ -281,12 +270,13 @@ public class DockerImageTests
             }
         }
 
-    @Test
-    void shouldStartCoherenceMetricsServer() throws Exception
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartCoherenceMetricsServer(String sImageName) throws Exception
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withExposedPorts(METRICS_PORT)))
@@ -304,12 +294,13 @@ public class DockerImageTests
             }
         }
 
-    @Test
-    void shouldStartGrpcServerAndConnectWithGrpc()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withExposedPorts(GRPC_PORT)))
@@ -336,17 +327,18 @@ public class DockerImageTests
         }
 
     @SuppressWarnings("unchecked")
-    @Test
-    void shouldStartServiceWithWellKnowAddresses() throws Exception
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartServiceWithWellKnowAddresses(String sImageName) throws Exception
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
         String sName1  = "storage-1";
         String sName2  = "storage-2";
 
         try (Network network = Network.newNetwork())
             {
-            try (GenericContainer<?> container1 = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+            try (GenericContainer<?> container1 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                     .withImagePullPolicy(NeverPull.INSTANCE)
                     .withExposedPorts(MANAGEMENT_PORT)
                     .withNetwork(network)
@@ -357,7 +349,7 @@ public class DockerImageTests
                     .withEnv("COHERENCE_CLUSTER", "storage")
                     .withNetworkAliases(sName1)))
                 {
-                try (GenericContainer<?> container2 = start(new GenericContainer<>(DockerImageName.parse(IMAGE_NAME))
+                try (GenericContainer<?> container2 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                         .withImagePullPolicy(NeverPull.INSTANCE)
                         .withNetwork(network)
                         .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName2)))
@@ -385,54 +377,7 @@ public class DockerImageTests
             }
         }
 
-
     // ----- helper methods -------------------------------------------------
-
-    GenericContainer<?> start(GenericContainer<?> container)
-        {
-        container.start();
-        return container;
-        }
-
-    /**
-     * Verify the assumptions needed to run tests.
-     */
-    private void verifyTestAssumptions()
-        {
-        Assumptions.assumeTrue(IMAGE_NAME != null, "Skipping test, coherence.docker.image property not set");
-        Assumptions.assumeTrue(!IMAGE_NAME.trim().isEmpty(), "Skipping test, coherence.docker.image property not set");
-        Assumptions.assumeTrue(s_fImageExists, "Skipping test, image " + IMAGE_NAME + " is not present");
-        }
-
-    /**
-     * Verify that the image being tested is already present.
-     *
-     * @return {@code true} if the image being tested is present.
-     */
-    private static boolean checkImageExists()
-        {
-        if (IMAGE_NAME == null || IMAGE_NAME.trim().isEmpty())
-            {
-            return false;
-            }
-
-        String sImage  = IMAGE_NAME;
-        String sDocker = "docker.io/";
-        if (sImage.startsWith(sDocker))
-            {
-            sImage = sImage.substring(sDocker.length());
-            }
-
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch("docker",
-                                               Argument.of("inspect"),
-                                               Argument.of(sImage)))
-            {
-            int exitCode = app.waitFor();
-            return exitCode == 0;
-            }
-        }
 
     private File createJvmArgsFile(String... args)
         {
@@ -454,62 +399,10 @@ public class DockerImageTests
             }
         }
 
-    private File getOutputDirectory()
-        {
-        File fileOutDir = FileUtils.getTestOutputFolder(getClass());
-        File fileTests  = new File(fileOutDir, "functional" + File.separator + getClass().getSimpleName());
-        File dir        = new File(fileTests, m_sTestMethod);
-        dir.mkdirs();
-        return dir;
-        }
-
-    // ----- inner class NeverPull ------------------------------------------
-
-    public static class NeverPull
-            implements ImagePullPolicy
-        {
-        @Override
-        public boolean shouldPull(DockerImageName imageName)
-            {
-            return false;
-            }
-
-        public static final NeverPull INSTANCE = new NeverPull();
-        }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The name of the image to test, set by the coherence.docker.image System property.
-     */
-    private static final String IMAGE_NAME = System.getProperty("docker.image.name");
-
-    /**
-     * COHERENCE_HOME inside coherence docker image.
-     */
-    private static final String COHERENCE_HOME = System.getProperty("docker.coherence.home", "/coherence");
-
-    public static final int GRPC_PORT = Integer.getInteger("port.grpc", 1408);
-    public static final int MANAGEMENT_PORT = Integer.getInteger("port.management", HttpHelper.DEFAULT_MANAGEMENT_OVER_REST_PORT);
-    public static final int METRICS_PORT = Integer.getInteger("port.metrics", MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT);
-    public static final int EXTEND_PORT = Integer.getInteger("port.extend",20000);
-
-    public static final int CONCURRENT_EXTEND_PORT = Integer.getInteger("port.concurrent.extend",20001);
-
     // ----- data members ---------------------------------------------------
 
     @RegisterExtension
-    static final TestLogsExtension m_testLogs = new TestLogsExtension(DockerImageTests.class);
-
-    /**
-     * Flag indicating whether the image is present.
-     */
-    private static boolean s_fImageExists;
-
-    /**
-     * The name of the current test method.
-     */
-    private String m_sTestMethod = "unknown";
+    protected static final TestLogsExtension m_testLogs = new TestLogsExtension(DockerImageTests.class);
 
     /**
      * The test http client.

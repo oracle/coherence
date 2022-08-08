@@ -18,6 +18,8 @@ if [ "${NO_DAEMON}" != "true" ]
 then
   buildah pull "docker-daemon:${IMAGE_NAME}-amd64"
   buildah pull "docker-daemon:${IMAGE_NAME}-arm64"
+  buildah pull "docker-daemon:${IMAGE_NAME}-graal-amd64"
+  buildah pull "docker-daemon:${IMAGE_NAME}-graal-arm64"
 fi
 
 # If the registry is docker.io then cut the registry from the front of the image name
@@ -34,12 +36,21 @@ LOCAL_NAME="localhost/${IMAGE_SUFFIX}"
 
 buildah images
 
+# Create distroless based images
 buildah manifest create "${IMAGE_NAME}"
 buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-amd64"
 buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-arm64"
 buildah manifest inspect "${IMAGE_NAME}"
 
 buildah manifest push --all -f v2s2 "${IMAGE_NAME}" "docker://${IMAGE_NAME}"
+
+# Create Graal based images
+buildah manifest create "${IMAGE_NAME}-graal"
+buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}-graal" "${IMAGE_NAME}-graal-amd64"
+buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}-graal" "${IMAGE_NAME}-graal-arm64"
+buildah manifest inspect "${IMAGE_NAME}-graal"
+
+buildah manifest push --all -f v2s2 "${IMAGE_NAME}-graal" "docker://${IMAGE_NAME}-graal"
 
 
 

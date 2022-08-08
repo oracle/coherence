@@ -48,6 +48,11 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>jakarta.json</artifactId>
+    </dependency>
+
     <!-- tracing dependencies -->
     <dependency>
       <groupId>io.jaegertracing</groupId>
@@ -84,6 +89,12 @@
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
@@ -186,6 +197,8 @@
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
@@ -228,7 +241,8 @@
               <skipTests>false</skipTests>
               <useModulePath>false</useModulePath>
               <systemProperties>
-                <docker.image.name>${docker.image.name}</docker.image.name>
+                <test.image.names>${docker.image.name},${docker.image.name}-graal</test.image.names>
+                <graal.image.names>${docker.image.name}-graal</graal.image.names>
                 <port.grpc>${docker.port.grpc}</port.grpc>
                 <port.extend>${docker.port.extend}</port.extend>
                 <port.concurrent.extend>${docker.port.concurrent.extend}</port.concurrent.extend>
@@ -247,7 +261,8 @@
               <systemProperties>
                 <skip>false</skip>
                 <skipTests>false</skipTests>
-                <docker.image.name>${docker.image.name}</docker.image.name>
+                <test.image.names>${docker.image.name},${docker.image.name}-graal</test.image.names>
+                <graal.image.names>${docker.image.name}-graal</graal.image.names>
                 <port.grpc>${docker.port.grpc}</port.grpc>
                 <port.extend>${docker.port.extend}</port.extend>
                 <port.concurrent.extend>${docker.port.concurrent.extend}</port.concurrent.extend>
@@ -328,6 +343,8 @@
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
+                     <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>

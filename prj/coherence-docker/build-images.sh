@@ -33,6 +33,18 @@ then
   echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
   exit 1
 fi
+# Ensure the GRAAL_AMD_BASE_IMAGE has been set - this is the name of the base image for amd64
+if [ "${GRAAL_AMD_BASE_IMAGE}" == "" ]
+then
+  echo "ERROR: No GRAAL_AMD_BASE_IMAGE environment variable has been set"
+  exit 1
+fi
+# Ensure the GRAAL_ARM_BASE_IMAGE has been set - this is the name of the base image for arm64
+if [ "${GRAAL_ARM_BASE_IMAGE}" == "" ]
+then
+  echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
+  exit 1
+fi
 
 # Ensure there is a default architecture - if not set we assume amd64
 if [ "${IMAGE_ARCH}" == "" ]
@@ -111,7 +123,7 @@ ENV_VARS="${ENV_VARS} -e COHERENCE_WKA=localhost"
 ENV_VARS="${ENV_VARS} -e COHERENCE_EXTEND_PORT=${PORT_EXTEND}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_CONCURRENT_EXTEND_PORT=${PORT_CONCURRENT_EXTEND}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_GRPC_ENABLED=true"
-ENV_VARS="${ENV_VARS} -e COHERENCE_GRPC_PORT=${PORT_GRPC}"
+ENV_VARS="${ENV_VARS} -e COHERENCE_GRPC_SERVER_PORT=${PORT_GRPC}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_MANAGEMENT_HTTP=all"
 ENV_VARS="${ENV_VARS} -e COHERENCE_MANAGEMENT_HTTP_PORT=${PORT_MANAGEMENT}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_METRICS_HTTP_ENABLED=true"
@@ -141,6 +153,10 @@ CREATED=$(date)
 # param 3: the base image
 # param 4: the image name
 common_image(){
+  # make sure the old container is removed
+  buildah rm "container-${1}" || true
+  buildah rmi "coherence:${1}" || true
+
   # Create the container from the base image, setting the architecture and O/S
   buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}"
 
@@ -151,16 +167,16 @@ common_image(){
       --entrypoint "[\"${ENTRY_POINT}\"]" --cmd "${CMD} ${MAIN_CLASS}" \
       ${ENV_VARS} ${PORT_LIST} \
       --annotation "org.opencontainers.image.created=${CREATED}" \
-      --annotation "org.opencontainers.image.url=${PROJECT_URL}" \
+      --annotation "org.opencontainers.image.url=https://github.com/oracle/coherence/pkgs/container/coherence-ce" \
       --annotation "org.opencontainers.image.version=${COHERENCE_VERSION}" \
       --annotation "org.opencontainers.image.source=http://github.com/oracle/coherence" \
       --annotation "org.opencontainers.image.vendor=${PROJECT_VENDOR}" \
       --annotation "org.opencontainers.image.title=${PROJECT_DESCRIPTION} ${COHERENCE_VERSION}" \
-      --label "org.opencontainers.image.url=${PROJECT_URL}" \
+      --label "org.opencontainers.image.url=https://github.com/oracle/coherence/pkgs/container/coherence-ce" \
       --label "org.opencontainers.image.version=${COHERENCE_VERSION}" \
       --label "org.opencontainers.image.source=http://github.com/oracle/coherence" \
       --label "org.opencontainers.image.vendor=${PROJECT_VENDOR}" \
-      --label "org.opencontainers.image.title=Oracle Coherence ${COHERENCE_VERSION}" \
+      --label "org.opencontainers.image.title=${PROJECT_DESCRIPTION} ${COHERENCE_VERSION}" \
       "container-${1}"
 
   # Copy files into the container
@@ -200,6 +216,19 @@ common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64"
 if [ "${NO_DAEMON}" != "true" ]
 then
   buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}"
+  echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
+fi
+
+# Build the amd64 Graal image
+common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64"
+
+# Build the arm64 Graal image
+common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64"
+
+# Push the relevant Graal image to the docker daemon base on the build machine's o/s architecture
+if [ "${NO_DAEMON}" != "true" ]
+then
+  buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-graal"
   echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
 fi
 
