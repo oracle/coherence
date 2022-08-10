@@ -886,6 +886,7 @@
           --add-opens=java.base/java.lang.invoke=com.oracle.coherence
         </default.surefire.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
+        <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>
       </properties>
       <build>
         <plugins>

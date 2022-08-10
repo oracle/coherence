@@ -24,6 +24,7 @@
     <surefire.modules.argline>
       ${default.surefire.modules.argline}
       --add-opens java.base/java.lang=ALL-UNNAMED
+      --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
     </surefire.modules.argline>
   </properties>
 
