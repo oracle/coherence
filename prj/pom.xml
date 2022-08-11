@@ -877,6 +877,7 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
           --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+          --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
         </default.failsafe.modules.argline>
         <default.surefire.modules.argline>
           --add-exports java.management/sun.management=com.oracle.coherence
@@ -884,6 +885,7 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
           --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+          --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
         </default.surefire.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
         <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>
