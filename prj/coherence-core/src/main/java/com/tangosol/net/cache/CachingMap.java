@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -1395,7 +1395,9 @@ public class CachingMap<K, V>
 
         for (int i = 0; true; ++i)
             {
-            if (mapControl.lock(oKey, 0))
+            // after first iteration, fallback to 1 millis wait to slow down polling and fix
+            // COH-26003 by checking if lock held by a non-active thread by calling lock with non-zero wait
+            if (mapControl.lock(oKey, i == 0 ? 0 : 1))
                 {
                 try
                     {
@@ -1722,7 +1724,10 @@ public class CachingMap<K, V>
         if (m_nStrategyCurrent == LISTEN_PRESENT)
             {
             ConcurrentMap mapControl = getControlMap();
-            if (mapControl.lock(oKey, 0))
+
+            // bumped wait to 1 millis as part of COH-26003 fix to check if lock held by
+            // a terminated thread
+            if (mapControl.lock(oKey, 1))
                 {
                 if (m_listener instanceof CachingMap.PrimingListener)
                     {

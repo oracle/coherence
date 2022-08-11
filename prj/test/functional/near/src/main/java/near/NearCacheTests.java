@@ -908,6 +908,82 @@ public class NearCacheTests
             }
         }
 
+    /**
+     * Regression test for COH-26003 failed to detect a lock is being held by a terminated thread
+     */
+    @Test
+    public void testCoh26003() throws InterruptedException
+        {
+        NamedCache<String, String>    cacheBack = getNamedCache("simple-dist");
+        NearCache<String, String>     cache     = new NearCache(new LocalCache(1000), cacheBack);
+        String                        key       = "theKey";
+
+        cache.put(key, "someValue");
+
+        HoldMapControlKeyLock holdLockAction = new HoldMapControlKeyLock(cache, key);
+        Thread                thread         = new Thread(holdLockAction, "TroubleThreadHoldingKeyLock");
+
+        thread.start();
+        thread.join();
+
+        Eventually.assertDeferred("wait for thread to terminate so auto drop of lock from a terminated thread can work", () -> thread.isAlive(), is(false));
+
+        // remove this assertion if fix NearCache.getMapControl.lock(key, 0) to check if thread is terminated
+        Eventually.assertDeferred("confirm can not get lock since terminated thread has it", () -> cache.getControlMap().lock(key, 0), is(false));
+
+        // update backing map so NearCache.validate(MapEvent) called.
+        // before fix got  "Detected a state corruption on the key" in CachingMap.validate(MapEvent)
+        // since thread   thread still holding mapControl lock for key.
+        int MAX = 4;
+        for (int i=0; i<=4; i++)
+            {
+            // this used to cause "Detected a state corruption on the key key990481 ..." in CachingMap.validate(MapEvent) on locked key held by a terminated thread.
+            cacheBack.put(key, "someValue_updated_" + i);
+            }
+
+        assertThat(cache.get(key), is("someValue_updated_" + MAX));
+
+        try
+            {
+            Eventually.assertDeferred("confirm can get lock since terminated thread no longer has it", () -> cache.getControlMap().lock(key, 0), is(true));
+            }
+        finally
+            {
+            assertThat(cache.getControlMap().unlock(key), is(true));
+            }
+        }
+
+    // ----- inner class: HoldMapControlKeyLock ------------------------------
+    /**
+     * Simulate failure case that lock was acquired by a thread and thraad terminated before
+     * releasing lock.
+     */
+    private static class HoldMapControlKeyLock
+            implements Runnable
+        {
+        // ----- constructor --------------------------------------------------
+
+        public HoldMapControlKeyLock(NearCache cache, String key)
+            {
+            m_cache = cache;
+            m_sKey = key;
+            }
+
+        // ----- Runnable methods --------------------------------------------
+
+        @Override
+        public void run()
+            {
+            // intentionally get lock and don't unlock it for test scenario
+            boolean fResult = m_cache.getControlMap().lock(m_sKey);
+
+            assertThat(fResult, is(true));
+            }
+
+        private NearCache m_cache;
+        private String    m_sKey;
+        }
+
     // ---- constants -------------------------------------------------------
 
     protected static final String RUNNING  = "running-agents";
