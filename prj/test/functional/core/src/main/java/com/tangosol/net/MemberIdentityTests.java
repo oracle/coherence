@@ -9,6 +9,7 @@ package com.tangosol.net;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.MachineName;
 import com.oracle.bedrock.runtime.coherence.options.MemberName;
@@ -34,7 +35,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class MemberIdentityTests
     {
     @Test
-    @Ignore
     public void shouldUseSystemProperties()
         {
         try (CoherenceClusterMember member = s_platform.launch(CoherenceClusterMember.class,
@@ -46,6 +46,7 @@ public class MemberIdentityTests
                                                                RoleName.of("test-role"),
                                                                SiteName.of("test-site"),
                                                                Logging.atMax(),
+                                                               LocalHost.only(),
                                                                m_testLogs))
             {
             Eventually.assertDeferred(member::isReady, is(true));
