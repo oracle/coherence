@@ -11,6 +11,9 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.java.ClassPath;
+import com.oracle.bedrock.runtime.java.options.JavaModules;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.tangosol.coherence.config.Config;
@@ -28,12 +31,14 @@ public class LambdaTestCluster extends CoherenceClusterResource
         {
         super();
         this.with(ClusterName.of(this.getClass().getSimpleName()),
+                  ClassPath.automatic(),
                   SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                   LocalHost.only(),
                   SystemProperty.of("coherence.lambdas", Config.getProperty("coherence.lambdas")),
                   SystemProperty.of("coherence.mode", Config.getProperty("coherence.mode", "dev")),
                   SystemProperty.of("coherence.extend.enabled", "true"),
-                  SystemProperty.of("coherence.clusterport", "7574"));
+                  SystemProperty.of("coherence.clusterport", "7574"),
+                  JavaModules.automatic());
         this.include(2, LocalStorage.enabled());
         }
     }

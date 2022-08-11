@@ -23,6 +23,11 @@
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <failsafe.modules.argline>
+      ${default.failsafe.modules.argline}
+      --add-opens java.base/java.util=ALL-UNNAMED
+      --add-opens java.base/java.util=com.oracle.coherence
+    </failsafe.modules.argline>
   </properties>
 
   <dependencies>
@@ -52,7 +57,7 @@
     </profile>
 
     <!--
-    Excluded from modular tests due to test failures
+    Must always run as a module test with JDK 17+
     -->
     <profile>
       <id>modular-tests</id>
@@ -61,8 +66,8 @@
         <file><exists>.</exists></file>
       </activation>
       <properties>
-        <useModulePath>false</useModulePath>
-        <bedrockUseModules>false</bedrockUseModules>
+        <useModulePath>true</useModulePath>
+        <bedrockUseModules>true</bedrockUseModules>
       </properties>
     </profile>
 
