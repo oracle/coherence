@@ -1119,7 +1119,7 @@
 
                   // project metadata properties
                   desc = ""
-                  if (!"true".equals(props.getProperty("project.official")))
+                  if (!"true".equals(System.getProperty("project.official")))
                       {
                       desc = props.getProperty("project.build.description")
                       if (desc == null || desc.trim().empty)
@@ -1127,7 +1127,7 @@
                           // project description has been supplied; nothing to do
                           timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date())
                           props.setProperty("project.timestamp", timestamp)
-                          desc = "(dev-" + props.getProperty("user.name") + ")"
+                          desc = "(dev-" + System.getProperty("user.name") + ")"
                           }
                       props.setProperty("skip.docs", "true")
                       props.setProperty("skip.sources", "true")
