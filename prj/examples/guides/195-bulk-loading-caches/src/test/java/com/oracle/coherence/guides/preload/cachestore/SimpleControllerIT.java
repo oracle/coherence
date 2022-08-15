@@ -26,6 +26,10 @@ public class SimpleControllerIT
     @BeforeAll
     static void startCoherence() throws Exception
         {
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        System.setProperty("coherence.cluster", "SimpleControllerIT");
+
         SessionConfiguration sessionConfiguration = SessionConfiguration.create("controllable-cachestore-cache-config.xml");
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()
                 .withSession(sessionConfiguration)

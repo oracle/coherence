@@ -35,4 +35,8 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+    systemProperty "project.build.directory", "$buildDir"
+    systemProperty "java.net.preferIPv4Stack", "true"
+	forkEvery 1
+	testLogging.showStandardStreams = true
 }

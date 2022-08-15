@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.guides.preload.cachestore;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -70,7 +71,7 @@ public class SimpleController
      */
     public static void enableCacheStores(NamedMap<?, ?> namedMap)
         {
-        setEnabled(namedMap, false);
+        setEnabled(namedMap, true);
         }
 
     /**
@@ -107,6 +108,8 @@ public class SimpleController
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected static void setEnabled(NamedMap namedMap, boolean enabled)
         {
+        String sAction = enabled ? "Enabling" : "Disabling";
+        Logger.info(sAction + " cache store for map " + namedMap.getName());
         CacheService service = namedMap.getService();
         if (service instanceof DistributedCacheService)
             {
@@ -146,7 +149,7 @@ public class SimpleController
         /**
          * Create a {@link SetEnabledProcessor}.
          *
-         * @param enabled  {@code true} to enable cache stores, or {@link false} to
+         * @param enabled  {@code true} to enable cache stores, or {@code  false} to
          *                 disable cache stores
          */
         public SetEnabledProcessor(boolean enabled)
@@ -155,9 +158,13 @@ public class SimpleController
             }
 
         @Override
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "deprecation"})
         public Void process(InvocableMap.Entry<K, V> entry)
             {
+            String sAction    = enabled ? "Enabling" : "Disabling";
+            String sCacheName = entry.asBinaryEntry().getBackingMapContext().getCacheName();
+
+            Logger.info(sAction + " cache store for map " + sCacheName);
             ObservableMap<? extends K, ? extends V> backingMap = entry.asBinaryEntry().getBackingMap();
             if (backingMap instanceof ReadWriteBackingMap)
                 {
@@ -170,8 +177,22 @@ public class SimpleController
                     if (controller instanceof SimpleController)
                         {
                         ((SimpleController) controller).setEnabled(enabled);
+                        sAction = enabled ? "Enabled" : "Disabled";
+                        Logger.info(sAction + " cache store for map " + sCacheName);
+                        }
+                    else
+                        {
+                        Logger.info(sAction + " cache store for map " + sCacheName + " - not a SimpleController");
                         }
                     }
+                else
+                    {
+                    Logger.info(sAction + " cache store for map " + sCacheName + " - not a ControllableCacheStore");
+                    }
+                }
+            else
+                {
+                Logger.info(sAction + " cache store for map " + sCacheName + " - not a RWBM");
                 }
             return null;
             }

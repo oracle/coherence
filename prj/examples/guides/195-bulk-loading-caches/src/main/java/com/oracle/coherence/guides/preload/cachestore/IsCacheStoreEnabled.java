@@ -7,6 +7,7 @@
 package com.oracle.coherence.guides.preload.cachestore;
 
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.guides.preload.processors.GetPartitionCount;
 
 import com.tangosol.io.ExternalizableLite;
@@ -71,6 +72,7 @@ public class IsCacheStoreEnabled<K, V>
     @SuppressWarnings({"deprecation", "rawtypes"})
     public boolean accumulate(InvocableMap.Entry<? extends K, ? extends V> entry)
         {
+        Logger.info("Checking cache store key=" + entry.getKey());
         ObservableMap<? extends K, ? extends V> backingMap = entry.asBinaryEntry().getBackingMap();
         if (backingMap instanceof ReadWriteBackingMap)
             {
@@ -79,11 +81,19 @@ public class IsCacheStoreEnabled<K, V>
 
             if (o instanceof ControllableCacheStore)
                 {
-                result = result && expected == ((ControllableCacheStore) o).isEnabled();
+                boolean fEnabled = ((ControllableCacheStore) o).isEnabled();
+                Logger.info("Checking cache store key=" + entry.getKey() + " result=" + result + " expected=" + expected + " enabled=" + fEnabled);
+                result = expected == fEnabled;
                 }
+            else
+                {
+                Logger.info("Checking cache store key=" + entry.getKey() + " not a ControllableCacheStore");
+                }
+            Logger.info("Checking cache store key=" + entry.getKey() + " result=" + result);
             }
         else
             {
+            Logger.info("Checking cache store key=" + entry.getKey() + " not a rwbm");
             result = false;
             }
         return true;
@@ -106,7 +116,7 @@ public class IsCacheStoreEnabled<K, V>
     public Boolean finalizeResult()
         {
         boolean finalResult = result;
-        result = false;
+        result = true;
         return finalResult;
         }
 
@@ -119,21 +129,25 @@ public class IsCacheStoreEnabled<K, V>
     @Override
     public void readExternal(DataInput in) throws IOException
         {
+        expected = in.readBoolean();
         }
 
     @Override
     public void writeExternal(DataOutput out) throws IOException
         {
+        out.writeBoolean(expected);
         }
 
     @Override
     public void readExternal(PofReader in) throws IOException
         {
+        expected = in.readBoolean(0);
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
+        out.writeBoolean(0, expected);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -179,6 +193,7 @@ public class IsCacheStoreEnabled<K, V>
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected static boolean checkState(NamedMap map, boolean expected)
         {
+        Logger.info("Checking cache store map=" + map.getName() + " expected=" + expected);
         // If this method is executed on a cluster member the partition count could
         // be obtained directly from the service, but this code will also work on an
         // Extend client.
@@ -192,11 +207,13 @@ public class IsCacheStoreEnabled<K, V>
                 keys.add(SimplePartitionKey.getPartitionKey(i));
                 }
 
-            Boolean isEnabled = (Boolean) map.aggregate(keys, new IsCacheStoreEnabled(true));
+            Boolean isEnabled = (Boolean) map.aggregate(keys, new IsCacheStoreEnabled(expected));
             return isEnabled != null && isEnabled;
             }
         else
             {
+            Logger.info("Checking cache store cache=" + map.getName() + " enabled=" + expected + " failed - cannot obtain partition count");
+
             throw new IllegalStateException("Could not obtain partition count for cache " + map.getName());
             }
         }
@@ -211,5 +228,5 @@ public class IsCacheStoreEnabled<K, V>
     /**
      * The aggregator's partial result.
      */
-    private transient boolean result;
+    private transient boolean result = true;
     }

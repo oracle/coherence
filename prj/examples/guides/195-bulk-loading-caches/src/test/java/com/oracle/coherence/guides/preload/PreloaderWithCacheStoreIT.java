@@ -70,7 +70,7 @@ public class PreloaderWithCacheStoreIT
         {
         // turn off the customers cache store
         SimpleController.disableCacheStores(customersCache);
-        Eventually.assertDeferred(() -> IsCacheStoreEnabled.isEnabled(customersCache), is(false));
+        Eventually.assertDeferred(() -> IsCacheStoreEnabled.isDisabled(customersCache), is(true));
 
         Map<Integer, Customer> customers = createTestCustomers();
         customersCache.putAll(customers);
