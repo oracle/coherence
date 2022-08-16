@@ -79,49 +79,49 @@ This guide walks you through how to use Entry Processors with Coherence.
 .Federation
 [link=examples/guides/200-federation/README.adoc]
 --
-This guide walks you through how to use Federation within Coherence
+This guide walks you through how to use Federation within Coherence.
 --
 
 [CARD]
 .Topics
 [link=examples/guides/460-topics/README.adoc]
 --
-This guide walks you through how to use Topics within Coherence
+This guide walks you through how to use Topics within Coherence.
 --
 
 [CARD]
 .Near Caching
 [link=examples/guides/130-near-caching/README.adoc]
 --
-This guide walks you through how to use near caching within Coherence
+This guide walks you through how to use near caching within Coherence.
 --
 
 [CARD]
 .Client Events
 [link=examples/guides/140-client-events/README.adoc]
 --
-This guide walks you through how to use client events within Coherence
+This guide walks you through how to use client events within Coherence.
 --
 
 [CARD]
 .Server-Side Events
 [link=examples/guides/142-server-events/README.adoc]
 --
-This guide walks you through how to use server-side events within Coherence
+This guide walks you through how to use server-side events within Coherence.
 --
 
 [CARD]
 .Durable Events
 [link=examples/guides/145-durable-events/README.adoc]
 --
-This guide walks you through how to use durable events within Coherence
+This guide walks you through how to use durable events within Coherence.
 --
 
 [CARD]
 .Cache Stores
 [link=examples/guides/190-cache-stores/README.adoc]
 --
-This guide walks you through how to use and configure Cache Stores
+This guide walks you through how to use and configure Cache Stores.
 --
 
 [CARD]
@@ -135,14 +135,14 @@ This guide shows approaches to bluk load data into caches, typically this would 
 .Securing with SSL
 [link=examples/guides/210-ssl/README.adoc]
 --
-This guide walks you through how to secure Coherence using SSL/TLS
+This guide walks you through how to secure Coherence using SSL/TLS.
 --
 
 [CARD]
 .Key Association
 [link=examples/guides/905-key-association/README.adoc]
 --
-This guide walks you through a use case for key association in Coherence
+This guide walks you through a use case for key association in Coherence.
 --
 
 [CARD]
