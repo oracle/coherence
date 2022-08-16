@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.topic;
 
@@ -476,6 +476,9 @@ public interface Subscriber<V>
      * <p>
      * Repositioning a channel back before the current committed position will move the committed position
      * for the channel back to the seeked position (i.e. back to the position returned from this method).
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param nChannel  the channel to reposition
      * @param position  the {@link Position} to seek to
@@ -506,6 +509,9 @@ public interface Subscriber<V>
      * <p>
      * Repositioning a channel back before the current committed position will move the committed position
      * for the channel back to the seeked position (i.e. back to the position returned from this method).
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param nChannel  the channel to reposition
      * @param position  the {@link Position} to seek to
@@ -551,6 +557,9 @@ public interface Subscriber<V>
      * Repositioning a channel back before the current committed position will move the committed position
      * for the channel back to the seeked position (i.e. back to the position returned for that channel
      * from this method).
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param mapPosition  a {@link Map} of {@link Position positions} keyed by channel to seek to
      *
@@ -581,6 +590,9 @@ public interface Subscriber<V>
      * Repositioning a channel back before the current committed position will move the committed position
      * for the channel back to the seeked position (i.e. back to the position returned for that channel
      * from this method).
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param mapPosition  a {@link Map} of {@link Position positions} keyed by channel to seek to
      *
@@ -627,6 +639,9 @@ public interface Subscriber<V>
      * Repositioning a channel back before the current committed position will move the committed position for
      * the channel back to the seeked position (i.e. back to the position returned from this method) effectively
      * rolling back commits made to elements in the channel after the seeked.
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param nChannel  the channel to reposition
      * @param timestamp the timestamp to seek to
@@ -658,6 +673,9 @@ public interface Subscriber<V>
      * Repositioning a channel back before the current committed position will move the committed position for
      * the channel back to the seeked position (i.e. back to the position returned from this method) effectively
      * rolling back commits made to elements in the channel after the seeked.
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param nChannel  the channel to reposition
      * @param timestamp the timestamp to seek to
@@ -687,6 +705,9 @@ public interface Subscriber<V>
      * Note that this may not be the first message originally received by the subscriber if a topic is
      * not set to retain received elements, as in that case messages are removed after being committed,
      * so cannot be re-received.
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param anChannel  one or more channels to reposition to the head
      *
@@ -699,6 +720,9 @@ public interface Subscriber<V>
     /**
      * Reposition one or more channels to their respective tail positions.
      * The channel will be repositioned to read the next message published to that channel.
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param anChannel  one or more channels to reposition to the tail
      *
@@ -712,6 +736,9 @@ public interface Subscriber<V>
      * Reposition one or more channels to their respective tail positions and set the commit point
      * to the new {@link Position}. The channel will be repositioned to read the next message
      * published to that channel.
+     * <p>
+     * Any in-flight {@link #receive()} requests will complete before the seek operation takes place, whilst
+     * any requests still locally queued will be completed after seeking.
      *
      * @param anChannel  one or more channels to reposition to the tail
      *

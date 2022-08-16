@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -314,6 +314,15 @@ public interface LongArray<V>
     */
     public LongArray<V> clone();
 
+    // ----- helper methods -------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    static <V> LongArray<V> singleton(V oValue)
+        {
+        return oValue == null
+                ? NullImplementation.getLongArray()
+                : new SimpleLongArray(oValue);
+        }
 
     // ----- LongArray.Iterator interface -----------------------------------
 
