@@ -11,7 +11,6 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
-import com.tangosol.coherence.config.scheme.FlashJournalScheme;
 import com.tangosol.coherence.config.scheme.PagedTopicScheme;
 import com.tangosol.coherence.config.scheme.LocalScheme;
 
@@ -27,13 +26,13 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
-import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.events.EventDispatcher;
 import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
+import com.tangosol.net.partition.ObservableSplittingBackingCache;
 import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
