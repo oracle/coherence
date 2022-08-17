@@ -40,6 +40,7 @@ import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
 
+import com.tangosol.net.partition.ObservableSplittingBackingMap;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
@@ -49,10 +50,12 @@ import com.tangosol.net.topic.TopicException;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapNotFoundException;
+import com.tangosol.util.ObservableMap;
 
 import java.time.LocalDateTime;
 
@@ -72,7 +75,7 @@ import java.util.function.Function;
 
 /**
  * This class encapsulates control of a single partition of a paged topic.
- *
+ * <p>
  * Note many operations will interact with multiple caches.  Defining a consistent enlistment order proved to be
  * untenable, so instead we rely on clients using unit-of-order to ensure all access for a given topic partition
  * is serial.
@@ -113,7 +116,6 @@ public class PagedTopicPartition
      *
      * @param entry  the entry containing the {@link Usage
      *               for the topic.
-     *
      * @return  the tail
      */
     public long initialiseTopic(BinaryEntry<Usage.Key, Usage> entry)
@@ -468,7 +470,7 @@ public class PagedTopicPartition
      */
     protected void cleanupSubscriberRegistrations()
         {
-        // in a multi-channel topic there may be one or more unused channels.  The subscribers will naturally
+        // in a multichannel topic there may be one or more unused channels.  The subscribers will naturally
         // register for notification if an insert ever happens into each of those empty channels, and as there
         // if there is never an insert these registrations would grow and grow as subscriber instances come
         // and go.  The intent of this method is to stem that growth by removing a random few subscriber registrations
@@ -1252,15 +1254,15 @@ public class PagedTopicPartition
     public PollProcessor.Result pollFromPageHead(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
             long lPage, int cReqValues, int nNotifierId, SubscriberId subscriberId)
         {
-        Subscription.Key keySubscription = entrySubscription.getKey();
-        Subscription     subscription    = entrySubscription.getValue();
-        int              nChannel        = keySubscription.getChannelId();
-
-        if (subscription == null)
+        if (!entrySubscription.isPresent() || entrySubscription.getValue() == null)
             {
             // the subscriber is unknown, but we're allowing that as the client should handle it
             return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
             }
+
+        Subscription.Key keySubscription = entrySubscription.getKey();
+        Subscription     subscription    = entrySubscription.getValue();
+        int              nChannel        = keySubscription.getChannelId();
 
         SubscriberId owner = subscription.getOwningSubscriber();
         if (!Objects.equals(owner, subscriberId))
@@ -1269,7 +1271,35 @@ public class PagedTopicPartition
             return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, Integer.MAX_VALUE, null);
             }
 
-        Page page      = peekPage(nChannel, lPage); // we'll later enlist but only if we've exhausted the page
+        Page          page           = peekPage(nChannel, lPage); // we'll later enlist but only if we've exhausted the page
+        PagedPosition posCommitted   = subscription.getCommittedPosition();
+        long          lPageCommitted = posCommitted == null ? -1 : posCommitted.getPage();
+        int           nPosCommitted  = posCommitted == null ? -1 : posCommitted.getOffset();
+
+        if (lPage < lPageCommitted)
+            {
+            // The page requested is less than the last committed page, so we should not really have got here
+            // as the page has been committed.
+            // We should have previously exhausted and detached from this page, we can't just fall through
+            // as the page has already been detached we can't allow a double detach
+            checkForPageCleanup(entrySubscription, lPage, page);
+            return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+            }
+
+        if (lPage == lPageCommitted)
+            {
+            if (page == null || (page.isSealed() && page.getTail() <= nPosCommitted))
+                {
+                // The request page has been committed and is now null, i.e. it has been removed,
+                // or is not null and is sealed, but the committed position is >= the tail of the page,
+                // i.e. we've previously committed the whole page.
+                // We should have previously exhausted and detached from this page, we can't just fall through
+                // as the page has already been detached we can't allow a double detach
+                checkForPageCleanup(entrySubscription, lPage, page);
+                return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+                }
+            }
+
         long lPageThis = subscription.getPage();
         int  nPos;
 
@@ -1290,7 +1320,7 @@ public class PagedTopicPartition
             }
         else // otherwise lPage > lPageThis; first poll from page, start at the beginning
             {
-            if (page == null) // first poll from a yet to exist page
+            if (page == null) // first poll from an as yet to exist page
                 {
                 // create it so that we can subscribe for notification if necessary
                 // also this keeps overall logic a bit simpler
@@ -1323,6 +1353,11 @@ public class PagedTopicPartition
         Converter<Binary, Object> converterFrom = getValueFromInternalConverter();
         Converter<Object, Binary> converterTo   = getValueToInternalConverter();
 
+        if (lPage == lPageCommitted && nPosCommitted != -1)
+            {
+            nPos = Math.max(nPos, nPosCommitted + 1);
+            }
+
         for (; cReqValues > 0 && nPos <= nPosTail && cbResult < cbLimit; ++nPos)
             {
             Binary      binPosKey    = ContentKey.toBinary(f_nPartition, nChannel, lPage, nPos);
@@ -1346,7 +1381,7 @@ public class PagedTopicPartition
             }
         // nPos now refers to the next one to read
 
-        // if nPos is the past last element in the page and the page is sealed
+        // if nPos is the past last element in the page and the page has been sealed
         // then the subscriber has exhausted this page
         if (nPos > nPosTail && page.isSealed())
             {
@@ -1380,6 +1415,66 @@ public class PagedTopicPartition
                 requestInsertionNotification(enlistPage(nChannel, lPage), nNotifierId, nChannel);
                 }
             return new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues);
+            }
+        }
+
+    /**
+     * This method is called when a page is polled that is before the last commit
+     * for a subscription.
+     * <p>
+     * When this happens, this subscriber has previously read the whole page, the
+     * page should have been cleaned up unless there are other subscribers still to
+     * read it. In the past, due to a bug somewhere, fully committed pages have been
+     * left behind.
+     * <p>
+     * This method will count the registered subscribers for this partition (excluding the
+     * current subscription) that have a head page less than or equal to the specified page.
+     *
+     * @param entry  the current subscription entry being polled
+     * @param lPage  the current page id being polled
+     * @param page   the current page being polled
+     */
+    @SuppressWarnings("unchecked")
+    public void checkForPageCleanup(BinaryEntry<Subscription.Key, Subscription> entry, long lPage, Page page)
+        {
+        if (page == null)
+            {
+            return;
+            }
+
+        Subscription.Key         key          = entry.getKey();
+        int                      nPart        = key.getPartitionId();
+        ObservableMap            backingMap   = entry.getBackingMapContext().getBackingMap();
+        Map<Binary, Binary>      partitionMap = ((ObservableSplittingBackingMap) backingMap).getPartitionMap(nPart);
+        BackingMapManagerContext context      = entry.getContext();
+
+        Map<Subscription.Key, Subscription> map = ConverterCollections.getMap(partitionMap,
+                context.getKeyFromInternalConverter(), context.getKeyToInternalConverter(),
+                context.getValueFromInternalConverter(), context.getValueToInternalConverter());
+
+        int nChannel      = key.getChannelId();
+        int cSubscription = 0;
+        for (Map.Entry<Subscription.Key, Subscription> subscription : map.entrySet())
+            {
+            Subscription.Key subscriptionKey = subscription.getKey();
+            if (subscriptionKey.getChannelId() == nChannel && !Objects.equals(key, subscriptionKey))
+                {
+                if (subscription.getValue().getSubscriptionHead() <= lPage)
+                    {
+                    cSubscription++;
+                    }
+                }
+            }
+
+        if (cSubscription == 0)
+            {
+            // There are no subscriptions left for this page, it can be deleted...
+            if (page.adjustReferenceCount(-1) == 0)
+                {
+                Logger.fine(String.format("Removing previously fully committed page. Channel=%d Page=%d Group=%s",
+                                          nChannel, lPage, key.getGroupId().getGroupName()));
+                removePageIfNotRetainingElements(nChannel, lPage);
+                }
             }
         }
 
@@ -1482,7 +1577,7 @@ public class PagedTopicPartition
         else if (lPageActual < lPageCommit || page.isSealedAndEmpty())
             {
             // the actual page is lower than the requested commit page
-            // or the page is an empty sealed page inserted when a topic became full
+            // or the page is an empty sealed page inserted when a topic became full,
             // so we commit its tail position
             lPageCommit = lPageActual;
             nPosCommit  = page.getTail();
@@ -1510,7 +1605,7 @@ public class PagedTopicPartition
 
         if (page.isSealed() && nPosCommit >= page.getTail())
             {
-            // the committed page is full and sealed and we must have read it
+            // the committed page is full and sealed, and we must have read it
             // add to the list of pages to be de-referenced
             listPagesDereference.add(lPageActual);
 
@@ -1554,7 +1649,7 @@ public class PagedTopicPartition
 
         long                        lPagePrev = page.getPreviousPartitionPage();
         BinaryEntry<Page.Key, Page> entry     = peekPageEntry(nChannel, lPagePrev);
-        // walk down the pages but only as far as the previous rollback page
+        // walk down the pages but only as far as the previous rollback page,
         // or we get to a page that is already removed
         while (entry != null && entry.isPresent() && lPagePrev >= lPagePrevRollback)
             {
@@ -1606,7 +1701,7 @@ public class PagedTopicPartition
 
             if (pageFirst != null && pageFirst.isSubscribed())
                 {
-                // we didn't remove the first page in the list
+                // we didn't remove the first page in the list,
                 // so we need to bump the reference count on the next page above this page
                 long lPageNext = pageFirst.getNextPartitionPage();
                 if (lPageNext != Page.NULL_PAGE)
@@ -1730,7 +1825,7 @@ public class PagedTopicPartition
             // lPage is the requested page
             if (page.isSealed() && nOffsetSeek >= page.getTail())
                 {
-                // we're seeking past the tail of the page and the page is sealed so position on
+                // we're seeking past the tail of the page and the page has been sealed so position on
                 // the next page in this partition at offset zero
                 lPageRollback = page.getNextPartitionPage();
                 if (lPageRollback == Page.NULL_PAGE)
@@ -1840,7 +1935,7 @@ public class PagedTopicPartition
      * Move the subscriber to a specified position based on a timestamp.
      * <p>
      * The position seeked to will be such that the next element polled from the channel
-     * will be have a timestamp <i>greater than</i> the specified timestamp.
+     * will have a timestamp <i>greater than</i> the specified timestamp.
      *
      * @param entrySubscription  the subscription entry
      * @param lTimestamp         the timestamp to use to determine the position to seek to
@@ -1955,7 +2050,7 @@ public class PagedTopicPartition
 
             if (nPos >= page.getTail() && page.isSealed())
                 {
-                // we're seeking past the tail of the page and the page is sealed so position on
+                // we're seeking past the tail of the page and the page has been sealed so position on
                 // the next page in this partition at offset zero
                 lPageRollback = page.getNextPartitionPage();
                 if (lPageRollback == Page.NULL_PAGE)
@@ -2088,7 +2183,7 @@ public class PagedTopicPartition
             {
             entry.setValue(Arrays.binaryInsert(entry.getValue(), nChannel));
             // we expire in half the subscriber timeout time to ensure we see receive requests from waiting subscribers
-            // so that they do not timeout
+            // so that they do not time out
             entry.expire(getDependencies().getNotificationTimeout());
             }
         }
@@ -2101,11 +2196,11 @@ public class PagedTopicPartition
      */
     protected void requestRemovalNotification(int nNotifyPostFull, int nChannel)
         {
-        // Register for removal interest in all non-empty channels; registering in all channels is a bit wasteful and
+        // Register for removal interest in all non-empty channels; registering in all channels is a bit wasteful, and
         // we could just choose to store all our removal registrations in channel 0.  The problem with that is that
         // page removal is frequent while filling a topic is not.  By placing all registrations in channel 0 we
         // would then require that every page remove operation for every channel to enlist the Usage entry for channel 0,
-        // even if there are no registrations.  Instead we choose to replicate the registration in all channels which
+        // even if there are no registrations. Instead, we choose to replicate the registration in all channels which
         // could see a removal.
         for (int i = 0, c = getChannelCount(); i < c; ++i)
             {
@@ -2122,7 +2217,7 @@ public class PagedTopicPartition
                     {
                     entry.setValue(Arrays.binaryInsert(entry.getValue(), nChannel));
 
-                    // page removal from the same partition will remove this entry and thus notify the client via a remove event
+                    // page removal from the same partition will remove this entry and thus notify the client via a remove event,
                     // but we could also gain local space by having a new cache server join the cluster and take some of our
                     // partitions.  I don't yet see a way to ensure we could detect this and do the remove, so instead we just
                     // auto-remove every so often.  The chances of us relying on this is fairly low as we'd have to be out of space

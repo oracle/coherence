@@ -390,7 +390,7 @@ public class LocalNamedTopicTests
             BackingMapContext   context   = manager.getContext().getBackingMapContext(cacheName);
             ObservableMap<?, ?> map       = context.getBackingMap();
 
-            assertThat(map.getClass().getCanonicalName(), is(LocalCache.class.getCanonicalName()));
+            assertThat(map.getClass().getCanonicalName(), is(ObservableSplittingBackingCache.class.getCanonicalName()));
             }
         }
 
