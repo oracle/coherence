@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -803,16 +803,7 @@ public class LiteSet<E>
         boolean fLite = in.readBoolean();
         if (fLite)
             {
-            int c = ExternalizableHelper.readInt(in);
-            if (c > 0)
-                {
-                Object[] ao = new Object[c <= 1 || c > THRESHOLD ? c : THRESHOLD];
-                for (int i = 0; i < c; ++i)
-                    {
-                    ao[i] = ExternalizableHelper.readObject(in);
-                    }
-                initFromArray(ao, c);
-                }
+            readAndInitObjectArray(in);
             }
         else
             {
@@ -862,6 +853,95 @@ public class LiteSet<E>
 
 
     // ----- internal methods -----------------------------------------------
+
+    /**
+     * Read an array of objects from a DataInput stream and initialize
+     * the internal structures of this set.
+     *
+     * @param in  a ObjectInputStream stream to read from
+     *
+     * @throws IOException if an I/O exception occurs
+     *
+     * @since 22.09
+     */
+    private void readAndInitObjectArray(DataInput in)
+            throws IOException
+        {
+        int cLength = ExternalizableHelper.readInt(in);
+
+        int cCap = cLength <= 1 || cLength > THRESHOLD ? cLength : THRESHOLD;
+
+        // JEP-290 - ensure we can allocate this array
+        ExternalizableHelper.validateLoadArray(Object[].class, cCap, in);
+
+        Object[] oa = cCap <= 0
+                          ? new Object[0]
+                          : cCap < ExternalizableHelper.CHUNK_THRESHOLD >> 4
+                              ? readObjectArray(in, cCap, cLength)
+                              : readLargeObjectArray(in, cCap);
+
+        initFromArray(oa, cLength);
+        }
+
+    /**
+     * Read an array of the specified number of objects from a DataInput stream.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     * @param cRead    the number of elements to read
+     *
+     * @return an array of objects
+     *
+     * @throws IOException if an I/O exception occurs
+     *
+     * @since 22.09
+     */
+    private static Object[] readObjectArray(DataInput in, int cLength, int cRead)
+            throws IOException
+        {
+        Object[] ao = new Object[cLength];
+        for (int i = 0; i < cRead; i++)
+            {
+            ao[i] = ExternalizableHelper.readObject(in);
+            }
+
+        return ao;
+        }
+
+    /**
+     * Read an array of objects with length larger than {@link ExternalizableHelper#CHUNK_THRESHOLD} {@literal >>} 4.
+     *
+     * @param in       a DataInput stream to read from
+     * @param cLength  length to read
+     *
+     * @return an array of objects
+     *
+     * @throws IOException if an I/O exception occurs
+     *
+     * @since 22.09
+     */
+    private static Object[] readLargeObjectArray(DataInput in, int cLength)
+            throws IOException
+        {
+        int      cBatchMax = ExternalizableHelper.CHUNK_SIZE >> 4;
+        int      cBatch    = cLength / cBatchMax + 1;
+        Object[] aMerged   = null;
+        int      cRead     = 0;
+        int      cAllocate = cBatchMax;
+
+        Object[] ao;
+        for (int i = 0; i < cBatch && cRead < cLength; i++)
+            {
+            ao      = readObjectArray(in, cAllocate, cAllocate);
+            aMerged = ExternalizableHelper.mergeArray(aMerged, ao);
+            cRead  += ao.length;
+
+            cAllocate = Math.min(cLength - cRead, cBatchMax);
+            }
+
+        return aMerged;
+        }
+
 
     /**
     * (Factory pattern) Instantiate a Set object to store items in once
