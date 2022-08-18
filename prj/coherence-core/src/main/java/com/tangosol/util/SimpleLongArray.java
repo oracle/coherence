@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -38,6 +38,24 @@ public class SimpleLongArray
         clear();
         }
 
+    /**
+     * Create a {@link SimpleLongArray} with a single entry
+     * at index zero.
+     *
+     * @param oValue  the value to add at index zero
+     * @throws NullPointerException if the value is {@code null}
+     */
+    public SimpleLongArray(Object oValue)
+        {
+        if (oValue == null)
+            {
+            throw new NullPointerException("value cannot be null");
+            }
+        m_ao     = new Object[]{oValue};
+        m_iFirst = 0;
+        m_iLast  = 0;
+        m_cItems = 1;
+        }
 
     // ----- LongArray interface --------------------------------------------
 

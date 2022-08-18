@@ -21,7 +21,7 @@ import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ThreadGateLite;
 
 import java.util.Deque;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Queue;
 
 import java.util.concurrent.CancellationException;
@@ -127,30 +127,19 @@ public class BatchingOperationsQueue<V, R>
      */
     public CompletableFuture<R> add(V value)
         {
-        Element element = createElement(value);
-        Gate<?> gate    = getGate();
+        return add(value, /* fFirst */ false);
+        }
 
-        // Wait to enter the gate
-        gate.enter(-1);
-        try
-            {
-            assertActive();
-
-            // Add the new element containing the value and the future to the offer queue
-            getPending().add(element);
-            }
-        finally
-            {
-            // and finally exit from the gate
-            gate.exit();
-            }
-
-        // This will cause the batch operation to be triggered if required.
-        triggerOperations(f_cbInitialBatch);
-
-        f_backlog.adjustBacklog(f_backlogCalculator.applyAsLong(value));
-
-        return element.getFuture();
+    /**
+     * Add the specified value to the head of the pending operations queue.
+     *
+     * @param value  the value to add to the head of the queue
+     *
+     * @return a future which will complete once the supplied value has been published to the topic.
+     */
+    public CompletableFuture<R> addFirst(V value)
+        {
+        return add(value, /* fFirst */ true);
         }
 
     /**
@@ -177,12 +166,12 @@ public class BatchingOperationsQueue<V, R>
 
     /**
      * Obtain a {@link CompletableFuture} that will be complete when
-     * all of the currently outstanding operations complete.
+     * all the currently outstanding operations complete.
      * The returned {@link CompletableFuture} will always complete
      * normally, even if the outstanding operations complete exceptionally.
      *
      * @return a {@link CompletableFuture} that will be completed when
-     *         all of the currently outstanding operations are complete
+     *         all the currently outstanding operations are complete
      */
     public CompletableFuture<Void> flush()
         {
@@ -216,12 +205,12 @@ public class BatchingOperationsQueue<V, R>
      *
      * @return  the values from the current batch to process
      */
-    public List<V> getCurrentBatchValues()
+    public LinkedList<V> getCurrentBatchValues()
         {
         return getCurrentBatch().stream()
                 .filter(((Predicate<Element>) BatchingOperationsQueue.Element::isDone).negate())
                 .map(BatchingOperationsQueue.Element::getValue)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedList::new));
         }
 
     /**
@@ -232,6 +221,36 @@ public class BatchingOperationsQueue<V, R>
     public boolean isBatchComplete()
         {
         return getCurrentBatchValues().isEmpty();
+        }
+
+    /**
+     * Return the combined size of the current batch and pending queues.
+     *
+     * @return the combined size of the current batch and pending queues
+     */
+    public int size()
+        {
+        return getCurrentBatchSize() + getPendingSize();
+        }
+
+    /**
+     * Return the size of the current batch queue.
+     *
+     * @return the size of the current batch queue
+     */
+    public int getCurrentBatchSize()
+        {
+        return f_queueCurrentBatch.size();
+        }
+
+    /**
+     * Return the size of the pending queue.
+     *
+     * @return the size of the pending queue
+     */
+    public int getPendingSize()
+        {
+        return f_queuePending.size();
         }
 
     /**
@@ -280,21 +299,21 @@ public class BatchingOperationsQueue<V, R>
                 case CompleteAndClose:
                     fClose = true;
                 case Complete:
-                    // Complete all of the futures
+                    // Complete all the futures
                     doErrorAction(e -> e.complete(null, null), fClose);
                     break;
 
                 case CompleteWithExceptionAndClose:
                     fClose = true;
                 case CompleteWithException:
-                    // Complete exceptionally all of the futures in the current queue
+                    // Complete exceptionally all the futures in the current queue
                     doErrorAction(e -> e.completeExceptionally(null, function), fClose);
                     break;
 
                 case CancelAndClose:
                     fClose = true;
                 case Cancel:
-                    // Cancel all of the futures in the current queue
+                    // Cancel all the futures in the current queue
                     doErrorAction(e -> e.cancel(function, null), fClose);
                     break;
                 }
@@ -324,7 +343,7 @@ public class BatchingOperationsQueue<V, R>
         }
 
     /**
-     * Specifies whether or not the publisher is active.
+     * Specifies whether the publisher is active.
      *
      * @return true if the publisher is active; false otherwise
      */
@@ -381,14 +400,15 @@ public class BatchingOperationsQueue<V, R>
             while(element != null)
                 {
                 V value = element.getValue();
+                long lSize = f_backlogCalculator.applyAsLong(value);
                 try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
                     {
-                    f_backlog.adjustBacklog(-f_backlogCalculator.applyAsLong(value));
+                    f_backlog.adjustBacklog(-lSize);
                     }
                 if (!element.isDone())
                     {
                     queueCurrent.add(element);
-                    long cbBatch = m_cbCurrentBatch += f_backlogCalculator.applyAsLong(value);
+                    long cbBatch = m_cbCurrentBatch += lSize;
 
                     if (cbBatch >= cbMaxElements)
                         {
@@ -401,7 +421,7 @@ public class BatchingOperationsQueue<V, R>
 
             // We might not have pulled anything from the queue
             // if, for example, the application has cancelled all
-            // of the queued futures
+            // the queued futures
             if (queueCurrent.isEmpty())
                 {
                 // While the gate is shut create a new future to trigger
@@ -469,6 +489,18 @@ public class BatchingOperationsQueue<V, R>
         }
 
     /**
+     * Complete the first {@link Element Element} in the current batch.
+     *
+     * @param oValue      the value to use to complete the elements
+     * @param onComplete  an optional {@link Consumer} to call when requests are completed
+     */
+    @SuppressWarnings("unchecked")
+    public void completeElement(Object oValue, BiFunction<Throwable, V, Throwable> function, Consumer<R> onComplete)
+        {
+        completeElements(1, NullImplementation.getLongArray(), LongArray.singleton((R) oValue), function, onComplete);
+        }
+
+    /**
      * Complete the first n {@link Element Elements} in the current batch.
      *
      * @param cComplete   the number of {@link Element}s to complete
@@ -485,7 +517,8 @@ public class BatchingOperationsQueue<V, R>
      * <p>
      * If any element in the current batch has a corresponding error
      * in the errors array then it will be completed exceptionally.
-     *  @param cComplete  the number of {@link Element}s to complete
+     *
+     * @param cComplete  the number of {@link Element}s to complete
      * @param aErrors     the errors related to individual elements (could be null)
      * @param aValues     the values to use to complete the elements
      * @param onComplete  an optional {@link Consumer} to call when requests are completed
@@ -580,6 +613,48 @@ public class BatchingOperationsQueue<V, R>
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Add the specified value to the pending operations queue.
+     *
+     * @param value  the value to add to the queue
+     *
+     * @return a future which will complete once the supplied value has been published to the topic.
+     */
+    private CompletableFuture<R> add(V value, boolean fFirst)
+        {
+        Element element = createElement(value);
+        Gate<?> gate    = getGate();
+
+        // Wait to enter the gate
+        gate.enter(-1);
+        try
+            {
+            assertActive();
+
+            // Add the new element containing the value and the future to the offer queue
+            if (fFirst)
+                {
+                getPending().addFirst(element);
+                }
+            else
+                {
+                getPending().add(element);
+                }
+            }
+        finally
+            {
+            // and finally exit from the gate
+            gate.exit();
+            }
+
+        // This will cause the batch operation to be triggered if required.
+        triggerOperations(f_cbInitialBatch);
+
+        f_backlog.adjustBacklog(f_backlogCalculator.applyAsLong(value));
+
+        return element.getFuture();
+        }
+
+    /**
      * Assert that this {@link BatchingOperationsQueue} is active.
      *
      * @throws com.tangosol.util.AssertionException if
@@ -591,7 +666,7 @@ public class BatchingOperationsQueue<V, R>
         }
 
     /**
-     * Poll all of the elements from the queue and pass any non-done elements
+     * Poll all the elements from the queue and pass any non-done elements
      * to the consumer.
      *
      * @param action  the consumer to process non-done elements
@@ -910,17 +985,17 @@ public class BatchingOperationsQueue<V, R>
     // ----- constants ------------------------------------------------------
 
     /**
-     * Trigger state indicating that there is no send in progress.
+     * Trigger state indicating that there is no request in progress.
      */
     public static final int TRIGGER_OPEN = 0;
 
     /**
-     * Trigger state indicating that a send is in progress.
+     * Trigger state indicating that a request is in progress.
      */
     public static final int TRIGGER_CLOSED = 1;
 
     /**
-     * Trigger state indicating that no send is in progress but sends are deferred
+     * Trigger state indicating that no request is in progress but requests are deferred
      * pending notification from the topic.
      */
     public static final int TRIGGER_WAIT = 2;

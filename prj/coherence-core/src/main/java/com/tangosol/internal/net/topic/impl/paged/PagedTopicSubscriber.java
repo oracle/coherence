@@ -95,6 +95,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -292,7 +293,7 @@ public class PagedTopicSubscriber<V>
     public CompletableFuture<Element<V>> receive()
         {
         ensureActive();
-        return (CompletableFuture<Element<V>>) f_queueReceiveOrders.add(Request.SINGLE);
+        return (CompletableFuture<Element<V>>) f_queueReceiveOrders.add(ReceiveRequest.SINGLE);
         }
 
     @Override
@@ -300,7 +301,7 @@ public class PagedTopicSubscriber<V>
     public CompletableFuture<List<Element<V>>> receive(int cBatch)
         {
         ensureActive();
-        return (CompletableFuture<List<Element<V>>>) f_queueReceiveOrders.add(new Request(true, cBatch));
+        return (CompletableFuture<List<Element<V>>>) f_queueReceiveOrders.add(new ReceiveRequest(true, cBatch));
         }
 
     public Optional<Element<V>> peek(int nChannel)
@@ -399,7 +400,7 @@ public class PagedTopicSubscriber<V>
      * A subscriber in a group should normally be assigned ownership of at least one channel. In the case where there
      * are more subscribers in a group that the number of channels configured for a topic, then some
      * subscribers will obviously own zero channels.
-     * Anonymous subscribers that are not part of a group are always owners all of the available channels.
+     * Anonymous subscribers that are not part of a group are always owners all the available channels.
      *
      * @return the current set of channels that this {@link Subscriber} is the owner of, or an
      *         empty array if this subscriber has not been assigned ownership any channels
@@ -464,216 +465,88 @@ public class PagedTopicSubscriber<V>
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Integer, Position> getLastCommitted()
         {
         ensureActive();
-        Map<Integer, Position> mapCommit  = m_caches.getLastCommitted(f_subscriberGroupId);
-        int[]                  anChannels = m_aChannelOwned;
-        Map<Integer, Position> mapResult  = new HashMap<>();
-        for (int nChannel : anChannels)
-            {
-            mapResult.put(nChannel, mapCommit.getOrDefault(nChannel, PagedPosition.NULL_POSITION));
-            }
-        return mapResult;
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new GetPositionRequest(PositionType.Committed));
+
+        return future.join();
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Integer, Position> getHeads()
         {
         ensureActive();
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new GetPositionRequest(PositionType.Head));
 
-        Map<Integer, Position> mapHeads  = new HashMap<>();
-        int[]                  anChannel = getChannels();
-
-        for (int nChannel : anChannel)
-            {
-            mapHeads.put(nChannel, f_aChannel[nChannel].getHead());
-            }
-
-        for (CommittableElement element : m_queueValuesPrefetched)
-            {
-            int nChannel = element.getChannel();
-            if (mapHeads.containsKey(nChannel))
-                {
-                Position      positionCurrent = mapHeads.get(nChannel);
-                PagedPosition position        = (PagedPosition) element.getPosition();
-
-                if (nChannel != CommittableElement.EMPTY && position != null
-                        && position.getPage() != Page.EMPTY
-                        && (positionCurrent == null || positionCurrent.compareTo(position) > 0))
-                    {
-                    mapHeads.put(nChannel, position);
-                    }
-                }
-            }
-
-        return mapHeads;
+        return future.join();
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Integer, Position> getTails()
         {
-        Map<Integer, Position> map       = m_caches.getTails();
-        Map<Integer, Position> mapTails  = new HashMap<>();
-        int[]                  anChannel = getChannels();
-        for (int nChannel : anChannel)
-            {
-            mapTails.put(nChannel, map.getOrDefault(nChannel, f_aChannel[nChannel].getHead()));
-            }
-        return mapTails;
+        ensureActive();
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new GetPositionRequest(PositionType.Tail));
+
+        return future.join();
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Position seek(int nChannel, Position position)
         {
         ensureActive();
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new SeekRequest(Collections.singletonMap(nChannel, position)));
 
-        if (!isOwner(nChannel))
-            {
-            throw new IllegalStateException("Subscriber is not allocated channels " + nChannel);
-            }
-
-        try
-            {
-            // pause receives while we seek
-            f_queueReceiveOrders.pause();
-
-            if (position == null || position instanceof PagedPosition)
-                {
-                return seekChannel(nChannel, (PagedPosition) position);
-                }
-            else
-                {
-                throw new IllegalArgumentException("Invalid position type");
-                }
-            }
-        finally
-            {
-            // resume receives from the new position
-            f_queueReceiveOrders.resetTrigger();
-            }
+        Map<Integer, Position> map = future.join();
+        return map.get(nChannel);
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Integer, Position> seek(Map<Integer, Position> mapPosition)
         {
         ensureActive();
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new SeekRequest(mapPosition));
 
-        List<Integer> listUnallocated = mapPosition.keySet().stream()
-                .filter(c -> !isOwner(c))
-                .collect(Collectors.toList());
-
-        if (listUnallocated.size() > 0)
-            {
-            throw new IllegalStateException("Subscriber is not allocated channels " + listUnallocated);
-            }
-
-        try
-            {
-            // pause receives while we seek
-            f_queueReceiveOrders.pause();
-
-            Map<Integer, PagedPosition> mapSeek = new HashMap<>();
-            for (Map.Entry<Integer, Position> entry : mapPosition.entrySet())
-                {
-                Integer  nChannel = entry.getKey();
-                Position position = entry.getValue();
-                if (position instanceof PagedPosition)
-                    {
-                    mapSeek.put(nChannel, (PagedPosition) position);
-                    }
-                else
-                    {
-                    throw new IllegalArgumentException("Invalid position type for channel " + nChannel);
-                    }
-                }
-
-            Map<Integer, Position> mapResult    = new HashMap<>();
-            for (Map.Entry<Integer, PagedPosition> entry : mapSeek.entrySet())
-                {
-                int                  nChannel     = entry.getKey();
-                SeekProcessor.Result result       = seekInternal(nChannel, entry.getValue());
-                Position             seekPosition = updateSeekedChannel(nChannel, result);
-                mapResult.put(nChannel, seekPosition);
-                }
-            return mapResult;
-            }
-        finally
-            {
-            // resume receives from the new positions
-            f_queueReceiveOrders.resetTrigger();
-            }
+        return future.join();
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Position seek(int nChannel, Instant timestamp)
         {
         ensureActive();
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new SeekRequest(timestamp, nChannel));
 
-        if (!isOwner(nChannel))
-            {
-            throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
-            }
-
-        Objects.requireNonNull(timestamp);
-
-        try
-            {
-            // pause receives while we seek
-            f_queueReceiveOrders.pause();
-
-            ValueExtractor<Object, Integer>  extractorChannel   = Page.ElementExtractor.chained(Element::getChannel);
-            ValueExtractor<Object, Instant>  extractorTimestamp = Page.ElementExtractor.chained(Element::getTimestamp);
-            ValueExtractor<Object, Position> extractorPosition  = Page.ElementExtractor.chained(Element::getPosition);
-
-            Binary bin = m_caches.Data.aggregate(
-                    Filters.equal(extractorChannel, nChannel).and(Filters.greater(extractorTimestamp, timestamp)),
-                    new ComparableMin<>(extractorPosition));
-
-            @SuppressWarnings("unchecked")
-            PagedPosition position = (PagedPosition) m_caches.getCacheService().getBackingMapManager()
-                    .getContext().getValueFromInternalConverter().convert(bin);
-
-            if (position == null)
-                {
-                // nothing found greater than the timestamp so either the topic is empty
-                // or all elements are earlier, in either case seek to the tail
-                return seekToTail(nChannel).get(nChannel);
-                }
-
-            PagedPosition positionSeek;
-            int           nOffset = position.getOffset();
-
-            if (nOffset == 0)
-                {
-                // The position found is the head of a page so we actually want to seek to the previous element
-                // We don;t know the tail of that page so we can use Integer.MAX_VALUE
-                positionSeek = new PagedPosition(position.getPage() - 1, Integer.MAX_VALUE);
-                }
-            else
-                {
-                // we are not at the head of a page so seek to the page and previous offset
-                positionSeek = new PagedPosition(position.getPage(), nOffset - 1);
-                }
-            return seekChannel(nChannel, positionSeek);
-            }
-        finally
-            {
-            // resume receives from the new position
-            f_queueReceiveOrders.resetTrigger();
-            }
+        return future.join().get(nChannel);
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Integer, Position> seekToHead(int... anChannel)
         {
-        return seekToHeadOrTail(true, anChannel);
+        ensureActiveAnOwnedChannels(anChannel);
+        return ((CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new SeekRequest(SeekType.Head, anChannel))).join();
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Integer, Position> seekToTail(int... anChannel)
         {
-        return seekToHeadOrTail(false, anChannel);
+        ensureActiveAnOwnedChannels(anChannel);
+        return ((CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(new SeekRequest(SeekType.Tail, anChannel))).join();
         }
 
     @Override
@@ -1071,7 +944,7 @@ public class PagedTopicSubscriber<V>
                         // now we are in the gate lock, re-try switching channel as we might have had a notification
                         if (switchChannel())
                             {
-                            // we have a non-empty channel so go be round and process the receive requests again
+                            // we have a non-empty channel so go be round and process the "receive" requests again
                             receiveInternal(queueRequest, cBatch);
                             }
                         else
@@ -1109,11 +982,19 @@ public class PagedTopicSubscriber<V>
     @SuppressWarnings("unchecked")
     private void complete(BatchingOperationsQueue<Request, ?> queueRequest)
         {
-        List<Request> queueBatch = queueRequest.getCurrentBatchValues();
-        int           cValues    = 0;
-        int           cRequest   = queueBatch.size();
+        LinkedList<Request> queueBatch = queueRequest.getCurrentBatchValues();
 
         Queue<CommittableElement> queueValuesPrefetched = m_queueValuesPrefetched;
+
+        Request firstRequest = queueBatch.peek();
+        while (firstRequest instanceof FunctionalRequest)
+            {
+            ((FunctionalRequest) queueBatch.poll()).execute(this, queueRequest);
+            firstRequest = queueBatch.peek();
+            }
+
+        int cValues  = 0;
+        int cRequest = queueBatch.size();
 
         if (isActive() && !queueValuesPrefetched.isEmpty())
             {
@@ -1127,15 +1008,19 @@ public class PagedTopicSubscriber<V>
                 while (cValues < cRequest)
                     {
                     Request request = queueBatch.get(cValues);
-                    if (!request.isBatch())
+                    if (request instanceof ReceiveRequest)
                         {
-                        aValues.set(cValues, null);
+                        ReceiveRequest receiveRequest = (ReceiveRequest) request;
+                        if (!receiveRequest.isBatch())
+                            {
+                            aValues.set(cValues, null);
+                            }
+                        else
+                            {
+                            aValues.set(cValues, Collections.emptyList());
+                            }
+                        cValues++;
                         }
-                    else
-                        {
-                        aValues.set(cValues, Collections.emptyList());
-                        }
-                    cValues++;
                     }
                 }
             else
@@ -1143,28 +1028,32 @@ public class PagedTopicSubscriber<V>
                 while (m_nState == STATE_CONNECTED && cValues < cRequest && !queueValuesPrefetched.isEmpty())
                     {
                     Request request = queueBatch.get(cValues);
-                    if (request.isBatch())
+                    if (request instanceof ReceiveRequest)
                         {
-                        int cElement = request.getElementCount();
-                        List<CommittableElement> list = new ArrayList<>();
-                        for (int i = 0; i < cElement && !queueValuesPrefetched.isEmpty(); i++)
+                        ReceiveRequest receiveRequest = (ReceiveRequest) request;
+                        if (receiveRequest.isBatch())
+                            {
+                            int cElement = receiveRequest.getElementCount();
+                            List<CommittableElement> list = new ArrayList<>();
+                            for (int i = 0; i < cElement && !queueValuesPrefetched.isEmpty(); i++)
+                                {
+                                element = queueValuesPrefetched.poll();
+                                // ensure we still own the channel
+                                if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
+                                    {
+                                    list.add(element);
+                                    }
+                                }
+                            aValues.set(cValues++, list);
+                            }
+                        else
                             {
                             element = queueValuesPrefetched.poll();
                             // ensure we still own the channel
                             if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
                                 {
-                                list.add(element);
+                                aValues.set(cValues++, element);
                                 }
-                            }
-                        aValues.set(cValues++, list);
-                        }
-                    else
-                        {
-                        element = queueValuesPrefetched.poll();
-                        // ensure we still own the channel
-                        if (element != null && !element.isEmpty() && isOwner(element.getChannel()))
-                            {
-                            aValues.set(cValues++, element);
                             }
                         }
                     }
@@ -1320,60 +1209,245 @@ public class PagedTopicSubscriber<V>
                 .orElse(null);
         }
 
-    /**
-     * Seek to the head or tail for the specified channels.
-     *
-     * @param fHead      {@code true} to seek to the head, or {@code false} to seek to the tail
-     * @param anChannel  the array of channels to seek
-     *
-     * @return a map of the new {@link Position} for each channel
-     */
-    protected Map<Integer, Position> seekToHeadOrTail(boolean fHead, int... anChannel)
+    private Map<Integer, Position> seekInternal(SeekRequest request)
         {
+        SeekType type      = request.getType();
+        int[]    anChannel = request.getChannels();
+
         if (anChannel == null || anChannel.length == 0)
             {
             return new HashMap<>();
             }
 
-        List<Integer> listUnallocated = Arrays.stream(anChannel)
+        ensureActiveAnOwnedChannels(anChannel);
+
+        switch (type)
+            {
+            case Head:
+                ValueExtractor<Page, Integer> extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], ReflectionExtractor.KEY);
+                ValueExtractor<Page, Long>    extractorPage    = new ReflectionExtractor<>("getPageId", new Object[0], ReflectionExtractor.KEY);
+                Map<Integer, Long>            mapHeads         = m_caches.Pages.aggregate(GroupAggregator.createInstance(extractorChannel, new LongMin<>(extractorPage)));
+
+                Map<Integer, Position> mapSeek = new HashMap<>();
+                for (int nChannel : anChannel)
+                    {
+                    mapSeek.put(nChannel, new PagedPosition(mapHeads.get(nChannel), -1));
+                    }
+
+                return seekInternal(mapSeek);
+            case Tail:
+                Map<Integer, Position> mapTails = m_caches.getTails();
+                return seekInternal(filterForChannel(mapTails, anChannel));
+            case Position:
+                return seekInternal(request.getPositions());
+            case Instant:
+                Map<Integer, Position> mapPosition = new HashMap<>();
+                Instant                instant     = request.getInstant();
+
+                for (int nChannel : request.getChannels())
+                    {
+                    Position position = seekInternal(nChannel, instant);
+                    mapPosition.put(nChannel, position);
+                    }
+                return mapPosition;
+            default:
+                throw new IllegalArgumentException("Invalid SeekType " + type);
+            }
+        }
+
+    private Map<Integer, Position> seekInternal(Map<Integer, Position> mapPosition)
+        {
+        ensureActive();
+
+        List<Integer> listUnallocated = mapPosition.keySet().stream()
                 .filter(c -> !isOwner(c))
-                .boxed()
                 .collect(Collectors.toList());
 
-        if (listUnallocated.size() != 0)
+        if (listUnallocated.size() > 0)
             {
-            throw new IllegalArgumentException("One or more channels are not allocated to this subscriber " + listUnallocated);
+            throw new IllegalStateException("Subscriber is not allocated channels " + listUnallocated);
             }
 
-        Map<Integer, Position> mapPosition;
-        if (fHead)
+        try
             {
-            ValueExtractor<Page, Integer> extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], ReflectionExtractor.KEY);
-            ValueExtractor<Page, Long>    extractorPage    = new ReflectionExtractor<>("getPageId", new Object[0], ReflectionExtractor.KEY);
-            Map<Integer, Long>            mapHeads         = m_caches.Pages.aggregate(GroupAggregator.createInstance(extractorChannel, new LongMin<>(extractorPage)));
+            // pause receives while we seek
+            f_queueReceiveOrders.pause();
 
-            mapPosition = new HashMap<>();
-            for (int nChannel : anChannel)
+            Map<Integer, PagedPosition> mapSeek = new HashMap<>();
+            for (Map.Entry<Integer, Position> entry : mapPosition.entrySet())
                 {
-                mapPosition.put(nChannel, new PagedPosition(mapHeads.get(nChannel), -1));
+                Integer  nChannel = entry.getKey();
+                Position position = entry.getValue();
+                if (position instanceof PagedPosition)
+                    {
+                    mapSeek.put(nChannel, (PagedPosition) position);
+                    }
+                else
+                    {
+                    throw new IllegalArgumentException("Invalid position type for channel " + nChannel);
+                    }
+                }
+
+            Map<Integer, Position> mapResult    = new HashMap<>();
+            for (Map.Entry<Integer, PagedPosition> entry : mapSeek.entrySet())
+                {
+                int                  nChannel     = entry.getKey();
+                SeekProcessor.Result result       = seekInternal(nChannel, entry.getValue());
+                Position             seekPosition = updateSeekedChannel(nChannel, result);
+                mapResult.put(nChannel, seekPosition);
+                }
+            return mapResult;
+            }
+        finally
+            {
+            // resume receives from the new positions
+            f_queueReceiveOrders.resetTrigger();
+            }
+        }
+
+    private Position seekInternal(int nChannel, Instant timestamp)
+        {
+        if (!isOwner(nChannel))
+            {
+            throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
+            }
+
+        Objects.requireNonNull(timestamp);
+
+        try
+            {
+            // pause receives while we seek
+            f_queueReceiveOrders.pause();
+
+            ValueExtractor<Object, Integer>  extractorChannel   = Page.ElementExtractor.chained(Element::getChannel);
+            ValueExtractor<Object, Instant>  extractorTimestamp = Page.ElementExtractor.chained(Element::getTimestamp);
+            ValueExtractor<Object, Position> extractorPosition  = Page.ElementExtractor.chained(Element::getPosition);
+
+            Binary bin = m_caches.Data.aggregate(
+                    Filters.equal(extractorChannel, nChannel).and(Filters.greater(extractorTimestamp, timestamp)),
+                    new ComparableMin<>(extractorPosition));
+
+            @SuppressWarnings("unchecked")
+            PagedPosition position = (PagedPosition) m_caches.getCacheService().getBackingMapManager()
+                    .getContext().getValueFromInternalConverter().convert(bin);
+
+            if (position == null)
+                {
+                // nothing found greater than the timestamp so either the topic is empty
+                // or all elements are earlier, in either case seek to the tail
+                return seekToTail(nChannel).get(nChannel);
+                }
+
+            PagedPosition positionSeek;
+            int           nOffset = position.getOffset();
+
+            if (nOffset == 0)
+                {
+                // The position found is the head of a page, so we actually want to seek to the previous element
+                // We don;t know the tail of that page, so we can use Integer.MAX_VALUE
+                positionSeek = new PagedPosition(position.getPage() - 1, Integer.MAX_VALUE);
+                }
+            else
+                {
+                // we are not at the head of a page so seek to the page and previous offset
+                positionSeek = new PagedPosition(position.getPage(), nOffset - 1);
+                }
+            return seekChannel(nChannel, positionSeek);
+            }
+        finally
+            {
+            // resume receives from the new position
+            f_queueReceiveOrders.resetTrigger();
+            }
+        }
+
+    private void ensureActiveAnOwnedChannels(int... anChannel)
+        {
+        ensureActive();
+
+        if (anChannel != null && anChannel.length > 0)
+            {
+            List<Integer> listUnallocated = Arrays.stream(anChannel)
+                    .filter(c -> !isOwner(c))
+                    .boxed()
+                    .collect(Collectors.toList());
+
+            if (listUnallocated.size() != 0)
+                {
+                throw new IllegalArgumentException("One or more channels are not allocated to this subscriber " + listUnallocated);
                 }
             }
-        else
-            {
-            mapPosition = m_caches.getTails();
-            }
+        }
 
-        Map<Integer, Position> mapSeek  = new HashMap<>();
+    private Map<Integer, Position> filterForChannel(Map<Integer, Position> mapPosition, int... anChannel)
+        {
+        Map<Integer, Position> mapChannel = new HashMap<>();
         for (int nChannel : anChannel)
             {
             Position position = mapPosition.get(nChannel);
             if (position != null)
                 {
-                mapSeek.put(nChannel, position);
+                mapChannel.put(nChannel, position);
+                }
+            }
+        return mapChannel;
+        }
+
+    private Map<Integer, Position> getHeadsInternal()
+        {
+        ensureActive();
+
+        Map<Integer, Position> mapHeads  = new HashMap<>();
+        int[]                  anChannel = getChannels();
+
+        for (int nChannel : anChannel)
+            {
+            mapHeads.put(nChannel, f_aChannel[nChannel].getHead());
+            }
+
+        for (CommittableElement element : m_queueValuesPrefetched)
+            {
+            int nChannel = element.getChannel();
+            if (mapHeads.containsKey(nChannel))
+                {
+                Position      positionCurrent = mapHeads.get(nChannel);
+                PagedPosition position        = (PagedPosition) element.getPosition();
+
+                if (nChannel != CommittableElement.EMPTY && position != null
+                        && position.getPage() != Page.EMPTY
+                        && (positionCurrent == null || positionCurrent.compareTo(position) > 0))
+                    {
+                    mapHeads.put(nChannel, position);
+                    }
                 }
             }
 
-        return seek(mapSeek);
+        return mapHeads;
+        }
+
+    private Map<Integer, Position> getTailsInternal()
+        {
+        Map<Integer, Position> map       = m_caches.getTails();
+        Map<Integer, Position> mapTails  = new HashMap<>();
+        int[]                  anChannel = getChannels();
+        for (int nChannel : anChannel)
+            {
+            mapTails.put(nChannel, map.getOrDefault(nChannel, f_aChannel[nChannel].getHead()));
+            }
+        return mapTails;
+        }
+
+    private Map<Integer, Position> getLastCommittedInternal()
+        {
+        ensureActive();
+        Map<Integer, Position> mapCommit  = m_caches.getLastCommitted(f_subscriberGroupId);
+        int[]                  anChannels = m_aChannelOwned;
+        Map<Integer, Position> mapResult  = new HashMap<>();
+        for (int nChannel : anChannels)
+            {
+            mapResult.put(nChannel, mapCommit.getOrDefault(nChannel, PagedPosition.NULL_POSITION));
+            }
+        return mapResult;
         }
 
     /**
@@ -1621,7 +1695,7 @@ public class PagedTopicSubscriber<V>
                 {
                 if (lPriorHeadRemote < lHeadAssumed + 1)
                     {
-                    // our CAS succeeded, we'd already updated our local head before attempting it
+                    // our CAS succeeded, we'd already updated our local head before attempting it,
                     // but we do get to clear any contention since the former winner's CAS will fail
                     channel.m_fContended = false;
                     // we'll allow the channel to be removed from the contended channel list naturally during
@@ -1856,7 +1930,7 @@ public class PagedTopicSubscriber<V>
                 i = 0;
                 }
 
-            // i is now the next channel index
+            // "i" is now the next channel index
             nChannel = m_aChannelOwned[i];
 
             // now ensure the channel is not empty
@@ -1890,7 +1964,7 @@ public class PagedTopicSubscriber<V>
      * Handle the result of an async receive.
      *
      * @param channel  the associated channel
-     * @param lPageId  lTail the page the receive targeted
+     * @param lPageId  the page the poll targeted
      * @param result   the result
      * @param e        and exception
      */
@@ -1946,7 +2020,7 @@ public class PagedTopicSubscriber<V>
                     channel.m_nNext = 0;
                     }
 
-                // we're actually on the EMPTY_PAGE so we'll concurrently increment the durable
+                // we're actually on the EMPTY_PAGE, so we'll concurrently increment the durable
                 // head pointer and then update our pointer accordingly
                 if (lPageId == Page.NULL_PAGE)
                     {
@@ -2062,7 +2136,7 @@ public class PagedTopicSubscriber<V>
                     f_queueReceiveOrders.close();
                     f_queueReceiveOrders.cancelAllAndClose("Subscriber has been closed", null);
 
-                    // flush this subscriber to wait for all of the outstanding
+                    // flush this subscriber to wait for all the outstanding
                     // operations to complete (or to be cancelled if we're destroying)
                     try
                         {
@@ -2081,7 +2155,7 @@ public class PagedTopicSubscriber<V>
 
                     if (!fDestroyed)
                         {
-                        // caches have not been destroyed so we're just closing this subscriber
+                        // caches have not been destroyed, so we're just closing this subscriber
                         unregisterDeactivationListener();
                         unregisterChannelAllocationListener();
                         unregisterNotificationListener();
@@ -2125,23 +2199,23 @@ public class PagedTopicSubscriber<V>
 
     /**
      * Obtain a {@link CompletableFuture} that will be complete when
-     * all of the currently outstanding add operations complete.
+     * all the currently outstanding add operations complete.
      * <p>
      * If this method is called in response to a topic destroy then the
      * outstanding operations will be completed with an exception as the underlying
-     * topic caches have been destroyed so they can never complete normally.
+     * topic caches have been destroyed, so they can never complete normally.
      * <p>
      * if this method is called in response to a timeout waiting for flush to complete normally,
      * indicated by {@link FlushMode#FLUSH_CLOSE_EXCEPTIONALLY}, complete exceptionally all outstanding
      * asynchronous operations so close finishes.
-     *
+     * <p>
      * The returned {@link CompletableFuture} will always complete
      * normally, even if the outstanding operations complete exceptionally.
      *
      * @param mode  {@link FlushMode} flush mode to use
      *
      * @return a {@link CompletableFuture} that will be completed when
-     *         all of the currently outstanding add operations are complete
+     *         all the currently outstanding add operations are complete
      */
     private CompletableFuture<Void> flushInternal(FlushMode mode)
         {
@@ -2631,7 +2705,7 @@ public class PagedTopicSubscriber<V>
             }
 
         /**
-         * Set this channel as populated an bump the version up by one.
+         * Set this channel as populated and bump the version up by one.
          */
         protected synchronized void setPopulated()
             {
@@ -2680,9 +2754,9 @@ public class PagedTopicSubscriber<V>
 
         /**
          * The current head page for this subscriber, this value may safely be behind (but not ahead) of the actual head.
-         *
-         * volatile as it is possible it gets concurrently updated by multiple threads if the futures get completed
-         * on IO threads.  We don't both going with a full blow AtomicLong as either value is suitable and worst case
+         * <p>
+         * This field is volatile as it is possible it gets concurrently updated by multiple threads if the futures get
+         * completed on IO threads. We don't go with a full blow AtomicLong as either value is suitable and worst case
          * we update to an older value and this would be harmless and just get corrected on the next attempt.
          */
         volatile long m_lHead;
@@ -2756,12 +2830,43 @@ public class PagedTopicSubscriber<V>
         FLUSH_CLOSE_EXCEPTIONALLY
         }
 
-    // ----- inner class: Request -------------------------------------------
+    // ----- inner interface: Request ---------------------------------------
+
+    /**
+     * The base interface for subscriber requests.
+     */
+    protected interface Request
+        {
+        }
+
+    // ----- inner interface: Request ---------------------------------------
+
+    /**
+     * The base interface for subscriber requests
+     * that can execute themselves.
+     */
+    protected static abstract class FunctionalRequest
+            implements Request
+        {
+        protected abstract void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queue);
+
+        protected void onRequestComplete(Object o)
+            {
+            }
+
+        protected Throwable onRequestError(Throwable err, Object o)
+            {
+            return new TopicException(err);
+            }
+        }
+
+    // ----- inner class: ReceiveRequest ------------------------------------
 
     /**
      * A receive request.
      */
-    protected static class Request
+    protected static class ReceiveRequest
+            implements Request
         {
         /**
          * Create a receive request.
@@ -2769,7 +2874,7 @@ public class PagedTopicSubscriber<V>
          * @param fBatch    {@code true} if this is a batch receive
          * @param cElement  the number of elements to receive
          */
-        protected Request(boolean fBatch, int cElement)
+        protected ReceiveRequest(boolean fBatch, int cElement)
             {
             f_fBatch   = fBatch;
             f_cElement = cElement;
@@ -2802,7 +2907,7 @@ public class PagedTopicSubscriber<V>
         /**
          * A singleton, non-batch, receive request.
          */
-        public static final Request SINGLE = new Request(false, 1);
+        public static final ReceiveRequest SINGLE = new ReceiveRequest(false, 1);
 
         // ----- data members -----------------------------------------------
 
@@ -2815,6 +2920,243 @@ public class PagedTopicSubscriber<V>
          * The number of elements to receive if this is a batch request.
          */
         private final int f_cElement;
+        }
+
+    // ----- inner class: SeekRequest ---------------------------------------
+
+    /**
+     * A request to move the subscriber to a new position.
+     */
+    protected static class SeekRequest
+            extends FunctionalRequest
+        {
+        /**
+         * Create a {@link SeekRequest}.
+         *
+         * @param type       the type of the request
+         * @param anChannel  the channels to reposition
+         */
+        public SeekRequest(SeekType type, int... anChannel)
+            {
+            this(type, null, null, anChannel);
+            }
+
+        /**
+         * Create a {@link SeekRequest}.
+         *
+         * @param mapPosition  a map of {@link Position} keyed by channel to move to
+         */
+        public SeekRequest(Map<Integer, Position> mapPosition)
+            {
+            this(SeekType.Position, mapPosition, null);
+            }
+
+        /**
+         * Create a {@link SeekRequest}.
+         *
+         * @param instant    the {@link Instant} to use to reposition the subscriber
+         * @param anChannel  the channels to reposition
+         */
+        public SeekRequest(Instant instant, int... anChannel)
+            {
+            this(SeekType.Instant, null, instant, anChannel);
+            }
+
+        /**
+         * Create a {@link SeekRequest}.
+         *
+         * @param type         the type of the request
+         * @param mapPosition  a map of {@link Position} keyed by channel to move to
+         * @param instant      the {@link Instant} to use to reposition the subscriber
+         * @param anChannel    the channels to reposition
+         */
+        private SeekRequest(SeekType type, Map<Integer, Position> mapPosition, Instant instant, int... anChannel)
+            {
+            switch (type)
+                {
+                case Position:
+                    if (mapPosition == null)
+                        {
+                        throw new IllegalArgumentException("Seek request of type " + type + " require a position");
+                        }
+                    anChannel = mapPosition.keySet().stream().mapToInt(Integer::intValue).toArray();
+                    break;
+                case Instant:
+                    if (instant == null)
+                        {
+                        throw new IllegalArgumentException("Seek request of type " + type + " require an instant");
+                        }
+                    break;
+                }
+
+            m_type        = type;
+            m_mapPosition = mapPosition;
+            m_instant     = instant;
+            m_anChannel   = anChannel;
+            }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queueBatch)
+            {
+            Map<Integer, Position> map = subscriber.seekInternal(this);
+            queueBatch.completeElement(map, this::onRequestError, this::onRequestComplete);
+            }
+
+        /**
+         * Return the type of seek request.
+         *
+         * @return the type of seek request
+         */
+        public SeekType getType()
+            {
+            return m_type;
+            }
+
+        /**
+         * Return a map of {@link Position} keyed by channel to move to.
+         *
+         * @return a map of {@link Position} keyed by channel to move to
+         */
+        public Map<Integer, Position> getPositions()
+            {
+            return m_mapPosition;
+            }
+
+        /**
+         * Return the {@link Instant} to use to reposition the subscriber.
+         *
+         * @return the {@link Instant} to use to reposition the subscriber
+         */
+        public Instant getInstant()
+            {
+            return m_instant;
+            }
+
+        /**
+         * Return the channels to reposition.
+         *
+         * @return the channels to reposition
+         */
+        public int[] getChannels()
+            {
+            return m_anChannel;
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        /**
+         * The type of seek request.
+         */
+        protected final SeekType m_type;
+
+        /**
+         * A map of {@link Position} keyed by channel to move to.
+         */
+        protected final Map<Integer, Position> m_mapPosition;
+
+        /**
+         * The {@link Instant} to use to reposition the subscriber.
+         */
+        protected final Instant m_instant;
+
+        /**
+         * The channels to reposition.
+         */
+        protected final int[] m_anChannel;
+        }
+
+    // ----- inner enum: SeekType -------------------------------------------
+
+    /**
+     * An enum representing type of {@link SeekRequest}
+     */
+    protected enum SeekType
+        {
+        /**
+         * Seek to the head of the channel.
+         */
+        Head,
+        /**
+         * Seek to the tail of the channel.
+         */
+        Tail,
+        /**
+         * Seek to a specific position in a channel.
+         */
+        Position,
+        /**
+         * Seek to a specific timestamp in a channel.
+         */
+        Instant
+        }
+
+    // ----- inner class: GetPositionRequest --------------------------------
+
+    /**
+     * A request to move the subscriber to a new position.
+     */
+    protected static class GetPositionRequest
+            extends FunctionalRequest
+        {
+        /**
+         * Create a {@link GetPositionRequest}.
+         *
+         * @param type  the request type
+         */
+        public GetPositionRequest(PositionType type)
+            {
+            f_type = type;
+            }
+
+        @Override
+        protected void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queue)
+            {
+            Map<Integer, Position> map;
+            switch (f_type)
+                {
+                case Head:
+                    map = subscriber.getHeadsInternal();
+                    break;
+                case Tail:
+                    map = subscriber.getTailsInternal();
+                    break;
+                case Committed:
+                    map = subscriber.getLastCommittedInternal();
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + f_type);
+                }
+            queue.completeElement(map, this::onRequestError, this::onRequestComplete);
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        /**
+         * A flag indicating whether to obtain the head ({@code true}) or tail ({@code false}) positions.
+         */
+        private final PositionType f_type;
+        }
+
+    // ----- inner enum: SeekType -------------------------------------------
+
+    /**
+     * An enum representing type of {@link GetPositionRequest}
+     */
+    protected enum PositionType
+        {
+        /**
+         * Obtain the head position.
+         */
+        Head,
+        /**
+         * Obtain the tail position.
+         */
+        Tail,
+        /**
+         * Obtain the committed position.
+         */
+        Committed,
         }
 
     // ----- inner class: DeactivationListener ------------------------------
@@ -3159,7 +3501,7 @@ public class PagedTopicSubscriber<V>
     /**
      * An array of state names. The indexes match the values of the state constants.
      */
-    public static final String[] STATES = {"Initial", "Connected", "Disconnected", "CLosing", "Cloased"};
+    public static final String[] STATES = {"Initial", "Connected", "Disconnected", "CLosing", "Closed"};
 
     /**
      * Subscriber close timeout on first flush attempt. After this time is exceeded, all outstanding asynchronous operations will be completed exceptionally.
