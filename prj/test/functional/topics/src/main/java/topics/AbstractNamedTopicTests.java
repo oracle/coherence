@@ -2760,7 +2760,7 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldNotPollExpiredElements() throws Exception
         {
-        NamedTopic<String> topic      = ensureTopic(m_sSerializer + "-expiring");
+        NamedTopic<String> topic = ensureTopic(m_sSerializer + "-expiring");
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has non-zero expiry configured",
                           getDependencies(topic).getElementExpiryMillis() != 0, is(true));
@@ -2768,24 +2768,18 @@ public abstract class AbstractNamedTopicTests
         String sPrefix = "Element-";
         int    nCount  = 20;
 
-        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber"), completeOnEmpty()))
+        try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(m_testName.getMethodName() + "subscriber"), completeOnEmpty());
+             Publisher<String> publisher  = topic.createPublisher())
             {
-            try (Publisher<String> publisher  = topic.createPublisher())
+            for (int i=0; i<nCount; i++)
                 {
-                for (int i=0; i<nCount; i++)
-                    {
-                    publisher.publish(sPrefix + i);
-                    }
-
-                Thread.sleep(3000);
-
-                assertThat(subscriber.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
-
-                publisher.publish("Element-Last").get(1, TimeUnit.MINUTES);
+                publisher.publish(sPrefix + i);
                 }
 
-            String sValue = subscriber.receive().get(10, TimeUnit.SECONDS).getValue();
-            assertThat(sValue, is("Element-Last"));
+            // expiry is two seconds
+            Thread.sleep(3000);
+
+            assertThat(subscriber.receive().get(1, TimeUnit.MINUTES), is(nullValue()));
             }
         }
 
