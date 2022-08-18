@@ -76,7 +76,7 @@ public final class CaffeineCacheTest
 
     @ParameterizedTest
     @MethodSource("caches")
-    public void weight(ConfigurableCacheMap cache)
+    public void smallUnits(ConfigurableCacheMap cache)
         {
         cache.setUnitCalculator(new FixedCalculator(10));
         cache.setHighUnits(100);
@@ -88,6 +88,27 @@ public final class CaffeineCacheTest
         cache.setUnitCalculator(new FixedCalculator(20));
         assertThat(cache.getCacheEntry(1).getUnits(), is(20));
         assertThat(cache.getUnits(), is(10));
+        }
+
+    @ParameterizedTest
+    @MethodSource("caches")
+    public void largeUnits(ConfigurableCacheMap cache)
+        {
+        int cSize = 4;
+        int nUnitFactor = 8;
+        int cMaximum = Integer.MAX_VALUE;
+
+        cache.setHighUnits(cMaximum);
+        cache.setUnitFactor(nUnitFactor);
+        cache.setUnitCalculator(new FixedCalculator(cMaximum));
+        for (int i = 0; i < cSize; i++)
+            {
+            cache.put(i, i);
+            assertThat(cache.getCacheEntry(i).getUnits(), is(cMaximum));
+            }
+
+        int cExpectedUnits = (int) ((((long) cSize * cMaximum) + nUnitFactor - 1) / nUnitFactor);
+        assertThat(cache.getUnits(), is(cExpectedUnits));
         }
 
     @ParameterizedTest
