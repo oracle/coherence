@@ -109,6 +109,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -1076,6 +1077,52 @@ public class ReadWriteBackingMapTests
             throw ensureRuntimeException(e);
             }
         }
+
+    /**
+     * Test for ReadWriteBackingMap with sliding-expiry set to true.
+     */
+    @Test
+    public void testReadWriteBackingMapWithSlidingExpiry()
+       {
+        NamedCache            cache       = getNamedCache("dist-rwbm-wb-sliding-expiry");
+        ReadWriteBackingMap   rwbm        = getReadWriteBackingMap(cache);
+        ConfigurableCacheMap  mapInternal = (ConfigurableCacheMap) rwbm.getInternalCache();
+        Map<Integer, Integer> map         = new HashMap<>();
+
+        cache.put(0, 0);
+
+        assertEquals(cache.get(0), 0);
+        assertEquals(1, cache.size());
+        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+
+        try
+            {
+            // Loading entry from CacheLoader and ensure no exception should be thrown
+            cache.get(0);
+            }
+        catch (Exception e)
+            {
+            fail("No Exception should have thrown!! Got exception : " + e);
+            }
+
+        assertEquals(cache.get(0), 0);
+        Base.sleep(1000);
+        assertThat(cache.containsKey(0), is(true));
+
+        // access cache to slide/extend expiry for 2s
+        cache.get(0);
+        Base.sleep(1000);
+        assertThat(cache.containsKey(0), is(true));
+
+        // access cache to slide/extend expiry for 2s
+        cache.get(0);
+        Base.sleep(1000);
+        assertThat(cache.containsKey(0), is(true));
+
+        // now eventually let the entry expired and verify
+        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        assertEquals(0, cache.size());
+       }
 
     /**
      * Test that EvictionTask is scheduled so that expired entries are auto-evicted.
