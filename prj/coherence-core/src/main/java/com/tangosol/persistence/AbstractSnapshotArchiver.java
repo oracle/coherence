@@ -166,10 +166,10 @@ public abstract class AbstractSnapshotArchiver
                 }
 
             OfflinePersistenceInfo info = new OfflinePersistenceInfo(
-                    Integer.valueOf(props.getProperty(CachePersistenceHelper.META_PARTITION_COUNT)),
+                    Integer.parseInt(props.getProperty(CachePersistenceHelper.META_PARTITION_COUNT)),
                     props.getProperty(CachePersistenceHelper.META_STORAGE_FORMAT), true, listStoresInternal(sSnapshot),
-                    Integer.valueOf(props.getProperty(CachePersistenceHelper.META_STORAGE_VERSION)),
-                    Integer.valueOf(props.getProperty(CachePersistenceHelper.META_IMPL_VERSION)),
+                    Integer.parseInt(props.getProperty(CachePersistenceHelper.META_STORAGE_VERSION)),
+                    Integer.parseInt(props.getProperty(CachePersistenceHelper.META_IMPL_VERSION)),
                     props.get(CachePersistenceHelper.META_SERVICE_VERSION).toString());
 
             return instantiatePersistenceTools(info, sSnapshot);
