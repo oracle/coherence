@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence.bdb;
 
@@ -10,11 +10,10 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;
+import com.oracle.coherence.persistence.OfflinePersistenceInfo;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistentStore;
-
-import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
-import com.oracle.datagrid.persistence.PersistenceTools;
+import com.oracle.coherence.persistence.PersistenceTools;
 
 import com.sleepycat.je.CacheMode;
 import com.sleepycat.je.CheckpointConfig;

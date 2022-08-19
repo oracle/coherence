@@ -1,20 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.persistence.OfflinePersistenceInfo;
 import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceManager;
+import com.oracle.coherence.persistence.PersistenceStatistics;
+import com.oracle.coherence.persistence.PersistenceTools;
 import com.oracle.coherence.persistence.PersistentStore;
-
-import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
-import com.oracle.datagrid.persistence.PersistenceStatistics;
-import com.oracle.datagrid.persistence.PersistenceTools;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
@@ -410,8 +409,8 @@ public abstract class AbstractSnapshotArchiver
         else if (sStorageFormat.equals("BDB"))
             {
             return new BerkeleyDBEnvironment(new File(fileBaseDir, CachePersistenceHelper.DEFAULT_ACTIVE_DIR),
-                    new File(fileBaseDir, CachePersistenceHelper.DEFAULT_SNAPSHOT_DIR),
-                    new File(fileBaseDir, CachePersistenceHelper.DEFAULT_TRASH_DIR));
+                                             new File(fileBaseDir, CachePersistenceHelper.DEFAULT_SNAPSHOT_DIR),
+                                             new File(fileBaseDir, CachePersistenceHelper.DEFAULT_TRASH_DIR));
             }
         return null;
         }

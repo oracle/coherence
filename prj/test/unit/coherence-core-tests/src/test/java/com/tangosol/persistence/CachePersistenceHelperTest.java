@@ -6,12 +6,12 @@
  */
 package com.tangosol.persistence;
 
+import com.oracle.coherence.common.base.Collector;
+import com.oracle.coherence.persistence.OfflinePersistenceInfo;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
-
-import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
-import com.oracle.datagrid.persistence.PersistenceTools;
+import com.oracle.coherence.persistence.PersistenceTools;
 
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
@@ -424,6 +424,16 @@ public class CachePersistenceHelperTest
 
         @Override
         protected PersistenceTools instantiatePersistenceTools(OfflinePersistenceInfo offlinePersistenceInfo)
+            {
+            return null;
+            }
+
+        public PersistentStore open(String sId, PersistentStore storeFrom)
+            {
+            return null;
+            }
+
+        public PersistentStore open(String sId, PersistentStore storeFrom, Collector collector)
             {
             return null;
             }
