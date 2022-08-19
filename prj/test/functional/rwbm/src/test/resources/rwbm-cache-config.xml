@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -49,8 +49,11 @@
       </init-params>
     </cache-mapping>
     <cache-mapping>
-      <cache-name>
-dist-rwbm-wb-bin</cache-name>
+      <cache-name>dist-rwbm-wb-sliding-expiry</cache-name>
+      <scheme-name>distributed-rwbm-wb-sliding-expiry</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>dist-rwbm-wb-bin</cache-name>
       <scheme-name>distributed-rwbm-wb</scheme-name>
       <init-params>
         <init-param>
@@ -200,6 +203,31 @@ dist-rwbm-wb-bin</cache-name>
           <internal-cache-scheme>
             <local-scheme>
               <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
+            </local-scheme>
+          </internal-cache-scheme>
+
+          <cachestore-scheme>
+            <class-scheme>
+              <class-name>{store common.TestCacheStore}</class-name>
+            </class-scheme>
+          </cachestore-scheme>
+
+          <write-delay-seconds>{write-delay-seconds 4}</write-delay-seconds>
+          <write-batch-factor>{write-batch-factor 0.0}</write-batch-factor>
+          <write-requeue-threshold>1</write-requeue-threshold>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>distributed-rwbm-wb-sliding-expiry</scheme-name>
+
+      <backing-map-scheme>
+        <sliding-expiry>true</sliding-expiry>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <expiry-delay>2s</expiry-delay>
             </local-scheme>
           </internal-cache-scheme>
 
