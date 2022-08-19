@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
  * DB supported some sort of bulk update.
  */
 public class OrderCacheStore
-        extends Base
         implements CacheStore<Integer, Order>
     {
     /**

@@ -14,8 +14,6 @@ import com.oracle.coherence.guides.preload.model.Customer;
 
 import com.tangosol.net.cache.CacheStore;
 
-import com.tangosol.util.Base;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -41,7 +39,6 @@ import java.util.stream.Collectors;
  * DB supported some sort of bulk update.
  */
 public class CustomerCacheStore
-        extends Base
         implements CacheStore<Integer, Customer>
     {
     /**
