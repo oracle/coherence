@@ -33,6 +33,7 @@ import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
+import com.tangosol.net.partition.ObservableSplittingBackingCache;
 import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -375,7 +376,7 @@ public class LocalNamedTopicTests
             BackingMapContext   context   = manager.getContext().getBackingMapContext(cacheName);
             ObservableMap<?, ?> map       = context.getBackingMap();
 
-            assertThat(map.getClass().getCanonicalName(), is(LocalCache.class.getCanonicalName()));
+            assertThat(map.getClass().getCanonicalName(), is(ObservableSplittingBackingCache.class.getCanonicalName()));
             }
         }
 

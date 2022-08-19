@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -14,6 +14,7 @@ import com.tangosol.coherence.config.scheme.PagedTopicStorageScheme;
 
 import com.tangosol.config.ConfigurationException;
 
+import com.tangosol.config.expression.LiteralExpression;
 import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
@@ -94,6 +95,7 @@ public class PagedTopicSchemeProcessor
 
         backingMapScheme.setStorageAccessAuthorizer(scheme.getStorageAccessAuthorizer());
         backingMapScheme.setTransient(scheme.getTransientExpression());
+        backingMapScheme.setPartitioned(new LiteralExpression<>("true"));
 
         backingMapScheme.setInnerScheme(new PagedTopicStorageScheme(schemeStorage, scheme));
 
