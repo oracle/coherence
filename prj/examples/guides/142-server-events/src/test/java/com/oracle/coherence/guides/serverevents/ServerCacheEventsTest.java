@@ -87,6 +87,7 @@ public class ServerCacheEventsTest
 
         cache1.truncate();
         cache2.truncate();
+        Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(4));
 
         // clear the audit-events cache, so we miss the created and truncated events
         auditEvents.clear();
@@ -145,6 +146,7 @@ public class ServerCacheEventsTest
         // create a cache to audit entry processor events on
         NamedCache<Integer, Customer> cache = member.getCache("test-customer");
         cache.truncate();
+        Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(4));
 
         // clear the audit-events cache, so we miss the created and truncated events
         auditEvents.clear();
