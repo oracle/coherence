@@ -66,14 +66,6 @@ public class DistExtendNearAllTests
     @BeforeClass
     public static void startup()
         {
-        String[] defaultJvmOpts = new String[] {
-                "-server",
-                "-XX:+HeapDumpOnOutOfMemoryError",
-                "-XX:HeapDumpPath=" + System.getProperty("test.project.dir") + File.separatorChar + "target",
-                "-XX:+ExitOnOutOfMemoryError",
-                "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED"};
-
-        System.setProperty("test.jvm.options", Arrays.stream(defaultJvmOpts).collect(Collectors.joining(" ")));
         startCacheServerWithProxy("DistExtendNearAllTests", "extend", FILE_SERVER_CFG_CACHE);
         }
 

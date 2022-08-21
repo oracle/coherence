@@ -872,6 +872,7 @@
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
         <default.failsafe.modules.argline>
           --add-exports java.management/sun.management=com.oracle.coherence
+          --add-exports java.management/sun.management=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
@@ -880,6 +881,7 @@
         </default.failsafe.modules.argline>
         <default.surefire.modules.argline>
           --add-exports java.management/sun.management=com.oracle.coherence
+          --add-exports java.management/sun.management=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
@@ -964,6 +966,25 @@
         </property>
       </activation>
       <properties>
+        <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
+        <failsafe.modules.argline>
+          --add-exports java.management/sun.management=com.oracle.coherence
+          --add-exports java.management/sun.management=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+          --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+          --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+        </failsafe.modules.argline>
+        <surefire.modules.argline>
+          --add-exports java.management/sun.management=com.oracle.coherence
+          --add-exports java.management/sun.management=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+          --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+          --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+          --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+        </surefire.modules.argline>
         <jacoco.agent.ut.arg/>
         <jacoco.agent.it.arg/>
         <jacoco.report-missing.force-zere>true</jacoco.report-missing.force-zere>
@@ -999,6 +1020,8 @@
                   <bedrock.profile.coverage.classname>com.oracle.coherence.testing.bedrock.CoverageProfile</bedrock.profile.coverage.classname>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-ut.exec</jacoco-agent.destfile>
                   <coherence.lambdas>static</coherence.lambdas>
+                  <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
+                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                 </systemPropertyVariables>
                 <excludes>
                   <exclude>**/StreamTest.java</exclude>
@@ -1020,6 +1043,8 @@
                   <bedrock.profile.coverage.classname>com.oracle.coherence.testing.bedrock.CoverageProfile</bedrock.profile.coverage.classname>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-it.exec</jacoco-agent.destfile>
                   <coherence.lambdas>static</coherence.lambdas>
+                  <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
+                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
                 </systemPropertyVariables>
                 <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
               </configuration>
@@ -1098,89 +1123,6 @@
             </executions>
           </plugin>
         </plugins>
-      </build>
-    </profile>
-
-    <!--
-       settings required to be able to run tests with Java 8
-    -->
-    <profile>
-      <id>test-jdk8</id>
-      <properties>
-        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
-        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -XX:+UnlockCommercialFeatures -Dfile.encoding=UTF-8</failsafe.argLine>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>test-jdk16</id>
-      <properties>
-        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
-        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
-      </properties>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <version>${maven.surefire.plugin.version}</version>
-              <configuration>
-                <systemPropertyVariables>
-                  <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
-                </systemPropertyVariables>
-              </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-failsafe-plugin</artifactId>
-              <version>${maven.failsafe.plugin.version}</version>
-              <configuration>
-                <systemPropertyVariables>
-                  <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
-                </systemPropertyVariables>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
-    <profile>
-      <id>test-jdk17</id>
-      <properties>
-        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
-        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
-      </properties>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <version>${maven.surefire.plugin.version}</version>
-              <configuration>
-                <systemPropertyVariables>
-                  <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
-                </systemPropertyVariables>
-              </configuration>
-            </plugin>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-failsafe-plugin</artifactId>
-              <version>${maven.failsafe.plugin.version}</version>
-              <configuration>
-                <systemPropertyVariables>
-                  <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
-                  <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
-                </systemPropertyVariables>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
       </build>
     </profile>
 

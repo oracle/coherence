@@ -102,12 +102,28 @@
     <module.name>${project.artifactId}</module.name>
 
     <failsafe.argLine/>
-    <default.failsafe.modules.argline/>
-    <failsafe.modules.argline/>
+    <default.failsafe.modules.argline>
+      --add-exports java.management/sun.management=com.oracle.coherence
+      --add-exports java.management/sun.management=ALL-UNNAMED
+      --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
+      --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+      --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+      --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+      --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+    </default.failsafe.modules.argline>
+    <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
     <failsafe.coverage.argline/>
 
-    <default.surefire.modules.argline/>
-    <surefire.modules.argline/>
+    <default.surefire.modules.argline>
+      --add-exports java.management/sun.management=com.oracle.coherence
+      --add-exports java.management/sun.management=ALL-UNNAMED
+      --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
+      --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+      --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+      --add-opens=java.base/java.lang.invoke=com.oracle.coherence
+      --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+    </default.surefire.modules.argline>
+    <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>
 
     <!--
     These are extra args added to the jdeps command used by Moditect when running the code coverage build.
@@ -1388,6 +1404,8 @@
               <https.proxyHost>${http.proxyHost}</https.proxyHost>
               <https.proxyPort>${http.proxyPort}</https.proxyPort>
               <https.nonProxyHosts>${http.nonProxyHosts}</https.nonProxyHosts>
+              <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
+              <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
@@ -1540,6 +1558,8 @@
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
               <test.maven.repository>${settings.localRepository}</test.maven.repository>
               <jacoco.dest.folder>${project.build.directory}</jacoco.dest.folder>
+              <bedrock.profile.illegalaccess>deny</bedrock.profile.illegalaccess>
+              <bedrock.profile.illegalaccess.classname>com.oracle.coherence.testing.bedrock.IllegalaccessProfile</bedrock.profile.illegalaccess.classname>
             </systemPropertyVariables>
             <useSystemClassLoader>true</useSystemClassLoader>
             <useManifestOnlyJar>false</useManifestOnlyJar>
