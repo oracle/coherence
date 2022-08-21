@@ -233,7 +233,9 @@ then
 fi
 
 # Clean-up
-buildah rm container-amd64
-buildah rm container-arm64
+buildah rm "container-amd64" || true
+buildah rmi "coherence:amd64" || true
+buildah rm "container-arm64" || true
+buildah rmi "coherence:arm64" || true
 
 
