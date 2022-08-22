@@ -15,11 +15,14 @@ import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
+import com.oracle.bedrock.runtime.java.options.JavaModules;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.testing.util.VersionUtils;
 import com.tangosol.internal.net.management.HttpHelper;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -27,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.lessThan;
 
 /**
  * Test Management over REST when multiple Coherence clusters run in the same JVM.
@@ -47,6 +51,10 @@ public class MultiClusterInSingleProcessTests
     @BeforeClass
     public static void _startup()
         {
+        String sJava = System.getProperty("java.version");
+        Assume.assumeThat("Skipping test on Java 19 and higher",
+                          VersionUtils.compare(sJava, "19"), is(lessThan(0)));
+
         String sClusterNames = CLUSTER_NAME + ",Foo";
         startTestCluster(MultiCluster.class,
                          CLUSTER_NAME,
