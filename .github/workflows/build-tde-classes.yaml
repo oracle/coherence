@@ -3,10 +3,10 @@
 # http://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
-# Coherence CE GitHub Actions TDE Sources build.
+# Coherence CE GitHub Actions TDE Classes build.
 # ---------------------------------------------------------------------------
 
-name: TDE Sources
+name: TDE Classes
 
 on:
   workflow_dispatch:
@@ -73,8 +73,8 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -U -P-modules,tde.sources -DskipTests clean install
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence,tde.sources -nsu -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -U -P-modules,tde.classes -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence,tde.classes -nsu -DskipTests clean install
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
@@ -86,8 +86,8 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P-modules,${{ matrix.stage }},-javadoc,tde.sources -Doptional -Dcoherence.SkipLargeMemoryTests=true clean verify
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence,${{ matrix.stage }},-javadoc,tde.sources -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true clean verify
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -P-modules,${{ matrix.stage }},-javadoc,tde.classes -Doptional -Dcoherence.SkipLargeMemoryTests=true clean verify
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence,${{ matrix.stage }},-javadoc,tde.classes -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true clean verify
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs
