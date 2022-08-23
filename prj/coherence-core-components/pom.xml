@@ -436,9 +436,6 @@
   <profiles>
     <profile>
       <id>tde.classes</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <build>
         <plugins>
           <plugin>
@@ -466,6 +463,9 @@
 
     <profile>
       <id>tde.sources</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <build>
         <plugins>
           <plugin>
