@@ -34,6 +34,16 @@
           <UseCopy>false</UseCopy>
         </StorageInfo>
       </Library>
+      <Library>
+        <Name>javaee-api-5.jar</Name>
+        <Description>Java(TM) EE 1.5 Specification APIs</Description>
+        <Customizable>false</Customizable>
+        <Visibility>advanced</Visibility>
+        <StorageInfo>
+          <Location>./1.3/lib/javaee-api-5.jar</Location>
+          <UseCopy>false</UseCopy>
+        </StorageInfo>
+      </Library>
     </Target>
   </TargetList>
   <VersionList>
