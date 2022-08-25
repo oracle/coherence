@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
@@ -57,8 +58,11 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
+import java.util.function.LongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
@@ -187,6 +191,26 @@ public abstract class ReferencePipeline<K, V, P_IN, P_OUT, S_IN extends BaseStre
     public RemoteDoubleStream flatMapToDouble(Function<? super P_OUT, ? extends DoubleStream> mapper)
         {
         return new DoublePipeline.StatelessOp<>(this, s -> s.flatMapToDouble(mapper));
+        }
+
+    public <R> RemoteStream<R> mapMulti(BiConsumer<? super P_OUT, ? super Consumer<R>> mapper)
+        {
+        return new StatelessOp<>(this, (s) -> s.mapMulti(mapper));
+        }
+
+    public RemoteIntStream mapMultiToInt(BiConsumer<? super P_OUT, ? super IntConsumer> mapper)
+        {
+        return new IntPipeline.StatelessOp<>(this, (s) -> s.mapMultiToInt(mapper));
+        }
+
+    public RemoteLongStream mapMultiToLong(BiConsumer<? super P_OUT, ? super LongConsumer> mapper)
+        {
+        return new LongPipeline.StatelessOp<>(this, (s) -> s.mapMultiToLong(mapper));
+        }
+
+    public RemoteDoubleStream mapMultiToDouble(BiConsumer<? super P_OUT, ? super DoubleConsumer> mapper)
+        {
+        return new DoublePipeline.StatelessOp<>(this, (s) -> s.mapMultiToDouble(mapper));
         }
 
     public RemoteStream<P_OUT> peek(Consumer<? super P_OUT> action)

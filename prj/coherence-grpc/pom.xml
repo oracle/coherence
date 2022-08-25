@@ -214,10 +214,6 @@
                   </exports>
                 </moduleInfo>
               </module>
-              <jdepsExtraArgs>
-                <extraArg>--multi-release=11</extraArg>
-                <extraArg>${moditect.jdeps.coverage.args}</extraArg>
-              </jdepsExtraArgs>
               <exclusions>
                 <exclusion>
                   <groupId>com.google.code.findbugs</groupId>

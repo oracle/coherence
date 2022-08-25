@@ -242,9 +242,6 @@
                   <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>
-              <jdepsExtraArgs>
-                <arg>--multi-release=11</arg>
-              </jdepsExtraArgs>
               <overwriteExistingFiles>true</overwriteExistingFiles>
             </configuration>
           </execution>

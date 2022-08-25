@@ -170,8 +170,8 @@
     <docker.port.health>6676</docker.port.health>
 
     <!-- tool versions -->
-    <java.version>11</java.version>
-    <java.version.release>11</java.version.release> <!-- maven-compiler-plugin "release" version -->
+    <java.version>17</java.version>
+    <java.version.release>17</java.version.release> <!-- maven-compiler-plugin "release" version -->
     <maven.version>3.6.0</maven.version>
 
     <!--

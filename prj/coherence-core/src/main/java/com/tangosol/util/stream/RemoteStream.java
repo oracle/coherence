@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.stream;
 
@@ -19,15 +19,20 @@ import com.tangosol.util.comparator.InverseComparator;
 
 import com.tangosol.util.function.Remote;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
+import java.util.function.LongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
@@ -527,6 +532,204 @@ public interface RemoteStream<T>
         }
 
     /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with multiple elements, specifically zero or more elements.
+     * Replacement is performed by applying the provided mapping function to
+     * each element in conjunction with a {@linkplain Consumer consumer}
+     * argument that accepts replacement elements. The mapping function calls
+     * the consumer zero or more times to provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain Consumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper  a <em>non-interfering</em>, <em>stateless</em> function
+     *                that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    @Override
+    <R> RemoteStream<R> mapMulti(BiConsumer<? super T, ? super Consumer<R>> mapper);
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of
+     * this stream with multiple elements, specifically zero or more elements.
+     * Replacement is performed by applying the provided mapping function to
+     * each element in conjunction with a {@linkplain Consumer consumer}
+     * argument that accepts replacement elements. The mapping function calls
+     * the consumer zero or more times to provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain Consumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper  a <em>non-interfering</em>, <em>stateless</em> function
+     *                that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    default <R> RemoteStream<R> mapMulti(Remote.BiConsumer<? super T, ? super Consumer<R>> mapper)
+        {
+        return mapMulti((BiConsumer<? super T, ? super Consumer<R>>) mapper);
+        }
+
+    /**
+     * Returns an {@code IntStream} consisting of the results of replacing each
+     * element of this stream with multiple elements, specifically zero or more
+     * elements. Replacement is performed by applying the provided mapping
+     * function to each element in conjunction with a
+     * {@linkplain IntConsumer consumer} argument that accepts replacement
+     * elements. The mapping function calls the consumer zero or more times to
+     * provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain IntConsumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper a <em>non-interfering</em>, <em>stateless</em>
+     *               function that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    @Override
+    RemoteIntStream mapMultiToInt(BiConsumer<? super T, ? super IntConsumer> mapper);
+
+    /**
+     * Returns an {@code IntStream} consisting of the results of replacing each
+     * element of this stream with multiple elements, specifically zero or more
+     * elements. Replacement is performed by applying the provided mapping
+     * function to each element in conjunction with a
+     * {@linkplain IntConsumer consumer} argument that accepts replacement
+     * elements. The mapping function calls the consumer zero or more times to
+     * provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain IntConsumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper a <em>non-interfering</em>, <em>stateless</em>
+     *               function that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    default RemoteIntStream mapMultiToInt(Remote.BiConsumer<? super T, ? super IntConsumer> mapper)
+        {
+        return mapMultiToInt((BiConsumer<? super T, ? super IntConsumer>) mapper);
+        }
+
+    /**
+     * Returns a {@code LongStream} consisting of the results of replacing each
+     * element of this stream with multiple elements, specifically zero or more
+     * elements. Replacement is performed by applying the provided mapping
+     * function to each element in conjunction with a
+     * {@linkplain LongConsumer consumer} argument that accepts replacement
+     * elements. The mapping function calls the consumer zero or more times to
+     * provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain LongConsumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper a <em>non-interfering</em>, <em>stateless</em>
+     *               function that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    @Override
+    RemoteLongStream mapMultiToLong(BiConsumer<? super T, ? super LongConsumer> mapper);
+
+    /**
+     * Returns a {@code LongStream} consisting of the results of replacing each
+     * element of this stream with multiple elements, specifically zero or more
+     * elements. Replacement is performed by applying the provided mapping
+     * function to each element in conjunction with a
+     * {@linkplain LongConsumer consumer} argument that accepts replacement
+     * elements. The mapping function calls the consumer zero or more times to
+     * provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain LongConsumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper a <em>non-interfering</em>, <em>stateless</em>
+     *               function that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    default RemoteLongStream mapMultiToLong(Remote.BiConsumer<? super T, ? super LongConsumer> mapper)
+        {
+        return mapMultiToLong((BiConsumer<? super T, ? super LongConsumer>) mapper);
+        }
+
+    /**
+     * Returns a {@code DoubleStream} consisting of the results of replacing
+     * each element of this stream with multiple elements, specifically zero or
+     * more elements. Replacement is performed by applying the provided mapping
+     * function to each element in conjunction with a
+     * {@linkplain DoubleConsumer consumer} argument that accepts replacement
+     * elements. The mapping function calls the consumer zero or more times to
+     * provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain DoubleConsumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper a <em>non-interfering</em>, <em>stateless</em>
+     *               function that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    @Override
+    RemoteDoubleStream mapMultiToDouble(BiConsumer<? super T, ? super DoubleConsumer> mapper);
+
+    /**
+     * Returns a {@code DoubleStream} consisting of the results of replacing
+     * each element of this stream with multiple elements, specifically zero or
+     * more elements. Replacement is performed by applying the provided mapping
+     * function to each element in conjunction with a
+     * {@linkplain DoubleConsumer consumer} argument that accepts replacement
+     * elements. The mapping function calls the consumer zero or more times to
+     * provide the replacement elements.
+     *
+     * <p>This is an <em>intermediate operation</em>.
+     *
+     * <p>If the {@linkplain DoubleConsumer consumer} argument is used outside the
+     * scope of its application to the mapping function, the results are undefined.
+     *
+     * @param mapper a <em>non-interfering</em>, <em>stateless</em>
+     *               function that generates replacement elements
+     *
+     * @return the new stream
+     *
+     * @since 22.09
+     */
+    default RemoteDoubleStream mapMultiToDouble(Remote.BiConsumer<? super T, ? super DoubleConsumer> mapper)
+        {
+        return mapMultiToDouble((BiConsumer<? super T, ? super DoubleConsumer>) mapper);
+        }
+
+    /**
      * Returns a stream consisting of the elements of this stream, additionally
      * performing the provided action on each element as elements are consumed
      * from the resulting stream.
@@ -596,6 +799,134 @@ public interface RemoteStream<T>
      * @throws IllegalArgumentException if {@code n} is negative
      */
     Stream<T> skip(long n);
+
+    /**
+     * Returns, if this stream is ordered, a stream consisting of the longest
+     * prefix of elements taken from this stream that match the given predicate.
+     * Otherwise returns, if this stream is unordered, a stream consisting of a
+     * subset of elements taken from this stream that match the given
+     * predicate.
+     *
+     * <p>If this stream is ordered then the longest prefix is a contiguous
+     * sequence of elements of this stream that match the given predicate.  The
+     * first element of the sequence is the first element of this stream, and
+     * the element immediately following the last element of the sequence does
+     * not match the given predicate.
+     *
+     * <p>If this stream is unordered, and some (but not all) elements of this
+     * stream match the given predicate, then the behavior of this operation is
+     * nondeterministic; it is free to take any subset of matching elements
+     * (which includes the empty set).
+     *
+     * <p>Independent of whether this stream is ordered or unordered if all
+     * elements of this stream match the given predicate then this operation
+     * takes all elements (the result is the same as the input), or if no
+     * elements of the stream match the given predicate then no elements are
+     * taken (the result is an empty stream).
+     *
+     * <p>This is a <em>short-circuiting stateful intermediate operation</em>.
+     *
+     * @param predicate a <a
+     *                  href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a
+     *                  href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements to determine the longest
+     *                  prefix of elements.
+     *
+     * @return the new stream
+     *
+     * @implSpec The default implementation obtains the
+     * {@link #spliterator() spliterator} of this stream, wraps that spliterator
+     * so as to support the semantics of this operation on traversal, and
+     * returns a new stream associated with the wrapped spliterator.  The
+     * returned stream preserves the execution characteristics of this stream
+     * (namely parallel or sequential execution as per {@link #isParallel()})
+     * but the wrapped spliterator may choose to not support splitting.  When
+     * the returned stream is closed, the close handlers for both the returned
+     * and this stream are invoked.
+     * @apiNote While {@code takeWhile()} is generally a cheap operation on
+     * sequential stream pipelines, it can be quite expensive on ordered
+     * parallel pipelines, since the operation is constrained to return not just
+     * any valid prefix, but the longest prefix of elements in the encounter
+     * order. Using an unordered stream source (such as
+     * {@link #generate(Supplier)}) or removing the ordering constraint with
+     * {@link #unordered()} may result in significant speedups of
+     * {@code takeWhile()} in parallel pipelines, if the semantics of your
+     * situation permit.  If consistency with encounter order is required, and
+     * you are experiencing poor performance or memory utilization with
+     * {@code takeWhile()} in parallel pipelines, switching to sequential
+     * execution with {@link #sequential()} may improve performance.
+     * @since 9
+     */
+    @Override
+    default Stream<T> takeWhile(Predicate<? super T> predicate)
+        {
+        return Stream.super.takeWhile(predicate);
+        }
+
+    /**
+     * Returns, if this stream is ordered, a stream consisting of the remaining
+     * elements of this stream after dropping the longest prefix of elements
+     * that match the given predicate.  Otherwise returns, if this stream is
+     * unordered, a stream consisting of the remaining elements of this stream
+     * after dropping a subset of elements that match the given predicate.
+     *
+     * <p>If this stream is ordered then the longest prefix is a contiguous
+     * sequence of elements of this stream that match the given predicate.  The
+     * first element of the sequence is the first element of this stream, and
+     * the element immediately following the last element of the sequence does
+     * not match the given predicate.
+     *
+     * <p>If this stream is unordered, and some (but not all) elements of this
+     * stream match the given predicate, then the behavior of this operation is
+     * nondeterministic; it is free to drop any subset of matching elements
+     * (which includes the empty set).
+     *
+     * <p>Independent of whether this stream is ordered or unordered if all
+     * elements of this stream match the given predicate then this operation
+     * drops all elements (the result is an empty stream), or if no elements of
+     * the stream match the given predicate then no elements are dropped (the
+     * result is the same as the input).
+     *
+     * <p>This is a <em>stateful intermediate operation</em>.
+     *
+     * @param predicate a <a
+     *                  href="package-summary.html#NonInterference">non-interfering</a>,
+     *                  <a
+     *                  href="package-summary.html#Statelessness">stateless</a>
+     *                  predicate to apply to elements to determine the longest
+     *                  prefix of elements.
+     *
+     * @return the new stream
+     *
+     * @implSpec The default implementation obtains the
+     * {@link #spliterator() spliterator} of this stream, wraps that spliterator
+     * so as to support the semantics of this operation on traversal, and
+     * returns a new stream associated with the wrapped spliterator.  The
+     * returned stream preserves the execution characteristics of this stream
+     * (namely parallel or sequential execution as per {@link #isParallel()})
+     * but the wrapped spliterator may choose to not support splitting.  When
+     * the returned stream is closed, the close handlers for both the returned
+     * and this stream are invoked.
+     * @apiNote While {@code dropWhile()} is generally a cheap operation on
+     * sequential stream pipelines, it can be quite expensive on ordered
+     * parallel pipelines, since the operation is constrained to return not just
+     * any valid prefix, but the longest prefix of elements in the encounter
+     * order. Using an unordered stream source (such as
+     * {@link #generate(Supplier)}) or removing the ordering constraint with
+     * {@link #unordered()} may result in significant speedups of
+     * {@code dropWhile()} in parallel pipelines, if the semantics of your
+     * situation permit.  If consistency with encounter order is required, and
+     * you are experiencing poor performance or memory utilization with
+     * {@code dropWhile()} in parallel pipelines, switching to sequential
+     * execution with {@link #sequential()} may improve performance.
+     * @since 9
+     */
+    @Override
+    default Stream<T> dropWhile(Predicate<? super T> predicate)
+        {
+        return Stream.super.dropWhile(predicate);
+        }
 
     /**
      * Returns a stream consisting of the distinct elements (according to
@@ -1134,6 +1465,32 @@ public interface RemoteStream<T>
      * @see #collect(Remote.Supplier, Remote.BiConsumer, Remote.BiConsumer)
      */
     <R, A> R collect(RemoteCollector<? super T, A, R> collector);
+
+    /**
+     * Accumulates the elements of this stream into a {@code List}. The elements
+     * in the list will be in this stream's encounter order, if one exists. The
+     * returned List is unmodifiable; calls to any mutator method will always
+     * cause {@code UnsupportedOperationException} to be thrown. There are no
+     * guarantees on the implementation type or serializability of the returned
+     * List.
+     *
+     * <p>The returned instance may be <em>value-based</em>.
+     * Callers should make no assumptions about the identity of the returned
+     * instances. Identity-sensitive operations on these instances (reference
+     * equality ({@code ==}), identity hash code, and synchronization) are
+     * unreliable and should be avoided.
+     *
+     * <p>This is a <em>terminal operation</em>.
+     *
+     * @return a List containing the stream elements
+     *
+     * @since 22.09
+     */
+    @Override
+    default List<T> toList()
+        {
+        return Collections.unmodifiableList(collect(RemoteCollectors.toList()));
+        }
 
     /**
      * Returns the minimum element of this stream according to the provided

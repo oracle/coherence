@@ -158,7 +158,7 @@
      <maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
      <maven.javadoc.plugin.version>3.4.0</maven.javadoc.plugin.version>
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
-     <maven.moditect.plugin.version>1.0.0-RC1</maven.moditect.plugin.version>
+     <maven.moditect.plugin.version>1.0.0-RC2</maven.moditect.plugin.version>
      <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
      <maven.release.plugin.version>2.4</maven.release.plugin.version>
      <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
@@ -1044,7 +1044,7 @@
                     </moduleInfo>
                   </module>
                   <jdepsExtraArgs>
-                    <extraArg>--multi-release=11</extraArg>
+                    <extraArg>--multi-release=17</extraArg>
                     <extraArg>${moditect.jdeps.coverage.args}</extraArg>
                   </jdepsExtraArgs>
                   <outputDirectory>${project.build.directory}</outputDirectory>

@@ -29,11 +29,11 @@
 
   <properties>
     <!-- library dependency versions -->
-    <maven.plugin.api.version>3.6.3</maven.plugin.api.version>
+    <maven.plugin.api.version>3.8.6</maven.plugin.api.version>
 
     <!-- maven plugin versions -->
     <maven.artifact.transfer.version>0.12.0</maven.artifact.transfer.version>
-    <maven.plugin.plugin.version>3.6.0</maven.plugin.plugin.version>
+    <maven.plugin.plugin.version>3.6.4</maven.plugin.plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -47,6 +47,18 @@
       <dependency>
         <groupId>org.apache.maven</groupId>
         <artifactId>maven-core</artifactId>
+        <version>${maven.plugin.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-artifact</artifactId>
+        <version>${maven.plugin.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-model</artifactId>
         <version>${maven.plugin.api.version}</version>
         <scope>provided</scope>
       </dependency>
