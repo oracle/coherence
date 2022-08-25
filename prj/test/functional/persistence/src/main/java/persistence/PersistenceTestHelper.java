@@ -184,7 +184,7 @@ public class PersistenceTestHelper
         String sBeanName = getMBeanName(sServiceName);
 
         System.out.println("Operation=" + sOperation + ", service=" + sServiceName + ", snapshot=" + sSnapshot);
-        try (Timeout t = Timeout.after(240, TimeUnit.SECONDS))
+        try (Timeout t = Timeout.after(300, TimeUnit.SECONDS))
             {
             m_mbsProxy.invoke(sBeanName, sOperation, new String[] {sSnapshot}, new String[] {"java.lang.String"});
 
