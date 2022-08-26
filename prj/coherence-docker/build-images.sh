@@ -161,6 +161,10 @@ then
   buildah login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" "${DOCKER_REGISTRY}"
 fi
 
+if [ "${OCR_DOCKER_USERNAME}" != "" ] && [ "${OCR_DOCKER_USERNAME}" != "" ]
+then
+  buildah login -u "${OCR_DOCKER_USERNAME}" -p "${OCR_DOCKER_PASSWORD}" "${OCR_DOCKER_SERVER}"
+fi
 # pull in all the base images
 buildah pull "docker-daemon:${AMD_BASE_IMAGE}" || true
 buildah pull "docker-daemon:${ARM_BASE_IMAGE}" || true
