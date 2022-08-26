@@ -38,7 +38,7 @@ It will be loaded automatically when CDI integration is used.
         </local-scheme>
       </backing-map-scheme>
       <persistence>
-        <environment>default-${coherence.config.persistence on-demand}</environment>
+        <environment>${coherence.config.persistence.environment ${coherence.persistence.environment default-on-demand}}</environment>
       </persistence>
       <autostart>true</autostart>
       <health>
