@@ -1,16 +1,17 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.docker;
 
+
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.CacheFactory;
-
+import com.tangosol.util.Base;
 import com.tangosol.util.InvocableMap;
 
 import java.io.DataInput;
@@ -31,20 +32,8 @@ public class TestProcessor<K, V>
     @Override
     public Boolean process(InvocableMap.Entry<K, V> entry)
         {
-        CacheFactory.log("Entering InfoProcessor");
-        boolean fResult;
-        try
-            {
-            Class.forName("org.junit.Test");
-            fResult = true;
-            }
-        catch (Throwable t)
-            {
-            t.printStackTrace();
-            fResult = false;
-            }
-        CacheFactory.log("Leaving InfoProcessor - result=" + fResult);
-        return fResult;
+        CacheFactory.log("Executing " + getClass(), CacheFactory.LOG_INFO);
+        return true;
         }
 
     @Override

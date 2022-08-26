@@ -3,7 +3,7 @@
   ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -22,15 +22,23 @@
   <name>Coherence Docker Distribution</name>
 
   <properties>
+    <!-- Coherence container/image properties -->
     <docker.registry>oraclecoherence</docker.registry>
     <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
-
-    <!-- The base image for the Coherence image - usually a distroless OpenJDK image -->
-    <docker.base.image.name>gcr.io/distroless/java11</docker.base.image.name>
-
-    <port.extend>20000</port.extend>
-    <port.management>30000</port.management>
-    <port.metrics>9612</port.metrics>
+    <docker.image.arch>amd64</docker.image.arch>
+    <!--
+    The base image for the Coherence image - ideally a distroless OpenJDK image.
+    We build both x86_64 (arm64) and AMD64 images so need a base image for both of these
+    that uses the correct architecture.
+    Image names MUST include a registry prefix (for example even Docker Hub images need a docker.io/
+    prefix. This is because the images are NOT built using Docker.
+    -->
+    <docker.base.image.name.amd>gcr.io/distroless/java11-debian11</docker.base.image.name.amd>
+    <docker.base.image.name.arm>gcr.io/distroless/java11-debian11</docker.base.image.name.arm>
+    <!-- default ports configured in the image -->
+    <docker.port.extend>20000</docker.port.extend>
+    <docker.port.management>30000</docker.port.management>
+    <docker.port.metrics>9612</docker.port.metrics>
   </properties>
 
   <dependencies>
@@ -57,17 +65,6 @@
 
     <!-- test dependencies -->
     <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-testing-support</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.bedrock</groupId>
-      <artifactId>bedrock-runtime</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.oracle.bedrock</groupId>
       <artifactId>bedrock-testing-support</artifactId>
       <scope>test</scope>
@@ -77,14 +74,32 @@
       <artifactId>coherence-12.2.1-testing-support</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
-      <groupId>com.oracle.bedrock</groupId>
-      <artifactId>bedrock-runtime-docker</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -127,87 +142,72 @@
       </activation>
       <build>
         <plugins>
+          <!-- The assembly plugin puts everything that will be copied to the image into the target/docker directory -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>docker</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <finalName>docker</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>src/assembly/image-assembly.xml</descriptor>
+                  </descriptors>
+                  <attach>false</attach>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!--
+          The exec plugin runs Buildah in a container which will build the images
+          by running the build-images.sh shell script.
+          -->
           <plugin>
              <groupId>org.codehaus.mojo</groupId>
              <artifactId>exec-maven-plugin</artifactId>
              <executions>
                <execution>
-                 <id>pull-base-image</id>
+                 <id>build-images</id>
                  <goals>
                    <goal>exec</goal>
                  </goals>
-                 <phase>prepare-package</phase>
+                 <phase>package</phase>
                  <configuration>
-                   <executable>docker</executable>
+                   <executable>sh</executable>
                    <arguments>
-                     <argument>pull</argument>
-                     <argument>${docker.base.image.name}</argument>
+                     <argument>${project.basedir}/run-buildah.sh</argument>
+                     <argument>BUILD</argument>
                    </arguments>
+                   <environmentVariables>
+                     <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
+                     <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
+                     <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
+                     <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
+                     <PORT_MANAGEMENT>${docker.port.management}</PORT_MANAGEMENT>
+                     <PORT_METRICS>${docker.port.metrics}</PORT_METRICS>
+                     <MAIN_CLASS>com.tangosol.net.DefaultCacheServer</MAIN_CLASS>
+                     <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                     <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                     <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                     <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
+                     <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                     <PROJECT_URL>${project.url}</PROJECT_URL>
+                     <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
+                     <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                   </environmentVariables>
                  </configuration>
                </execution>
              </executions>
-           </plugin>
-
-          <plugin>
-            <groupId>com.google.cloud.tools</groupId>
-            <artifactId>jib-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>dockerBuild</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <from>
-                    <image>docker://${docker.base.image.name}</image>
-                  </from>
-                  <to>
-                    <image>${docker.image.name}</image>
-                  </to>
-                  <extraDirectories>
-                    <paths>
-                      <path>
-                        <from>${project.basedir}/src/main/args</from>
-                        <into>/args</into>
-                      </path>
-                    </paths>
-                  </extraDirectories>
-                  <container>
-                    <format>OCI</format>
-                    <mainClass>com.tangosol.coherence.docker.Runner</mainClass>
-					<creationTime>USE_CURRENT_TIMESTAMP</creationTime>
-                    <environment>
-                      <!-- Jaeger tracing variables -->
-                      <JAEGER_SAMPLER_TYPE>const</JAEGER_SAMPLER_TYPE>
-                      <JAEGER_SAMPLER_PARAM>1</JAEGER_SAMPLER_PARAM>
-                      <JAEGER_SERVICE_NAME>coherence</JAEGER_SERVICE_NAME>
-                    </environment>
-                    <extraClasspath>
-                      <classpath>/coherence/ext/conf</classpath>
-                      <classpath>/coherence/ext/lib/*</classpath>
-                    </extraClasspath>
-                    <jvmFlags>
-                      <jvmFlag>-Dcoherence.log=jdk</jvmFlag>
-                      <jvmFlag>-Dcoherence.management.http=all</jvmFlag>
-                      <jvmFlag>-Dcoherence.management.http.port=${port.management}</jvmFlag>
-                      <jvmFlag>-Dcoherence.extend.port=${port.extend}</jvmFlag>
-                      <jvmFlag>-Dcoherence.metrics.http.enabled=true</jvmFlag>
-                      <jvmFlag>-Dcoherence.metrics.http.port=${port.metrics}</jvmFlag>
-                      <jvmFlag>-Dcoherence.ttl=0</jvmFlag>
-                      <jvmFlag>-Dcoherence.tracing.ratio=1</jvmFlag>
-                      <jvmFlag>@/args/jvm-args.txt</jvmFlag>
-                    </jvmFlags>
-                    <ports>
-                      <port>${port.metrics}</port>
-                      <port>${port.management}</port>
-                      <port>${port.extend}</port>
-                    </ports>
-                  </container>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
+           </plugin>        </plugins>
       </build>
     </profile>
 
@@ -224,11 +224,12 @@
             <configuration>
               <skip>false</skip>
               <skipTests>false</skipTests>
+              <useModulePath>false</useModulePath>
               <systemProperties>
-                <docker.image.name>${docker.image.name}</docker.image.name>
-                <port.extend>${port.extend}</port.extend>
-                <port.management>${port.management}</port.management>
-                <port.metrics>${port.metrics}</port.metrics>
+                <test.image.names>${docker.image.name}</test.image.names>
+                <port.extend>${docker.port.extend}</port.extend>
+                <port.management>${docker.port.management}</port.management>
+                <port.metrics>${docker.port.metrics}</port.metrics>
               </systemProperties>
             </configuration>
           </plugin>
@@ -237,13 +238,14 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+              <useModulePath>false</useModulePath>
               <systemProperties>
                 <skip>false</skip>
                 <skipTests>false</skipTests>
-                <docker.image.name>${docker.image.name}</docker.image.name>
-                <port.extend>${port.extend}</port.extend>
-                <port.management>${port.management}</port.management>
-                <port.metrics>${port.metrics}</port.metrics>
+                <test.image.names>${docker.image.name}</test.image.names>
+                <port.extend>${docker.port.extend}</port.extend>
+                <port.management>${docker.port.management}</port.management>
+                <port.metrics>${docker.port.metrics}</port.metrics>
               </systemProperties>
             </configuration>
           </plugin>
@@ -269,11 +271,18 @@
                  </goals>
                  <phase>package</phase>
                  <configuration>
-                   <executable>docker</executable>
+                   <executable>sh</executable>
                    <arguments>
-                     <argument>push</argument>
-                     <argument>${docker.image.name}</argument>
+                     <argument>${project.basedir}/run-buildah.sh</argument>
+                     <argument>PUSH</argument>
                    </arguments>
+                   <environmentVariables>
+                     <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
+                     <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
+                     <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
+                     <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
+                   </environmentVariables>
                  </configuration>
                </execution>
              </executions>

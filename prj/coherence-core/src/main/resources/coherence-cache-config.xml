@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <!--
 This XML document is a default Coherence Cache Configuration deployment descriptor that should be
@@ -117,7 +117,15 @@ meaningful to other cache configurations unless similarly defined there.
     <!-- proxy scheme that allows extend clients to connect to the cluster over TCP/IP -->
     <proxy-scheme>
       <service-name>Proxy</service-name>
-      <autostart>true</autostart>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="coherence.extend.address"/>
+            <port system-property="coherence.extend.port"/>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart system-property="coherence.proxy.enabled">true</autostart>
     </proxy-scheme>
   </caching-schemes>
 </cache-config>

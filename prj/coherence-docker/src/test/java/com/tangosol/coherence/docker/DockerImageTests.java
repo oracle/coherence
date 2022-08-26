@@ -6,105 +6,71 @@
  */
 package com.tangosol.coherence.docker;
 
-import com.oracle.bedrock.Option;
-import com.oracle.bedrock.OptionsByType;
-import com.oracle.bedrock.options.LaunchLogging;
-import com.oracle.bedrock.runtime.MetaClass;
-import com.oracle.bedrock.runtime.Profile;
-import com.oracle.bedrock.runtime.console.FileWriterApplicationConsole;
-import com.oracle.bedrock.runtime.options.DisplayName;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-
-import com.oracle.bedrock.deferred.options.InitialDelay;
-import com.oracle.bedrock.deferred.options.MaximumRetryDelay;
-import com.oracle.bedrock.deferred.options.RetryFrequency;
-
-import com.oracle.bedrock.options.Timeout;
-
-import com.oracle.bedrock.runtime.Application;
-import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.Platform;
-
-import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
-
-import com.oracle.bedrock.runtime.docker.DockerContainer;
-
-import com.oracle.bedrock.runtime.docker.commands.Logs;
-import com.oracle.bedrock.runtime.docker.commands.Run;
-
-import com.oracle.bedrock.runtime.docker.options.ContainerCloseBehaviour;
-
-import com.oracle.bedrock.runtime.options.Argument;
-import com.oracle.bedrock.runtime.options.Console;
-
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.tangosol.internal.net.management.HttpHelper;
-
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.Test;
 
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.GenericContainer;
+
+import org.testcontainers.containers.Network;
+import org.testcontainers.utility.DockerImageName;
+
 import java.io.File;
-import java.io.InputStreamReader;
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
-
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
+import java.util.LinkedHashMap;
 
-import java.util.concurrent.TimeUnit;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
-import static com.tangosol.net.cache.TypeAssertion.withTypes;
-
-import static org.hamcrest.CoreMatchers.both;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.either;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-
-import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
-
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 /**
  * Various tests to verify basic functionality of an Oracle Coherence Docker image.
  *
  * @author jk  2017.04.19
  */
+@SuppressWarnings("resource")
 public class DockerImageTests
+        extends BaseDockerImageTests
     {
     // ----- test lifecycle -------------------------------------------------
 
-    @BeforeClass
-    public static void setup()
+    @BeforeAll
+    static void setup()
         {
-        imageExists = checkImageExists();
+        ImageNames.verifyTestAssumptions();
         }
 
-    @After
+    /**
+     * Return the image names for paramterized tests.
+     *
+     * @return the image names for paramterized tests
+     */
+    static String[] getImageNames()
+        {
+        return ImageNames.getImageNames();
+        }
+
+    @AfterEach
     public void afterTest()
         {
         // clean up Coherence
@@ -113,399 +79,205 @@ public class DockerImageTests
 
     // ----- test methods ---------------------------------------------------
 
-    @Test
-    public void shouldStartContainerWithNoArgs()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartContainerWithNoArgs(String sImageName)
         {
-        verifyTestAssumptions();
-
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME).detached(),
-                                               new DumpLogsOnClose(),
-                                               ContainerCloseBehaviour.remove()))
+        ImageNames.verifyTestAssumptions();
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                .waitingFor(DCS_STARTED)
+                .withImagePullPolicy(BaseDockerImageTests.NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))))
             {
-            DockerContainer container = app.get(DockerContainer.class);
-            assertStarted(platform, container);
+            Eventually.assertDeferred(container::isRunning, is(true));
             }
         }
 
-    @Test
-    public void shouldStartContainerWithExtend()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartContainerWithExtend(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME).detached().publishAll(),
-                                               new DumpLogsOnClose(),
-                                               ContainerCloseBehaviour.remove()))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                .waitingFor(DCS_STARTED)
+                .withImagePullPolicy(BaseDockerImageTests.NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withExposedPorts(EXTEND_PORT)))
             {
-            DockerContainer container = app.get(DockerContainer.class);
+            Eventually.assertDeferred(container::isRunning, is(true));
 
-            assertStarted(platform, container);
-
-            int hostPort = findPortMapping(container, EXTEND_PORT);
-            System.setProperty("test.extend.port", String.valueOf(hostPort));
+            int extendPort = container.getMappedPort(EXTEND_PORT);
+            System.setProperty("test.extend.port", String.valueOf(extendPort));
 
             ExtensibleConfigurableCacheFactory.Dependencies deps
                     = ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance("client-cache-config.xml");
 
-            ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(deps);
-
-            NamedCache<String, String> cache = eccf.ensureTypedCache("test-cache", null, withTypes(String.class, String.class));
+            ExtensibleConfigurableCacheFactory eccf  = new ExtensibleConfigurableCacheFactory(deps);
+            NamedCache<String, String>         cache = eccf.ensureCache("test-cache", null);
 
             cache.put("key-1", "value-1");
-
             assertThat(cache.get("key-1"), is("value-1"));
             }
         }
 
-    @Test
-    public void shouldStartWithJavaOpts()
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartWithJavaOpts(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        Platform platform    = LocalPlatform.get();
-        File     fileArgsDir = createJvmArgsFile("-Dcoherence.role=storage", "-Dcoherence.cluster=datagrid");
+        File fileArgsDir = createJvmArgsFile("-Dcoherence.role=storage", "-Dcoherence.cluster=datagrid");
 
-        try (Application app = platform.launch(Run.image(IMAGE_NAME)
-                                                       .detached()
-                                                       .volume(fileArgsDir.getAbsolutePath() + ":/args"),
-                                               new DumpLogsOnClose(),
-                                               ContainerCloseBehaviour.remove()))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                .waitingFor(DCS_STARTED)
+                .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
             {
-            DockerContainer container = app.get(DockerContainer.class);
-            assertStarted(platform, container);
-
-            Collection<String> logLines = tailLogs(platform, container);
-            assertThat(logLines, hasItem(containsString("Started cluster Name=datagrid")));
+            Eventually.assertDeferred(container::isRunning, is(true));
+            String sLog = container.getLogs();
+            assertThat(sLog, containsString("Started cluster Name=datagrid"));
             }
         }
 
-    @Test
-    public void shouldAddToClasspath() throws Exception
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldAddToClasspath(String sImageName)
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        // locate JUnit jar to add it to the classpath
-        URL  urlJUnit  = Test.class.getProtectionDomain().getCodeSource().getLocation();
-        File fileJUnit = new File(urlJUnit.toURI());
-        File fileLib   = fileJUnit.getParentFile();
+        File fileBuild = MavenProjectFileUtils.locateBuildFolder(getClass());
+        assertThat(fileBuild, is(notNullValue()));
 
-        // locate config to put test-classes/ on the classpath
-        URL  urlConfig       = getClass().getResource("/client-cache-config.xml");
-        File fileTestClasses = new File(urlConfig.toURI()).getParentFile();
+        File   fileTestClasses = new File(fileBuild, "test-classes");
+        String sLibs           = fileTestClasses.getAbsolutePath();
 
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME)
-                                                       .detached()
-                                                       .publishAll()
-                                                       .volume(fileLib.getCanonicalPath() + ":" + COHERENCE_HOME + "/ext/lib",
-                                                               fileTestClasses.getCanonicalPath() + ":" + COHERENCE_HOME + "/ext/conf"),
-                                               new DumpLogsOnClose(),
-                                               ContainerCloseBehaviour.remove()))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                .waitingFor(DCS_STARTED)
+                .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withFileSystemBind(sLibs, COHERENCE_HOME + "/ext/conf", BindMode.READ_ONLY)
+                .withExposedPorts(EXTEND_PORT)))
             {
-            DockerContainer container = app.get(DockerContainer.class);
-            assertStarted(platform, container);
+            Eventually.assertDeferred(container::isRunning, is(true));
 
-            int hostPort = findPortMapping(container, EXTEND_PORT);
-
-            System.setProperty("test.extend.host", "127.0.0.1");
+            int hostPort = container.getMappedPort(EXTEND_PORT);
             System.setProperty("test.extend.port", String.valueOf(hostPort));
 
             ExtensibleConfigurableCacheFactory.Dependencies deps
                     = ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance("client-cache-config.xml");
 
-            ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(deps);
-
-            NamedCache<String, String> cache = eccf.ensureTypedCache("test-cache", null, withTypes(String.class, String.class));
-            Boolean fResult = cache.invoke("foo", new TestProcessor<>());
+            ExtensibleConfigurableCacheFactory eccf    = new ExtensibleConfigurableCacheFactory(deps);
+            NamedCache<String, String>         cache   = eccf.ensureCache("test-cache", null);
+            Boolean                            fResult = cache.invoke("foo", new TestProcessor<>());
             assertThat(fResult, is(true));
             }
         }
 
-    @Test
-    public void shouldStartRestManagementServer() throws Exception
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartRestManagementServer(String sImageName) throws Exception
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        String                      sClusterName  = "http-management";
-        Platform                    platform      = LocalPlatform.get();
-        File                        fileArgsDir   = createJvmArgsFile("-Dcoherence.cluster=" + sClusterName);
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME)
-                        .detached()
-                        .volume(fileArgsDir.getAbsolutePath() + ":/args")
-                        .publishAll(),
-                Argument.of("server"),
-                new DumpLogsOnClose(),
-                ContainerCloseBehaviour.remove()))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                .waitingFor(DCS_STARTED)
+                .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withExposedPorts(MANAGEMENT_PORT)))
             {
-            DockerContainer container = app.get(DockerContainer.class);
+            Eventually.assertDeferred(container::isRunning, is(true));
 
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
-                    hasItem(both(containsString(HttpHelper.getServiceName() + ":HttpAcceptor"))
-                                    .and(containsString(Integer.toString(MANAGEMENT_PORT)))),
-                    InitialDelay.of(10, TimeUnit.SECONDS),
-                    Timeout.after(2, TimeUnit.MINUTES),
-                    MaximumRetryDelay.of(10, TimeUnit.SECONDS),
-                    RetryFrequency.every(10, TimeUnit.SECONDS));
-
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
-                    hasItem(containsString("Service " + HttpHelper.getServiceName() + " joined")),
-                    Timeout.after(1, TimeUnit.MINUTES),
-                    MaximumRetryDelay.of(10, TimeUnit.SECONDS),
-                    RetryFrequency.every(10, TimeUnit.SECONDS));
-
-            Eventually.assertThat(invoking(this).tailLogs(platform, container, 150),
-                    hasItem(containsString(STARTED_MESSAGE)),
-                    Timeout.after(1, TimeUnit.MINUTES),
-                    MaximumRetryDelay.of(10, TimeUnit.SECONDS),
-                    RetryFrequency.every(10, TimeUnit.SECONDS)
-            );
-
-            int               port = findPortMapping(container, MANAGEMENT_PORT);
-            URI               uri  = HttpHelper.composeURL("127.0.0.1", port).toURI();
-            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+            int                  hostPort = container.getMappedPort(MANAGEMENT_PORT);
+            URI                  uri      = HttpHelper.composeURL("127.0.0.1", hostPort).toURI();
+            HttpURLConnection    conn     = (HttpURLConnection) uri.toURL().openConnection();
 
             conn.setRequestMethod("GET");
             assertThat(conn.getResponseCode(), is(200));
             }
         }
 
-    @Test
-    public void shouldStartMetricsServer() throws Exception
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartCoherenceMetricsServer(String sImageName) throws Exception
         {
-        verifyTestAssumptions();
+        ImageNames.verifyTestAssumptions();
 
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch(Run.image(IMAGE_NAME).detached().publishAll(),
-                                               new DumpLogsOnClose(),
-                                               ContainerCloseBehaviour.remove()))
+        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                .waitingFor(DCS_STARTED)
+                .withImagePullPolicy(NeverPull.INSTANCE)
+                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
+                .withExposedPorts(METRICS_PORT)))
             {
-            DockerContainer container = app.get(DockerContainer.class);
-            assertStarted(platform, container);
+            Eventually.assertDeferred(container::isRunning, is(true));
 
-            int               port = findPortMapping(container, METRICS_PORT);
-            String            path = "/metrics/Coherence.Cluster.Size.txt"; // .txt suffix ensures we don't get JSON back
-            URI               uri  = URI.create("http://127.0.0.1:" + port + path);
-            HttpURLConnection con  = (HttpURLConnection) uri.toURL().openConnection();
+            int                  hostPort = container.getMappedPort(METRICS_PORT);
+            URI                  uri      = MetricsHttpHelper.composeURL("127.0.0.1", hostPort).toURI();
+            HttpURLConnection    conn     = (HttpURLConnection) uri.toURL().openConnection();
 
-            con.setRequestMethod("GET");
-            assertThat(con.getResponseCode(), is(200));
+            conn.setRequestMethod("GET");
+            assertThat(conn.getResponseCode(), is(200));
+            }
+        }
 
-            StringBuilder sbResponse = new StringBuilder();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())))
+    @SuppressWarnings("unchecked")
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartServiceWithWellKnowAddresses(String sImageName) throws Exception
+        {
+        ImageNames.verifyTestAssumptions();
+
+        String sName1  = "storage-1";
+        String sName2  = "storage-2";
+
+        try (Network network = Network.newNetwork())
+            {
+            try (GenericContainer<?> container1 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                    .waitingFor(DCS_STARTED)
+                    .withImagePullPolicy(NeverPull.INSTANCE)
+                    .withExposedPorts(MANAGEMENT_PORT)
+                    .withNetwork(network)
+                    .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName1)))
+                    .withEnv("COHERENCE_WKA", sName1)
+                    .withEnv("COHERENCE_MEMBER", sName1)
+                    .withEnv("COHERENCE_CLUSTER", "test-cluster")
+                    .withEnv("COHERENCE_CLUSTER", "storage")
+                    .withNetworkAliases(sName1)))
                 {
-                String inputLine;
-
-                while ((inputLine = in.readLine()) != null)
+                try (GenericContainer<?> container2 = start(new GenericContainer<>(DockerImageName.parse(sImageName))
+                        .waitingFor(DCS_STARTED)
+                        .withImagePullPolicy(NeverPull.INSTANCE)
+                        .withNetwork(network)
+                        .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build(sName2)))
+                        .withEnv("COHERENCE_WKA", sName1)
+                        .withEnv("COHERENCE_MEMBER", sName2)
+                        .withEnv("COHERENCE_CLUSTER", "test-cluster")
+                        .withEnv("COHERENCE_CLUSTER", "storage")
+                        .withNetworkAliases(sName2)))
                     {
-                    sbResponse.append(inputLine).append("\n");
+                    Eventually.assertDeferred(container1::isRunning, is(true));
+                    Eventually.assertDeferred(container2::isRunning, is(true));
+
+                    int                  hostPort = container1.getMappedPort(MANAGEMENT_PORT);
+                    URI                  uri      = HttpHelper.composeURL("127.0.0.1", hostPort).toURI();
+                    HttpURLConnection    conn     = (HttpURLConnection) uri.toURL().openConnection();
+
+                    conn.setRequestMethod("GET");
+                    assertThat(conn.getResponseCode(), is(200));
+
+
+                    LinkedHashMap<String, Object> map = m_mapper.readValue(conn.getInputStream(), LinkedHashMap.class);
+                    assertThat(map, is(notNullValue()));
+                    Number nSize = (Number) map.get("clusterSize");
+                    assertThat(nSize, is(notNullValue()));
+                    assertThat(nSize.intValue(), is(2));
                     }
                 }
-
-            String response = sbResponse.toString();
-            assertThat(response, is(notNullValue()));
-            assertThat(response, containsString("vendor:coherence_cluster_size{"));
             }
         }
-
-    @Test
-    public void shouldStartServiceWithWellKnowAddresses()
-        {
-        verifyTestAssumptions();
-
-        Platform platform    = LocalPlatform.get();
-        String   sName1      = "storage-1";
-        String   sName2      = "storage-2";
-
-        try (Application app1 = platform.launch(Run.image(IMAGE_NAME, sName1)
-                                                   .detached()
-                                                   .hostName(sName1)
-                                                   .env("coherence.wka", sName1)
-                                                   .env("coherence.cluster", "datagrid")
-                                                   .env("coherence.role", "storage"),
-                                                new DumpLogsOnClose(),
-                                                ContainerCloseBehaviour.remove()))
-            {
-            DockerContainer container1 = app1.get(DockerContainer.class);
-            assertStarted(platform, container1);
-
-            try (Application app2 = platform.launch(Run.image(IMAGE_NAME, sName2)
-                                                       .detached()
-                                                       .hostName(sName2)
-                                                       .env("coherence.wka", sName1)
-                                                       .env("coherence.cluster", "datagrid")
-                                                       .env("coherence.role", "storage")
-                                                       .link(Collections.singletonList(sName1)),
-                                                    new DumpLogsOnClose(),
-                                                    ContainerCloseBehaviour.remove()))
-                {
-                DockerContainer container2 = app2.get(DockerContainer.class);
-                assertStarted(platform, container2);
-                assertThat(tailLogs(platform, container2), hasItem(either(containsString("ActualMemberSet=MemberSet(Size=2"))
-                              .or(containsString("Service StorageService joined the cluster with senior service member 1"))));
-                }
-            }
-        }
-
 
     // ----- helper methods -------------------------------------------------
-
-    private void assertStarted(Platform platform, DockerContainer container)
-        {
-        Eventually.assertThat(invoking(this).tailLogs(platform, container, 50),
-            hasItem(containsString(STARTED_MESSAGE)),
-            InitialDelay.of(10, TimeUnit.SECONDS),
-            Timeout.after(2, TimeUnit.MINUTES),
-            MaximumRetryDelay.of(10, TimeUnit.SECONDS),
-            RetryFrequency.every(10, TimeUnit.SECONDS));
-        }
-
-    /**
-     * Verify the assumptions needed to run tests.
-     */
-    private void verifyTestAssumptions()
-        {
-        Assume.assumeThat("Skipping test, coherence.docker.image property not set", IMAGE_NAME, is(notNullValue()));
-        Assume.assumeThat("Skipping test, coherence.docker.image property not set", IMAGE_NAME.trim().isEmpty(), is(false));
-        Assume.assumeThat("Skipping test, image " + IMAGE_NAME + " is not present", imageExists, is(true));
-        }
-
-    /**
-     * Verify that the image being tested is already present.
-     *
-     * @return {@code true} if the image being tested is present.
-     */
-    private static boolean checkImageExists()
-        {
-        if (IMAGE_NAME == null || IMAGE_NAME.trim().isEmpty())
-            {
-            return false;
-            }
-
-        Platform platform = LocalPlatform.get();
-
-        CapturingApplicationConsole console = new CapturingApplicationConsole();
-
-        try (Application app = platform.launch("docker",
-                                               Argument.of("images"),
-                                               Argument.of("--format"),
-                                               Argument.of("{{.Repository}}:{{.Tag}}"),
-                                               Argument.of(IMAGE_NAME),
-                                               Console.of(console)))
-            {
-
-            int exitCode = app.waitFor();
-
-            if (exitCode != 0)
-                {
-                return false;
-                }
-            }
-
-        Queue<String> lines = console.getCapturedOutputLines();
-
-        return lines.contains(IMAGE_NAME);
-        }
-
-    /**
-     * Obtain the tail of the log of the specified container.
-     *
-     * @param platform  the {@link Platform} running the container
-     * @param container the container
-     * @param cLines    the number of lines to obtain
-     *
-     * @return the tail of the log of the specified container
-     */
-    // must be public as this method is used in an Eventually.assertThat
-    public Collection<String> tailLogs(Platform platform, DockerContainer container, Object cLines)
-        {
-        return tailLogs(platform, container.getName(), cLines);
-        }
-
-    /**
-     * Obtain the tail of the log of the specified container.
-     *
-     * @param platform  the {@link Platform} running the container
-     * @param container the container
-     *
-     * @return the tail of the log of the specified container
-     */
-    // must be public as this method is used in an Eventually.assertThat
-    public Collection<String> tailLogs(Platform platform, DockerContainer container)
-        {
-        return tailLogs(platform, container.getName(), null);
-        }
-
-
-    /**
-     * Obtain the tail of the log of the specified container.
-     *
-     * @param platform      the {@link Platform} running the container
-     * @param containerName the container name
-     * @param cLines        the number of lines to obtain
-     *
-     * @return the tail of the log of the specified container
-     */
-    // must be public as this method is used in an Eventually.assertThat
-    public Collection<String> tailLogs(Platform platform, String containerName, Object cLines)
-        {
-        CapturingApplicationConsole console = new CapturingApplicationConsole();
-        Logs                        logs    = Logs.from(containerName);
-
-        if (cLines != null)
-            {
-            logs = logs.tail(cLines);
-            }
-
-        try (Application app = platform.launch(logs, Console.of(console), LaunchLogging.disabled()))
-            {
-            app.waitFor();
-            }
-
-        List<String> lines = new ArrayList<>();
-
-        lines.addAll(console.getCapturedOutputLines());
-        lines.addAll(console.getCapturedErrorLines());
-
-        return lines;
-        }
-
-    /**
-     * Obtain the port mapping for the specified container and port
-     *
-     * @param container the {@link DockerContainer}
-     * @param nPort     the port mapping to locate
-     */
-    private static int findPortMapping(DockerContainer container, int nPort)
-        {
-        CapturingApplicationConsole console = new CapturingApplicationConsole();
-        Platform platform = LocalPlatform.get();
-
-        try (Application app = platform.launch("docker",
-                                               Argument.of("port"),
-                                               Argument.of(container.getName()),
-                                               Argument.of(nPort),
-                                               LaunchLogging.disabled(),
-                                               Console.of(console)))
-            {
-            app.waitFor();
-            }
-
-        Queue<String> lines = console.getCapturedOutputLines();
-
-        assertThat(lines.size(), is(greaterThanOrEqualTo(1)));
-
-        String line = lines.poll();
-        assertThat(line, is(notNullValue()));
-
-        String sPort = line.substring(line.lastIndexOf(":") + 1);
-        return Integer.parseInt(sPort);
-        }
 
     private File createJvmArgsFile(String... args)
         {
@@ -527,110 +299,15 @@ public class DockerImageTests
             }
         }
 
-    private File getOutputDirectory()
-        {
-        File fileOutDir = FileUtils.getTestOutputFolder(getClass());
-        File fileTests  = new File(fileOutDir, "functional" + File.separator + getClass().getSimpleName());
-        File dir        = new File(fileTests, m_testWatcher.getMethodName());
-        dir.mkdirs();
-        return dir;
-        }
-
-    // ----- inner class: DumpLogsOnClose -----------------------------------
-
-    /**
-     * A Bedrock {@link Profile} to dump the Docker container logs for
-     * an application before closing.
-     */
-    public class DumpLogsOnClose
-            implements Profile, Option
-        {
-        @Override
-        public void onClosing(Platform platform, Application application, OptionsByType optionsByType)
-            {
-            try
-                {
-                DockerContainer container = application.get(DockerContainer.class);
-                File            dir       = getOutputDirectory();
-                if (container != null)
-                    {
-                    String name = container.getName();
-                    File   logs = new File(dir, name + ".log");
-
-                    FileConsole console = new FileConsole(new FileWriter(logs));
-
-                    try (Application app = platform.launch(Logs.from(name),
-                                                           DisplayName.of(name),
-                                                           LaunchLogging.disabled(),
-                                                           Console.of(console)))
-                        {
-                        app.waitFor();
-                        }
-                    }
-                }
-            catch (IOException e)
-                {
-                e.printStackTrace();
-                }
-            }
-
-        @Override
-        public void onLaunching(Platform platform, MetaClass metaClass, OptionsByType optionsByType)
-            {
-            }
-
-        @Override
-        public void onLaunched(Platform platform, Application application, OptionsByType optionsByType)
-            {
-            }
-        }
-
-    public static class FileConsole
-            extends FileWriterApplicationConsole
-        {
-        public FileConsole(FileWriter fileWriter)
-            {
-            super(fileWriter);
-            }
-
-        @Override
-        public PrintWriter getErrorWriter()
-            {
-            return super.getOutputWriter();
-            }
-        }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * The name of the image to test, set by the coherence.docker.image System property.
-     */
-    private static final String IMAGE_NAME = System.getProperty("docker.image.name");
-
-    /**
-     * COHERENCE_HOME inside coherence docker image.
-     */
-    private static final String COHERENCE_HOME = System.getProperty("docker.coherence.home", "/coherence");
-
-    public static final int MANAGEMENT_PORT = Integer.getInteger("port.management", 30000);
-    public static final int METRICS_PORT = Integer.getInteger("port.metrics",7001);
-    public static final int EXTEND_PORT = Integer.getInteger("port.extend",20000);
-
-    public static final String STARTED_MESSAGE = "Started DefaultCacheServer...";
-
     // ----- data members ---------------------------------------------------
 
     /**
-     * Flag indicating whether the image is present.
+     * The name of the current test method.
      */
-    private static boolean imageExists;
-
-    /**
-     * JUnit rule to obtain the name of the current test.
-     */
-    @Rule
-    public TestName m_testWatcher = new TestName();
+    protected  String m_sTestMethod = "unknown";
 
     @Rule
     public TestLogs m_testLogs = new TestLogs(DockerImageTests.class);
+
+    private final ObjectMapper m_mapper = new ObjectMapper();
     }
