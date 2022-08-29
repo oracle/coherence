@@ -9,6 +9,7 @@ package tcmp;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.tangosol.util.Base;
 import com.tangosol.util.UID;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import org.junit.BeforeClass;
@@ -44,18 +45,24 @@ public class WitnessProtocolTests
         int cServers = 3;
         Properties propsClient = new Properties();
         propsClient.put("coherence.distributed.localstorage", "false");
-        CoherenceClusterMember server = ClusteringTests.startServers("server-witness", "witness", null, cServers);
-        CoherenceClusterMember client = startCacheServer("client-witness", "witness", null, propsClient);
+        CoherenceClusterMember[] servers = ClusteringTests.startServers("server-witness", "witness", null, cServers);
+        CoherenceClusterMember   client  = startCacheServer("client-witness", "witness", null, propsClient);
 
-        Eventually.assertThat(invoking(server).getClusterSize(), is(5));
+        Eventually.assertThat(invoking(servers[cServers-1]).getClusterSize(), is(5));
 
         UID uidClient = client.getLocalMemberUID();
         client.invoke(new ConnectionDestroyer(2));
 
-        Eventually.assertThat(invoking(server).getClusterMemberUIDs().contains(uidClient), is(false));
+        Eventually.assertThat(invoking(servers[cServers-1]).getClusterMemberUIDs().contains(uidClient), is(false));
 
+        for (int i = 0; i < cServers; i++)
+            {
+            servers[i].close();
+            }
         client.close();
         ClusteringTests.stopServers("server-witness", cServers);
+        AbstractFunctionalTest.stopCacheServer("client-witness");
+        Base.sleep(10000);
         }
 
     /**
@@ -68,22 +75,30 @@ public class WitnessProtocolTests
         int cServers = 3;
         Properties propsClient = new Properties();
         propsClient.put("coherence.distributed.localstorage", "false");
-        ClusteringTests.startServers("server-witness2", "witness2", null, cServers);
-        CoherenceClusterMember server = startCacheServer("bad-server2", "witness2", null, null);
-        CoherenceClusterMember client = startCacheServer("client-witness2", "witness2", null, propsClient);
+        CoherenceClusterMember[] servers = ClusteringTests.startServers("server-witness2", "witness2", null, cServers);
+        Eventually.assertThat(invoking(servers[cServers-1]).getClusterSize(), is(4));
 
+        CoherenceClusterMember badServer = startCacheServer("bad-server2", "witness2", null, null);
+        Eventually.assertThat(invoking(badServer).getClusterSize(), is(5));
+
+        CoherenceClusterMember client = startCacheServer("client-witness2", "witness2", null, propsClient);
         Eventually.assertThat(invoking(client).getClusterSize(), is(6));
 
-        UID uidServer = server.getLocalMemberUID();
-        client.invoke(new ConnectionDestroyer(server.getLocalMemberId()));
+        UID uidServer = badServer.getLocalMemberUID();
+        client.invoke(new ConnectionDestroyer(badServer.getLocalMemberId()));
         Thread.sleep(2000); // encourage either failure on this connection
-        server.invoke(new ConnectionDestroyer(0)); // ensure witnesses will agree
+        badServer.invoke(new ConnectionDestroyer(0)); // ensure witnesses will agree
 
         Eventually.assertThat(invoking(client).getClusterMemberUIDs().contains(uidServer), is(false));
 
+        badServer.close();
+        for (int i = 0; i < cServers; i++)
+            {
+            servers[i].close();
+            }
         client.close();
-        server.close();
         ClusteringTests.stopServers("server-witness2", cServers);
+        AbstractFunctionalTest.stopCacheServer("client-witness2");
         }
 
     public static class ConnectionDestroyer

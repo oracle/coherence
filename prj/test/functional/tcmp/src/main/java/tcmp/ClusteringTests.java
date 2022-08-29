@@ -82,14 +82,14 @@ public class ClusteringTests
 
     // ---- helper methods --------------------------------------------------
 
-    public static CoherenceClusterMember startServers(String sName, String sProject, Properties props, int c)
+    public static CoherenceClusterMember[] startServers(String sName, String sProject, Properties props, int c)
         {
-        CoherenceClusterMember member = null;
+        CoherenceClusterMember[] members = new CoherenceClusterMember[c];
         for (int i = 0; i < c; ++i)
             {
-            member = startCacheServer(sName +i, sProject, null, props);
+            members[i] = startCacheServer(sName +i, sProject, null, props);
             }
-        return member;
+        return members;
         }
 
     public static void stopServers(String sName, int c)
