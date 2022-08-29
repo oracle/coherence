@@ -2,7 +2,7 @@
  * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json;
@@ -15,8 +15,9 @@ import com.oracle.coherence.common.base.SimpleHolder;
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.JsonBindingException;
 
-import com.oracle.coherence.io.json.genson.bean.Image;
-import com.tangosol.io.ByteArrayReadBuffer;
+import com.oracle.coherence.io.json.genson.stream.JsonReader;
+import com.oracle.coherence.io.json.genson.stream.JsonWriter;
+
 import com.tangosol.io.ByteArrayWriteBuffer;
 
 import com.tangosol.util.Base;
@@ -35,11 +36,10 @@ import common.data.Person;
 import common.data.PutAll;
 
 import java.io.IOException;
+import java.io.StringWriter;
 
-import java.io.ObjectInputFilter;
 import java.math.BigInteger;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import java.time.Duration;
@@ -47,7 +47,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +59,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.naming.Name;
+
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -704,6 +705,56 @@ class JsonSerializerTest
         LinkedHashMap<String, Object> mapOut = genson.deserialize(sJson, LinkedHashMap.class);
 
         assertThat(mapOut, is(mapIn));
+        }
+
+    @Test
+    public void testUnicodeEscape() throws Exception
+        {
+        StringWriter sw = new StringWriter();
+        JsonWriter   w  = new JsonWriter(sw);
+
+        String sNonUnicode = "\\usr\\foo";
+
+        w.beginObject().writeName("key").writeValue(sNonUnicode);
+        w.endObject();
+        w.flush();
+        w.close();
+
+        JsonReader reader = new JsonReader(sw.toString());
+        reader.beginObject();
+        reader.next();
+        Assert.assertEquals("key", reader.name());
+        Assert.assertEquals(sNonUnicode, reader.valueAsString());
+
+        sw = new StringWriter();
+        w  = new JsonWriter(sw);
+
+        sNonUnicode = "\\u00G4";
+
+        w.beginObject().writeName("key").writeValue(sNonUnicode);
+        w.endObject();
+        w.flush();
+
+        reader = new JsonReader(sw.toString());
+        reader.beginObject();
+        reader.next();
+        Assert.assertEquals("key", reader.name());
+        Assert.assertEquals(sNonUnicode, reader.valueAsString());
+
+        sw = new StringWriter();
+        w  = new JsonWriter(sw);
+
+        sNonUnicode = "\\u00\\u005A";
+
+        w.beginObject().writeName("key").writeValue(sNonUnicode);
+        w.endObject();
+        w.flush();
+
+        reader = new JsonReader(sw.toString());
+        reader.beginObject();
+        reader.next();
+        Assert.assertEquals("key", reader.name());
+        Assert.assertEquals("\\u00Z", reader.valueAsString());
         }
 
 

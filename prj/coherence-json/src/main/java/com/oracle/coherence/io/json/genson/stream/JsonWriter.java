@@ -466,7 +466,13 @@ public class JsonWriter implements ObjectWriter {
       char[] replacement;
       if (c < 128) {
         int next = i + 1;
-        if (c == '\\' && carray.length > next && carray[next] == 'u') {
+        if (c == '\\'
+                && carray.length > next
+                && carray[next] == 'u'
+                && isHexChar(carray[next + 1])
+                && isHexChar(carray[next + 2])
+                && isHexChar(carray[next + 3])
+                && isHexChar(carray[next + 4])) {
           continue;
         }
         replacement = replacements[c];
@@ -587,6 +593,11 @@ public class JsonWriter implements ObjectWriter {
       }
     }
   }
+
+  private static boolean isHexChar(int c)
+    {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
 
   private final void writeToBuffer(final String data, final int offset) {
     writeToBuffer(data, offset, data.length());
