@@ -8,6 +8,7 @@ package com.tangosol.internal.util.stream.collectors;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
+import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -22,6 +23,7 @@ import com.tangosol.util.stream.RemoteCollector;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 
 import java.util.Collections;
@@ -50,6 +52,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
  * @since 12.2.1
  */
 public class MapCollector<T, K, V, M extends Map<K, V>>
+        extends AbstractEvolvable
         implements RemoteCollector<T, M, M>, ExternalizableLite, PortableObject
     {
     // ---- constructors ----------------------------------------------------
@@ -62,7 +65,7 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
         }
 
     /**
-     * Construct CollectionCollector instance.
+     * Construct MapCollector instance.
      *
      * @param keyMapper      a mapping function to produce keys
      * @param valueMapper    a mapping function to produce values
@@ -77,10 +80,34 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
                         Remote.BinaryOperator<V> mergeFunction,
                         Remote.Supplier<M> supplier)
         {
+        this(keyMapper, valueMapper, mergeFunction, supplier, null);
+        }
+
+    /**
+     * Construct CollectionCollector instance.
+     *
+     * @param keyMapper      a mapping function to produce keys
+     * @param valueMapper    a mapping function to produce values
+     * @param mergeFunction  a merge function, used to resolve collisions between
+     *                       values associated with the same key, as supplied to
+     *                       {@link Map#merge(Object, Object, BiFunction)}
+     * @param supplier       a function which returns a new, empty {@code Map}
+     *                       into which the results will be inserted
+     * @param finisher       a function that is used to finalize the result
+     *
+     * @since 22.09
+     */
+    public MapCollector(Remote.Function<? super T, ? extends K> keyMapper,
+                        Remote.Function<? super T, ? extends V> valueMapper,
+                        Remote.BinaryOperator<V> mergeFunction,
+                        Remote.Supplier<M> supplier,
+                        Remote.Function<M, M> finisher)
+        {
         m_keyMapper     = Lambdas.ensureRemotable(keyMapper);
         m_valueMapper   = Lambdas.ensureRemotable(valueMapper);
         m_mergeFunction = mergeFunction;
         m_supplier      = supplier;
+        m_finisher      = finisher;
         }
 
     // ---- Collector interface ---------------------------------------------
@@ -111,7 +138,7 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
     @Override
     public Function<M, M> finisher()
         {
-        return Function.identity();
+        return m_finisher == null ? Function.identity() : m_finisher;
         }
 
     @Override
@@ -161,6 +188,14 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
         m_valueMapper   = ExternalizableHelper.readObject(in);
         m_mergeFunction = ExternalizableHelper.readObject(in);
         m_supplier      = ExternalizableHelper.readObject(in);
+        try
+            {
+            m_finisher = ExternalizableHelper.readObject(in);
+            }
+        catch (EOFException ignore)
+            {
+            // the best we can do when reading an older version
+            }
         }
 
     @Override
@@ -170,6 +205,7 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
         ExternalizableHelper.writeObject(out, m_valueMapper);
         ExternalizableHelper.writeObject(out, m_mergeFunction);
         ExternalizableHelper.writeObject(out, m_supplier);
+        ExternalizableHelper.writeObject(out, m_finisher);
         }
 
     // ---- PortableObject interface ----------------------------------------
@@ -181,6 +217,10 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
         m_valueMapper   = in.readObject(1);
         m_mergeFunction = in.readObject(2);
         m_supplier      = in.readObject(3);
+        if (in.getVersionId() >= 1)
+            {
+            m_finisher = in.readObject(4);
+            }
         }
 
     @Override
@@ -190,12 +230,21 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
         out.writeObject(1, m_valueMapper);
         out.writeObject(2, m_mergeFunction);
         out.writeObject(3, m_supplier);
+        out.writeObject(4, m_finisher);
+        }
+
+    // ---- Evolvable interface ---------------------------------------------
+
+    public int getImplVersion()
+        {
+        return VERSION;
         }
 
     // ---- static members ----------------------------------------------------
 
-    protected static final Set<Characteristics> S_CHARACTERISTICS =
-            Collections.unmodifiableSet(EnumSet.of(Characteristics.IDENTITY_FINISH));
+    private static final int VERSION = 1;
+
+    static final Set<Characteristics> S_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
 
     // ---- data members ----------------------------------------------------
 
@@ -210,4 +259,7 @@ public class MapCollector<T, K, V, M extends Map<K, V>>
 
     @JsonbProperty("supplier")
     protected Supplier<M> m_supplier;
+
+    @JsonbProperty("finisher")
+    protected Function<M, M> m_finisher;
     }

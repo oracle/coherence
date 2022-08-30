@@ -21,6 +21,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +35,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
  * @author as  2014.11.19
  * @since 12.2.1
  */
-@SuppressWarnings({"unchecked", "SuspiciousToArrayCall", "NullableProblems"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PortableSet<E>
         extends WrapperCollections.AbstractWrapperSet<E>
         implements PortableObject, ExternalizableLite
@@ -75,13 +76,36 @@ public class PortableSet<E>
                                      : (Set<E>) m_colDelegate;
         }
 
+    /**
+     * Set the delegate to use.
+     *
+     * @param setDelegate  the delegate to use
+     */
+    protected void setDelegate(Set<E> setDelegate)
+        {
+        m_colDelegate = setDelegate;
+        }
+
+    /**
+     * Make this set unmodifiable.
+     *
+     * @return  the unmodifiable instance of this set
+     */
+    public Set<E> unmodifiable()
+        {
+        return new Unmodifiable<>(getDelegate());
+        }
+
     // ---- ExternalizableLite implementation -------------------------------
 
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_supplier    = ExternalizableHelper.readObject(in);
-        ExternalizableHelper.readCollection(in, getDelegate(), null);
+        m_supplier = ExternalizableHelper.readObject(in);
+
+        Set<E> delegate = getSupplier().get();
+        ExternalizableHelper.readCollection(in, delegate, null);
+        setDelegate(delegate);
         }
 
     @Override
@@ -96,8 +120,11 @@ public class PortableSet<E>
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_supplier    = in.readObject(0);
-        m_colDelegate = in.readCollection(1, getDelegate());
+        m_supplier = in.readObject(0);
+
+        Set<E> delegate = getSupplier().get();
+        in.readCollection(1, delegate);
+        setDelegate(delegate);
         }
 
     @Override
@@ -105,6 +132,44 @@ public class PortableSet<E>
         {
         out.writeObject(0, m_supplier);
         out.writeCollection(1, getDelegate());
+        }
+
+    // ---- inner class: Unmodifiable ---------------------------------------
+
+    /**
+     * Unmodifiable implementation of PortableList.
+     *
+     * @param <E>  the element type
+     *
+     * @since 22.09
+     */
+    public static class Unmodifiable<E>
+            extends PortableSet<E>
+        {
+        /**
+         * Default constructor.
+         */
+        @SuppressWarnings("unused")
+        public Unmodifiable()
+            {
+            }
+
+        /**
+         * Construct {@code Unmodifiable} instance.
+         *
+         * @param setDelegate  the set to make unmodifiable and delegate all
+         *                     method calls to
+         */
+        private Unmodifiable(Set<E> setDelegate)
+            {
+            setDelegate(setDelegate);
+            }
+
+        @Override
+        protected void setDelegate(Set<E> setDelegate)
+            {
+            m_colDelegate = Collections.unmodifiableSet(setDelegate);
+            }
         }
 
     // ---- static members -------------------------------------------------

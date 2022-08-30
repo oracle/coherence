@@ -2,24 +2,25 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing.tests.streams;
-
 
 import com.tangosol.internal.util.DoubleSummaryStatistics;
 import com.tangosol.internal.util.IntSummaryStatistics;
 import com.tangosol.internal.util.LongSummaryStatistics;
-import com.tangosol.internal.util.collection.PortableMap;
 import com.tangosol.internal.util.collection.PortableSortedMap;
 import com.tangosol.internal.util.stream.StreamSupport;
+
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.stream.RemoteStream;
+
 import data.pof.Person;
+
+import java.util.concurrent.ConcurrentMap;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,14 +45,22 @@ import static com.tangosol.util.stream.RemoteCollectors.summarizingLong;
 import static com.tangosol.util.stream.RemoteCollectors.summingDouble;
 import static com.tangosol.util.stream.RemoteCollectors.summingInt;
 import static com.tangosol.util.stream.RemoteCollectors.summingLong;
+import static com.tangosol.util.stream.RemoteCollectors.toConcurrentMap;
 import static com.tangosol.util.stream.RemoteCollectors.toList;
 import static com.tangosol.util.stream.RemoteCollectors.toMap;
 import static com.tangosol.util.stream.RemoteCollectors.toSet;
 import static com.tangosol.util.stream.RemoteCollectors.toSortedSet;
+import static com.tangosol.util.stream.RemoteCollectors.toUnmodifiableList;
+import static com.tangosol.util.stream.RemoteCollectors.toUnmodifiableMap;
+import static com.tangosol.util.stream.RemoteCollectors.toUnmodifiableSet;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.isA;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
 
 /**
  * @author as  2014.10.02
@@ -262,6 +271,58 @@ public abstract class BaseStreamTest
         }
 
     @Test
+    public void testToSetCollector()
+        {
+        Set<String> names = getStream(Person::getName).collect(toSet());
+        assertThat(names, containsInAnyOrder("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+
+        // this should work, as the returned set is not unmodifiable
+        names.clear();
+        }
+
+    @Test
+    public void testToUnmodifiableSetCollector()
+        {
+        Set<String> names = getStream(Person::getName).collect(toUnmodifiableSet());
+        assertThat(names, containsInAnyOrder("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+
+        // this should fail, as the returned list is unmodifiable
+        try
+            {
+            names.clear();
+            Assert.fail("Should've thrown UnsupportedOperationException");
+            }
+        catch (UnsupportedOperationException ignore)
+            {}
+        }
+
+    @Test
+    public void testToListCollector()
+        {
+        List<String> names = getStream(Person::getName).collect(toList());
+        assertThat(names, containsInAnyOrder("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+
+        // this should work, as the returned list is not unmodifiable
+        names.clear();
+        }
+
+    @Test
+    public void testToUnmodifiableListCollector()
+        {
+        List<String> names = getStream(Person::getName).collect(toUnmodifiableList());
+        assertThat(names, containsInAnyOrder("Aleks", "Marija", "Ana Maria", "Novak", "Kristina"));
+
+        // this should fail, as the returned list is unmodifiable
+        try
+            {
+            names.clear();
+            Assert.fail("Should've thrown UnsupportedOperationException");
+            }
+        catch (UnsupportedOperationException ignore)
+            {}
+        }
+
+    @Test
     public void testToMapCollector()
         {
         Map<String, Integer> nameAge = getStream()
@@ -269,6 +330,40 @@ public abstract class BaseStreamTest
                                Person::getAge));
         assertEquals(40, (int) nameAge.get("Aleks"));
         assertEquals(1, (int) nameAge.get("Kristina"));
+
+        // this should work, as the returned list is not unmodifiable
+        nameAge.clear();
+        }
+
+    @Test
+    public void testToConcurrentMapCollector()
+        {
+        ConcurrentMap<String, Integer > nameAge = getStream()
+                .collect(toConcurrentMap(Person::getName, Person::getAge));
+        assertThat(nameAge, isA(ConcurrentMap.class));
+        assertEquals(40, (int) nameAge.get("Aleks"));
+        assertEquals(1, (int) nameAge.get("Kristina"));
+
+        // this should work, as the returned list is not unmodifiable
+        nameAge.clear();
+        }
+
+    @Test
+    public void testToUnmodifiableMapCollector()
+        {
+        Map<String, Integer> nameAge = getStream()
+                .collect(toUnmodifiableMap(Person::getName, Person::getAge));
+        assertEquals(40, (int) nameAge.get("Aleks"));
+        assertEquals(1, (int) nameAge.get("Kristina"));
+
+        // this should fail, as the returned list is unmodifiable
+        try
+            {
+            nameAge.clear();
+            Assert.fail("Should've thrown UnsupportedOperationException");
+            }
+        catch (UnsupportedOperationException ignore)
+            {}
         }
 
     @Test
@@ -280,6 +375,44 @@ public abstract class BaseStreamTest
                                (s, a) -> s + a));
         assertEquals(50, (int) nameAge.get('A'));
         assertEquals(1, (int) nameAge.get('K'));
+
+        // this should work, as the returned list is not unmodifiable
+        nameAge.clear();
+        }
+
+    @Test
+    public void testToConcurrentMapCollectorWithMerge()
+        {
+        ConcurrentMap<Character, Integer > nameAge = getStream()
+                .collect(toConcurrentMap(charAt(Person::getName, 0),
+                               Person::getAge,
+                               (s, a) -> s + a));
+        assertThat(nameAge, isA(ConcurrentMap.class));
+        assertEquals(50, (int) nameAge.get('A'));
+        assertEquals(1, (int) nameAge.get('K'));
+
+        // this should work, as the returned list is not unmodifiable
+        nameAge.clear();
+        }
+
+    @Test
+    public void testToUnmodifiableMapCollectorWithMerge()
+        {
+        Map<Character, Integer> nameAge = getStream()
+                .collect(toUnmodifiableMap(charAt(Person::getName, 0),
+                               Person::getAge,
+                               (s, a) -> s + a));
+        assertEquals(50, (int) nameAge.get('A'));
+        assertEquals(1, (int) nameAge.get('K'));
+
+        // this should fail, as the returned list is unmodifiable
+        try
+            {
+            nameAge.clear();
+            Assert.fail("Should've thrown UnsupportedOperationException");
+            }
+        catch (UnsupportedOperationException ignore)
+            {}
         }
 
     @Test
@@ -289,7 +422,8 @@ public abstract class BaseStreamTest
                 .collect(toMap(charAt(Person::getName, 0),
                                Person::getAge,
                                (s, a) -> s + a,
-                               PortableMap::new));
+                               PortableSortedMap::new));
+        assertThat(nameAge, isA(PortableSortedMap.class));
         assertEquals(50, (int) nameAge.get('A'));
         assertEquals(1, (int) nameAge.get('K'));
         }

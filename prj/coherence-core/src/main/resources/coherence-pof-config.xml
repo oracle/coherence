@@ -619,6 +619,21 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.collection.PortableConcurrentMap</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>187</type-id>
+      <class-name>com.tangosol.internal.util.collection.PortableSet$Unmodifiable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>188</type-id>
+      <class-name>com.tangosol.internal.util.collection.PortableList$Unmodifiable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>189</type-id>
+      <class-name>com.tangosol.internal.util.collection.PortableMap$Unmodifiable</class-name>
+    </user-type>
+
     <!-- com.tangosol.util.extractor package (continued) (190-199) -->
 
     <user-type>

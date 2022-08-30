@@ -6,12 +6,15 @@
  */
 package com.tangosol.internal.util.stream.collectors;
 
+import com.tangosol.io.AbstractEvolvable;
+import com.tangosol.io.Evolvable;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
 import com.tangosol.util.function.Remote;
@@ -20,6 +23,7 @@ import com.tangosol.util.stream.RemoteCollector;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 
 import java.util.Collection;
@@ -45,6 +49,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
  * @since 12.2.1
  */
 public class CollectionCollector<T, C extends Collection<T>>
+        extends AbstractEvolvable
         implements RemoteCollector<T, C, C>, ExternalizableLite, PortableObject
     {
     // ---- constructors ----------------------------------------------------
@@ -63,7 +68,21 @@ public class CollectionCollector<T, C extends Collection<T>>
      */
     public CollectionCollector(Supplier<C> supplier)
         {
+        this(supplier, null);
+        }
+
+    /**
+     * Construct CollectionCollector instance.
+     *
+     * @param supplier  the supplier to use
+     * @param finisher  the finisher to use
+     *
+     * @since 22.09
+     */
+    public CollectionCollector(Supplier<C> supplier, Function<C, C> finisher)
+        {
         m_supplier = supplier;
+        m_finisher = finisher;
         }
 
     /**
@@ -103,7 +122,7 @@ public class CollectionCollector<T, C extends Collection<T>>
     @Override
     public Function<C, C> finisher()
         {
-        return Function.identity();
+        return m_finisher == null ? Function.identity() : m_finisher;
         }
 
     @Override
@@ -117,13 +136,22 @@ public class CollectionCollector<T, C extends Collection<T>>
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_supplier = (Supplier<C>) ExternalizableHelper.readObject(in);
+        m_supplier = ExternalizableHelper.readObject(in);
+        try
+            {
+            m_finisher = ExternalizableHelper.readObject(in);
+            }
+        catch (EOFException ignore)
+            {
+            // the best we can do when reading an older version
+            }
         }
 
     @Override
     public void writeExternal(DataOutput out) throws IOException
         {
         ExternalizableHelper.writeObject(out, m_supplier);
+        ExternalizableHelper.writeObject(out, m_finisher);
         }
 
     // ---- PortableObject interface ----------------------------------------
@@ -132,21 +160,37 @@ public class CollectionCollector<T, C extends Collection<T>>
     public void readExternal(PofReader in) throws IOException
         {
         m_supplier = in.readObject(0);
+        if (in.getVersionId() >= 1)
+            {
+            m_finisher = in.readObject(1);
+            }
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
         out.writeObject(0, m_supplier);
+        out.writeObject(1, m_finisher);
+        }
+
+    // ---- Evolvable interface ---------------------------------------------
+
+    public int getImplVersion()
+        {
+        return VERSION;
         }
 
     // ---- static members ----------------------------------------------------
 
-    protected static final Set<Characteristics> S_CHARACTERISTICS =
-            Collections.unmodifiableSet(EnumSet.of(Characteristics.IDENTITY_FINISH));
+    private static final int VERSION = 1;
+
+    static final Set<Characteristics> S_CHARACTERISTICS = EnumSet.noneOf(Characteristics.class);
 
     // ---- data members ----------------------------------------------------
 
     @JsonbProperty("supplier")
     protected Supplier<C> m_supplier;
+
+    @JsonbProperty("finisher")
+    protected Function<C, C> m_finisher;
     }

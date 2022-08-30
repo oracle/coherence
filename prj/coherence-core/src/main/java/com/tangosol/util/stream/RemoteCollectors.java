@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.stream;
 
@@ -11,6 +11,7 @@ import com.tangosol.internal.util.IntSummaryStatistics;
 import com.tangosol.internal.util.LongSummaryStatistics;
 
 import com.tangosol.internal.util.collection.PortableCollection;
+import com.tangosol.internal.util.collection.PortableConcurrentMap;
 import com.tangosol.internal.util.collection.PortableList;
 import com.tangosol.internal.util.collection.PortableMap;
 import com.tangosol.internal.util.collection.PortableSet;
@@ -53,9 +54,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Collector;
 
 /**
  * Static factory for various {@link RemoteCollector}s that can be executed in
@@ -67,12 +70,13 @@ import java.util.function.Function;
  * @see RemoteCollector
  * @see java.util.stream.Collectors
  */
+@SuppressWarnings("unchecked")
 public abstract class RemoteCollectors
     {
     /**
      * Returns a {@code Collector} that accumulates the input elements into a
      * new {@code Collection}, in encounter order.  The {@code Collection} is
-     * created by the provided factory.
+     * created by the provided supplier.
      *
      * @param <T>       the type of the input elements
      * @param <C>       the type of the resulting {@code Collection}
@@ -85,6 +89,27 @@ public abstract class RemoteCollectors
     public static <T, C extends Collection<T>> RemoteCollector<T, ?, C> toCollection(Remote.Supplier<C> supplier)
         {
         return new CollectionCollector<>(supplier);
+        }
+
+    /**
+     * Returns a {@code Collector} that accumulates the input elements into a
+     * new {@code Collection}, in encounter order.  The {@code Collection} is
+     * created by the provided supplier, and can be modified or adapted by the
+     * provided finisher.
+     *
+     * @param <T>       the type of the input elements
+     * @param <C>       the type of the resulting {@code Collection}
+     * @param supplier  a {@code Supplier} which returns a new, empty
+     *                  {@code Collection} of the appropriate type
+     * @param finisher  a {@code Function} which can be used to modify or
+     *                  adapt the collection returned by the collector
+     *
+     * @return a {@code Collector} which collects all the input elements into a
+     * {@code Collection}, in encounter order
+     */
+    static <T, C extends Collection<T>> RemoteCollector<T, ?, C> toCollection(Remote.Supplier<C> supplier, Remote.Function<C, C> finisher)
+        {
+        return new CollectionCollector<>(supplier, finisher);
         }
 
     /**
@@ -105,6 +130,22 @@ public abstract class RemoteCollectors
         }
 
     /**
+     * Returns a {@code Collector} that accumulates the input elements into an
+     * <em>unmodifiable List</em> in encounter order. The returned Collector
+     * disallows null values and will throw {@code NullPointerException} if it
+     * is presented with a null value.
+     *
+     * @param <T> the type of the input elements
+     * @return a {@code Collector} that accumulates the input elements into an
+     * <a href="../List.html#unmodifiable">unmodifiable List</a> in encounter order
+     * @since 10
+     */
+    public static <T> RemoteCollector<T, ?, List<T>> toUnmodifiableList()
+        {
+        return toCollection(PortableList::new, l -> ((PortableList<T>) l).unmodifiable());
+        }
+
+    /**
      * Returns a {@code Collector} that accumulates the input elements into a
      * new {@code SortedBag}.
      *
@@ -115,7 +156,7 @@ public abstract class RemoteCollectors
      */
     public static <T> RemoteCollector<T, ?, Collection<T>> toSortedBag()
         {
-        return toSortedBag(SafeComparator.INSTANCE);
+        return toSortedBag(SafeComparator.INSTANCE());
         }
 
     /**
@@ -184,6 +225,22 @@ public abstract class RemoteCollectors
     public static <T> RemoteCollector<T, ?, Set<T>> toSet()
         {
         return toCollection(PortableSet::new);
+        }
+
+    /**
+     * Returns a {@code Collector} that accumulates the input elements into an
+     * <em>unmodifiable List</em> in encounter order. The returned Collector
+     * disallows null values and will throw {@code NullPointerException} if it
+     * is presented with a null value.
+     *
+     * @param <T> the type of the input elements
+     * @return a {@code Collector} that accumulates the input elements into an
+     * <a href="../List.html#unmodifiable">unmodifiable List</a> in encounter order
+     * @since 10
+     */
+    public static <T> RemoteCollector<T, ?, Set<T>> toUnmodifiableSet()
+        {
+        return toCollection(PortableSet::new, s -> ((PortableSet<T>) s).unmodifiable());
         }
 
     /**
@@ -913,24 +970,6 @@ public abstract class RemoteCollectors
      * whose keys and values are the result of applying mapping functions to the
      * input elements
      *
-     * @apiNote It is common for either the key or the value to be the input
-     * elements. In this case, the utility method {@link
-     * java.util.function.Function#identity()} may be helpful. For example, the
-     * following produces a {@code Map} mapping students to their grade point
-     * average:
-     * <pre>{@code
-     *     Map<Student, Double> studentToGPA
-     *         students.stream().collect(toMap(Functions.identity(),
-     *                                         student ->
-     * computeGPA(student)));
-     * }</pre>
-     * And the following produces a {@code Map} mapping a unique identifier to
-     * students:
-     * <pre>{@code
-     *     Map<String, Student> studentIdToStudent
-     *         students.stream().collect(toMap(Student::getId,
-     *                                         Functions.identity());
-     * }</pre>
      * @see #toMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)
      * @see #toMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator, Remote.Supplier)
      */
@@ -940,6 +979,45 @@ public abstract class RemoteCollectors
         {
         return toMap(keyMapper, valueMapper, null, PortableMap::new);
         }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into an
+     * <em>unmodifiable Map</em> whose keys and values are the result of applying
+     * the provided mapping functions to the input elements.
+     * <p>
+     * If the mapped keys contains duplicates (according to {@link
+     * Object#equals(Object)}), an {@code IllegalStateException} is thrown when
+     * the collection operation is performed.  If the mapped keys may have
+     * duplicates, use {@link #toMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)}
+     * instead.
+     *
+     * @param <T>         the type of the stream elements
+     * @param <U1>        the type of the objects to extract keys from, which
+     *                    should be either the same as {@code T}, or the key or
+     *                    value type if the {@code T} is {@code InvocableMap.Entry}
+     * @param <U2>        the type of the objects to extract values from, which
+     *                    should be either the same as {@code T}, or the key or
+     *                    value type if the {@code T} is {@code InvocableMap.Entry}
+     * @param <K>         the output type of the key mapping function
+     * @param <V>         the output type of the value mapping function
+     * @param keyMapper   a mapping function to produce keys
+     * @param valueMapper a mapping function to produce values
+     *
+     * @return a {@code Collector} which collects elements into an
+     *         <em>unmodifiable Map</em> whose keys and values are the result of
+     *         applying mapping functions to the input elements
+     *
+     * @see #toUnmodifiableMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)
+     *
+     * @since 22.09
+     */
+    public static <T, U1, U2, K, V>
+        RemoteCollector<T, ?, Map<K, V>> toUnmodifiableMap(ValueExtractor<? super U1, ? extends K> keyMapper,
+                                                           ValueExtractor<? super U2, ? extends V> valueMapper)
+        {
+        return toMap(keyMapper, valueMapper, null, PortableMap::new, m -> ((PortableMap<K, V>) m).unmodifiable());
+        }
+
 
     /**
      * Returns a {@code Collector} that accumulates elements into a {@code Map}
@@ -972,21 +1050,6 @@ public abstract class RemoteCollectors
      * function to all input elements equal to the key and combining them using
      * the merge function
      *
-     * @apiNote There are multiple ways to deal with collisions between multiple
-     * elements mapping to the same key.  The other forms of {@code toMap}
-     * simply use a merge function that throws unconditionally, but you can
-     * easily write more flexible merge policies.  For example, if you have a
-     * stream of {@code Person}, and you want to produce a "phone book" mapping
-     * name to address, but it is possible that two persons have the same name,
-     * you can do as follows to gracefully deals with these collisions, and
-     * produce a {@code Map} mapping names to a concatenated list of addresses:
-     * <pre>{@code
-     *     Map<String, String> phoneBook
-     *         people.stream().collect(toMap(Person::getName,
-     *                                       Person::getAddress,
-     *                                       (s, a) -> s + ", " + a));
-     * }</pre>
-     *
      * @see #toMap(ValueExtractor, ValueExtractor)
      * @see #toMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator, Remote.Supplier)
      */
@@ -997,6 +1060,50 @@ public abstract class RemoteCollectors
             Remote.BinaryOperator<V> mergeFunction)
         {
         return toMap(keyMapper, valueMapper, mergeFunction, PortableMap::new);
+        }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into an
+     * <em>unmodifiable Map</em> whose keys and values are the result of applying
+     * the provided mapping functions to the input elements.
+     * <p>
+     * If the mapped keys contains duplicates (according to {@link
+     * Object#equals(Object)}), the value mapping function is applied to each
+     * equal element, and the results are merged using the provided merging
+     * function.
+     *
+     * @param <T>           the type of the stream elements
+     * @param <U1>          the type of the objects to extract keys from, which
+     *                      should be either the same as {@code T}, or the key or
+     *                      value type if the {@code T} is {@code InvocableMap.Entry}
+     * @param <U2>          the type of the objects to extract values from, which
+     *                      should be either the same as {@code T}, or the key or
+     *                      value type if the {@code T} is {@code InvocableMap.Entry}
+     * @param <K>           the output type of the key mapping function
+     * @param <V>           the output type of the value mapping function
+     * @param keyMapper     a mapping function to produce keys
+     * @param valueMapper   a mapping function to produce values
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *                      values associated with the same key, as supplied to
+     *                      {@link Map#merge(Object, Object, BiFunction)}
+     *
+     * @return a {@code Collector} which collects elements into an
+     *         <em>unmodifiable Map</em> whose keys and values are the result of
+     *         applying mapping functions to the input elements, and whose values
+     *         are the result of applying a value mapping function to all input
+     *         elements equal to the key and combining them using the merge function
+     *
+     * @see #toUnmodifiableMap(ValueExtractor, ValueExtractor)
+     *
+     * @since 22.09
+     */
+    public static <T, U1, U2, K, V>
+    RemoteCollector<T, ?, Map<K, V>> toUnmodifiableMap(
+            ValueExtractor<? super U1, ? extends K> keyMapper,
+            ValueExtractor<? super U2, ? extends V> valueMapper,
+            Remote.BinaryOperator<V> mergeFunction)
+        {
+        return toMap(keyMapper, valueMapper, mergeFunction, PortableMap::new, m -> ((PortableMap<K, V>) m).unmodifiable());
         }
 
     /**
@@ -1043,6 +1150,149 @@ public abstract class RemoteCollectors
             Remote.BinaryOperator<V> mergeFunction,
             Remote.Supplier<M> mapSupplier)
         {
+        return toMap(keyExtractor, valueExtractor, mergeFunction, mapSupplier, null);
+        }
+
+    /**
+     * Returns a concurrent {@code Collector} that accumulates elements into a
+     * {@code ConcurrentMap} whose keys and values are the result of applying
+     * the provided mapping functions to the input elements.
+     *
+     * <p>If the mapped keys contain duplicates (according to
+     * {@link Object#equals(Object)}), an {@code IllegalStateException} is
+     * thrown when the collection operation is performed.  If the mapped keys
+     * may have duplicates, use
+     * {@link #toConcurrentMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)} instead.
+     *
+     * <p>There are no guarantees on the type or mutability of the
+     * {@code ConcurrentMap} returned.
+     *
+     * @param <T>           the type of the input elements
+     * @param <K>           the output type of the key mapping function
+     * @param <V>           the output type of the value mapping function
+     * @param keyMapper     the mapping function to produce keys
+     * @param valueMapper   the mapping function to produce values
+     *
+     * @return a concurrent, unordered {@code Collector} which collects elements into a
+     * {@code ConcurrentMap} whose keys are the result of applying a key mapping
+     * function to the input elements, and whose values are the result of
+     * applying a value mapping function to the input elements
+     *
+     * @see #toMap(ValueExtractor, ValueExtractor)
+     * @see #toConcurrentMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)
+     */
+    public static <T, U1, U2, K, V>
+    RemoteCollector<T, ?, ConcurrentMap<K, V>> toConcurrentMap(ValueExtractor<? super U1, ? extends K> keyMapper,
+                                                         ValueExtractor<? super U2, ? extends V> valueMapper)
+        {
+        return toMap(keyMapper, valueMapper, null, PortableConcurrentMap::new);
+        }
+
+    /**
+     * Returns a concurrent {@code Collector} that accumulates elements into a
+     * {@code ConcurrentMap} whose keys and values are the result of applying
+     * the provided mapping functions to the input elements.
+     *
+     * <p>If the mapped keys contain duplicates (according to {@link Object#equals(Object)}),
+     * the value mapping function is applied to each equal element, and the
+     * results are merged using the provided merging function.
+     *
+     * <p>There are no guarantees on the type, mutability, or serializability
+     * of the {@code ConcurrentMap} returned.
+     *
+     * @apiNote
+     * There are multiple ways to deal with collisions between multiple elements
+     * mapping to the same key.  The other forms of {@code toConcurrentMap} simply use
+     * a merge function that throws unconditionally, but you can easily write
+     * more flexible merge policies.  For example, if you have a stream
+     * of {@code Person}, and you want to produce a "phone book" mapping name to
+     * address, but it is possible that two persons have the same name, you can
+     * do as follows to gracefully deal with these collisions, and produce a
+     * {@code ConcurrentMap} mapping names to a concatenated list of addresses:
+     * <pre>{@code
+     * ConcurrentMap<String, String> phoneBook
+     *   = people.stream().collect(
+     *     toConcurrentMap(Person::getName,
+     *                     Person::getAddress,
+     *                     (s, a) -> s + ", " + a));
+     * }</pre>
+     *
+     * <p>This is a {@link Collector.Characteristics#CONCURRENT concurrent} and
+     * {@link Collector.Characteristics#UNORDERED unordered} Collector.
+     *
+     * @param <T> the type of the input elements
+     * @param <K> the output type of the key mapping function
+     * @param <V> the output type of the value mapping function
+     * @param keyMapper a mapping function to produce keys
+     * @param valueMapper a mapping function to produce values
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *                      values associated with the same key, as supplied
+     *                      to {@link Map#merge(Object, Object, BiFunction)}
+     *
+     * @return a concurrent, unordered {@code Collector} which collects elements into a
+     * {@code ConcurrentMap} whose keys are the result of applying a key mapping
+     * function to the input elements, and whose values are the result of
+     * applying a value mapping function to all input elements equal to the key
+     * and combining them using the merge function
+     *
+     * @see #toConcurrentMap(ValueExtractor, ValueExtractor)
+     * @see #toMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)
+     */
+    public static <T, U1, U2, K, V>
+    RemoteCollector<T, ?, ConcurrentMap<K, V>>
+    toConcurrentMap(ValueExtractor<? super U1, ? extends K> keyMapper,
+                    ValueExtractor<? super U2, ? extends V> valueMapper,
+                    Remote.BinaryOperator<V> mergeFunction) {
+        return toMap(keyMapper, valueMapper, mergeFunction, PortableConcurrentMap::new);
+    }
+
+    /**
+     * Returns a {@code Collector} that accumulates elements into a {@code Map}
+     * whose keys and values are the result of applying the provided mapping
+     * functions to the input elements.
+     * <p>
+     * If the mapped keys contains duplicates (according to {@link
+     * Object#equals(Object)}), the value mapping function is applied to each
+     * equal element, and the results are merged using the provided merging
+     * function.  The {@code Map} is created by a provided supplier function.
+     *
+     * @param <T>            the type of the stream elements
+     * @param <U1>           the type of the objects to extract keys from, which
+     *                       should be either the same as {@code T}, or the key or
+     *                       value type if the {@code T} is {@code InvocableMap.Entry}
+     * @param <U2>           the type of the objects to extract values from, which
+     *                       should be either the same as {@code T}, or the key or
+     *                       value type if the {@code T} is {@code InvocableMap.Entry}
+     * @param <K>            the output type of the key mapping function
+     * @param <V>            the output type of the value mapping function
+     * @param <M>            the type of the resulting {@code Map}
+     * @param keyExtractor   a mapping function to produce keys
+     * @param valueExtractor a mapping function to produce values
+     * @param mergeFunction a merge function, used to resolve collisions between
+     *                      values associated with the same key, as supplied to
+     *                      {@link Map#merge(Object, Object, BiFunction)}
+     * @param mapSupplier   a function which returns a new, empty {@code Map}
+     *                      into which the results will be inserted
+     * @param finisher      a {@code Function} which can be used to modify or
+     *                      adapt the map returned by the collector
+     *
+     * @return a {@code Collector} which collects elements into a {@code Map}
+     * whose keys are the result of applying a key mapping function to the input
+     * elements, and whose values are the result of applying a value mapping
+     * function to all input elements equal to the key and combining them using
+     * the merge function
+     *
+     * @see #toMap(ValueExtractor, ValueExtractor)
+     * @see #toMap(ValueExtractor, ValueExtractor, Remote.BinaryOperator)
+     */
+    static <T, U1, U2, K, V, M extends Map<K, V>>
+    RemoteCollector<T, ?, M> toMap(
+            ValueExtractor<? super U1, ? extends K> keyExtractor,
+            ValueExtractor<? super U2, ? extends V> valueExtractor,
+            Remote.BinaryOperator<V> mergeFunction,
+            Remote.Supplier<M> mapSupplier,
+            Remote.Function<M, M> finisher)
+        {
         ValueExtractor<? super U1, ? extends K> keyEx = Lambdas.ensureRemotable(keyExtractor);
         ValueExtractor<? super U2, ? extends V> valueEx = Lambdas.ensureRemotable(valueExtractor);
 
@@ -1056,7 +1306,7 @@ public abstract class RemoteCollectors
                      ? ((InvocableMap.Entry<?, ?>) t).extract(valueEx)
                      : valueEx.extract((U2) t);
 
-        return new MapCollector<>(keyMapper, valueMapper, mergeFunction, mapSupplier);
+        return new MapCollector<>(keyMapper, valueMapper, mergeFunction, mapSupplier, finisher);
         }
 
     /**

@@ -21,10 +21,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import jakarta.json.bind.annotation.JsonbProperty;
+import java.util.Set;
 
 /**
  * A wrapper Map that controls wrapped map's serialization.
@@ -35,7 +37,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
  * @author as  2014.11.19
  * @since 12.2.1
  */
-@SuppressWarnings({"NullableProblems"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PortableMap<K, V>
         extends WrapperCollections.AbstractWrapperMap<K, V>
         implements PortableObject, ExternalizableLite
@@ -75,13 +77,36 @@ public class PortableMap<K, V>
         return m_mapDelegate == null ? (m_mapDelegate = getSupplier().get()) : m_mapDelegate;
         }
 
+    /**
+     * Set the delegate to use.
+     *
+     * @param setDelegate  the delegate to use
+     */
+    protected void setDelegate(Map<K, V> setDelegate)
+        {
+        m_mapDelegate = setDelegate;
+        }
+
+    /**
+     * Make this map unmodifiable.
+     *
+     * @return  the unmodifiable instance of this map
+     */
+    public Map<K, V> unmodifiable()
+        {
+        return new Unmodifiable<>(getDelegate());
+        }
+
     // ---- ExternalizableLite implementation -------------------------------
 
     @Override
     public void readExternal(DataInput in) throws IOException
         {
         m_supplier = ExternalizableHelper.readObject(in);
-        ExternalizableHelper.readMap(in, getDelegate(), null);
+
+        Map<K, V> delegate = getSupplier().get();
+        ExternalizableHelper.readMap(in, delegate, null);
+        setDelegate(delegate);
         }
 
     @Override
@@ -96,8 +121,11 @@ public class PortableMap<K, V>
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_supplier    = in.readObject(0);
-        m_mapDelegate = in.readMap(1, getDelegate());
+        m_supplier = in.readObject(0);
+
+        Map<K, V> delegate = getSupplier().get();
+        in.readMap(1, delegate);
+        setDelegate(delegate);
         }
 
     @Override
@@ -105,6 +133,45 @@ public class PortableMap<K, V>
         {
         out.writeObject(0, m_supplier);
         out.writeMap(1, getDelegate());
+        }
+
+    // ---- inner class: Unmodifiable ---------------------------------------
+
+    /**
+     * Unmodifiable implementation of PortableList.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     *
+     * @since 22.09
+     */
+    public static class Unmodifiable<K, V>
+            extends PortableMap<K, V>
+        {
+        /**
+         * Default constructor.
+         */
+        @SuppressWarnings("unused")
+        public Unmodifiable()
+            {
+            }
+
+        /**
+         * Construct {@code Unmodifiable} instance.
+         *
+         * @param mapDelegate  the map to make unmodifiable and delegate all
+         *                     method calls to
+         */
+        private Unmodifiable(Map<K, V> mapDelegate)
+            {
+            setDelegate(mapDelegate);
+            }
+
+        @Override
+        protected void setDelegate(Map<K, V> mapDelegate)
+            {
+            m_mapDelegate = Collections.unmodifiableMap(mapDelegate);
+            }
         }
 
     // ---- static members -------------------------------------------------

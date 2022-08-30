@@ -22,6 +22,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import jakarta.json.bind.annotation.JsonbProperty;
@@ -34,7 +35,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
  * @author as  2014.11.19
  * @since 12.2.1
  */
-@SuppressWarnings({"unchecked", "SuspiciousToArrayCall", "NullableProblems"})
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PortableList<E>
         extends WrapperCollections.AbstractWrapperList<E>
         implements PortableObject, ExternalizableLite
@@ -75,13 +76,36 @@ public class PortableList<E>
                                      : (List<E>) m_colDelegate;
         }
 
+    /**
+     * Set the delegate to use.
+     *
+     * @param lstDelegate  the delegate to use
+     */
+    protected void setDelegate(List<E> lstDelegate)
+        {
+        m_colDelegate = lstDelegate;
+        }
+
+    /**
+     * Make this list unmodifiable.
+     *
+     * @return  the unmodifiable instance of this list
+     */
+    public List<E> unmodifiable()
+        {
+        return new Unmodifiable<>(getDelegate());
+        }
+
     // ---- ExternalizableLite implementation -------------------------------
 
     @Override
     public void readExternal(DataInput in) throws IOException
         {
         m_supplier = ExternalizableHelper.readObject(in);
-        ExternalizableHelper.readCollection(in, getDelegate(), null);
+
+        List<E> delegate = getSupplier().get();
+        ExternalizableHelper.readCollection(in, delegate, null);
+        setDelegate(delegate);
         }
 
     @Override
@@ -96,8 +120,10 @@ public class PortableList<E>
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_supplier    = in.readObject(0);
-        m_colDelegate = in.readCollection(1, getDelegate());
+        m_supplier = in.readObject(0);
+
+        List<E> delegate = getSupplier().get();
+        setDelegate(in.readCollection(1, delegate));
         }
 
     @Override
@@ -105,6 +131,43 @@ public class PortableList<E>
         {
         out.writeObject(0, m_supplier);
         out.writeCollection(1, getDelegate());
+        }
+
+    // ---- inner class: Unmodifiable ---------------------------------------
+
+    /**
+     * Unmodifiable implementation of PortableList.
+     *
+     * @param <E>  the element type
+     *
+     * @since 22.09
+     */
+    public static class Unmodifiable<E>
+            extends PortableList<E>
+        {
+        /**
+         * Default constructor.
+         */
+        public Unmodifiable()
+            {
+            }
+
+        /**
+         * Construct {@code Unmodifiable} instance.
+         *
+         * @param lstDelegate  the list to make unmodifiable and delegate all
+         *                     method calls to
+         */
+        private Unmodifiable(List<E> lstDelegate)
+            {
+            setDelegate(lstDelegate);
+            }
+
+        @Override
+        protected void setDelegate(List<E> lstDelegate)
+            {
+            m_colDelegate = Collections.unmodifiableList(lstDelegate);
+            }
         }
 
     // ---- static members -------------------------------------------------
