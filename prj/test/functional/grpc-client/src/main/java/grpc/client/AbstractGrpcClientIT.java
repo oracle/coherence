@@ -1504,13 +1504,13 @@ abstract class AbstractGrpcClientIT
         // update the cache to generate events
         generateCacheEvents(cache);
 
-        assertThat(listenerOne.awaitEvents(3, TimeUnit.SECONDS), is(true));
+        assertThat(listenerOne.awaitEvents(1, TimeUnit.MINUTES), is(true));
         assertThat("Incorrect number of insert events", listenerOne.getInsertCount(), is(10));
         assertThat("Incorrect number of update events", listenerOne.getUpdateCount(), is(10));
         assertThat("Incorrect number of delete events", listenerOne.getDeleteCount(), is(0));
-        assertThat("Incorrect number of insert events", listenerTwo.getInsertCount(), is(10));
-        assertThat("Incorrect number of update events", listenerTwo.getUpdateCount(), is(10));
-        assertThat("Incorrect number of delete events", listenerTwo.getDeleteCount(), is(0));
+        Eventually.assertDeferred(listenerTwo::getInsertCount, is(10));
+        Eventually.assertDeferred(listenerTwo::getUpdateCount, is(10));
+        Eventually.assertDeferred(listenerTwo::getDeleteCount, is(0));
 
         grpcClient.removeMapListener(listenerOne, filter);
         generateCacheEvents(cache);
