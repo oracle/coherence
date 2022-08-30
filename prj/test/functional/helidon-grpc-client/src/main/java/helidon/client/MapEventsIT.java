@@ -10,7 +10,7 @@ package helidon.client;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.client.AsyncNamedCacheClient;
-import com.oracle.coherence.common.base.Classes;
+
 import com.oracle.coherence.cdi.PropertyExtractor;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionName;
@@ -26,10 +26,11 @@ import com.oracle.coherence.cdi.events.Updated;
 
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheFactoryBuilder;
+import com.tangosol.coherence.component.util.SafeAsyncNamedCache;
+import com.tangosol.coherence.component.util.SafeNamedCache;
+import com.tangosol.internal.net.SessionNamedCache;
+import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
@@ -79,9 +80,11 @@ public class MapEventsIT
         System.setProperty("coherence.ttl",              "0");
         System.setProperty("coherence.clustername",      "MapEventsIT");
         System.setProperty("coherence.cacheconfig",      "coherence-config.xml");
+        System.setProperty("coherence.profile",          "thin");
         System.setProperty("coherence.pof.config",       "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",      "true");
         System.setProperty("coherence.log.level",        "9");
+        System.setProperty("coherence.grpc.server.port", "1408");
 
         // The CDI server will start DCS which will in turn cause the gRPC server to start
         s_server = Server.create().start();
@@ -115,14 +118,14 @@ public class MapEventsIT
     @Test
     void testEvents()
         {
-        NamedCache<String, Person> underlying     = getUnderlying(CACHE_NAME_PEOPLE);
-        Session                    sessionDefault = ensureSession(SessionConfigurations.CLIENT_DEFAULT);
-        NamedCache<String, Person> cacheDefault   = sessionDefault.getCache(CACHE_NAME_PEOPLE);
+        Session                    session       = Coherence.getInstance().getSession();
+        NamedCache<String, Person> underlying    = session.getCache(CACHE_NAME_PEOPLE);
+        Session                    sessionClient = ensureSession(SessionConfigurations.CLIENT_DEFAULT);
+        NamedCache<String, Person> cacheDefault  = sessionClient.getCache(CACHE_NAME_PEOPLE);
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
-        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheDefault.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(4)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheDefault), is(greaterThanOrEqualTo(4)));
 
         underlying.put("homer", new Person("Homer", "Simpson", 45, "male"));
         underlying.put("marge", new Person("Marge", "Simpson", 43, "female"));
@@ -144,7 +147,7 @@ public class MapEventsIT
         Eventually.assertDeferred(() -> listener.getEvents(MapEvent.ENTRY_DELETED), is(4));
 
         // There should be an insert and an update for Bart.
-        // The delete for Bart does not match the filter because the lastName
+        // The delete event for Bart does not match the filter because the lastName
         // had been changed to uppercase.
         List<MapEvent<String, Person>> filteredEvents = listener.getFilteredEvents();
         Eventually.assertDeferred(filteredEvents::size, is(2));
@@ -177,12 +180,11 @@ public class MapEventsIT
         NamedCache<String, Person> cacheThree   = sessionThree.getCache(CACHE_NAME_NAMED_PEOPLE);
 
         // Wait for the listeners to be registered as it happens async
-        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheOne.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheOne),
+                                        is(greaterThanOrEqualTo(1)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
-        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheThree.async()).getListenerCount(),
-                                  is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheThree), is(greaterThanOrEqualTo(2)));
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
@@ -209,14 +211,12 @@ public class MapEventsIT
         NamedCache<Object, Object> cacheClientTwo = holder.getTestClientSession().getCache(CACHE_NAME_SCOPED_PEOPLE);
 
         // Wait for the listeners to be registered as it happens async
-        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheOne.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheOne),
+                                        is(greaterThanOrEqualTo(1)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
-        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheClientOne.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(2)));
-        Eventually.assertDeferred(() -> ((AsyncNamedCacheClient<?, ?>) cacheClientTwo.async()).getListenerCount(),
-                                        is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheClientOne), is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheClientTwo), is(greaterThanOrEqualTo(2)));
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
@@ -226,8 +226,8 @@ public class MapEventsIT
         // events for the server side caches as well as the client side caches.
         NamedScopedSessionListener listener = CDI.current().select(NamedScopedSessionListener.class).get();
         Eventually.assertDeferred(() -> listener.getAnyEvents().size(), is(4));
-        Eventually.assertDeferred(() -> listener.getDefaultEvents().size(), is(2));
-        Eventually.assertDeferred(() -> listener.getTestEvents().size(), is(2));
+        Eventually.assertDeferred(() -> listener.getDefaultEvents().size(), is(0));
+        Eventually.assertDeferred(() -> listener.getTestEvents().size(), is(1));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -235,15 +235,33 @@ public class MapEventsIT
     private Session ensureSession(String sName)
         {
         return Coherence.findSession(sName)
-                        .orElseThrow(() -> new AssertionError("Could not find Session"));
+                        .orElseThrow(() -> new AssertionError("Could not find Session " + sName));
         }
 
-    private <K, V> NamedCache<K, V> getUnderlying(String sCacheName)
+    private <K, V> NamedCache<K, V> getUnderlying(String sSession, String sCacheName)
         {
-        ClassLoader              loader = Classes.getContextClassLoader();
-        ConfigurableCacheFactory ccf    = CacheFactory.getCacheFactoryBuilder()
-                .getConfigurableCacheFactory(CacheFactoryBuilder.URI_DEFAULT, loader);
-        return ccf.ensureCache(sCacheName, loader);
+        Coherence coherence = Coherence.getInstance();
+        Session   session   = coherence.getSession(sSession);
+        return session.getCache(sCacheName);
+        }
+
+    private int getListenerCount(NamedCache cache)
+        {
+        if (cache instanceof SessionNamedCache)
+            {
+            cache = ((SessionNamedCache) cache).getInternalNamedCache();
+            }
+        if (cache instanceof SafeNamedCache)
+            {
+            cache = ((SafeNamedCache) cache).getNamedCache();
+            }
+
+        AsyncNamedCache async = cache.async();
+        if (async instanceof SafeAsyncNamedCache)
+            {
+            async = ((SafeAsyncNamedCache) async).getRunningNamedCache();
+            }
+        return ((AsyncNamedCacheClient) async).getListenerCount();
         }
 
     // ---- helper classes --------------------------------------------------

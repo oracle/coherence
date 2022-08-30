@@ -43,6 +43,7 @@ class CoherenceBootstrapTests
     static void setup()
         {
         System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
@@ -123,7 +124,7 @@ class CoherenceBootstrapTests
         }
 
     @Test
-    void shouldNotHaveSystemSessionOnClient()
+    void shouldHaveSystemSessionOnClient()
         {
         Coherence coherence = Coherence.client();
 
@@ -131,13 +132,14 @@ class CoherenceBootstrapTests
 
         coherence.start().join();
 
-        assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(false));
+        assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(true));
 
         Optional<Session> optional = coherence.getSessionIfPresent(Coherence.SYSTEM_SESSION);
         assertThat(optional, is(notNullValue()));
-        assertThat(optional.isPresent(), is(false));
+        assertThat(optional.isPresent(), is(true));
 
-        assertThrows(IllegalArgumentException.class, () -> coherence.getSession(Coherence.SYSTEM_SESSION));
+        Session session = coherence.getSession(Coherence.SYSTEM_SESSION);
+        assertThat(optional.get(), is(sameInstance(session)));
         }
 
     @Test

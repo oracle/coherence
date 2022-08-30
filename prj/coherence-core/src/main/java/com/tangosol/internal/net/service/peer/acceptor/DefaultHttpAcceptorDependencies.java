@@ -6,8 +6,6 @@
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
-import com.oracle.coherence.common.net.InetAddresses;
-
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
 import com.tangosol.config.annotation.Injectable;
@@ -15,9 +13,6 @@ import com.tangosol.config.annotation.Injectable;
 import com.tangosol.net.SocketProviderFactory;
 
 import com.tangosol.util.Base;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -143,7 +138,7 @@ public class DefaultHttpAcceptorDependencies
     @Injectable("local-address/address")
     public void setLocalAddress(String sAddress)
         {
-        m_sLocalAddress = normalizeAddress(sAddress);
+        m_sLocalAddress = normalizeAddress(sAddress, getLocalPort());
         }
 
     /**
@@ -240,50 +235,6 @@ public class DefaultHttpAcceptorDependencies
                 + "}";
         }
 
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Normalize and validate that the passed in address is a sensible local address.
-     *
-     * @param sAddress  the address to normalize; may be <tt>null</tt>
-     *
-     * @return the validated, normalized address
-     *
-     * @since 12.2.1.4.0
-     */
-    protected String normalizeAddress(String sAddress)
-        {
-        try
-            {
-            if (sAddress == null || sAddress.isEmpty())
-                {
-                sAddress = InetAddresses.ADDR_ANY.getHostAddress();
-                }
-            else
-                {
-                InetAddress addr = InetAddresses.getLocalAddress(sAddress);
-                if (InetAddresses.isLocalAddress(addr))
-                    {
-                    sAddress = addr.getHostAddress();
-                    }
-                else if (InetAddresses.isNatLocalAddress(addr, getLocalPort()))
-                    {
-                    sAddress = InetAddresses.ADDR_ANY.getHostAddress();
-                    }
-                else
-                    {
-                    throw new IllegalArgumentException(sAddress + " does not represent a local address");
-                    }
-                }
-            }
-        catch (UnknownHostException e)
-            {
-            throw new IllegalArgumentException(e);
-            }
-
-        return sAddress;
-        }
-
     // ----- data fields and constants --------------------------------------
 
     /**
@@ -299,7 +250,7 @@ public class DefaultHttpAcceptorDependencies
     /**
      * The local address.
      */
-    private String m_sLocalAddress = normalizeAddress(null);
+    private String m_sLocalAddress = normalizeAddress(null, 0);
 
     /**
      * The local port.

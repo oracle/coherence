@@ -561,6 +561,7 @@ public class SocketProviderFactory
             switch (providerType)
                 {
                 case SYSTEM:
+                case GRPC:
                 case TCP:
                     {
                     provider = (nSubport == 0)
@@ -646,6 +647,7 @@ public class SocketProviderFactory
                     provider = SystemDatagramSocketProvider.INSTANCE;
                     break;
                     }
+                case GRPC:
                 case TCP:
                 case SDP:
                     {
@@ -717,7 +719,8 @@ public class SocketProviderFactory
             SYSTEM ("system"),
             TCP ("tcp"),
             SSL ("ssl"),
-            SDP ("sdp");
+            SDP ("sdp"),
+            GRPC ("grpc-insecure");
 
             ProviderType(String name)
                 {
@@ -794,6 +797,7 @@ public class SocketProviderFactory
             mapProvider.put(ProviderType.TCP.getName(), ProviderType.TCP);
             mapProvider.put(ProviderType.SSL.getName(), ProviderType.SSL);
             mapProvider.put(ProviderType.SDP.getName(), ProviderType.SDP);
+            mapProvider.put(ProviderType.GRPC.getName(), ProviderType.GRPC);
             m_mapTCPDatagramDependencies.put(ProviderType.TCP.getName(), new TcpDatagramSocketProvider.DefaultDependencies());
             }
 

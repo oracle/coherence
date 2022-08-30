@@ -120,6 +120,10 @@ public class SocketProviderProcessor
                 {
                 deps.addNamedProviderType(sId, SocketProviderFactory.Dependencies.ProviderType.SDP);
                 }
+            else if (sType.equals(SocketProviderFactory.Dependencies.ProviderType.GRPC.getName()))
+                {
+                deps.addNamedProviderType(sId, SocketProviderFactory.Dependencies.ProviderType.GRPC);
+                }
             else
                 {
                 throw new IllegalArgumentException("Unsupported socket provider: " + sType);

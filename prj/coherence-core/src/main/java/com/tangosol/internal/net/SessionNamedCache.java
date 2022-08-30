@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.cache.TypeAssertion;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.EventListener;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.function.BiConsumer;
@@ -103,7 +105,7 @@ public class SessionNamedCache<K, V>
     @Override
     public boolean isActive()
         {
-        return m_fActive;
+        return m_fActive && m_cache.isActive();
         }
 
     @Override
@@ -128,7 +130,7 @@ public class SessionNamedCache<K, V>
     @Override
     public void destroy()
         {
-        if (m_fActive)
+        if (isActive())
             {
             // destroying a NamedCache is always delegated to the Session to manage
             m_session.onDestroy(this);
@@ -551,7 +553,7 @@ public class SessionNamedCache<K, V>
     @Override
     public synchronized void close()
         {
-        if (m_fActive)
+        if (isActive())
             {
             // closing a NamedCache is always delegated to the Session to manage
             m_session.onClose(this);
@@ -565,7 +567,7 @@ public class SessionNamedCache<K, V>
      *
      * @return the {@link NamedCache} this class wraps
      */
-    NamedCache<K, V> getInternalNamedCache()
+    public NamedCache<K, V> getInternalNamedCache()
         {
         return m_cache;
         }
@@ -665,6 +667,31 @@ public class SessionNamedCache<K, V>
 
         // we're no longer holding onto listeners
         m_listeners.clear();
+        }
+
+    // ----- object methods -------------------------------------------------
+
+    @Override
+    public boolean equals(Object o)
+        {
+        if (this == o)
+            {
+            return true;
+            }
+        if (o == null || getClass() != o.getClass())
+            {
+            return false;
+            }
+        SessionNamedCache<?, ?> that = (SessionNamedCache<?, ?>) o;
+        return Objects.equals(m_session, that.m_session)
+                && Objects.equals(m_cache, that.m_cache)
+                && Objects.equals(f_loader, that.f_loader);
+        }
+
+    @Override
+    public int hashCode()
+        {
+        return Objects.hash(m_session, m_cache, f_loader);
         }
 
     // ----- data members ---------------------------------------------------

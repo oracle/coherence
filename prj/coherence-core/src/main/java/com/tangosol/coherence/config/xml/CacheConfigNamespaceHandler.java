@@ -33,6 +33,7 @@ import com.tangosol.coherence.config.scheme.ProxyScheme;
 import com.tangosol.coherence.config.scheme.RamJournalScheme;
 import com.tangosol.coherence.config.scheme.ReadWriteBackingMapScheme;
 import com.tangosol.coherence.config.scheme.RemoteCacheScheme;
+import com.tangosol.coherence.config.scheme.BaseGrpcCacheScheme;
 import com.tangosol.coherence.config.scheme.RemoteInvocationScheme;
 import com.tangosol.coherence.config.scheme.ReplicatedScheme;
 import com.tangosol.coherence.config.scheme.TransactionalScheme;
@@ -84,6 +85,7 @@ import com.tangosol.coherence.config.xml.processor.MemberListenerProcessor;
 import com.tangosol.coherence.config.xml.processor.MemorySizeProcessor;
 import com.tangosol.coherence.config.xml.processor.MessageDeliveryModeProcessor;
 import com.tangosol.coherence.config.xml.processor.MillisProcessor;
+import com.tangosol.coherence.config.xml.processor.NoOpElementProcessor;
 import com.tangosol.coherence.config.xml.processor.OperationBundlingProcessor;
 import com.tangosol.coherence.config.xml.processor.PagedTopicSchemeProcessor;
 import com.tangosol.coherence.config.xml.processor.ParamTypeProcessor;
@@ -128,6 +130,7 @@ import com.tangosol.config.xml.OverrideProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 
 import com.tangosol.config.xml.SimpleElementProcessor;
+import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultJmsAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultMemcachedAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
@@ -153,6 +156,7 @@ import com.tangosol.run.xml.XmlElement;
 import static com.tangosol.coherence.config.xml.processor.AbstractEmptyElementProcessor.EmptyElementBehavior;
 
 import java.net.URI;
+import java.util.ServiceLoader;
 
 /**
  * The {@link CacheConfigNamespaceHandler} is responsible for capturing and creating Coherence
@@ -194,6 +198,8 @@ public class CacheConfigNamespaceHandler
         odp.addDefaultsDefinition("proxy-scheme", CacheFactory.getServiceConfig("Proxy"));
         odp.addDefaultsDefinition("replicated-scheme", CacheFactory.getServiceConfig(CacheService.TYPE_REPLICATED));
         odp.addDefaultsDefinition("remote-cache-scheme", CacheFactory.getServiceConfig(CacheService.TYPE_REMOTE));
+        odp.addDefaultsDefinition("remote-grpc-cache-scheme",
+                                  CacheFactory.getServiceConfig(CacheService.TYPE_REMOTE_GRPC));
         odp.addDefaultsDefinition("remote-invocation-scheme",
                                   CacheFactory.getServiceConfig(InvocationService.TYPE_REMOTE));
 
@@ -304,6 +310,7 @@ public class CacheConfigNamespaceHandler
         registerProcessor("flashjournal-scheme",
                           new CustomizableBuilderProcessor<>(FlashJournalScheme.class));
         registerProcessor("guardian-timeout", new MillisProcessor());
+        registerProcessor("grpc-channel", NoOpElementProcessor.INSTANCE);
         registerProcessor("heartbeat-interval", new MillisProcessor());
         registerProcessor("heartbeat-timeout", new MillisProcessor());
         registerProcessor("identity-manager", new SSLManagerProcessor());
@@ -344,6 +351,8 @@ public class CacheConfigNamespaceHandler
 
         registerProcessor("remote-cache-scheme",
                           new ServiceBuilderProcessor<>(RemoteCacheScheme.class));
+        registerProcessor("remote-grpc-cache-scheme",
+                          new ServiceBuilderProcessor<>(BaseGrpcCacheScheme.class));
         registerProcessor("remote-invocation-scheme",
                           new ServiceBuilderProcessor<>(RemoteInvocationScheme.class));
         registerProcessor("replicated-scheme", new ServiceBuilderProcessor<>(ReplicatedScheme.class));
@@ -363,12 +372,16 @@ public class CacheConfigNamespaceHandler
         registerProcessor("view-scheme", new CompositeSchemeProcessor<>(ViewScheme.class));
 
         // register injectable types (in alphabetical order)
+        registerElementType("grpc-acceptor", DefaultGrpcAcceptorDependencies.class);
         registerElementType("jms-acceptor", DefaultJmsAcceptorDependencies.class);
         registerElementType("jms-initiator", DefaultJmsInitiatorDependencies.class);
         registerElementType("memcached-acceptor", DefaultMemcachedAcceptorDependencies.class);
 
         registerElementType("incoming-buffer-pool", DefaultTcpAcceptorDependencies.PoolConfig.class);
         registerElementType("outgoing-buffer-pool", DefaultTcpAcceptorDependencies.PoolConfig.class);
+
+        // load any namespace extensions
+        ServiceLoader.load(Extension.class).forEach(e -> e.extend(this));
         }
 
     // ----- NamespaceHandler interface -------------------------------------
@@ -413,6 +426,23 @@ public class CacheConfigNamespaceHandler
             }
 
         return m_overrideProcessor;
+        }
+
+    // ----- inner interface Extension --------------------------------------
+
+    /**
+     * A class that can add extensions to the {@link CacheConfigNamespaceHandler}.
+     * <p>
+     * Extensions will be discovered at runtime using the {@link ServiceLoader}.
+     */
+    public interface Extension
+        {
+        /**
+         * Add any extensions to the specified {@link CacheConfigNamespaceHandler}.
+         *
+         * @param handler  the {@link CacheConfigNamespaceHandler} to extend
+         */
+        void extend(CacheConfigNamespaceHandler handler);
         }
 
     // ----- Data members ---------------------------------------------------

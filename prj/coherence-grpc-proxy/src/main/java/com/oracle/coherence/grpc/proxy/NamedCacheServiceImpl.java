@@ -154,11 +154,24 @@ public class NamedCacheServiceImpl
      * Create an instance of {@link NamedCacheServiceImpl}
      * using the default dependencies configuration.
      *
+     * @param deps  the {@link Dependencies} to use to create the service
+     *
+     * @return  an instance of {@link NamedCacheServiceImpl}
+     */
+    public static NamedCacheServiceImpl newInstance(Dependencies deps)
+        {
+        return new NamedCacheServiceImpl(deps);
+        }
+
+    /**
+     * Create an instance of {@link NamedCacheServiceImpl}
+     * using the default dependencies configuration.
+     *
      * @return  an instance of {@link NamedCacheServiceImpl}
      */
     public static NamedCacheServiceImpl newInstance()
         {
-        return new NamedCacheServiceImpl(new DefaultDependencies());
+        return newInstance(new DefaultDependencies());
         }
 
     // ----- accessors ------------------------------------------------------
@@ -1748,6 +1761,7 @@ public class NamedCacheServiceImpl
      * The dependencies to configure a {@link NamedCacheServiceImpl}.
      */
     public interface Dependencies
+            extends GrpcServiceDependencies
         {
         /**
          * Return the function to use to obtain named {@link ConfigurableCacheFactory} instances.
@@ -1755,36 +1769,6 @@ public class NamedCacheServiceImpl
          * @return the function to use to obtain named {@link ConfigurableCacheFactory} instances
          */
         Optional<Function<String, ConfigurableCacheFactory>> getCacheFactorySupplier();
-
-        /**
-         * Return the {@link NamedSerializerFactory}.
-         *
-         * @return the {@link NamedSerializerFactory}
-         */
-        Optional<NamedSerializerFactory> getNamedSerializerFactory();
-
-        /**
-         * Return the {@link Executor}.
-         *
-         * @return the {@link Executor}
-         */
-        Optional<Executor> getExecutor();
-
-        /**
-         * Return the transfer threshold.
-         *
-         * @return the transfer threshold
-         */
-        Optional<Long> getTransferThreshold();
-
-        /**
-         * Return the optional management {@link Registry} to register
-         * the proxy MBean with.
-         *
-         * @return the optional management {@link Registry} to register
-         * the proxy MBean with
-         */
-        Optional<Registry> getRegistry();
         }
 
     // ----- inner class: DefaultDependencies -------------------------------
@@ -1793,30 +1777,31 @@ public class NamedCacheServiceImpl
      * The default {@link Dependencies} implementation.
      */
     public static class DefaultDependencies
+            extends GrpcServiceDependencies.DefaultDependencies
             implements Dependencies
         {
+        public DefaultDependencies()
+            {
+            }
+
+        public DefaultDependencies(GrpcServiceDependencies deps)
+            {
+            super(deps);
+            }
+
+        public DefaultDependencies(Dependencies deps)
+            {
+            super(deps);
+            if (deps != null)
+                {
+                m_ccfSupplier = deps.getCacheFactorySupplier().orElse(null);
+                }
+            }
+
         @Override
         public Optional<Function<String, ConfigurableCacheFactory>> getCacheFactorySupplier()
             {
             return Optional.ofNullable(m_ccfSupplier);
-            }
-
-        @Override
-        public Optional<NamedSerializerFactory> getNamedSerializerFactory()
-            {
-            return Optional.ofNullable(m_serializerFactory);
-            }
-
-        @Override
-        public Optional<Executor> getExecutor()
-            {
-            return Optional.ofNullable(m_executor);
-            }
-
-        @Override
-        public Optional<Long> getTransferThreshold()
-            {
-            return Optional.ofNullable(m_transferThreshold);
             }
 
         /**
@@ -1829,79 +1814,12 @@ public class NamedCacheServiceImpl
             m_ccfSupplier = ccfSupplier;
             }
 
-        /**
-         * Set the {@link NamedSerializerFactory}.
-         *
-         * @param serializerFactory the {@link NamedSerializerFactory}
-         */
-        public void setSerializerFactory(NamedSerializerFactory serializerFactory)
-            {
-            m_serializerFactory = serializerFactory;
-            }
-
-        /**
-         * Set the {@link Executor}.
-         *
-         * @param executor the {@link Executor}
-         */
-        public void setExecutor(Executor executor)
-            {
-            m_executor = executor;
-            }
-
-        /**
-         * Set the transfer threshold.
-         *
-         * @param transferThreshold the transfer threshold
-         */
-        public void setTransferThreshold(Long transferThreshold)
-            {
-            m_transferThreshold = transferThreshold;
-            }
-
-        @Override
-        public Optional<Registry> getRegistry()
-            {
-            return Optional.ofNullable(m_registry);
-            }
-
-        /**
-         * Set the management {@link Registry} to register the proxy MBean with.
-         *
-         * @param registry  the management {@link Registry} to register
-         *                  the proxy MBean with
-         */
-        public void setRegistry(Registry registry)
-            {
-            m_registry = registry;
-            }
-
         // ----- data members -----------------------------------------------
 
         /**
          * The supplier of the {@link ConfigurableCacheFactory} to use.
          */
         private Function<String, ConfigurableCacheFactory> m_ccfSupplier;
-
-        /**
-         * A factory to produce {@link Serializer} instances.
-         */
-        private NamedSerializerFactory m_serializerFactory;
-
-        /**
-         * The {@link Executor} to use for async operations.
-         */
-        private Executor m_executor;
-
-        /**
-         * The transfer threshold to use for paged requests.
-         */
-        private Long m_transferThreshold;
-
-        /**
-         * The {@link Registry} to use to register metric MBeans.
-         */
-        private Registry m_registry;
         }
 
     // ----- constants --------------------------------------------------

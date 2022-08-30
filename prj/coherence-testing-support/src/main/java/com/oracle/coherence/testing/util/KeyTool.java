@@ -12,12 +12,21 @@ import com.oracle.bedrock.runtime.SimpleApplication;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.Executable;
+
+import com.tangosol.net.InetAddressHelper;
+
 import org.junit.Assume;
-import org.junit.AssumptionViolatedException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+
+import java.net.InetAddress;
+
 import java.nio.file.Files;
+
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,7 +42,7 @@ public class KeyTool
     /**
      * Assert that openssl and Java keytool can be used to create test keys and certs.
      *
-     * @throws AssumptionViolatedException if the check fails
+     * @throws org.junit.AssumptionViolatedException if the check fails
      */
     public static void assertCanCreateKeys()
         {
@@ -60,7 +69,7 @@ public class KeyTool
             assertCanCreateKeys();
             return true;
             }
-        catch (AssumptionViolatedException e)
+        catch (Throwable e)
             {
             return false;
             }
@@ -137,6 +146,8 @@ public class KeyTool
         File  fileCert      = new File(fileCerts, sName + ".cert");
         File  fileP12       = new File(fileCerts, sName + ".p12");
         File  fileKeystore  = new File(fileCerts, sName + ".jks");
+        File  fileConfig    = new File(fileCerts, "csr-details.txt");
+
         String sKeyPass     = "pa55w0rd";
         String sStorePass   = "pa55w0rd";
 
@@ -149,15 +160,31 @@ public class KeyTool
             Files.deleteIfExists(fileCert.toPath());
             Files.deleteIfExists(fileP12.toPath());
             Files.deleteIfExists(fileKeystore.toPath());
+            Files.deleteIfExists(fileConfig.toPath());
             }
         else
             {
             assertThat(fileCerts.mkdirs(), is(true));
             }
 
+
+
+        // Generate OpenSSL X509 extensions
+        try (PrintStream out = new PrintStream(new FileOutputStream(fileConfig)))
+            {
+            out.print("subjectAltName=DNS:" + InetAddress.getLocalHost().getHostName());
+            List<InetAddress> listAddress = InetAddressHelper.getAllLocalAddresses();
+            int i = 1;
+            for (InetAddress address : listAddress)
+                {
+                out.printf(",IP:%s", address.getHostAddress());
+                }
+            }
+
         // Generate key:
         runOpenSSL(Arguments.of("genrsa", "-passout", "pass:" + sKeyPass, "-aes256",
-            "-out", fileKey.getAbsolutePath(), "4096"));
+            "-out", fileKey.getAbsolutePath(), "4096",
+            "-config", fileConfig.getAbsolutePath()));
 
         // Generate signing request:
         runOpenSSL(Arguments.of("req", "-passin", "pass:" + sKeyPass, "-new", "-subj", "/CN=" + sName,
@@ -170,7 +197,7 @@ public class KeyTool
                     "-CA", keyAndCertCA.m_fileCert.getAbsolutePath(),
                     "-CAkey", keyAndCertCA.m_fileKey.getAbsolutePath(),
                     "-set_serial", "01",
-                    "-out", fileCert.getAbsolutePath()));
+                    "-out", fileCert.getAbsolutePath(), "-extfile", fileConfig.getAbsolutePath()));
 
         // convert the key to PEM format
         toPem(fileKey, filePEM, sKeyPass);
@@ -279,6 +306,46 @@ public class KeyTool
         public String keyPasswordString()
             {
             return m_sKeyPass;
+            }
+
+        public File getKey()
+            {
+            return m_fileKey;
+            }
+
+        public File getKeyPEM()
+            {
+            return m_fileKeyPEM;
+            }
+
+        public File getKeyPEMNoPass()
+            {
+            return m_fileKeyPEMNoPass;
+            }
+
+        public File getCert()
+            {
+            return m_fileCert;
+            }
+
+        public String getKeyPass()
+            {
+            return m_sKeyPass;
+            }
+
+        public File getKeystore()
+            {
+            return m_fileKeystore;
+            }
+
+        public File getP12Keystore()
+            {
+            return m_fileP12;
+            }
+
+        public String getStorePass()
+            {
+            return m_sStorePass;
             }
 
         // ----- data members ---------------------------------------------------

@@ -13,10 +13,12 @@ import com.oracle.coherence.cdi.NamedCacheProducer;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
 import com.oracle.coherence.cdi.SessionName;
+import com.tangosol.internal.net.SessionNamedCache;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheMap;
 
+import com.tangosol.net.cache.NearCache;
 import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ObservableMap;
@@ -37,6 +39,7 @@ import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -166,19 +169,38 @@ class NamedCacheProducerIT
         {
         DifferentSessionBean bean = weld.select(DifferentSessionBean.class).get();
 
-        assertThat(bean.getDefaultCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfNumbers().getName(), is("numbers"));
-        assertThat(bean.getDefaultCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache().getName(), is("numbers"));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedCache(), is(bean.getDefaultCcfNumbers()));
+        NamedCache cacheNumbers = bean.getDefaultCcfNumbers();
+        if (cacheNumbers instanceof SessionNamedCache)
+            {
+            cacheNumbers = ((SessionNamedCache) cacheNumbers).getInternalNamedCache();
+            }
+        if (cacheNumbers instanceof NearCache)
+            {
+            cacheNumbers = ((NearCache) cacheNumbers).getBackCache();
+            }
+        assertThat(cacheNumbers, is(notNullValue()));
+        assertThat(cacheNumbers.getName(), is("numbers"));
 
-        assertThat(bean.getSpecificCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfNumbers().getName(), is("numbers"));
+        AsyncNamedCache asyncCache = bean.getDefaultCcfAsyncNumbers();
+        assertThat(asyncCache, is(notNullValue()));
+
+        NamedCache cache = asyncCache.getNamedCache();
+        assertThat(cache.getName(), is("numbers"));
+        assertThat(cache, is(cacheNumbers));
+
+        NamedCache specificNumbers = bean.getSpecificCcfNumbers();
+        if (specificNumbers instanceof SessionNamedCache)
+            {
+            specificNumbers = ((SessionNamedCache) specificNumbers).getInternalNamedCache();
+            }
+        assertThat(specificNumbers, is(notNullValue()));
+        assertThat(specificNumbers.getName(), is("numbers"));
+
         assertThat(bean.getSpecificCcfAsyncNumbers(), is(notNullValue()));
         assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache().getName(), is("numbers"));
-        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache(), is(bean.getSpecificCcfNumbers()));
+        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedCache(), is(specificNumbers));
 
-        assertThat(bean.getDefaultCcfNumbers(), is(not(bean.getSpecificCcfNumbers())));
+        assertThat(cacheNumbers, is(not(specificNumbers)));
         }
 
     @Test

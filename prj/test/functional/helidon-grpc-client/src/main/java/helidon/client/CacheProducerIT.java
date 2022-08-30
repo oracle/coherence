@@ -9,8 +9,10 @@ package helidon.client;
 
 import com.oracle.coherence.cdi.SessionName;
 import com.oracle.coherence.client.NamedCacheClient;
-import com.oracle.coherence.grpc.proxy.GrpcServerController;
 
+import com.oracle.coherence.grpc.proxy.GrpcServerController;
+import com.tangosol.coherence.component.util.SafeNamedCache;
+import com.tangosol.internal.net.SessionNamedCache;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.SessionProvider;
 import io.helidon.microprofile.server.Server;
@@ -43,9 +45,11 @@ public class CacheProducerIT
         System.setProperty("coherence.ttl",              "0");
         System.setProperty("coherence.clustername",      "CacheProducerIT");
         System.setProperty("coherence.cacheconfig",      "coherence-config.xml");
+        System.setProperty("coherence.profile",          "thin");
         System.setProperty("coherence.pof.config",       "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",      "true");
         System.setProperty("coherence.log.level",        "9");
+        System.setProperty("coherence.grpc.server.port", "1408");
 
         // The CDI server will start DCS which will in turn cause the gRPC server to start
         s_server = Server.create().start();
@@ -78,8 +82,19 @@ public class CacheProducerIT
         NamedCache<String, String> cacheOne = holder.getCacheOne();
         NamedCache<String, String> cacheTwo = holder.getCacheTwo();
 
-        assertThat(cacheOne, is(instanceOf(NamedCacheClient.class)));
-        assertThat(cacheTwo, is(instanceOf(NamedCacheClient.class)));
+        NamedCache<?, ?> cacheInternalOne = ((SessionNamedCache<?, ?>) cacheOne).getInternalNamedCache();
+        if (cacheInternalOne instanceof SafeNamedCache)
+            {
+            cacheInternalOne = ((SafeNamedCache) cacheInternalOne).getNamedCache();
+            }
+        NamedCache<?, ?> cacheInternalTwo = ((SessionNamedCache<?, ?>) cacheTwo).getInternalNamedCache();
+        if (cacheInternalTwo instanceof SafeNamedCache)
+            {
+            cacheInternalTwo = ((SafeNamedCache) cacheInternalTwo).getNamedCache();
+            }
+
+        assertThat(cacheInternalOne, is(instanceOf(NamedCacheClient.class)));
+        assertThat(cacheInternalTwo, is(instanceOf(NamedCacheClient.class)));
 
         cacheOne.put("key-1", "value-one");
         cacheTwo.put("key-1", "value-two");

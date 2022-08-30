@@ -32,9 +32,14 @@ import java.util.Optional;
  * Microprofile configuration and gRPC integration to configure and
  * provider a {@link GrpcSessionConfiguration} for a given session.
  *
+ * @deprecated Configure a grpc-remote-cache-scheme in the cache configuration file
+ * and use a standard {@link SessionConfiguration}.
+ *
  * @author Jonathan Knight  2020.12.17
  * @since 20.12
  */
+@Deprecated(since = "22.06.2")
+@SuppressWarnings("DeprecatedIsStillUsed")
 public class HelidonSessionProvider
         implements GrpcSessionProvider
     {

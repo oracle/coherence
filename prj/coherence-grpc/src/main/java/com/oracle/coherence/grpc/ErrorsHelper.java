@@ -2,11 +2,12 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc;
 
+import com.oracle.coherence.common.base.Logger;
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusException;
@@ -14,6 +15,7 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -107,6 +109,21 @@ public final class ErrorsHelper
         return s == null ? Optional.empty() : Optional.of(new String(s_decoder.decode(s)));
         }
 
+    /**
+     * Obtain the remote stack trace from the specified {@link StatusException}.
+     *
+     * @param e  the exception returned from a server call
+     *
+     * @return  the remote stack trace, or an empty {@link Optional} if no remote
+     *          stack is present.
+     */
+    public static Optional<String> getRemoteStack(StatusException e)
+        {
+        Metadata trailers = e.getTrailers();
+        String s = trailers == null ? null : trailers.get(ErrorsHelper.KEY_ERROR);
+        return s == null ? Optional.empty() : Optional.of(new String(s_decoder.decode(s)));
+        }
+
     // ----- helper methods -------------------------------------------------
 
     private static StatusRuntimeException enrich(StatusRuntimeException e)
@@ -131,8 +148,20 @@ public final class ErrorsHelper
     private static String getStackTrace(Throwable t)
         {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        t.printStackTrace(new PrintStream(out));
-        return new String(s_encoder.encode(out.toByteArray()));
+        t.printStackTrace(new PrintStream(out, true, StandardCharsets.UTF_8));
+        byte[] abStack = out.toByteArray();
+        byte[] abEncoded;
+        if (abStack.length > MAX_STACK_LENGTH)
+            {
+            byte[] abTruncated = new byte[MAX_STACK_LENGTH];
+            System.arraycopy(abStack, 0, abTruncated, 0, MAX_STACK_LENGTH);
+            abEncoded = s_encoder.encode(abTruncated);
+            }
+        else
+            {
+            abEncoded = s_encoder.encode(abStack);
+            }
+        return new String(abEncoded);
         }
 
     // ----- constants ------------------------------------------------------
@@ -145,4 +174,6 @@ public final class ErrorsHelper
     private static final Base64.Encoder s_encoder = Base64.getEncoder();
 
     private static final Base64.Decoder s_decoder = Base64.getDecoder();
+
+    private static final int MAX_STACK_LENGTH = 1000;
     }

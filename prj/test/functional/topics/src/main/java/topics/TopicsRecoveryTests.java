@@ -11,9 +11,11 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -86,6 +88,9 @@ public class TopicsRecoveryTests
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
         System.setProperty(LocalStorage.PROPERTY, "false");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        System.setProperty("coherence.ttl", "0");
 
         CoherenceConfiguration config = CoherenceConfiguration.builder()
                 .withSession(SessionConfiguration.defaultSession())
@@ -143,6 +148,8 @@ public class TopicsRecoveryTests
 
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                             WellKnownAddress.loopback(),
+                                                             LocalHost.only(),
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
@@ -200,6 +207,8 @@ public class TopicsRecoveryTests
         String              sMsg         = "foo";
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                             WellKnownAddress.loopback(),
+                                                             LocalHost.only(),
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
@@ -274,6 +283,8 @@ public class TopicsRecoveryTests
         String                  sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                             WellKnownAddress.loopback(),
+                                                             LocalHost.only(),
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
@@ -349,6 +360,8 @@ public class TopicsRecoveryTests
         String                  sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                             WellKnownAddress.loopback(),
+                                                             LocalHost.only(),
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              s_testLogs.builder(),
@@ -418,6 +431,8 @@ public class TopicsRecoveryTests
         TaskDaemon          daemon   = new TaskDaemon("test-daemon");
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                             WellKnownAddress.loopback(),
+                                                             LocalHost.only(),
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              LaunchLogging.disabled(),
@@ -465,6 +480,8 @@ public class TopicsRecoveryTests
         TaskDaemon          daemon     = new TaskDaemon("test-daemon");
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                             WellKnownAddress.loopback(),
+                                                             LocalHost.only(),
                                                              LocalStorage.enabled(),
                                                              CacheConfig.of(CACHE_CONFIG),
                                                              LaunchLogging.disabled(),

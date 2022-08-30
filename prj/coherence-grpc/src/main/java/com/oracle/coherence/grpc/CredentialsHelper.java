@@ -1,15 +1,19 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.grpc;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.config.ConfigurationException;
+import com.tangosol.internal.net.ssl.SSLContextDependencies;
+import com.tangosol.net.SocketProviderFactory;
 import com.tangosol.util.Resources;
 import io.grpc.ChannelCredentials;
 import io.grpc.InsecureChannelCredentials;
@@ -38,10 +42,23 @@ import java.util.Arrays;
  */
 public class CredentialsHelper
     {
+    /**
+     * Private constructor for utility class.
+     */
     private CredentialsHelper()
         {
         }
 
+    /**
+     * Create the {@link ServerCredentials} to use for the gRPC Proxy.
+     *
+     * @return the {@link ServerCredentials} to use for the gRPC Proxy
+     *
+     * @deprecated server credentials are configured by the socket provider for a gRPC proxy service,
+     *             see {@link #createServerCredentials(SocketProviderBuilder)}
+     */
+    @Deprecated(since = "22.06.2")
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public static ServerCredentials createServerCredentials()
         {
         String            sCredentials = Config.getProperty(Requests.PROP_CREDENTIALS, Requests.CREDENTIALS_INSECURE);
@@ -139,6 +156,43 @@ public class CredentialsHelper
         }
 
     /**
+     * Create the {@link ServerCredentials} to use for the gRPC Proxy.
+     *
+     * @param socketBuilder  the optional {@link SocketProviderBuilder} to use to provide the TLS configuration
+     *
+     * @return the {@link ServerCredentials} to use for the gRPC Proxy
+     */
+    public static ServerCredentials createServerCredentials(SocketProviderBuilder socketBuilder)
+        {
+        if (socketBuilder != null)
+            {
+            SocketProviderFactory.Dependencies depsFactory = socketBuilder.getDependencies();
+            if (depsFactory == null)
+                {
+                return createServerCredentials();
+                }
+
+            String                                          sSocketId   = socketBuilder.getId();
+            SocketProviderFactory.Dependencies.ProviderType type        = depsFactory.getProviderType(sSocketId);
+
+            if (type == SocketProviderFactory.Dependencies.ProviderType.GRPC)
+                {
+                return InsecureServerCredentials.create();
+                }
+
+            SSLSocketProvider.Dependencies dependencies = depsFactory.getSSLDependencies(sSocketId);
+            if (dependencies != null)
+                {
+                SSLContextDependencies sslContextDependencies = dependencies.getSSLContextDependencies();
+                RefreshableSslContext sslContext = new RefreshableSslContext(sslContextDependencies, true);
+
+                return NettySslContextServerCredentials.create(sslContext);
+                }
+            }
+        return createServerCredentials();
+        }
+
+    /**
      * Create the {@link ChannelCredentials} to use for the client channel.
      * <p>
      * If the property {@link #PROP_CREDENTIALS} is "plaintext" then a non-TLS credentials
@@ -157,7 +211,12 @@ public class CredentialsHelper
      * @param sChannelName  the name of the channel
      *
      * @return the {@link ChannelCredentials} to use for the client channel.
+     *
+     * @deprecated server credentials are configured by the socket provider for a gRPC channel,
+     *             see {@link #createChannelCredentials(String, SocketProviderBuilder)}
      */
+    @Deprecated(since = "22.06.2")
+    @SuppressWarnings("DeprecatedIsStillUsed")
     public static ChannelCredentials createChannelCredentials(String sChannelName)
         {
         String             sType = getProperty(PROP_CREDENTIALS, sChannelName, Requests.CREDENTIALS_PLAINTEXT);
@@ -261,6 +320,51 @@ public class CredentialsHelper
         return credentials;
         }
 
+
+    /**
+     * Create the {@link ChannelCredentials} to use for the client channel.
+     * <p>
+     * If the property {@link #PROP_CREDENTIALS} is "plaintext" then a non-TLS credentials
+     * will be created.
+     * <p>
+     * If the property {@link #PROP_CREDENTIALS} is "insecure" then TLS credentials will
+     * be created using an insecure trust manager that will not verify the server certs.
+     * <p>
+     * If the property {@link #PROP_CREDENTIALS} is "tls" then TLS credentials will be created
+     * using a specified key (from the {@link #PROP_TLS_KEY}) and cert from (from the {@link #PROP_TLS_CERT}).
+     * Optionally a key password (from the {@link #PROP_TLS_KEYPASS}) and a CA (from the {@link #PROP_TLS_CA})
+     * may also be provided.
+     * <p>
+     * If the property {@link #PROP_CREDENTIALS} is not set, "plaintext" will be used.
+     *
+     * @param sChannelName  the name of the channel
+     *
+     * @return the {@link ChannelCredentials} to use for the client channel.
+     */
+    public static ChannelCredentials createChannelCredentials(String sChannelName, SocketProviderBuilder socketBuilder)
+        {
+        if (socketBuilder != null)
+            {
+            SocketProviderFactory.Dependencies              depsFactory = socketBuilder.getDependencies();
+            String                                          sSocketId   = socketBuilder.getId();
+            SocketProviderFactory.Dependencies.ProviderType type        = depsFactory.getProviderType(sSocketId);
+
+            if (type == SocketProviderFactory.Dependencies.ProviderType.GRPC)
+                {
+                return InsecureChannelCredentials.create();
+                }
+
+            SSLSocketProvider.Dependencies dependencies = depsFactory.getSSLDependencies(sSocketId);
+            if (dependencies != null)
+                {
+                SSLContextDependencies sslContextDependencies = dependencies.getSSLContextDependencies();
+                RefreshableSslContext  sslContext             = new RefreshableSslContext(sslContextDependencies, false);
+                return NettySslContextChannelCredentials.create(sslContext);
+                }
+            }
+        return createChannelCredentials(sChannelName);
+        }
+
     /**
      * Resolve any password required for the TLS keys for a given channel.
      *
@@ -334,7 +438,6 @@ public class CredentialsHelper
         }
 
     // ----- constants ------------------------------------------------------
-
 
     /**
      * The system property that sets the location of the TLS key file.

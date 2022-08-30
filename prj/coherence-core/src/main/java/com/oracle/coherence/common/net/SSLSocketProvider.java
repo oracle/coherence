@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net;
 
@@ -38,6 +38,9 @@ import com.oracle.coherence.common.internal.security.SecurityProvider;
 import com.oracle.coherence.common.util.DaemonThreadFactory;
 
 import com.tangosol.coherence.config.unit.Seconds;
+
+import com.tangosol.internal.net.ssl.SSLContextDependencies;
+
 import com.tangosol.net.ssl.RefreshPolicy;
 
 
@@ -330,6 +333,12 @@ public class SSLSocketProvider
          */
         public RefreshPolicy getRefreshPolicy();
 
+        /**
+         * Returns the {@link SSLContextDependencies}.
+         *
+         * @return the {@link SSLContextDependencies}
+         */
+        public SSLContextDependencies getSSLContextDependencies();
 
         /**
         * The default SSL protocol.
@@ -647,6 +656,22 @@ public class SSLSocketProvider
             return this;
             }
 
+        @Override
+        public SSLContextDependencies getSSLContextDependencies()
+            {
+            return new SSLContextDependencies(m_sslContextDependencies, null);
+            }
+
+        /**
+         * Set the {@link SSLContextDependencies}.
+         *
+         * @param deps  the {@link SSLContextDependencies}
+         */
+        public void setSSLContextDependencies(SSLContextDependencies deps)
+            {
+            m_sslContextDependencies = deps;
+            }
+
         /**
          * {@inheritDoc}
          */
@@ -801,6 +826,11 @@ public class SSLSocketProvider
          * refreshed when the scheduled refresh time is reached.
          */
         protected RefreshPolicy m_refreshPolicy = RefreshPolicy.Always;
+
+        /**
+         * The {@link SSLContextDependencies}.
+         */
+        protected SSLContextDependencies m_sslContextDependencies;
 
         static
             {

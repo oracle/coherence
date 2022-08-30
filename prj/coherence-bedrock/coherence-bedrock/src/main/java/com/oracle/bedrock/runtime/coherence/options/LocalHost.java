@@ -22,35 +22,14 @@ import com.oracle.bedrock.util.PerpetualIterator;
 
 import java.net.InetAddress;
 import java.util.Iterator;
+import java.util.Objects;
 
+/**
+ * An option to configure Coherence to run in localhost mode.
+ */
 public class LocalHost
         implements Profile, Option
     {
-    /**
-     * The tangosol.coherence.localhost property.
-     */
-    public static final String PROPERTY = "coherence.localhost";
-
-    /**
-     * The tangosol.coherence.localport property.
-     */
-    public static final String PROPERTY_PORT = "coherence.localport";
-
-    /**
-     * The local address of an {@link CoherenceClusterMember}.
-     *
-     * <code>null</code> when not defined.
-     */
-    private String address;
-
-    /**
-     * The local address port for a {@link CoherenceClusterMember}.
-     *
-     * <code>null</code> when not defined.
-     */
-    private Iterator<Integer> ports;
-
-
     /**
      * Constructs a {@link LocalHost} for the specified address and ports.
      * <p>
@@ -61,12 +40,10 @@ public class LocalHost
      * @param address the address of the {@link LocalHost}
      * @param ports   the possible ports for the {@link LocalHost}
      */
-    private LocalHost(
-            String address,
-            Iterator<Integer> ports)
+    private LocalHost(String address, Iterator<Integer> ports)
         {
-        this.address = address;
-        this.ports = ports;
+        m_sAddress = address;
+        m_ports    = ports;
         }
 
 
@@ -77,9 +54,8 @@ public class LocalHost
      */
     public String getAddress()
         {
-        return address;
+        return m_sAddress;
         }
-
 
     /**
      * Obtains the possible ports of the {@link LocalHost}, <code>null</code>  if not defined.
@@ -88,9 +64,18 @@ public class LocalHost
      */
     public Iterator<Integer> getPorts()
         {
-        return ports;
+        return m_ports;
         }
 
+    /**
+     * Obtains a {@link LocalHost} using the loopback address.
+     *
+     * @return a {@link LocalHost} using the loopback address
+     */
+    public static LocalHost loopback()
+        {
+        return new LocalHost("127.0.0.1", null);
+        }
 
     /**
      * Obtains a {@link LocalHost} for a specified address.
@@ -102,7 +87,6 @@ public class LocalHost
         {
         return new LocalHost(address, null);
         }
-
 
     /**
      * Obtains a {@link LocalHost} for a specified address and port.
@@ -118,7 +102,6 @@ public class LocalHost
         return new LocalHost(address, new PerpetualIterator<>(port));
         }
 
-
     /**
      * Obtains a {@link LocalHost} for a specified address and port.
      *
@@ -132,7 +115,6 @@ public class LocalHost
         {
         return new LocalHost(address, port);
         }
-
 
     /**
      * Obtains a {@link LocalHost} for a specified address and ports.
@@ -148,7 +130,6 @@ public class LocalHost
         return new LocalHost(address, ports);
         }
 
-
     /**
      * Obtains a {@link LocalHost} for a specified address and ports.
      *
@@ -163,7 +144,6 @@ public class LocalHost
         return new LocalHost(address, ports);
         }
 
-
     /**
      * Obtains a {@link LocalHost} configured for "local host only" mode.
      *
@@ -174,14 +154,13 @@ public class LocalHost
         return new LocalHost(null, null);
         }
 
-
     @Override
     public void onLaunching(
             Platform platform,
             MetaClass metaClass,
             OptionsByType optionsByType)
         {
-        if (ports != null && !ports.hasNext())
+        if (m_ports != null && !m_ports.hasNext())
             {
             throw new IllegalStateException("Exhausted the available ports for the LocalHost");
             }
@@ -191,7 +170,7 @@ public class LocalHost
 
             if (systemProperties != null)
                 {
-                if (address == null && ports == null)
+                if (m_sAddress == null && m_ports == null)
                     {
                     // setup local-only mode
                     optionsByType.add(SystemProperty.of(PROPERTY, InetAddress.getLoopbackAddress().getHostAddress()));
@@ -201,20 +180,19 @@ public class LocalHost
                     }
                 else
                     {
-                    if (address != null)
+                    if (m_sAddress != null)
                         {
-                        optionsByType.add(SystemProperty.of(PROPERTY, address));
+                        optionsByType.add(SystemProperty.of(PROPERTY, m_sAddress));
                         }
 
-                    if (ports != null)
+                    if (m_ports != null)
                         {
-                        optionsByType.add(SystemProperty.of(PROPERTY_PORT, ports.next()));
+                        optionsByType.add(SystemProperty.of(PROPERTY_PORT, m_ports.next()));
                         }
                     }
                 }
             }
         }
-
 
     @Override
     public void onLaunched(
@@ -224,7 +202,6 @@ public class LocalHost
         {
         }
 
-
     @Override
     public void onClosing(
             Platform platform,
@@ -233,7 +210,6 @@ public class LocalHost
         {
         }
 
-
     @Override
     public boolean equals(Object o)
         {
@@ -241,41 +217,50 @@ public class LocalHost
             {
             return true;
             }
-
-        if (!(o instanceof LocalHost))
+        if (o == null || getClass() != o.getClass())
             {
             return false;
             }
-
-        LocalHost that = (LocalHost) o;
-
-        if (address != null ? !address.equals(that.address) : that.address != null)
-            {
-            return false;
-            }
-
-        return ports != null ? ports.equals(that.ports) : that.ports == null;
-
+        LocalHost localHost = (LocalHost) o;
+        return Objects.equals(m_sAddress, localHost.m_sAddress) && Objects.equals(m_ports, localHost.m_ports);
         }
-
 
     @Override
     public int hashCode()
         {
-        int result = address != null ? address.hashCode() : 0;
-
-        result = 31 * result + (ports != null ? ports.hashCode() : 0);
-
-        return result;
+        return Objects.hash(m_sAddress, m_ports);
         }
-
 
     @Override
     public String toString()
         {
         return "LocalHost(" +
-                "address='" + address + '\'' +
-                ", ports=" + ports +
+                "address='" + m_sAddress + '\'' +
+                ", ports=" + m_ports +
                 ')';
         }
+
+    // ----- data members ---------------------------------------------------
+    
+    /**
+     * The coherence.localhost property.
+     */
+    public static final String PROPERTY = "coherence.localhost";
+
+    /**
+     * The coherence.localport property.
+     */
+    public static final String PROPERTY_PORT = "coherence.localport";
+
+    /**
+     * The local address of a {@link CoherenceClusterMember}, or
+     * {@code null} when not defined.
+     */
+    private final String m_sAddress;
+
+    /**
+     * The local address port for a {@link CoherenceClusterMember}, or
+     * {@code null} when not defined.
+     */
+    private final Iterator<Integer> m_ports;
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -199,4 +199,16 @@ public interface CacheService
     * @see Cluster#ensureService(String, String)
     */
     public static final String TYPE_REMOTE      = "RemoteCache";
+
+    /**
+    * RemoteGrpcCache service type constant.
+    * <p>
+    * RemoteCache service provides the means for handling a collection
+    * of resources managed by a remote JVM with concurrent access control
+    * connecting over gRPC.
+    *
+    * @see Cluster#ensureService(String, String)
+    */
+    public static final String TYPE_REMOTE_GRPC = "RemoteGrpcCache";
+
     }

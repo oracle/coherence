@@ -27,6 +27,7 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -90,9 +91,9 @@ class KeySetIT
         NamedCache<String, String> cache      = s_ccf.ensureCache(sCacheName, null);
         cache.clear();
 
-        Requests.page(Requests.DEFAULT_SCOPE, sCacheName, "java", ByteString.EMPTY);
+        Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, "java", ByteString.EMPTY);
         TestStreamObserver<BytesValue> observer = new TestStreamObserver<>();
-        s_service.nextKeySetPage(Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextKeySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -114,7 +115,7 @@ class KeySetIT
         cache.put("key-1", "value-1");
 
         TestStreamObserver<BytesValue> observer = new TestStreamObserver<>();
-        s_service.nextKeySetPage(Requests.page(Requests.DEFAULT_SCOPE, cacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextKeySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, cacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -145,7 +146,7 @@ class KeySetIT
         Set<String> keys = new HashSet<>();
         ByteString cookie = null;
         TestStreamObserver<BytesValue> observer = new TestStreamObserver<>();
-        s_service.nextKeySetPage(Requests.page(Requests.DEFAULT_SCOPE, cacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextKeySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, cacheName, serializerName, ByteString.EMPTY), observer);
 
         while (cookie == null || !cookie.isEmpty())
             {
@@ -165,7 +166,7 @@ class KeySetIT
                     .forEach(keys::add);
 
             observer = new TestStreamObserver<>();
-            s_service.nextKeySetPage(Requests.page(Requests.DEFAULT_SCOPE, cacheName, "java", cookie), observer);
+            s_service.nextKeySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, cacheName, "java", cookie), observer);
             }
 
         assertThat(keys.size(), is(cache.size()));

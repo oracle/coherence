@@ -12,6 +12,7 @@ import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
 import com.oracle.coherence.grpc.Requests;
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 import com.tangosol.net.SessionProvider;
+import com.tangosol.net.grpc.GrpcDependencies;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.helidon.microprofile.server.Server;
@@ -78,7 +79,7 @@ public class HelidonIT
         NamedCacheServiceGrpc.NamedCacheServiceStub client   = NamedCacheServiceGrpc.newStub(s_channel);
         TestStreamObserver<Int32Value>              observer = new TestStreamObserver<>();
 
-        client.size(Requests.size(Requests.DEFAULT_SCOPE, "foo"), observer);
+        client.size(Requests.size(GrpcDependencies.DEFAULT_SCOPE, "foo"), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()

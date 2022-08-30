@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -198,6 +199,33 @@ public class NSLookup
         throws IOException
         {
         return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_HEALTH_URL);
+        }
+
+    public static Collection<SocketAddress> lookupGrpcProxy(SocketAddress socketAddr)
+            throws IOException
+        {
+        return lookupGrpcProxy(null, socketAddr);
+        }
+
+    public static Collection<SocketAddress> lookupGrpcProxy(String sCluster, SocketAddress socketAddr)
+            throws IOException
+        {
+        String sName   = NS_STRING_PREFIX + GRPC_PROXY_URL;
+        String sResult = lookup(sCluster, sName, socketAddr, DEFAULT_TIMEOUT);
+        // do not use streams as this class needs to be buildable on Java 7
+        // format is "[URL1, URL2, URL3, ...]"
+        String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
+
+        List<SocketAddress> list = new ArrayList<>();
+        if (asResult != null)
+            {
+            // skip element 0 which will be an empty string
+            for (int i = 1; i < asResult.length; i += 2)
+                {
+                list.add(new InetSocketAddress(asResult[i], Integer.parseInt(asResult[i+1])));
+                }
+            }
+        return list;
         }
 
     private static Collection<URL> lookupURL(String sCluster, SocketAddress socketAddr, String sName)
@@ -1110,6 +1138,15 @@ public class NSLookup
      * @since 22.06
      */
     public static final String HTTP_HEALTH_URL = "health/HTTPHealthURL";
+
+    /**
+     * The gRPC Proxy lookup name.
+     *
+     * @since 22.06.2
+     */
+    public static final String GRPC_PROXY_URL = "$GRPC:GrpcProxy";
+    // This value here must match the fully scoped name used for the gRPC proxy in the
+    // grpc-proxy-cache-config.xml file and in the GrpcDependencies.DEFAULT_PROXY_NAME field
 
     /**
      * Default timeout in milliseconds

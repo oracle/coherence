@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.client;
 
@@ -20,11 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * A provider of named gRPC {@link Channel} instances.
  * <p>
  * Instances of this interface are loaded by the {@link ServiceLoader}
- * when building {@link GrpcSessionConfiguration} instances to provide
- * a {@link Channel} for the session. This allows application code to
- * provide channels specifically configured for a gRPC sessions.
- * For example, if a gRPC connection requires TLS configuration, this
- * can be configured in a custom {@link ChannelProvider}.
+ * when building gRPC channel instances to provide a {@link Channel}
+ * for a remote gRPC service. This allows application code to
+ * provide channels that require configuration not supported
+ * by the out-of-the-box Coherence configuration.
  *
  * @author Jonathan Knight  2020.12.15
  * @since 20.12
@@ -44,7 +43,7 @@ public interface ChannelProvider
     /**
      * Returns the priority for this provider.
      * <p>
-     * Sessions will be created in priority order, highest
+     * Sessions will be created in priority order, the highest
      * priority first.
      * <p>
      * The default priority is zero (see {@link #DEFAULT_PRIORITY}.
@@ -63,16 +62,6 @@ public interface ChannelProvider
         }
 
     // ----- constants --------------------------------------------------
-
-    /**
-     * The default channel name.
-     */
-    String DEFAULT_CHANNEL_NAME = "default";
-
-    /**
-     * The System channel name.
-     */
-    String SYSTEM_CHANNEL_NAME = "system";
 
     /**
      * The default priority for a configuration.

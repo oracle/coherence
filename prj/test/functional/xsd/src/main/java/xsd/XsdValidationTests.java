@@ -98,12 +98,13 @@ public class XsdValidationTests
     public void testDefaultFiles()
         throws Exception
         {
-        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/coherence-cache-config.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/coherence-cache-config.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/grpc-proxy-cache-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/coherence-pof-config.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/management-config.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/tangosol-coherence-override-dev.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/tangosol-coherence-override-eval.xml");
-        XmlValidator.validate("../../../coherence-core/src/main/resources/defaults/tangosol-coherence-override-prod.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-dev.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-eval.xml");
+        XmlValidator.validate("../../../coherence-core/src/main/resources/com/oracle/coherence/defaults/tangosol-coherence-override-prod.xml");
         XmlValidator.validate("../../../coherence-core/src/main/resources/tangosol-coherence.xml");
         }
 

@@ -1,40 +1,30 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.grpc.proxy;
 
-import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.CredentialsHelper;
 import com.oracle.coherence.grpc.Requests;
 import com.tangosol.coherence.config.Config;
-import com.tangosol.config.ConfigurationException;
 import com.tangosol.util.Resources;
 import io.grpc.Grpc;
-import io.grpc.InsecureServerCredentials;
 import io.grpc.ServerBuilder;
+
 import io.grpc.ServerCredentials;
-import io.grpc.TlsServerCredentials;
 import io.grpc.inprocess.InProcessServerBuilder;
-import io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.NettyServerBuilder;
-import io.grpc.netty.NettySslContextServerCredentials;
-import io.netty.handler.ssl.ClientAuth;
-import io.netty.handler.ssl.SslContextBuilder;
 
 import jakarta.annotation.Priority;
-import java.io.BufferedInputStream;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
+
 import java.net.URL;
-import java.util.Arrays;
 
 /**
  * A class that can provide an instance of a {@link io.grpc.ServerBuilder}
@@ -48,7 +38,11 @@ import java.util.Arrays;
  *
  * @author Jonathan Knight  2020.11.24
  * @since 20.12
+ * @deprecated the gRPC proxy server is configured and built as a
+ *             normal proxy service configured with a gRPC acceptor
+ *             in the system cache configuration file
  */
+@Deprecated(since = "22.06.2")
 public interface GrpcServerBuilderProvider
         extends Comparable<GrpcServerBuilderProvider>
     {

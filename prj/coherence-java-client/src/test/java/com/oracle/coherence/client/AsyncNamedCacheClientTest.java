@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.client;
@@ -19,6 +19,7 @@ import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
@@ -53,7 +54,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import static com.oracle.coherence.grpc.Requests.DEFAULT_SCOPE;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -99,7 +99,7 @@ class AsyncNamedCacheClientTest
         AsyncNamedCacheClient.DefaultDependencies deps
                 = new  AsyncNamedCacheClient.DefaultDependencies("test", channel, dispatcher);
 
-        deps.setScope(DEFAULT_SCOPE);
+        deps.setScope(GrpcDependencies.DEFAULT_SCOPE);
         deps.setSerializer(SERIALIZER, FORMAT);
         deps.setClient(client);
 
@@ -117,7 +117,7 @@ class AsyncNamedCacheClientTest
         AsyncNamedCacheClient.DefaultDependencies deps
                 = new  AsyncNamedCacheClient.DefaultDependencies("test", channel, dispatcher);
 
-        deps.setScope(DEFAULT_SCOPE);
+        deps.setScope(GrpcDependencies.DEFAULT_SCOPE);
         deps.setSerializer(SERIALIZER, FORMAT);
 
         NamedCacheGrpcClient client = mock(NamedCacheGrpcClient.class);
@@ -162,7 +162,7 @@ class AsyncNamedCacheClientTest
         AsyncNamedCacheClient.DefaultDependencies deps
                 = new  AsyncNamedCacheClient.DefaultDependencies("test", channel, dispatcher);
 
-        deps.setScope(DEFAULT_SCOPE);
+        deps.setScope(GrpcDependencies.DEFAULT_SCOPE);
         deps.setSerializer(SERIALIZER, FORMAT);
 
         NamedCacheGrpcClient client = mock(NamedCacheGrpcClient.class);

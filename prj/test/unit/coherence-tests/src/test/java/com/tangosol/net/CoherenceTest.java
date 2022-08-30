@@ -2,7 +2,7 @@
  * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -161,7 +161,7 @@ public class CoherenceTest
         }
 
     @Test
-    public void shouldStartConfiguredSessions() throws Exception
+    public void shouldStartConfiguredSessionsInPriorityOrder() throws Exception
         {
         ConfigurableCacheFactorySession    sessionSys      = mock(ConfigurableCacheFactorySession.class);
         ExtensibleConfigurableCacheFactory ccfSys          = mock(ExtensibleConfigurableCacheFactory.class);
@@ -183,9 +183,18 @@ public class CoherenceTest
         Iterable<EventInterceptor<?>>      interceptorsTwo = Collections.singletonList(interceptorTwo);
         SessionConfiguration               cfgTwo          = new SessionConfigStub("Two", interceptorsTwo, 0, providerTwo);
 
+        ConfigurableCacheFactorySession    sessionThree      = mock(ConfigurableCacheFactorySession.class);
+        ExtensibleConfigurableCacheFactory ccfThree          = mock(ExtensibleConfigurableCacheFactory.class);
+        InterceptorRegistry                registryThree     = mock(InterceptorRegistry.class);
+        SessionProvider                    providerThree     = mock(SessionProvider.class);
+        EventInterceptor<?>                interceptorThree  = mock(EventInterceptor.class);
+        Iterable<EventInterceptor<?>>      interceptorsThree = Collections.singletonList(interceptorThree);
+        SessionConfiguration               cfgThree          = new SessionConfigStub("Three", interceptorsThree, 10, providerThree);
+
         CoherenceConfiguration             configuration   = CoherenceConfiguration.builder()
                                                                     .withSession(cfgOne)
                                                                     .withSessions(cfgTwo)
+                                                                    .withSessions(cfgThree)
                                                                     .build();
         Coherence                          coherence       = Coherence.clusterMember(configuration);
         CompletableFuture<Coherence>       future     = coherence.whenStarted();
@@ -205,6 +214,12 @@ public class CoherenceTest
         when(ccfTwo.getInterceptorRegistry()).thenReturn(registryTwo);
         when(ccfTwo.getServiceMap()).thenReturn(Collections.emptyMap());
 
+        when(providerThree.createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class))).thenReturn(new ContextStub(sessionThree));
+        when(sessionThree.getConfigurableCacheFactory()).thenReturn(ccfThree);
+        when(sessionThree.getInterceptorRegistry()).thenReturn(registryThree);
+        when(ccfThree.getInterceptorRegistry()).thenReturn(registryThree);
+        when(ccfThree.getServiceMap()).thenReturn(Collections.emptyMap());
+
         Coherence.setSystemSession(Optional.of(sessionSys));
         coherence.start();
 
@@ -212,14 +227,17 @@ public class CoherenceTest
 
         assertThat(coherence.getSession("One"), is(sameInstance(sessionOne)));
         assertThat(coherence.getSession("Two"), is(sameInstance(sessionTwo)));
+        assertThat(coherence.getSession("Three"), is(sameInstance(sessionThree)));
 
         verify(providerOne, times(1)).createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class));
         verify(providerTwo, times(1)).createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class));
+        verify(providerThree, times(1)).createSession(any(SessionConfiguration.class), any(SessionProvider.Context.class));
 
-        // should start in lowest priority order
-        InOrder inOrder = inOrder(ccfOne, ccfTwo);
-        inOrder.verify(ccfTwo).activate();
+        // should start in the highest priority order
+        InOrder inOrder = inOrder(ccfOne, ccfTwo, ccfThree);
+        inOrder.verify(ccfThree).activate();
         inOrder.verify(ccfOne).activate();
+        inOrder.verify(ccfTwo).activate();
         }
 
     @Test

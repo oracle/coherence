@@ -14,13 +14,12 @@ import com.oracle.coherence.grpc.GetRequest;
 import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
 import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.Requests;
-import com.oracle.coherence.grpc.proxy.GrpcServerController;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
-import com.tangosol.util.Filters;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -54,7 +53,7 @@ public class NamedCacheErrorHandlingIT
         System.setProperty("coherence.cacheconfig", "coherence-config.xml");
         System.setProperty("coherence.pof.config", "test-pof-config.xml");
         System.setProperty("coherence.override", "test-coherence-override.xml");
-        System.setProperty(GrpcServerController.PROP_ENABLED, "true");
+        System.setProperty(GrpcDependencies.PROP_ENABLED, "true");
 
         DefaultCacheServer.startServerDaemon()
                 .waitForServiceStart();
@@ -62,8 +61,9 @@ public class NamedCacheErrorHandlingIT
         s_ccf = CacheFactory.getCacheFactoryBuilder()
                 .getConfigurableCacheFactory(Classes.getContextClassLoader());
 
+        int nPort = FindGrpcProxyPort.local();
         s_channel = ManagedChannelBuilder
-                .forAddress("127.0.0.1", GrpcServerController.INSTANCE.getPort())
+                .forAddress("127.0.0.1", nPort)
                 .usePlaintext()
                 .build();
         }
@@ -87,7 +87,7 @@ public class NamedCacheErrorHandlingIT
         NamedCacheServiceGrpc.NamedCacheServiceStub client   = NamedCacheServiceGrpc.newStub(s_channel);
         TestStreamObserver<OptionalValue>           observer = new TestStreamObserver<>();
         ByteString                                  badData  = ByteString.copyFrom("bad json", Charset.defaultCharset());
-        GetRequest                                  request  = Requests.get(Requests.DEFAULT_SCOPE, cacheName, "json", badData);
+        GetRequest                                  request  = Requests.get(GrpcDependencies.DEFAULT_SCOPE, cacheName, "json", badData);
 
         client.get(request, observer);
 

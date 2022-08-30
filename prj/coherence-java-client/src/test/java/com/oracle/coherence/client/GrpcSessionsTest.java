@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,8 +15,10 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.options.WithConfiguration;
 import io.grpc.Channel;
+import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import org.junit.jupiter.api.Test;
@@ -45,7 +47,7 @@ public class GrpcSessionsTest
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public void shouldGetSessionFromCoherenceSessionsFactory()
         {
-        Channel                  channel       = mock(Channel.class);
+        ManagedChannel           channel       = mock(ManagedChannel.class);
         GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(channel).named("foo").build();
         Optional<Session>        optional      = Session.create(configuration);
 
@@ -56,7 +58,7 @@ public class GrpcSessionsTest
         assertThat(session, is(notNullValue()));
         assertThat(session, is(instanceOf(GrpcRemoteSession.class)));
         assertThat(((GrpcRemoteSession) session).getChannel(), is(sameInstance(channel)));
-        assertThat(session.getScopeName(), is(Requests.DEFAULT_SCOPE));
+        assertThat(session.getScopeName(), is(GrpcDependencies.DEFAULT_SCOPE));
         }
 
     @Test

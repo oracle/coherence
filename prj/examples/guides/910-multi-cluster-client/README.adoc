@@ -74,6 +74,7 @@ By using the `withParameter` method on a `SessionConfiguration.Builder` values f
 For example, the `<remote-cache-scheme>` below has the `<address>` and `<port>` elements parameterized.
 The `<address>` element's value will come from the `coherence.extend.address` System property (or `COHERENCE_EXTEND_ADDRESS` environment variable).
 The `<port>` element's value will come from the `coherence.extend.port` System property (or `COHERENCE_EXTEND_PORT` environment variable).
+There are a number of alternative ways to configures the address for a remote gRPC scheme, which are covered on the Coherence documentation.
 
 [source,xml]
 ----
@@ -98,77 +99,44 @@ When creating a `SessionConfiguration`, those values can also be specified as co
 [source,java]
 ----
 SessionConfiguration.builder()
+        .withMode(Coherence.Mode.ClientFixed)
         .withParameter("coherence.extend.address", "127.0.0.1")
         .withParameter("coherence.extend.port", 20000)
 ----
 
 === Create a gRPC Client Session
 
-Creating a gRPC client session is currently slightly more complicated than an Extend session.
-The Coherence gRPC API is configured in code and not quite as flexible as configuring Extend. This will be changed in future releases to make gRPC as easy to use as Extend.
+Since Coherence 22.06.2, creating a gRPC client session is a simple as creating an Extend client session. A `<remote-grpc-cache-scheme>` can be configured in a Coherence cache configuration file. The `<remote-grpc-cache-scheme>` can contain a `<grpc-channel>` element that configures the channel that the client will use to connect to the gRPC proxy in the Coherence cluster.
+There are a number of alternative ways to configure the `<remote-grpc-cache-scheme>` and `<grpc-channel>` elements, which are covered on the Coherence documentation.
 
-The basic steps are the same as above for an Extend client, but for gRPC an `io.grpc.Channel` instance must be provided to the session configuration.
+An example of a `<remote-grpc-cache-scheme>` is shown below. In this case the `<grpc-channel>` is configured with a single fixed address that the gRPC client connects to. The `<address>` and `<port>` elements below do not actually have values, the values of those elements will be supplied by the `coherence.grpc.address` and `coherence.grpc.port` system properties or by the `COHERENCE_GRPC_ADDRESS` and `COHERENCE_GRPC_PORT` environment variables, or by setting them in the Session configuration properties.
 
-A gRPC `Channel` can be created using the `grpc-java` APIs as shown below.
-This example creates a channel that uses insecure credentials, other options are available to create secure TLS channels.
+[source,xml]
+----
+<remote-grpc-cache-scheme>
+  <scheme-name>thin-grpc-fixed</scheme-name>
+  <service-name>RemoteGrpcCache</service-name>
+  <grpc-channel>
+    <remote-addresses>
+      <socket-address>
+        <address system-property="coherence.grpc.address"/>
+        <port system-property="coherence.grpc.port"/>
+      </socket-address>
+    </remote-addresses>
+  </grpc-channel>
+</remote-grpc-cache-scheme>
+----
+
+When creating a `SessionConfiguration`, the `<address>` and `<port>` values can also be specified as configuration parameters.
+For example, the `SessionConfiguration` below will configure the gRPC channel to connect to loopback (`127.0.0.1`) and port `1408`.
 
 [source,java]
 ----
-String hostName = "127.0.0.1";
-int port = 1408;
-ChannelCredentials credentials = InsecureChannelCredentials.create();
-
-ManagedChannel channel = Grpc.newChannelBuilderForAddress(hostName, port, credentials)
-        .build();
+SessionConfiguration.builder()
+        .withMode(Coherence.Mode.GrpcFixed)
+        .withParameter("coherence.grpc.address", "127.0.0.1")
+        .withParameter("coherence.grpc.port", 1408)
 ----
-
-Once a channel has been created, the gRPC session configuration can be created:
-
-[source,java]
-----
-GrpcSessionConfiguration.builder(channel)
-        .named(tenant)
-        .withSerializerFormat(metaData.getSerializer())
-        .build();
-----
-
-This can be used to create a gRPC session for a tenant, as shown below:
-
-[source,java]
-----
-public Session getSession(String tenant)
-    {
-    Coherence coherence = Coherence.getInstance();    // <1>
-    Optional<Session> optional = Coherence.findSession(tenant); // <2>
-    if (optional.isPresent())
-        {
-        return optional.get();  // <3>
-        }
-
-    String hostName = "127.0.0.1";
-    int port = 1408;
-    ChannelCredentials credentials = InsecureChannelCredentials.create();
-
-    ManagedChannel channel = Grpc.newChannelBuilderForAddress(hostName, port, credentials) // <4>
-            .build();
-
-    coherence.addSessionIfAbsent(tenant, () ->     // <5>
-            GrpcSessionConfiguration.builder(channel)
-                    .named(tenant)
-                    .withSerializerFormat(metaData.getSerializer())
-                    .build());
-
-    return coherence.getSession(tenant);  // <6>
-    }
-----
-
-<1> Obtain the default `Coherence` instance
-<2> Find the `Session` with the tenant name
-<3> The `Session` has already been created, so use it
-<4> Create the `Channel`, the host name and port and credentials would probably be looked up and be specific for the tenant,
-in this example it is a simple in-secure connection to `127.0.0.1:1408`.
-<5> Use the `Coherence.addSessionIfAbsent()` method to add a `GrpcSessionConfiguration` for the tenant.
-<6> Return the gRPC `Session` for the configuration name just added
 
 
 == Building the Example
@@ -573,9 +541,7 @@ include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/U
 
 ==== Creating a gRPC Session
 
-Creating a gRPC `Session` is slightly more complex than an Extend `Session`.
-The complication comes from having to manually create a gRPC `ManagedChannel` to pass to the `GrpcSessionConfiguration`.
-Eventually the dynamic configuration of gRPC clients will be simplified in Coherence, but currently this is the method that works.
+Creating a gRPC `Session` is as simple as creating an Extend `Session`.
 
 [source,java]
 .UserController.java
@@ -583,19 +549,18 @@ Eventually the dynamic configuration of gRPC clients will be simplified in Coher
 include::multi-cluster-client/src/main/java/com/oracle/coherence/guides/client/UserController.java[tag=grpc]
 ----
 
-<1> The host name of the tenant's cluster is obtained from the meta-data
-<2> The port for the gRPC proxy in the tenant's cluster is obtained from the meta-data
-<3> The `ChannelCredentials` are created to configure gRPC security, in this case an insecure (non-TLS) connection is used
-<4> A `ManagedChannel` is created using the host name, port and credentials.
-<5> A `GrpcSessionConfiguration.Builder` is created using the channel
-<6> The name of the session is set to the tenant name
-<7> The name of the serializer is set, in this example it will be Java serialization, but "pof" is also supported.
-<8> The `GrpcSessionConfiguration` is built and returned
+<1> The session configuration has a unique name, in this case the tenant name
+<2> A session configuration typically has a unique scope, in this case also the tenant name
+<3> The `coherence.client` parameter is set to `grpc-fixed`. This is used by the default Coherence cache configuration file to make it use a fixed address gRPC client configuration.
+<4> The name of the serializer is configured (in this example Java serialization is used, but "pof" would also be supported)
+<5> The `coherence.grpc.address` property is passed through to the cache configuration file, in this case the address comes from the tenant meta-data.
+<6> The `coherence.grpc.port` property is passed through to the cache configuration file, in this case the address comes from the tenant meta-data.
+<7> finally the configuration is built and returned.
 
 ==== Summary
 
 The example code could be simplified if the application only ever used Extend or only ever used gRPC.
-There are also many alternative approaches to holding tenant metat data used to create the sessions.
+There are also many alternative approaches to holding tenant metata data used to create the sessions.
 
 The important parts of the example are the methods in `UserController` to obtain a session from the `Coherence` instance, and create a new `Session` is one does not already exist.
 

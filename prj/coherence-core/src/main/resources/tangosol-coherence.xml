@@ -783,6 +783,33 @@ to find specific notes on changes suggested for production use.
           </init-param>
         </init-params>
       </service>
+
+      <service id="14">
+        <service-type>RemoteGrpcCache</service-type>
+        <service-component>RemoteGrpcCache</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>serializer</param-name>
+            <param-value/>
+          </init-param>
+          <init-param id="2">
+            <param-name>grpc-channel/socket-provider</param-name>
+            <param-value system-property="coherence.grpc.socketprovider"/>
+          </init-param>
+          <init-param id="3">
+            <param-name>thread-count</param-name>
+            <param-value system-property="coherence.grpc.threads"/>
+          </init-param>
+          <init-param id="4">
+            <param-name>thread-count-max</param-name>
+            <param-value system-property="coherence.grpc.threads.max"/>
+          </init-param>
+          <init-param id="5">
+            <param-name>thread-count-min</param-name>
+            <param-value system-property="coherence.grpc.threads.min"/>
+          </init-param>
+        </init-params>
+      </service>
     </services>
 
     <filters>
@@ -942,7 +969,6 @@ to find specific notes on changes suggested for production use.
             <cert system-property="coherence.security.cert"/>
           </identity-manager>
           <trust-manager>
-            <algorithm>PeerX509</algorithm>
             <cert system-property="coherence.security.ca.cert"/>
           </trust-manager>
           <protocol-versions usage="black-list">
@@ -965,6 +991,14 @@ to find specific notes on changes suggested for production use.
       -->
       <socket-provider id="sdp">
         <sdp/>
+      </socket-provider>
+
+      <!--
+      The grpc-insecure socket provider is only applicaple to gRPC Channels
+      or the gRPC proxy, and will configure the gRPC to use insecure credentials.
+      -->
+      <socket-provider id="grpc-insecure">
+        <grpc-insecure/>
       </socket-provider>
     </socket-providers>
 

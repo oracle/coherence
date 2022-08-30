@@ -6,16 +6,18 @@
  */
 package grpc.client;
 
-import com.oracle.coherence.client.GrpcRemoteSession;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.Session;
+
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.SessionLifecycleEvent;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.SessionLifecycleEvents;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,11 +25,14 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
@@ -42,7 +47,7 @@ public class GrpcClientSystemSessionIT
     static void setup()
         {
         System.setProperty("coherence.ttl", "0");
-        System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
+        System.setProperty("coherence.cluster", "GrpcClientSystemSessionIT");
         }
 
     @AfterEach
@@ -54,7 +59,7 @@ public class GrpcClientSystemSessionIT
         }
 
     @Test
-    void shouldHaveSystemSessionOnClusterMember()
+    void shouldHaveSystemSessionOnClusterMember() throws Exception
         {
         Listener               listener      = new Listener();
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()
@@ -64,7 +69,7 @@ public class GrpcClientSystemSessionIT
 
         assertThat(coherence.getMode(), is(Coherence.Mode.ClusterMember));
 
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(true));
         Session session = coherence.getSession(Coherence.SYSTEM_SESSION);
@@ -76,21 +81,21 @@ public class GrpcClientSystemSessionIT
         }
 
     @Test
-    void shouldHaveSystemSessionOnClient()
+    void shouldHaveSystemSessionOnClient() throws Exception
         {
         Listener               listener      = new Listener();
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()
                                                         .withEventInterceptors(listener)
                                                         .build();
-        Coherence              coherence     = Coherence.client(configuration);
+        Coherence              coherence     = Coherence.create(configuration, Coherence.Mode.Grpc);
 
-        assertThat(coherence.getMode(), is(Coherence.Mode.Client));
+        assertThat(coherence.getMode(), is(Coherence.Mode.Grpc));
 
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(true));
         Session session = coherence.getSession(Coherence.SYSTEM_SESSION);
-        assertThat(session, is(instanceOf(GrpcRemoteSession.class)));
+        assertThat(session, is(instanceOf(ConfigurableCacheFactorySession.class)));
 
         assertThat(listener.f_events.keySet(), containsInAnyOrder(Coherence.SYSTEM_SESSION, Coherence.DEFAULT_NAME));
         List<SessionLifecycleEvent.Type> systemEvents = listener.f_events.get(Coherence.SYSTEM_SESSION);

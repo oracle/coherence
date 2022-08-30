@@ -459,6 +459,6 @@ public abstract class Resources
      * The name of the package to look for a default resource if the original name could
      * not be located.
      */
-    public static final String DEFAULT_RESOURCE_PACKAGE = "/defaults";
+    public static final String DEFAULT_RESOURCE_PACKAGE = "/com/oracle/coherence/defaults";
 
     }

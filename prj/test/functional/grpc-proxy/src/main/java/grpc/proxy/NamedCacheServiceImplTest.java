@@ -54,6 +54,7 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.WrapperNamedCache;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.management.Registry;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -155,7 +156,7 @@ class NamedCacheServiceImplTest
 
         m_testCCF = mock(ConfigurableCacheFactory.class);
         when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), any(ClassLoader.class))).thenReturn(testCache);
-        when(m_testCCF.getScopeName()).thenReturn(Requests.DEFAULT_SCOPE);
+        when(m_testCCF.getScopeName()).thenReturn(GrpcDependencies.DEFAULT_SCOPE);
 
         m_ccfSupplier = ConfigurableCacheFactorySuppliers.fixed(m_testCCF);
 
@@ -177,7 +178,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
         CompletionStage<CacheRequestHolder<String, Void>> stage = 
-                service.createHolderAsync("foo", Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
+                service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         CacheRequestHolder<String, Void> holder = stage.toCompletableFuture().get(1, TimeUnit.MINUTES);
@@ -196,7 +197,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolderAsync(null, Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
+                service.createHolderAsync(null, GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () ->
@@ -213,7 +214,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolderAsync(Requests.DEFAULT_SCOPE, "foo", null, POF_FORMAT);
+                service.createHolderAsync(GrpcDependencies.DEFAULT_SCOPE, "foo", null, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () -> stage.toCompletableFuture().get(1, TimeUnit.MINUTES));
@@ -230,7 +231,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolderAsync(Requests.DEFAULT_SCOPE, "foo", "", POF_FORMAT);
+                service.createHolderAsync(GrpcDependencies.DEFAULT_SCOPE, "foo", "", POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () ->
@@ -247,7 +248,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
         CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolderAsync("foo", Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, "BAD");
+                service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, "BAD");
         assertThat(stage, is(notNullValue()));
 
         Throwable error = assertThrows(Throwable.class, () ->
@@ -370,7 +371,7 @@ class NamedCacheServiceImplTest
         {
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
         AggregateRequest      request = AggregateRequest.newBuilder()
-                .setScope(Requests.DEFAULT_SCOPE)
+                .setScope(GrpcDependencies.DEFAULT_SCOPE)
                 .setCache(TEST_CACHE_NAME)
                 .setFormat(JAVA_FORMAT)
                 .build();
@@ -395,7 +396,7 @@ class NamedCacheServiceImplTest
         InvocableMap.EntryAggregator aggregator           = new Count();
         ByteString                   serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
         NamedCacheServiceImpl        service              = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BytesValue>  stage                = service.aggregate(Requests.aggregate(Requests.DEFAULT_SCOPE,
+        CompletionStage<BytesValue>  stage                = service.aggregate(Requests.aggregate(GrpcDependencies.DEFAULT_SCOPE,
                                                                               TEST_CACHE_NAME, JAVA_FORMAT,
                                                                               serializedFilter,
                                                                               serializedAggregator));
@@ -417,7 +418,7 @@ class NamedCacheServiceImplTest
         ByteString                   serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
         NamedCacheServiceImpl        service              = new NamedCacheServiceImpl(m_dependencies);
 
-        AggregateRequest             request              = Requests.aggregate(Requests.DEFAULT_SCOPE,
+        AggregateRequest             request              = Requests.aggregate(GrpcDependencies.DEFAULT_SCOPE,
                                                                                TEST_CACHE_NAME,
                                                                                JAVA_FORMAT,
                                                                                serializedFilter,
@@ -440,7 +441,7 @@ class NamedCacheServiceImplTest
         InvocableMap.EntryAggregator aggregator           = new Count();
         ByteString                   serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
         NamedCacheServiceImpl        service              = new NamedCacheServiceImpl(m_dependencies);
-        AggregateRequest             request              = Requests.aggregate(Requests.DEFAULT_SCOPE,
+        AggregateRequest             request              = Requests.aggregate(GrpcDependencies.DEFAULT_SCOPE,
                                                                                TEST_CACHE_NAME,
                                                                                JAVA_FORMAT,
                                                                                s_byteStringList,
@@ -463,7 +464,7 @@ class NamedCacheServiceImplTest
         InvocableMap.EntryAggregator  aggregator           = new Count();
         ByteString                    serializedAggregator = BinaryHelper.toByteString(aggregator, SERIALIZER);
         NamedCacheServiceImpl         service              = new NamedCacheServiceImpl(m_dependencies);
-        AggregateRequest              request              = Requests.aggregate(Requests.DEFAULT_SCOPE,
+        AggregateRequest              request              = Requests.aggregate(GrpcDependencies.DEFAULT_SCOPE,
                                                                                 TEST_CACHE_NAME,
                                                                                 JAVA_FORMAT,
                                                                                 s_byteStringList,
@@ -498,7 +499,7 @@ class NamedCacheServiceImplTest
                                         isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenThrow(ERROR);
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.clear(Requests.clear(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -514,7 +515,7 @@ class NamedCacheServiceImplTest
                                         isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenReturn(failed);
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.clear(Requests.clear(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -543,7 +544,7 @@ class NamedCacheServiceImplTest
                 .thenThrow(ERROR);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        ContainsEntryRequest         request   = Requests.containsEntry(Requests.DEFAULT_SCOPE,
+        ContainsEntryRequest         request   = Requests.containsEntry(GrpcDependencies.DEFAULT_SCOPE,
                                                                         TEST_CACHE_NAME,
                                                                         JAVA_FORMAT,
                                                                         s_bytes1,
@@ -563,7 +564,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.invoke(any(Binary.class), isA(BinaryProcessors.BinaryContainsValueProcessor.class))).thenReturn(failed);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.containsEntry(Requests.containsEntry(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsEntry(Requests.containsEntry(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME,
                                                                                               JAVA_FORMAT, s_bytes1,
                                                                                               s_bytes2));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
@@ -593,7 +594,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.containsKey(any(Binary.class))).thenThrow(ERROR);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                           s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
@@ -609,7 +610,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.containsKey(any(Binary.class))).thenReturn(failed);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+        CompletionStage<BoolValue>   stage     = service.containsKey(Requests.containsKey(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                           s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
@@ -638,7 +639,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.aggregate(any(Filter.class), isA(Count.class))).thenThrow(ERROR);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME,
                                                                                               JAVA_FORMAT,
                                                                                               s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
@@ -655,7 +656,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.aggregate(any(Filter.class), isA(Count.class))).thenReturn(failed);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME,
+        CompletionStage<BoolValue>   stage     = service.containsValue(Requests.containsValue(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME,
                                                                                              JAVA_FORMAT, s_bytes1));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
@@ -685,7 +686,7 @@ class NamedCacheServiceImplTest
         doThrow(ERROR).when(cache).destroy();
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.destroy(Requests.destroy(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.destroy(Requests.destroy(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -724,7 +725,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl     service     = new NamedCacheServiceImpl(m_dependencies);
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
 
-        service.entrySet(Requests.entrySet(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.entrySet(Requests.entrySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -745,7 +746,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl     service     = new NamedCacheServiceImpl(m_dependencies);
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
 
-        service.entrySet(Requests.entrySet(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.entrySet(Requests.entrySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -776,7 +777,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenThrow(ERROR);
 
         NamedCacheServiceImpl            service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
+        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
         CompletableFuture<OptionalValue> future    = stage.toCompletableFuture();
         ExecutionException               exception = assertThrows(ExecutionException.class, future::get);
         Throwable                        cause     = rootCause(exception);
@@ -790,7 +791,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(failed);
 
         NamedCacheServiceImpl            service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
+        CompletionStage<OptionalValue>   stage     = service.get(Requests.get(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1));
         CompletableFuture<OptionalValue> future    = stage.toCompletableFuture();
         ExecutionException               exception = assertThrows(ExecutionException.class, future::get);
         Throwable                        cause     = rootCause(exception);
@@ -806,7 +807,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
 
         service.getAll(GetAllRequest.newBuilder()
-                .setScope(Requests.DEFAULT_SCOPE)
+                .setScope(GrpcDependencies.DEFAULT_SCOPE)
                 .setCache(TEST_CACHE_NAME).build(), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -832,7 +833,7 @@ class NamedCacheServiceImplTest
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
 
-        service.getAll(Requests.getAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
+        service.getAll(Requests.getAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()
@@ -876,7 +877,7 @@ class NamedCacheServiceImplTest
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
 
-        service.getAll(Requests.getAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
+        service.getAll(Requests.getAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -895,7 +896,7 @@ class NamedCacheServiceImplTest
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
 
-        service.getAll(Requests.getAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
+        service.getAll(Requests.getAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_byteStringList), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -928,7 +929,7 @@ class NamedCacheServiceImplTest
     public void shouldNotExecuteInvokeWithoutEntryProcessor()
         {
         InvokeRequest request  = InvokeRequest.newBuilder()
-                .setScope(Requests.DEFAULT_SCOPE)
+                .setScope(GrpcDependencies.DEFAULT_SCOPE)
                 .setCache(TEST_CACHE_NAME).build();
 
         NamedCacheServiceImpl         service  = new NamedCacheServiceImpl(m_dependencies);
@@ -948,7 +949,7 @@ class NamedCacheServiceImplTest
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        InvokeRequest               request             = Requests.invoke(Requests.DEFAULT_SCOPE,
+        InvokeRequest               request             = Requests.invoke(GrpcDependencies.DEFAULT_SCOPE,
                                                                           TEST_CACHE_NAME,
                                                                           JAVA_FORMAT,
                                                                           s_bytes1,
@@ -970,7 +971,7 @@ class NamedCacheServiceImplTest
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
-        InvokeRequest               request             = Requests.invoke(Requests.DEFAULT_SCOPE,
+        InvokeRequest               request             = Requests.invoke(GrpcDependencies.DEFAULT_SCOPE,
                                                                           TEST_CACHE_NAME,
                                                                           JAVA_FORMAT,
                                                                           s_bytes1,
@@ -1016,7 +1017,7 @@ class NamedCacheServiceImplTest
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
         InvokeAllRequest          request  = InvokeAllRequest.newBuilder()
-                                                            .setScope(Requests.DEFAULT_SCOPE)
+                                                            .setScope(GrpcDependencies.DEFAULT_SCOPE)
                                                             .setCache(TEST_CACHE_NAME)
                                                             .build();
         service.invokeAll(request, observer);
@@ -1041,7 +1042,7 @@ class NamedCacheServiceImplTest
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
         NamedCacheServiceImpl       service             = new NamedCacheServiceImpl(m_dependencies);
 
-        service.invokeAll(Requests.invokeAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_filterBytes, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1063,7 +1064,7 @@ class NamedCacheServiceImplTest
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
         NamedCacheServiceImpl       service             = new NamedCacheServiceImpl(m_dependencies);
 
-        service.invokeAll(Requests.invokeAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_filterBytes, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1084,7 +1085,7 @@ class NamedCacheServiceImplTest
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
         NamedCacheServiceImpl       service             = new NamedCacheServiceImpl(m_dependencies);
 
-        service.invokeAll(Requests.invokeAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_byteStringList, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1106,7 +1107,7 @@ class NamedCacheServiceImplTest
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
         NamedCacheServiceImpl       service             = new NamedCacheServiceImpl(m_dependencies);
 
-        service.invokeAll(Requests.invokeAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+        service.invokeAll(Requests.invokeAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
                                              s_byteStringList, serializedProcessor), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
@@ -1138,7 +1139,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.isEmpty()).thenThrow(ERROR);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
         Throwable                    cause     = rootCause(exception);
@@ -1152,7 +1153,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.isEmpty()).thenReturn(failed);
 
         NamedCacheServiceImpl        service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<BoolValue>   stage     = service.isEmpty(Requests.isEmpty(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<BoolValue> future    = stage.toCompletableFuture();
         ExecutionException           exception = assertThrows(ExecutionException.class, future::get);
         Throwable                    cause     = rootCause(exception);
@@ -1191,7 +1192,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl          service     = new NamedCacheServiceImpl(m_dependencies);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.keySet(Requests.keySet(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.keySet(Requests.keySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1212,7 +1213,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl          service     = new NamedCacheServiceImpl(m_dependencies);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.keySet(Requests.keySet(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.keySet(Requests.keySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1247,7 +1248,7 @@ class NamedCacheServiceImplTest
         {
         when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutProcessor.class))).thenThrow(ERROR);
 
-        PutRequest request = Requests.put(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1, s_bytes2);
+        PutRequest request = Requests.put(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1, s_bytes2);
 
         NamedCacheServiceImpl         service = new NamedCacheServiceImpl(m_dependencies);
         CompletionStage<BytesValue>   stage     = service.put(request);
@@ -1263,7 +1264,7 @@ class NamedCacheServiceImplTest
         CompletableFuture<Binary> failed = failedFuture(ERROR);
         when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutProcessor.class))).thenReturn(failed);
 
-        PutRequest request = Requests.put(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        PutRequest request = Requests.put(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                           s_bytes2);
 
         NamedCacheServiceImpl         service   = new NamedCacheServiceImpl(m_dependencies);
@@ -1300,7 +1301,7 @@ class NamedCacheServiceImplTest
         {
         Entry         entry   = Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build();
         List<Entry>   entries = Collections.singletonList(entry);
-        PutAllRequest request = Requests.putAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, entries);
+        PutAllRequest request = Requests.putAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, entries);
 
         when(m_testAsyncCache.invokeAll(anyCollection(), any(InvocableMap.EntryProcessor.class))).thenThrow(ERROR);
 
@@ -1325,7 +1326,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         Entry                    entry     = Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build();
         List<Entry>              entries   = Collections.singletonList(entry);
-        CompletionStage<Empty>   stage     = service.putAll(Requests.putAll(Requests.DEFAULT_SCOPE, sCacheName, JAVA_FORMAT, entries));
+        CompletionStage<Empty>   stage     = service.putAll(Requests.putAll(GrpcDependencies.DEFAULT_SCOPE, sCacheName, JAVA_FORMAT, entries));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -1341,7 +1342,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         Entry                    entry     = Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build();
         List<Entry>              entries   = Collections.singletonList(entry);
-        CompletionStage<Empty>   stage     = service.putAll(Requests.putAll(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, entries));
+        CompletionStage<Empty>   stage     = service.putAll(Requests.putAll(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, entries));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -1362,7 +1363,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         Entry                    entry     = Entry.newBuilder().setKey(s_bytes1).setValue(s_bytes2).build();
         List<Entry>              entries   = Collections.singletonList(entry);
-        CompletionStage<Empty>   stage     = service.putAll(Requests.putAll(Requests.DEFAULT_SCOPE, sCacheName, JAVA_FORMAT, entries));
+        CompletionStage<Empty>   stage     = service.putAll(Requests.putAll(GrpcDependencies.DEFAULT_SCOPE, sCacheName, JAVA_FORMAT, entries));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -1397,7 +1398,7 @@ class NamedCacheServiceImplTest
         when(m_testAsyncCache.invoke(any(Binary.class), any(BinaryProcessors.BinaryPutIfAbsentProcessor.class)))
                 .thenThrow(ERROR);
 
-        PutIfAbsentRequest request = Requests.putIfAbsent(Requests.DEFAULT_SCOPE,
+        PutIfAbsentRequest request = Requests.putIfAbsent(GrpcDependencies.DEFAULT_SCOPE,
                                                           TEST_CACHE_NAME,
                                                           JAVA_FORMAT,
                                                           s_bytes1,
@@ -1415,7 +1416,7 @@ class NamedCacheServiceImplTest
     public void shouldHandlePutIfAbsentAsyncError()
         {
         CompletableFuture<Binary> failed = failedFuture(ERROR);
-        PutIfAbsentRequest        request = Requests.putIfAbsent(Requests.DEFAULT_SCOPE,
+        PutIfAbsentRequest        request = Requests.putIfAbsent(GrpcDependencies.DEFAULT_SCOPE,
                                                                  TEST_CACHE_NAME,
                                                                  JAVA_FORMAT,
                                                                  s_bytes1,
@@ -1465,7 +1466,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl          service     = new NamedCacheServiceImpl(m_dependencies);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.values(Requests.values(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.values(Requests.values(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -1487,7 +1488,7 @@ class NamedCacheServiceImplTest
         NamedCacheServiceImpl          service     = new NamedCacheServiceImpl(m_dependencies);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
-        service.values(Requests.values(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+        service.values(Requests.values(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()

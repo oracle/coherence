@@ -14,6 +14,8 @@ import com.tangosol.net.cache.CacheMap;
 
 import java.util.Arrays;
 import java.util.List;
+
+import com.tangosol.net.grpc.GrpcDependencies;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,7 +50,7 @@ class RequestsTest
         AddIndexRequest request = Requests.addIndex(null, "foo", "pof", BYTES_1);
 
         assertThat(request,                 is(notNullValue()));
-        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),      is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getExtractor(),  is(BYTES_1));
@@ -76,7 +78,7 @@ class RequestsTest
         AddIndexRequest request = Requests.addIndex(null, "foo", "pof", BYTES_1, true);
 
         assertThat(request,                 is(notNullValue()));
-        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),      is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getExtractor(),  is(BYTES_1));
@@ -104,7 +106,7 @@ class RequestsTest
         AddIndexRequest request = Requests.addIndex(null, "foo", "pof", BYTES_1, true, BYTES_2);
 
         assertThat(request,                 is(notNullValue()));
-        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),      is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getExtractor(),  is(BYTES_1));
@@ -131,7 +133,7 @@ class RequestsTest
         AggregateRequest request = Requests.aggregate(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,                 is(notNullValue()));
-        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),      is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getFilter(),     is(BYTES_1));
@@ -159,7 +161,7 @@ class RequestsTest
         AggregateRequest request = Requests.aggregate(null, "foo", "pof", keys, BYTES_2);
 
         assertThat(request,                 is(notNullValue()));
-        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),      is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),      is("foo"));
         assertThat(request.getFormat(),     is("pof"));
         assertThat(request.getKeysList(),   is(keys));
@@ -182,7 +184,7 @@ class RequestsTest
         ClearRequest request = Requests.clear(null, "foo");
 
         assertThat(request,            is(notNullValue()));
-        assertThat(request.getScope(),      is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),      is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
@@ -205,7 +207,7 @@ class RequestsTest
         ContainsEntryRequest request = Requests.containsEntry(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -230,7 +232,7 @@ class RequestsTest
         ContainsKeyRequest request = Requests.containsKey(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -254,7 +256,7 @@ class RequestsTest
         ContainsValueRequest request = Requests.containsValue(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getValue(),  is(BYTES_1));
@@ -276,7 +278,7 @@ class RequestsTest
         DestroyRequest request = Requests.destroy(null, "foo");
 
         assertThat(request,            is(notNullValue()));
-        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(), is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
@@ -298,7 +300,7 @@ class RequestsTest
         EntrySetRequest request = Requests.entrySet(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getFilter(), is(BYTES_1));
@@ -322,7 +324,7 @@ class RequestsTest
         GetRequest request = Requests.get(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -348,7 +350,7 @@ class RequestsTest
         GetAllRequest request = Requests.getAll(null, "foo", "pof", keys);
 
         assertThat(request,              is(notNullValue()));
-        assertThat(request.getScope(),   is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),   is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),   is("foo"));
         assertThat(request.getFormat(),  is("pof"));
         assertThat(request.getKeyList(), is(keys));
@@ -373,7 +375,7 @@ class RequestsTest
         InvokeRequest request = Requests.invoke(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,                is(notNullValue()));
-        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),     is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getKey(),       is(BYTES_1));
@@ -400,7 +402,7 @@ class RequestsTest
         InvokeAllRequest request = Requests.invokeAll(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,                is(notNullValue()));
-        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),     is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getFilter(),    is(BYTES_1));
@@ -430,7 +432,7 @@ class RequestsTest
         InvokeAllRequest request = Requests.invokeAll(null, "foo", "pof", keys, BYTES_2);
 
         assertThat(request,                is(notNullValue()));
-        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),     is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getFilter(),    is(ByteString.EMPTY));
@@ -454,7 +456,7 @@ class RequestsTest
         IsEmptyRequest request = Requests.isEmpty(null, "foo");
 
         assertThat(request,            is(notNullValue()));
-        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(), is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
@@ -476,7 +478,7 @@ class RequestsTest
         KeySetRequest request = Requests.keySet(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getFilter(), is(BYTES_1));
@@ -500,7 +502,7 @@ class RequestsTest
         PageRequest request = Requests.page(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getCookie(), is(BYTES_1));
@@ -526,7 +528,7 @@ class RequestsTest
         PutRequest request = Requests.put(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -554,7 +556,7 @@ class RequestsTest
         PutRequest request = Requests.put(null, "foo", "pof", BYTES_1, BYTES_2, 19L);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -584,7 +586,7 @@ class RequestsTest
         PutAllRequest request = Requests.putAll(null, "foo", "pof", entries);
 
         assertThat(request,                is(notNullValue()));
-        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),     is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getEntryList(), is(entries));
@@ -610,7 +612,7 @@ class RequestsTest
         PutIfAbsentRequest request = Requests.putIfAbsent(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -636,7 +638,7 @@ class RequestsTest
         RemoveRequest request = Requests.remove(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -661,7 +663,7 @@ class RequestsTest
         RemoveMappingRequest request = Requests.remove(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -686,7 +688,7 @@ class RequestsTest
         RemoveIndexRequest request = Requests.removeIndex(null, "foo", "pof", BYTES_1);
 
         assertThat(request,                is(notNullValue()));
-        assertThat(request.getScope(),     is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),     is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),     is("foo"));
         assertThat(request.getFormat(),    is("pof"));
         assertThat(request.getExtractor(), is(BYTES_1));
@@ -711,7 +713,7 @@ class RequestsTest
         ReplaceRequest request = Requests.replace(null, "foo", "pof", BYTES_1, BYTES_2);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getKey(),    is(BYTES_1));
@@ -738,7 +740,7 @@ class RequestsTest
         ReplaceMappingRequest request = Requests.replace(null, "foo", "pof", BYTES_1, BYTES_2, BYTES_3);
 
         assertThat(request,                    is(notNullValue()));
-        assertThat(request.getScope(),         is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),         is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),         is("foo"));
         assertThat(request.getFormat(),        is("pof"));
         assertThat(request.getKey(),           is(BYTES_1));
@@ -762,7 +764,7 @@ class RequestsTest
         SizeRequest request = Requests.size(null, "foo");
 
         assertThat(request,            is(notNullValue()));
-        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(), is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
@@ -782,7 +784,7 @@ class RequestsTest
         TruncateRequest request = Requests.truncate(null, "foo");
 
         assertThat(request,            is(notNullValue()));
-        assertThat(request.getScope(), is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(), is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(), is("foo"));
         }
 
@@ -804,7 +806,7 @@ class RequestsTest
         ValuesRequest request = Requests.values(null, "foo", "pof", BYTES_1);
 
         assertThat(request,             is(notNullValue()));
-        assertThat(request.getScope(),  is(Requests.DEFAULT_SCOPE));
+        assertThat(request.getScope(),  is(GrpcDependencies.DEFAULT_SCOPE));
         assertThat(request.getCache(),  is("foo"));
         assertThat(request.getFormat(), is("pof"));
         assertThat(request.getFilter(), is(BYTES_1));

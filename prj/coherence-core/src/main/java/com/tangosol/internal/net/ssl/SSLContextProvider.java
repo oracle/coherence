@@ -2,11 +2,9 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.ssl;
-
-import com.oracle.coherence.common.util.Duration;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
@@ -29,26 +27,14 @@ public class SSLContextProvider
      *
      * @param sProtocol           the protocol to use (if {@code null} then defaults
      *                            to {@link SSLSocketProviderDefaultDependencies#DEFAULT_SSL_PROTOCOL})
-     * @param provider            an optional {@link Provider} to use to provide the {@link javax.net.ssl.SSLContext}
-     * @param sProviderName       an optional {@link Provider} name to use to provide the {@link javax.net.ssl.SSLContext}
      * @param depsSocketProvider  the socket provider dependencies
-     * @param depsIdMgr           the identity manager dependencies
-     * @param depsTrustMgr        the trust manager dependencies
      */
     public SSLContextProvider(String                               sProtocol,
-                              Provider                             provider,
-                              String                               sProviderName,
-                              SSLSocketProviderDefaultDependencies depsSocketProvider,
-                              ManagerDependencies                  depsIdMgr,
-                              ManagerDependencies                  depsTrustMgr)
+                              SSLSocketProviderDefaultDependencies depsSocketProvider)
         {
         super(NAME, 1.0, "This provider provides the default Coherence SSLContext");
 
-        m_provider           = provider;
-        m_sProviderName      = sProviderName;
         m_depsSocketProvider = depsSocketProvider;
-        m_depsIdMgr          = depsIdMgr;
-        m_depsTrustMgr       = depsTrustMgr;
 
         if (sProtocol == null || sProtocol.isEmpty())
             {
@@ -89,13 +75,9 @@ public class SSLContextProvider
         public Object newInstance(Object constructorParameter) throws NoSuchAlgorithmException
             {
             SSLContextSpiImpl sslContext = (SSLContextSpiImpl) super.newInstance(constructorParameter);
-
-            sslContext.setProtocol(m_sProtocol);
-            sslContext.setProvider(m_provider, m_sProviderName);
-            sslContext.setDependencies(m_depsSocketProvider, m_depsIdMgr, m_depsTrustMgr);
-            sslContext.setPeerAuthentication(m_depsSocketProvider.isClientAuthenticationRequired());
-            sslContext.setRefreshPeriodInMillis(m_depsSocketProvider.getRefreshPeriod().as(Duration.Magnitude.MILLI));
-
+            SSLContextDependencies dependencies = m_depsSocketProvider.getSSLContextDependencies();
+            dependencies.setProtocol(m_sProtocol);
+            sslContext.setDependencies(dependencies);
             return sslContext;
             }
 
@@ -122,27 +104,7 @@ public class SSLContextProvider
     // ----- data members ---------------------------------------------------
 
     /**
-     * An optional {@link Provider} to use to provide the {@link javax.net.ssl.SSLContext}.
-     */
-    private final Provider m_provider;
-
-    /**
-     * An optional {@link Provider} name to use to provide the {@link javax.net.ssl.SSLContext}.
-     */
-    private final String m_sProviderName;
-
-    /**
      * The socket provider dependencies.
      */
     private final SSLSocketProviderDefaultDependencies m_depsSocketProvider;
-
-    /**
-     * The identity manager dependencies.
-     */
-    private final ManagerDependencies m_depsIdMgr;
-
-    /**
-     * The trust manager dependencies.
-     */
-    private final ManagerDependencies m_depsTrustMgr;
     }
