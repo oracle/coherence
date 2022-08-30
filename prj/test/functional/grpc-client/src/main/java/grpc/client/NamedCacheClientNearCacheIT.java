@@ -26,6 +26,8 @@ public class NamedCacheClientNearCacheIT
 
     @RegisterExtension
     static ServerHelper s_serverHelper = new ServerHelper()
+            .setProperty("coherence.wka", "127.0.0.1")
+            .setProperty("coherence.localhost", "127.0.0.1")
             .setProperty("coherence.ttl", "0")
             .setProperty("coherence.clustername", "GrpcServer")
             .setProperty("coherence.override", "coherence-json-override.xml")
