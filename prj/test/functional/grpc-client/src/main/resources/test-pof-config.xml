@@ -22,5 +22,10 @@
             <class-name>grpc.client.Uppercase</class-name>
         </user-type>
 
+        <user-type>
+            <type-id>2003</type-id>
+            <class-name>grpc.client.PersonMapTrigger</class-name>
+        </user-type>
+
     </user-type-list>
 </pof-config>

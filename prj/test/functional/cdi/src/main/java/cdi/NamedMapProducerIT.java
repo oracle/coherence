@@ -13,10 +13,12 @@ import com.oracle.coherence.cdi.NamedCacheProducer;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
 import com.oracle.coherence.cdi.SessionName;
+import com.tangosol.internal.net.SessionNamedCache;
 import com.tangosol.net.AsyncNamedMap;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.cache.CacheMap;
 
+import com.tangosol.net.cache.NearCache;
 import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ObservableMap;
@@ -165,19 +167,38 @@ class NamedMapProducerIT
         {
         DifferentSessionBean bean = weld.select(DifferentSessionBean.class).get();
 
-        assertThat(bean.getDefaultCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfNumbers().getName(), is("numbers"));
-        assertThat(bean.getDefaultCcfAsyncNumbers(), is(notNullValue()));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedMap().getName(), is("numbers"));
-        assertThat(bean.getDefaultCcfAsyncNumbers().getNamedMap(), is(bean.getDefaultCcfNumbers()));
+        NamedMap cacheNumbers = bean.getDefaultCcfNumbers();
+        if (cacheNumbers instanceof SessionNamedCache)
+            {
+            cacheNumbers = ((SessionNamedCache) cacheNumbers).getInternalNamedCache();
+            }
+        if (cacheNumbers instanceof NearCache)
+            {
+            cacheNumbers = ((NearCache) cacheNumbers).getBackCache();
+            }
+        assertThat(cacheNumbers, is(notNullValue()));
+        assertThat(cacheNumbers.getName(), is("numbers"));
 
-        assertThat(bean.getSpecificCcfNumbers(), is(notNullValue()));
-        assertThat(bean.getSpecificCcfNumbers().getName(), is("numbers"));
+        AsyncNamedMap asyncCache = bean.getDefaultCcfAsyncNumbers();
+        assertThat(asyncCache, is(notNullValue()));
+
+        NamedMap namedMap = asyncCache.getNamedMap();
+        assertThat(namedMap.getName(), is("numbers"));
+        assertThat(namedMap, is(cacheNumbers));
+
+        NamedMap specificNumbers = bean.getSpecificCcfNumbers();
+        if (specificNumbers instanceof SessionNamedCache)
+            {
+            specificNumbers = ((SessionNamedCache) specificNumbers).getInternalNamedCache();
+            }
+        assertThat(specificNumbers, is(notNullValue()));
+        assertThat(specificNumbers.getName(), is("numbers"));
+
         assertThat(bean.getSpecificCcfAsyncNumbers(), is(notNullValue()));
         assertThat(bean.getSpecificCcfAsyncNumbers().getNamedMap().getName(), is("numbers"));
-        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedMap(), is(bean.getSpecificCcfNumbers()));
+        assertThat(bean.getSpecificCcfAsyncNumbers().getNamedMap(), is(specificNumbers));
 
-        assertThat(bean.getDefaultCcfNumbers(), is(not(bean.getSpecificCcfNumbers())));
+        assertThat(cacheNumbers, is(not(specificNumbers)));
         }
 
     @Test

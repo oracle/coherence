@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -77,7 +77,17 @@ public class ConfigurableAddressProvider
 
         for (AddressHolder holder : addressHolders)
             {
-            listHolders.add(holder);
+            String sHost = holder.getHost();
+            if (sHost.contains(","))
+                {
+                Arrays.stream(sHost.split(","))
+                        .map(String::trim)
+                        .forEach(s -> listHolders.add(new AddressHolder(s, holder.getPort())));
+                }
+            else
+                {
+                listHolders.add(holder);
+                }
             }
 
         m_fSafe       = fSafe;

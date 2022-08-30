@@ -7,22 +7,24 @@
 
 package grpc.client;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.client.AsyncNamedCacheClient;
-import com.oracle.coherence.client.ChannelProvider;
-import com.oracle.coherence.client.GrpcSessionConfiguration;
 import com.oracle.coherence.client.NamedCacheClient;
 import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.grpc.Requests;
-
-import com.oracle.coherence.grpc.proxy.ConfigurableCacheFactorySuppliers;
-import com.oracle.coherence.grpc.proxy.GrpcServerController;
+import com.oracle.coherence.grpc.CredentialsHelper;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.ConfigurableCacheFactory;
-import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.CoherenceConfiguration;
 
-import io.grpc.Channel;
+import com.tangosol.net.Session;
+import com.tangosol.net.SessionConfiguration;
+import com.tangosol.net.grpc.GrpcChannelDependencies;
+import com.tangosol.net.grpc.GrpcDependencies;
+import io.grpc.ChannelCredentials;
+import io.grpc.Grpc;
+import io.grpc.InsecureChannelCredentials;
 import io.grpc.ManagedChannel;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -44,6 +46,8 @@ import java.util.Properties;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.CoreMatchers.is;
 
 /**
  * A utility class to deploy the Coherence gRPC proxy service
@@ -93,7 +97,7 @@ public final class ServerHelper
             {
             throw new IllegalStateException("The server has already started");
             }
-        m_sScope = sScope == null ? Requests.DEFAULT_SCOPE : sScope;
+        m_sScope = sScope == null ? GrpcDependencies.DEFAULT_SCOPE : sScope;
         return this;
         }
 
@@ -152,7 +156,7 @@ public final class ServerHelper
     /**
      * Start the server.
      */
-    protected void start()
+    void start()
         {
         if (isRunning())
             {
@@ -164,20 +168,29 @@ public final class ServerHelper
             System.setProperty(sName, m_properties.getProperty(sName));
             }
 
-        m_ccf = ConfigurableCacheFactorySuppliers.DEFAULT.apply(m_sScope);
-
-        System.setProperty(GrpcServerController.PROP_ENABLED, "true");
-        DefaultCacheServer.startServerDaemon(m_ccf)
-                .waitForServiceStart();
-
         try
             {
-            String sPort = String.valueOf(GrpcServerController.INSTANCE.getPort());
-            System.setProperty(String.format(GrpcSessionConfiguration.PROP_PORT, ChannelProvider.DEFAULT_CHANNEL_NAME), sPort);
-            GrpcSessionConfiguration configuration = GrpcSessionConfiguration.builder(ChannelProvider.DEFAULT_CHANNEL_NAME)
+            System.setProperty(GrpcDependencies.PROP_ENABLED, "true");
+
+            SessionConfiguration sessionConfiguration = SessionConfiguration.builder()
+                    .withScopeName(m_sScope)
+                    .named(m_sScope)
                     .build();
 
-            m_channel = (ManagedChannel) configuration.getChannel();
+            CoherenceConfiguration configuration = CoherenceConfiguration.builder()
+                    .withSession(sessionConfiguration)
+                    .build();
+
+            Coherence coherence = Coherence.clusterMember(configuration).start()
+                    .get(5, TimeUnit.MINUTES);
+
+            m_session = coherence.getSession(m_sScope);
+
+            int nPort = FindGrpcProxyPort.local();
+            ChannelCredentials credentials = InsecureChannelCredentials.create();
+            m_channel = Grpc.newChannelBuilderForAddress("127.0.0.1", nPort, credentials).build();
+
+            m_fRunning = true;
             }
         catch (Exception e)
             {
@@ -189,7 +202,7 @@ public final class ServerHelper
     /**
      * Stop the server.
      */
-    protected void shutdown()
+    void shutdown()
         {
         clients.values()
                 .stream()
@@ -224,12 +237,13 @@ public final class ServerHelper
                 {
                 }
             }
-        DefaultCacheServer.shutdown();
+        Coherence.closeAll();
+        m_fRunning = false;
         }
 
-    protected boolean isRunning()
+    private boolean isRunning()
         {
-        return GrpcServerController.INSTANCE.isRunning();
+        return m_fRunning && IsGrpcProxyRunning.locally();
         }
 
     // ----- inner class Configuration --------------------------------------
@@ -241,25 +255,22 @@ public final class ServerHelper
 
     // ----- accessors ------------------------------------------------------
 
-    protected ConfigurableCacheFactory getCCF()
+    Session getSession()
         {
-        return m_ccf;
-        }
-
-    protected Channel getChannel()
-        {
-        return m_channel;
+        return m_session;
         }
 
     // ----- data members ---------------------------------------------------
 
-    protected String m_sScope = Requests.DEFAULT_SCOPE;
+    String m_sScope = GrpcDependencies.DEFAULT_SCOPE;
 
-    protected ConfigurableCacheFactory m_ccf;
+    private Session m_session;
 
-    protected ManagedChannel m_channel;
+    private ManagedChannel m_channel;
 
-    protected Properties m_properties;
+    private final Properties m_properties;
 
     private final Map<String, Map<String, AsyncNamedCacheClient<?, ?>>> clients = new ConcurrentHashMap<>();
+
+    private volatile boolean m_fRunning;
     }

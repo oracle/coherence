@@ -17,13 +17,17 @@ storage disabled by default.
 
 This configuration defines a number of inter-related cache schemes:
 
- - server       - this scheme defines the storage tier for all caches
- - thin-direct  - this scheme is for use by cluster members to access the caches hosted by the "server" scheme
- - near-direct  - this scheme adds near caching to "thin-direct"
- - thin-remote  - conceptually similar to "thin-direct" but for use by extend clients that use the name service to locate the proxy
- - near-remote  - conceptually similar to "near-direct" but for use by extend clients that use the name service to locate the proxy
- - thin-remote-fixed   - conceptually similar to "thin-direct" but for use by extend clients that use a fixed proxy service address
- - near-remote-fixed   - conceptually similar to "near-direct" but for use by extend clients that use a fixed proxy service address
+ - server            - this scheme defines the storage tier for all caches
+ - thin-direct       - this scheme is for use by cluster members to access the caches hosted by the "server" scheme
+ - near-direct       - this scheme adds near caching to "thin-direct"
+ - thin-remote       - conceptually similar to "thin-direct" but for use by extend clients that use the name service to locate the proxy
+ - near-remote       - conceptually similar to "near-direct" but for use by extend clients that use the name service to locate the proxy
+ - thin-remote-fixed - conceptually similar to "thin-direct" but for use by extend clients that use a fixed proxy service address
+ - near-remote-fixed - conceptually similar to "near-direct" but for use by extend clients that use a fixed proxy service address
+ - thin-grpc         - conceptually similar to "thin-direct" but for use by gRPC clients that use the name service to locate the proxy
+ - near-grpc         - conceptually similar to "near-direct" but for use by gRPC clients that use the name service to locate the proxy
+ - thin-grpc-fixed   - conceptually similar to "thin-direct" but for use by gRPC clients that use a fixed proxy service address
+ - near-grpc-fixed   - conceptually similar to "near-direct" but for use by gRPC clients that use a fixed proxy service address
  - topic-server - this scheme defines the storage tier for all topics
 
 
@@ -34,6 +38,9 @@ client connects to the cluster, i.e. "direct" (cluster member) or "remote" (exte
 
 Note: System properties defined within this cache configuration are specific to this configuration and are not
 meaningful to other cache configurations unless similarly defined there.
+
+Note: Use of the grpc coherence.client values requires the Coherence Java gRPC module to be on the
+class path, or module path, of the JVM.
 -->
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -92,7 +99,7 @@ meaningful to other cache configurations unless similarly defined there.
       <proxy-service-name system-property="coherence.extend.proxy.service">Proxy</proxy-service-name>
     </remote-cache-scheme>
 
-    <!-- near caching scheme for extend clients -->
+    <!-- near caching scheme for fixed extend clients -->
     <near-scheme>
       <scheme-name>near-remote-fixed</scheme-name>
       <scheme-ref>near-direct</scheme-ref>
@@ -118,6 +125,70 @@ meaningful to other cache configurations unless similarly defined there.
         </tcp-initiator>
       </initiator-config>
     </remote-cache-scheme>
+
+    <!-- near caching scheme for gRPC clients -->
+    <near-scheme>
+      <scheme-name>near-grpc</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>thin-grpc</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!--
+    A remote caching scheme for accessing a gRPC proxy.
+    The NameService will be used to look up the host
+    names and ports for the gRPC proxies.
+    -->
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope">${coherence.scope}</remote-scope-name>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <name-service-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </name-service-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+
+    <!-- near caching scheme for gRPC clients -->
+    <near-scheme>
+      <scheme-name>near-grpc-fixed</scheme-name>
+      <scheme-ref>near-direct</scheme-ref>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>thin-grpc-fixed</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <!--
+    A remote caching scheme for accessing a gRPC proxy.
+    The specified address(es) will be used to connect
+    directly to a gRPC proxy.
+    -->
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc-fixed</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope">${coherence.scope}</remote-scope-name>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </remote-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
 
     <!-- partitioned caching scheme for clustered clients -->
     <distributed-scheme>

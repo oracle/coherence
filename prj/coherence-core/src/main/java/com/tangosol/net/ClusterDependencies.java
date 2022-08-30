@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -653,6 +653,52 @@ public interface ClusterDependencies
      * @param registry  the target {@link ResourceRegistry} to register resources with
      */
     public void registerResources(ResourceRegistry registry);
+
+    /**
+     * Register a {@link ServiceProvider}.
+     *
+     * @param sType     the type of the service provided
+     * @param provider  the {@link ServiceProvider} instance
+     */
+    public void addLocalServiceProvider(String sType, ServiceProvider provider);
+
+    /**
+     * Obtain a {@link ServiceProvider} that can build an instance
+     * of a given service type.
+     *
+     * @param sType  the service type
+     *
+     * @return a {@link ServiceProvider} that can build an instance
+     *         of a given service type
+     */
+    public ServiceProvider getLocalServiceProvider(String sType);
+
+    // ----- inner interface: ServiceProvider -------------------------------
+
+    /**
+     * A provider of nw service instances.
+     */
+    public interface ServiceProvider
+        {
+        /**
+         * Create a new instance of a service.
+         *
+         * @param sName    the name of the service
+         * @param cluster  the owning {@link Cluster}
+         *
+         * @return the new service instance
+         */
+        Service createService(String sName, Cluster cluster);
+
+        ServiceProvider NULL_IMPLEMENTATION = new ServiceProvider()
+            {
+            @Override
+            public Service createService(String sName, Cluster cluster)
+                {
+                return null;
+                }
+            };
+        }
 
     // ----- constants ------------------------------------------------------
 

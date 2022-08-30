@@ -41,6 +41,7 @@ import com.tangosol.net.OperationalContext;
 
 import com.tangosol.net.cache.CacheEvent;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
@@ -3180,7 +3181,7 @@ public class NamedCacheServiceImplIT
 
     protected static ConfigurableCacheFactory ensureCCF(String sScope)
         {
-        if (Requests.DEFAULT_SCOPE.equals(sScope))
+        if (GrpcDependencies.DEFAULT_SCOPE.equals(sScope))
             {
             return s_ccfDefault;
             }
@@ -3200,7 +3201,7 @@ public class NamedCacheServiceImplIT
 
     protected static Stream<Arguments> getTestScopes()
         {
-        return Stream.of(Arguments.of(Requests.DEFAULT_SCOPE), Arguments.of("one"));
+        return Stream.of(Arguments.of(GrpcDependencies.DEFAULT_SCOPE), Arguments.of("one"));
         }
 
     protected static String[] getTestScopeNames()
@@ -3211,10 +3212,10 @@ public class NamedCacheServiceImplIT
         }
 
     /**
-     * Obtain the {@link Serializer} and {@link Scope} instances to use for
+     * Obtain the {@link Serializer} and {@code Scope} instances to use for
      * parameterized test {@link Arguments}.
      *
-     * @return the {@link Serializer} and {@link Scope} instances to use
+     * @return the {@link Serializer} and {@code Scope} instances to use
      * for test {@link Arguments}
      */
     protected static Stream<Arguments> serializers()

@@ -19,6 +19,7 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
@@ -72,7 +73,7 @@ public class NamedCacheServiceImplMultipleScopeIT
         String                     sValueDefault = "value-default";
         String                     sValueOne     = "value-one";
         String                     sValueTwo     = "value-two";
-        NamedCache<String, String> cacheDefault  = ensureCache(Requests.DEFAULT_SCOPE, sName);
+        NamedCache<String, String> cacheDefault  = ensureCache(GrpcDependencies.DEFAULT_SCOPE, sName);
         NamedCache<String, String> cacheScopeOne = ensureCache(SCOPE_ONE, sName);
         NamedCache<String, String> cacheScopeTwo = ensureCache(SCOPE_TWO, sName);
 
@@ -84,7 +85,7 @@ public class NamedCacheServiceImplMultipleScopeIT
         assertThat(cacheScopeOne.get(sKey), is(sValueOne));
         assertThat(cacheScopeTwo.get(sKey), is(sValueTwo));
 
-        OptionalValue valueDefault = s_service.get(Requests.get(Requests.DEFAULT_SCOPE, sName, "pof", bytes))
+        OptionalValue valueDefault = s_service.get(Requests.get(GrpcDependencies.DEFAULT_SCOPE, sName, "pof", bytes))
                                               .toCompletableFuture()
                                               .get();
         assertThat(valueDefault.getPresent(), is(true));
@@ -113,7 +114,7 @@ public class NamedCacheServiceImplMultipleScopeIT
 
     protected static ConfigurableCacheFactory ensureCCF(String sScope)
         {
-        if (Requests.DEFAULT_SCOPE.equals(sScope))
+        if (GrpcDependencies.DEFAULT_SCOPE.equals(sScope))
             {
             return s_ccfDefault;
             }

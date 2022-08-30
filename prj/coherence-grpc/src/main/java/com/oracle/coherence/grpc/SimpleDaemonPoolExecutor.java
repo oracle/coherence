@@ -64,6 +64,11 @@ public class SimpleDaemonPoolExecutor
         f_pool = Daemons.newDaemonPool(dependencies);
         }
 
+    public SimpleDaemonPoolExecutor(DefaultDaemonPoolDependencies dependencies)
+        {
+        f_pool = Daemons.newDaemonPool(dependencies);
+        }
+
     /**
      * Create a {@link SimpleDaemonPoolExecutor}.
      *

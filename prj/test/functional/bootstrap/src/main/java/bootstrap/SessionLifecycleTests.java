@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -91,7 +91,7 @@ public class SessionLifecycleTests
         }
 
     @Test
-    void shouldReceiveOnlyDefaultSessionEventsWhenClient()
+    void shouldReceiveSystemAndDefaultSessionEventsWhenClient()
         {
         Listener               listener      = new Listener();
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()
@@ -101,7 +101,10 @@ public class SessionLifecycleTests
 
         coherence.start().join();
 
-        assertThat(listener.f_events.size(), is(1));
+        assertThat(listener.f_events.size(), is(2));
+
+        List<SessionLifecycleEvent.Type> systemEvents = listener.f_events.get(Coherence.SYSTEM_SESSION);
+        assertThat(systemEvents, contains(SessionLifecycleEvent.Type.STARTING, SessionLifecycleEvent.Type.STARTED));
 
         List<SessionLifecycleEvent.Type> defaultEvents = listener.f_events.get(Coherence.DEFAULT_NAME);
         assertThat(defaultEvents, contains(SessionLifecycleEvent.Type.STARTING, SessionLifecycleEvent.Type.STARTED));
@@ -173,7 +176,7 @@ public class SessionLifecycleTests
         }
 
     @Test
-    void shouldReceiveConfiguredSessionEventsWhenClient()
+    void shouldReceiveSystemAndConfiguredSessionEventsWhenClient()
         {
         Listener               listener             = new Listener();
         String                 sessionName          = "Test";
@@ -189,7 +192,10 @@ public class SessionLifecycleTests
 
         coherence.start().join();
 
-        assertThat(listener.f_events.size(), is(1));
+        assertThat(listener.f_events.size(), is(2));
+
+        List<SessionLifecycleEvent.Type> systemEvents = listener.f_events.get(Coherence.SYSTEM_SESSION);
+        assertThat(systemEvents, contains(SessionLifecycleEvent.Type.STARTING, SessionLifecycleEvent.Type.STARTED));
 
         List<SessionLifecycleEvent.Type> defaultEvents = listener.f_events.get(sessionName);
         assertThat(defaultEvents, contains(SessionLifecycleEvent.Type.STARTING, SessionLifecycleEvent.Type.STARTED));

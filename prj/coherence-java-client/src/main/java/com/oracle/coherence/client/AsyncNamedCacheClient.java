@@ -47,6 +47,7 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.CacheMap;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
@@ -111,6 +112,7 @@ import java.util.stream.Stream;
  * @author Jonathan Knight  2019.11.22
  * @since 20.06
  */
+@SuppressWarnings("DuplicatedCode")
 public class AsyncNamedCacheClient<K, V>
         implements AsyncNamedCache<K, V>
     {
@@ -127,7 +129,7 @@ public class AsyncNamedCacheClient<K, V>
         {
         f_sCacheName                = dependencies.getCacheName();
         f_dispatcher                = dependencies.getEventDispatcher();
-        f_sScopeName                = dependencies.getScopeName().orElse(Requests.DEFAULT_SCOPE);
+        f_sScopeName                = dependencies.getScopeName().orElse(GrpcDependencies.DEFAULT_SCOPE);
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
         f_executor                  = dependencies.getExecutor().orElseGet(AsyncNamedCacheClient::createDefaultExecutor);
@@ -195,7 +197,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <R> CompletableFuture<R> aggregate(Filter filter,
                                               InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
         {
@@ -278,6 +280,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
+    @SuppressWarnings({"rawtypes"})
     public <R> CompletableFuture<Map<K, R>> invokeAll(Filter filter, InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return executeIfActive(() ->
@@ -351,6 +354,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
+    @SuppressWarnings({"rawtypes"})
     public <R> CompletableFuture<Void> invokeAll(Filter filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  Consumer<? super Map.Entry<? extends K, ? extends R>> callback)
@@ -575,6 +579,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
+    @SuppressWarnings({"rawtypes"})
     public <R> CompletableFuture<Void> invokeAll(Filter filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  BiConsumer<? super K, ? super R> callback)
@@ -694,6 +699,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
+    @SuppressWarnings({"rawtypes"})
     public CompletableFuture<Collection<V>> values(Filter filter, Comparator<? super V> comparator)
         {
         return executeIfActive(() -> valuesInternal(filter, comparator));
@@ -731,7 +737,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param colKeys  the keys to look up
      *
-     * @return a {@link Map} containing keys/values for the keys found witin the cache
+     * @return a {@link Map} containing keys/values for the keys found within the cache
      */
     @SuppressWarnings("unchecked")
     protected Map<K, V> getAllInternalAsMap(Collection<? extends K> colKeys)
@@ -764,15 +770,22 @@ public class AsyncNamedCacheClient<K, V>
 
     /**
      * Get the {@link CacheService} associated with this cache.
-     * <p>
-     * <em>NOTE: </em> this method always throws an UnsupportedOperationException();
      *
-     * @return the {@link CacheService} associated wtih this cache
+     * @return the {@link CacheService} associated with this cache
      */
     protected CacheService getCacheService()
         {
-        // ToDo: implement this method when we know what a service will look like
-        throw new UnsupportedOperationException("method not implemented");
+        return m_cacheService;
+        }
+
+    /**
+     * Set the {@link CacheService} associated with this cache.
+     *
+     * @param cacheService  the {@link CacheService} associated with this cache
+     */
+    protected void setCacheService(GrpcRemoteCacheService cacheService)
+        {
+        m_cacheService = cacheService;
         }
 
     /**
@@ -793,7 +806,7 @@ public class AsyncNamedCacheClient<K, V>
     /**
      * Return the synchronous cache client.
      *
-     * @return the the synchronous cache client
+     * @return the synchronous cache client
      */
     public NamedCacheClient<K, V> getNamedCacheClient()
         {
@@ -938,7 +951,7 @@ public class AsyncNamedCacheClient<K, V>
      * @param value  value expected to be associated with the specified key
      *
      * @return a {@link CompletableFuture} returning a {@code boolean} indicating
-     *         whether or not the mapping was removed
+     *         whether the mapping was removed
      */
     protected CompletableFuture<Boolean> removeInternal(Object key, Object value)
         {
@@ -957,27 +970,57 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> mapListener)
         {
-        return executeIfActive(() ->
-            {
-            // ToDo: implement this method
-            throw new UnsupportedOperationException("not implemented");
-            });
+        return removeMapListener(mapListener, (Filter<?>) null);
         }
 
     /**
      * Removes the {@link MapListener} associated with the specified key.
      *
-     * @param mapListener  the {@link MapListener} to remove
-     * @param key          the key the listener is associated with
+     * @param listener  the {@link MapListener} to remove
+     * @param key       the key the listener is associated with
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> mapListener, K key)
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, K key)
         {
         return executeIfActive(() ->
             {
-            // ToDo: implement this method
-            throw new UnsupportedOperationException("not implemented");
+            CompletableFuture<Void> future  = new CompletableFuture<>();
+            MapListenerSupport      support = getMapListenerSupport();
+            synchronized (support)
+                {
+                support.removeListener(listener, key);
+                boolean fEmpty   = support.isEmpty(key);
+                boolean fPriming = MapListenerSupport.isPrimingListener(listener);
+
+                // "priming" request should be sent regardless
+                if (fEmpty || fPriming)
+                    {
+                    String uid = "";
+                    try
+                        {
+                        MapListenerRequest request = Requests.removeKeyMapListener(f_sScopeName, f_sCacheName,
+                                f_sFormat, toByteString(key), fPriming, ByteString.EMPTY);
+
+                        uid = request.getUid();
+                        f_mapFuture.put(uid, future);
+                        m_evtRequestObserver.onNext(request);
+                        }
+                    catch (RuntimeException e)
+                        {
+                        f_mapFuture.remove(uid);
+                        future.completeExceptionally(e);
+                        }
+                    }
+                else
+                    {
+                    // we're not actually adding the listener to the server so complete the future now.
+                    future.complete(VOID);
+                    }
+                }
+
+            return future;
             });
         }
 
@@ -989,7 +1032,8 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, Filter filter)
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+    protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, Filter<?> filter)
         {
         return executeIfActive(() ->
             {
@@ -997,14 +1041,65 @@ public class AsyncNamedCacheClient<K, V>
                 {
                 synchronized (this)
                     {
-                    f_listCacheDeactivationListeners.remove(listener);
+                    if (f_listCacheDeactivationListeners.remove(listener))
+                        {
+                        f_cListener.decrementAndGet();
+                        }
                     }
                 return CompletableFuture.completedFuture(VOID);
                 }
 
-            // ToDo: implement this method
-            throw new UnsupportedOperationException("not implemented");
+            if (listener instanceof MapTriggerListener)
+                {
+                MapTriggerListener triggerListener = (MapTriggerListener) listener;
+                return removeRemoteFilterListener(ByteString.EMPTY, 0L, toByteString(triggerListener.getTrigger()));
+                }
+
+            MapListenerSupport support = getMapListenerSupport();
+            synchronized (support)
+                {
+                long nId = getFilterId(filter);
+                support.removeListener(listener, filter);
+                if (support.isEmpty(filter))
+                    {
+                    return removeRemoteFilterListener(toByteString(filter), nId, ByteString.EMPTY);
+                    }
+                }
+            return CompletableFuture.completedFuture(VOID);
             });
+        }
+
+    /**
+     * Sends the serialized {@link Filter} for un-registration with the cache server.
+     *
+     * @param filterBytes   the serialized bytes of the {@link Filter}
+     * @param nFilterId     the ID of the {@link Filter}
+     * @param triggerBytes  the serialized bytes of the {@link MapTriggerListener}; pass {@link ByteString#EMPTY}
+     *                      if there is no trigger listener.
+     *
+     * @return {@link CompletableFuture} returning type {@link Void}
+     */
+    protected CompletableFuture<Void> removeRemoteFilterListener(ByteString filterBytes,
+            long nFilterId, ByteString triggerBytes)
+        {
+        String uid = "";
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        try
+            {
+            MapListenerRequest request = Requests
+                    .removeFilterMapListener(f_sScopeName, f_sCacheName, f_sFormat, filterBytes, nFilterId,
+                                             false, false, triggerBytes);
+            uid = request.getUid();
+            f_mapFuture.put(uid, future);
+            m_evtRequestObserver.onNext(request);
+            }
+        catch (RuntimeException e)
+            {
+            f_mapFuture.remove(uid);
+            future.completeExceptionally(e);
+            }
+
+        return future;
         }
 
     /**
@@ -1024,7 +1119,10 @@ public class AsyncNamedCacheClient<K, V>
      * @param filter  the filter to apply to the {@link Stream}
      *
      * @return a {@link Stream} for processing entries within the cache.
+     *
+     * @throws UnsupportedOperationException this method is unsupported
      */
+    @SuppressWarnings("unused")
     protected Stream<InvocableMap.Entry<K, V>> stream(Filter<V> filter)
         {
         assertActive();
@@ -1136,7 +1234,7 @@ public class AsyncNamedCacheClient<K, V>
         m_evtRequestObserver  = f_service.events(m_evtResponseObserver);
         m_listenerSupport     = new MapListenerSupport();
         m_aEvtFilter          = new SparseArray<>();
-        // initialise the bi-directional stream so that this client will receive
+        // initialise the bidirectional stream so that this client will receive
         // destroy and truncate events
         m_evtRequestObserver.onNext(request);
 
@@ -1242,21 +1340,6 @@ public class AsyncNamedCacheClient<K, V>
     protected ByteString toByteString(Object obj)
         {
         return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.toBinary(obj, f_serializer).toByteBuffer());
-        }
-
-    /**
-     * A utility method to deserialize an {@link OptionalValue} to an Object.
-     * <p>
-     * If no value is present in the {@link OptionalValue} then {@code null}
-     * is returned.
-     *
-     * @param optional  the {@link OptionalValue} to deserialize an Object.
-     *
-     * @return an object from the specified {@link BytesValue}
-     */
-    protected V valueFromOptionalValue(OptionalValue optional)
-        {
-        return valueFromOptionalValue(optional, null);
         }
 
     /**
@@ -1376,7 +1459,7 @@ public class AsyncNamedCacheClient<K, V>
         {
         CompletableFuture<Void> future;
 
-        // close the events bi-directional channel and any event listeners
+        // close the events bidirectional channel and any event listeners
         if (m_evtRequestObserver != null)
             {
             m_evtRequestObserver.onCompleted();
@@ -1648,10 +1731,10 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected CompletableFuture<Void> addKeyMapListener(MapListener<? super K, ? super V> listener, Object key,
                                                         boolean fLite)
         {
-
         CompletableFuture<Void> future  = new CompletableFuture<>();
         MapListenerSupport      support = getMapListenerSupport();
 
@@ -1709,6 +1792,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected CompletableFuture<Void> addFilterMapListener(MapListener<? super K, ? super V> listener,
                                                            Filter<?> filter, boolean fLite)
         {
@@ -1716,8 +1800,10 @@ public class AsyncNamedCacheClient<K, V>
             {
             synchronized (this)
                 {
-                f_listCacheDeactivationListeners.add((NamedCacheDeactivationListener) listener);
-                f_cListener.incrementAndGet();
+                if (f_listCacheDeactivationListeners.add((NamedCacheDeactivationListener) listener))
+                    {
+                    f_cListener.incrementAndGet();
+                    }
                 }
             return CompletableFuture.completedFuture(VOID);
             }
@@ -1850,10 +1936,11 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param response  the {@link MapEventResponse} to process
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "SynchronizationOnLocalVariableOrMethodParameter", "ConstantConditions"})
     protected void dispatch(MapEventResponse response)
         {
         List<Long>          listFilterIds  = response.getFilterIdsList();
+        int                 cFilters       = listFilterIds == null ? 0 : listFilterIds.size();
         int                 nEventId       = response.getId();
         Object              oKey           = fromByteString(response.getKey());
         Object              oValueOld      = fromByteString(response.getOldValue());
@@ -1861,7 +1948,6 @@ public class AsyncNamedCacheClient<K, V>
         boolean             fSynthetic     = response.getSynthetic();
         boolean             fPriming       = response.getPriming();
         MapListenerSupport  support        = getMapListenerSupport();
-        int                 cFilters       = listFilterIds == null ? 0 : listFilterIds.size();
         TransformationState transformState = TransformationState.valueOf(response.getTransformationState().toString());
         CacheEvent<?, ?>    evt            = null;
 
@@ -1907,6 +1993,7 @@ public class AsyncNamedCacheClient<K, V>
                 }
             }
 
+        //noinspection StatementWithEmptyBody
         if (listeners == null || listeners.isEmpty())
             {
             // we cannot safely remove the orphaned listener because of the following
@@ -1920,7 +2007,7 @@ public class AsyncNamedCacheClient<K, V>
             // the extra synchronization in the SafeNamedCache), let's err on the side
             // of leaking a listener than possibly incorrectly removing a listener
             //
-            // there is also a valid scenario of a client thread removing an asyn
+            // there is also a valid scenario of a client thread removing an async
             // listener while the event is already on the wire; hence no logging makes sense
             }
         else
@@ -2261,6 +2348,7 @@ public class AsyncNamedCacheClient<K, V>
     /**
      * A {@link DeactivationListener} that wraps client {@link NamedCacheDeactivationListener}.
      */
+    @SuppressWarnings("unused")
     protected static class WrapperDeactivationListener<K, V>
             implements DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>>
         {
@@ -2310,7 +2398,7 @@ public class AsyncNamedCacheClient<K, V>
          * Returns the name of the underlying cache that this
          * AsyncNamedCacheClient represents.
          * <p>
-         * This methd must not return {@code null}.
+         * This method must not return {@code null}.
          *
          * @return the name of the underlying cache that this
          *         AsyncNamedCacheClient represents
@@ -2320,7 +2408,7 @@ public class AsyncNamedCacheClient<K, V>
         /**
          * Returns the gRPC {@link Channel}.
          * <p>
-         * This methd must not return {@code null}.
+         * This method must not return {@code null}.
          *
          * @return the gRPC {@link Channel}
          */
@@ -2395,7 +2483,7 @@ public class AsyncNamedCacheClient<K, V>
             {
             f_sCacheName = sCacheName;
             f_channel = channel;
-            m_sScopeName = Requests.DEFAULT_SCOPE;
+            m_sScopeName = GrpcDependencies.DEFAULT_SCOPE;
             f_dispatcher = dispatcher;
             }
 
@@ -2458,7 +2546,8 @@ public class AsyncNamedCacheClient<K, V>
          */
         public void setScope(String sScopeName)
             {
-            m_sScopeName = sScopeName;
+            m_sScopeName = GrpcDependencies.DEFAULT_SCOPE_ALIAS.equals(sScopeName)
+                    ? GrpcDependencies.DEFAULT_SCOPE : sScopeName;
             }
 
         /**
@@ -2495,6 +2584,7 @@ public class AsyncNamedCacheClient<K, V>
          * @param sFormat  the serialization format and reference to a {@link Serializer}
          *                 configuration in the Coherence Operational Configuration
          */
+        @SuppressWarnings("unused")
         public void setSerializerFormat(String sFormat)
             {
             m_serializerFormat = sFormat;
@@ -2679,4 +2769,9 @@ public class AsyncNamedCacheClient<K, V>
      * The count of successfully registered {@link MapListener map listeners}
      */
     private final AtomicInteger f_cListener = new AtomicInteger(0);
+
+    /**
+     * The owing cache service.
+     */
+    private GrpcRemoteCacheService m_cacheService;
     }

@@ -138,7 +138,8 @@ public class Coherence
      */
     public static Coherence create()
         {
-        return clusterMemberBuilder(CoherenceConfiguration.create()).build(true);
+        return builder(CoherenceConfiguration.create(), Mode.ClusterMember)
+                .build(true);
         }
 
     /**
@@ -151,7 +152,21 @@ public class Coherence
      */
     public static Coherence create(CoherenceConfiguration config)
         {
-        return clusterMemberBuilder(config).build();
+        return create(config, Mode.ClusterMember);
+        }
+
+    /**
+     * Create a default {@link Coherence} instance.
+     *
+     * @param config  the configuration to use to create the
+     *                {@link Coherence} instance
+     * @param mode    the {@link Mode} the {@link Coherence} instance will run in
+     *
+     * @return a default {@link Coherence} instance
+     */
+    public static Coherence create(CoherenceConfiguration config, Mode mode)
+        {
+        return builder(config, mode).build();
         }
 
     /**
@@ -438,6 +453,11 @@ public class Coherence
      */
     public static Collection<Session> findSessionsByScope(String sScope)
         {
+        if (Coherence.SYSTEM_SCOPE.equals(sScope))
+            {
+            return s_sessionSystem.map(Collections::singleton).orElse(Collections.emptySet());
+            }
+
         return s_mapInstance.values()
                             .stream()
                             .flatMap(coh -> coh.getSessionsWithScope(sScope).stream())
@@ -788,7 +808,6 @@ public class Coherence
                             startInternal();
                             }
 
-
                         f_mapServer.values().forEach(holder -> holder.getServer().waitForServiceStart());
                         f_futureStarted.complete(this);
                         f_dispatcher.dispatchStarted();
@@ -941,15 +960,27 @@ public class Coherence
             }
 
         String sClient = Config.getProperty("coherence.client");
+        Mode   mode    = null;
+
+        try
+            {
+            mode = Mode.fromClientName(sClient);
+            }
+        catch (IllegalArgumentException e)
+            {
+            // ignored
+            }
+
         Coherence coherence;
-        if (sClient == null || !sClient.contains("remote"))
+        if (mode == null)
             {
             coherence = Coherence.clusterMember();
             }
         else
             {
-            coherence = Coherence.client();
+            coherence = Coherence.builder(CoherenceConfiguration.create(), mode).build();
             }
+
         coherence.start();
         // block forever (or until the Coherence instance is shutdown)
         coherence.whenClosed().join();
@@ -992,7 +1023,7 @@ public class Coherence
         {
         if (Coherence.SYSTEM_SESSION.equals(sName))
             {
-            return Optional.ofNullable(initializeSystemSession(Collections.emptyList(), f_mode));
+            return Optional.ofNullable(initializeSystemSession(Collections.emptyList()));
             }
 
         String sSessionName = sName == null ? Coherence.DEFAULT_NAME : sName;
@@ -1021,7 +1052,7 @@ public class Coherence
 
         // ensure the System Session before doing anything else
         // even though there might not actually be a System session
-        initializeSystemSession(globalInterceptors, f_mode);
+        initializeSystemSession(globalInterceptors);
 
         Logger.info(() -> isDefaultInstance()
                           ? "Starting default Coherence instance"
@@ -1033,7 +1064,7 @@ public class Coherence
             {
             // Create the sessions in priority order of their configurations
             getSessionConfigurations()
-                    .sorted()
+                    .sorted(Comparator.reverseOrder())
                     .forEach(configuration -> startSession(configuration, globalInterceptors));
             }
         catch (Throwable t)
@@ -1070,7 +1101,7 @@ public class Coherence
         if (configuration.isEnabled())
             {
             String sName = configuration.getName();
-
+            Logger.info("Starting Session " + sName + " mode=" + configuration.getMode().orElse(f_mode));
             Iterable<? extends EventInterceptor<?>> interceptors
                     = join(globalInterceptors, configuration.getInterceptors());
 
@@ -1087,7 +1118,7 @@ public class Coherence
                     ConfigurableCacheFactorySession supplier = (ConfigurableCacheFactorySession) session;
                     ConfigurableCacheFactory        ccf      = supplier.getConfigurableCacheFactory();
 
-                    if (f_mode == Mode.ClusterMember)
+                    if (configuration.getMode().orElse(f_mode) == Mode.ClusterMember)
                         {
                         // This is a server and the session is not a client session so wrap in a DCS
                         // to manage the auto-start services.
@@ -1180,7 +1211,18 @@ public class Coherence
     private static Optional<Session> ensureSessionInternal(SessionConfiguration configuration,
             Mode mode, Iterable<? extends EventInterceptor<?>> interceptors)
         {
-        return SessionProvider.get().createSession(configuration, mode, interceptors);
+        Optional<Session> optional = SessionProvider.get().createSession(configuration, mode, interceptors);
+        if (optional.isPresent())
+            {
+            String sName   = configuration.getName();
+            if (sName == null || DEFAULT_NAME.equals(sName))
+                {
+                sName = "$Default$";
+                }
+            Logger.info("Created Session " + sName + " mode="
+                                + configuration.getMode().orElse(mode));
+            }
+        return optional;
         }
 
     /**
@@ -1265,24 +1307,23 @@ public class Coherence
      * actually start anything.
      *
      * @param interceptors  any interceptors to add to the system session
-     * @param mode          the mode that the Coherence instance is running in
      *
      * @return the singleton system {@link Session}
      */
     @SuppressWarnings("OptionalAssignedToNull")
-    private synchronized Session initializeSystemSession(Iterable<? extends EventInterceptor<?>> interceptors, Mode mode)
+    private synchronized Session initializeSystemSession(Iterable<? extends EventInterceptor<?>> interceptors)
         {
         if (s_sessionSystem == null)
             {
             // Ensure we are properly initialised
             Coherence.init();
 
-            SessionConfiguration configuration = SystemSessionConfiguration.INSTANCE;
+            SessionConfiguration configuration = new SystemSessionConfiguration(f_mode);
             Iterable<? extends EventInterceptor<?>> allInterceptors
                     = join(interceptors, configuration.getInterceptors());
 
-            Optional<Session> optional = ensureSessionInternal(configuration, mode, allInterceptors);
-            if (optional.isPresent())
+            Optional<Session> optional = ensureSessionInternal(configuration, f_mode, allInterceptors);
+            if (optional.isPresent() && Mode.ClusterMember == f_mode)
                 {
                 Session session = optional.get();
                 if (session instanceof ConfigurableCacheFactorySession)
@@ -1417,7 +1458,7 @@ public class Coherence
         private Builder(CoherenceConfiguration config, Mode mode)
             {
             f_config = config;
-            f_mode = mode;
+            f_mode   = mode == null ? Mode.ClusterMember : mode;
             }
 
         /**
@@ -1477,21 +1518,29 @@ public class Coherence
     public enum Mode
         {
         /**
-         * The {@link Coherence} instance should run as a non-cluster member client.
-         * Typically, this would be something like an Extend or gRPC client.
-         * For an Extend client, the proxy will be discovered using the name service.
+         * The {@link Coherence} instance should run as a non-cluster member Extend client.
+         * The proxy will be discovered using the name service.
          */
         Client("remote"),
         /**
-         * The {@link Coherence} instance should run as a non-cluster member client.
-         * Typically, this would be something like an Extend or gRPC client.
-         * For an Extend client, the proxy be configured with a fixed address and port.
+         * The {@link Coherence} instance should run as a non-cluster member Extend client,
+         * configured with a fixed address and port.
          */
         ClientFixed("remote-fixed"),
         /**
          * The {@link Coherence} instance should run as a cluster member client.
          */
-        ClusterMember("direct");
+        ClusterMember("direct"),
+        /**
+         * The {@link Coherence} instance should run as a non-cluster member gRPC client.
+         * The proxy will be discovered using the name service.
+         */
+        Grpc("grpc"),
+        /**
+         * The {@link Coherence} instance should run as a non-cluster member gRPC client,
+         * configured with a fixed address and port.
+         */
+        GrpcFixed("grpc-fixed");
 
         Mode(String sClient)
             {
@@ -1507,6 +1556,29 @@ public class Coherence
             {
             return f_sClient;
             }
+
+        /**
+         * Return the {@link Mode} for the given client name.
+         *
+         * @param sClient  the client name
+         *
+         * @return the {@link Mode} for the given client name
+         *
+         * @throws IllegalArgumentException – if specified client name does not match any {@link Mode}
+         */
+        public static Mode fromClientName(String sClient)
+            {
+            for (Mode mode : Mode.values())
+                {
+                if (mode.getClient().equals(sClient))
+                    {
+                    return mode;
+                    }
+                }
+            throw new IllegalArgumentException("No Mode exists with a client name \"" + sClient + "\"");
+            }
+
+        // ----- data members -----------------------------------------------
 
         /**
          * The default {@code coherence.client} property for this mode.

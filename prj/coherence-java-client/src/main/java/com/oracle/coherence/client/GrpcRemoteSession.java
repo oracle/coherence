@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.client;
 
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
-import com.oracle.coherence.grpc.Requests;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
@@ -28,6 +27,7 @@ import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.internal.Registry;
 
 import com.tangosol.net.events.internal.SessionEventDispatcher;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.topic.NamedTopic;
 
 import com.tangosol.util.AbstractMapListener;
@@ -57,6 +57,8 @@ import java.util.stream.Collectors;
  * @author Jonathan Knight  2020.09.22
  * @since 20.06
  */
+@Deprecated(since = "22.06.2")
+@SuppressWarnings("DeprecatedIsStillUsed")
 public class GrpcRemoteSession
         implements Session
     {
@@ -83,7 +85,7 @@ public class GrpcRemoteSession
         {
         f_channel              = Objects.requireNonNull(channel);
         f_sName                = sName == null ? Coherence.DEFAULT_NAME : sName;
-        f_sScopeName           = sScopeName == null ? Requests.DEFAULT_SCOPE : sScopeName;
+        f_sScopeName           = sScopeName == null ? GrpcDependencies.DEFAULT_SCOPE : sScopeName;
         f_serializer           = Objects.requireNonNull(serializer);
         f_sSerializerFormat    = Objects.requireNonNull(sFormat);
         f_tracingInterceptor   = tracingInterceptor;

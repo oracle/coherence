@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc;
 
 import com.google.protobuf.ByteString;
+import com.tangosol.net.grpc.GrpcDependencies;
 
 import java.util.UUID;
 
@@ -1124,25 +1125,10 @@ public final class Requests
      */
     private static String ensureScope(String scope)
         {
-        return scope != null ? scope : DEFAULT_SCOPE;
+        return scope != null ? scope : GrpcDependencies.DEFAULT_SCOPE;
         }
 
     // ----- constants ------------------------------------------------------
-
-    /**
-     * The default scope value.
-     */
-    public static final String DEFAULT_SCOPE = "";
-
-    /**
-     * The default remote channel name.
-     */
-    public static final String DEFAULT_CHANNEL_NAME = "default";
-
-    /**
-     * The system property that sets the localhost client port.
-     */
-    public static final String PROP_PORT = "coherence.grpc.server.port";
 
     /**
      * The system property that sets whether mutual TLS is enabled.
@@ -1178,16 +1164,6 @@ public final class Requests
      * The system property that sets the credentials type.
      */
     public static final String PROP_CREDENTIALS = "coherence.grpc.server.credentials";
-
-    /**
-     * The system property that sets the name of the in-process gRPC server.
-     */
-    public static final String PROP_IN_PROCESS_NAME = "coherence.grpc.inprocess.name";
-
-    /**
-     * The default localhost client port.
-     */
-    public static final int DEFAULT_PORT = 1408;
 
     /**
      * The value used for the {@link #PROP_CREDENTIALS} system property to indicate an insecure server.

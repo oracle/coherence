@@ -8,9 +8,12 @@
 package com.oracle.coherence.helidon.grpc.proxy;
 
 import com.oracle.coherence.grpc.proxy.BindableGrpcProxyService;
+import com.oracle.coherence.grpc.proxy.DefaultGrpcAcceptorController;
 import com.oracle.coherence.grpc.proxy.GrpcMetricsInterceptor;
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
 import com.tangosol.coherence.config.Config;
+
+import com.tangosol.net.grpc.GrpcDependencies;
 
 import io.helidon.grpc.server.GrpcRouting;
 
@@ -42,12 +45,13 @@ public class HelidonGrpcMpExtension
     @Override
     public void configure(GrpcMpContext context)
         {
-        if (!Config.getBoolean(GrpcServerController.PROP_ENABLED, true))
+        if (!Config.getBoolean(GrpcDependencies.PROP_ENABLED, true))
             {
             GrpcRouting.Builder routing = context.routing();
+            // we have to disable the default gRPC start-up
             GrpcServerController.INSTANCE.setEnabled(false);
 
-            for (BindableGrpcProxyService service : GrpcServerController.INSTANCE.createGrpcServices())
+            for (BindableGrpcProxyService service : DefaultGrpcAcceptorController.createGrpcServices())
                 {
                 GrpcMetricsInterceptor interceptor = new GrpcMetricsInterceptor(service.getMetrics());
                 routing.register(service, rules -> rules.intercept(interceptor));

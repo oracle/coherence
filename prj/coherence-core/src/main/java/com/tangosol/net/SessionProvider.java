@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -54,7 +54,8 @@ public interface SessionProvider
      * Create a {@link Session} from the specified configuration.
      *
      * @param configuration  the configuration to use to create the session
-     * @param mode           the current {@link com.tangosol.net.Coherence.Mode}
+     * @param defaultMode    the {@link com.tangosol.net.Coherence.Mode} the session should use
+     *                       if not specified in the {@link SessionConfiguration}
      * @param interceptors   optional {@link EventInterceptor interceptors} to add to
      *                       the session in addition to any in the configuration
      *
@@ -63,11 +64,12 @@ public interface SessionProvider
      *         from the specified configuration
      */
     default Optional<Session> createSession(SessionConfiguration                    configuration,
-                                            Coherence.Mode                          mode,
+                                            Coherence.Mode                          defaultMode,
                                             Iterable<? extends EventInterceptor<?>> interceptors)
         {
-        Context context = new DefaultContext(mode, DefaultSessionProvider.getBaseProvider(), interceptors);
-        Context result  = createSession(configuration, context);
+        Coherence.Mode mode    = configuration.getMode().orElse(defaultMode);
+        Context        context = new DefaultContext(mode, DefaultSessionProvider.getBaseProvider(), interceptors);
+        Context        result  = createSession(configuration, context);
         return result == null ? Optional.empty() : Optional.ofNullable(result.getSession());
         }
 

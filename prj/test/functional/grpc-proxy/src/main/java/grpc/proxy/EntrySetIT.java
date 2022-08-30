@@ -27,6 +27,7 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -87,10 +88,10 @@ class EntrySetIT
         NamedCache<?, ?> cache      = s_ccf.ensureCache(sCacheName, null);
         cache.clear();
 
-        Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY);
+        Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY);
 
         TestStreamObserver<EntryResult> observer = new TestStreamObserver<>();
-        s_service.nextEntrySetPage(Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextEntrySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -115,10 +116,10 @@ class EntrySetIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY);
+        Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY);
 
         TestStreamObserver<EntryResult> observer = new TestStreamObserver<>();
-        s_service.nextEntrySetPage(Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextEntrySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
 
@@ -164,10 +165,10 @@ class EntrySetIT
 
         HashMap<String, String> entries = new HashMap<>();
         ByteString              cookie  = null;
-        Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY);
+        Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY);
 
         TestStreamObserver<EntryResult> observer = new TestStreamObserver<>();
-        s_service.nextEntrySetPage(Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
+        s_service.nextEntrySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, ByteString.EMPTY), observer);
 
         while (cookie == null || !cookie.isEmpty())
             {
@@ -190,7 +191,7 @@ class EntrySetIT
                 }
 
             observer = new TestStreamObserver<>();
-            s_service.nextEntrySetPage(Requests.page(Requests.DEFAULT_SCOPE, sCacheName, serializerName, cookie), observer);
+            s_service.nextEntrySetPage(Requests.page(GrpcDependencies.DEFAULT_SCOPE, sCacheName, serializerName, cookie), observer);
             }
 
         assertThat(entries.size(),     is(cache.size()));

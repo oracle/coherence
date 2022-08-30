@@ -16,31 +16,15 @@ import com.oracle.bedrock.runtime.Profile;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.java.options.SystemProperties;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.oracle.bedrock.runtime.network.AvailablePortIterator;
-import com.oracle.bedrock.util.Capture;
-import com.oracle.bedrock.util.PerpetualIterator;
 
-import java.util.Iterator;
 import java.util.Objects;
 
+/**
+ * An option to configure Coherence well known addresses.
+ */
 public class WellKnownAddress
         implements Profile, Option
     {
-    /**
-     * The tangosol.coherence.wka property.
-     */
-    public static final String PROPERTY = "coherence.wka";
-
-    /**
-     * The tangosol.coherence.wka.port property.
-     */
-    public static final String PROPERTY_PORT = "coherence.wka.port";
-
-    /**
-     * The well known address of an {@link CoherenceClusterMember}.
-     */
-    private final String address;
-
     /**
      * Constructs a {@link WellKnownAddress}.
      *
@@ -48,7 +32,7 @@ public class WellKnownAddress
      */
     private WellKnownAddress(String address)
         {
-        this.address = address;
+        m_sAddress = address;
         }
 
     /**
@@ -56,9 +40,19 @@ public class WellKnownAddress
      *
      * @return the address of the {@link WellKnownAddress}
      */
-    public String getAddress()
+    public String getsAddress()
         {
-        return address;
+        return m_sAddress;
+        }
+
+    /**
+     * Obtains a {@link WellKnownAddress} that uses the loopback address.
+     *
+     * @return a {@link WellKnownAddress} that uses the loopback address
+     */
+    public static WellKnownAddress loopback()
+        {
+        return new WellKnownAddress("127.0.0.1");
         }
 
     /**
@@ -79,7 +73,7 @@ public class WellKnownAddress
 
         if (systemProperties != null)
             {
-            optionsByType.add(SystemProperty.of(PROPERTY, address));
+            optionsByType.add(SystemProperty.of(PROPERTY, m_sAddress));
             }
         }
 
@@ -100,28 +94,40 @@ public class WellKnownAddress
             {
             return true;
             }
-
-        if (!(o instanceof WellKnownAddress))
+        if (o == null || getClass() != o.getClass())
             {
             return false;
             }
-
         WellKnownAddress that = (WellKnownAddress) o;
-
-        return !Objects.equals(address, that.address);
+        return Objects.equals(m_sAddress, that.m_sAddress);
         }
-
 
     @Override
     public int hashCode()
         {
-        return address != null ? address.hashCode() : 0;
+        return Objects.hash(m_sAddress);
         }
-
 
     @Override
     public String toString()
         {
-        return "WellKnownAddress(" + address + "')";
+        return "WellKnownAddress(" + m_sAddress + "')";
         }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The tangosol.coherence.wka property.
+     */
+    public static final String PROPERTY = "coherence.wka";
+
+    /**
+     * The tangosol.coherence.wka.port property.
+     */
+    public static final String PROPERTY_PORT = "coherence.wka.port";
+
+    /**
+     * The well known address of an {@link CoherenceClusterMember}.
+     */
+    private final String m_sAddress;
     }

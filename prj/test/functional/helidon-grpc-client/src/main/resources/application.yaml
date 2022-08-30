@@ -17,8 +17,8 @@ grpc:
 
 coherence:
   sessions:
-    default:
-      channel: test
+#    default:
+#      channel: test
 #   test session using the default serializer
     helidon:
       channel: helidon

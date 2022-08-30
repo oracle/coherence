@@ -19,6 +19,8 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 
+import com.tangosol.net.grpc.GrpcChannelDependencies;
+
 import io.grpc.Channel;
 import io.grpc.ChannelCredentials;
 import io.grpc.Grpc;
@@ -29,9 +31,13 @@ import java.util.Optional;
 /**
  * A {@link SessionConfiguration} that configures a gRPC client session.
  *
+ * @deprecated Configure a grpc-remote-cache-scheme in the cache configuration file.
+ *
  * @author Jonathan Knight  2020.11.04
  * @since 20.12
  */
+@Deprecated(since = "22.06.2")
+@SuppressWarnings("DeprecatedIsStillUsed")
 public interface GrpcSessionConfiguration
         extends SessionConfiguration
     {
@@ -41,10 +47,11 @@ public interface GrpcSessionConfiguration
      * Create a {@link GrpcSessionConfiguration} builder.
      * <p>
      * Passing in a {@code null} channel will create a session using a default channel configuration
-     * of {@code localhost:1408}. This can be overridden using the {@link #PROP_HOST}
-     * and/or the {@link #PROP_PORT} system properties. which will create a channel using
+     * of {@code localhost:1408}. This can be overridden using the
+     * {@link GrpcChannelDependencies#PROP_HOST}
+     * and/or the {@link GrpcChannelDependencies#PROP_PORT} system properties. which will create a channel using
      * the {@link ManagedChannelBuilder#forAddress(String, int)} method. Alternatively the
-     * {@link #PROP_TARGET} system property can be set to create the channel using the
+     * {@link GrpcChannelDependencies#PROP_TARGET} system property can be set to create the channel using the
      * {@link ManagedChannelBuilder#forTarget(String)} method.
      *
      * @param channel  the {@link Channel} to use
@@ -76,7 +83,7 @@ public interface GrpcSessionConfiguration
      */
     static Builder builder()
         {
-        return new Builder(null, ChannelProvider.DEFAULT_CHANNEL_NAME, null);
+        return new Builder(null, GrpcChannelDependencies.DEFAULT_CHANNEL_NAME, null);
         }
 
     /**
@@ -330,7 +337,7 @@ public interface GrpcSessionConfiguration
                     {
                     Logger.config("Session configuration for gRPC session " + sName
                         + " has no channel or channel name set, falling back to the default configuration.");
-                    channel = createChannel(ChannelProvider.DEFAULT_CHANNEL_NAME, DEFAULT_HOST);
+                    channel = createChannel(GrpcChannelDependencies.DEFAULT_CHANNEL_NAME, DEFAULT_HOST);
                     }
                 else
                     {
@@ -362,7 +369,7 @@ public interface GrpcSessionConfiguration
             String sFormat = m_sFormat;
             if (sFormat == null || sFormat.isBlank())
                 {
-                sFormat = getProperty(PROP_SERIALIZER_FORMAT, sName);
+                sFormat = getProperty(GrpcChannelDependencies.PROP_SERIALIZER_FORMAT, sName);
                 }
 
             return new DefaultConfiguration(sName, sScope, m_nPriority, channel, m_serializer,
@@ -388,17 +395,17 @@ public interface GrpcSessionConfiguration
                 }
 
             ChannelCredentials       credentials = CredentialsHelper.createChannelCredentials(sName);
-            String                   target      = getProperty(PROP_TARGET, sName);
+            String                   target      = getProperty(GrpcChannelDependencies.PROP_TARGET, sName);
             ManagedChannelBuilder<?> builder;
 
             if (target == null || target.trim().isEmpty())
                 {
-                if (ChannelProvider.DEFAULT_CHANNEL_NAME.equals(sName) && sDefaultHost == null)
+                if (GrpcChannelDependencies.DEFAULT_CHANNEL_NAME.equals(sName) && sDefaultHost == null)
                     {
                     sDefaultHost = DEFAULT_HOST;
                     }
-                String sHost = getProperty(PROP_HOST, sName, sDefaultHost);
-                int    nPort = Config.getInteger(String.format(PROP_PORT, sName), 1408);
+                String sHost = getProperty(GrpcChannelDependencies.PROP_HOST, sName, sDefaultHost);
+                int    nPort = Config.getInteger(String.format(GrpcChannelDependencies.PROP_PORT, sName), 1408);
 
                 if (sHost == null)
                     {
@@ -407,7 +414,7 @@ public interface GrpcSessionConfiguration
 
                 builder = Grpc.newChannelBuilderForAddress(sHost, nPort, credentials);
 
-                String sAuthority = getProperty(PROP_TLS_AUTHORITY, sName);
+                String sAuthority = getProperty(GrpcChannelDependencies.PROP_TLS_AUTHORITY, sName);
                 if (sAuthority != null)
                     {
                     builder.overrideAuthority(sAuthority);
@@ -442,7 +449,7 @@ public interface GrpcSessionConfiguration
             {
             if (sName == null || sName.isBlank())
                 {
-                sName = ChannelProvider.DEFAULT_CHANNEL_NAME;
+                sName = GrpcChannelDependencies.DEFAULT_CHANNEL_NAME;
                 }
             return Config.getProperty(String.format(sProperty, sName));
             }
@@ -451,7 +458,7 @@ public interface GrpcSessionConfiguration
             {
             if (sName == null || sName.isBlank())
                 {
-                sName = ChannelProvider.DEFAULT_CHANNEL_NAME;
+                sName = GrpcChannelDependencies.DEFAULT_CHANNEL_NAME;
                 }
             return Config.getProperty(String.format(sProperty, sName), sDefault);
             }
@@ -676,37 +683,6 @@ public interface GrpcSessionConfiguration
      * The default host name to use for the default channel.
      */
     String DEFAULT_HOST = "localhost";
-
-    /**
-     * The system property to use to override the default host name to use
-     * for the {@link Channel} if no channel is specified for the configuration.
-     */
-    String PROP_HOST = "coherence.grpc.channels.%s.host";
-
-    /**
-     * The system property to use to override the default port to use for the
-     * {@link Channel} if no channel is specified for the configuration.
-     */
-    String PROP_PORT = "coherence.grpc.channels.%s.port";
-
-    /**
-     * The system property that sets the value to use to CA file.
-     */
-    String PROP_TLS_AUTHORITY = "coherence.grpc.channels.%s.tls.authority";
-
-    /**
-     * The system property to use to override the default target to use for the
-     * {@link Channel} if no channel is specified for the configuration.
-     * <p>
-     * If this property is specified the {@link ManagedChannelBuilder#forTarget(String)}
-     * method will be used to create the channel builder.
-     */
-    String PROP_TARGET = "coherence.grpc.channels.%s.target";
-
-    /**
-     * The system property that sets the value to use for the serializer format.
-     */
-    String PROP_SERIALIZER_FORMAT = "coherence.grpc.session.%s.serializer";
 
     /**
      * The system property that sets whether a session is enabled.

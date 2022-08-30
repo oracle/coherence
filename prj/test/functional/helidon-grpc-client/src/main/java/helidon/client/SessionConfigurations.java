@@ -10,12 +10,20 @@ import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
 import com.oracle.coherence.client.GrpcSessionConfiguration;
+import com.tangosol.coherence.config.ResolvableParameterList;
+import com.tangosol.config.expression.Parameter;
+import com.tangosol.config.expression.ParameterResolver;
+import com.tangosol.net.Coherence;
+import com.tangosol.net.SessionConfiguration;
+import com.tangosol.net.WrapperSessionConfiguration;
 import io.grpc.Channel;
 import io.helidon.microprofile.grpc.client.GrpcChannel;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import java.util.Optional;
 
 /**
  * A set of {@link SessionInitializer} CDI beans
@@ -44,65 +52,36 @@ public class SessionConfigurations
 
     @ApplicationScoped
     public static class ClientTestSession
-            implements GrpcSessionConfiguration
+            extends WrapperSessionConfiguration
         {
-        @Inject
-        @GrpcChannel(name = "test")
-        public ClientTestSession(Channel channel)
+        public ClientTestSession()
             {
-            f_channel = channel;
+            super(SessionConfiguration.builder()
+                          .named(CLIENT_TEST)
+                          .withScopeName(CLIENT_TEST)
+                          .withPriority(100)
+                          .withMode(Coherence.Mode.GrpcFixed)
+                          .withParameter("coherence.profile", "thin")
+                          .withParameter("coherence.grpc.remote.scope", TEST_SCOPE)
+                          .withParameter("coherence.grpc.port", "1408")
+                          .build());
             }
-
-        @Override
-        public String getName()
-            {
-            return CLIENT_TEST;
-            }
-
-        @Override
-        public String getScopeName()
-            {
-            return TEST_SCOPE;
-            }
-
-        @Override
-        public Channel getChannel()
-            {
-            return f_channel;
-            }
-
-        @Override
-        public int getPriority()
-            {
-            return 10;
-            }
-
-        private final Channel f_channel;
         }
 
     @ApplicationScoped
     public static class ClientSession
-            implements GrpcSessionConfiguration
+            extends WrapperSessionConfiguration
         {
-        @Inject
-        @GrpcChannel(name = "helidon")
-        public ClientSession(Channel channel)
+        public ClientSession()
             {
-            f_channel = channel;
+            super(SessionConfiguration.builder()
+                          .named(CLIENT_DEFAULT)
+                          .withScopeName(CLIENT_DEFAULT)
+                          .withPriority(100)
+                          .withMode(Coherence.Mode.GrpcFixed)
+                          .withParameter("coherence.profile", "thin")
+                          .withParameter("coherence.grpc.port", "1408")
+                          .build());
             }
-
-        @Override
-        public String getName()
-            {
-            return CLIENT_DEFAULT;
-            }
-
-        @Override
-        public Channel getChannel()
-            {
-            return f_channel;
-            }
-
-        private final Channel f_channel;
         }
     }

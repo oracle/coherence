@@ -9,14 +9,10 @@ package com.tangosol.internal.net;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.coherence.config.Config;
-
 import com.tangosol.config.expression.ChainedParameterResolver;
-import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.PropertiesParameterResolver;
 
-import com.tangosol.config.expression.Value;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
@@ -25,6 +21,7 @@ import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.RegistrationBehavior;
 
 import java.util.ArrayList;
@@ -145,10 +142,9 @@ public class DefaultSessionProvider
         ClassLoader         loader          = configuration.getClassLoader().orElse(Classes.getContextClassLoader());
         String              name            = configuration.getName();
         String              sConfigUri      = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);
-        ParameterResolver   resolverCfg     = configuration.getParameterResolver().orElse(null);
         Coherence.Mode      mode            = configuration.getMode().orElse(context.getMode());
-        String              sProp           = Config.getProperty("coherence.client", mode.getClient());
-        Map<String, String> map             = Collections.singletonMap("coherence.client", sProp);
+        Map<String, String> map             = Collections.singletonMap("coherence.client", mode.getClient());
+        ParameterResolver   resolverCfg     = configuration.getParameterResolver().orElse(null);
 
         if (resolverCfg == null)
             {

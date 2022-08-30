@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -28,8 +28,6 @@ import com.tangosol.net.OperationalContext;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
-import com.tangosol.util.Base;
-
 import java.util.List;
 
 /**
@@ -52,6 +50,7 @@ public class AddressProviderBuilderProcessor
     /**
      * {@inheritDoc}
      */
+    @SuppressWarnings("unchecked")
     @Override
     public AddressProviderBuilder process(ProcessingContext context, XmlElement xmlElement)
             throws ConfigurationException
@@ -117,8 +116,6 @@ public class AddressProviderBuilderProcessor
                 {
                 ListBasedAddressProviderBuilder bldrAddressListProvider = new ListBasedAddressProviderBuilder();
 
-                bldrAddressProvider = bldrAddressListProvider;
-
                 for (XmlElement xmlAddr : (List<XmlElement>) xmlElement.getElementList())
                     {
                     String sAddr;
@@ -158,6 +155,11 @@ public class AddressProviderBuilderProcessor
 
                     bldrAddressListProvider.add(sAddr, nPort);
                     }
+
+                if (!bldrAddressListProvider.isEmpty())
+                    {
+                    bldrAddressProvider = bldrAddressListProvider;
+                    }
                 }
             }
         else
@@ -182,9 +184,9 @@ public class AddressProviderBuilderProcessor
         XmlElement xmlPort       = xmlLocalAddress.getSafeElement("port");
         XmlElement xmlPortAdjust = xmlLocalAddress.getSafeElement("port-auto-adjust");
         String     sAddress      = xmlAddress.getString().trim();
-        String     sPort         = xmlPort.getString().trim();
+        String     sPort         = xmlPort.getString("").trim();
                                    // -1: use ephemeral subport
-        int        nPort         = sPort == null || sPort.isEmpty() ? -1 : xmlPort.getInt();
+        int        nPort         = sPort.isEmpty() ? -1 : xmlPort.getInt();
         String     sPortAdjust   = xmlPortAdjust.getString("true").trim();
         // if nPort is ephemeral (-1 or 0), don't adjust
         int nPortAdjust = nPort <= 0

@@ -1,19 +1,24 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
 
-import com.oracle.coherence.grpc.Requests;
 import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
+
+import com.tangosol.net.grpc.GrpcDependencies;
+
 import com.tangosol.util.Base;
+
 import io.grpc.Status;
 
 import java.util.HashMap;
@@ -56,7 +61,7 @@ public interface ConfigurableCacheFactorySuppliers
         @Override
         public ConfigurableCacheFactory apply(String scope)
             {
-            if (scope == null || Requests.DEFAULT_SCOPE.equals(scope))
+            if (scope == null || GrpcDependencies.DEFAULT_SCOPE.equals(scope))
                 {
                 return CacheFactory.getCacheFactoryBuilder()
                         .getConfigurableCacheFactory(Base.getContextClassLoader());
@@ -119,7 +124,7 @@ public interface ConfigurableCacheFactorySuppliers
             {
             if (scope == null)
                 {
-                scope = Requests.DEFAULT_SCOPE;
+                scope = GrpcDependencies.DEFAULT_SCOPE;
                 }
 
             ConfigurableCacheFactory ccf = f_mapCCF.get(scope);
@@ -128,7 +133,7 @@ public interface ConfigurableCacheFactorySuppliers
                 return ccf;
                 }
 
-            if (Requests.DEFAULT_SCOPE.equals(scope))
+            if (GrpcDependencies.DEFAULT_SCOPE.equals(scope))
                 {
                 return CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(Base.getContextClassLoader());
                 }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
@@ -91,6 +91,16 @@ public class ListBasedAddressProviderBuilder
         return m_fRefreshable;
         }
 
+    /**
+     * Returns {@code true} if this builder contains no addresses.
+     *
+     * @return {@code true} if this builder contains no addresses
+     */
+    public boolean isEmpty()
+        {
+        return m_listAddress.isEmpty();
+        }
+
     // ----- helpers --------------------------------------------------------
 
     private void validate()
@@ -113,7 +123,7 @@ public class ListBasedAddressProviderBuilder
     /**
      * list of addresses.
      */
-    private List<ConfigurableAddressProvider.AddressHolder> m_listAddress;
+    private final List<ConfigurableAddressProvider.AddressHolder> m_listAddress;
 
     /**
      * Computed value that is true if one of the address' added to the builder

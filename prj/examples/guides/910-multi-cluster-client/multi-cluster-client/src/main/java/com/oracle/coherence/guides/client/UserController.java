@@ -272,7 +272,7 @@ public class UserController
         return SessionConfiguration.builder()
                 .named(tenant)             // <1>
                 .withScopeName(tenant)     // <2>
-                .withParameter("coherence.client", "remote-fixed")  // <3>
+                .withMode(Coherence.Mode.ClientFixed)  // <3>
                 .withParameter("coherence.serializer", metaData.getSerializer())   // <4>
                 .withParameter("coherence.extend.address", metaData.getHostName()) // <5>
                 .withParameter("coherence.extend.port", metaData.getPort())        // <6>
@@ -290,17 +290,15 @@ public class UserController
     // # tag::grpc[]
     private SessionConfiguration createGrpcConfiguration(TenantMetaData metaData)
         {
-        String hostName = metaData.getHostName();  // <1>
-        int port = metaData.getPort();             // <2>
-        ChannelCredentials credentials = InsecureChannelCredentials.create(); // <3>
-
-        ManagedChannel channel = Grpc.newChannelBuilderForAddress(hostName, port, credentials)
-                .build();  // <4>
-
-        return  GrpcSessionConfiguration.builder(channel)  // <5>
-                .named(metaData.getTenant())  // <6>
-                .withSerializerFormat(metaData.getSerializer())  // <7>
-                .build();   // <8>
+        String tenant = metaData.getTenant();
+        return SessionConfiguration.builder()
+                .named(tenant)             // <1>
+                .withScopeName(tenant)     // <2>
+                .withMode(Coherence.Mode.GrpcFixed)  // <3>
+                .withParameter("coherence.serializer", metaData.getSerializer()) // <4>
+                .withParameter("coherence.grpc.address", metaData.getHostName()) // <5>
+                .withParameter("coherence.grpc.port", metaData.getPort())        // <6>
+                .build();  // <7>
         }
     // # end::grpc[]
 

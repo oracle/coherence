@@ -12,6 +12,8 @@ import com.oracle.coherence.common.internal.net.ssl.SSLCertUtility;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.SocketProvider;
 
+import com.oracle.coherence.common.util.Duration;
+
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ParameterList;
 
@@ -24,6 +26,7 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.ssl.DefaultManagerDependencies;
 import com.tangosol.internal.net.ssl.ManagerDependencies;
+import com.tangosol.internal.net.ssl.SSLContextDependencies;
 import com.tangosol.internal.net.ssl.SSLContextProvider;
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 
@@ -374,13 +377,20 @@ public class SSLSocketProviderDependenciesBuilder
                 deps.setHostnameVerifier(bldrHostnameVerifier.realize(null, null, null));
                 }
 
-            SSLContext ctx = SSLContext.getInstance(sProtocol, new SSLContextProvider(sProtocol, provider, sProviderName, deps, depsIdMgr, depsTrustMgr));
-            deps.setSSLContext(ctx);
-
             // intialize a random number source
             SecureRandom random = new SecureRandom();
-
             random.nextInt();
+
+            SSLContextDependencies sslContextDependencies = new SSLContextDependencies(null);
+            sslContextDependencies.setProvider(provider, sProviderName);
+            sslContextDependencies.setDependencies(deps, depsIdMgr, depsTrustMgr);
+            sslContextDependencies.setPeerAuthentication(deps.isClientAuthenticationRequired());
+            sslContextDependencies.setRefreshPeriodInMillis(m_refreshPeriod.as(Duration.Magnitude.MILLI));
+            sslContextDependencies.setSecureRandom(random);
+            deps.setSSLContextDependencies(sslContextDependencies);
+
+            SSLContext ctx = SSLContext.getInstance(sProtocol, new SSLContextProvider(sProtocol, deps));
+            deps.setSSLContext(ctx);
 
             // initialize the SSLContext
             ctx.init(aKeyManager, aTrustManager, random);

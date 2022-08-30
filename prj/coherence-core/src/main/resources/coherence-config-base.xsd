@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified"
             attributeFormDefault="unqualified"
@@ -1105,6 +1105,17 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="grpc-insecure">
+        <xsd:annotation>
+            <xsd:documentation>
+                The grpc-insecure element configures
+                gRPC to use insecure credentials.
+
+                Used in: socket-provider
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="protocol-type">
         <xsd:simpleContent>
             <xsd:extension base="coherence-string-type">
@@ -2086,4 +2097,61 @@
         <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
+
+    <xsd:element name="member-health-check" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures whether the health check is part of the member's global health check.
+                Valid values are true and false.
+
+                Used in: health
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="grpc-channel-type" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures a gRPC ManagedChannelBuilder.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element ref="instance"/>
+            <xsd:sequence>
+                <xsd:choice minOccurs="0">
+                    <xsd:choice>
+                        <xsd:element ref="name-service-addresses" />
+                        <xsd:element ref="remote-addresses" />
+                        <xsd:element name="target" type="coherence-string-type"/>
+                    </xsd:choice>
+                </xsd:choice>
+                <xsd:element name="socket-provider" type="grpc-socket-provider-type" minOccurs="0"/>
+                <xsd:element name="override-authority" type="coherence-string-type" minOccurs="0"/>
+                <xsd:element name="load-balancer-policy" type="coherence-string-type" minOccurs="0"/>
+                <xsd:element name="configurer" minOccurs="0" type="grpc-channel-configurer-type"/>
+            </xsd:sequence>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="grpc-channel-configurer-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures a gRPC ManagedChannelBuilder.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:group ref="instance"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="grpc-socket-provider-type" mixed="true">
+        <xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:element ref="ssl" />
+                <xsd:element ref="grpc-insecure" />
+            </xsd:choice>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+        <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+        <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+
 </xsd:schema>

@@ -6,25 +6,15 @@
  */
 package com.oracle.coherence.client;
 
-import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
-import com.tangosol.coherence.config.ResolvableParameterList;
-
-import com.tangosol.coherence.config.builder.ParameterizedBuilder;
-import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
-
-import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 
-import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Coherence;
-import com.tangosol.net.OperationalContext;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
@@ -53,6 +43,8 @@ import java.util.function.Supplier;
  * @author Jonathan Knight  2020.09.22
  * @since 20.06
  */
+@Deprecated(since = "22.06.2")
+@SuppressWarnings("DeprecatedIsStillUsed")
 public class GrpcSessions
         implements SessionProvider
     {
@@ -126,39 +118,7 @@ public class GrpcSessions
             {
             return buildSession((GrpcSessionConfiguration) configuration, context);
             }
-//        else if (Coherence.DEFAULT_NAME.equals(configuration.getName()))
-//            {
-//            // this is the default configuration, so return a default gRPC configuration
-//            GrpcSessionConfiguration grpcConfig = createDefaultConfiguration();
-//            return buildSession(grpcConfig, context);
-//            }
         return context;
-        }
-
-    private GrpcSessionConfiguration createDefaultConfiguration()
-        {
-        OperationalContext                                     context  = (OperationalContext) CacheFactory.getCluster();
-        ParameterizedBuilderRegistry                           registry = context.getBuilderRegistry();
-        ParameterizedBuilder<GrpcSessionConfiguration.Builder> builder  = registry.getBuilder(GrpcSessionConfiguration.Builder.class);
-        GrpcSessionConfiguration                               config;
-
-        if (builder != null)
-            {
-            SystemPropertyParameterResolver resolver = new SystemPropertyParameterResolver();
-            ResolvableParameterList         list     = new ResolvableParameterList();
-
-            config = builder.realize(resolver, Classes.getContextClassLoader(), list)
-                    .withPriority(SessionConfiguration.DEFAULT_PRIORITY + 1)
-                    .build();
-            }
-        else
-            {
-            config = GrpcSessionConfiguration.builder()
-                    .withPriority(SessionConfiguration.DEFAULT_PRIORITY + 1)
-                    .build();
-            }
-
-        return config;
         }
 
     private Context buildSession(GrpcSessionConfiguration grpcConfig, Context context)

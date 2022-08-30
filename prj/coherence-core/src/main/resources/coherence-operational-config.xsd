@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-operational-config"
             xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
@@ -2971,6 +2971,7 @@
                                     <xsd:element ref="ssl" />
                                     <xsd:element ref="tcp" />
                                     <xsd:element ref="sdp" />
+                                    <xsd:element ref="grpc-insecure" />
                                 </xsd:choice>
                                 <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
                             </xsd:extension>

@@ -12,12 +12,12 @@ import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
 import com.oracle.coherence.grpc.Requests;
 import com.oracle.coherence.grpc.proxy.GrpcProxyMetrics;
-import com.oracle.coherence.grpc.proxy.GrpcServerController;
 import com.oracle.coherence.grpc.proxy.NamedCacheServiceImpl;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 import com.tangosol.util.Base;
@@ -56,7 +56,7 @@ public class NamedCacheServiceMetricsIT
         System.setProperty("coherence.cacheconfig", "coherence-config.xml");
         System.setProperty("coherence.pof.config", "test-pof-config.xml");
         System.setProperty("coherence.override", "test-coherence-override.xml");
-        System.setProperty(GrpcServerController.PROP_ENABLED, "true");
+        System.setProperty(GrpcDependencies.PROP_ENABLED, "true");
 
         DefaultCacheServer.startServerDaemon()
                 .waitForServiceStart();
@@ -64,8 +64,9 @@ public class NamedCacheServiceMetricsIT
         s_ccf = CacheFactory.getCacheFactoryBuilder()
                 .getConfigurableCacheFactory(Classes.getContextClassLoader());
 
+        int nPort = FindGrpcProxyPort.local();
         s_channel = ManagedChannelBuilder
-                .forAddress("127.0.0.1", GrpcServerController.INSTANCE.getPort())
+                .forAddress("127.0.0.1", nPort)
                 .usePlaintext()
                 .build();
         }
@@ -99,7 +100,7 @@ public class NamedCacheServiceMetricsIT
         NamedCacheServiceGrpc.NamedCacheServiceStub client    = NamedCacheServiceGrpc.newStub(s_channel);
         TestStreamObserver<Int32Value>              observer  = new TestStreamObserver<>();
 
-        client.size(Requests.size(Requests.DEFAULT_SCOPE, cacheName), observer);
+        client.size(Requests.size(GrpcDependencies.DEFAULT_SCOPE, cacheName), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertComplete()

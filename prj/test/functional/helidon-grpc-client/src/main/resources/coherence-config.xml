@@ -9,42 +9,74 @@
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
-    <scope-name system-property="test.scope"/>
+  <defaults>
+    <scope-name system-property="test.scope">${coherence.scope}</scope-name>
+  </defaults>
 
-    <caching-scheme-mapping>
-        <cache-mapping>
-            <cache-name>*</cache-name>
-            <scheme-name>${coherence.profile direct}-scheme</scheme-name>
-        </cache-mapping>
-    </caching-scheme-mapping>
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>${coherence.profile near}-${coherence.client direct}</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
 
-    <caching-schemes>
-        <near-scheme>
-            <scheme-name>near-scheme</scheme-name>
-            <front-scheme>
-                <local-scheme>
-                    <high-units>1000</high-units>
-                </local-scheme>
-            </front-scheme>
-            <back-scheme>
-                <distributed-scheme>
-                  <scheme-ref>direct-scheme</scheme-ref>
-                </distributed-scheme>
-            </back-scheme>
-        </near-scheme>
-
+  <caching-schemes>
+    <near-scheme>
+      <scheme-name>near-direct</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
         <distributed-scheme>
-            <scheme-name>direct-scheme</scheme-name>
-            <service-name>TestCacheService</service-name>
-            <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
-            <partition-count system-property="coherence.partition.count">13</partition-count>
-            <backing-map-scheme>
-                <local-scheme/>
-            </backing-map-scheme>
-            <persistence>
-                <environment system-property="coherence.persistence.environment">default-on-demand</environment>
-            </persistence>
-            <autostart>true</autostart>
+          <scheme-ref>thin-direct</scheme-ref>
         </distributed-scheme>
-    </caching-schemes>
+      </back-scheme>
+    </near-scheme>
+
+    <near-scheme>
+      <scheme-name>near-grpc-fixed</scheme-name>
+      <front-scheme>
+        <local-scheme>
+          <high-units>1000</high-units>
+        </local-scheme>
+      </front-scheme>
+      <back-scheme>
+        <remote-grpc-cache-scheme>
+          <scheme-ref>thin-grpc-fixed</scheme-ref>
+        </remote-grpc-cache-scheme>
+      </back-scheme>
+    </near-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>thin-grpc-fixed</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
+      <service-name>RemoteGrpcCache</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </remote-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+
+    <distributed-scheme>
+      <scheme-name>thin-direct</scheme-name>
+      <service-name>TestCacheService</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <partition-count system-property="coherence.partition.count">13</partition-count>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <persistence>
+        <environment system-property="coherence.persistence.environment">default-on-demand</environment>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
 </cache-config>

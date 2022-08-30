@@ -18,6 +18,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
 
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ class NamedCacheServiceValuesIT
     @BeforeAll
     static void setupBaseTest() throws Exception
         {
-        s_realCache = s_serverHelper.getCCF().ensureCache(CACHE_NAME, null);
+        s_realCache = s_serverHelper.getSession().getCache(CACHE_NAME);
         }
 
     @BeforeEach
@@ -70,7 +71,7 @@ class NamedCacheServiceValuesIT
 
     private <K, V> NamedCache<K, V> createClient(String serializerName, Serializer serializer)
         {
-        return s_serverHelper.createClient(Requests.DEFAULT_SCOPE, CACHE_NAME, serializerName, serializer);
+        return s_serverHelper.createClient(GrpcDependencies.DEFAULT_SCOPE, CACHE_NAME, serializerName, serializer);
         }
 
     // ----- test methods ---------------------------------------------------

@@ -38,6 +38,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.WrapperNamedCache;
 
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
@@ -130,7 +131,7 @@ class MapListenerProxyTest
         s_namedCache    = cache.getMockCache();
 
         when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), any(ClassLoader.class))).thenReturn(s_namedCache);
-        when(m_testCCF.getScopeName()).thenReturn(Requests.DEFAULT_SCOPE);
+        when(m_testCCF.getScopeName()).thenReturn(GrpcDependencies.DEFAULT_SCOPE);
 
         m_ccfSupplier = ConfigurableCacheFactorySuppliers.fixed(m_testCCF);
         }
@@ -173,7 +174,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, false, false,
                                                                                       ByteString.EMPTY);
@@ -204,7 +205,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, ByteString.EMPTY));
 
@@ -213,7 +214,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                 "foo", JAVA_FORMAT, s_bytes1,
                                                                 false, false, ByteString.EMPTY);
         proxy.onNext(request);
@@ -241,7 +242,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, true, false,
                                                                                       ByteString.EMPTY);
@@ -272,7 +273,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy = new MapListenerProxy(service, observer);
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 true, false, ByteString.EMPTY));
 
@@ -281,7 +282,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.removeKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT,
                                                                    s_bytes1, false, ByteString.EMPTY);
         proxy.onNext(request);
@@ -311,7 +312,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, false, true,
                                                                                       ByteString.EMPTY);
@@ -344,11 +345,11 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request1 = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request1 = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, true, true,
                                                                                       ByteString.EMPTY);
-        MapListenerRequest                      request2 = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request2 = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                       s_bytes1, true, true,
                                                                                       ByteString.EMPTY);
@@ -399,7 +400,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, true, ByteString.EMPTY));
 
@@ -408,7 +409,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.removeKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                    true, ByteString.EMPTY);
         proxy.onNext(request);
@@ -442,7 +443,7 @@ class MapListenerProxyTest
         ByteString                              triggerBytes = BinaryHelper.toByteString(trigger, SERIALIZER);
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request      = Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request      = Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                           TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                           s_bytes1, false, false,
                                                                                           triggerBytes);
@@ -479,7 +480,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, triggerBytes));
 
@@ -488,7 +489,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeKeyMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.removeKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                                    false, triggerBytes);
         proxy.onNext(request);
@@ -521,7 +522,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_filterBytes, 1L, false,
                                                                                          false,
@@ -553,7 +554,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_filterBytes, 1L, true, false,
                                                                                          ByteString.EMPTY);
@@ -585,7 +586,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, ByteString.EMPTY));
 
@@ -594,7 +595,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.removeFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                       TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                                       1L, false, false, ByteString.EMPTY);
         proxy.onNext(request);
@@ -624,7 +625,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_inKeySetFilterBytes, 1L,
                                                                                          false, true, ByteString.EMPTY);
@@ -657,7 +658,7 @@ class MapListenerProxyTest
         NamedCacheServiceImpl                   service  = new NamedCacheServiceImpl(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
-        MapListenerRequest                      request  = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest                      request  = Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                                          TEST_CACHE_NAME, JAVA_FORMAT,
                                                                                          s_filterBytes, 1L, false, true,
                                                                                          ByteString.EMPTY);
@@ -686,7 +687,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_inKeySetFilterBytes,
                                                    1L, false, true, ByteString.EMPTY));
 
@@ -695,7 +696,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.removeFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                       s_inKeySetFilterBytes, 1L, false, true, ByteString.EMPTY);
         proxy.onNext(request);
@@ -730,7 +731,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
 
-        MapListenerRequest request = Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                                    1L, false, false, triggerBytes);
         proxy.onNext(request);
@@ -766,7 +767,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer     = new TestStreamObserver<>();
         MapListenerProxy                        proxy        = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, triggerBytes));
 
@@ -775,7 +776,7 @@ class MapListenerProxyTest
                 .assertNoErrors()
                 .assertNotComplete();
 
-        MapListenerRequest request = Requests.removeFilterMapListener(Requests.DEFAULT_SCOPE,
+        MapListenerRequest request = Requests.removeFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                                       TEST_CACHE_NAME, JAVA_FORMAT,
                                                                       s_filterBytes, 1L, false, false, triggerBytes);
         proxy.onNext(request);
@@ -809,7 +810,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer             = new TestStreamObserver<>();
         MapListenerProxy                        proxy                = new MapListenerProxy(service, observer);
         MapListener<Object, Object>             deactivationListener = proxy.getDeactivationListener();
-        proxy.onNext(Requests.initListenerChannel(Requests.DEFAULT_SCOPE,TEST_CACHE_NAME, JAVA_FORMAT));
+        proxy.onNext(Requests.initListenerChannel(GrpcDependencies.DEFAULT_SCOPE,TEST_CACHE_NAME, JAVA_FORMAT));
 
         observer.awaitCount(1)
                 .assertValueCount(1)
@@ -829,7 +830,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer             = new TestStreamObserver<>();
         MapListenerProxy                        proxy                = new MapListenerProxy(service, observer);
         MapListener<Object, Object>             deactivationListener = proxy.getDeactivationListener();
-        proxy.onNext(Requests.initListenerChannel(Requests.DEFAULT_SCOPE,TEST_CACHE_NAME, JAVA_FORMAT));
+        proxy.onNext(Requests.initListenerChannel(GrpcDependencies.DEFAULT_SCOPE,TEST_CACHE_NAME, JAVA_FORMAT));
 
         observer.awaitCount(1)
                 .assertValueCount(1)
@@ -853,7 +854,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1, false,
                                                 false, ByteString.EMPTY));
 
@@ -885,7 +886,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT,
                                                    s_filterBytes, 1L, false, false, ByteString.EMPTY));
 
@@ -917,7 +918,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, ByteString.EMPTY));
 
@@ -945,7 +946,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
+        proxy.onNext(Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, ByteString.EMPTY));
 
         observer.awaitCount(1)
@@ -972,7 +973,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
                                                 false, false, ByteString.EMPTY));
 
         observer.awaitCount(1)
@@ -1003,7 +1004,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addFilterMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addFilterMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                    TEST_CACHE_NAME, JAVA_FORMAT, s_filterBytes,
                                                    1L, false, false, ByteString.EMPTY));
 
@@ -1035,7 +1036,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -1075,7 +1076,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -1115,7 +1116,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 
@@ -1155,7 +1156,7 @@ class MapListenerProxyTest
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
         MapListenerProxy                        proxy    = new MapListenerProxy(service, observer);
 
-        proxy.onNext(Requests.addKeyMapListener(Requests.DEFAULT_SCOPE,
+        proxy.onNext(Requests.addKeyMapListener(GrpcDependencies.DEFAULT_SCOPE,
                                                 TEST_CACHE_NAME, JAVA_FORMAT, s_bytesKey1,
                                                 false, false, ByteString.EMPTY));
 

@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified"
             attributeFormDefault="unqualified"
@@ -70,14 +70,10 @@
                 defaults
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexType mixed="true">
-            <xsd:sequence>
-                <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
-                <xsd:any namespace="##other" processContents="lax"
-                    minOccurs="0" maxOccurs="unbounded" />
-            </xsd:sequence>
-            <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
-            <xsd:anyAttribute namespace="##other" processContents="lax"/>
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="serializer-type"/>
+            </xsd:complexContent>
         </xsd:complexType>
     </xsd:element>
 

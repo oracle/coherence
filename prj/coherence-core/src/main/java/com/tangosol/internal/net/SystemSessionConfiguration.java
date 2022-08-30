@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
@@ -21,6 +21,16 @@ import java.util.Optional;
 public class SystemSessionConfiguration
         implements SessionConfiguration
     {
+    /**
+     * Create a {@link SystemSessionConfiguration}.
+     *
+     * @param mode the mode the session will run in
+     */
+    public SystemSessionConfiguration(Coherence.Mode mode)
+        {
+        f_mode = mode == null ? Coherence.Mode.ClusterMember : mode;
+        }
+
     // ----- SystemSessionConfiguration methods -----------------------------
 
     @Override
@@ -39,6 +49,12 @@ public class SystemSessionConfiguration
     public Optional<String> getConfigUri()
         {
         return Optional.of(Coherence.SYS_CCF_URI);
+        }
+
+    @Override
+    public Optional<Coherence.Mode> getMode()
+        {
+        return Optional.of(f_mode);
         }
 
     // ----- inner class: SystemSessionProvider -----------------------------
@@ -60,16 +76,16 @@ public class SystemSessionConfiguration
             {
             if (Coherence.SYSTEM_SESSION.equals(configuration.getName()))
                 {
-                if (context.getMode() == Coherence.Mode.ClusterMember)
-                    {
-                    // we only add this System session on a cluster member
-                    return context.createSession(SystemSessionConfiguration.INSTANCE);
-                    }
-                else
-                    {
-                    // there is no system session on an Extend client.
-                    return context.complete();
-                    }
+//                if (context.getMode() == Coherence.Mode.ClusterMember)
+//                    {
+//                    // we only add this System session on a cluster member
+                    return context.createSession(new SystemSessionConfiguration(context.getMode()));
+//                    }
+//                else
+//                    {
+//                    // there is no system session on an Extend client.
+//                    return context.complete();
+//                    }
                 }
             // the request was not for the system session
             return context;
@@ -88,8 +104,7 @@ public class SystemSessionConfiguration
      */
     public static final int PROVIDER_PRIORITY = 0;
 
-    /**
-     * The singleton {@link SystemSessionConfiguration} instance.
-     */
-    public static final SystemSessionConfiguration INSTANCE = new SystemSessionConfiguration();
+    // ----- data members ---------------------------------------------------
+
+    private final Coherence.Mode f_mode;
     }

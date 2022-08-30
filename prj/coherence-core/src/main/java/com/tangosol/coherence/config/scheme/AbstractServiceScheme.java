@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -54,7 +54,7 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
         validate();
 
         String  sService = getScopedServiceName();
-        Service service  = cluster.ensureService(sService, getServiceType());
+        Service service  = ensureService(sService, cluster);
 
         // configure the service if it isn't running
         if (!service.isRunning())
@@ -296,6 +296,22 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
     protected String getDefaultServiceName()
         {
         return getServiceType();
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Call the {@link Cluster#ensureService(String, String)} method to
+     * obtain the service.
+     *
+     * @param sService        the name of the service
+     * @param cluster         the {@link Cluster} to obtain the service from
+     *
+     * @return  the ensured service
+     */
+    protected Service ensureService(String sService, Cluster cluster)
+        {
+        return cluster.ensureService(sService, getServiceType());
         }
 
     // ----- data members ---------------------------------------------------

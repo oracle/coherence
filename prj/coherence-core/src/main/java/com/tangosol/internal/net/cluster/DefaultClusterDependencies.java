@@ -58,7 +58,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ServiceLoader;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Named;
 
@@ -1981,6 +1984,42 @@ public class DefaultClusterDependencies
         m_customResources = registry;
         }
 
+    /**
+     * Register a {@link ServiceProvider} that can create new instances of local
+     * (non-clustered) services.
+     *
+     * @param sType     the type of the service provided
+     * @param provider  the {@link ServiceProvider} instance
+     */
+    @Override
+    public void addLocalServiceProvider(String sType, ServiceProvider provider)
+        {
+        Objects.requireNonNull(sType);
+        if (provider != null)
+            {
+            m_mapLocalServiceProvider.put(sType, provider);
+            }
+        else
+            {
+            m_mapLocalServiceProvider.remove(sType);
+            }
+        }
+
+    /**
+     * Obtain a {@link ServiceProvider} that can build an instance
+     * of a given service type.
+     *
+     * @param sType  the service type
+     *
+     * @return a {@link ServiceProvider} that can build an instance
+     *         of a given service type
+     */
+    @Override
+    public ServiceProvider getLocalServiceProvider(String sType)
+        {
+        return m_mapLocalServiceProvider.getOrDefault(sType, ServiceProvider.NULL_IMPLEMENTATION);
+        }
+
     // ----- DefaultClusterDependencies methods -----------------------------
 
     /**
@@ -2688,4 +2727,9 @@ public class DefaultClusterDependencies
      * The registry of custom resources.
      */
     private SimpleResourceRegistry m_customResources;
+
+    /**
+     * A map of local (non-clustered) {@link ServiceProvider} instances.
+     */
+    private Map<String, ServiceProvider> m_mapLocalServiceProvider = new ConcurrentHashMap<>();
     }

@@ -96,12 +96,12 @@ public interface SessionConfiguration
         }
 
     /**
-     * Returns the priority for this configurations.
+     * Returns the priority for this configuration.
      * <p>
-     * Sessions will be created in priority order, highest
+     * Sessions will be created in priority order, the highest
      * priority first.
      * <p>
-     * The default priority is zero (see {@link #DEFAULT_PRIORITY}.
+     * The default priority is zero (see {@link #DEFAULT_PRIORITY}).
      *
      * @return  the priority for this configuration
      */
@@ -111,13 +111,13 @@ public interface SessionConfiguration
         }
 
     /**
-     * Order SessionConfiguration by priority, lowest priority
+     * Order SessionConfiguration by priority, the lowest priority
      * comes first.
      *
      * @param other  the configuration to compare to
      *
      * @return  compare this configuration with the specified
-     *          configuration ordering by by priority
+     *          configuration ordering by priority
      */
     @Override
     default int compareTo(SessionConfiguration other)
@@ -605,7 +605,31 @@ public interface SessionConfiguration
         @Override
         public Optional<Coherence.Mode> getMode()
             {
-            return Optional.ofNullable(f_mode);
+            Coherence.Mode mode = f_mode;
+            if (mode == null && f_parameterResolver != null)
+                {
+                Parameter parameter = f_parameterResolver.resolve("coherence.client");
+                if (parameter != null)
+                    {
+                    String sClient = (String) parameter.evaluate(f_parameterResolver).get();
+                    if (sClient != null)
+                        {
+                        mode = Coherence.Mode.fromClientName(sClient);
+                        }
+                    }
+                }
+            return Optional.ofNullable(mode);
+            }
+
+        @Override
+        public String toString()
+            {
+            return "ConfigurableCacheFactorySessionConfig(" +
+                    "name='" + f_sName + '\'' +
+                    ", uri='" + f_sURI + '\'' +
+                    ", scope='" + f_sScope + '\'' +
+                    ", mode=" + f_mode +
+                    ')';
             }
 
         // ----- data members -----------------------------------------------
