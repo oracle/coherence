@@ -45,6 +45,24 @@ else
     echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
     exit 1
   fi
+  # Ensure the GRAAL_AMD_BASE_IMAGE has been set - this is the name of the base image for amd64
+  if [ "${GRAAL_AMD_BASE_IMAGE}" == "" ]
+  then
+    echo "ERROR: No GRAAL_AMD_BASE_IMAGE environment variable has been set"
+    exit 1
+  fi
+  # Ensure the GRAAL_ARM_BASE_IMAGE has been set - this is the name of the base image for arm64
+  if [ "${GRAAL_ARM_BASE_IMAGE}" == "" ]
+  then
+    echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
+    exit 1
+  fi
+
+  # Pull all the base images
+  docker pull "${ARM_BASE_IMAGE} --platform arm64"
+  docker pull "${AMD_BASE_IMAGE} --platform amd64"
+  docker pull "${GRAAL_ARM_BASE_IMAGE} --platform arm64"
+  docker pull "${GRAAL_AMD_BASE_IMAGE} --platform amd64"
 fi
 
 chmod +x ${SCRIPT_NAME}
