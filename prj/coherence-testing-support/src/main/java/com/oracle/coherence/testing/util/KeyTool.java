@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 
 import java.nio.file.Files;
@@ -148,7 +149,7 @@ public class KeyTool
         File  fileKeystore  = new File(fileCerts, sName + ".jks");
         File  fileConfig    = new File(fileCerts, "csr-details.txt");
 
-        String sKeyPass     = "pa55w0rd";
+        String sKeyPass     = "pa55w0rd";  // For PKCS12 key stores, both passwords must be the same
         String sStorePass   = "pa55w0rd";
 
         if (fileCerts.exists())
@@ -167,24 +168,23 @@ public class KeyTool
             assertThat(fileCerts.mkdirs(), is(true));
             }
 
-
-
         // Generate OpenSSL X509 extensions
         try (PrintStream out = new PrintStream(new FileOutputStream(fileConfig)))
             {
             out.print("subjectAltName=DNS:" + InetAddress.getLocalHost().getHostName());
             List<InetAddress> listAddress = InetAddressHelper.getAllLocalAddresses();
-            int i = 1;
             for (InetAddress address : listAddress)
                 {
-                out.printf(",IP:%s", address.getHostAddress());
+                if (address instanceof Inet4Address)
+                    {
+                    out.printf(",IP:%s", address.getHostAddress());
+                    }
                 }
             }
 
         // Generate key:
         runOpenSSL(Arguments.of("genrsa", "-passout", "pass:" + sKeyPass, "-aes256",
-            "-out", fileKey.getAbsolutePath(), "4096",
-            "-config", fileConfig.getAbsolutePath()));
+            "-out", fileKey.getAbsolutePath(), "4096"));
 
         // Generate signing request:
         runOpenSSL(Arguments.of("req", "-passin", "pass:" + sKeyPass, "-new", "-subj", "/CN=" + sName,
@@ -275,6 +275,18 @@ public class KeyTool
      */
     public static class KeyAndCert
         {
+        /**
+         * Create a {@link KeyAndCert}.
+         *
+         * @param fileKey           the encrypted private key file
+         * @param fileKeyPEM        the encrypted private key file in PEM format
+         * @param fileKeyPEMNoPass  the unencrypted private key file in PEM format
+         * @param fileCert          the certificate file
+         * @param sKeyPass          the private key password
+         * @param fileP12           the PKCS12 key store
+         * @param fileKeystore      the JKS key store
+         * @param sStorePass        the key store password
+         */
         public KeyAndCert(File fileKey, File fileKeyPEM, File fileKeyPEMNoPass, File fileCert, String sKeyPass,
                           File fileP12, File fileKeystore, String sStorePass)
             {
@@ -288,61 +300,121 @@ public class KeyTool
             m_sStorePass       = sStorePass;
             }
 
+        /**
+         * Returns the key store password.
+         *
+         * @return the key store password
+         */
         public char[] storePassword()
             {
             return m_sStorePass == null ? null : m_sStorePass.toCharArray();
             }
 
+        /**
+         * Returns the key store password.
+         *
+         * @return the key store password
+         */
         public String storePasswordString()
             {
             return m_sStorePass;
             }
 
+        /**
+         * Returns the private key password.
+         *
+         * @return the private key password
+         */
         public char[] keyPassword()
             {
             return m_sKeyPass == null ? null : m_sKeyPass.toCharArray();
             }
 
+        /**
+         * Returns the private key password.
+         *
+         * @return the private key password
+         */
         public String keyPasswordString()
             {
             return m_sKeyPass;
             }
 
+        /**
+         * Returns the encrypted private key file.
+         *
+         * @return the encrypted private key file
+         */
         public File getKey()
             {
             return m_fileKey;
             }
 
+        /**
+         * Returns the encrypted private key file in PEM format.
+         *
+         * @return the encrypted private key file in PEM format
+         */
         public File getKeyPEM()
             {
             return m_fileKeyPEM;
             }
 
+        /**
+         * Returns the unencrypted private key file in PEM format.
+         *
+         * @return the unencrypted private key file in PEM format
+         */
         public File getKeyPEMNoPass()
             {
             return m_fileKeyPEMNoPass;
             }
 
+        /**
+         * Returns the certificate file.
+         *
+         * @return the certificate file
+         */
         public File getCert()
             {
             return m_fileCert;
             }
 
+        /**
+         * Returns the private key password.
+         *
+         * @return the private key password
+         */
         public String getKeyPass()
             {
             return m_sKeyPass;
             }
 
+        /**
+         * Returns the JKS key store file.
+         *
+         * @return the JKS key store file
+         */
         public File getKeystore()
             {
             return m_fileKeystore;
             }
 
+        /**
+         * Returns the PKCS12 key store file.
+         *
+         * @return the PKCS12 key store file
+         */
         public File getP12Keystore()
             {
             return m_fileP12;
             }
 
+        /**
+         * Returns the key store password.
+         *
+         * @return the key store password
+         */
         public String getStorePass()
             {
             return m_sStorePass;
@@ -350,13 +422,44 @@ public class KeyTool
 
         // ----- data members ---------------------------------------------------
 
+        /**
+         * The location of the encrypted private key file.
+         */
         public final File m_fileKey;
+
+        /**
+         * The location of the private key file in encrypted PEM format.
+         */
         public final File m_fileKeyPEM;
+
+        /**
+         * The location of the private key file in PEM format.
+         */
         public final File m_fileKeyPEMNoPass;
+
+        /**
+         * The location of the private certificate file.
+         */
         public final File m_fileCert;
+
+        /**
+         * The encrypted private key file password.
+         */
         public final String m_sKeyPass;
+
+        /**
+         * The Java key store file.
+         */
         public final File m_fileKeystore;
+
+        /**
+         * The Java key store file in PKCS12 format.
+         */
         public final File m_fileP12;
+
+        /**
+         * The key store password.
+         */
         public final String m_sStorePass;
         }
 
