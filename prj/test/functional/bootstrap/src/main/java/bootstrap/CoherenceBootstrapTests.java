@@ -44,6 +44,7 @@ class CoherenceBootstrapTests
         {
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
@@ -57,13 +58,13 @@ class CoherenceBootstrapTests
         }
 
     @Test
-    void shouldHaveDefaultServerSession()
+    void shouldHaveDefaultServerSession() throws Exception
         {
         Coherence coherence = Coherence.clusterMember();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.ClusterMember));
 
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
 
         Optional<Session> optional = coherence.getSessionIfPresent(Coherence.DEFAULT_NAME);
         assertThat(optional, is(notNullValue()));
@@ -84,13 +85,13 @@ class CoherenceBootstrapTests
         }
 
     @Test
-    void shouldHaveDefaultClientSession()
+    void shouldHaveDefaultClientSession() throws Exception
         {
         Coherence coherence = Coherence.client();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.Client));
 
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
 
         Session session = coherence.getSession();
         assertThat(session, is(notNullValue()));
@@ -105,13 +106,13 @@ class CoherenceBootstrapTests
         }
 
     @Test
-    void shouldHaveSystemSessionOnClusterMember()
+    void shouldHaveSystemSessionOnClusterMember() throws Exception
         {
         Coherence coherence = Coherence.clusterMember();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.ClusterMember));
 
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(true));
 
@@ -124,13 +125,13 @@ class CoherenceBootstrapTests
         }
 
     @Test
-    void shouldHaveSystemSessionOnClient()
+    void shouldHaveSystemSessionOnClient() throws Exception
         {
         Coherence coherence = Coherence.client();
 
         assertThat(coherence.getMode(), is(Coherence.Mode.Client));
 
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
 
         assertThat(coherence.hasSession(Coherence.SYSTEM_SESSION), is(true));
 
