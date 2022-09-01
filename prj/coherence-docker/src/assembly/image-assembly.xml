@@ -29,6 +29,13 @@
       <fileMode>755</fileMode>
       <filtered>true</filtered>
     </fileSet>
+    <!-- copy the configuration file -->
+    <fileSet>
+      <directory>src/main/config</directory>
+      <outputDirectory>app/classes</outputDirectory>
+      <fileMode>755</fileMode>
+      <filtered>true</filtered>
+    </fileSet>
   </fileSets>
 
   <dependencySets>

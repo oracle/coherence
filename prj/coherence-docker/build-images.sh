@@ -83,6 +83,7 @@ CMD="${CMD} @/args/jvm-args.txt"
 
 # Build the environment variable options
 ENV_VARS=""
+ENV_VARS="${ENV_VARS} -e COHERENCE_CACHECONFIG=server-cache-config.xml"
 ENV_VARS="${ENV_VARS} -e COHERENCE_WKA=localhost"
 ENV_VARS="${ENV_VARS} -e COHERENCE_EXTEND_PORT=${PORT_EXTEND}"
 ENV_VARS="${ENV_VARS} -e COHERENCE_MANAGEMENT_HTTP=all"
