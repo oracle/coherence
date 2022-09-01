@@ -53,16 +53,16 @@ public class SSLKeysAndCertsTests
     public void setPort()
             throws IOException
         {
-        System.setProperty("coherence.security.client.key", s_clientKeyAndCert.m_fileKeyPEMNoPass.getAbsolutePath());
-        System.setProperty("coherence.security.client.encrypted.key", s_clientKeyAndCert.m_fileKeyPEM.getAbsolutePath());
+        System.setProperty("coherence.security.client.key", s_clientKeyAndCert.getKeyPEMNoPass().getAbsolutePath());
+        System.setProperty("coherence.security.client.encrypted.key", s_clientKeyAndCert.getKeyPEM().getAbsolutePath());
         System.setProperty("coherence.security.client.password", s_clientKeyAndCert.keyPasswordString());
-        System.setProperty("coherence.security.client.cert", s_clientKeyAndCert.m_fileCert.getAbsolutePath());
-        System.setProperty("coherence.security.client.ca.cert", s_clientCACert.m_fileCert.getAbsolutePath());
-        System.setProperty("coherence.security.server.key", s_serverKeyAndCert.m_fileKeyPEMNoPass.getAbsolutePath());
-        System.setProperty("coherence.security.server.encrypted.key", s_serverKeyAndCert.m_fileKeyPEM.getAbsolutePath());
+        System.setProperty("coherence.security.client.cert", s_clientKeyAndCert.getCert().getAbsolutePath());
+        System.setProperty("coherence.security.client.ca.cert", s_clientCACert.getCert().getAbsolutePath());
+        System.setProperty("coherence.security.server.key", s_serverKeyAndCert.getKeyPEMNoPass().getAbsolutePath());
+        System.setProperty("coherence.security.server.encrypted.key", s_serverKeyAndCert.getKeyPEM().getAbsolutePath());
         System.setProperty("coherence.security.server.password", s_serverKeyAndCert.keyPasswordString());
-        System.setProperty("coherence.security.server.cert", s_serverKeyAndCert.m_fileCert.getAbsolutePath());
-        System.setProperty("coherence.security.server.ca.cert", s_serverCACert.m_fileCert.getAbsolutePath());
+        System.setProperty("coherence.security.server.cert", s_serverKeyAndCert.getCert().getAbsolutePath());
+        System.setProperty("coherence.security.server.ca.cert", s_serverCACert.getCert().getAbsolutePath());
 
 		int port;
 		
@@ -94,7 +94,7 @@ public class SSLKeysAndCertsTests
 
         try (OutputStream out = new FileOutputStream(fileCA))
             {
-            Files.copy(s_badCACert.m_fileCert.toPath(), out);
+            Files.copy(s_badCACert.getCert().toPath(), out);
             }
 
         // use an invalid CA cert first
@@ -127,7 +127,7 @@ public class SSLKeysAndCertsTests
             // refresh the CA cert the client using a valid CA cert
             try (OutputStream out = new FileOutputStream(fileCA))
                 {
-                Files.copy(s_serverCACert.m_fileCert.toPath(), out);
+                Files.copy(s_serverCACert.getCert().toPath(), out);
                 }
 
             // Allow the SSLContext time to update its certs

@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.ssl;
 
@@ -24,7 +24,7 @@ public class URLKeyStoreLoaderTest
     @Test
     public void shouldLoadKeyStoreJKS() throws Exception
         {
-        URL               url      = s_keyAndCert.m_fileKeystore.toURI().toURL();
+        URL               url      = s_keyAndCert.getKeystore().toURI().toURL();
         URLKeyStoreLoader loader   = new URLKeyStoreLoader(url.toExternalForm());
         KeyStore          keyStore = loader.load("JKS", () -> s_keyAndCert.storePassword());
 
@@ -35,7 +35,7 @@ public class URLKeyStoreLoaderTest
     @Test
     public void shouldLoadKeyStorePKCS12() throws Exception
         {
-        URL               url      = s_keyAndCert.m_fileP12.toURI().toURL();
+        URL               url      = s_keyAndCert.getP12Keystore().toURI().toURL();
         URLKeyStoreLoader loader   = new URLKeyStoreLoader(url.toExternalForm());
         KeyStore          keyStore = loader.load("PKCS12", () -> s_keyAndCert.storePassword());
 
@@ -47,9 +47,9 @@ public class URLKeyStoreLoaderTest
     public void shouldLoadKeyStoreWithKeyAndCert() throws Exception
         {
         KeyStoreLoader       keyStoreLoader = EmptyKeyStoreLoader.INSTANCE;
-        URLPrivateKeyLoader  keyLoader      = new URLPrivateKeyLoader(s_keyAndCert.m_fileKeyPEMNoPass.getAbsolutePath());
+        URLPrivateKeyLoader  keyLoader      = new URLPrivateKeyLoader(s_keyAndCert.getKeyPEMNoPass().getAbsolutePath());
         PrivateKey           key            = keyLoader.load(null);
-        URLCertificateLoader certLoader     = new URLCertificateLoader(s_keyAndCert.m_fileCert.getAbsolutePath());
+        URLCertificateLoader certLoader     = new URLCertificateLoader(s_keyAndCert.getCert().getAbsolutePath());
         Certificate[]        aCert          = certLoader.load();
         KeyStore             keyStore       = keyStoreLoader.load("JKS", null, key, null, aCert);
 
@@ -65,9 +65,9 @@ public class URLKeyStoreLoaderTest
     public void shouldLoadKeyStoreWithEncryptedKeyAndCert() throws Exception
         {
         KeyStoreLoader       keyStoreLoader = EmptyKeyStoreLoader.INSTANCE;
-        URLPrivateKeyLoader  keyLoader      = new URLPrivateKeyLoader(s_keyAndCert.m_fileKeyPEM.getAbsolutePath());
+        URLPrivateKeyLoader  keyLoader      = new URLPrivateKeyLoader(s_keyAndCert.getKeyPEM().getAbsolutePath());
         PrivateKey           key            = keyLoader.load(() -> s_keyAndCert.keyPassword());
-        URLCertificateLoader certLoader     = new URLCertificateLoader(s_keyAndCert.m_fileCert.getAbsolutePath());
+        URLCertificateLoader certLoader     = new URLCertificateLoader(s_keyAndCert.getCert().getAbsolutePath());
         Certificate[]        aCert          = certLoader.load();
         KeyStore             keyStore       = keyStoreLoader.load("JKS", null, key, () -> s_keyAndCert.keyPassword(), aCert);
 
@@ -83,8 +83,8 @@ public class URLKeyStoreLoaderTest
     public void shouldLoadKeyStoreWithCerts() throws Exception
         {
         KeyStoreLoader       keyStoreLoader = EmptyKeyStoreLoader.INSTANCE;
-        URLCertificateLoader certLoader     = new URLCertificateLoader(s_keyAndCert.m_fileCert.getAbsolutePath());
-        URLCertificateLoader caCertLoader   = new URLCertificateLoader(s_caCert.m_fileCert.getAbsolutePath());
+        URLCertificateLoader certLoader     = new URLCertificateLoader(s_keyAndCert.getCert().getAbsolutePath());
+        URLCertificateLoader caCertLoader   = new URLCertificateLoader(s_caCert.getCert().getAbsolutePath());
         Certificate          cert           = certLoader.load()[0];
         Certificate          caCert         = caCertLoader.load()[0];
         Certificate[]        aCert          = new Certificate[]{cert, caCert};

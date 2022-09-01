@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.ssl;
 
@@ -27,7 +27,7 @@ public class PemReaderTest
     @Test
     public void shouldReadPrivateKey() throws Exception
         {
-        try (InputStream in = new FileInputStream(s_keyAndCert.m_fileKeyPEMNoPass))
+        try (InputStream in = new FileInputStream(s_keyAndCert.getKeyPEMNoPass()))
             {
             PrivateKey key = PemReader.readPrivateKey(in, PasswordProvider.NullImplementation);
             assertThat(key, is(notNullValue()));
@@ -37,7 +37,7 @@ public class PemReaderTest
     @Test
     public void shouldReadEncodedPrivateKey() throws Exception
         {
-        try (InputStream in = new FileInputStream(s_keyAndCert.m_fileKeyPEM))
+        try (InputStream in = new FileInputStream(s_keyAndCert.getKeyPEM()))
             {
             PrivateKey key = PemReader.readPrivateKey(in, () -> s_keyAndCert.keyPassword());
             assertThat(key, is(notNullValue()));
@@ -47,7 +47,7 @@ public class PemReaderTest
     @Test
     public void shouldReadCertificate() throws Exception
         {
-        try (InputStream in = new FileInputStream(s_keyAndCert.m_fileCert))
+        try (InputStream in = new FileInputStream(s_keyAndCert.getCert()))
             {
             Certificate[] aCert = PemReader.readCertificates(in);
             assertThat(aCert, is(notNullValue()));
@@ -59,7 +59,7 @@ public class PemReaderTest
     @Test
     public void shouldReadCACertificate() throws Exception
         {
-        try (InputStream in = new FileInputStream(s_caCert.m_fileCert))
+        try (InputStream in = new FileInputStream(s_caCert.getCert()))
             {
             Certificate[] aCert = PemReader.readCertificates(in);
             assertThat(aCert, is(notNullValue()));
