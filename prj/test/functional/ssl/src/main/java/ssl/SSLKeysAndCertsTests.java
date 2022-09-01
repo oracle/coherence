@@ -53,16 +53,16 @@ public class SSLKeysAndCertsTests
     public void setPort()
             throws IOException
         {
-        System.setProperty("coherence.security.client.key", s_clientKeyAndCert.getKeyPEMNoPass().getAbsolutePath());
-        System.setProperty("coherence.security.client.encrypted.key", s_clientKeyAndCert.getKeyPEM().getAbsolutePath());
+        System.setProperty("coherence.security.client.key", s_clientKeyAndCert.getKeyPEMNoPassURI());
+        System.setProperty("coherence.security.client.encrypted.key", s_clientKeyAndCert.getKeyPEMURI());
         System.setProperty("coherence.security.client.password", s_clientKeyAndCert.keyPasswordString());
-        System.setProperty("coherence.security.client.cert", s_clientKeyAndCert.getCert().getAbsolutePath());
-        System.setProperty("coherence.security.client.ca.cert", s_clientCACert.getCert().getAbsolutePath());
-        System.setProperty("coherence.security.server.key", s_serverKeyAndCert.getKeyPEMNoPass().getAbsolutePath());
-        System.setProperty("coherence.security.server.encrypted.key", s_serverKeyAndCert.getKeyPEM().getAbsolutePath());
+        System.setProperty("coherence.security.client.cert", s_clientKeyAndCert.getCertURI());
+        System.setProperty("coherence.security.client.ca.cert", s_clientCACert.getCertURI());
+        System.setProperty("coherence.security.server.key", s_serverKeyAndCert.getKeyPEMNoPassURI());
+        System.setProperty("coherence.security.server.encrypted.key", s_serverKeyAndCert.getKeyPEMURI());
         System.setProperty("coherence.security.server.password", s_serverKeyAndCert.keyPasswordString());
-        System.setProperty("coherence.security.server.cert", s_serverKeyAndCert.getCert().getAbsolutePath());
-        System.setProperty("coherence.security.server.ca.cert", s_serverCACert.getCert().getAbsolutePath());
+        System.setProperty("coherence.security.server.cert", s_serverKeyAndCert.getCertURI());
+        System.setProperty("coherence.security.server.ca.cert", s_serverCACert.getCertURI());
 
 		int port;
 		
