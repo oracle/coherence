@@ -11,7 +11,11 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.Platform;
 import com.oracle.bedrock.runtime.console.NullApplicationConsole;
 import com.oracle.bedrock.runtime.options.Argument;
+import com.oracle.bedrock.runtime.options.WorkingDirectory;
 import org.junit.jupiter.api.Assumptions;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Test Docker image names utils.
@@ -40,19 +44,24 @@ public class ImageNames
         {
         if (s_fImagesExist == null)
             {
+            boolean fExists = true;
+
             String[] asImageName = getImageNames();
             if (asImageName.length == 0)
                 {
-                s_fImagesExist = false;
+                fExists = false;
                 }
+
             for (String sImage : asImageName)
                 {
                 if (!imageExists(sImage))
                     {
-                    s_fImagesExist = false;
+                    fExists = false;
+                    break;
                     }
                 }
-            s_fImagesExist = true;
+
+            s_fImagesExist = fExists;
             }
         return s_fImagesExist;
         }
@@ -95,13 +104,20 @@ public class ImageNames
 
         Platform platform = LocalPlatform.get();
 
-        try (Application app = platform.launch("docker",
-                                               Argument.of("inspect"),
-                                               Argument.of(sImage),
-                                               NullApplicationConsole.builder()))
+        try
             {
-            int exitCode = app.waitFor();
-            return exitCode == 0;
+            try (Application app = platform.launch("docker",
+                                                   Argument.of("inspect"),
+                                                   Argument.of(sImage),
+                                                   NullApplicationConsole.builder()))
+                {
+                int exitCode = app.waitFor();
+                return exitCode == 0;
+                }
+            }
+        catch (Exception e)
+            {
+            return true;
             }
         }
 

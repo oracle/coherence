@@ -9,7 +9,6 @@ package com.tangosol.coherence.docker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.tangosol.internal.net.management.HttpHelper;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
@@ -17,10 +16,9 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
-import org.junit.Rule;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -106,6 +104,7 @@ public class DockerImageTests
                 .withExposedPorts(EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isRunning, is(true));
+            Eventually.assertDeferred(() -> container.getLogs().contains("ProxyService{Name=Proxy, State=(SERVICE_STARTED)"), is(true));
 
             int extendPort = container.getMappedPort(EXTEND_PORT);
             System.setProperty("test.extend.port", String.valueOf(extendPort));
@@ -136,6 +135,8 @@ public class DockerImageTests
                 .withFileSystemBind(fileArgsDir.getAbsolutePath(), "/args", BindMode.READ_ONLY)))
             {
             Eventually.assertDeferred(container::isRunning, is(true));
+            Eventually.assertDeferred(() -> container.getLogs().contains("ProxyService{Name=Proxy, State=(SERVICE_STARTED)"), is(true));
+
             String sLog = container.getLogs();
             assertThat(sLog, containsString("Started cluster Name=datagrid"));
             }
@@ -301,13 +302,8 @@ public class DockerImageTests
 
     // ----- data members ---------------------------------------------------
 
-    /**
-     * The name of the current test method.
-     */
-    protected  String m_sTestMethod = "unknown";
-
-    @Rule
-    public TestLogs m_testLogs = new TestLogs(DockerImageTests.class);
+    @RegisterExtension
+    static TestLogsExtension m_testLogs = new TestLogsExtension(DockerImageTests.class);
 
     private final ObjectMapper m_mapper = new ObjectMapper();
     }
