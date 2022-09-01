@@ -52,10 +52,16 @@ public class KeyTool
                                                                   Arguments.of("version"),
                                                                   Console.system()))
             {
-            Assume.assumeTrue("OpenSSL does not exist",application.waitFor() == 0);
+            Assume.assumeTrue("OpenSSL does not exist on the PATH",application.waitFor() == 0);
             }
 
-        Assume.assumeTrue("Java keytool does not exist", new File(KEY_TOOL).exists());
+        try (Application application = LocalPlatform.get().launch(SimpleApplication.class,
+                                                                  Executable.named(KEY_TOOL),
+                                                                  Arguments.of("-h"),
+                                                                  Console.none()))
+            {
+            Assume.assumeTrue("Java keytool does not exist at " + KEY_TOOL,application.waitFor() == 0);
+            }
         }
 
     /**
@@ -351,6 +357,16 @@ public class KeyTool
             }
 
         /**
+         * Returns the URI of the encrypted private key file.
+         *
+         * @return the URI of the encrypted private key file
+         */
+        public String getKeyURI()
+            {
+            return m_fileKey.toURI().toASCIIString();
+            }
+
+        /**
          * Returns the encrypted private key file in PEM format.
          *
          * @return the encrypted private key file in PEM format
@@ -358,6 +374,16 @@ public class KeyTool
         public File getKeyPEM()
             {
             return m_fileKeyPEM;
+            }
+
+        /**
+         * Returns the URI of the encrypted private key in PEM format.
+         *
+         * @return the URI of the encrypted private key file in PEM format
+         */
+        public String getKeyPEMURI()
+            {
+            return m_fileKeyPEM.toURI().toASCIIString();
             }
 
         /**
@@ -371,6 +397,16 @@ public class KeyTool
             }
 
         /**
+         * Returns the URI of the unencrypted private key in PEM format.
+         *
+         * @return the URI of the unencrypted private key file in PEM format
+         */
+        public String getKeyPEMNoPassURI()
+            {
+            return m_fileKeyPEMNoPass.toURI().toASCIIString();
+            }
+
+        /**
          * Returns the certificate file.
          *
          * @return the certificate file
@@ -378,6 +414,16 @@ public class KeyTool
         public File getCert()
             {
             return m_fileCert;
+            }
+
+        /**
+         * Returns the certificate URI.
+         *
+         * @return the certificate URI
+         */
+        public String getCertURI()
+            {
+            return m_fileCert.toURI().toASCIIString();
             }
 
         /**
@@ -401,6 +447,16 @@ public class KeyTool
             }
 
         /**
+         * Returns the JKS key store URI.
+         *
+         * @return the JKS key store URI
+         */
+        public String getKeystoreURI()
+            {
+            return m_fileKeystore.toURI().toASCIIString();
+            }
+
+        /**
          * Returns the PKCS12 key store file.
          *
          * @return the PKCS12 key store file
@@ -411,13 +467,13 @@ public class KeyTool
             }
 
         /**
-         * Returns the key store password.
+         * Returns the PKCS12 key store URI.
          *
-         * @return the key store password
+         * @return the PKCS12 key store URI
          */
-        public String getStorePass()
+        public String getP12KeystoreURI()
             {
-            return m_sStorePass;
+            return m_fileP12.toURI().toASCIIString();
             }
 
         // ----- data members ---------------------------------------------------
@@ -425,42 +481,42 @@ public class KeyTool
         /**
          * The location of the encrypted private key file.
          */
-        public final File m_fileKey;
+        private final File m_fileKey;
 
         /**
          * The location of the private key file in encrypted PEM format.
          */
-        public final File m_fileKeyPEM;
+        private final File m_fileKeyPEM;
 
         /**
          * The location of the private key file in PEM format.
          */
-        public final File m_fileKeyPEMNoPass;
+        private final File m_fileKeyPEMNoPass;
 
         /**
          * The location of the private certificate file.
          */
-        public final File m_fileCert;
+        private final File m_fileCert;
 
         /**
          * The encrypted private key file password.
          */
-        public final String m_sKeyPass;
+        private final String m_sKeyPass;
 
         /**
          * The Java key store file.
          */
-        public final File m_fileKeystore;
+        private final File m_fileKeystore;
 
         /**
          * The Java key store file in PKCS12 format.
          */
-        public final File m_fileP12;
+        private final File m_fileP12;
 
         /**
          * The key store password.
          */
-        public final String m_sStorePass;
+        private final String m_sStorePass;
         }
 
     // ----- constants ---------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -166,16 +166,16 @@ public abstract class AbstractSSLExampleTest {
                 ClusterName.of("ssl-cluster"),
                 MemberName.of(memberName),
                 SystemProperty.of("test.socket.provider", socketProvider),
-                SystemProperty.of("test.server.keystore", serverKeyAndCert.fileKeystore.getAbsolutePath()),
-                SystemProperty.of("test.trust.keystore", serverCACert.fileKeystore.getAbsolutePath()),
+                SystemProperty.of("test.server.keystore", serverKeyAndCert.getKeystoreURI()),
+                SystemProperty.of("test.trust.keystore", serverCACert.getKeystoreURI()),
                 SystemProperty.of("test.server.keystore.password", serverKeyAndCert.storePasswordString()),
                 SystemProperty.of("test.server.key.password", serverKeyAndCert.keyPasswordString()),
                 SystemProperty.of("test.trust.keystore.password", serverCACert.storePasswordString()),
 
-                SystemProperty.of("test.client.ca.cert", clientCACert.fileCert.getAbsolutePath()),
-                SystemProperty.of("test.server.key", serverKeyAndCert.fileKeyPEMNoPass.getAbsolutePath()),
-                SystemProperty.of("test.server.cert", serverKeyAndCert.fileCert.getAbsolutePath()),
-                SystemProperty.of("test.server.ca.cert", serverCACert.fileCert.getAbsolutePath()),
+                SystemProperty.of("test.client.ca.cert", clientCACert.getCertURI()),
+                SystemProperty.of("test.server.key", serverKeyAndCert.getKeyPEMNoPassURI()),
+                SystemProperty.of("test.server.cert", serverKeyAndCert.getCertURI()),
+                SystemProperty.of("test.server.ca.cert", serverCACert.getCertURI()),
 
                 ClusterPort.of(clusterPort));
 
@@ -207,16 +207,16 @@ public abstract class AbstractSSLExampleTest {
         System.setProperty("test.extend.address", hostName);
         System.setProperty("test.extend.port", Integer.toString(extendPort));
 
-        System.setProperty("test.server.keystore", serverKeyAndCert.fileKeystore.getAbsolutePath());
-        System.setProperty("test.trust.keystore", serverCACert.fileKeystore.getAbsolutePath());
+        System.setProperty("test.server.keystore", serverKeyAndCert.getKeystoreURI());
+        System.setProperty("test.trust.keystore", serverCACert.getKeystoreURI());
         System.setProperty("test.server.keystore.password", serverKeyAndCert.storePasswordString());
         System.setProperty("test.server.key.password", serverKeyAndCert.keyPasswordString());
         System.setProperty("test.trust.keystore.password", serverCACert.storePasswordString());
         
-        System.setProperty("test.client.ca.cert", clientCACert.fileCert.getAbsolutePath());
-        System.setProperty("test.server.key", serverKeyAndCert.fileKeyPEMNoPass.getAbsolutePath());
-        System.setProperty("test.server.cert", serverKeyAndCert.fileCert.getAbsolutePath());
-        System.setProperty("test.server.ca.cert", serverCACert.fileCert.getAbsolutePath());
+        System.setProperty("test.client.ca.cert", clientCACert.getCertURI());
+        System.setProperty("test.server.key", serverKeyAndCert.getKeyPEMNoPassURI());
+        System.setProperty("test.server.cert", serverKeyAndCert.getCertURI());
+        System.setProperty("test.server.ca.cert", serverCACert.getCertURI());
 
         return CacheFactory.getCache("test-cache");
     }
