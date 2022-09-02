@@ -8,7 +8,6 @@ package com.tangosol.net.ssl;
 
 import org.junit.Test;
 
-import java.net.URL;
 import java.security.cert.Certificate;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -21,8 +20,7 @@ public class URLCertificateLoaderTest
     @Test
     public void shouldLoadCerts() throws Exception
         {
-        URL                  url    = s_keyAndCert.getCert().toURI().toURL();
-        URLCertificateLoader loader = new URLCertificateLoader(url.toExternalForm());
+        URLCertificateLoader loader = new URLCertificateLoader(s_keyAndCert.getCertURI());
         Certificate[]        aCert  = loader.load();
 
         assertThat(aCert, is(notNullValue()));

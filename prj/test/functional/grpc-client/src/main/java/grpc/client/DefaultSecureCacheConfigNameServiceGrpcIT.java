@@ -68,9 +68,9 @@ public class DefaultSecureCacheConfigNameServiceGrpcIT
         System.setProperty("coherence.pof.config", "test-pof-config.xml");
         System.setProperty("coherence.cluster", CLUSTER_NAME);
 
-        System.setProperty("coherence.security.key", KEY_TOOL.getKeyAndCert().getKeyPEMNoPass().toURI().toASCIIString());
-        System.setProperty("coherence.security.cert", KEY_TOOL.getKeyAndCert().getCert().toURI().toASCIIString());
-        System.setProperty("coherence.security.ca.cert", KEY_TOOL.getCaCert().getCert().toURI().toASCIIString());
+        System.setProperty("coherence.security.key", KEY_TOOL.getKeyAndCert().getKeyPEMNoPassURI());
+        System.setProperty("coherence.security.cert", KEY_TOOL.getKeyAndCert().getCertURI());
+        System.setProperty("coherence.security.ca.cert", KEY_TOOL.getCaCert().getCertURI());
 
 
         CoherenceConfiguration.Builder cfgBuilder = CoherenceConfiguration.builder();
@@ -165,9 +165,9 @@ public class DefaultSecureCacheConfigNameServiceGrpcIT
                   SystemProperty.of(GrpcDependencies.PROP_PORT, PORTS, Ports.capture()),
                   SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                   SystemProperty.of("coherence.grpc.server.socketprovider", "tls-files"),
-                  SystemProperty.of("coherence.security.key", () -> KEY_TOOL.getKeyAndCert().getKeyPEMNoPass().toURI().toASCIIString()),
-                  SystemProperty.of("coherence.security.cert", () -> KEY_TOOL.getKeyAndCert().getCert().toURI().toASCIIString()),
-                  SystemProperty.of("coherence.security.ca.cert", () -> KEY_TOOL.getCaCert().getCert().toURI().toASCIIString()),
+                  SystemProperty.of("coherence.security.key", () -> KEY_TOOL.getKeyAndCert().getKeyPEMNoPassURI()),
+                  SystemProperty.of("coherence.security.cert", () -> KEY_TOOL.getKeyAndCert().getCertURI()),
+                  SystemProperty.of("coherence.security.ca.cert", () -> KEY_TOOL.getCaCert().getCertURI()),
                   WellKnownAddress.loopback(),
                   ClusterName.of(CLUSTER_NAME),
                   DisplayName.of("storage"),

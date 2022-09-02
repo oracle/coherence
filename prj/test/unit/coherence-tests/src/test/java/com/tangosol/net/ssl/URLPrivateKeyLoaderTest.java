@@ -10,7 +10,6 @@ import com.tangosol.net.PasswordProvider;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.net.URL;
 import java.security.PrivateKey;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -23,8 +22,7 @@ public class URLPrivateKeyLoaderTest
     @Test
     public void shouldLoadPrivateKey() throws Exception
         {
-        URL                 url    = s_keyAndCert.getKeyPEMNoPass().toURI().toURL();
-        URLPrivateKeyLoader loader = new URLPrivateKeyLoader(url.toExternalForm());
+        URLPrivateKeyLoader loader = new URLPrivateKeyLoader(s_keyAndCert.getKeyPEMNoPassURI());
         PrivateKey          key    = loader.load(PasswordProvider.NullImplementation);
 
         assertThat(key, is(notNullValue()));
@@ -33,8 +31,7 @@ public class URLPrivateKeyLoaderTest
     @Test
     public void shouldLoadEncryptedPrivateKey() throws Exception
         {
-        URL                 url    = s_keyAndCert.getKeyPEM().toURI().toURL();
-        URLPrivateKeyLoader loader = new URLPrivateKeyLoader(url.toExternalForm());
+        URLPrivateKeyLoader loader = new URLPrivateKeyLoader(s_keyAndCert.getKeyPEMURI());
         PrivateKey          key    = loader.load(() -> s_keyAndCert.keyPassword());
 
         assertThat(key, is(notNullValue()));
