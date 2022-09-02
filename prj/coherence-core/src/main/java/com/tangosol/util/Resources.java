@@ -405,9 +405,21 @@ public abstract class Resources
 
     public static InputStream findInputStream(String s) throws IOException
         {
+        String sScheme;
+
+        URI uri = null;
+        try
+            {
+            uri     = URI.create(s);
+            sScheme = uri.getScheme();
+            }
+        catch (Exception e)
+            {
+            // not a valid URI, so scheme is null
+            sScheme = null;
+            }
+
         ClassLoader loader  = Classes.getContextClassLoader();
-        URI         uri     = URI.create(s);
-        String      sScheme = uri.getScheme();
         URL         url;
         InputStream in;
 
