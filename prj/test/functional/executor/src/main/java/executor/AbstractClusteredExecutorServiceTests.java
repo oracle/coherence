@@ -11,7 +11,6 @@ import com.oracle.bedrock.deferred.Deferred;
 import com.oracle.bedrock.deferred.options.InitialDelay;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
-
 import com.oracle.bedrock.junit.SessionBuilders;
 
 import com.oracle.bedrock.options.Timeout;
@@ -62,8 +61,8 @@ import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 
 import com.oracle.coherence.concurrent.executor.util.Caches;
 
-import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.io.Serializer;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -86,6 +85,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.ObjectInstance;
@@ -439,8 +439,8 @@ public abstract class AbstractClusteredExecutorServiceTests
             }
         finally
             {
-            executorService1.shutdown();
-            executorService2.shutdown();
+            executorService1.shutdownNow();
+            executorService2.shutdownNow();
 
             m_taskExecutorService.deregister(executorService1);
             m_taskExecutorService.deregister(executorService2);
@@ -753,8 +753,8 @@ public abstract class AbstractClusteredExecutorServiceTests
             }
         finally
             {
-            executorService1.shutdown();
-            executorService2.shutdown();
+            executorService1.shutdownNow();
+            executorService2.shutdownNow();
 
             m_taskExecutorService.deregister(executorService1);
             m_taskExecutorService.deregister(executorService2);

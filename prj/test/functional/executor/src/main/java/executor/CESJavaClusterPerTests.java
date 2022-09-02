@@ -30,11 +30,14 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.tangosol.net.DefaultCacheServer;
+
 import executor.common.LogOutput;
 import executor.common.NewClusterPerTest;
 
 import java.io.File;
+
 import org.junit.Rule;
 
 import org.junit.experimental.categories.Category;
