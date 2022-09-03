@@ -22,7 +22,7 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
 
-    <java.version>11</java.version>
+    <java.version>17</java.version>
 
     <jline.version>3.20.0</jline.version>
 

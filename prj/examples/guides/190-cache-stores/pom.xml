@@ -28,7 +28,7 @@
     <h2.version>2.1.214</h2.version>
     <r2dbc-h2.version>0.9.0.RELEASE</r2dbc-h2.version>
 
-    <java.version>11</java.version>
+    <java.version>17</java.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>

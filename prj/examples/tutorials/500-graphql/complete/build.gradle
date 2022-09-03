@@ -14,7 +14,7 @@ apply plugin : "java"
 
 group = 'com.oracle.coherence.tutorials'
 version = '1.0.0-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
 repositories {
 	mavenCentral()

@@ -22,8 +22,8 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${revision}</coherence.version>
 
-    <java.version>1.8</java.version>
-    <java.version.release>8</java.version.release>
+    <java.version>17</java.version>
+    <java.version.release>17</java.version.release>
 
     <hamcrest.version>2.2</hamcrest.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>

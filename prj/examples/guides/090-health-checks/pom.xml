@@ -22,7 +22,7 @@
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${revision}</coherence.version>
 
-    <java.version>11</java.version>
+    <java.version>17</java.version>
 
     <image.name>coherence-health:1.0.0</image.name>
     <docker.file>OpenJDK.Dockerfile</docker.file>

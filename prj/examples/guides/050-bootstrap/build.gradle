@@ -11,7 +11,7 @@ plugins {
 
 group = 'com.oracle.coherence.guides'
 version = '${coherenceVersion}'
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
 repositories {
 	mavenCentral()
