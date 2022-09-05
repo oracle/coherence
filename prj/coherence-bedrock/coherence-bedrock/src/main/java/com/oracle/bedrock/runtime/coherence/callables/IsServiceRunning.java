@@ -31,10 +31,24 @@ public class IsServiceRunning
     @Override
     public Boolean call()
         {
-        com.tangosol.net.Cluster cluster = CacheFactory.getCluster();
-        Service service = cluster == null ? null : cluster.getService(m_sServiceName);
-
-        return service != null && service.isRunning();
+        try
+            {
+            com.tangosol.net.Cluster cluster = CacheFactory.getCluster();
+            if (cluster != null && cluster.isRunning())
+                {
+                if ("Cluster".equals(m_sServiceName))
+                    {
+                    return true;
+                    }
+                Service service = cluster.getService(m_sServiceName);
+                return service != null && service.isRunning();
+                }
+            }
+        catch (Throwable t)
+            {
+            t.printStackTrace();
+            }
+        return false;
         }
 
     // ----- data members ---------------------------------------------------
