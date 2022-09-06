@@ -12,7 +12,6 @@ import com.oracle.coherence.concurrent.executor.management.ExecutorMBean;
 
 import com.oracle.coherence.concurrent.executor.options.Description;
 import com.oracle.coherence.concurrent.executor.options.Member;
-
 import com.oracle.coherence.concurrent.executor.options.Name;
 
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
@@ -89,8 +88,9 @@ public class ClusteredRegistration
      * @param executor                  the registered {@link Executor}
      * @param optionsByType             the {@link Option}s for the {@link Executor}
      */
+    @SuppressWarnings("unchecked")
     public ClusteredRegistration(ClusteredExecutorService clusteredExecutorService, String sExecutorId,
-            ExecutorService executor, OptionsByType<Option> optionsByType)
+                                 ExecutorService executor, OptionsByType<Option> optionsByType)
         {
         f_clusteredExecutorService = clusteredExecutorService;
         f_sExecutorId              = sExecutorId;
@@ -100,6 +100,16 @@ public class ClusteredRegistration
                                                               new TaskExecutorService.Registration.Option[0])
                                          : optionsByType;
         f_mapTaskExecutors         = new ConcurrentHashMap<>();
+
+        NamedCache<String, TaskExecutor> cacheTmp = executors();
+        // unwrap from SafeNamedCache to avoid service restarting
+        // when performing an operation - it doesn't matter if calls
+        // fail at this point.
+        if (cacheTmp instanceof SafeNamedCache)
+            {
+            cacheTmp = ((SafeNamedCache) cacheTmp).getNamedCache();
+            }
+        m_cacheTasksTermination = cacheTmp;
         }
 
     // ----- TaskExecutorService.Registration interface ---------------------
@@ -1198,29 +1208,24 @@ public class ClusteredRegistration
             // NOTE: we have to do this asynchronously as this method may be called
             //       by a Coherence-thread
 
+            NamedCache               esCache         = m_cacheTasksTermination;
+            ClusteredExecutorService executorService = f_clusteredExecutorService;
+
             // don't use the local ClusteredExecutorService's ExecutorService as it may
             // be in the process of shutting down
-
-            // Obtain reference to cache now to avoid this thread running
-            // later than normally expected causing the service to be
-            // re-started
-            NamedCache cacheTmp = executors();
-            if (cacheTmp instanceof SafeNamedCache)
-                {
-                cacheTmp = ((SafeNamedCache) cacheTmp).getNamedCache();
-                }
-            NamedCache esCache = cacheTmp;
-
             Runnable runnable = () ->
                 {
-                ExecutorMBeanImpl executorMBean = m_executorMBean;
-                String            sExecutorId   = f_sExecutorId;
+                ExecutorMBeanImpl        executorMBean   = m_executorMBean;
+                String                   sExecutorId     = f_sExecutorId;
+
+                CacheService             service         = executorService.getCacheService();
 
                 try
                     {
-                    unregisterExecutiveServiceMBean(
-                            f_clusteredExecutorService.getCacheService(),
-                            executorMBean.getName());
+                    if (service.isRunning())
+                        {
+                        unregisterExecutiveServiceMBean(service, executorMBean.getName());
+                        }
 
                     if (esCache.isActive())
                         {
@@ -1237,20 +1242,25 @@ public class ClusteredRegistration
                         Logger.warn("Exception cleaning up executor resources", e);
                         }
                     }
+                finally
+                    {
+                    m_cacheTasksTermination = null;
+                    }
                 };
 
             Base.makeThread(null, runnable, "ConcurrentExecutorCleaner").start();
 
+            NamedCache<String, ClusteredAssignment> viewAssignments = m_viewAssignments;
             // release the assignment cache (as it's a CQC)
-            if (m_viewAssignments != null)
+            if (viewAssignments != null)
                 {
-                m_viewAssignments.release();
+                viewAssignments.release();
 
                 m_viewAssignments = null;
                 }
 
             // deregister in case the close wasn't initiated by the owning ClusteredExecutorService
-            f_clusteredExecutorService.deregister(f_executor);
+            executorService.deregister(f_executor);
             }
         }
 
@@ -1377,6 +1387,13 @@ public class ClusteredRegistration
      */
     @SuppressWarnings("rawtypes")
     protected NamedCache m_viewAssignments;
+
+    /**
+     * The {@link TaskExecutor} {@link NamedCache} reference used by {@link #close()}
+     * to avoid calling {@code ensureCache} on a service thread when terminating
+     * and executor.
+     */
+    protected NamedCache<String, TaskExecutor> m_cacheTasksTermination;
 
     /**
      * The {@link TaskExecutor}s representing the {@link Task}s scheduled for execution with the {@link Executor}.
