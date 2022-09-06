@@ -94,6 +94,7 @@ public final class Utils
             }
         catch (Throwable t)
             {
+            Logger.err(String.format("Assertion failed [%s]", t), t);
             try
                 {
                 onFailure.run();
@@ -125,7 +126,7 @@ public final class Utils
                         {
                         sDir = new java.io.File(".").getCanonicalPath();
                         }
-                    catch (IOException e)
+                    catch (IOException ignored)
                         {
                         }
                     }
