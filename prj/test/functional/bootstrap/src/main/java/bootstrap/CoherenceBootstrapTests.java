@@ -32,7 +32,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Jonathan Knight  2020.12.13
@@ -43,8 +42,6 @@ class CoherenceBootstrapTests
     static void setup()
         {
         System.setProperty("coherence.ttl", "0");
-        System.setProperty("coherence.wka", "127.0.0.1");
-        System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
         System.setProperty("coherence.cacheconfig", Resources.DEFAULT_RESOURCE_PACKAGE + "/coherence-cache-config.xml");
         }
