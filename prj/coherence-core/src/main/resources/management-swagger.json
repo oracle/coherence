@@ -3733,14 +3733,14 @@
         }
       }
     },
-    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetstatistics": {
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetStatistics": {
       "post": {
         "tags": [
           "Federation"
         ],
         "summary": "Reset Incoming Statistics of a Participant",
         "description": "Use this endpoint to clear the current statistics for a specific incoming/origin participant.",
-        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetstatistics POST",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/incoming/participants/{participantName}/resetStatistics POST",
         "produces": [
           "application/json"
         ],
@@ -3831,14 +3831,14 @@
         }
       }
     },
-    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetstatistics": {
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetStatistics": {
       "post": {
         "tags": [
           "Federation"
         ],
         "summary": "Reset Outgoing Statistics of a Participant",
         "description": "Use this endpoint to clear the current statistics for a specific outgoing/destination participant.",
-        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetstatistics POST",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/federation/statistics/outgoing/participants/{participantName}/resetStatistics POST",
         "produces": [
           "application/json"
         ],
