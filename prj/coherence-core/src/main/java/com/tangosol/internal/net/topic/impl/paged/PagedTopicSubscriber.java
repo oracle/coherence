@@ -52,7 +52,8 @@ import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
-import com.tangosol.net.management.Registry;
+import com.tangosol.net.management.MBeanHelper;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
@@ -1511,6 +1512,15 @@ public class PagedTopicSubscriber<V>
     /**
      * Ensure that the subscriber is connected.
      */
+    public void connect()
+        {
+        ensureActive();
+        ensureConnected();;
+        }
+
+    /**
+     * Ensure that the subscriber is connected.
+     */
     protected void ensureConnected()
         {
         if (isActive() && m_nState != STATE_CONNECTED)
@@ -1518,7 +1528,7 @@ public class PagedTopicSubscriber<V>
             synchronized (this)
                 {
                 ensureActive();
-                PagedTopic.Dependencies dependencies = m_caches.getDependencies();
+                PagedTopicDependencies dependencies = m_caches.getDependencies();
                 long                    retry        = dependencies.getReconnectRetryMillis();
                 long                    now          = System.currentTimeMillis();
                 long                    timeout      = now + dependencies.getReconnectTimeoutMillis();
@@ -1612,7 +1622,7 @@ public class PagedTopicSubscriber<V>
             // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
             m_queueValuesPrefetched.clear();
 
-            PagedTopic.Dependencies dependencies = m_caches.getDependencies();
+            PagedTopicDependencies  dependencies = m_caches.getDependencies();
             long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
             Logger.finer("Disconnected Subscriber " + this);
             f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
@@ -1627,6 +1637,16 @@ public class PagedTopicSubscriber<V>
     public SubscriberGroupId getSubscriberGroupId()
         {
         return f_subscriberGroupId;
+        }
+
+    /**
+     * Notification that one or more channels that were empty now have content.
+     *
+     * @param nChannel  the non-empty channels
+     */
+    public void notifyChannel(int nChannel)
+        {
+        onChannelPopulatedNotification(new int[]{nChannel});
         }
 
     /**
@@ -2471,9 +2491,8 @@ public class PagedTopicSubscriber<V>
      */
     protected synchronized void registerMBean()
         {
-        Registry registry = m_caches.getCacheService().getCluster().getManagement();
-        PagedTopicSubscriberMBean mBean = new PagedTopicSubscriberMBean(this);
-        m_sMBeanName = mBean.register(registry);
+        CacheService service = m_caches.getCacheService();
+        MBeanHelper.registerSubscriberMBean(service, f_topic.getName(), this);
         }
 
     /**
@@ -2481,11 +2500,8 @@ public class PagedTopicSubscriber<V>
      */
     protected synchronized void unregisterMBean()
         {
-        if (m_sMBeanName != null)
-            {
-            Registry registry = m_caches.getCacheService().getCluster().getManagement();
-            registry.unregister(m_sMBeanName);
-            }
+        CacheService service = m_caches.getCacheService();
+        MBeanHelper.unregisterSubscriberMBean(getId(), f_topic.getName(), service.getInfo().getServiceName());
         }
 
     /**
@@ -3855,11 +3871,6 @@ public class PagedTopicSubscriber<V>
      * An empty committable element.
      */
     private CommittableElement m_elementEmpty;
-
-    /**
-     * The name of this subscriber's MBean.
-     */
-    private String m_sMBeanName;
 
     /**
      * The number of completed receive requests.

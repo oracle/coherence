@@ -12,9 +12,10 @@ import com.tangosol.coherence.config.scheme.LocalScheme;
 import com.tangosol.coherence.config.scheme.NamedTopicScheme;
 import com.tangosol.coherence.config.scheme.PagedTopicScheme;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
@@ -26,6 +27,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
+import com.tangosol.net.topic.TopicBackingMapManager;
 import com.tangosol.util.Base;
 import com.tangosol.util.ResourceRegistry;
 
@@ -75,11 +77,11 @@ public class SchemeSelectionTopicTests
     public void testDistributedTopicTest()
         {
         NamedTopic<String> topic = validateNamedTopic("topic-dist-backing-local1",
-                                             TopicService.TYPE_DEFAULT);
+                                             CacheService.TYPE_PAGED_TOPIC);
 
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies("topic-dist-backing-local1");
+        PagedTopicDependencies config = getTopicDependencies("topic-dist-backing-local1");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(10));
@@ -104,11 +106,11 @@ public class SchemeSelectionTopicTests
         {
         String TOPIC_NAME = "topic-with-durable-subscriber42";
         NamedTopic<String> topic = validateNamedTopic(TOPIC_NAME,
-                TopicService.TYPE_DEFAULT);
+                CacheService.TYPE_PAGED_TOPIC);
 
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies(TOPIC_NAME);
+        PagedTopicDependencies config = getTopicDependencies(TOPIC_NAME);
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(10));
@@ -137,11 +139,11 @@ public class SchemeSelectionTopicTests
     public void testDistributedTopicTestDefaults()
         {
         NamedTopic<String> topic = validateNamedTopic("topic-dist-defaults",
-                TopicService.TYPE_DEFAULT);
+                CacheService.TYPE_PAGED_TOPIC);
 
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies("topic-dist-defaults");
+        PagedTopicDependencies config = getTopicDependencies("topic-dist-defaults");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(1024*1024));
@@ -164,15 +166,15 @@ public class SchemeSelectionTopicTests
     public void testTopicTestDefaults()
         {
         NamedTopic<String> topic = validateNamedTopic("all-defaulted-topic",
-            TopicService.TYPE_DEFAULT);
+            CacheService.TYPE_PAGED_TOPIC);
 
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies("all-defaulted-topic");
+        PagedTopicDependencies config = getTopicDependencies("all-defaulted-topic");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(config.getPageCapacity(), is(1024*1024));
-        assertThat(topic.getService().getInfo().getServiceName(), is(PagedTopicScheme.DEFAULT_SERVICE_NAME));
+        assertThat(topic.getService().getInfo().getServiceName(), is(CacheService.TYPE_PAGED_TOPIC));
 
 
         PagedTopicScheme scheme = (PagedTopicScheme) m_eccf.getCacheConfig().findSchemeByTopicName(topic.getName());
@@ -197,10 +199,10 @@ public class SchemeSelectionTopicTests
 
 
         NamedTopic<String> topic = validateNamedTopic("same",
-                TopicService.TYPE_DEFAULT);
+                CacheService.TYPE_PAGED_TOPIC);
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies("same");
+        PagedTopicDependencies config = getTopicDependencies("same");
 
         assertThat(config.getElementExpiryMillis(), is(0L));
         assertThat(false, is(config.isRetainConsumed()));
@@ -221,11 +223,11 @@ public class SchemeSelectionTopicTests
         {
         final String             COLLECTION_NAME = "topic-retain-dist-backing-local1";
 
-        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, TopicService.TYPE_DEFAULT);
+        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, CacheService.TYPE_PAGED_TOPIC);
 
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies(COLLECTION_NAME);
+        PagedTopicDependencies config = getTopicDependencies(COLLECTION_NAME);
 
         assertThat(config.getElementExpiryMillis(), is(21 * 1000L));
         assertThat(config.isRetainConsumed(), is(true));
@@ -246,11 +248,11 @@ public class SchemeSelectionTopicTests
         {
         final String             COLLECTION_NAME = "topic-override-dist-backing-local1";
 
-        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, TopicService.TYPE_DEFAULT);
+        NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, CacheService.TYPE_PAGED_TOPIC);
 
         assertNotNull(topic);
 
-        PagedTopic.Dependencies config = getTopicDependencies(COLLECTION_NAME);
+        PagedTopicDependencies config = getTopicDependencies(COLLECTION_NAME);
 
         assertThat(config.getPageCapacity(), is(20));
 
@@ -264,13 +266,13 @@ public class SchemeSelectionTopicTests
     @Test
     public void validateDefaultCacheServiceDiffersFromDefaultTopicService()
         {
-        NamedTopic topic = validateNamedTopic("all-defaulted-topic", TopicService.TYPE_DEFAULT);
+        NamedTopic topic = validateNamedTopic("all-defaulted-topic", CacheService.TYPE_PAGED_TOPIC);
         NamedCache cache = validateNamedCache("all-defaulted-cache", CacheService.TYPE_DISTRIBUTED);
 
         System.out.println("****************************** all-default-topic default service name is " + topic.getService().getInfo().getServiceName());
         System.out.println("****************************** all-default-cache default service name is " + cache.getService().getInfo().getServiceName());
 
-        assertThat(topic.getService().getInfo().getServiceName(), is(PagedTopicScheme.DEFAULT_SERVICE_NAME));
+        assertThat(topic.getService().getInfo().getServiceName(), is(CacheService.TYPE_PAGED_TOPIC));
         assertNotEquals("default topic service must not be same as default cache service name",
             topic.getService().getInfo().getServiceName(), cache.getService().getInfo().getServiceName());
         }
@@ -383,14 +385,13 @@ public class SchemeSelectionTopicTests
         return topic;
         }
 
-    private PagedTopic.Dependencies getTopicDependencies(String sCollectionName)
+    private PagedTopicDependencies getTopicDependencies(String sCollectionName)
         {
-        NamedTopicScheme scheme      = m_eccf.getCacheConfig().findSchemeByTopicName(sCollectionName);
-        String           serviceName = scheme.getServiceName();
-        CacheService     service     = (CacheService) m_eccf.ensureService(serviceName);
-        ResourceRegistry registry    = service.getResourceRegistry();
-
-        return registry.getResource(PagedTopic.Dependencies.class, sCollectionName);
+        NamedTopicScheme            scheme      = m_eccf.getCacheConfig().findSchemeByTopicName(sCollectionName);
+        String                      serviceName = scheme.getServiceName();
+        TopicService                service     = (TopicService) m_eccf.ensureService(serviceName);
+        PagedTopicBackingMapManager manager     = (PagedTopicBackingMapManager) service.getTopicBackingMapManager();
+        return manager.getTopicDependencies(sCollectionName);
         }
 
     private <E> NamedTopic<E> getNamedTopic(String sTopicName, Class<E> clsElement)

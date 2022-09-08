@@ -19,8 +19,9 @@ import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
 
-import com.tangosol.internal.net.service.grid.DefaultPartitionedCacheDependencies;
+import com.tangosol.internal.net.service.grid.DefaultPagedTopicServiceDependencies;
 
+import com.tangosol.internal.net.service.grid.PagedTopicServiceDependencies;
 import com.tangosol.internal.net.topic.impl.paged.SubscriberCleanupListener;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
@@ -53,12 +54,18 @@ public class PagedTopicSchemeProcessor
 
     // ----- ServiceBuilderProcessor methods --------------------------------
 
+    public PagedTopicSchemeProcessor(Class<PagedTopicScheme> clzToRealize)
+        {
+        super(clzToRealize);
+        }
+
     @Override
     public PagedTopicScheme process(ProcessingContext context, XmlElement element)
             throws ConfigurationException
         {
         PagedTopicScheme                    scheme     = super.process(context, element);
-        DefaultPartitionedCacheDependencies deps       = new DefaultPartitionedCacheDependencies(scheme.getServiceDependencies());
+        PagedTopicServiceDependencies depService = (PagedTopicServiceDependencies) scheme.getServiceDependencies();
+        DefaultPagedTopicServiceDependencies deps       = new DefaultPagedTopicServiceDependencies(depService);
         final SerializerFactory             factory    = deps.getSerializerFactory();
         SerializerFactory                   factoryPof = new SerializerFactory()
             {

@@ -13,7 +13,6 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
-import com.tangosol.internal.net.SessionNamedTopic;
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.EvictSubscriber;
@@ -50,7 +49,6 @@ import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
-import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.HashHelper;
@@ -109,10 +107,11 @@ public class PagedTopicCaches
      *
      * @param sName         the name of the topic
      * @param cacheService  the {@link CacheService} owning the underlying caches
+     * @param dependencies  the {@link PagedTopicDependencies}
      */
-    public PagedTopicCaches(String sName, CacheService cacheService)
+    public PagedTopicCaches(String sName, CacheService cacheService, PagedTopicDependencies dependencies)
         {
-        this(sName, cacheService, null);
+        this(sName, cacheService, dependencies, null);
         }
 
     /**
@@ -120,9 +119,11 @@ public class PagedTopicCaches
      *
      * @param sName          the name of the topic
      * @param cacheService   the {@link CacheService} owning the underlying caches
+     * @param dependencies   the {@link PagedTopicDependencies}
      * @param functionCache  the function to invoke to obtain each underlying cache
      */
     PagedTopicCaches(String sName, CacheService cacheService,
+            PagedTopicDependencies dependencies,
             BiFunction<String, ClassLoader, NamedCache> functionCache)
         {
         if (sName == null || sName.isEmpty())
@@ -144,31 +145,12 @@ public class PagedTopicCaches
         f_cacheService      = cacheService;
         f_sCacheServiceName = cacheService.getInfo().getServiceName();
         f_cPartition        = ((DistributedCacheService) cacheService).getPartitionCount();
+        f_dependencies      = dependencies == null ? new DefaultPagedTopicDependencies(f_cPartition) : dependencies;
         f_functionCache     = functionCache;
 
         initializeCaches();
 
         m_state = State.Active;
-        }
-
-    /**
-     * Returns a {@link PagedTopicCaches} instance for the specified {@link NamedTopic}.
-     *
-     * @param topic  the {@link NamedTopic} to get the associated {@link PagedTopicCaches} for
-     *
-     * @return a {@link PagedTopicCaches} instance for the specified {@link NamedTopic}
-     */
-    public static PagedTopicCaches fromTopic(NamedTopic<?> topic)
-        {
-        while (topic instanceof SessionNamedTopic)
-            {
-            topic = ((SessionNamedTopic<?>) topic).getInternalNamedTopic();
-            }
-        if (topic instanceof PagedTopic)
-            {
-            return new PagedTopicCaches(topic.getName(), ((PagedTopic<?>) topic).getCacheService());
-            }
-        throw new IllegalArgumentException("Topic is not an instance of PagedTopic");
         }
 
     // ----- TopicCaches methods --------------------------------------
@@ -329,7 +311,7 @@ public class PagedTopicCaches
      */
     public int getChannelCount()
         {
-        return getDependencies().getChannelCount(f_cPartition);
+        return getDependencies().getChannelCount();
         }
 
     /**
@@ -373,14 +355,13 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return the {@link PagedTopic.Dependencies}.
+     * Return the {@link PagedTopicDependencies}.
      *
-     * @return the {@link PagedTopic.Dependencies}
+     * @return the {@link PagedTopicDependencies}
      */
-    public PagedTopic.Dependencies getDependencies()
+    public PagedTopicDependencies getDependencies()
         {
-        return f_cacheService.getResourceRegistry()
-            .getResource(PagedTopic.Dependencies.class, getTopicName());
+        return f_dependencies;
         }
 
     /**
@@ -929,10 +910,10 @@ public class PagedTopicCaches
 
             Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
 
-            PagedTopic.Dependencies dependencies = getDependencies();
-            int                     cChannel      = getChannelCount();
-            long                    lPageBase     = getBasePage();
-            long[]                  alHead        = new long[cChannel];
+            PagedTopicDependencies dependencies = getDependencies();
+            int                    cChannel      = getChannelCount();
+            long                   lPageBase     = getBasePage();
+            long[]                 alHead        = new long[cChannel];
 
             // mapPages now reflects pinned pages
             for (int nChannel = 0; nChannel < cChannel; ++nChannel)
@@ -1609,6 +1590,11 @@ public class PagedTopicCaches
      * The cache service.
      */
     protected final CacheService f_cacheService;
+
+    /**
+     * The topic dependencies.
+     */
+    protected final PagedTopicDependencies f_dependencies;
 
     /**
      * The cache service name (mainly used in logging but calls to serv,ce.getInfo().getServiceName()

@@ -6,13 +6,15 @@
  */
 package topics;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.topic.BinaryElementCalculator;
@@ -60,12 +62,10 @@ public class TopicsCalculatorTests
     public void shouldUseBinaryCalculatorByDefault() throws Exception
         {
         NamedTopic<String>           topic        = s_session.getTopic("default-test");
-        PagedTopicCaches             caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
-        PagedTopic.Dependencies      dependencies = caches.getDependencies();
+        PagedTopicDependencies       dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
 
         assertThat(calculator, is(instanceOf(BinaryElementCalculator.class)));
-        assertThat(caches.getElementCalculator(), is(instanceOf(BinaryElementCalculator.class)));
 
         try (Publisher<String>  publisher  = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
@@ -109,12 +109,10 @@ public class TopicsCalculatorTests
     public void shouldUseBinaryCalculator() throws Exception
         {
         NamedTopic<String>           topic        = s_session.getTopic("binary-test");
-        PagedTopicCaches             caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
-        PagedTopic.Dependencies      dependencies = caches.getDependencies();
+        PagedTopicDependencies       dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
 
         assertThat(calculator, is(instanceOf(BinaryElementCalculator.class)));
-        assertThat(caches.getElementCalculator(), is(instanceOf(BinaryElementCalculator.class)));
 
         try (Publisher<String>  publisher  = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
@@ -158,14 +156,12 @@ public class TopicsCalculatorTests
     public void shouldUseFixedCalculatorDueToNonMemoryUnitPageSize() throws Exception
         {
         NamedTopic<String>           topic        = s_session.getTopic("units-test");
-        PagedTopicCaches             caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
-        PagedTopic.Dependencies      dependencies = caches.getDependencies();
+        PagedTopicDependencies       dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
         int                          nPageSize    = dependencies.getPageCapacity();
 
         assertThat(nPageSize, is(50));
         assertThat(calculator, is(instanceOf(FixedElementCalculator.class)));
-        assertThat(caches.getElementCalculator(), is(instanceOf(FixedElementCalculator.class)));
 
         try (Publisher<String>  publisher  = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
@@ -201,14 +197,12 @@ public class TopicsCalculatorTests
     public void shouldUseSpecifiedFixedCalculatorAndPageSize() throws Exception
         {
         NamedTopic<String>           topic        = s_session.getTopic("fixed-test");
-        PagedTopicCaches             caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
-        PagedTopic.Dependencies      dependencies = caches.getDependencies();
+        PagedTopicDependencies       dependencies = getDependencies(topic);
         NamedTopic.ElementCalculator calculator   = dependencies.getElementCalculator();
         int                          nPageSize    = dependencies.getPageCapacity();
 
         assertThat(nPageSize, is(100));
         assertThat(calculator, is(instanceOf(FixedElementCalculator.class)));
-        assertThat(caches.getElementCalculator(), is(instanceOf(FixedElementCalculator.class)));
 
         try (Publisher<String>  publisher  = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
@@ -244,12 +238,10 @@ public class TopicsCalculatorTests
     public void shouldUseCustomCalculator() throws Exception
         {
         NamedTopic<String>           topic         = s_session.getTopic("custom-test");
-        PagedTopicCaches             caches        = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
-        PagedTopic.Dependencies      configuration = caches.getDependencies();
-        NamedTopic.ElementCalculator calculator    = configuration.getElementCalculator();
+        PagedTopicDependencies       dependencies = getDependencies(topic);
+        NamedTopic.ElementCalculator calculator    = dependencies.getElementCalculator();
 
         assertThat(calculator, is(instanceOf(CustomCalculator.class)));
-        assertThat(caches.getElementCalculator(), is(instanceOf(CustomCalculator.class)));
 
         try (Publisher<String>  publisher  = topic.createPublisher();
              Subscriber<String> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
@@ -280,6 +272,15 @@ public class TopicsCalculatorTests
             assertThat(((PagedPosition) element.getPosition()).getPage(), is(alPage[0] + 1));
             assertThat(((PagedPosition) element.getPosition()).getOffset(), is(0));
             }
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    private PagedTopicDependencies getDependencies(NamedTopic<?> topic)
+        {
+        PagedTopicService service = (PagedTopicService) topic.getService();
+        PagedTopicBackingMapManager manager = service.getTopicBackingMapManager();
+        return manager.getTopicDependencies(topic.getName());
         }
 
     // ----- inner class: CustomCalculator ----------------------------------

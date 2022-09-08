@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.management;
 
@@ -14,6 +14,13 @@ import com.tangosol.internal.net.management.DefaultGatewayDependencies;
 import com.tangosol.internal.net.management.GatewayDependencies;
 import com.tangosol.internal.net.management.LegacyXmlGatewayHelper;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.management.PagedTopicModel;
+import com.tangosol.internal.net.topic.impl.paged.management.SubscriberGroupModel;
+import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
+import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
+import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
@@ -78,11 +85,12 @@ import java.rmi.server.RMISocketFactory;
 * @since Coherence 3.3
 * @author gg 2007/01/02
 */
+@SuppressWarnings("rawtypes")
 public abstract class MBeanHelper
         extends Base
     {
     /**
-    * Return the the default domain name as configured in the Coherence
+    * Return the default domain name as configured in the Coherence
     * operational configuration descriptor ("default-domain-name" element).
     *
     * @return the default domain name
@@ -487,6 +495,190 @@ public abstract class MBeanHelper
     public static void unregisterCacheMBean(NamedCache cache, String sContext)
         {
         unregisterCacheMBean(cache.getCacheService(), cache.getCacheName(), sContext);
+        }
+
+    /**
+    * Register the specified PagedTopic with the cluster registry.
+    *
+    * @param service     the PagedTopic Service that the topic belongs to
+    * @param sTopicName  the cache name
+    * @param topic       the topic object to register
+    */
+    public static void registerPagedTopicMBean(CacheService service, String sTopicName, PagedTopic topic)
+        {
+// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
+
+//        try
+//            {
+//            Cluster  cluster  = service.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                String sName = Registry.PAGED_TOPIC_TYPE +
+//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+//                    ",name=" + sTopicName;
+//
+//                sName = registry.ensureGlobalName(sName);
+//                registry.register(sName, new PagedTopicModel(topic));
+//                }
+//            }
+//        catch (Throwable e)
+//            {
+//            Logger.warn("Failed to register topic \"" + sTopicName + "\"; " + e);
+//            }
+        }
+
+    /**
+    * Unregister all managed objects related to the given topic name
+    * from the cluster registry.
+    *
+     * @param sTopicName    the topic name
+     * @param sServiceName  the service name
+    */
+    public static void unregisterPagedTopicMBean(String sTopicName, String sServiceName)
+        {
+// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
+
+//        try
+//            {
+//            Cluster  cluster  = CacheFactory.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                Member member   = cluster.getLocalMember();
+//                String sPattern = Registry.PAGED_TOPIC_TYPE
+//                    + "," + Registry.KEY_SERVICE + sServiceName
+//                    + ",name="    + sTopicName +
+//                    (member == null ? "" : ",nodeId=" + member.getId());
+//                registry.unregister(sPattern);
+//                unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
+//                }
+//            }
+//        catch (Throwable e) {}
+        }
+
+    /**
+    * Register the specified PagedTopic subscriber group with the cluster registry.
+    *
+    * @param service     the PagedTopic Service that the topic belongs to
+    * @param sTopicName  the cache name
+    * @param sGroupName  the subscriber group name
+    * @param statistics  the paged topic statistics
+    */
+    public static void registerSubscriberGroupMBean(CacheService service, String sTopicName,
+            String sGroupName, PagedTopicStatistics statistics)
+        {
+// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
+
+//        try
+//            {
+//            Cluster  cluster  = service.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                String sName = Registry.SUBSCRIBER_GROUP_TYPE +
+//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+//                    ",topic=" + sTopicName + ",name=" + sGroupName;
+//
+//                sName = registry.ensureGlobalName(sName);
+//                if (!registry.isRegistered(sName))
+//                    {
+//                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName));
+//                    }
+//                }
+//            }
+//        catch (Throwable e)
+//            {
+//            Logger.warn("Failed to register subscriber group \"" + sGroupName
+//                        + "\" in topic \"" + sTopicName + "\"; " + e);
+//            }
+        }
+
+    /**
+    * Unregister all managed objects related to the given topic subscriber group name
+    * from the cluster registry.
+    *
+    * @param sGroupName    the subscriber group name
+    * @param sTopicName    the topic name
+    * @param sServiceName  the service name
+    */
+    public static void unregisterSubscriberGroupMBean(String sGroupName, String sTopicName, String sServiceName)
+        {
+// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
+
+//        try
+//            {
+//            Cluster  cluster  = CacheFactory.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                Member member   = cluster.getLocalMember();
+//                String sPattern = Registry.SUBSCRIBER_GROUP_TYPE
+//                    + "," + Registry.KEY_SERVICE + sServiceName
+//                    + ",topic="    + sTopicName + ",name=" + sGroupName +
+//                    (member == null ? "" : ",nodeId=" + member.getId());
+//                registry.unregister(sPattern);
+//                }
+//            }
+//        catch (Throwable e) {}
+        }
+
+    /**
+    * Register the specified PagedTopic subscriber with the cluster registry.
+    *
+    * @param service     the PagedTopic Service that the topic belongs to
+    * @param sTopicName  the cache name
+    * @param subscriber  the topic subscriber
+    */
+    public static void registerSubscriberMBean(CacheService service, String sTopicName, PagedTopicSubscriber<?> subscriber)
+        {
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sName = Registry.SUBSCRIBER_TYPE +
+                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+                    ",topic=" + sTopicName + ",id=" + subscriber.getId();
+
+                if (!registry.isRegistered(sName))
+                    {
+                    registry.register(sName, new SubscriberModel(subscriber));
+                    }
+                }
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register subscriber \"" + subscriber.getId()
+                        + "\" in topic \"" + sTopicName + "\"; " + e);
+            }
+        }
+
+    /**
+    * Unregister all managed objects related to the given topic subscriber
+    * from the cluster registry.
+    *
+    * @param nSubscriberId  the subscriber id
+    * @param sTopicName     the topic name
+    * @param sServiceName   the service name
+    */
+    public static void unregisterSubscriberMBean(long nSubscriberId, String sTopicName, String sServiceName)
+        {
+        try
+            {
+            Cluster  cluster  = CacheFactory.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sPattern = Registry.SUBSCRIBER_TYPE +
+                    "," + Registry.KEY_SERVICE + sServiceName +
+                    ",topic=" + sTopicName + ",id=" + nSubscriberId;
+
+                registry.unregister(sPattern);
+                }
+            }
+        catch (Throwable e) {}
         }
 
     /**

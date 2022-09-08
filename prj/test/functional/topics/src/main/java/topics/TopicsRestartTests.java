@@ -69,7 +69,7 @@ public class TopicsRestartTests
         {
         String             sTopicName = "test-topic";
         NamedTopic<String> topic      = s_session.getTopic(sTopicName);
-        PagedTopicCaches   caches     = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
+        PagedTopicCaches   caches     = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
         LocalPlatform      platform   = LocalPlatform.get();
 
         // start a storage disabled member

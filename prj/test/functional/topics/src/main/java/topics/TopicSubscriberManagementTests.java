@@ -119,7 +119,7 @@ public class TopicSubscriberManagementTests
         OwnershipListener       listenerTwo   = new OwnershipListener();
         OwnershipListener       listenerThree = new OwnershipListener();
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -156,7 +156,7 @@ public class TopicSubscriberManagementTests
         OwnershipListener       listenerThree = new OwnershipListener();
 
         System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -250,7 +250,7 @@ public class TopicSubscriberManagementTests
         OwnershipListener       listenerTwo   = new OwnershipListener();
         OwnershipListener       listenerThree = new OwnershipListener();
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -337,7 +337,7 @@ public class TopicSubscriberManagementTests
         OwnershipListener       listenerTwo   = new OwnershipListener();
         OwnershipListener       listenerThree = new OwnershipListener();
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -422,7 +422,7 @@ public class TopicSubscriberManagementTests
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -519,7 +519,7 @@ public class TopicSubscriberManagementTests
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -591,7 +591,7 @@ public class TopicSubscriberManagementTests
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -655,7 +655,7 @@ public class TopicSubscriberManagementTests
             {
             Eventually.assertDeferred(() -> member.invoke(new IsCoherenceRunning()), is(true));
 
-            try (PagedTopicCaches             caches        = new PagedTopicCaches(topic.getName(), service);
+            try (PagedTopicCaches             caches        = new PagedTopicCaches(topic.getName(), service, null);
                  PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
                  PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerTwo)))
                 {

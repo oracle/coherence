@@ -31,6 +31,8 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
+import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
+import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
@@ -40,6 +42,7 @@ import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
 
+import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.partition.ObservableSplittingBackingMap;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
@@ -241,7 +244,7 @@ public class PagedTopicPartition
         Page.Key                keyPage       = entry.getKey();
         int                     nChannel      = keyPage.getChannelId();
         long                    lPage         = keyPage.getPageId();
-        PagedTopic.Dependencies configuration = getDependencies();
+        PagedTopicDependencies configuration = getDependencies();
         int                     cbCapPage     = configuration.getPageCapacity();
         long                    cbCapServer   = configuration.getServerCapacity();
 
@@ -350,6 +353,8 @@ public class PagedTopicPartition
 
         // update the page entry with the modified page
         entry.setValue(page);
+
+        getStatistics().onPublished(nChannel, cAccepted, new PagedPosition(keyPage.getPageId(), page.getTail()));
 
         return new OfferProcessor.Result(status, cAccepted, cbRemainingCapacity, nTailStart + 1);
         }
@@ -578,7 +583,7 @@ public class PagedTopicPartition
      */
     public int getChannelCount()
         {
-        return getDependencies().getChannelCount(getPartitionCount());
+        return getDependencies().getChannelCount();
         }
 
     /**
@@ -694,7 +699,7 @@ public class PagedTopicPartition
      */
     public boolean removePageIfNotRetainingElements(int nChannel, long lPage)
         {
-        PagedTopic.Dependencies dependencies = getDependencies();
+        PagedTopicDependencies  dependencies = getDependencies();
 
         if (dependencies.isRetainConsumed())
             {
@@ -852,6 +857,12 @@ public class PagedTopicPartition
                 page  = lPage == Page.NULL_PAGE ? null : enlistPage(nChannel, lPage);
                 }
             }
+
+        String sGroupName   = subscriberGroupId.getGroupName();
+        String sTopicName   = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
+        String sServiceName = f_ctxManager.getCacheService().getInfo().getServiceName();
+        getStatistics().removeSubscriberGroupStatistics(sGroupName);
+        MBeanHelper.unregisterSubscriberGroupMBean(sGroupName, sTopicName, sServiceName);
         }
 
     /**
@@ -876,10 +887,10 @@ public class PagedTopicPartition
         boolean                 fReconnect               = processor.isReconnect();
         boolean                 fCreateGroupOnly         = processor.isCreateGroupOnly();
         BackingMapContext       ctxSubscriptions         = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
-        PagedTopic.Dependencies dependencies             = getDependencies();
+        PagedTopicDependencies  dependencies             = getDependencies();
         SubscriberGroupId       subscriberGroupId        = key.getGroupId();
         boolean                 fAnonymous               = subscriberGroupId.getMemberTimestamp() != 0;
-        long[]                  alResult                 = new long[getChannelCount()];
+        long[]                  alResult                 = new long[dependencies.getChannelCount()];
         int                     cParts                   = getPartitionCount();
         int                     nSyncPartition           = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
         boolean                 fSyncPartition           = key.getPartitionId() == nSyncPartition;
@@ -1138,6 +1149,12 @@ public class PagedTopicPartition
             entrySub.setValue(subscription);
             }
 
+        String               sGroupName   = subscriberGroupId.getGroupName();
+        String               sTopicName   = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
+        CacheService         service      = f_ctxManager.getCacheService();
+        PagedTopicStatistics statistics = getStatistics();
+        MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, sGroupName, statistics);
+
         return alResult;
         }
 
@@ -1229,7 +1246,7 @@ public class PagedTopicPartition
     @SuppressWarnings("rawtypes")
     public void heartbeat(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry)
         {
-        PagedTopic.Dependencies dependencies = getDependencies();
+        PagedTopicDependencies  dependencies = getDependencies();
         SubscriberInfo          info         = entry.isPresent() ? entry.getValue() : new SubscriberInfo();
         long                    cMillis      = dependencies.getSubscriberTimeoutMillis();
 
@@ -1383,11 +1400,16 @@ public class PagedTopicPartition
 
         // if nPos is the past last element in the page and the page has been sealed
         // then the subscriber has exhausted this page
+        PollProcessor.Result result;
+        long                 lPageNext = lPage;
+        int                  nPosNext  = nPos;
+
         if (nPos > nPosTail && page.isSealed())
             {
             page = enlistPage(nChannel, lPage);
 
-            long lPageNext = page.getNextPartitionPage();
+            lPageNext = page.getNextPartitionPage();
+            nPosNext  = 0;
 
             if (lPageNext == Page.NULL_PAGE)
                 {
@@ -1402,7 +1424,7 @@ public class PagedTopicPartition
                 subscription.setPage(lPageNext);
                 subscription.setPosition(0);
                 }
-            return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, nPos, listValues);
+            result = new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, nPos, listValues);
             }
         else
             {
@@ -1414,8 +1436,17 @@ public class PagedTopicPartition
                 // that position is currently empty; register for notification when it is set
                 requestInsertionNotification(enlistPage(nChannel, lPage), nNotifierId, nChannel);
                 }
-            return new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues);
+            result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues);
             }
+
+        if (!subscriberId.isAnonymous())
+            {
+            String        sGroupName = keySubscription.getGroupId().getGroupName();
+            PagedPosition posHead    = new PagedPosition(lPageNext, nPosNext);
+            getStatistics().getSubscriberGroupStatistics(sGroupName).onPolled(nChannel, listValues.size(), posHead);
+            }
+
+        return result;
         }
 
     /**
@@ -2231,15 +2262,25 @@ public class PagedTopicPartition
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Obtain the {@link PagedTopic.Dependencies} for this topic.
+     * Obtain the {@link PagedTopicDependencies } for this topic.
      *
-     * @return the {@link PagedTopic.Dependencies} for this topic
+     * @return the {@link PagedTopicDependencies } for this topic
      */
-    public PagedTopic.Dependencies getDependencies()
+    public PagedTopicDependencies  getDependencies()
         {
-        CacheService service = f_ctxManager.getCacheService();
+        PagedTopicBackingMapManager mgr = (PagedTopicBackingMapManager) f_ctxManager.getManager();
+        return mgr.getTopicDependencies(f_sName);
+        }
 
-        return service.getResourceRegistry().getResource(PagedTopic.Dependencies.class, f_sName);
+    /**
+     * Obtain the {@link PagedTopicStatistics } for this topic.
+     *
+     * @return the {@link PagedTopicStatistics } for this topic
+     */
+    protected PagedTopicStatistics getStatistics()
+        {
+        PagedTopicBackingMapManager mgr = (PagedTopicBackingMapManager) f_ctxManager.getManager();
+        return mgr.getStatistics(f_sName);
         }
 
     /**

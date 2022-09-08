@@ -181,6 +181,16 @@ public interface CacheService
     public static final String TYPE_DISTRIBUTED = "DistributedCache";
 
     /**
+    * PagedTopic service type constant.
+    * <p>
+    * DistributedTopic service provides the means for handling a collection
+    * of paged topics across a cluster with concurrent access control.
+    *
+    * @see Cluster#ensureService(String, String)
+    */
+    public static final String TYPE_PAGED_TOPIC = "PagedTopic";
+
+    /**
     * LocalCache service type constant.
     * <p>
     * LocalCache service provides the means for handling a collection
