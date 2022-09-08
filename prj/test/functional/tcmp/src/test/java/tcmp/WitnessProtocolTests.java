@@ -44,10 +44,13 @@ public class WitnessProtocolTests
         int cServers = 3;
         Properties propsClient = new Properties();
         propsClient.put("coherence.distributed.localstorage", "false");
-        CoherenceClusterMember[] servers = ClusteringTests.startServers("server-witness", "witness", null, cServers);
+        propsClient.put("coherence.cluster", "testKillClientBeforeServer");
+        Properties propsServer = new Properties();
+        propsServer.put("coherence.cluster", "testKillClientBeforeServer");
+        CoherenceClusterMember[] servers = ClusteringTests.startServers("server-witness", "witness", propsServer, cServers);
         CoherenceClusterMember   client  = startCacheServer("client-witness", "witness", null, propsClient);
 
-        Eventually.assertThat(invoking(servers[cServers-1]).getClusterSize(), is(5));
+        Eventually.assertThat(invoking(servers[cServers-1]).getClusterSize(), is(4));
 
         UID uidClient = client.getLocalMemberUID();
         client.invoke(new ConnectionDestroyer(2));
@@ -73,14 +76,17 @@ public class WitnessProtocolTests
         int cServers = 3;
         Properties propsClient = new Properties();
         propsClient.put("coherence.distributed.localstorage", "false");
-        CoherenceClusterMember[] servers = ClusteringTests.startServers("server-witness2", "witness2", null, cServers);
-        Eventually.assertThat(invoking(servers[cServers-1]).getClusterSize(), is(4));
+        propsClient.put("coherence.cluster", "testKillBadServer");
+        Properties propsServer = new Properties();
+        propsServer.put("coherence.cluster", "testKillBadServer");
+        CoherenceClusterMember[] servers = ClusteringTests.startServers("server-witness2", "witness2", propsServer, cServers);
+        Eventually.assertThat(invoking(servers[cServers-1]).getClusterSize(), is(3));
 
-        CoherenceClusterMember badServer = startCacheServer("bad-server2", "witness2", null, null);
-        Eventually.assertThat(invoking(badServer).getClusterSize(), is(5));
+        CoherenceClusterMember badServer = startCacheServer("bad-server2", "witness2", null, propsServer);
+        Eventually.assertThat(invoking(badServer).getClusterSize(), is(4));
 
         CoherenceClusterMember client = startCacheServer("client-witness2", "witness2", null, propsClient);
-        Eventually.assertThat(invoking(client).getClusterSize(), is(6));
+        Eventually.assertThat(invoking(client).getClusterSize(), is(5));
 
         UID uidServer = badServer.getLocalMemberUID();
         client.invoke(new ConnectionDestroyer(badServer.getLocalMemberId()));
