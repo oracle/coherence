@@ -7,46 +7,47 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.util.Duration;
-
 import com.tangosol.internal.util.Primes;
-
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.topic.BinaryElementCalculator;
 import com.tangosol.net.topic.NamedTopic;
 
 /**
- * The configuration for a {@link PagedTopic}.
+ * A default implementation of {@link PagedTopicDependencies}.
  *
- * @author jk 2015.05.26
- * @since Coherence 14.1.1
+ * @author Jonathan Knight 2002.09.10
+ * @since 23.03
  */
-public class Configuration
-        implements PagedTopic.Dependencies
+public class DefaultPagedTopicDependencies
+        implements PagedTopicDependencies
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Default constructor.
+     * Create a {@link DefaultPagedTopicDependencies}.
+     *
+     * @param cPartition  the partition count of the underlying service
      */
-    public Configuration()
+    public DefaultPagedTopicDependencies(int cPartition)
         {
+        m_cPartition = cPartition;
         }
-
-    // ----- accessor methods -----------------------------------------------
 
     /**
      * Returns the number of channels in the topic, or {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
      * to indicate that the topic uses the default number of channels.
      *
-     * @param cPartition  the topic service partition count used to compute the
-     *                    default channel count
-     *
      * @return the number of channels in the topic
      */
     @Override
-    public int getChannelCount(int cPartition)
+    public int getChannelCount()
         {
-        return m_cChannel == PagedTopic.DEFAULT_CHANNEL_COUNT ? computeChannelCount(cPartition) : m_cChannel;
+        int cChannel = m_cChannel;
+        if (cChannel == PagedTopic.DEFAULT_CHANNEL_COUNT)
+            {
+            cChannel = m_cChannel = computeChannelCount(m_cPartition);
+            }
+        return cChannel;
         }
 
     /**
@@ -185,6 +186,11 @@ public class Configuration
         return m_fRetainConsumed;
         }
 
+    /**
+     * Set the flag indicating whether the topic retains consumed messages.
+     *
+     * @param fRetainElements  {@code true} to retain consumed messages
+     */
     public void setRetainConsumed(boolean fRetainElements)
         {
         m_fRetainConsumed = fRetainElements;
@@ -206,7 +212,7 @@ public class Configuration
      * Set the number of milliseconds within which a subscriber must issue a heartbeat or
      * be forcefully considered closed.
      * <p>
-     * An timeout time of less than zero will never timeout.
+     * An timeout time of less than zero will never time out.
      * <p>
      * The minimum allowed timeout time is one second.
      *
@@ -284,11 +290,6 @@ public class Configuration
         m_fAllowUnownedCommits = f;
         }
 
-    /**
-     * Return the calculator used to calculate element sizes.
-     *
-     * @return the calculator used to calculate element sizes
-     */
     @Override
     public NamedTopic.ElementCalculator getElementCalculator()
         {
@@ -305,13 +306,6 @@ public class Configuration
         m_calculator = calculator == null ? BinaryElementCalculator.INSTANCE : calculator;
         }
 
-    /**
-     * Returns the maximum amount of time publishers and subscribers will
-     * attempt to reconnect after being disconnected.
-     *
-     * @return the maximum amount of time publishers and subscribers will
-     *         attempt to reconnect after being disconnected
-     */
     @Override
     public long getReconnectTimeoutMillis()
         {
@@ -330,13 +324,6 @@ public class Configuration
         m_cReconnectTimeoutMillis = cMillis <= 0 ? 0 : Math.max(1000L, cMillis);
         }
 
-    /**
-     * Return the amount of time publishers and subscribers will wait between
-     * attempts to reconnect after being disconnected.
-     *
-     * @return the maximum amount of time publishers and subscribers will
-     *         wait between attempts to reconnect after being disconnected
-     */
     @Override
     public long getReconnectRetryMillis()
         {
@@ -391,9 +378,12 @@ public class Configuration
                 "AllowUnownedCommits=" + m_fAllowUnownedCommits;
         }
 
-    // ----- constants ------------------------------------------------------
-
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The partition count on the underlying cache service.
+     */
+    private final int m_cPartition;
 
     /**
      * The number of channels in this topic.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -42,7 +42,17 @@ public class DistributedScheme
      */
     public DistributedScheme()
         {
-        m_serviceDependencies = new DefaultPartitionedCacheDependencies();
+        this(new DefaultPartitionedCacheDependencies());
+        }
+
+    /**
+     * Constructs a {@link DistributedScheme}.
+     *
+     * @param deps the {@link PartitionedCacheDependencies} to use
+     */
+    protected DistributedScheme(PartitionedCacheDependencies deps)
+        {
+        m_serviceDependencies = deps;
         m_mgrBundle           = null;
 
         // the default BackingMapScheme is a LocalScheme
@@ -119,7 +129,7 @@ public class DistributedScheme
     // ----- DistributedScheme methods --------------------------------------
 
     /**
-     * Return the {@link BackupMapConfig} which which is used to configure
+     * Return the {@link BackupMapConfig} which is used to configure
      * the backup map.
      *
      * @return the backup map configuration
@@ -148,7 +158,7 @@ public class DistributedScheme
         }
 
     /**
-     * Set the {@link BackupMapConfig} which which is used to configure
+     * Set the {@link BackupMapConfig} which is used to configure
      * a backup map.
      *
      * @param config  the backup map configuration

@@ -7,10 +7,20 @@
 
 package com.tangosol.net;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
+
+import com.tangosol.net.topic.TopicBackingMapManager;
+
 /**
  * A {@link TopicService} which provides globally ordered topics.
  */
 public interface PagedTopicService
         extends TopicService
     {
+    /**
+     * Return the {@link TopicBackingMapManager} for this service.
+     *
+     * @return the {@link TopicBackingMapManager} for this service
+     */
+    PagedTopicBackingMapManager getTopicBackingMapManager();
     }

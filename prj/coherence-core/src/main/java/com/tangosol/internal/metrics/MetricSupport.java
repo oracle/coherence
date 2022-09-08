@@ -44,6 +44,7 @@ import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
+import javax.management.openmbean.TabularType;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -57,6 +58,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -372,7 +374,8 @@ public class MetricSupport
                                                                 objectName,
                                                                 mBeanInfo,
                                                                 entry.getValue(),
-                                                                mapTag);
+                                                                mapTag,
+                                                                proxy);
                 setMetric.addAll(list);
                 }
             }
@@ -395,7 +398,7 @@ public class MetricSupport
             {
             if (ATTRIBUTE_FILTER.evaluate(attributeInfo))
                 {
-                String sTagName = getMetric("metrics.tag", attributeInfo);
+                String sTagName = getMetric(MetricsTag.DESCRIPTOR_KEY, attributeInfo);
 
                 if (sTagName != null)
                     {
@@ -476,7 +479,8 @@ public class MetricSupport
                                                      ObjectName          objectName,
                                                      MBeanInfo           mBeanInfo,
                                                      MBeanAttributeInfo  attributeInfo,
-                                                     Map<String, String> mapTag)
+                                                     Map<String, String> mapTag,
+                                                     MBeanServerProxy    proxy)
         {
         List<MBeanMetric> listMetric     = new ArrayList<>();
         String            sAttribType    = attributeInfo.getType();
@@ -500,6 +504,23 @@ public class MetricSupport
                 listMetric.addAll(getMetricsForCompositeType(sMBeanName, objectName, attributeInfo, mapTag,
                                                              scope, function, (CompositeType) openType));
                 }
+            else if (openType instanceof SimpleType<?>)
+                {
+                MBeanMetric metric = createSimpleMetric(sMBeanName, objectName, attributeInfo,
+                        mapTag, asLabels, scope, sAttributeName);
+                // If the metric value is not set then do not create a metric from it.
+                // This stops us creating metrics for meaningless attributes, for example
+                // creating metrics for service persistence attributes on a Proxy service.
+                if (shouldInclude(metric))
+                    {
+                    listMetric.add(metric);
+                    }
+                }
+            else if (openType instanceof TabularType)
+                {
+                listMetric.addAll(getMetricsForTabularType(sMBeanName, objectName, attributeInfo, mapTag,
+                        scope, (TabularType) openType, proxy));
+                }
             }
         else if (TabularDataSupport.class.getName().equals(sAttribType))
             {
@@ -507,30 +528,8 @@ public class MetricSupport
             }
         else
             {
-            String              sMetricName  = createMetricName(objectName, attributeInfo);
-            String              sDescription = attributeInfo.getDescription();
-            Map<String, String> mapMetricTag;
-
-            if (asLabels == null || asLabels.length == 0)
-                {
-                mapMetricTag = mapTag;
-                }
-            else
-                {
-                mapMetricTag = new HashMap<>(mapTag);
-                for (int i = 0; i < asLabels.length; i++)
-                    {
-                    String sKey = asLabels[i++];
-                    if (i < asLabels.length)
-                        {
-                        mapMetricTag.put(sKey, asLabels[i]);
-                        }
-                    }
-                }
-
-            MBeanMetric metric = createSimpleMetric(sMBeanName, sMetricName, sAttributeName,
-                                                    scope, mapMetricTag, sDescription);
-
+            MBeanMetric metric = createSimpleMetric(sMBeanName, objectName, attributeInfo,
+                                                    mapTag, asLabels, scope, sAttributeName);
             // If the metric value is not set then do not create a metric from it.
             // This stops us creating metrics for meaningless attributes, for example
             // creating metrics for service persistence attributes on a Proxy service.
@@ -541,6 +540,38 @@ public class MetricSupport
             }
 
         return listMetric;
+        }
+
+    private MBeanMetric createSimpleMetric(String sMBeanName,
+                                           ObjectName objectName,
+                                           MBeanAttributeInfo  attributeInfo,
+                                           Map<String, String> mapTag,
+                                           String[] asLabels,
+                                           MBeanMetric.Scope scope,
+                                           String sAttributeName)
+        {
+        String              sMetricName  = createMetricName(objectName, attributeInfo);
+        String              sDescription = attributeInfo.getDescription();
+        Map<String, String> mapMetricTag;
+
+        if (asLabels == null || asLabels.length == 0)
+            {
+            mapMetricTag = mapTag;
+            }
+        else
+            {
+            mapMetricTag = new HashMap<>(mapTag);
+            for (int i = 0; i < asLabels.length; i++)
+                {
+                String sKey = asLabels[i++];
+                if (i < asLabels.length)
+                    {
+                    mapMetricTag.put(sKey, asLabels[i]);
+                    }
+                }
+            }
+
+        return createSimpleMetric(sMBeanName, sMetricName, sAttributeName, scope, mapMetricTag, sDescription);
         }
 
     /**
@@ -564,6 +595,61 @@ public class MetricSupport
         return metric.getName().startsWith("Coherence.Cache.")
                && !metric.getName().startsWith("Coherence.Cache.Store")
                && !metric.getName().startsWith("Coherence.Cache.Queue");
+        }
+
+    /**
+     * Obtain the metrics for an attribute.
+     * <p>
+     * Some attributes (for example {@link CompositeData} types) may produce
+     * multiple metrics.
+     *
+     * @param sMBeanName     the MBean name
+     * @param objectName     the MBean's {@link ObjectName}
+     * @param attributeInfo  the {@link MBeanAttributeInfo} of the attribute
+     * @param mapTag         the map of tags to apply to the metrics
+     * @param scope          the scope of the metric
+     * @param tabularType    the table type
+     * @param proxy          the {@link MBeanServerProxy}
+     *
+     * @return the {@link List} of metrics from the attribute or an empty list of the attribute
+     * does not produce any metrics
+     */
+    @SuppressWarnings("unchecked")
+    private List<MBeanMetric> getMetricsForTabularType(String                                   sMBeanName,
+                                                       ObjectName                               objectName,
+                                                       MBeanAttributeInfo                       attributeInfo,
+                                                       Map<String, String>                      mapTag,
+                                                       MBeanMetric.Scope                        scope,
+                                                       TabularType                              tabularType,
+                                                       MBeanServerProxy                         proxy)
+        {
+        List<MBeanMetric> listMetrics      = new ArrayList<>();
+        String            sAttributeName   = attributeInfo.getName();
+        TabularData       tabularData      = (TabularData) proxy.getAttribute(sMBeanName, sAttributeName);
+        List<String>      listTagNames     = tabularType.getIndexNames();
+        Set<List<?>>      setListTagValues = (Set<List<?>>) tabularData.keySet();
+        String[]          asMetricColumns  = (String[]) attributeInfo.getDescriptor().getFieldValue("metrics.columns");
+
+        for (String sColumn : asMetricColumns)
+            {
+            for (List<?> listTag : setListTagValues)
+                {
+                Map<String, String> mapTableTags = new LinkedHashMap<>(mapTag);
+                for (int i = 0; i < listTag.size(); i++)
+                    {
+                    addTag(mapTableTags, listTagNames.get(i), listTag.get(i));
+                    }
+                Object[] aoKey = listTag.toArray(new Object[0]);
+
+                Function<MBeanServerProxy,CompositeData> fn = mbsp ->
+                        ((TabularData) mbsp.getAttribute(sMBeanName, sAttributeName)).get(aoKey);
+
+                String sMetricName = createMetricName(objectName, attributeInfo) + '.' + sColumn;
+                MBeanMetric metric = createCompositeMetric(sMBeanName, sMetricName, fn, sColumn, scope, mapTableTags, "");
+                listMetrics.add(metric);
+                }
+            }
+        return listMetrics;
         }
 
     /**
@@ -668,13 +754,13 @@ public class MetricSupport
      *
      * @return  a {@link CompositeData} MBean metric
      */
-    private MBeanMetric createCompositeMetric(String                                       sMBeanName,
-                                                 String                                    sMetricName,
-                                                 Function<MBeanServerProxy, CompositeData> supplierParent,
-                                                 String                                    sKey,
-                                                 MBeanMetric.Scope                         scope,
-                                                 Map<String, String>                       mapTag,
-                                                 String                                    sHelp)
+    private MBeanMetric createCompositeMetric(String                                    sMBeanName,
+                                              String                                    sMetricName,
+                                              Function<MBeanServerProxy, CompositeData> supplierParent,
+                                              String                                    sKey,
+                                              MBeanMetric.Scope                         scope,
+                                              Map<String, String>                       mapTag,
+                                              String                                    sHelp)
         {
         MBeanMetric.Identifier identifier = new MBeanMetric.Identifier(scope, sMetricName, mapTag);
         return new CompositeMetric(identifier, sMBeanName, supplierParent, sKey, sHelp, f_suppMBeanServerProxy);
@@ -711,7 +797,7 @@ public class MetricSupport
      */
     private String createMetricName(ObjectName objectName, MBeanAttributeInfo attributeInfo)
         {
-        String sMetricName = getMetric("metrics.value", attributeInfo);
+        String sMetricName = getMetric(MetricsValue.DESCRIPTOR_KEY, attributeInfo);
         String sPrefix     = s_mapMetricPrefix.entrySet()
                                     .stream()
                                     .filter(e -> e.getKey().apply(objectName))

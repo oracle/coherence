@@ -26,8 +26,9 @@ import com.oracle.coherence.common.base.NonBlocking;
 
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.io.ExternalizableLite;
@@ -46,6 +47,7 @@ import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
+import com.tangosol.net.topic.TopicBackingMapManager;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.TaskDaemon;
@@ -136,15 +138,16 @@ public class TopicsRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldPublishAfterServiceRestart() throws Exception
         {
-        NamedTopic<Message>     topic        = ensureTopic("binary-test");
-        LocalPlatform           platform     = LocalPlatform.get();
-        DistributedCacheService service      = (DistributedCacheService) topic.getService();
-        PagedTopic.Dependencies dependencies = service.getResourceRegistry().getResource(PagedTopic.Dependencies.class, topic.getName());
-        int                     cbPage       = dependencies.getPageCapacity();
-        int                     cMsgPerPage  = 10;
-        int                     cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
-        int                     cbMessage    = cbPage / cMsgPerPage;
-        String                  sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
+        NamedTopic<Message>         topic        = ensureTopic("binary-test");
+        LocalPlatform               platform     = LocalPlatform.get();
+        DistributedCacheService     service      = (DistributedCacheService) topic.getService();
+        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+        PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
+        int                         cbPage       = dependencies.getPageCapacity();
+        int                         cMsgPerPage  = 10;
+        int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
+        int                         cbMessage    = cbPage / cMsgPerPage;
+        String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
@@ -272,15 +275,16 @@ public class TopicsRecoveryTests
     @Test
     public void shouldSubscribeWithAnonymousSubscriberAfterServiceRestart() throws Exception
         {
-        NamedTopic<Message>     topic        = ensureTopic("binary-test");
-        LocalPlatform           platform     = LocalPlatform.get();
-        DistributedCacheService service      = (DistributedCacheService) topic.getService();
-        PagedTopic.Dependencies dependencies = service.getResourceRegistry().getResource(PagedTopic.Dependencies.class, topic.getName());
-        int                     cbPage       = dependencies.getPageCapacity();
-        int                     cMsgPerPage  = 10;
-        int                     cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
-        int                     cbMessage    = cbPage / cMsgPerPage;
-        String                  sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
+        NamedTopic<Message>         topic        = ensureTopic("binary-test");
+        LocalPlatform               platform     = LocalPlatform.get();
+        DistributedCacheService     service      = (DistributedCacheService) topic.getService();
+        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+        PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
+        int                         cbPage       = dependencies.getPageCapacity();
+        int                         cMsgPerPage  = 10;
+        int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
+        int                         cbMessage    = cbPage / cMsgPerPage;
+        String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                                                              WellKnownAddress.loopback(),
@@ -349,15 +353,16 @@ public class TopicsRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldSubscribeWithGroupSubscriberAfterServiceRestart() throws Exception
         {
-        NamedTopic<Message>     topic        = ensureTopic("binary-test");
-        LocalPlatform           platform     = LocalPlatform.get();
-        DistributedCacheService service      = (DistributedCacheService) topic.getService();
-        PagedTopic.Dependencies dependencies = service.getResourceRegistry().getResource(PagedTopic.Dependencies.class, topic.getName());
-        int                     cbPage       = dependencies.getPageCapacity();
-        int                     cMsgPerPage  = 10;
-        int                     cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
-        int                     cbMessage    = cbPage / cMsgPerPage;
-        String                  sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
+        NamedTopic<Message>         topic        = ensureTopic("binary-test");
+        LocalPlatform               platform     = LocalPlatform.get();
+        DistributedCacheService     service      = (DistributedCacheService) topic.getService();
+        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+        PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
+        int                         cbPage       = dependencies.getPageCapacity();
+        int                         cMsgPerPage  = 10;
+        int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
+        int                         cbMessage    = cbPage / cMsgPerPage;
+        String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                                                              WellKnownAddress.loopback(),
@@ -653,8 +658,8 @@ public class TopicsRecoveryTests
             try
                 {
                 NamedTopic<Message>     topic        = m_publisher.getNamedTopic();
-                PagedTopicCaches        caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService());
-                PagedTopic.Dependencies dependencies = caches.getDependencies();
+                PagedTopicCaches        caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+                PagedTopicDependencies  dependencies = caches.getDependencies();
                 int                     cbPage       = dependencies.getPageCapacity();
                 int                     cMsgPerPage  = 10;
                 int                     cMsgTotal    = cMsgPerPage * caches.getPartitionCount() * m_cPagesPerPartition;

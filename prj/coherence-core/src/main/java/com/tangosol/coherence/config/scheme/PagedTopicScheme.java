@@ -6,8 +6,6 @@
  */
 package com.tangosol.coherence.config.scheme;
 
-import com.oracle.coherence.common.base.Logger;
-
 import com.oracle.coherence.common.net.InetAddresses;
 
 import com.oracle.coherence.common.util.Duration;
@@ -31,13 +29,20 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.config.injection.SimpleInjector;
 
-import com.tangosol.internal.net.topic.impl.paged.Configuration;
+import com.tangosol.internal.net.service.grid.DefaultPagedTopicServiceDependencies;
+import com.tangosol.internal.net.service.grid.PartitionedCacheDependencies;
+import com.tangosol.internal.net.topic.impl.paged.DefaultPagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
+import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.Service;
@@ -72,18 +77,14 @@ public class PagedTopicScheme
         extends DistributedScheme
         implements NamedTopicScheme
     {
-    // ----- AbstractServiceScheme methods ----------------------------------
+    // ----- constructors ---------------------------------------------------
 
     /**
-     * DefaultServiceName to use if none configured.
-     *
-     * @return default service name
+     * Constructs a {@link PagedTopicScheme}.
      */
-    @Override
-    protected String getDefaultServiceName()
+    public PagedTopicScheme()
         {
-        // override default service type name of "DistributedCache"
-        return DEFAULT_SERVICE_NAME;
+        super(new DefaultPagedTopicServiceDependencies());
         }
 
     // ----- ServiceScheme interface  ---------------------------------------
@@ -94,7 +95,23 @@ public class PagedTopicScheme
     @Override
     public String getServiceType()
         {
-        return TopicService.TYPE_DEFAULT;
+        return CacheService.TYPE_PAGED_TOPIC;
+        }
+
+    // ----- BackingMapManagerBuilder interface -----------------------------
+
+    @Override
+    public BackingMapManager realizeBackingMapManager(ConfigurableCacheFactory ccf)
+        {
+        if (ccf instanceof ExtensibleConfigurableCacheFactory)
+            {
+            return new PagedTopicBackingMapManager((ExtensibleConfigurableCacheFactory) ccf);
+            }
+        else
+            {
+            throw new IllegalArgumentException("The BackingMapManager cannot be must be instantiated"
+                                               + "with a given a ExtensibleConfigurableCacheFactory");
+            }
         }
 
     // ----- TopicScheme methods --------------------------------------------
@@ -120,7 +137,7 @@ public class PagedTopicScheme
             LocalScheme scheme = new LocalScheme();
 
             // NOTE: we don't set the scheme's high-units as topic data isn't subject to eviction
-            // but we do set the calculator and factor so that the topic impl can evaluate the size
+            // but, we do set the calculator and factor so that the topic impl can evaluate the size
             // and throttle publishers accordingly
             scheme.setUnitCalculatorBuilder(getUnitCalculatorBuilder(resolver));
             long cbHigh = getHighUnits(resolver);
@@ -323,7 +340,7 @@ public class PagedTopicScheme
     /**
      * Set whether to retain consumed values.
      *
-     * @param expr  the retain consumed values expression
+     * @param expr  the expression to produce the retain-consumed values flag
      */
     @Injectable("retain-consumed")
     public void setRetainConsumed(Expression<Boolean> expr)
@@ -536,7 +553,7 @@ public class PagedTopicScheme
 
     /**
      * Ensure service and its topic configuration.
-     *
+     * <p>
      * PagedTopicConfiguration is registered in corresponding service's resource registry.
      *
      * @param resolver       the ParameterResolver
@@ -546,25 +563,12 @@ public class PagedTopicScheme
      */
     public TopicService ensureConfiguredService(ParameterResolver resolver, Dependencies deps)
         {
-        ClassLoader             loader       = deps.getClassLoader();
-        String                  sTopicName   = PagedTopicCaches.Names.getTopicName(deps.getCacheName());
-        TopicService            service      = getOrEnsureService(deps);
-        ResourceRegistry        registry     = service.getResourceRegistry();
-        PagedTopic.Dependencies dependencies = registry.getResource(PagedTopic.Dependencies.class, sTopicName);
-
-        if (dependencies == null)
-            {
-            dependencies = createConfiguration(resolver, loader);
-
-            registry.registerResource(PagedTopic.Dependencies.class, sTopicName, dependencies);
-            }
-
-        return service;
+        return getOrEnsureService(deps);
         }
 
     /**
      * Get or ensure service corresponding to this scheme.
-     *
+     * <p>
      * Optimized to avoid ensureService synchronization on cluster and service
      * when possible. This behavior is required on server side. Intermittent deadlock occurs
      * calling ensureService on server side from inside service implementation.
@@ -595,17 +599,17 @@ public class PagedTopicScheme
         }
 
     /**
-     * Create a {@link PagedTopic.Dependencies} based on the values contained in this scheme.
+     * Create a {@link PagedTopicDependencies} based on the values contained in this scheme.
      *
      * @param resolver  the {@link ParameterResolver} to use to resolve configuration values
      * @param loader    the {@link ClassLoader} to use
      *
-     * @return  a {@link PagedTopic.Dependencies} based on the values contained in this scheme
+     * @return  a {@link PagedTopicDependencies} based on the values contained in this scheme
      */
-    public PagedTopic.Dependencies createConfiguration(ParameterResolver resolver, ClassLoader loader)
+    public PagedTopicDependencies createConfiguration(ParameterResolver resolver, ClassLoader loader)
         {
         // enable topic-mapping init-params to be injected into PagedTopicScheme.
-        // still need to support DistributedTopics Service Parameters in future.
+        // still need to support DistributedTopics Service Parameters in the future.
         SimpleInjector   injector         = new SimpleInjector();
         ResourceResolver resourceResolver = ResourceResolverHelper.resourceResolverFrom(PagedTopicScheme.class, this);
 
@@ -632,7 +636,7 @@ public class PagedTopicScheme
         int nMaxBatchSizeBytes;
         try
             {
-            // Detect Overflow.InetAddresses.getLocalMTU(NetworkInterface) returns Integer.MAX_VALUE on windows/jdk11 for loopback.
+            // Detect Overflow.InetAddresses.getLocalMTU(NetworkInterface) returns Integer.MAX_VALUE on Windows/jdk11 for loopback.
             nMaxBatchSizeBytes = Math.multiplyExact(nMTU, cluster.getDependencies().getPublisherCloggedCount());
             }
         catch (ArithmeticException e)
@@ -670,21 +674,23 @@ public class PagedTopicScheme
                     "When using a FIXED element calculator a page-size without a memory-unit suffix must be specified");
             }
 
-        Configuration configuration = new Configuration();
+        PartitionedCacheDependencies  depsService  = getServiceDependencies();
+        int                           cPart        = depsService.getPreferredPartitionCount();
+        DefaultPagedTopicDependencies dependencies = new DefaultPagedTopicDependencies(cPart);
 
-        configuration.setServerCapacity(cbServer);
-        configuration.setPageCapacity((int) cbPage);
-        configuration.setElementExpiryMillis(expiryDelayMillis);
-        configuration.setMaxBatchSizeBytes(Math.min((int) cbPage, nMaxBatchSizeBytes));
-        configuration.setRetainConsumed(fRetainConsumed);
-        configuration.setElementCalculator(calculator);
-        configuration.setChannelCount(getChannelCount(resolver));
-        configuration.setAllowUnownedCommits(isAllowUnownedCommits(resolver));
-        configuration.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
-        configuration.setReconnectTimeoutMillis(getReconnectTimeoutMillis(resolver).as(Duration.Magnitude.MILLI));
-        configuration.setReconnectRetryMillis(getReconnectRetryMillis(resolver).as(Duration.Magnitude.MILLI));
-        configuration.setReconnectWaitMillis(getReconnectWaitMillis(resolver).as(Duration.Magnitude.MILLI));
-        return configuration;
+        dependencies.setServerCapacity(cbServer);
+        dependencies.setPageCapacity((int) cbPage);
+        dependencies.setElementExpiryMillis(expiryDelayMillis);
+        dependencies.setMaxBatchSizeBytes(Math.min((int) cbPage, nMaxBatchSizeBytes));
+        dependencies.setRetainConsumed(fRetainConsumed);
+        dependencies.setElementCalculator(calculator);
+        dependencies.setChannelCount(getChannelCount(resolver));
+        dependencies.setAllowUnownedCommits(isAllowUnownedCommits(resolver));
+        dependencies.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
+        dependencies.setReconnectTimeoutMillis(getReconnectTimeoutMillis(resolver).as(Duration.Magnitude.MILLI));
+        dependencies.setReconnectRetryMillis(getReconnectRetryMillis(resolver).as(Duration.Magnitude.MILLI));
+        dependencies.setReconnectWaitMillis(getReconnectWaitMillis(resolver).as(Duration.Magnitude.MILLI));
+        return dependencies;
         }
 
     /**
@@ -697,11 +703,11 @@ public class PagedTopicScheme
     @SuppressWarnings("unchecked")
     private UnitCalculatorBuilder getUnitCalculatorBuilder(ParameterResolver resolver)
         {
-        UnitCalculatorBuilder bldr = new UnitCalculatorBuilder();
-        Parameter             parm = resolver.resolve("unit-calculator");
-        Expression<String>    expr = parm == null
+        UnitCalculatorBuilder bldr  = new UnitCalculatorBuilder();
+        Parameter             param = resolver.resolve("unit-calculator");
+        Expression<String>    expr  = param == null
                 ? new LiteralExpression<>("BINARY")
-                : parm.evaluate(resolver).as(Expression.class);
+                : param.evaluate(resolver).as(Expression.class);
 
         bldr.setUnitCalculatorType(expr);
 
@@ -714,11 +720,6 @@ public class PagedTopicScheme
      * An empty {@link ParameterResolver}.
      */
     private static final ParameterResolver NULL_PARAMETER_RESOLVER = new NullParameterResolver();
-
-    /**
-     * Default service name for PagedTopicScheme, overrides PagedTopicScheme service type which is DistributedCache.
-     */
-    public static final String DEFAULT_SERVICE_NAME = "DistributedTopic";
 
     // ----- data members ---------------------------------------------------
 
@@ -753,7 +754,7 @@ public class PagedTopicScheme
     private CachingScheme m_schemeBackingMap;
 
     /**
-     * The retain consumed elements flag.
+     * The retain-consumed elements flag.
      */
     private Expression<Boolean> m_exprRetainConsumed = new LiteralExpression<>(Boolean.FALSE);
 
@@ -769,7 +770,7 @@ public class PagedTopicScheme
     private Expression<Seconds> m_exprSubscriberTimeout = new LiteralExpression<>(PagedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS);
 
     /**
-     * The allow unowned commits flag.
+     * The allow-unowned commits flag.
      */
     private Expression<Boolean> m_exprAllowUnownedCommits = new LiteralExpression<>(Boolean.FALSE);
 

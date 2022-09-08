@@ -2,11 +2,11 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
@@ -51,7 +51,7 @@ public class TailIncrementProcessorTest
     @SuppressWarnings("unchecked")
     public void shouldReturnUnmodifiedInfoIfTailMismatch()
         {
-        PagedTopic.Dependencies       dependencies        = mock(PagedTopic.Dependencies.class);
+        PagedTopicDependencies        dependencies        = mock(PagedTopicDependencies.class);
         long                          nInfoTail           = 5L;
         long                          nProcTail           = 4L;
         Usage                         info                = new Usage();

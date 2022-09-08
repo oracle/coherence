@@ -499,5 +499,29 @@ public interface Registry
      * @since 21.12
      */
     public final static String EXECUTOR_TYPE = "type=Executor";
+
+    /**
+     * String representing the "type" part of <tt>ObjectName</tt> for the
+     * Paged Topic MBean.
+     *
+     * @since 23.03
+     */
+    public final static String PAGED_TOPIC_TYPE = "type=PagedTopic";
+
+    /**
+     * String representing the "type" part of <tt>ObjectName</tt> for the
+     * Subscriber Group MBean.
+     *
+     * @since 23.03
+     */
+    public final static String SUBSCRIBER_GROUP_TYPE = "type=PagedTopicSubscriberGroup";
+
+    /**
+     * String representing the "type" part of <tt>ObjectName</tt> for the
+     * Subscriber MBean.
+     *
+     * @since 23.03
+     */
+    public final static String SUBSCRIBER_TYPE = "type=PagedTopicSubscriber";
     }
 

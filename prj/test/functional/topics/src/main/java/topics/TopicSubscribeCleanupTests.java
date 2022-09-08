@@ -79,7 +79,7 @@ public class TopicSubscribeCleanupTests
         NamedTopic<String>      topic = s_session.getTopic(f_testName.getMethodName());
         DistributedCacheService service = (DistributedCacheService) topic.getService();
 
-        PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service);
+        PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service, null);
         assertThat(caches.Subscribers.isEmpty(), is(true));
 
         try (PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
@@ -106,7 +106,7 @@ public class TopicSubscribeCleanupTests
             DistributedCacheService service = (DistributedCacheService) topic.getService();
             Eventually.assertDeferred(() -> service.getOwnershipEnabledMembers().size(), is(2));
 
-            PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service);
+            PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service, null);
 
             topic.ensureSubscriberGroup("group-one");
             topic.ensureSubscriberGroup("group-two");

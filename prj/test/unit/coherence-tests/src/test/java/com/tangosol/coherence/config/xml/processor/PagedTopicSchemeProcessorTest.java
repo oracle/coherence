@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -31,6 +31,7 @@ import com.tangosol.config.xml.DocumentProcessor;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.net.topic.BinaryElementCalculator;
 import com.tangosol.net.topic.FixedElementCalculator;
 import com.tangosol.run.xml.XmlDocumentReference;
@@ -74,8 +75,8 @@ public class PagedTopicSchemeProcessorTest
         assertThat(scheme.getServiceName(), is("pof-topic-service"));
         assertThat(scheme.getStorageScheme().getClass().getSimpleName(), is(FlashJournalScheme.class.getSimpleName()));
 
-        ParameterResolver       nullResolver = new NullParameterResolver();
-        PagedTopic.Dependencies dependencies = scheme.createConfiguration(nullResolver, null);
+        ParameterResolver      nullResolver = new NullParameterResolver();
+        PagedTopicDependencies dependencies = scheme.createConfiguration(nullResolver, null);
 
         assertThat(dependencies, is(notNullValue()));
         assertThat(dependencies.getElementExpiryMillis(), is(0L));
@@ -201,10 +202,10 @@ public class PagedTopicSchemeProcessorTest
         assertThat(scheme.getServiceName(), is("pof-topic-service"));
 
         ParameterResolver       nullResolver = new NullParameterResolver();
-        PagedTopic.Dependencies dependencies = scheme.createConfiguration(nullResolver, null);
+        PagedTopicDependencies dependencies = scheme.createConfiguration(nullResolver, null);
 
         assertThat(dependencies, is(notNullValue()));
-        assertThat(dependencies.getChannelCount(1), is(19));
+        assertThat(dependencies.getChannelCount(), is(19));
         }
 
     @Test
@@ -223,7 +224,7 @@ public class PagedTopicSchemeProcessorTest
         assertThat(scheme.getServiceName(), is("pof-topic-service"));
 
         ParameterResolver       nullResolver = new NullParameterResolver();
-        PagedTopic.Dependencies dependencies = scheme.createConfiguration(nullResolver, null);
+        PagedTopicDependencies dependencies = scheme.createConfiguration(nullResolver, null);
 
         assertThat(dependencies, is(notNullValue()));
         assertThat(dependencies.getPageCapacity(), is((int) 1000));
@@ -247,7 +248,7 @@ public class PagedTopicSchemeProcessorTest
         assertThat(scheme.getServiceName(), is("pof-topic-service"));
 
         ParameterResolver       nullResolver = new NullParameterResolver();
-        PagedTopic.Dependencies dependencies = scheme.createConfiguration(nullResolver, null);
+        PagedTopicDependencies dependencies = scheme.createConfiguration(nullResolver, null);
 
         assertThat(dependencies, is(notNullValue()));
         assertThat(dependencies.getPageCapacity(), is((int) 1000));
@@ -270,7 +271,7 @@ public class PagedTopicSchemeProcessorTest
         assertThat(scheme.getServiceName(), is("pof-topic-service"));
 
         ParameterResolver       nullResolver = new NullParameterResolver();
-        PagedTopic.Dependencies dependencies = scheme.createConfiguration(nullResolver, null);
+        PagedTopicDependencies dependencies = scheme.createConfiguration(nullResolver, null);
 
         assertThat(dependencies, is(notNullValue()));
         assertThat(dependencies.getPageCapacity(), is((int) new MemorySize("5M").getByteCount()));

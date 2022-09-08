@@ -8,6 +8,7 @@
 package com.tangosol.net;
 
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.TopicBackingMapManager;
 
 /**
  * A TopicService is a service providing Topics that can be used for
@@ -16,7 +17,6 @@ import com.tangosol.net.topic.NamedTopic;
 public interface TopicService
         extends Service
     {
-
     /**
      * Obtain a Topic interface that provides
      * @param sName - the name, within this TopicService, that uniquely identifies a topic
@@ -28,7 +28,7 @@ public interface TopicService
      * @return a NamedTopic interface which can be used to access the resources
      *         of the specified topic
      */
-    NamedTopic ensureTopic(String sName, ClassLoader loader);
+    <T> NamedTopic<T> ensureTopic(String sName, ClassLoader loader);
 
     /**
      * Release local resources associated with the specified instance of the
@@ -57,6 +57,7 @@ public interface TopicService
      *
      * @see NamedTopic#release()
      */
+    @SuppressWarnings("rawtypes")
     void releaseTopic(NamedTopic topic);
 
     /**
@@ -71,16 +72,14 @@ public interface TopicService
      *
      * @see NamedTopic#destroy()
      */
+    @SuppressWarnings("rawtypes")
     void destroyTopic(NamedTopic topic);
 
-    // ----- constants ------------------------------------------------------
-
     /**
-     * PagedTopic service type constant.
-     * <p>
-     * PagedTopic service provides globally ordered topics.
+     * Return the {@link TopicBackingMapManager}.
      *
-     * @see Cluster#ensureService(String, String)
+     * @return the TopicBackingMapManager
      */
-    String TYPE_DEFAULT = "PagedTopic";
+    @SuppressWarnings("rawtypes")
+    TopicBackingMapManager getTopicBackingMapManager();
     }

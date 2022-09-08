@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.management.annotation;
 
@@ -44,8 +44,10 @@ public @interface MetricsTag
      *
      * @return a snake case metrics name for MBean attribute or "_default"
      */
-    @DescriptorKey("metrics.tag")
+    @DescriptorKey(DESCRIPTOR_KEY)
     String value() default DEFAULT;
 
-    public static final String DEFAULT = "_default";
+    String DEFAULT = "_default";
+
+    String DESCRIPTOR_KEY = "metrics.tag";
     }
