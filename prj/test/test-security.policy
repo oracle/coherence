@@ -489,6 +489,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/target
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-jetty/-" {
+  permission java.lang.RuntimePermission "getenv.JETTY_AVAILABLE_PROCESSORS";
   permission java.lang.RuntimePermission "getClassLoader";
   permission javax.security.auth.AuthPermission "doAs";
   permission javax.security.auth.AuthPermission "getSubject";
