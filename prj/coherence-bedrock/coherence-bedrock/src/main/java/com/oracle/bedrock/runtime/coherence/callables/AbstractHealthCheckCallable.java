@@ -68,6 +68,14 @@ public abstract class AbstractHealthCheckCallable
                         return false;
                         }
                     }
+                if (m_sName == null || m_sName.isBlank())
+                    {
+                    Logger.finest("Bedrock: " + getClass().getSimpleName() + "  check passed");
+                    }
+                else
+                    {
+                    Logger.finest("Bedrock: " + getClass().getSimpleName() + "  check passed for " + m_sName);
+                    }
                 return true;
                 }
             else
@@ -88,14 +96,21 @@ public abstract class AbstractHealthCheckCallable
      *
      * @param registry  the management registry
      *
-     * @return
+     * @return {@code true} if the check passed
      */
     protected abstract boolean check(Registry registry);
 
+    /**
+     * Perform a specific health check.
+     *
+     * @param healthCheck  the {@link HealthCheck} to test
+     *
+     * @return {@code true} if the check passed
+     */
     protected abstract boolean check(HealthCheck healthCheck);
 
     /**
      * The name of a specific health check to verify
      */
-    private String m_sName;
+    private final String m_sName;
     }
