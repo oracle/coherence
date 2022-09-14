@@ -977,12 +977,20 @@ public abstract class BaseManagementInfoResourceTests
         String result = response.readEntity(String.class);
 
         File testFile1 = new File(sFilePath + "1-testMemberJfr-myRecording.jfr");
-        assertThat(testFile1.exists(), is(true));
-        assertThat(testFile1.delete(), is(true));
-
-        assertThat(result.indexOf(SERVER_PREFIX + "-2"), is(-1));
         File testFile2 = new File(sFilePath + "2-testMemberJfr-myRecording.jfr");
-        assertThat(testFile2.exists(), is(false));
+        assertThat(testFile1.exists() || testFile2.exists(), is(true));
+        if (testFile1.exists())
+            {
+            assertThat(testFile1.delete(), is(true));
+            assertThat(result.indexOf(SERVER_PREFIX + "-2"), is(-1));
+            assertThat(testFile2.exists(), is(false));
+            }
+        else
+            {
+            assertThat(testFile2.delete(), is(true));
+            assertThat(result.indexOf(SERVER_PREFIX + "-1"), is(-1));
+            assertThat(testFile1.exists(), is(false));
+            }
         }
 
     @Test
@@ -1404,6 +1412,7 @@ public abstract class BaseManagementInfoResourceTests
             Response response = target.request().post(Entity.entity(map, MediaType.APPLICATION_JSON_TYPE));
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
+            Base.sleep(5000);
             response = target.request().get();
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
@@ -1650,7 +1659,8 @@ public abstract class BaseManagementInfoResourceTests
         Map mapResponse = readEntity(target, response);
 
         assertThat(mapResponse, notNullValue());
-        assertThat(mapResponse.get(NODE_ID), is("1"));
+        assertThat(mapResponse.get(NODE_ID), anyOf(Matchers.is("1"), Matchers.is("2")));
+
         assertThat(Long.parseLong(mapResponse.get("intervalSeconds").toString()), greaterThan(1L));
         assertThat(Long.parseLong(mapResponse.get("runLastMillis").toString()), greaterThan(-1L));
         assertThat(mapResponse.get("outputPath"), is(notNullValue()));
