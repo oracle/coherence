@@ -27,6 +27,7 @@ or more cache entries locally on the storage node.
 * <<lambda-expressions, Using Lambda Expressions>>
 * <<lambda-expressions-single-value, Process Single Map Keys Using Lambda Expressions>>
 * <<update-all-map-entries, Update all Map Entries>>
+* <<cache-entry-expiration, Specify Cache Entry Expiration>>
 * <<summary, Summary>>
 * <<see-also, See Also>>
 
@@ -136,6 +137,13 @@ include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcesso
 <2> Call `invoke` on the `countries` Map, passing in the key (instead of the filter) and the `IncrementingEntryProcessor`
 <3> The result should be the double value representing the new population value of Germany
 
+[TIP]
+====
+Before writing your own Entry Processor from scratch, please also check if one of the
+link:{commercial-docs-base-url}/develop-applications/processing-data-cache.html#GUID-BEB17FE8-D121-46F5-B401-637AD2AE19C7[built-in Entry Processors]
+may already solve your requirement.
+====
+
 In the next section we will see how we can simplify the example even further using lambda expressions.
 
 [#lambda-expressions]
@@ -196,6 +204,53 @@ include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcesso
 <2> Get an instance of the `AlwaysFilter` that will select all entries in the `countries` Map
 <3> Call `invokeAll` on the `countries` Map passing in the `AlwaysFilter` and the function that increments the population
 <4> The result should be the Map containing the key and the new population value for all 5 countries in the Map
+
+[#cache-entry-expiration]
+=== Specify Cache Entry Expiration
+
+When adding values to a `NamedCache`, without using an Entry Processor, you have the optional ability to also set an
+expiration value for the cache value. For example, in the following code snippet, we add a new country with an expiration
+value of 5 seconds (Values are specified in milliseconds).
+
+[source,java,indent=0]
+----
+NamedCache<String, Country> countries = getMap("countries");
+Country country = new Country("Germany", "Berlin", 83.2);
+countries.put("de", country , 5000);
+----
+
+[NOTE]
+====
+Cache expiration can also be configured per-cache using the `<expiry-delay>` cache configuration element in the
+`coherence-cache-config.xml` file.
+See link:{commercial-docs-base-url}/develop-applications/configuring-caches.html#GUID-B57A0E9B-23F2-4099-86D7-6DDD54BBC45C[the reference documentation]
+for details.
+====
+
+You can do the same when mutating cache entries via Entry Processors. Let's update the previous example so that all countries
+we are updating will expire within 2 seconds. As the code listed below is very similar to the previous example, we shall
+highlight the changes only:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/entryprocessors/EntryProcessorTests.java[tag=testIncreasePopulationForAllCountriesWithExpiration]
+----
+<1> We need to cast the `InvocableMap.Entry` to a `BinaryEntry`.
+<2> `BinaryEntry` has a method `expire` that specifies when the cache entry will expire. We set it to 2 seconds. The parameter is an integer value representing milliseconds.
+<3> The returned Map of `invokeAll` will have 5 `countries`. This Map will not "expire".
+<4> There should be 5 entries in the `NamedCache` map. The `NamedCache` map will expire.
+<5> The Thread will sleep for 4 seconds.
+<6> Assert that the returned Map of `invokeAll` still has 5 `countries`
+<7> Assert that the `NamedCache` map is empty. The values have expired.
+
+The important piece of information to remember is that the underlying `BinaryEntry` has the relevant property to specify
+the expiration of the cache entry, and we need to cast `InvocableMap.Entry` to a `BinaryEntry`.
+
+[IMPORTANT]
+====
+The expiration property is defined as an integer and is expressed in milliseconds. Therefore, the maximum amount of time
+cannot exceed approximately 24 days.
+====
 
 [#summary]
 === Summary
