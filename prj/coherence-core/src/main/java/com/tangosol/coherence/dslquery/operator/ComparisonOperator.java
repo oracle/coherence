@@ -43,21 +43,29 @@ public abstract class ComparisonOperator
     @Override
     public ComparisonFilter makeFilter(Term termLeft, Term termRight, TermWalker walker)
         {
-        String  sRightFunctor       = termRight.getFunctor();
-        boolean leftHasIdentifiers  = Arrays.stream(termLeft.children()).anyMatch(t->t.getFunctor().equals("identifier"));
-        boolean rightHasIdentifiers = Arrays.stream(termRight.children()).anyMatch(t->t.getFunctor().equals("identifier"));
+        String  sRightFunctor        = termRight.getFunctor();
+        String  sLeftFunctor         = termLeft.getFunctor();
+        boolean fLeftIsIdentifier    = "identifier".equals(sLeftFunctor);
+        boolean fRightIsIdentifier   = "identifier".equals(sRightFunctor);
+        boolean fRightIsBinding      = "bindingNode".equals(sRightFunctor);
+        boolean fLeftHasIdentifiers  = Arrays.stream(termLeft.children())
+                .anyMatch(t -> "identifier".equals(t.getFunctor()));
+        boolean fRightHasIdentifiers = !fRightIsBinding
+                && Arrays.stream(termRight.children())
+                        .anyMatch(t -> "identifier".equals(t.getFunctor()));
 
         // Bug 27250717 - RFA: QueryHelper.createFilter causes StackOverFlow when comparing 2 identifiers
-        if (sRightFunctor.equals("identifier") && termLeft.getFunctor().equals("identifier") || leftHasIdentifiers && rightHasIdentifiers)
+        if ((fRightIsIdentifier && fLeftIsIdentifier) || (fLeftHasIdentifiers && fRightHasIdentifiers))
             {
-            throw new UnsupportedOperationException("The use of identifier on both sides of an expression is not supported");
+            String sMsg = "The use of identifier on both sides of an expression is not supported";
+            throw new UnsupportedOperationException(sMsg);
             }
 
         if (sRightFunctor.equals(
-                "identifier") &&!(((AtomicTerm) termRight.termAt(1)).getValue().equalsIgnoreCase(
-                    "null") || ((AtomicTerm) termRight.termAt(1)).getValue().equalsIgnoreCase(
-                    "true") || ((AtomicTerm) termRight.termAt(1)).getValue().equalsIgnoreCase(
-                    "false")) || (sRightFunctor.equals("derefNode") || sRightFunctor.equals("callNode")))
+                "identifier") && !(((AtomicTerm) termRight.termAt(1)).getValue().equalsIgnoreCase(
+                "null") || ((AtomicTerm) termRight.termAt(1)).getValue().equalsIgnoreCase(
+                "true") || ((AtomicTerm) termRight.termAt(1)).getValue().equalsIgnoreCase(
+                "false")) || (sRightFunctor.equals("derefNode") || sRightFunctor.equals("callNode")))
             {
             return flip().makeFilter(termRight, termLeft, walker);
             }
