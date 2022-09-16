@@ -9,6 +9,7 @@ package tcmp;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.tangosol.util.Base;
 import com.tangosol.util.UID;
 import common.AbstractFunctionalTest;
 import org.junit.BeforeClass;
@@ -64,6 +65,7 @@ public class WitnessProtocolTests
         client.close();
         ClusteringTests.stopServers("server-witness", cServers);
         AbstractFunctionalTest.stopCacheServer("client-witness");
+        Base.sleep(10000);        
         }
 
     /**
@@ -95,7 +97,6 @@ public class WitnessProtocolTests
 
         Eventually.assertThat(invoking(client).getClusterMemberUIDs().contains(uidServer), is(false));
 
-        client.close();
         badServer.close();
         for (int i = 0; i < cServers; i++)
             {
