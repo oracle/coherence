@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.base;
 
@@ -283,6 +283,17 @@ public class Timeout
         {
         return remainingTimeoutMillis() == 0;
         }
+
+    /**
+     * Return true if calling thread specified a timeout.
+     *
+     * @return true if a timeout is set
+     */
+    public static boolean isSet()
+        {
+        return remainingTimeoutMillis() != Long.MAX_VALUE;
+        }
+
 
     // ----- data members ---------------------------------------------------
 

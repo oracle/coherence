@@ -8,6 +8,8 @@ package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.oracle.coherence.common.base.Lockable;
+
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.coherence.config.CacheConfig;
@@ -717,7 +719,8 @@ public class ExtensibleConfigurableCacheFactory
         Cluster cluster = bldrService.isRunningClusterNeeded()
                           ? CacheFactory.ensureCluster() : CacheFactory.getCluster();
 
-        synchronized (cluster)
+        // Note: SafeCluster implements Lockable (COH-23345)
+        try (Lockable.Unlockable unlockable = ((Lockable) cluster).exclusively())
             {
             Service service = bldrService.realizeService(
                 f_cacheConfig.getDefaultParameterResolver(), loader, cluster);
