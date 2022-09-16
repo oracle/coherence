@@ -102,7 +102,7 @@ to find specific notes on changes suggested for production use.
       <!--
       Note: This value applies to WKA clusters as well.
       -->
-      <join-timeout-milliseconds>3000</join-timeout-milliseconds>
+      <join-timeout-milliseconds system-property="coherence.join.timeout">3000</join-timeout-milliseconds>
     </multicast-listener>
 
     <tcp-ring-listener>
