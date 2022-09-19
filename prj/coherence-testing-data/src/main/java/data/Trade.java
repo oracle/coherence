@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package data;
@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 
@@ -32,6 +33,7 @@ public class Trade
         extends XmlBean
         implements PortableObject
     {
+
     // ----- constructors ---------------------------------------------------
 
     public Trade()
@@ -98,6 +100,39 @@ public class Trade
         m_nLot = nLot;
         }
 
+    // ----- Object methods --------------------------------------------------
+
+    @Override
+    public int hashCode()
+        {
+        return Objects.hash(super.hashCode(), m_dPrice, m_iId, m_nLot, m_sSymbol);
+        }
+
+    @Override
+    public boolean equals(Object obj)
+        {
+        if (this == obj)
+            {
+            return true;
+            }
+
+        if (!super.equals(obj))
+            {
+            return false;
+            }
+
+        if (getClass() != obj.getClass())
+            {
+            return false;
+            }
+
+        Trade other = (Trade) obj;
+
+        return Double.doubleToLongBits(m_dPrice) == Double.doubleToLongBits(other.m_dPrice)
+                && m_iId == other.m_iId
+                && m_nLot == other.m_nLot
+                && Objects.equals(m_sSymbol, other.m_sSymbol);
+        }
 
     // ----- calculated properties -----------------------------------------
 
