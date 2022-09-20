@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
@@ -75,7 +75,7 @@ public class SingleBufferMessageEvent
     @Override
     public EndPoint getEndPoint()
         {
-        return m_src.getPeer();
+        return m_src == null ? null : m_src.getPeer();
         }
 
     /**
