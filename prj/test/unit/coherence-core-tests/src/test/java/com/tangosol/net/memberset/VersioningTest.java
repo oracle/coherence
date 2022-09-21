@@ -47,33 +47,31 @@ public class VersioningTest
     public void testCOH26149()
             throws Exception
         {
-        int nCommercial  = ServiceMemberSet.encodeVersion(14,1,1,0,0);
-        int nCommunity   = ServiceMemberSet.encodeVersion(22, 9, 22, 9, 0);
-        int nFeaturePack = ServiceMemberSet.encodeVersion(22, 6, 0);
-
-        // ensure we have the expected encodings
-        assertThat(nCommercial, is(235147264));
-        assertThat(nCommunity, is(371548736));
-        assertThat(nFeaturePack, is(235148672));
+        int nCommercial  = ServiceMemberSet.parseVersion("14.1.1.0.0.0");
+        int nCommunity   = ServiceMemberSet.parseVersion("14.1.1.22.09.0");
+        int nFeaturePack = ServiceMemberSet.parseVersion("14.1.1.22.06.0");
 
         // validate the String result
         assertThat(toVersionString(nCommercial), is("14.1.1.0.0"));
-        assertThat(toVersionString(nCommunity), is("22.9.22.9.0"));
+        assertThat(toVersionString(nCommunity), is("14.1.1.2209.0"));
         assertThat(toVersionString(nFeaturePack), is("14.1.1.2206.0"));
 
         Member mockMember1 = mock(Member.class);
         when(mockMember1.getId()).thenReturn(1);
+        when(mockMember1.getEdition()).thenReturn(1);
 
         Member mockMember2 = mock(Member.class);
         when(mockMember2.getId()).thenReturn(2);
+        when(mockMember2.getEdition()).thenReturn(3);
 
         Member mockMember3 = mock(Member.class);
         when(mockMember3.getId()).thenReturn(3);
+        when(mockMember3.getEdition()).thenReturn(1);
 
         MasterMemberSet masterMemberSet = new MasterMemberSet();
-        masterMemberSet.setServiceVersion(1,"14.1.1.0.0");
-        masterMemberSet.setServiceVersion(2,"22.9.22.9.0");
-        masterMemberSet.setServiceVersion(3,"14.1.1.2206.0");
+        masterMemberSet.setServiceVersion(1,"14.1.1.0.0.0");
+        masterMemberSet.setServiceVersion(2,"14.1.1.22.09.0");
+        masterMemberSet.setServiceVersion(3,"14.1.1.22.06.0");
 
         masterMemberSet.add(mockMember1);
         masterMemberSet.add(mockMember2);
@@ -98,6 +96,13 @@ public class VersioningTest
         // if year is 23 or greater, then 03 will be encoded
         nFeaturePack = ServiceMemberSet.encodeVersion(23, 3, 0);
         assertThat(toVersionString(nFeaturePack), is("14.1.1.2303.0"));
+
+        // if year is 21 or less 06 and 12 will be encoded
+        nFeaturePack = ServiceMemberSet.encodeVersion(21, 12, 0);
+        assertThat(toVersionString(nFeaturePack), is("14.1.1.2112.0"));
+
+        nFeaturePack = ServiceMemberSet.encodeVersion(21, 6, 0);
+        assertThat(toVersionString(nFeaturePack), is("14.1.1.2106.0"));
         }
 
     // ----- helper methods -------------------------------------------------
