@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
@@ -694,6 +694,18 @@ public abstract class AbstractSocketBus
 
     protected String getDescription()
         {
+        return getDescription(true);
+        }
+
+    /**
+     * Returns a description of this SocketBus.
+     *
+     * @param fVerbose if true, generate a description with connections details
+     *
+     * @return a String description of this SocketBus.
+     */
+    protected String getDescription(boolean fVerbose)
+        {
         StringBuilder sb = new StringBuilder()
                 .append(getLocalEndPoint())
                 .append(", state=").append(m_nState);
@@ -712,16 +724,35 @@ public abstract class AbstractSocketBus
             }
 
         sb.append(", connections ");
-        int cCon = mapCon.size();
-        sb.append("[");
-        for (Connection conn : mapCon.values())
+        if (fVerbose)
             {
-            sb.append("\n\t").append(conn);
+            int cCon = mapCon.size();
+            sb.append("[");
+            for (Connection conn : mapCon.values())
+                {
+                sb.append("\n\t").append(conn);
+                }
+            sb.append("]\n");
             }
-        sb.append("]\n");
         sb.append("active=").append(cActive).append('/').append(cConnections);
 
         return sb.toString();
+        }
+
+    /**
+     * Returns a string representation of this SocketBus. If called in
+     * verbose mode, include connections details.
+     *
+     * @param fVerbose  if true then print connections details
+     *
+     * @return a String representation of this SocketBus
+     */
+    public String toString(boolean fVerbose)
+        {
+        return new StringBuilder()
+                .append(getClass().getSimpleName()).append('(')
+                .append(getDescription(fVerbose))
+                .append(')').toString();
         }
 
     // ----- Object interface -----------------------------------------------
@@ -732,10 +763,7 @@ public abstract class AbstractSocketBus
     @Override
     public String toString()
         {
-        return new StringBuilder()
-          .append(getClass().getSimpleName()).append('(')
-          .append(getDescription())
-          .append(')').toString();
+        return toString(true);
         }
 
 
