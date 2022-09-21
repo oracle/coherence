@@ -1141,6 +1141,6 @@ to find specific notes on changes suggested for production use.
     <build-number>${project.build.number}</build-number>
     <build-description>${project.impl.description}</build-description>
     <version>${project.version.official}</version>
-    <version-prefix>${project.version.short}</version-prefix>
+    <version-prefix>${project.version.prefix}</version-prefix>
   </license-config>
 </coherence>
