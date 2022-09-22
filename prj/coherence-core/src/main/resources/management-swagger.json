@@ -3,7 +3,7 @@
   "info": {
     "title": "RESTful Management Interface for Oracle Coherence MBeans",
     "description": "RESTful Management Interface for Oracle Coherence MBeans",
-    "version": "22.09"
+    "version": "23.03"
   },
   "schemes": [
     "http",
@@ -4762,7 +4762,7 @@
         "member": {
           "type": "string",
           "description": "Name of the cluster member"
-        },                
+        },
         "autoStart": {
           "type": "boolean",
           "description": "True when the Reporter starts automatically with the node.",
