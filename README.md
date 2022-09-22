@@ -161,7 +161,7 @@ our own [operator](https://github.com/oracle/coherence-operator).
 
 ### Prerequisites
 
-  1. Java - JDK 11 or higher
+  1. Java - JDK 17 or higher
   2. Maven - 3.8.5 or higher
 
 ### CLI Hello Coherence
