@@ -235,7 +235,9 @@ public abstract class AbstractClusteredExecutorServiceTests
 
         // connect as an *Extend client
         m_cacheFactory = clusterResource.createSession((
-                SessionBuilders.extendClient(m_extendConfig, SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"))));
+                SessionBuilders.extendClient(m_extendConfig,
+                                             SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"),
+                                             SystemProperty.of("coherence-client", "remote-fixed"))));
         }
 
     // ----- test methods ---------------------------------------------------
