@@ -60,10 +60,9 @@ You will review the requirements for running both `on-demand` and `active` persi
 
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 [#what-you-need]
 === What You Need
-:java_version: 11
+:java_version: 17
 :duration: 20-30
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

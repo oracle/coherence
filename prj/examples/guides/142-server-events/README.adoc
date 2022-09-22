@@ -72,7 +72,7 @@ In this example you will run a number of tests that demonstrate the following fe
 
 [#what-you-will-need]
 ==== What You Need
-:java_version: 11
+:java_version: 17
 :duration: 20
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

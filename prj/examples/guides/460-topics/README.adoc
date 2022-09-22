@@ -44,10 +44,9 @@ NOTE: We do not cover all features in Coherence Topics, so if you wish to read m
 {commercial-docs-base-url}/develop-applications/using-topics.html[Coherence Documentation].
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 [#what-you-need]
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 ==== Building the Example Code

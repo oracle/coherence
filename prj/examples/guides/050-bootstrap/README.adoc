@@ -49,9 +49,8 @@ This guide will look at some ways to bootstrap a Coherence application.
 
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

@@ -24,7 +24,7 @@ This guide will build simple examples showing different uses of the Health Check
 
 
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

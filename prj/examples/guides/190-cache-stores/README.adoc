@@ -56,7 +56,7 @@ cache stores and can be run as a series of Junit tests to show the functionality
 
 [#what-you-will-need]
 ==== What You Need
-:java_version: 11
+:java_version: 17
 :duration: 20
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

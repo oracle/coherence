@@ -42,10 +42,9 @@ NOTE: If you wish to read more about GraphQL or Helidon's support in GraphQL, pl
 https://medium.com/helidon/microprofile-graphql-support-now-available-in-helidon-mp-dbc7bc0b4af[Medium post].
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 [#what-you-need]
 === What You Need
-:java_version: 11
+:java_version: 17
 :duration: 30-45
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

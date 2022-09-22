@@ -144,7 +144,7 @@ SessionConfiguration.builder()
 The example application is a web-server that gets data to service requests from a specific Coherence cluster depending on a header value in the http request. This demonstrates a simple stateless multi-tenant web-server, where the tenant's data is segregated into different Coherence clusters. The information about a tenant's connection details are held in a meta-data cache in a separate admin cluster.
 
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

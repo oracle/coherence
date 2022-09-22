@@ -71,10 +71,9 @@ NOTE: If you wish to know more about Coherence Federation, please see the
 {commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Documentation].
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 [#what-you-need]
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 [#building]

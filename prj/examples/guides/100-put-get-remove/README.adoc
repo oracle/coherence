@@ -20,7 +20,7 @@ The example code is written as a set of unit tests, as this is the simplest way 
 basic as individual `NamedMap` operations.
 
 ==== What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 ==== Building the Example Code

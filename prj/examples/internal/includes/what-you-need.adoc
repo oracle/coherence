@@ -8,7 +8,7 @@
 // # tag::text[]
 :linkattrs:
 
-ifndef::java_version[:java_version: 11]
+ifndef::java_version[:java_version: 17]
 ifndef::duration[:duration: 15]
 
 * About {duration} minutes

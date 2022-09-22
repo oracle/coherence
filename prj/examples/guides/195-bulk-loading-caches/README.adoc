@@ -20,9 +20,8 @@ Whilst this guide reads data from a database and pushes it into caches, the same
 The example in this guide builds a simple application that uses different techniques to preload caches from a database. This includes examples of preloading from a database into a cache that uses a cachestore to write cache data to the same database.
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

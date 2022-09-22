@@ -30,7 +30,7 @@ Using key association, notifications for a customer will be co-located in the sa
 
 // Do not change this part.
 === What You Need
-:java_version: 11
+:java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.
