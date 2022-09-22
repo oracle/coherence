@@ -69,6 +69,7 @@ import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import org.glassfish.jersey.logging.LoggingFeature;
 
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 
 import org.junit.After;
@@ -640,6 +641,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testUpdateJmxManagementError()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map mapEntity = new LinkedHashMap();
         mapEntity.put("refreshPolicy", "nonExistent");
         WebTarget target   = getBaseTarget().path(MANAGEMENT);
@@ -664,6 +667,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testUpdateJmxManagement()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map mapEntity = new LinkedHashMap();
         mapEntity.put("expiryDelay", 2000L);
         mapEntity.put("refreshPolicy", "refresh-behind");
@@ -707,6 +712,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testHeapDump()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path(DUMP_CLUSTER_HEAP).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
 
@@ -717,6 +724,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testHeapDumpWithRole()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map mapEntity = new LinkedHashMap();
         mapEntity.put(ROLE, "storage");
         Response response = getBaseTarget().path("dumpClusterHeap").request(MediaType.APPLICATION_JSON_TYPE)
@@ -729,6 +738,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testLogClusterState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path("logClusterState").request(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
 
@@ -739,6 +750,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testConfigureTracing()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map mapEntity = new LinkedHashMap();
         mapEntity.put(ROLE, "");
         mapEntity.put(TRACING_RATIO, 1.0f);
@@ -808,6 +821,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testMemberLogState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
 
@@ -832,6 +847,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testMembersLogState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path("logMemberState")
                 .request(MediaType.APPLICATION_JSON_TYPE).post(null);
 
@@ -841,6 +858,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testMemberDumpHeap()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
 
@@ -899,6 +918,8 @@ public abstract class BaseManagementInfoResourceTests
     public void testJfrWithAllNodes()
             throws Exception
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
@@ -962,6 +983,8 @@ public abstract class BaseManagementInfoResourceTests
     public void testJfrWithRole()
             throws Exception
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
@@ -1346,6 +1369,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map mapEntity = new LinkedHashMap();
         mapEntity.put("threadCountMin", 5);
         mapEntity.put("taskHungThresholdMillis", 10);
@@ -1372,6 +1397,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map mapEntity = new LinkedHashMap();
         mapEntity.put("threadCountMin", 5);
         mapEntity.put("taskHungThresholdMillis", 10);
@@ -1400,6 +1427,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCacheMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map<String, Object> mapMethodValues = new HashMap<>()
             {{
                put("highUnits",   100005L);
@@ -1436,6 +1465,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testCacheMembersUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map<String, Object> mapMethodValues = new HashMap<>()
             {{
                put("highUnits",   100005);
@@ -1463,6 +1494,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testClusterMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map<String, Object> mapMethodValues = new HashMap<>()
             {{
                put("loggingLevel",    9L);
@@ -1507,6 +1540,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testClusterNodesUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map<String, Object> mapMethodValues = new HashMap<>()
             {{
             put("loggingLevel",    9);
@@ -1539,6 +1574,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testReporterMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map    map     = new LinkedHashMap();
         String sMember = SERVER_PREFIX + "-1";
 
@@ -1675,6 +1712,8 @@ public abstract class BaseManagementInfoResourceTests
     public void testStartAndStopReporter()
             throws IOException
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         String sMember = SERVER_PREFIX + "-1";
 
         // create a temp directory so we don't pollute any directories
@@ -1724,6 +1763,8 @@ public abstract class BaseManagementInfoResourceTests
     public void testMembersStartAndStopReporter()
             throws IOException
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // create a temp directory so we don't pollute any directories
         File tempDirectory = FileHelper.createTempDir();
 
@@ -1846,6 +1887,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testSuspendAndResume()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("suspend")
                 .request().post(null);
 
@@ -1867,6 +1910,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceMemberStartAndStop()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         String       sMember  = SERVER_PREFIX + "-1";
         final String sService = getScopedServiceName(INVOCATION_SERVICE_NAME);
         final String sPath    = SERVICES + "/" + sService + "/" + MEMBERS;
@@ -1896,6 +1941,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testServiceStartAndStop()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         final String sService    = getScopedServiceName(INVOCATION_SERVICE_NAME);
         List<Map>    listMembers = getMemberList();
         final String sPath       = SERVICES + "/" + sService + "/" + MEMBERS;
@@ -2246,6 +2293,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testReportNodeState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("state");
         Response  response = target.request().get();
 
@@ -2261,6 +2310,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testReportEnvironment()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("environment");
         Response  response = target.request().get();
 
@@ -2870,6 +2921,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testPersistenceFailureResponses()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // the following should fail with BAD REQUESTS
 
         // this service does not have an archiver
@@ -2914,6 +2967,8 @@ public abstract class BaseManagementInfoResourceTests
     @Test
     public void testPersistence()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         String sCacheName = PERSISTENCE_CACHE_NAME;
 
         f_inClusterInvoker.accept(f_sClusterName, () ->
@@ -3116,7 +3171,140 @@ public abstract class BaseManagementInfoResourceTests
             }
         }
 
-    // ----- Commercial Feature Tests ---------------------------------------------------------------
+    @Test
+    public void testReadOnlyManagementReturnsUnauthorized()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+
+        String sMember   = SERVER_PREFIX + "-1";
+        Map    mapEntity = new LinkedHashMap();
+        String sService  = "DistributedCachePersistence";
+
+        // try to create snapshot
+        Response response = getBaseTarget().path(SERVICES).path(sService).path(PERSISTENCE).path(SNAPSHOTS).path("test")
+                            .request().post(null);
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to delete snapshot
+        response = getBaseTarget().path(SERVICES).path(sService).path(PERSISTENCE).path(SNAPSHOTS).path("test")
+                            .request().delete();
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to recover snapshot
+        response = getBaseTarget().path(SERVICES).path(sService).path(PERSISTENCE).path(SNAPSHOTS).path("test").path("recover")
+                            .request().post(null);
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to start the reporter
+        response = getBaseTarget().path(REPORTERS).path(sMember).path("start").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try stop the reporter
+        response = getBaseTarget().path(REPORTERS).path(sMember).path("stop").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to dumpClusterHeap
+        response = getBaseTarget().path("dumpClusterHeap").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to configureTracing
+        mapEntity.clear();
+        mapEntity.put(ROLE, "");
+        mapEntity.put(TRACING_RATIO, 1.0f);
+        response = getBaseTarget().path("configureTracing").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to log cluster state
+        response = getBaseTarget().path("logClusterState").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(null);
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        mapEntity.clear();
+        // try to shutdown member
+        response = getBaseTarget().path(MEMBERS).path(sMember).path("shutdown").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try and update management
+        mapEntity.clear();
+        mapEntity.put("expiryDelay", 2000L);
+        mapEntity.put("refreshPolicy", "refresh-behind");
+        WebTarget target   = getBaseTarget().path(MANAGEMENT);
+        Entity    entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
+        response = target.request(MediaType.APPLICATION_JSON_TYPE).post(entity);
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        
+        // try and suspend a service
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("suspend")
+                .request().post(null);
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try and resume a service
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path("resume")
+                .request().post(null);
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to start the reporter
+        response = getBaseTarget().path(REPORTERS).path(sMember).path("start").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to stop the reporter
+        response = getBaseTarget().path(REPORTERS).path(sMember).path("stop").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        response = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("state").request().get();
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try heap dump
+        response = getBaseTarget().path(DUMP_CLUSTER_HEAP).request(MediaType.APPLICATION_JSON_TYPE).post(null);
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try heap dump with role
+        mapEntity.clear();
+        mapEntity.put(ROLE, "storage");
+        response = getBaseTarget().path("dumpClusterHeap").request(MediaType.APPLICATION_JSON_TYPE)
+            .post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to modify service attribute
+        mapEntity.clear();
+        mapEntity.put("threadCountMin", 5);
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME))
+                  .request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+
+        // try to modify cache attribute
+        mapEntity.clear();
+        mapEntity.put("highUnits",   100005);
+        response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES).path(CACHE_NAME)
+                                        .request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        }
+
+    @Test
+    public void testReadOnlyManagementJFR()
+            throws UnsupportedEncodingException
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+
+        // This test requires Flight Recorder and only runs on Oracle JVMs
+        CheckJDK.assumeOracleJDK();
+
+        Response response = getBaseTarget().path(DIAGNOSTIC_CMD)
+                .path("jfrStart")
+                .queryParam(OPTIONS, encodeValue("name=all"))
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(null);
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        }
 
     // ----- utility methods----------------------------------------------------
 
@@ -3966,6 +4154,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("coherence.role", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
+        propsServer1.add(SystemProperty.of("coherence.management.readonly", Boolean.toString(isReadOnly())));
         propsServer1.add(SystemProperty.of("coherence.management.http.port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
         propsServer1.add(SystemProperty.of("coherence.override", "tangosol-coherence-override-mgmt.xml"));
@@ -4108,6 +4297,24 @@ public abstract class BaseManagementInfoResourceTests
         return false;
         }
 
+    /**
+     * Set the test to run as read-only.
+     *
+     * @param fIsReadOnly indicates if read-only is true for management
+     */
+   protected static void setReadOnly(boolean fIsReadOnly)
+       {
+       s_fIsReadOnly = fIsReadOnly;
+       }
+
+   /**
+     * Return if management is to be read-only.
+     */
+   protected static boolean isReadOnly()
+       {
+       return s_fIsReadOnly;
+       }
+
     // ----- data members ------------------------------------------------------
 
     /**
@@ -4141,9 +4348,14 @@ public abstract class BaseManagementInfoResourceTests
     protected static File s_dirJFR;
 
     /**
-     * A flag to indicate whetehr invocation service is started.
+     * A flag to indicate whether invocation service is started.
      */
     protected static boolean s_fInvocationServiceStarted = false;
+
+    /**
+     * A flag to indicate if management is to be read-only.
+     */
+    private static boolean s_fIsReadOnly = false;
 
     // ----- constants ------------------------------------------------------
 
