@@ -1,9 +1,9 @@
 <!--
 
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 
 -->
 
@@ -66,7 +66,7 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06</version>
+        <version>22.09</version>
     </dependency>
 </dependencies>
 ```
@@ -184,9 +184,9 @@ and data is once again retrieved to illustrate the permanence of the data.
 
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.06 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.09 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.06/coherence-22.06.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.09/coherence-22.09.jar
 
 $> java -jar $COH_JAR &
 
@@ -223,9 +223,9 @@ $> kill %1
 #### <a name="coh-console"></a>Coherence Console
 ```shell
 
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.06 dependency:get
+$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.09 dependency:get
 
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.06/coherence-22.06.jar
+$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.09/coherence-22.09.jar
 
 $> java -jar $COH_JAR &
 
@@ -283,7 +283,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06</version>
+        <version>22.09</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
