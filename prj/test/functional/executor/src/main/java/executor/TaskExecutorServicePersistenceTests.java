@@ -134,7 +134,7 @@ public class TaskExecutorServicePersistenceTests
         // connect as an *Extend client
         m_cacheFactory = s_coherence.createSession(new ExtendClient(EXTEND_CONFIG,
                                                                     SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, "true"),
-                                                                    SystemProperty.of("coherence-client", "remote-fixed")));
+                                                                    SystemProperty.of("coherence.client", "remote-fixed")));
 
         // establish an ExecutorService based on the *Extend client
         m_taskExecutorService = createExecutorService();
