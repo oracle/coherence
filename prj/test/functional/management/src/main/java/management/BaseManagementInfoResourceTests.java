@@ -1006,16 +1006,16 @@ public abstract class BaseManagementInfoResourceTests
         File testFile1 = new File(sFilePath + "1-testMemberJfr-myRecording.jfr");
         File testFile2 = new File(sFilePath + "2-testMemberJfr-myRecording.jfr");
         assertThat(testFile1.exists() || testFile2.exists(), is(true));
+        assertThat(result.indexOf(SERVER_PREFIX + "-2"), is(-1));
+
         if (testFile1.exists())
             {
             assertThat(testFile1.delete(), is(true));
-            assertThat(result.indexOf(SERVER_PREFIX + "-2"), is(-1));
             assertThat(testFile2.exists(), is(false));
             }
         else
             {
             assertThat(testFile2.delete(), is(true));
-            assertThat(result.indexOf(SERVER_PREFIX + "-1"), is(-1));
             assertThat(testFile1.exists(), is(false));
             }
         }
