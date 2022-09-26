@@ -11,7 +11,7 @@ on:
   workflow_run:
     workflows: ["CI Build"]
     # Only add branches that build with Java 17
-    branches: [ master ]
+    branches: [ master, v22.09 ]
     types:
     - completed
 
