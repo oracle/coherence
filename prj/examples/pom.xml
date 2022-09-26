@@ -27,6 +27,7 @@
 
   <modules>
     <module>guides/050-bootstrap</module>
+    <module>guides/070-coherence-extend</module>
     <module>guides/090-health-checks</module>
     <module>guides/100-put-get-remove</module>
     <module>guides/110-queries</module>

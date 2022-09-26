@@ -22,7 +22,7 @@ Then you can then read and follow the individual guide or tutorial documentation
 ==== What You Need
 * About 15 Minutes
 * https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
-* https://www.oracle.com/java/technologies/javase-downloads.html[JDK 6] or later
+* https://www.oracle.com/java/technologies/downloads/[JDK 17] or later
 
 ==== Installing IntelliJ IDEA
 
