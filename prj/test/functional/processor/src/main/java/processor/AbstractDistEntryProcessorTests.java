@@ -11,6 +11,7 @@ package processor;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.NonBlocking;
 import com.oracle.coherence.common.base.Notifier;
 import com.oracle.coherence.common.base.SingleWaiterMultiNotifier;
@@ -364,15 +365,19 @@ public abstract class AbstractDistEntryProcessorTests
         {
         // NOTE: this test presumes a single storage-enabled cluster member that
         //       is this test to reference count deserialization
-        NamedCache cache = getNamedCache();
+        try (NamedCache cache = getNamedCache())
+            {
+            cache.clear();
+            Eventually.assertDeferred(cache::size, is(0));
 
-        if (!Config.getBoolean("coherence.distributed.localstorage", true) ||
+            if (!Config.getBoolean("coherence.distributed.localstorage", true) ||
                 cache.getCacheService().getInfo().getServiceMembers().size() > 1)
-            {
-            return; // skip test
-            }
-        try
-            {
+                {
+                return; // skip test
+                }
+
+            Logger.out("[testSkipKeySerialization] cache instance: " + cache);
+
             final int SIZE = 100;
             Set<SerializationCountingKey> setKeys = new HashSet<>(SIZE / 2);
 
@@ -387,15 +392,17 @@ public abstract class AbstractDistEntryProcessorTests
                 cache.put(key, "bar-" + i);
                 }
 
+            Eventually.assertDeferred(cache::size, is(SIZE));
             SerializationCountingKey.reset();
             Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
+            Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
 
             // we do not expect any deserialization as the processor adds binary
             // keys and there is no reason for PC to deserialize the key
             int cExpected = cache instanceof ContinuousQueryCache
                     ? setKeys.size() : 0;
 
-            assertEquals("Deserialization should not occur",
+            assertEquals("Deserialization should not occur for cache: " + cache,
                     cExpected, SerializationCountingKey.DESERIALIZATION_COUNTER.get());
 
             // force the key to be deserialized
@@ -404,15 +411,13 @@ public abstract class AbstractDistEntryProcessorTests
                 entry.getKey();
                 }
 
-            assertEquals("Deserialization should not occur",
+            assertEquals("Deserialization should not occur for cache: " + cache,
                     cExpected + setKeys.size(), SerializationCountingKey.DESERIALIZATION_COUNTER.get());
             }
-        finally
-            {
-            cache.truncate();
-            cache.destroy();
-            SerializationCountingKey.reset();
-            }
+
+        SerializationCountingKey.reset();
+        Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
+        Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
         }
 
     // ----- inner classes --------------------------------------------------
