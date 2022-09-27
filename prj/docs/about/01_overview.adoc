@@ -44,6 +44,13 @@ What is Oracle Coherence?
 --
 
 [CARD]
+.Important Changes
+[icon=fa-exclamation-circle,link=docs/about/04_important.adoc]
+--
+Important changes in this release of Coherence.
+--
+
+[CARD]
 .Quick Start
 [icon=fa-rocket,link=docs/about/03_quickstart.adoc]
 --
