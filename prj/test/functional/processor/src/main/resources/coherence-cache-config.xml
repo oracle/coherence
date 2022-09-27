@@ -94,8 +94,8 @@ Cache Configuration used for the processor test suite.
       <front-scheme>
         <local-scheme>
           <eviction-policy>HYBRID</eviction-policy>
-          <high-units>100</high-units>
-          <expiry-delay>1m</expiry-delay>
+          <high-units>200</high-units>
+          <expiry-delay>5m</expiry-delay>
         </local-scheme>
       </front-scheme>
 
@@ -114,8 +114,8 @@ Cache Configuration used for the processor test suite.
       <front-scheme>
         <local-scheme>
           <eviction-policy>HYBRID</eviction-policy>
-          <high-units>100</high-units>
-          <expiry-delay>1m</expiry-delay>
+          <high-units>200</high-units>
+          <expiry-delay>5m</expiry-delay>
         </local-scheme>
       </front-scheme>
 
