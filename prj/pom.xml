@@ -669,7 +669,12 @@
       <id>release-modules</id>
 
       <modules>
+        <!-- internal modules -->
+        <module>coherence-testing-data</module>
+        <module>coherence-testing-support</module>
+
         <!-- distributed modules -->
+        <module>coherence-bedrock</module>
         <module>coherence-jcache</module>
         <module>coherence-login</module>
         <module>coherence-management</module>
@@ -687,6 +692,8 @@
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
         <module>coherence-bom</module>
+        <module>coherence-helidon-grpc</module>
+        <module>coherence-helidon-grpc-proxy</module>
         <module>plugins</module>
       </modules>
 
