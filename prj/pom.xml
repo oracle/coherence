@@ -626,13 +626,8 @@
 
       <modules>
         <!-- distributed modules -->
-        <module>coherence-core</module>
-        <module>coherence-discovery</module>
-        <module>coherence-tracing</module>
-
-        <module>coherence-testing-support</module>
-
         <module>coherence-bom</module>
+        <module>coherence-discovery</module>
         <module>coherence</module>
       </modules>
 
