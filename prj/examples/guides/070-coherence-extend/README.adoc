@@ -1,0 +1,314 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2022, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    http://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence*Extend
+:description: Provides a guide for clients to connect to a Coherence Cluster via Coherence*Extend
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Coherence*Extend
+
+In the previous guide <<examples/guides/050-bootstrap/README.adoc,Bootstrap Coherence>> we briefly talked about connecting
+to a Coherence Cluster via a link:{commercial-docs-base-url}/develop-remote-clients/introduction-coherenceextend.html[Coherence*Extend]
+client using the default cache configuration file. This guide will go a bit deeper in regard to using Coherence*Extend and
+cover the following use-cases:
+
+- Connect using the name service using a custom cache configuration file
+- Demonstrate Proxy load balancing
+- Setting specific host & port (Firewall use-case)
+
+In all 3 use-cases we will use custom cache configuration files.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building-the-example-code, Building The Example Code>>
+* <<data-model, Example Data Model>>
+* <<why-use-coherence-extend, Why use Coherence*Extend?>>
+* <<connect-to-name-service, Connect via the Name Service>>
+* <<use-proxy-load-balancing, Using Proxy Load Balancing>>
+* <<specific-host-port, Setting Host and Port Explicitly>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+The example code is written as a set of JUnit integration tests, showing how you can use Coherence*Extend. For our
+test cases we will also use https://github.com/coherence-community/oracle-bedrock[Oracle Bedrock] to start server instances
+of Oracle Coherence for testing purposes.
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 17
+:duration: 20
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building-the-example-code]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#data-model]
+=== Example Data Model
+
+The data model for this guide consists of a single class named `Country`. This model class represents a country with the
+following properties:
+
+- name
+- capital
+- population
+
+The data is being stored in a Coherence cache named `countries` with the key being the two-letter
+https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2[ISO 3166 country code].
+
+[#why-use-coherence-extend]
+=== Why use Coherence*Extend?
+
+Although recommended, it may not always be possible that your application can be directly part of a Coherence cluster using
+the _Tangosol Cluster Management Protocol_ (TCMP). For example, your application may be located in a different network, you need
+to access Oracle Coherence from desktop applications, or you need to use languages other than Java, e.g. C++ or .NET.
+
+NOTE: Another alternative is to use the link:{commercial-docs-base-url}/develop-remote-clients/getting-started-grpc.html[gRPC integration].
+
+[#connect-to-name-service]
+=== Connect via the Name Service
+
+When connecting to a Coherence Cluster via Coherence*Extend, we recommend the use of the Name Service. The use of the name
+service simplifies port management as the name service will look up the actual Coherence*Extend ports. That way
+Coherence*Extend ports can be ephemeral. For this example, let's start with the Server Cache Configuration file at
+`src/main/resources/name-service/server-coherence-cache-config.xml`.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/name-service/server-coherence-cache-config.xml[tag=testNameServiceUseCase]
+----
+<1> In the `<cache-mapping>` element, we state that the `countries` cache maps to the `country-scheme`
+<2> The `country-scheme` then declares the `<proxy-scheme>` with the name `MyCountryExtendService`
+<3> The `MyCountryExtendService` will start automatically
+
+The `MyCountryExtendService` will be registered with the default name service. If you wanted to customize that behavior,
+you would need to provide an `<acceptor-config>` element. See the load-balancing use-case below for details. We will also
+create a corresponding Client Cache Configuration file at `src/main/resources/name-service/client-coherence-cache-config.xml`.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/name-service/client-coherence-cache-config.xml[tag=testNameServiceUseCase]
+----
+<1> The cache mapping for the client will look similar to the server one, but we name the scheme `remote-country-scheme`
+<2> The client specifies a `<remote-cache-scheme>` element
+<3> The service name `MyCountryExtendService` must match the name we use in the server cache configuration file
+<4> We also define a request-timeout of 5 seconds. This means that if a connection cannot be established within that time,
+    an exception is raised
+
+The client will be using the default name service port of `7574` to lookup the proxy endpoint for the `MyCountryExtendService`.
+You could customize that configuration by providing an `<initiator-config>` element. See the firewall example below for
+details. In the test case itself, we will use Oracle Bedrock to boostrap the Coherence server using the Server Cache Configuration file:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/extend/NameServiceTests.java[tag=bootstrap]
+----
+<1> Specify the server cache configuration file
+<2> Give the Server Cluster an explicit name `myCluster`
+<3> Make sure that we wait until the `MyCountryExtendService` proxy service is available
+
+Then we configure and start the Coherence client.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/extend/NameServiceTests.java[tag=testNameServiceUseCase]
+----
+<1> Disable TCMP to ensure that we only connect via Coherence*Extend
+<2> Set the cluster name of the client to the same name as the server
+<3> Specify the client cache configuration file
+<4> Get the `NamedCache` and add a new country
+
+[IMPORTANT]
+====
+When configuring your Coherence*Extend client, it is important that your client's Cluster Name match the name of the
+Coherence Server Cluster.
+====
+
+[TIP]
+====
+Java-based clients located on the same network as the Coherence server should disable TCMP communication in order to
+ensure that the client connect to clustered services exclusively using extend proxies. This can be achieved
+by setting System property `coherence.tcmp.enabled` to `false`. Please
+link:{commercial-docs-base-url}/develop-remote-clients/configuring-extend-clients.html#GUID-F8832F4C-2F88-4DE4-A804-D100D47B552C[see the reference documentation] for more detailed information.
+====
+
+==== Run the Test
+
+Running the test should be fairly uneventful. If successful, you will see Bedrock starting up the Coherence server with
+1 instance followed by the client starting up and connecting. Let's do a quick test of the `request-timeout` and see what
+happens when the Coherence Server is not available. Comment out the `setup()` method, and re-run the test. After the
+specified `request-timeout` of 5 seconds, you should get a stacktrace with an exception similar to the following:
+
+[source,bash]
+----
+com.tangosol.net.messaging.ConnectionException: Unable to locate cluster 'myCluster' while looking for its ProxyService 'MyCountryExtendService'
+----
+
+In the next section we will see how we can use multiple Coherence servers, and thus taking advantage of proxy load-balancing.
+
+[#use-proxy-load-balancing]
+=== Using Proxy Load Balancing
+
+When you have multiple Coherence servers that you are connecting to via Coherence*Extend, connection load-balancing is
+automatically applied. The default load-balancing behavior is based on the load of each Coherence server member and
+client connections are evenly spread across the Coherence cluster. The default load balance algorithm is called ‘proxy’,
+which if you were to explicitly configure that setting, your Server Cache Configuration file would add the following
+`<proxy-scheme>`:
+
+[source,xml]
+----
+<proxy-scheme>
+   <service-name>MyCountryExtendService</service-name>
+   <load-balancer>proxy</load-balancer>
+   <autostart>true</autostart>
+</proxy-scheme>
+----
+
+Under the covers, this configuration will use the class `DefaultProxyServiceLoadBalancer`.
+
+[NOTE]
+====
+The other build-in load-balancing option is `client` for client-based load-balancing. We will use that option in the
+firewall use-case below.
+====
+
+You can, however, customize the load-balancing logic depending on your needs by providing an implementation of the
+`ProxyServiceLoadBalancer` interface. As mentioned above, Coherence's default implementation is the `DefaultProxyServiceLoadBalancer`.
+For our test-case, lets simply customize it by adding some more logging:
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/guides/extend/loadbalancer/CustomProxyServiceLoadBalancer.java[tag=loadbalancer]
+----
+
+The Server Cache Configuration file at `src/main/resources/load-balancing/server-coherence-cache-config.xml` is almost the
+same compared to the name-service example, but we add a `<load-balancer>` element.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/load-balancing/server-coherence-cache-config.xml[tag=testLoadBalancingUseCase]
+----
+<1> The `MyCountryExtendService` also specifies a `<load-balancer>` element
+<2> The load-balancer uses the customized `CustomProxyServiceLoadBalancer`
+
+The corresponding Client Cache Configuration file at `src/main/resources/load-balancing/client-coherence-cache-config.xml`
+will be identical to the Client Cache Configuration files used for the name-service example.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/load-balancing/client-coherence-cache-config.xml[tag=testLoadBalancingUseCase]
+----
+
+In this example, we will beef up the usage of Oracle Bedrock quite a bit. In order to demonstrate the load-balancer,
+we will create a Coherence Cluster with 4 nodes (members) and 3 Coherence*Extend clients that connect to those members.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/extend/LoadBalancingTests.java[tag=testLoadBalancingUseCase]
+----
+<1> First we specify the desired number of Coherence servers, 4 in this case
+<2> We also need 3 Coherence*Extend clients
+<3> In a loop we create the Coherence servers using the server cache configuration file
+<4> For each server we make sure it is running
+<5> None of the servers should have a client connected to them, yet
+<6> Next we start all the clients using the client cache configuration file
+<7> We also make sure that all clients are running
+<8> Once running, we invoke a task on the client that establishes the Coherence*Extend connection. See the source code snippet
+    below
+<9> Let's introspect all the started servers. For each of them, we get the Coherence*Extend connection count for
+    the `MyCountryExtendService` and sum the result
+<10> The client connection count should be `3`
+<11> Let's wait for 20 seconds, so you can observe the logging activity of our custom load-balancer
+
+As mentioned above, we execute a task for each Coherence*Extend client, to establish the actual connection. In Bedrock, we
+can submit a `RemoteCallable` to achieve this:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/extend/LoadBalancingTests.java[tag=testLoadBalancingUseCaseConnect]
+----
+<1> Our class implements Bedrock's `RemoteCallable` interface
+<2> Get a Coherence session
+<3> Retrieve the countries cache from the session
+
+==== Run the Test
+
+When running the test you should notice the logging to the console from our `CustomProxyServiceLoadBalancer`:
+
+[source,bash]
+----
+[server-1:out:44488]    2: Local Member Id: 1 (Total # of Members: 4) - Connection Count: 1
+[server-3:out:44488]    2: Local Member Id: 4 (Total # of Members: 4) - Connection Count: 1
+[server-2:out:44488]    2: Local Member Id: 2 (Total # of Members: 4) - Connection Count: 1
+[server-4:out:44488]    2: Local Member Id: 3 (Total # of Members: 4) - Connection Count: 0
+----
+
+As we have 4 Cluster Servers but only 3 clients, 1 Cluster Server will have 0 client connections, while each other server
+has 1 client connection each.
+
+[#specific-host-port]
+=== Setting Specific Host and Port
+
+Generally we recommend using the name service to connect to Coherence, but you may have specific firewall constraints.
+In that case, you can configure the Coherence server to listen to a specific address and port instead.
+
+The Server Cache Configuration file at `src/main/resources/firewall/server-coherence-cache-config.xml` will look almost
+identical to the example using the name service. However, here we add an `<acceptor-config>` XML element.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/firewall/server-coherence-cache-config.xml[tag=testFirewallUseCase]
+----
+<1> Add a `<acceptor-config>` element
+<2> Define an explicit Coherence*Extend host address, in this case `127.0.0.1`
+<3> Define the port `7077` on which we will be listening for Coherence*Extend clients
+<4> We need to set load-balancing to `client`
+
+We will also create a corresponding Client Cache Configuration file at `src/main/resources/firewall/client-coherence-cache-config.xml`.
+
+[source,xml,indent=0]
+----
+include::src/main/resources/firewall/client-coherence-cache-config.xml[tag=testFirewallUseCase]
+----
+<1> Define the `<initiator-config>` element
+<2> Specify the Coherence*Extend server address and port under the `<remote-addresses>` element
+
+The test case itself is identical to the name service test above:
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/extend/FirewallTests.java[tag=testFirewallUseCase]
+----
+
+==== Run the Test
+
+The client should be able to connect the server on the explicitly defined host and port.
+
+[#summary]
+=== Summary
+
+In this guide, we gave a few deeper examples of how to set up Coherence*Extend to connect clients to a Coherence Cluster.
+As part of the Coherence reference documentation, we provide an entire guide on
+link:{commercial-docs-base-url}/develop-remote-clients/[Developing Remote Clients for Oracle Coherence]. Part I of that
+guide provides not only an introduction to Coherence*Extend but also covers advanced topics as well as best practices.
+
+[#see-also]
+=== See Also
+
+* <<examples/guides/050-bootstrap/README.adoc, Bootstrap Coherence>>
+  - <<examples/guides/050-bootstrap/README.adoc#run-extend, Run Coherence as an Extend Client>>
+  - <<examples/guides/050-bootstrap/README.adoc#configure-extend, Configure an Extend Client>>
+* link:{commercial-docs-base-url}/develop-remote-clients/introduction-coherenceextend.html#GUID-E935592F-DCA2-44BD-96D5-E276DFA3D3F9[Introduction to Coherence*Extend]
+* link:{commercial-docs-base-url}/develop-remote-clients/configuring-extend-clients.html#GUID-B5E4F4D6-8A9D-4FD2-A0CE-B07C25DF580A[Configuring Extend Clients]
+* link:{commercial-docs-base-url}/develop-remote-clients/advanced-extend-configuration.html#GUID-A5D5F565-1544-4840-80DC-97D052C54649[Advanced Extend Configuration]
+* link:{commercial-docs-base-url}/develop-remote-clients/best-practices-coherenceextend.html#GUID-E7982E16-CC78-426C-9098-46F4FC8204A3[Best Practices for Coherence*Extend]

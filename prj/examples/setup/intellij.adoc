@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Import a Project Into IntelliJ IDEA
 :description: Coherence Guides Import Project Into Intellij
@@ -22,7 +22,7 @@ Then you can then read and follow the individual guide or tutorial documentation
 ==== What You Need
 * About 15 Minutes
 * https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
-* https://www.oracle.com/java/technologies/javase-downloads.html[JDK 6] or later
+* https://www.oracle.com/java/technologies/downloads/[JDK 17] or later
 
 ==== Installing IntelliJ IDEA
 
