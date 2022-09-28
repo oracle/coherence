@@ -16,11 +16,9 @@ import com.tangosol.internal.net.management.LegacyXmlGatewayHelper;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
-import com.tangosol.internal.net.topic.impl.paged.management.PagedTopicModel;
-import com.tangosol.internal.net.topic.impl.paged.management.SubscriberGroupModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
-import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
@@ -97,10 +95,21 @@ public abstract class MBeanHelper
     */
     public static String getDefaultDomain()
         {
-        GatewayDependencies deps = LegacyXmlGatewayHelper.fromXml(CacheFactory.getManagementConfig(),
-                new DefaultGatewayDependencies());
-        return deps.getDefaultDomain();
+        return ensureGatewayDependencies().getDefaultDomain();
         }
+
+    /**
+     *Checks whether or not the "write" operation is allowed.
+     *
+     * @throws SecurityException if the model is "read-only"
+     */
+    public static void checkReadOnly(String sOperation)
+       {
+       if (ensureGatewayDependencies().isReadOnly())
+           {
+           throw new SecurityException("Operation is not allowed: " + sOperation);
+           }
+       }
 
     /**
     * Find an MBeanServer that Coherence MBeans are registered with.
@@ -125,10 +134,7 @@ public abstract class MBeanHelper
     */
     public static MBeanServer findMBeanServer(String sDefaultDomain)
         {
-        GatewayDependencies deps = LegacyXmlGatewayHelper.fromXml(CacheFactory.getManagementConfig(),
-                new DefaultGatewayDependencies());
-
-        return findMBeanServer(sDefaultDomain, deps);
+        return findMBeanServer(sDefaultDomain, ensureGatewayDependencies());
         }
 
     /**
@@ -1671,8 +1677,29 @@ public abstract class MBeanHelper
         private final Filter<ObjectName> f_filter;
         }
 
+    /**
+     * Ensure {@link GatewayDependencies} and return them.
+     *
+     * @return {@link GatewayDependencies}
+     */
+    private static GatewayDependencies ensureGatewayDependencies()
+        {
+        GatewayDependencies deps = s_deps;
+        if (deps == null)
+            {
+            deps = s_deps = LegacyXmlGatewayHelper.fromXml(CacheFactory.getManagementConfig(),
+                new DefaultGatewayDependencies());
+            }
+
+        return deps;
+        }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Lazily loaded GatewayDependencies.
+     */
+    private static GatewayDependencies s_deps;
 
     /**
     * A map of scalar types (classes) keyed by the corresponding JMX signatures.

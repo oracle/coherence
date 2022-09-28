@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management;
 
@@ -216,6 +216,25 @@ public class MBeanResponse
         return listLinks;
         }
 
+    /**
+     * Sets if this response contains a Security Exception.
+     *
+     * @param fIsSecurityException true if this response contains a Security Exception
+     */
+    public void setSecurityException(boolean fIsSecurityException)
+        {
+        m_fIsSecurityException = fIsSecurityException;
+        }
+
+    /**
+     * Returns true if this response contains a Security Exception.
+     * @return true if this response contains a Security Exception
+     */
+    public boolean isSecurityException()
+        {
+        return m_fIsSecurityException;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -244,7 +263,7 @@ public class MBeanResponse
     public static final String PROP_LINKS = "links";
 
     /**
-     * Key to the obejct which has any m_listMessages.
+     * Key to the object which has any m_listMessages.
      */
     public static final String PROP_MESSAGES = "messages";
 
@@ -270,4 +289,9 @@ public class MBeanResponse
      * in the response by use of query parameters - includeLinks and excludeLinks.
      */
     protected Filter<String> m_filterLinks = null;
+
+    /**
+     * Indicates if this is a SecurityException.
+     */
+    protected boolean m_fIsSecurityException = false;
     }

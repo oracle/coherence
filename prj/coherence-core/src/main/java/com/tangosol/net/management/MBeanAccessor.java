@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.management;
 
@@ -42,6 +42,7 @@ import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.RuntimeMBeanException;
 
 /**
  * MBeanAccessor provides a means to access JMX MBeans via the Coherence
@@ -662,7 +663,6 @@ public class MBeanAccessor
 
                 Map<String, Map<String, Object>> mapUpdatedMBeans = new HashMap<>();
 
-
                 if (!attrList.isEmpty())
                     {
                     Set<ObjectName> setObjectNames = mBeanServer.queryNames(new ObjectName(query.getQuery()),
@@ -693,8 +693,15 @@ public class MBeanAccessor
                             }
                         }
                     }
-
                 return mapUpdatedMBeans;
+                }
+            catch (RuntimeMBeanException e)
+                {
+                if (e.getTargetException() instanceof SecurityException)
+                    {
+                    throw e.getTargetException();
+                    }
+                throw e;
                 }
             catch (Exception e)
                 {
@@ -802,12 +809,16 @@ public class MBeanAccessor
                     mapMBeans.put(sObjectName, result);
                     }
                 return mapMBeans;
-
                 }
-                catch (Exception e)
-                    {
-                    throw new RuntimeException(e);
-                    }
+            catch (SecurityException e)
+                {
+                // ensure a SecurityException is not wrapped in RuntimeException
+                throw e;
+                }
+            catch (Exception e)
+                {
+                throw new RuntimeException(e);
+                }
             }
 
         // ----- Invoke methods ---------------------------------------------

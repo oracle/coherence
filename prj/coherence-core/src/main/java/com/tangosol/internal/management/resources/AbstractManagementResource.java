@@ -50,11 +50,14 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.tangosol.util.WrapperException;
+
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.RuntimeMBeanException;
 
 /**
  * The base resource for Coherence management resources.
@@ -184,12 +187,37 @@ public abstract class AbstractManagementResource
                     .entity(Response.Status.BAD_REQUEST.getReasonPhrase() + '\n' + iae.getMessage())
                     .build();
             }
+        catch (RuntimeMBeanException e)
+            {
+            if (isSecurityException(e.getTargetException()))
+                {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+                }
+            
+            return createInternalServerError(queryBuilder, e);
+            }
+        catch (SecurityException e)
+            {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
         catch (Exception e)
             {
-            Logger.warn("Exception occurred while updating an MBean with query " + queryBuilder.toString(), e);
-            // internal server error
-            return Response.serverError().build();
+            return createInternalServerError(queryBuilder, e);
             }
+        }
+
+    /**
+     * Create an internal server error {@link Response}.
+     *
+     * @param queryBuilder  the {@link QueryBuilder} to be used to generate MBean query
+     * @param e {@link Exception} that caused the error
+     * @return a new {@link Response}
+     */
+    private Response createInternalServerError(QueryBuilder queryBuilder, Exception e)
+        {
+        Logger.warn("Exception occurred while updating an MBean with query " + queryBuilder.toString(), e);
+        // internal server error
+        return Response.serverError().build();
         }
 
     /**
@@ -322,7 +350,6 @@ public abstract class AbstractManagementResource
             if (mapMBeans.isEmpty())
                 {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-//                return Response.status(Response.Status.NOT_FOUND).build();
                 }
             }
         catch (RuntimeException e)
@@ -341,6 +368,14 @@ public abstract class AbstractManagementResource
                 }
 
             response.addFailure(sOperationName + " failed, Cause=" + sCause);
+
+            // if the root cause is a SecurityException then return 401
+            if (isSecurityException(tCause))
+                {
+                return Response.status(Response.Status.UNAUTHORIZED).entity(response.toJson()).build();
+                }
+
+            // some other reason so return a 400
             return Response.status(Response.Status.BAD_REQUEST).entity(response.toJson()).build();
             }
         return response(new MBeanResponse(request).toJson());
@@ -426,6 +461,12 @@ public abstract class AbstractManagementResource
             if (tCause != null)
                 {
                 sCause = Base.getDeepMessage(tCause, "\n");
+                }
+
+            // if the root cause is a SecurityException then return 401
+            if (isSecurityException(tCause))
+                {
+                responseBody.setSecurityException(true);
                 }
 
             responseBody.addFailure(sOperationName + " failed, Cause=" + sCause);
@@ -517,6 +558,19 @@ public abstract class AbstractManagementResource
                         + queryBuilder.build().getQuery(), e);
             throw new HttpException();
             }
+        }
+
+    /**
+     * Return true if the {@link Throwable} is a {@link SecurityException} or is a wrapped one.
+     *
+     * @param tCause  {@link Throwable} to inspect
+     * @return true if the {@link Throwable} is a {@link SecurityException}
+     */
+    private boolean isSecurityException(Throwable tCause)
+        {
+        return tCause instanceof SecurityException ||
+               (tCause instanceof RuntimeException && tCause.getCause() instanceof WrapperException &&
+                ((WrapperException) tCause.getCause()).getRootCause()   instanceof SecurityException);
         }
 
     private static String getObjectNameKey(ObjectName objectName, String sKey)
@@ -1248,6 +1302,11 @@ public abstract class AbstractManagementResource
         if (responseEntity == null)
             {
             return Response.notFound().build();
+            }
+
+        if (responseEntity.isSecurityException())
+            {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(responseEntity.toJson()).build();
             }
 
         // check if there are failures, and if so, should be classified as bad request
