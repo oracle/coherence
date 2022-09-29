@@ -17,7 +17,7 @@
   <name>Coherence Guides - Sample</name>
 
   <properties>
-    <revision>22.09-SNAPSHOT</revision>
+    <revision>22.09</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${revision}</coherence.version>
