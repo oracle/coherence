@@ -46,10 +46,6 @@
 
   <developers>
     <developer>
-      <name>Harvey Raja</name>
-      <url>https://github.com/harveyraja</url>
-    </developer>
-    <developer>
       <name>Aleks Seovic</name>
       <url>https://github.com/aseovic</url>
     </developer>
@@ -62,8 +58,8 @@
       <url>https://github.com/fryp</url>
     </developer>
     <developer>
-      <name>Bin Chen</name>
-      <url>https://github.com/bbcadela</url>
+      <name>Maurice Gamanho</name>
+      <url>https://github.com/mgamanho</url>
     </developer>
     <developer>
       <name>Ryan Lubke</name>
@@ -85,6 +81,10 @@
       <name>Chinmay Patel</name>
       <url>https://github.com/chpatel3</url>
     </developer>
+    <developer>
+      <name>Vaso Putica</name>
+      <url>https://github.com/vasac</url>
+    </developer>
   </developers>
 
   <properties>
@@ -95,7 +95,7 @@
       Note that this property has to be named 'revision' and that it has
       special meaning for Maven (see http://maven.apache.org/maven-ci-friendly.html)
       -->
-    <revision>22.09-SNAPSHOT</revision>
+    <revision>22.09</revision>
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
     <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
@@ -186,11 +186,6 @@
       <dependency>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-management</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-metrics</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
