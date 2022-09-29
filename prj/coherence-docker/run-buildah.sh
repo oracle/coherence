@@ -11,7 +11,7 @@
 # runs the Coherence image builder script otherwise it starts Buildah inside
 # a container and exports the images to the local Docker daemon.
 # ---------------------------------------------------------------------------
-set -x
+set -x -e
 
 BASEDIR=$(dirname "$0")
 
@@ -57,18 +57,12 @@ else
     echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
     exit 1
   fi
-
-  # Pull all the base images
-  docker pull "${ARM_BASE_IMAGE} --platform arm64"
-  docker pull "${AMD_BASE_IMAGE} --platform amd64"
-  docker pull "${GRAAL_ARM_BASE_IMAGE} --platform arm64"
-  docker pull "${GRAAL_AMD_BASE_IMAGE} --platform amd64"
 fi
 
 chmod +x ${SCRIPT_NAME}
 
-which buildah
-if [ "$?" == "0" ]
+BUILDAH=$(which buildah || true)
+if [ "${BUILDAH}" != "" ]
 then
   echo "Running Buildah locally"
   if [ "${NO_DAEMON}" == "" ]

@@ -11,7 +11,7 @@
 # The architectures built are linux/amd64 and linux/arm64.
 # The images are pushed to the local Docker daemon unless NO_DAEMON=true.
 # ---------------------------------------------------------------------------
-set -x
+set -x -e
 
 BASEDIR=$(dirname "$0")
 
@@ -155,7 +155,7 @@ CREATED=$(date)
 common_image(){
   # make sure the old container is removed
   buildah rm "container-${1}" || true
-  buildah rmi "coherence:${1}" || true
+#  buildah rmi "coherence:${1}" || true
 
   # Create the container from the base image, setting the architecture and O/S
   buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}"
