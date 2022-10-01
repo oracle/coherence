@@ -190,11 +190,6 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
-        <artifactId>coherence-metrics</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-micrometer</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -275,10 +270,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>${maven.deploy.plugin.version}</version>
-        <inherited>false</inherited>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
       </plugin>
 
     </plugins>
@@ -287,20 +278,20 @@
   <licenses>
     <license>
       <name>Universal Permissive License v 1.0</name>
-      <url>http://oss.oracle.com/licenses/upl</url>
+      <url>https://oss.oracle.com/licenses/upl</url>
       <distribution>repo</distribution>
       <comments>
         Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
         Licensed under the Universal Permissive License v 1.0 as shown at
-        http://oss.oracle.com/licenses/upl.
+        https://oss.oracle.com/licenses/upl.
       </comments>
     </license>
   </licenses>
 
   <profiles>
     <profile>
-      <id>release-coherence</id>
+      <id>release</id>
       <build>
         <plugins>
           <plugin>
@@ -308,7 +299,7 @@
             <artifactId>maven-gpg-plugin</artifactId>
             <version>${maven.gpg.plugin.version}</version>
             <configuration>
-              <skip>false</skip>
+              <skip>${maven.deploy.skip}</skip>
             </configuration>
             <executions>
               <execution>
@@ -329,8 +320,8 @@
             <configuration>
               <serverId>ossrh</serverId>
               <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
-              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+              <autoReleaseAfterClose>false</autoReleaseAfterClose>
+              <skipNexusStagingDeployMojo>${maven.deploy.skip}</skipNexusStagingDeployMojo>
               <skipLocalStaging>true</skipLocalStaging>
             </configuration>
           </plugin>

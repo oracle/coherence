@@ -25,6 +25,11 @@
     support for POF serialization
   </description>
 
+  <properties>
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
+  </properties>
+
   <dependencies>
     <!-- Coherence dependency -->
     <dependency>
@@ -81,15 +86,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!-- we deploy this module to a repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
 
@@ -132,28 +128,6 @@
             <version>${jacoco.version}</version>
             <configuration>
               <skip>true</skip>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>release-modules</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <configuration>
-              <skip>false</skip>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <configuration>
-              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
             </configuration>
           </plugin>
         </plugins>

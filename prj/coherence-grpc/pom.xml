@@ -26,6 +26,9 @@
 
   <properties>
     <module.name>com.oracle.coherence.grpc</module.name>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
@@ -175,16 +178,6 @@
         </executions>
       </plugin>
 
-      <!-- we deploy this module to a Maven repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -228,42 +221,15 @@
   </build>
 
   <profiles>
-<!--
-cannot access class com.google.common.io.ByteStreams (in module com.google.common) because module io.grpc does not read module com.google.common
--->
+    <!--
+    cannot access class com.google.common.io.ByteStreams (in module com.google.common) because module io.grpc does not read module com.google.common
+    -->
     <profile>
       <id>modular-tests</id>
       <properties>
         <useModulePath>false</useModulePath>
         <bedrockUseModules>false</bedrockUseModules>
       </properties>
-    </profile>
-
-    <profile>
-      <id>release-modules</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>${maven.gpg.plugin.version}</version>
-            <configuration>
-              <skip>false</skip>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>${nexus.staging.maven.plugin.version}</version>
-            <extensions>true</extensions>
-            <configuration>
-              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
-              <skipLocalStaging>true</skipLocalStaging>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 </project>
