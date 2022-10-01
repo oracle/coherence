@@ -94,6 +94,9 @@
   </developers>
 
   <properties>
+    <!--  this module should not be published -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+
     <!-- set to true within the child POM or on the command line,
          in order to use module path for unit and integration tests -->
     <useModulePath>false</useModulePath>
@@ -1279,45 +1282,6 @@
           <version>${maven.dependency.plugin.version}</version>
         </plugin>
 
-        <!-- maven-deploy-plugin -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>${maven.deploy.plugin.version}</version>
-          <configuration>
-            <skip>true</skip>
-          </configuration>
-        </plugin>
-
-        <!-- maven-gpg-plugin -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>${maven.gpg.plugin.version}</version>
-          <configuration>
-            <skip>true</skip>
-            <!-- Not supported in gpg 2.0.22 but may be useful in osx for
-                 non-interactive mode
-            <gpgArguments>
-              <arg>\-\-pinentry-mode</arg>
-              <arg>loopback</arg>
-            </gpgArguments>
-            -->
-          </configuration>
-        </plugin>
-
-        <!-- nexus-staging-maven-plugin -->
-        <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>${nexus.staging.maven.plugin.version}</version>
-          <extensions>true</extensions>
-          <configuration>
-            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-            <skipLocalStaging>true</skipLocalStaging>
-          </configuration>
-        </plugin>
-
         <!-- maven JIB plugin for building OCI images -->
         <plugin>
           <groupId>com.google.cloud.tools</groupId>
@@ -1663,30 +1627,7 @@
         <version>${maven.install.plugin.version}</version>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <inherited>false</inherited>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
-
-  <licenses>
-    <license>
-      <name>Universal Permissive License v 1.0</name>
-      <url>http://oss.oracle.com/licenses/upl</url>
-      <distribution>repo</distribution>
-      <comments>
-        Copyright (c) 2000, 2020, Oracle and/or its affiliates.
-
-        Licensed under the Universal Permissive License v 1.0 as shown at
-        http://oss.oracle.com/licenses/upl.
-      </comments>
-    </license>
-  </licenses>
 
 </project>

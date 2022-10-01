@@ -35,16 +35,6 @@
 
   <build>
     <plugins>
-      <!-- we deploy this module to a repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
-
       <!-- generate module-info.java -->
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>

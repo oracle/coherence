@@ -27,6 +27,9 @@
 
   <properties>
     <module.name>com.oracle.bedrock.runtime.coherence</module.name>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
@@ -82,16 +85,6 @@
 
   <build>
     <plugins>
-      <!-- we deploy this module to a repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
-
       <!-- flatten POM to remove build-specific content -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -111,29 +104,4 @@
     </plugins>
   </build>
 
-  <profiles>
-    <profile>
-      <id>release-modules</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>${maven.gpg.plugin.version}</version>
-            <configuration>
-              <skip>false</skip>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <configuration>
-              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
