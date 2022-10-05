@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.cluster;
 
@@ -110,14 +110,13 @@ public class DefaultServiceFailurePolicy
     public void onServiceFailed(Cluster cluster)
         {
         // Note: we are running on a post-termination thread
-        String sHeader = "Coherence <Error>: ";
-
+        String sHeader = " Oracle Coherence <Error>: ";
         switch (getPolicyType())
             {
             default:
             case POLICY_EXIT_CLUSTER:
                 {
-                System.err.println(sHeader +
+                System.err.println(getTimestamp() + sHeader +
                     "Halting this cluster node due to unrecoverable service failure");
                 System.err.flush();
 
@@ -128,19 +127,22 @@ public class DefaultServiceFailurePolicy
                     }
                 catch (Exception e)
                     {
+                    System.err.println(getTimestamp() + sHeader + "Unexpected exception while halting the cluster:\nStackTrace:\n"
+                                       + Base.printStackTrace(e));
+                    System.err.flush();
                     throw Base.ensureRuntimeException(e, "Unexpected exception while halting the cluster.");
                     }
                 finally
                     {
                     // only after halting, print the cluster state
-                    System.err.println(sHeader + "Halted the cluster:\n" + cluster.toString());
+                    System.err.println(getTimestamp() + sHeader + "Halted the cluster: " + cluster.toString());
                     System.err.flush();
                     }
                 }
                 break;
 
             case POLICY_EXIT_PROCESS:
-                System.err.println(sHeader +
+                System.err.println(getTimestamp() + sHeader +
                     "Halting JVM due to unrecoverable service failure");
                 System.err.flush();
                 Runtime.getRuntime().halt(-1);
@@ -158,6 +160,24 @@ public class DefaultServiceFailurePolicy
     public int getPolicyType()
         {
         return m_nPolicyType;
+        }
+
+    /**
+     * Return timestamp to use in System.err messages.
+     *
+     * @since Coherence 12.2.1.4.16
+     */
+    protected static String getTimestamp()
+        {
+        try
+            {
+            return Base.formatDateTime(Base.getSafeTimeMillis());
+            }
+        catch (Throwable ignored)
+            {
+            // ensure if exiting cluster due to OOM, that this does not prevent printing out log message
+            return "";
+            }
         }
 
     // ----- Object methods -------------------------------------------------
