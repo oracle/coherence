@@ -23,12 +23,10 @@ dependencies {
 
     implementation "${coherenceGroupId}:coherence"
 
-    testImplementation "org.assertj:assertj-core:${assertjVersion}"
-    testImplementation "com.oracle.bedrock.coherence:coherence-14.1.1-testing-support:${bedrockVersion}"
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support:${coherenceVersion}"
     testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-
 }
 
 test {

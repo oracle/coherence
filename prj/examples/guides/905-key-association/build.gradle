@@ -23,7 +23,10 @@ dependencies {
 
 	implementation "${coherenceGroupId}:coherence"
 
+	testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support:${coherenceVersion}"
+	testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 

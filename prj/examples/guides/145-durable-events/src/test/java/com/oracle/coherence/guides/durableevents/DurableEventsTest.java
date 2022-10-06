@@ -73,8 +73,8 @@ public class DurableEventsTest {
      */
     private static final String FILE_SEP = System.getProperty("file.separator");
 
-    @RegisterExtension
-    static final TestLogsExtension testLogs = new TestLogsExtension(DurableEventsTest.class);
+//    @RegisterExtension
+//    static final TestLogsExtension testLogs = new TestLogsExtension(DurableEventsTest.class);
 
     // tag::startup[]
     /**
@@ -96,7 +96,7 @@ public class DurableEventsTest {
                   RoleName.of("storage"),
                   DisplayName.of("storage"),
                   Multicast.ttl(0))
-            .include(2, CoherenceClusterMember.class, testLogs,
+            .include(2, CoherenceClusterMember.class, // testLogs,
                      LocalStorage.enabled());
 
         cluster = builder.build();

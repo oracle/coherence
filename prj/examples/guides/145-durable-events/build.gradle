@@ -22,15 +22,17 @@ dependencies {
     implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
     implementation "${coherenceGroupId}:coherence"
 
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support:${hamcrestVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
 test {
-    testLogging {
-        events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
-    }
+//    testLogging {
+//        events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
+//    }
     useJUnitPlatform()
 }

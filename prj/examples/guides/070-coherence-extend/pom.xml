@@ -30,8 +30,6 @@
     <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
 
-    <assertj.version>3.23.1</assertj.version>
-    <bedrock.version>6.0.1</bedrock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
 
@@ -76,21 +74,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>${assertj.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-bedrock-testing-support</artifactId>
       <version>${revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-14.1.1-testing-support</artifactId>
-      <version>${bedrock.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

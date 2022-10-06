@@ -35,6 +35,7 @@ dependencies {
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-paramsExternalizableHelper:${junitVersion}"
 	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")

@@ -7,6 +7,12 @@
 
 file('guides').listFiles().each { File moduleBuild ->
     if (moduleBuild.directory && new File(moduleBuild, 'build.gradle').exists()) {
+        if (moduleBuild.name.equals('905-key-association')) {
+            return
+        }
+        if (moduleBuild.name.equals('910-multi-cluster-client')) {
+            return
+        }
         includeBuild moduleBuild
     }
 }
@@ -16,9 +22,5 @@ file('tutorials').listFiles().each { File moduleBuild ->
         includeBuild moduleBuild
     }
 }
-includeBuild "tutorials/500-graphql/initial"
-includeBuild "tutorials/500-graphql/complete"
-
-
-
-
+//includeBuild "tutorials/500-graphql/initial"
+//includeBuild "tutorials/500-graphql/complete"
