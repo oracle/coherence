@@ -152,5 +152,6 @@ public class SubscriberGroupChannelTableModel
             SimpleModelAttribute.longBuilder("RemainingUnpolledMessages", SubscriberGroupChannelModel.class)
                     .withDescription("The Remaining Unpolled Messages")
                     .withFunction(SubscriberGroupChannelModel::getRemainingUnpolledMessages)
+                    .metric(true)
                     .build();
     }
