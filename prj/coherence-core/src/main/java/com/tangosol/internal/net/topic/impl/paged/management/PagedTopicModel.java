@@ -52,6 +52,13 @@ public class PagedTopicModel
         // configure the attributes of the MBean (ordering does not matter)
         addAttribute(ATTRIBUTE_CHANNEL_COUNT);
         addAttribute(ATTRIBUTE_PAGE_CAPACITY);
+        addAttribute(ATTRIBUTE_RETAIN_CONSUMED);
+        addAttribute(ATTRIBUTE_ALLOW_UNOWNED_COMMITS);
+        addAttribute(ATTRIBUTE_SUBSCRIBER_TIMEOUT);
+        addAttribute(ATTRIBUTE_ELEMENT_CALCULATOR);
+        addAttribute(ATTRIBUTE_RECONNECT_WAIT);
+        addAttribute(ATTRIBUTE_RECONNECT_TIMEOUT);
+        addAttribute(ATTRIBUTE_RECONNECT_RETRY);
         addAttribute(ATTRIBUTE_PUBLISHED_COUNT);
         addAttribute(ATTRIBUTE_PUBLISHED_MEAN);
         addAttribute(ATTRIBUTE_PUBLISHED_ONE_MINUTE);
@@ -80,6 +87,90 @@ public class PagedTopicModel
     public int getPageCapacity()
         {
         return f_pagedTopic.getDependencies().getPageCapacity();
+        }
+
+    /**
+     * Returns {@code true} if this topic retains messages after they have been committed
+     * or {@code false} if messages are removed after all known subscribers have committed
+     * them.
+     *
+     * @return {@code true} if this topic retains messages after they have been committed
+     *         or {@code false} if messages are removed after all known subscribers have
+     *         committed them
+     */
+    public boolean isRetainConsumed()
+        {
+        return f_pagedTopic.getDependencies().isRetainConsumed();
+        }
+
+    /**
+     * Returns {@code true} if the topic allows commits of a position in a channel to be
+     * made by subscribers that do not own the channel.
+     *
+     * @return {@code true} if the topic allows commits of a position in a channel to be
+     *         made by subscribers that do not own the channel
+     */
+    public boolean isAllowUnownedCommits()
+        {
+        return f_pagedTopic.getDependencies().isAllowUnownedCommits();
+        }
+
+    /**
+     * Returns number of milliseconds within which a subscriber must issue a
+     * heartbeat or be forcefully considered closed.
+     *
+     * @return number of milliseconds within which a subscriber must issue a
+     *         heartbeat
+     */
+    public long getSubscriberTimeout()
+        {
+        return f_pagedTopic.getDependencies().getSubscriberTimeoutMillis();
+        }
+
+    /**
+     * Return the calculator name used to calculate element sizes.
+     *
+     * @return the calculator name used to calculate element sizes
+     */
+    public String getElementCalculator()
+        {
+        return f_pagedTopic.getDependencies().getElementCalculator().getName();
+        }
+
+    /**
+     * Return the amount of time publishers and subscribers will wait before attempting
+     * to reconnect after being disconnected.
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         wait before attempting to reconnect after being disconnected
+     */
+    public long getReconnectWait()
+        {
+        return f_pagedTopic.getDependencies().getReconnectWaitMillis();
+        }
+
+    /**
+     * Returns the maximum amount of time publishers and subscribers will
+     * attempt to reconnect after being disconnected.
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         attempt to reconnect after being disconnected
+     */
+    public long getReconnectTimeout()
+        {
+        return f_pagedTopic.getDependencies().getReconnectTimeoutMillis();
+        }
+
+    /**
+     * Return the amount of time publishers and subscribers will wait between
+     * attempts to reconnect after being disconnected.
+     *
+     * @return the maximum amount of time publishers and subscribers will
+     *         wait between attempts to reconnect after being disconnected
+     */
+    public long getReconnectRetry()
+        {
+        return f_pagedTopic.getDependencies().getReconnectRetryMillis();
         }
 
     /**
@@ -156,6 +247,68 @@ public class PagedTopicModel
             SimpleModelAttribute.intBuilder("PageCapacity", PagedTopicModel.class)
                     .withDescription("The capacity of a page")
                     .withFunction(PagedTopicModel::getPageCapacity)
+                    .build();
+
+    /**
+     * The retain consumed attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RETAIN_CONSUMED =
+            SimpleModelAttribute.intBuilder("RetainConsumed", PagedTopicModel.class)
+                    .withDescription("Retain consumed values")
+                    .withFunction(PagedTopicModel::isRetainConsumed)
+                    .build();
+
+    /**
+     * The unowned commits attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_ALLOW_UNOWNED_COMMITS =
+            SimpleModelAttribute.intBuilder("AllowUnownedCommits", PagedTopicModel.class)
+                    .withDescription("Allow Unowned Commits")
+                    .withFunction(PagedTopicModel::isAllowUnownedCommits)
+                    .build();
+
+    /**
+     * The subscriber timeout attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_SUBSCRIBER_TIMEOUT =
+            SimpleModelAttribute.intBuilder("SubscriberTimeout", PagedTopicModel.class)
+                    .withDescription("Subscriber Timeout")
+                    .withFunction(PagedTopicModel::getSubscriberTimeout)
+                    .build();
+
+    /**
+     * The subscriber timeout attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_ELEMENT_CALCULATOR =
+            SimpleModelAttribute.intBuilder("ElementCalculator", PagedTopicModel.class)
+                    .withDescription("Element Calculator")
+                    .withFunction(PagedTopicModel::getElementCalculator)
+                    .build();
+    /**
+     * The reconnect wait attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RECONNECT_WAIT =
+            SimpleModelAttribute.intBuilder("ReconnectWait", PagedTopicModel.class)
+                    .withDescription("Reconnect Wait")
+                    .withFunction(PagedTopicModel::getReconnectWait)
+                    .build();
+
+    /**
+     * The reconnect timeout attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RECONNECT_TIMEOUT =
+            SimpleModelAttribute.intBuilder("ReconnectTimeout", PagedTopicModel.class)
+                    .withDescription("Reconnect Timeout")
+                    .withFunction(PagedTopicModel::getReconnectTimeout)
+                    .build();
+
+    /**
+     * The reconnect retry attribute.
+     */
+    protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RECONNECT_RETRY =
+            SimpleModelAttribute.intBuilder("ReconnectRetry", PagedTopicModel.class)
+                    .withDescription("Reconnect Retry")
+                    .withFunction(PagedTopicModel::getReconnectRetry)
                     .build();
 
     /**
