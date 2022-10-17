@@ -32,7 +32,6 @@ import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
-import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
@@ -1127,6 +1126,7 @@ public class PagedTopicPartition
                     // Update the subscription/channel owner as it may have changed if this is a new subscriber
                     SubscriberId nOwner = subscriptionZero.getChannelOwner(nChannel);
                     subscription.setOwningSubscriber(nOwner);
+                    getStatistics().getSubscriberGroupStatistics(subscriberGroupId.getGroupName()).setOwningSubscriber(nChannel, nOwner);
 
                     if (fReconnect && Objects.equals(nOwner, subscriberId))
                         {
@@ -1153,8 +1153,7 @@ public class PagedTopicPartition
         String               sTopicName   = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
         CacheService         service      = f_ctxManager.getCacheService();
         PagedTopicStatistics statistics = getStatistics();
-        MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, sGroupName, statistics);
-
+        MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, sGroupName, statistics, filter, fnConvert);
         return alResult;
         }
 
@@ -1208,6 +1207,7 @@ public class PagedTopicPartition
 
                 SubscriberId owner = subscriptionZero.getChannelOwner(nChannel);
                 subscription.setOwningSubscriber(owner);
+                getStatistics().getSubscriberGroupStatistics(sGroup).setOwningSubscriber(nChannel, owner);
                 entrySub.setValue(subscription);
                 }
             }
@@ -1672,6 +1672,7 @@ public class PagedTopicPartition
         subscription.setSubscriptionHead(pagedPosition.getPage());
 
         subscription.setCommittedPosition(commitPosition, rollbackPosition);
+        getStatistics().getSubscriberGroupStatistics(keySubscription.getGroupId().getGroupName()).onCommitted(nChannel, commitPosition);
         entrySubscription.setValue(subscription);
 
         // Ensure any pages still left in the partition are removed if no longer referenced

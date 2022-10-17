@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged.statistics;
 import com.tangosol.internal.net.metrics.Meter;
 import com.tangosol.internal.net.topic.impl.paged.management.PolledMetrics;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
 /**
  * The class holding statistics for a subscriber group in a
@@ -59,6 +60,28 @@ public class SubscriberGroupStatistics
         {
         f_metricPolled.mark(cMessage);
         m_aChannelStats[nChannel].onPolled(cMessage, head);
+        }
+
+    /**
+     * Update the committed messages metric.
+     *
+     * @param nChannel           the channel polled from
+     * @param committedPosition  the committed position
+     */
+    public void onCommitted(int nChannel, PagedPosition committedPosition)
+        {
+        m_aChannelStats[nChannel].onCommitted(committedPosition);
+        }
+
+    /**
+     * Set the owning subscriber.
+     *
+     * @param nChannel           the channel
+     * @param nOwningSubscriber  the owning subscriber
+     */
+    public void setOwningSubscriber(int nChannel, SubscriberId nOwningSubscriber)
+        {
+        m_aChannelStats[nChannel].setOwningSubscriber(nOwningSubscriber);
         }
 
     @Override

@@ -9,6 +9,9 @@ package com.tangosol.internal.net.topic.impl.paged.statistics;
 import com.tangosol.internal.net.metrics.Meter;
 import com.tangosol.internal.net.topic.impl.paged.management.PolledMetrics;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
+
+import com.tangosol.util.Base;
 
 import java.util.Objects;
 
@@ -106,7 +109,69 @@ public class SubscriberGroupChannelStatistics
         if (Objects.requireNonNull(head).compareTo(m_head) > 0)
             {
             m_head = head;
+            m_lastPolledTimestamp = Base.getSafeTimeMillis();
             }
+        }
+
+    /**
+     * Return the owning subscriber.
+     *
+     * @return the owning subscriber
+     */
+    public SubscriberId getOwningSubscriber()
+        {
+        return m_owningSubscriber;
+        }
+
+    /**
+     * Set the owning subscriber for the channel.
+     *
+     * @param nOwningSubscriber the owning subscriber
+     */
+    public void setOwningSubscriber(SubscriberId nOwningSubscriber)
+        {
+        m_owningSubscriber = nOwningSubscriber;
+        }
+
+    /**
+     * Update the committed position.
+     *
+     * @param committedPosition  the new committed position
+     */
+    public void onCommitted(PagedPosition committedPosition)
+        {
+        m_committedPosition = committedPosition;
+        m_lastCommittedTimestamp = Base.getSafeTimeMillis();
+        }
+
+    /**
+     * Return the last committed position.
+     *
+     * @return  the last committed position
+     */
+    public PagedPosition getLastCommittedPosition()
+        {
+        return m_committedPosition;
+        }
+
+    /**
+     * Return the last committed timestamp.
+     *
+     * @return the last committed timestamp
+     */
+    public long getLastCommittedTimestamp()
+        {
+        return m_lastCommittedTimestamp;
+        }
+
+    /**
+     * Return the last polled timestamp.
+     *
+     * @return the last polled timestamp
+     */
+    public long getLastPolledTimestamp()
+        {
+        return m_lastPolledTimestamp;
         }
 
     // ----- data members ---------------------------------------------------
@@ -125,4 +190,24 @@ public class SubscriberGroupChannelStatistics
      * The current head position.
      */
     private PagedPosition m_head = new PagedPosition(0L, 0);
+
+    /**
+     * The owning subscriber.
+     */
+    private SubscriberId m_owningSubscriber;
+
+    /**
+     * The last committed position.
+     */
+    private PagedPosition m_committedPosition;
+
+    /**
+     * The last committed timestamp.
+     */
+    private long m_lastCommittedTimestamp;
+
+    /**
+     * The last polled timestamp.
+     */
+    private long m_lastPolledTimestamp;
     }
