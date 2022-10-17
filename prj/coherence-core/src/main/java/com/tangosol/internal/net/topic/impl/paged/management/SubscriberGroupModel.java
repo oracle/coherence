@@ -15,6 +15,11 @@ import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStat
 
 import javax.management.DynamicMBean;
 
+import com.tangosol.util.Filter;
+
+import java.util.Objects;
+import java.util.function.Function;
+
 /**
  * An MBean model for a {@link PagedTopic}
  *
@@ -30,12 +35,17 @@ public class SubscriberGroupModel
     /**
      * Create a {@link SubscriberGroupModel}.
      *
-     * @param pagedTopicStatistics  the topic this model represents
+     * @param pagedTopicStatistics the topic this model represents
+     * @param sGroupName           the name of the subscriber group
+     * @param filter               the filter used to filter messages to be received by subscribers in the group
+     * @param fnConvert            the Function used to convert messages to be received by subscribers in the group
      */
-    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, String sGroupName)
+    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, String sGroupName, Filter<?> filter, Function<?, ?> fnConvert)
         {
         super(MBEAN_DESCRIPTION);
         f_sGroupName = sGroupName;
+        f_filter     = filter;
+        f_fnConvert  = fnConvert;
         f_cChannel   = pagedTopicStatistics.getChannelCount();
         f_statistics = pagedTopicStatistics;
 
@@ -54,6 +64,8 @@ public class SubscriberGroupModel
         addAttribute(ATTRIBUTE_POLLED_FIVE_MINUTE);
         addAttribute(ATTRIBUTE_POLLED_FIFTEEN_MINUTE);
         addAttribute(ATTRIBUTE_CHANNEL_TABLE);
+        addAttribute(ATTRIBUTE_FILTER);
+        addAttribute(ATTRIBUTE_TRANSFORMER);
         }
 
     // ----- PagedTopicModel methods ----------------------------------------
@@ -66,6 +78,26 @@ public class SubscriberGroupModel
     protected int getChannelCount()
         {
         return f_cChannel;
+        }
+
+    /**
+     * Returns the filter for the subscriber group.
+     *
+     * @return  the filter
+     */
+    protected String getFilter()
+        {
+        return Objects.toString(f_filter, null);
+        }
+
+    /**
+     * Returns the transformer for the subscriber group.
+     *
+     * @return  the transformer
+     */
+    protected String getTransformer()
+        {
+        return Objects.toString(f_fnConvert, null);
         }
 
     /**
@@ -188,6 +220,24 @@ public class SubscriberGroupModel
     protected static final ModelAttribute<SubscriberGroupModel> ATTRIBUTE_CHANNEL_TABLE
             = new SubscriberGroupChannelTableModel();
 
+    /**
+     * The filter attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupModel> ATTRIBUTE_FILTER =
+            SimpleModelAttribute.stringBuilder("Filter", SubscriberGroupModel.class)
+                    .withDescription("The filter")
+                    .withFunction(SubscriberGroupModel::getFilter)
+                    .build();
+
+    /**
+     * The transformer attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupModel> ATTRIBUTE_TRANSFORMER =
+            SimpleModelAttribute.stringBuilder("Transformer", SubscriberGroupModel.class)
+                    .withDescription("The transformer")
+                    .withFunction(SubscriberGroupModel::getTransformer)
+                    .build();
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -195,7 +245,20 @@ public class SubscriberGroupModel
      */
     private final PagedTopicStatistics f_statistics;
 
+    /**
+     * The name of the subscriber group.
+     */
     private final String f_sGroupName;
+
+    /**
+     * The filter used to filter messages to be received by subscribers in the group.
+     */
+    private final Filter<?> f_filter;
+
+    /**
+     * the Function used to convert messages to be received by subscribers in the group.
+     */
+    private final Function<?, ?> f_fnConvert;
 
     /**
      * The channel count;

@@ -9,6 +9,9 @@ package com.tangosol.internal.net.topic.impl.paged.management;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupChannelStatistics;
 
+import java.util.Date;
+import java.util.Objects;
+
 /**
  * The MBean model for a channel within a topic subscriber group.
  *
@@ -85,6 +88,62 @@ public class SubscriberGroupChannelModel
     public double getPolledMeanRate()
         {
         return getStatistics().getPolledMeanRate();
+        }
+
+    /**
+     * Return the owning subscriber.
+     *
+     * @return the owning subscriber
+     */
+    public String getOwningSubscriber()
+        {
+        return Objects.toString(getStatistics().getOwningSubscriber(), "");
+        }
+
+    /**
+     * Return the last committed position.
+     *
+     * @return the last committed position
+     */
+    public String getLastCommittedPosition()
+        {
+        return Objects.toString(getStatistics().getLastCommittedPosition(), "");
+        }
+
+    /**
+     * Return the last committed timestamp.
+     *
+     * @return the last committed timestamp
+     */
+    public String getLastCommittedTimestamp()
+        {
+        long ts = getStatistics().getLastCommittedTimestamp();
+        return ts == 0
+               ? ""
+               : new Date(ts).toString();
+        }
+
+    /**
+     * Return the last polled timestamp.
+     *
+     * @return the last polled timestamp
+     */
+    public String getLastPolledTimestamp()
+        {
+        long ts = getStatistics().getLastPolledTimestamp();
+        return ts == 0
+               ? ""
+               : new Date(ts).toString();
+        }
+
+    /**
+     * Return the remaining unpolled messages count.
+     *
+     * @return the remaining unpolled messages count
+     */
+    public long getRemainingUnpolledMessages()
+        {
+        return f_statistics.getChannelStatistics(f_nChannel).getPublishedCount() - getPolledCount();
         }
 
     // ----- helper methods -------------------------------------------------

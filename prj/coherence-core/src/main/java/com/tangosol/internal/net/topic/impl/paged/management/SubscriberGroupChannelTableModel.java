@@ -41,7 +41,10 @@ public class SubscriberGroupChannelTableModel
                 {
                 ATTRIBUTE_CHANNEL, ATTRIBUTE_POLLED_COUNT, ATTRIBUTE_POLLED_MEAN,
                 ATTRIBUTE_POLLED_ONE_MINUTE, ATTRIBUTE_POLLED_FIVE_MINUTE,
-                ATTRIBUTE_POLLED_FIFTEEN_MINUTE, ATTRIBUTE_HEAD
+                ATTRIBUTE_POLLED_FIFTEEN_MINUTE, ATTRIBUTE_HEAD,
+                ATTRIBUTE_OWNING_SUBSCRIBER_ID, ATTRIBUTE_LAST_COMMITTED_POSITION,
+                ATTRIBUTE_LAST_COMMITTED_TIMESTAMP, ATTRIBUTE_LAST_POLLED_TIMESTAMP,
+                ATTRIBUTE_REMAINING_UNPOLLED_MESSAGES
                 };
         }
 
@@ -104,5 +107,50 @@ public class SubscriberGroupChannelTableModel
     protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_POLLED_FIFTEEN_MINUTE =
             PolledMetrics.ATTRIBUTE_FIFTEEN_MINUTE_RATE.asBuilder(SubscriberGroupChannelModel.class)
                     .withFunction(SubscriberGroupChannelModel::getPolledFifteenMinuteRate)
+                    .build();
+
+    /**
+     * The owning subscriber attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_OWNING_SUBSCRIBER_ID =
+            SimpleModelAttribute.stringBuilder("OwningSubscriberId", SubscriberGroupChannelModel.class)
+                    .withDescription("The Owning Subscriber ID")
+                    .withFunction(SubscriberGroupChannelModel::getOwningSubscriber)
+                    .build();
+
+    /**
+     * The last committed position attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_LAST_COMMITTED_POSITION =
+            SimpleModelAttribute.stringBuilder("LastCommittedPosition", SubscriberGroupChannelModel.class)
+                    .withDescription("The Last Committed Position")
+                    .withFunction(SubscriberGroupChannelModel::getLastCommittedPosition)
+                    .build();
+
+    /**
+     * The last committed timestamp attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_LAST_COMMITTED_TIMESTAMP =
+            SimpleModelAttribute.stringBuilder("LastCommittedTimestamp", SubscriberGroupChannelModel.class)
+                    .withDescription("The Last Committed Timestamp")
+                    .withFunction(SubscriberGroupChannelModel::getLastCommittedTimestamp)
+                    .build();
+
+    /**
+     * The last polled timestamp attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_LAST_POLLED_TIMESTAMP =
+            SimpleModelAttribute.stringBuilder("LastPolledTimestamp", SubscriberGroupChannelModel.class)
+                    .withDescription("The Last Polled Timestamp")
+                    .withFunction(SubscriberGroupChannelModel::getLastPolledTimestamp)
+                    .build();
+
+    /**
+     * The remaining unpolled messages timestamp attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_REMAINING_UNPOLLED_MESSAGES =
+            SimpleModelAttribute.longBuilder("RemainingUnpolledMessages", SubscriberGroupChannelModel.class)
+                    .withDescription("The Remaining Unpolled Messages")
+                    .withFunction(SubscriberGroupChannelModel::getRemainingUnpolledMessages)
                     .build();
     }

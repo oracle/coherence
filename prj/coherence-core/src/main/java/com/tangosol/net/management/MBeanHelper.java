@@ -16,6 +16,8 @@ import com.tangosol.internal.net.management.LegacyXmlGatewayHelper;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.management.PagedTopicModel;
+import com.tangosol.internal.net.topic.impl.paged.management.SubscriberGroupModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
@@ -48,6 +50,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.function.Function;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanNotificationInfo;
@@ -512,26 +515,24 @@ public abstract class MBeanHelper
     */
     public static void registerPagedTopicMBean(CacheService service, String sTopicName, PagedTopic topic)
         {
-// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sName = Registry.PAGED_TOPIC_TYPE +
+                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+                    ",name=" + sTopicName;
 
-//        try
-//            {
-//            Cluster  cluster  = service.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                String sName = Registry.PAGED_TOPIC_TYPE +
-//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-//                    ",name=" + sTopicName;
-//
-//                sName = registry.ensureGlobalName(sName);
-//                registry.register(sName, new PagedTopicModel(topic));
-//                }
-//            }
-//        catch (Throwable e)
-//            {
-//            Logger.warn("Failed to register topic \"" + sTopicName + "\"; " + e);
-//            }
+                sName = registry.ensureGlobalName(sName);
+                registry.register(sName, new PagedTopicModel(topic));
+                }
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register topic \"" + sTopicName + "\"; " + e);
+            }
         }
 
     /**
@@ -543,24 +544,22 @@ public abstract class MBeanHelper
     */
     public static void unregisterPagedTopicMBean(String sTopicName, String sServiceName)
         {
-// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
-
-//        try
-//            {
-//            Cluster  cluster  = CacheFactory.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                Member member   = cluster.getLocalMember();
-//                String sPattern = Registry.PAGED_TOPIC_TYPE
-//                    + "," + Registry.KEY_SERVICE + sServiceName
-//                    + ",name="    + sTopicName +
-//                    (member == null ? "" : ",nodeId=" + member.getId());
-//                registry.unregister(sPattern);
-//                unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
-//                }
-//            }
-//        catch (Throwable e) {}
+        try
+            {
+            Cluster  cluster  = CacheFactory.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                Member member   = cluster.getLocalMember();
+                String sPattern = Registry.PAGED_TOPIC_TYPE
+                    + "," + Registry.KEY_SERVICE + sServiceName
+                    + ",name="    + sTopicName +
+                    (member == null ? "" : ",nodeId=" + member.getId());
+                registry.unregister(sPattern);
+                unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
+                }
+            }
+        catch (Throwable e) {}
         }
 
     /**
@@ -570,34 +569,35 @@ public abstract class MBeanHelper
     * @param sTopicName  the cache name
     * @param sGroupName  the subscriber group name
     * @param statistics  the paged topic statistics
+    * @param filter      the filter used to filter messages
+    * @param fnConvert   the Function used to convert messages
     */
     public static void registerSubscriberGroupMBean(CacheService service, String sTopicName,
-            String sGroupName, PagedTopicStatistics statistics)
+            String sGroupName, PagedTopicStatistics statistics,
+            Filter filter, Function fnConvert)
         {
-// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sName = Registry.SUBSCRIBER_GROUP_TYPE +
+                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+                    ",topic=" + sTopicName + ",name=" + sGroupName;
 
-//        try
-//            {
-//            Cluster  cluster  = service.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                String sName = Registry.SUBSCRIBER_GROUP_TYPE +
-//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-//                    ",topic=" + sTopicName + ",name=" + sGroupName;
-//
-//                sName = registry.ensureGlobalName(sName);
-//                if (!registry.isRegistered(sName))
-//                    {
-//                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName));
-//                    }
-//                }
-//            }
-//        catch (Throwable e)
-//            {
-//            Logger.warn("Failed to register subscriber group \"" + sGroupName
-//                        + "\" in topic \"" + sTopicName + "\"; " + e);
-//            }
+                sName = registry.ensureGlobalName(sName);
+                if (!registry.isRegistered(sName))
+                    {
+                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName, filter, fnConvert));
+                    }
+                }
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register subscriber group \"" + sGroupName
+                        + "\" in topic \"" + sTopicName + "\"; " + e);
+            }
         }
 
     /**
@@ -610,23 +610,21 @@ public abstract class MBeanHelper
     */
     public static void unregisterSubscriberGroupMBean(String sGroupName, String sTopicName, String sServiceName)
         {
-// ToDo: Uncomment the code below for 23.03 when we release the version of Coherence that is supposed to have topic MBeans
-
-//        try
-//            {
-//            Cluster  cluster  = CacheFactory.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                Member member   = cluster.getLocalMember();
-//                String sPattern = Registry.SUBSCRIBER_GROUP_TYPE
-//                    + "," + Registry.KEY_SERVICE + sServiceName
-//                    + ",topic="    + sTopicName + ",name=" + sGroupName +
-//                    (member == null ? "" : ",nodeId=" + member.getId());
-//                registry.unregister(sPattern);
-//                }
-//            }
-//        catch (Throwable e) {}
+        try
+            {
+            Cluster  cluster  = CacheFactory.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                Member member   = cluster.getLocalMember();
+                String sPattern = Registry.SUBSCRIBER_GROUP_TYPE
+                    + "," + Registry.KEY_SERVICE + sServiceName
+                    + ",topic="    + sTopicName + ",name=" + sGroupName +
+                    (member == null ? "" : ",nodeId=" + member.getId());
+                registry.unregister(sPattern);
+                }
+            }
+        catch (Throwable e) {}
         }
 
     /**
