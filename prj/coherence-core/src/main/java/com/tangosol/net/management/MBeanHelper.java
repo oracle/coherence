@@ -531,7 +531,7 @@ public abstract class MBeanHelper
             }
         catch (Throwable e)
             {
-            Logger.warn("Failed to register topic \"" + sTopicName + "\"; " + e);
+            Logger.warn("Failed to register topic \"" + sTopicName + "\"", e);
             }
         }
 
@@ -559,7 +559,7 @@ public abstract class MBeanHelper
                 unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
                 }
             }
-        catch (Throwable e) {}
+        catch (Throwable ignored) {}
         }
 
     /**
@@ -596,7 +596,7 @@ public abstract class MBeanHelper
         catch (Throwable e)
             {
             Logger.warn("Failed to register subscriber group \"" + sGroupName
-                        + "\" in topic \"" + sTopicName + "\"; " + e);
+                        + "\" in topic \"" + sTopicName + "\"", e);
             }
         }
 
@@ -624,7 +624,7 @@ public abstract class MBeanHelper
                 registry.unregister(sPattern);
                 }
             }
-        catch (Throwable e) {}
+        catch (Throwable ignored) {}
         }
 
     /**
@@ -655,7 +655,7 @@ public abstract class MBeanHelper
         catch (Throwable e)
             {
             Logger.warn("Failed to register subscriber \"" + subscriber.getId()
-                        + "\" in topic \"" + sTopicName + "\"; " + e);
+                        + "\" in topic \"" + sTopicName + "\"", e);
             }
         }
 
@@ -682,7 +682,7 @@ public abstract class MBeanHelper
                 registry.unregister(sPattern);
                 }
             }
-        catch (Throwable e) {}
+        catch (Throwable ignored) {}
         }
 
     /**
