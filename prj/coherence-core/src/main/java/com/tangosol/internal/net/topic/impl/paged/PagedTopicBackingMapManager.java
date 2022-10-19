@@ -77,10 +77,9 @@ public class PagedTopicBackingMapManager
         m_lock.lock();
         try
             {
-            Map                    map          = super.instantiateBackingMap(sName);
-            String                 sTopicName   = PagedTopicCaches.Names.getTopicName(sName);
-            PagedTopicDependencies dependencies = m_mapDeps.computeIfAbsent(sTopicName, this::createTopicDependencies);
-            m_mapStatistics.computeIfAbsent(sTopicName, s -> createStatistics(dependencies));
+            Map    map        = super.instantiateBackingMap(sName);
+            String sTopicName = PagedTopicCaches.Names.getTopicName(sName);
+            ensureStatistics(sTopicName);
             return map;
             }
         finally
@@ -118,7 +117,20 @@ public class PagedTopicBackingMapManager
      */
     public PagedTopicStatistics getStatistics(String sTopic)
         {
-        return m_mapStatistics.get(sTopic);
+        PagedTopicStatistics statistics = m_mapStatistics.get(sTopic);
+        if (statistics == null)
+            {
+            m_lock.lock();
+            try
+                {
+                statistics = ensureStatistics(sTopic);
+                }
+            finally
+                {
+                m_lock.unlock();
+                }
+            }
+        return statistics;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -138,6 +150,12 @@ public class PagedTopicBackingMapManager
     private PagedTopicStatistics createStatistics(PagedTopicDependencies dependencies)
         {
         return new PagedTopicStatistics(dependencies.getChannelCount());
+        }
+
+    private PagedTopicStatistics ensureStatistics(String sTopicName)
+        {
+        PagedTopicDependencies dependencies = m_mapDeps.computeIfAbsent(sTopicName, this::createTopicDependencies);
+        return m_mapStatistics.computeIfAbsent(sTopicName, s -> createStatistics(dependencies));
         }
 
     // ----- data members ---------------------------------------------------
