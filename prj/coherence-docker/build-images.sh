@@ -158,7 +158,18 @@ common_image(){
 #  buildah rmi "coherence:${1}" || true
 
   # Create the container from the base image, setting the architecture and O/S
-  buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}"
+  # The "buildah from" command will pull the base image if not present, this will
+  # be retried a maximum of five times as there are occasional timeouts for large
+  # base images such as Graal
+  exitCode=0
+  for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}" \
+    && exitCode=0 && break || exitCode=$? \
+    && echo "The command 'buildah from...' failed. Attempt ${i} of 5" \
+    && sleep 10; done;
+
+  if [ ${exitCode} != 0 ]; then
+    exit 1
+  fi
 
   # Add the configuration, entrypoint, ports, env-vars etc...
   buildah config --healthcheck-start-period 10s --healthcheck-interval 10s --healthcheck "CMD ${ENTRY_POINT} ${HEALTH_CMD}" "container-${1}"
@@ -210,11 +221,6 @@ if [ "${OCR_DOCKER_USERNAME}" != "" ] && [ "${OCR_DOCKER_USERNAME}" != "" ]
 then
   buildah login -u "${OCR_DOCKER_USERNAME}" -p "${OCR_DOCKER_PASSWORD}" "${OCR_DOCKER_SERVER}"
 fi
-# pull in all the base images
-buildah pull "docker-daemon:${AMD_BASE_IMAGE}" || true
-buildah pull "docker-daemon:${ARM_BASE_IMAGE}" || true
-buildah pull "docker-daemon:${GRAAL_AMD_BASE_IMAGE}" || true
-buildah pull "docker-daemon:${GRAAL_ARM_BASE_IMAGE}" || true
 
 # Build the amd64 image
 common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64"
