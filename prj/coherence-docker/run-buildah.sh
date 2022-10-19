@@ -76,9 +76,22 @@ else
   then
     NO_DAEMON=false
   fi
+
   docker rm -f buildah || true
+
+  if [ "${BUILDAH_VOLUME}" == "" ]
+  then
+    export BUILDAH_VOLUME=buildah-containers-volume
+  fi
+  
+  if ! docker volume inspect "${BUILDAH_VOLUME}";
+  then
+    docker volume create "${BUILDAH_VOLUME}"
+  fi
+
   docker run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
-      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v /var/run/docker.sock:/var/run/docker.sock  \
+      -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
       -e IMAGE_NAME="${IMAGE_NAME}" \
       -e IMAGE_ARCH="${IMAGE_ARCH}" \
