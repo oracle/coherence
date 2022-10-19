@@ -573,6 +573,10 @@ public class ExtensibleConfigurableCacheFactory
 
         f_dispatcher.dispatchActivating(this);
 
+        String sScopeName = f_cacheConfig == null ? "<unknown scope>" : f_cacheConfig.getScopeName();
+
+        CacheFactory.log("ExtensibledConfigurableCacheFactory.activate() cache config with scope " +
+                         sScopeName, Base.LOG_INFO);
         startServices();
 
         try
