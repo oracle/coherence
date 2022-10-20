@@ -2,7 +2,7 @@
  * Copyright (c) 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.queries;
 
@@ -61,7 +61,7 @@ class QueryTests {
         assertThat(results).hasSize(2); // <4>
 
         map.entrySet(filter).forEach(entry -> { // <5>
-            //assertThat(entry.getKey()).containcontainsAnyOf("de", "fr");
+            assertThat(entry.getKey()).containsAnyOf("de", "fr");
             assertThat(entry.getValue().getPopulation()).isGreaterThan(60.0);
         });
     }
