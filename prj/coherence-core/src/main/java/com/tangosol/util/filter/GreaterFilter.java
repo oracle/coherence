@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -116,25 +116,9 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             {
             SortedMap mapContents = (SortedMap) index.getIndexContents();
             Set       setEQ       = (Set) mapContents.get(oValue);
-            SortedMap mapLT;
-            SortedMap mapGE;
-            boolean   fHeadHeavy;
-
-            if (mapContents instanceof SafeSortedMap)
-                {
-                // optimization for SafeSortedMap indices (see COH-1199)
-                SafeSortedMap.Split split = ((SafeSortedMap) mapContents).split(oValue);
-                mapLT      = split.getHead();
-                mapGE      = split.getTail();
-                fHeadHeavy = split.isHeadHeavy();
-                }
-            else
-                {
-                // generic SortedMap; fall back on using size()
-                mapLT      = mapContents.headMap(oValue);
-                mapGE      = mapContents.tailMap(oValue);
-                fHeadHeavy = mapLT.size() > mapContents.size() / 2;
-                }
+            SortedMap mapLT       = mapContents.headMap(oValue);
+            SortedMap mapGE       = mapContents.tailMap(oValue);
+            boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
 
             if (fHeadHeavy || index.isPartial())
                 {

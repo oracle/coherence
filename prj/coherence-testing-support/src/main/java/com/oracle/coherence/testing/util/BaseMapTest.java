@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing.util;
 
@@ -41,6 +41,7 @@ import com.tangosol.util.ObservableHashMap;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SafeLinkedList;
+import com.tangosol.util.SafeSortedMap;
 import com.tangosol.util.SimpleMapEntry;
 import org.junit.Ignore;
 
@@ -141,7 +142,21 @@ public class BaseMapTest
         assertIdenticalResult(oControl, oTest);
         assertIdenticalMaps(mapControl, mapTest);
 
+        // test SafeSortedMap null K, V support
+        if (mapTest instanceof SafeSortedMap)
+            {
+            mapTest.put(null, "somevalue");
+            mapTest.put("abc", null);
+            }
+
         testMisc(mapTest);
+
+        // test SafeSortedMap null K, V support
+        if (mapTest instanceof SafeSortedMap)
+            {
+            mapTest.remove(null);
+            mapTest.remove("abc");
+            }
 
         for (int iRepeat = 0; iRepeat < 2; ++iRepeat)
             {
