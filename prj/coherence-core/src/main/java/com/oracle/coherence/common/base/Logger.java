@@ -2,7 +2,7 @@
  * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.base;
 
@@ -766,6 +766,18 @@ public abstract class Logger
         finest(() -> String.format("THROWING [%s.%s] exception=%s, additional-info=%s",
                                    clz.getName(), sMethod, Base.getStackTrace(throwable),
                                    Arrays.toString(additionalInfo)));
+        }
+
+    /**
+     * Set the logging level.
+     *
+     * @param nSeverity  the severity level
+     *
+     * @since 22.09
+     */
+    public static void setLoggingLevel(int nSeverity)
+        {
+        CacheFactory.setLoggingLevel(Integer.valueOf(nSeverity));
         }
 
     // ----- helper methods -------------------------------------------------
