@@ -255,7 +255,7 @@
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
-    <protobuf.version>3.21.7</protobuf.version>
+    <protobuf.version>3.21.3</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
@@ -275,7 +275,7 @@
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <mockito.version>3.12.4</mockito.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>6.0.1</oracle.bedrock.version>
+    <oracle.bedrock.version>7.0.0</oracle.bedrock.version>
     <testcontainers.version>1.17.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->

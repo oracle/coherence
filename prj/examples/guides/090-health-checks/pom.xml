@@ -33,7 +33,6 @@
     <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
-    <bedrock.version>6.0.1</bedrock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
 
@@ -47,13 +46,6 @@
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-bom</artifactId>
         <version>${coherence.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.oracle.bedrock</groupId>
-        <artifactId>bedrock-bom</artifactId>
-        <version>${bedrock.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
