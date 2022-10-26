@@ -22,11 +22,12 @@
 1. [How to Get Coherence Community Edition](#acquire)
 1. [Coherence Overview](#overview)
 1. [Hello Coherence](#get-started)
-  1. [CohQL Console](#cohql)
-  1. [Coherence Console](#coh-console)
-  1. [Code Example](#hello-coh)
+   1. [Install the Coherence CLI](#install)
+   1. [Create a Cluster](#create)
+   1. [CohQL Console](#cohql)
+   1. [Coherence Console](#coh-console)
+   1. [Code Example](#hello-coh)
 1. [Building](#build)
-1. [Integrations](#integrations)
 1. [Documentation](#documentation)
 1. [Contributing](#contrib)
 
@@ -163,34 +164,75 @@ our own [operator](https://github.com/oracle/coherence-operator).
 
   1. Java - JDK 17 or higher
   2. Maven - 3.8.5 or higher
+  3. Cohrence CLI Installed (see below)
 
-### CLI Hello Coherence
+The following example shows you how to quickly get started with Coherence using the
+[Coherence CLI](https://github.com/oracle/coherence-cli) to create a 3 node Coherence cluster scoped to you local machine.
+You will then access data using the CohQL and Coherence consoles.
 
-The following example illustrated starting a **storage enabled** Coherence Server,
-followed by a **storage disabled** Coherence Console. Using the console, data is
-inserted, retrieved, and then the console is terminated. The console is restarted
-and data is once again retrieved to illustrate the permanence of the data.
+#### <a name="install"></a> Install the Coherence CLI
 
-> **Note:** This example uses the OOTB cache configuration and therefore, explicitly
->          specifying the console is storage disabled is unnecessary.
+Install the Coherence CLI by following the instructions for your selected platform [here](https://oracle.github.io/coherence-cli/docs/latest/#/docs/installation/01_installation). Once you have installed the CLI, continue below.
 
-> **Note:** Coherence cluster members discover each other via one of two mechanisms;
->           multicast (default) or Well Known Addressing (deterministic broadcast).
->           If your system does not support mutlicast, enable WKA by specifying
->           `-Dcoherence.wka=localhost` for both processes started in the following
->           console examples.
+#### <a name="create"></a>Create and start a Cluster
+
+Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default of Coherence CE 22.09.
+
+```shell
+$ cohctl create cluster my-cluster
+
+Cluster name:         my-cluster
+Cluster version:      22.09
+Cluster port:         7574
+Management port:      30000
+Replica count:        3
+Initial memory:       128m
+Persistence mode:     on-demand
+Group ID:             com.oracle.coherence.ce
+Additional artifacts:
+Startup Profile:      
+Dependency Tool:      mvn
+Are you sure you want to create the cluster with the above details? (y/n) y
+
+Checking 3 Maven dependencies...
+- com.oracle.coherence.ce:coherence:22.09
+- com.oracle.coherence.ce:coherence-json:22.09
+- org.jline:jline:3.20.0
+Starting 3 cluster members for cluster my-cluster
+Starting cluster member storage-0...
+Starting cluster member storage-1...
+Starting cluster member storage-2...
+Current context is now my-cluster
+Cluster added and started
+```
+
+> Note: If you do not have the Maven artefacts locally, it may take a short while to download them from Maven central.
+
+Once the cluster is created, wait it a couple of seconds, and use the following command to see the members.
+
+```shell
+$ cohctl get members
+
+Using cluster connection 'my-cluster' from current context.
+
+Total cluster members: 3
+Cluster Heap - Total: 384 MB Used: 114 MB Available: 270 MB (70.3%)
+Storage Heap - Total: 128 MB Used: 16 MB Available: 112 MB (87.5%)
+
+NODE ID  ADDRESS     PORT   PROCESS  MEMBER     ROLE             STORAGE  MAX HEAP  USED HEAP  AVAIL HEAP
+      1  /127.0.0.1  55654    58270  storage-1  CoherenceServer  true       128 MB      16 MB      112 MB
+      2  /127.0.0.1  55655    58271  storage-2  CoherenceServer  false      128 MB      74 MB       54 MB
+      3  /127.0.0.1  55656    58269  storage-0  CoherenceServer  false      128 MB      24 MB      104 MB
+```
+
+Note: If you do not see the above, then ensure you are using JDK17, and then issue `cohctl start cluster my-cluster` to start the cluster.
 
 #### <a name="cohql"></a>CohQL Console
 
+Start the CohQL Console using the CLI, and run the statements at the `CohQL>` prompt to insert data into your cache.
+
 ```shell
-
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.09 dependency:get
-
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.09/coherence-22.09.jar
-
-$> java -jar $COH_JAR &
-
-$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+$ cohctl start cohql
 
 CohQL> select * from welcomes
 
@@ -208,7 +250,9 @@ Results
 
 CohQL> bye
 
-$> java -cp $COH_JAR com.tangosol.coherence.dslquery.QueryPlus
+# Restart to CohQL to show that the data is still present in the Coherence cluster.
+
+$ cohctl start cohql
 
 CohQL> select key(), value() from welcomes
 Results
@@ -217,33 +261,16 @@ Results
 ["spanish", "Hola"]
 
 CohQL> bye
-
-$> kill %1
 ```
+
 #### <a name="coh-console"></a>Coherence Console
+
+Use the following command to start the Coherence console, which is a different way to interact with the data in a Cache.
+
 ```shell
-
-$> mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=22.09 dependency:get
-
-$> export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/22.09/coherence-22.09.jar
-
-$> java -jar $COH_JAR &
-
-$> java -cp $COH_JAR com.tangosol.net.CacheFactory
+$ cohctl start console
 
 Map (?): cache welcomes
-
-Map (welcomes): get english
-null
-
-Map (welcomes): put english Hello
-null
-
-Map (welcomes): put spanish Hola
-null
-
-Map (welcomes): put french Bonjour
-null
 
 Map (welcomes): get english
 Hello
@@ -253,20 +280,24 @@ french = Bonjour
 spanish = Hola
 english = Hello
 
-Map (welcomes): bye
-
-$> java -cp $COH_JAR com.tangosol.net.CacheFactory
-
-Map (?): cache welcomes
+Map (welcomes): put australian Gudday
+null
 
 Map (welcomes): list
-french = Bonjour
 spanish = Hola
 english = Hello
+australian = Gudday
+french = Bonjour
 
 Map (welcomes): bye
+```
 
-$> kill %1
+#### Shutdown your Cluster
+
+**Note**: Ensure you shutdown your Coherence cluster using the following:
+
+```#!/usr/bin/env bash
+cohctl stop cluster my-cluster
 ```
 
 ### <a name="hello-coh"></a>Programmatic Hello Coherence Example
@@ -360,17 +391,14 @@ $> mvn -am -pl coherence clean install -DskipTests
 
 # only build coherence.jar and skip compilation of CDBs and tests
 $> mvn -am -pl coherence clean install -DskipTests -Dtde.compile.not.required
-
 ```
-
-## <a name="integrations"></a>Integrations
 
 ## <a name="documentation"></a>Documentation
 
 ### Oracle Coherence Documentation
 
 Oracle Coherence product documentation is available
-[here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.0/index.html).
+[here](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/index.html).
 
 ### Features Not Included in Coherence Community Edition
 
