@@ -62,7 +62,10 @@ public class JavaUtilLogLevelTests
         {
         String sMessage_info_1   = "This is a INFO message";
         String sMessage_info_2   = "This is a INFO message after Coherence level change";
-        String sMessage_finest = "This is a TRACE message";
+        String sMessage_fine     = "This is a FINE message after logging level change";
+        String sMessage_finest_1 = "This is a TRACE message";
+        String sMessage_finest_2 = "This is a TRACE message after jdk level change";
+        String sMessage_change   = "Change logging level from INFO to TRACE";
 
         // Default log level for JDK logging is INFO
         // with JDK logging configured, it should override
@@ -70,33 +73,48 @@ public class JavaUtilLogLevelTests
         assertFalse(com.oracle.coherence.common.base.Logger.isEnabled(5));
 
         // FINEST level message should not be logged
-        com.oracle.coherence.common.base.Logger.finest(sMessage_finest);
+        com.oracle.coherence.common.base.Logger.finest(sMessage_finest_1);
 
         // INFO level message is logged
         com.oracle.coherence.common.base.Logger.info(sMessage_info_1);
 
         // wait for the logger to wake
         Eventually.assertDeferred(() -> isLogged(sMessage_info_1), is(true));
-        assertFalse(isLogged(sMessage_finest));
+        assertFalse(isLogged(sMessage_finest_1));
 
-        // Change the Coherence log level - should have no effect on Java logger
+        // Change the log level
+        com.oracle.coherence.common.base.Logger.setLoggingLevel(5);
+
+        // FINEST level message should not be logged
+        com.oracle.coherence.common.base.Logger.finest(sMessage_finest_1);
+
+        // FINE level message is logged
+        com.oracle.coherence.common.base.Logger.fine(sMessage_fine);
+
+        // wait for the logger to wake
+        Eventually.assertDeferred(() -> isLogged(sMessage_fine), is(true));
+        assertFalse(isLogged(sMessage_finest_1));
+
+        // Change the Coherence log level - should have effect on Java logger as well
+        com.oracle.coherence.common.base.Logger.info(sMessage_change);
         changeCoherenceLogLevel(9);
 
-        // FINEST level message should still not be logged
-        com.oracle.coherence.common.base.Logger.finest(sMessage_finest);
+        // FINEST level message should be logged
+        com.oracle.coherence.common.base.Logger.finest(sMessage_finest_1);
+
+        Eventually.assertDeferred(() -> isLogged(sMessage_finest_1), is(true));
+
+        // Change the Java logging level
+        m_logger.setLevel(Level.INFO);
 
         // INFO level message is logged
         com.oracle.coherence.common.base.Logger.info(sMessage_info_2);
 
+        // FINEST level message should not be logged
+        com.oracle.coherence.common.base.Logger.finest(sMessage_finest_2);
+
         Eventually.assertDeferred(() -> isLogged(sMessage_info_2), is(true));
-        assertFalse(isLogged(sMessage_finest));
-
-        // Change the Java logging level
-        m_logger.setLevel(Level.FINEST);
-
-        // FINEST level message should be logged
-        com.oracle.coherence.common.base.Logger.finest(sMessage_finest);
-        Eventually.assertDeferred(() -> isLogged(sMessage_finest), is(true));
+        assertFalse(isLogged(sMessage_finest_2));
         }
 
     @AfterClass

@@ -27,6 +27,7 @@ import java.io.StringWriter;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Functional test of the Log4j 2 logging functionality.
@@ -78,6 +79,7 @@ public class Log4j2Tests extends AbstractFunctionalTest
         {
         String sMessage_info   = "This is a INFO message";
         String sMessage_finest = "This is a TRACE message";
+        String sMessage_change = "Change logging level from INFO to TRACE";
 
         // The log level for Log4j logging is INFO,
         // it should override default coherence log level (FINE).
@@ -92,6 +94,14 @@ public class Log4j2Tests extends AbstractFunctionalTest
         // wait for the logger to wake
         Eventually.assertDeferred(() -> isLogged(sMessage_info), is(true));
         assertFalse(isLogged(sMessage_finest));
+
+        Logger.info(sMessage_change);
+        Logger.setLoggingLevel(Logger.FINEST);
+        assertTrue(Logger.isEnabled(Logger.FINE));
+
+        // FINEST level message should now be logged
+        Logger.finest(sMessage_finest);
+        Eventually.assertDeferred(() -> isLogged(sMessage_finest), is(true));
         }
 
     /**

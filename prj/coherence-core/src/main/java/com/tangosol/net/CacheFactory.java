@@ -1040,6 +1040,29 @@ public abstract class CacheFactory
             }
         }
 
+    /**
+     * Set the Coherence logging level.
+     *
+     * @param ILevel  the logging level to set
+     *
+     * @since 22.09
+     */
+    public static void setLoggingLevel(Integer ILevel)
+        {
+        if (INIT_FAILURE != null)
+            {
+            throw ensureRuntimeException(INIT_FAILURE);
+            }
+
+        try
+            {
+            METHOD_SETLOGGINGLEVEL.invoke(null, ILevel);
+            }
+        catch (Exception e)
+            {
+            throw ensureRuntimeException(e);
+            }
+        }
 
     // ----- unit test ------------------------------------------------------
 
@@ -1122,7 +1145,7 @@ public abstract class CacheFactory
     private static final Method METHOD_GETSERVICECONFIG;
 
     /**
-    * Coherence getServiceConfig(String, XmlElement) method.
+    * Coherence setServiceConfig(String, XmlElement) method.
     */
     private static final Method METHOD_SETSERVICECONFIG;
 
@@ -1140,6 +1163,11 @@ public abstract class CacheFactory
     * Last reflection exception.
     */
     private static final Throwable INIT_FAILURE;
+
+    /**
+    * Coherence setLoggingLevel(Integer ILevel) method.
+    */
+    private static final Method METHOD_SETLOGGINGLEVEL;
 
     static
         {
@@ -1165,6 +1193,7 @@ public abstract class CacheFactory
         METHOD_SETSERVICECONFIG = ep.m_methSetServiceConfig;
         METHOD_MAIN             = ep.m_methMain;
         METHOD_RESOLVEEDITION   = ep.m_methResolveEdition;
+        METHOD_SETLOGGINGLEVEL  = ep.m_methSetLoggingLevel;
         INIT_FAILURE            = ep.m_eInitFailure;
         }
 
@@ -1202,6 +1231,8 @@ public abstract class CacheFactory
                                             new Class[] {String[].class});
                 m_methResolveEdition      = clzLibrary.getMethod("resolveEdition",
                                             new Class[] {XmlElement.class});
+                m_methSetLoggingLevel     = clzLibrary.getMethod("setLoggingLevel",
+                                            new Class[] {Integer.class});
                 }
             catch (Throwable e)
                 {
@@ -1222,5 +1253,6 @@ public abstract class CacheFactory
         Method    m_methMain;
         Method    m_methResolveEdition;
         Throwable m_eInitFailure;
+        Method    m_methSetLoggingLevel;
         }
     }
