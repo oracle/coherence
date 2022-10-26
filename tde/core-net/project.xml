@@ -43,6 +43,15 @@
         </StorageInfo>
       </Library>
       <Library>
+        <Name>log4j-core-2.18.0.jar</Name>
+        <Description/>
+        <Customizable>true</Customizable>
+        <Visibility>standard</Visibility>
+        <StorageInfo>
+          <Location>./3.0/lib/log4j-core-2.18.0.jar</Location>
+        </StorageInfo>
+      </Library>
+      <Library>
         <Name>slf4j-api-1.7.32.jar</Name>
         <Description/>
         <Customizable>true</Customizable>
