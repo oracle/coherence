@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged.agent;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.AbstractEvolvable;
@@ -17,15 +18,18 @@ import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.net.Member;
 import com.tangosol.net.topic.TopicException;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.UUID;
 
 import java.io.IOException;
 
 import java.util.Collection;
 
+import java.util.Set;
 import java.util.function.Function;
 
 import java.util.stream.Collectors;
@@ -45,6 +49,7 @@ public class EnsureSubscriptionProcessor
     /**
      * Default constructor (for serialization).
      */
+    @SuppressWarnings("unused")
     public EnsureSubscriptionProcessor()
         {
         super(PagedTopicPartition::ensureTopic);
@@ -58,11 +63,11 @@ public class EnsureSubscriptionProcessor
      * @param filter         the filter indicating which values are of interest
      * @param fnConvert      the optional converter function to convert values before they are
      *                       returned to subscribers
-     * @param nSubscriberId  the unique identifier of the subscriber, or zero for an anonymous subscriber
+     * @param subscriberId   the unique identifier of the subscriber
      * @param fReconnect     {@code true} if this is a subscriber reconnection
      */
     public EnsureSubscriptionProcessor(int nPhase, long[] alPage, Filter<?> filter, Function<?, ?> fnConvert,
-                                       long nSubscriberId, boolean fReconnect, boolean fCreateGroupOnly)
+                                       SubscriberId subscriberId, boolean fReconnect, boolean fCreateGroupOnly)
         {
         super(PagedTopicPartition::ensureTopic);
 
@@ -70,7 +75,7 @@ public class EnsureSubscriptionProcessor
         m_alPage           = alPage;
         m_filter           = filter;
         m_fnConvert        = fnConvert;
-        m_nSubscriberId    = nSubscriberId;
+        m_subscriberId     = subscriberId;
         m_fReconnect       = fReconnect;
         m_fCreateGroupOnly = fCreateGroupOnly;
         }
@@ -119,9 +124,9 @@ public class EnsureSubscriptionProcessor
         return m_fnConvert;
         }
 
-    public long getSubscriberId()
+    public SubscriberId getSubscriberId()
         {
-        return m_nSubscriberId;
+        return m_subscriberId;
         }
 
     public boolean isReconnect()
@@ -146,17 +151,27 @@ public class EnsureSubscriptionProcessor
     public void readExternal(PofReader in)
             throws IOException
         {
-        int nVersion = getDataVersion();
+        int  nVersion      = getDataVersion();
+        UUID uuid          = null;
+        long nSubscriberId = 0;
+
         m_nPhase    = in.readInt(0);
         m_alPage    = in.readLongArray(1);
         m_filter    = in.readObject(2);
         m_fnConvert = in.readObject(3);
         if (nVersion >= 2)
             {
-            m_nSubscriberId    = in.readLong(4);
+            nSubscriberId      = in.readLong(4);
             m_fReconnect       = in.readBoolean(5);
             m_fCreateGroupOnly = in.readBoolean(6);
+
+            if (nVersion >= 3)
+                {
+                uuid = in.readObject(7);
+                }
             }
+
+        m_subscriberId = new SubscriberId(nSubscriberId, uuid);
         }
 
     @Override
@@ -167,9 +182,10 @@ public class EnsureSubscriptionProcessor
         out.writeLongArray(1, m_alPage);
         out.writeObject(2, m_filter);
         out.writeObject(3, m_fnConvert);
-        out.writeObject(4, m_nSubscriberId);
+        out.writeObject(4, m_subscriberId.getId());
         out.writeBoolean(5, m_fReconnect);
         out.writeBoolean(6, m_fCreateGroupOnly);
+        out.writeObject(7, m_subscriberId.getUID());
         }
 
     // ----- constants ------------------------------------------------------
@@ -192,7 +208,7 @@ public class EnsureSubscriptionProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 2;
+    public static final int DATA_VERSION = 3;
 
     // ----- inner class: Result --------------------------------------------
 
@@ -367,11 +383,6 @@ public class EnsureSubscriptionProcessor
          * Any error that occurred ensuring the subscription.
          */
         private Throwable m_error;
-
-        /**
-         * The name of the topic.
-         */
-        private String m_sTopicName;
         }
 
     // ----- data members ---------------------------------------------------
@@ -399,7 +410,7 @@ public class EnsureSubscriptionProcessor
     /**
      * The subscriber identifier.
      */
-    private long m_nSubscriberId;
+    private SubscriberId m_subscriberId;
 
     /**
      * A flag indicating that this is a reconnect.

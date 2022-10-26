@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -645,8 +645,6 @@ public class PagedTopicScheme
         configuration.setSubscriberTimeoutMillis(getSubscriberTimeout(resolver).as(Duration.Magnitude.MILLI));
         configuration.setReconnectTimeoutMillis(getReconnectTimeoutMillis(resolver).as(Duration.Magnitude.MILLI));
         configuration.setReconnectRetryMillis(getReconnectRetryMillis(resolver).as(Duration.Magnitude.MILLI));
-
-        Logger.finer("PagedTopicScheme configuration: " + configuration);
         return configuration;
         }
 

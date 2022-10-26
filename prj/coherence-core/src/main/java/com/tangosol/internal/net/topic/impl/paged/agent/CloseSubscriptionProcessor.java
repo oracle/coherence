@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.internal.net.topic.impl.paged.agent;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.pof.EvolvablePortableObject;
@@ -43,10 +44,10 @@ public class CloseSubscriptionProcessor
      *
      * @param nSubscriberId  the subscriber being closed
      */
-    public CloseSubscriptionProcessor(long nSubscriberId)
+    public CloseSubscriptionProcessor(SubscriberId nSubscriberId)
         {
         super(PagedTopicPartition::ensureTopic);
-        m_nSubscriberId = nSubscriberId;
+        m_subscriberId = nSubscriberId;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -54,7 +55,7 @@ public class CloseSubscriptionProcessor
     @Override
     public long[] process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
         {
-        ensureTopic(entry).closeSubscription(entry.getKey(), m_nSubscriberId);
+        ensureTopic(entry).closeSubscription(entry.getKey(), m_subscriberId);
         return null;
         }
 
@@ -70,14 +71,25 @@ public class CloseSubscriptionProcessor
     public void readExternal(PofReader in)
             throws IOException
         {
-        m_nSubscriberId = in.readLong(0);
+        int  nVersion = in.getVersionId();
+        long nId      = in.readLong(0);
+
+        if (nVersion >= 2)
+            {
+            m_subscriberId = in.readObject(1);
+            }
+        else
+            {
+            m_subscriberId = new SubscriberId(nId, null);
+            }
         }
 
     @Override
     public void writeExternal(PofWriter out)
         throws IOException
         {
-        out.writeObject(0, m_nSubscriberId);
+        out.writeObject(0, m_subscriberId.getId());
+        out.writeObject(1, m_subscriberId);
         }
 
     // ----- constants ------------------------------------------------------
@@ -85,12 +97,12 @@ public class CloseSubscriptionProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 1;
+    public static final int DATA_VERSION = 2;
 
     // ----- data members ---------------------------------------------------
 
     /**
      * The subscriber identifier.
      */
-    private long m_nSubscriberId;
+    private SubscriberId m_subscriberId;
     }

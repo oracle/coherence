@@ -26,6 +26,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
@@ -71,8 +72,6 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import java.util.function.Function;
-
-import java.util.stream.Collectors;
 
 /**
  * This class encapsulates control of a single partition of a paged topic.
@@ -873,7 +872,7 @@ public class PagedTopicPartition
         long[]                  alSubscriptionHeadGlobal = processor.getPages();
         Filter                  filter                   = processor.getFilter();
         Function                fnConvert                = processor.getConverter();
-        long                    nSubscriberId            = processor.getSubscriberId();
+        SubscriberId            subscriberId             = processor.getSubscriberId();
         boolean                 fReconnect               = processor.isReconnect();
         boolean                 fCreateGroupOnly         = processor.isCreateGroupOnly();
         BackingMapContext       ctxSubscriptions         = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
@@ -1084,7 +1083,7 @@ public class PagedTopicPartition
 
             if (!fCreateGroupOnly)
                 {
-                if (nSubscriberId != 0)
+                if (subscriberId.isNotAnonymous())
                     {
                     // This is not an anonymous subscriber (i.e. it is part of a group)
                     // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
@@ -1092,18 +1091,18 @@ public class PagedTopicPartition
                     if (nChannel == 0)
                         {
                         subscriptionZero = subscription;
-                        if (!subscriptionZero.hasSubscriber(nSubscriberId))
+                        if (!subscriptionZero.hasSubscriber(subscriberId))
                             {
                             // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
-                            Map<Integer, Set<Long>> mapRemoved = subscriptionZero
-                                    .addSubscriber(nSubscriberId, getChannelCount(), getMemberSet());
+                            Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
+                                    .addSubscriber(subscriberId, getChannelCount(), getMemberSet());
 
                             if (fSyncPartition)
                                 {
                                 // we only log the update for the sync partition
                                 // (no need to repeat the same message for every partition)
-                                Logger.fine(String.format("Added subscriber %d in group %s allocations %s",
-                                        nSubscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
+                                Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
+                                        subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
                                 if (!mapRemoved.isEmpty())
                                     {
                                     logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
@@ -1115,10 +1114,10 @@ public class PagedTopicPartition
                         }
 
                     // Update the subscription/channel owner as it may have changed if this is a new subscriber
-                    long nOwner = subscriptionZero.getChannelOwner(nChannel);
+                    SubscriberId nOwner = subscriptionZero.getChannelOwner(nChannel);
                     subscription.setOwningSubscriber(nOwner);
 
-                    if (fReconnect && nOwner == nSubscriberId)
+                    if (fReconnect && Objects.equals(nOwner, subscriberId))
                         {
                         // the subscriber is the channel owner and is reconnecting, so rollback to the last committed position
                         subscription.rollback();
@@ -1151,7 +1150,7 @@ public class PagedTopicPartition
      *
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public void closeSubscription(Subscription.Key key, long nSubscriberId)
+    public void closeSubscription(Subscription.Key key, SubscriberId nSubscriberId)
         {
         BackingMapContext ctxSubscriptions  = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
         long[]            alResult          = new long[getChannelCount()];
@@ -1177,7 +1176,7 @@ public class PagedTopicPartition
                     {
                     int cChannel     = getChannelCount();
                     subscriptionZero = subscription;
-                    Map<Integer, Set<Long>> mapRemoved =
+                    Map<Integer, Set<SubscriberId>> mapRemoved =
                             subscriptionZero.removeSubscriber(nSubscriberId, cChannel, getMemberSet());
 
                     if (fSyncPartition && !mapRemoved.isEmpty())
@@ -1189,8 +1188,8 @@ public class PagedTopicPartition
                     entrySub.setValue(subscription);
                     }
 
-                long nOwner = subscriptionZero.getChannelOwner(nChannel);
-                subscription.setOwningSubscriber(nOwner);
+                SubscriberId owner = subscriptionZero.getChannelOwner(nChannel);
+                subscription.setOwningSubscriber(owner);
                 entrySub.setValue(subscription);
                 }
             }
@@ -1203,25 +1202,22 @@ public class PagedTopicPartition
      * @param sTopic      the name of the topic
      * @param sGroup      the name of the subscriber group
      */
-    private void logRemoval(Map<Integer, Set<Long>> mapRemoved, String sTopic, String sGroup)
+    private void logRemoval(Map<Integer, Set<SubscriberId>> mapRemoved, String sTopic, String sGroup)
         {
-        for (Map.Entry<Integer, Set<Long>> entry : mapRemoved.entrySet())
+        for (Map.Entry<Integer, Set<SubscriberId>> entry : mapRemoved.entrySet())
             {
-            Logger.info("Removed the following subscribers from topic '" + sTopic
-                        + "' due to departure of member " + entry.getKey() + " [Group='" + sGroup
-                        + "' Subscribers=" + PagedTopicSubscriber.idToString(entry.getValue()) + "]");
+            Logger.finest("Removed the following subscribers from topic '" + sTopic
+                        + "' owningMember=" + entry.getKey() + " [Group='" + sGroup
+                        + "' Subscribers=" + PagedTopicSubscriber.subscriberIdToString(entry.getValue()) + "]");
             }
         }
 
     @SuppressWarnings("unchecked")
-    private Set<Integer> getMemberSet()
+    private Set<Member> getMemberSet()
         {
-        return ((Set<Member>) f_ctxManager.getCacheService()
+        return (Set<Member>) f_ctxManager.getCacheService()
                                     .getInfo()
-                                    .getServiceMembers())
-                                    .stream()
-                                    .map(Member::getId)
-                                    .collect(Collectors.toSet());
+                                    .getServiceMembers();
         }
 
     /**
@@ -1249,13 +1245,13 @@ public class PagedTopicPartition
      * @param lPage              the page to poll from
      * @param cReqValues         the number of elements the subscriber is requesting
      * @param nNotifierId        notification key to notify when transitioning from empty
-     * @param nSubscriberId      the unique identifier of the subscriber
+     * @param subscriberId       the unique identifier of the subscriber
      *
      * @return  the {@link Binary} value polled from the head of the subscriber page
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public PollProcessor.Result pollFromPageHead(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
-                                                 long lPage, int cReqValues, int nNotifierId, long nSubscriberId)
+            long lPage, int cReqValues, int nNotifierId, SubscriberId subscriberId)
         {
         if (!entrySubscription.isPresent() || entrySubscription.getValue() == null)
             {
@@ -1267,8 +1263,9 @@ public class PagedTopicPartition
         Subscription     subscription    = entrySubscription.getValue();
         int              nChannel        = keySubscription.getChannelId();
 
-        long nOwner = subscription.getOwningSubscriber();
-         if (nOwner != 0 && nOwner != nSubscriberId)            {
+        SubscriberId owner = subscription.getOwningSubscriber();
+        if (!Objects.equals(owner, subscriberId))
+            {
             // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
             return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, Integer.MAX_VALUE, null);
             }
@@ -1489,12 +1486,12 @@ public class PagedTopicPartition
      *
      * @param entrySubscription  the subscription to commit the position in
      * @param position           the {@link Position} to commit
-     * @param nSubscriberId      the identifier of the {@link Subscriber} performing the commit request
+     * @param subscriberId       the identifier of the {@link Subscriber} performing the commit request
      *
      * @return the result fo the commit request
      */
     public Subscriber.CommitResult commitPosition(BinaryEntry<Subscription.Key,
-            Subscription> entrySubscription, Position position, long nSubscriberId)
+            Subscription> entrySubscription, Position position, SubscriberId subscriberId)
         {
         Subscription.Key keySubscription = entrySubscription.getKey();
         int              nChannel        = keySubscription.getChannelId();
@@ -1513,8 +1510,8 @@ public class PagedTopicPartition
             }
 
         Subscription  subscription  = entrySubscription.getValue();
-        long          nOwner        = subscription.getOwningSubscriber();
-        boolean       fOwned        = nOwner == nSubscriberId;
+        SubscriberId  owner         = subscription.getOwningSubscriber();
+        boolean       fOwned        = Objects.equals(owner, subscriberId);
 
         if (!fOwned && getDependencies().isOnlyOwnedCommits())
             {
@@ -1722,12 +1719,12 @@ public class PagedTopicPartition
      *
      * @param entrySubscription  the subscription entry
      * @param position           the position to seek to
-     * @param nSubscriberId      the identifier of the seeking subscriber
+     * @param subscriberId      the identifier of the seeking subscriber
      *
      * @return the result of the seek request
      */
     public SeekProcessor.Result seekPosition(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
-                                             PagedPosition position, long nSubscriberId)
+                                             PagedPosition position, SubscriberId subscriberId)
         {
         Subscription  subscription = entrySubscription.getValue();
         int           nChannel     = entrySubscription.getKey().getChannelId();
@@ -1737,7 +1734,7 @@ public class PagedTopicPartition
         PagedPosition positionHead;
         PagedPosition positionSeek;
 
-        if (subscription.getOwningSubscriber() != nSubscriberId)
+        if (!Objects.equals(subscription.getOwningSubscriber(), subscriberId))
             {
             throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
             }
@@ -1954,7 +1951,8 @@ public class PagedTopicPartition
         PagedPosition positionHead;
         PagedPosition positionSeek;
 
-        if (subscription.getOwningSubscriber() != nSubscriberId)
+        SubscriberId owner = subscription.getOwningSubscriber();
+        if (owner == null || owner.getId() != nSubscriberId)
             {
             throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -467,7 +467,7 @@ public class PagedTopicPublisher<V>
                     channel.stop();
                     }
 
-                // flush this publisher to wait for all of the outstanding
+                // flush this publisher to wait for all the outstanding
                 // add operations to complete (or to be cancelled if we're destroying)
                 try
                     {
@@ -611,21 +611,27 @@ public class PagedTopicPublisher<V>
         @Override
         public void onDestroy()
             {
-            // destroy/disconnect event
-            Logger.fine("Detected destroy of topic "
-                             + f_sTopicName + ", closing publisher "
-                             + PagedTopicPublisher.this);
-            closeInternal(true);
+            if (isActive())
+                {
+                // destroy/disconnect event
+                Logger.fine("Detected destroy of topic "
+                                    + f_sTopicName + ", closing publisher "
+                                    + PagedTopicPublisher.this);
+                closeInternal(true);
+                }
             }
 
         @Override
         public void onRelease()
             {
-            // destroy/disconnect event
-            Logger.fine("Detected release of topic "
-                             + f_sTopicName + ", closing publisher "
-                             + PagedTopicPublisher.this);
-            closeInternal(false);
+            if (isActive())
+                {
+                // destroy/disconnect event
+                Logger.fine("Detected release of topic "
+                                    + f_sTopicName + ", closing publisher "
+                                    + PagedTopicPublisher.this);
+                closeInternal(false);
+                }
             }
         }
 

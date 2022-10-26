@@ -66,8 +66,6 @@ public class PagedTopicSubscriberMBean
             nId    = f_subscriber.getId();
             }
 
-//        String sName = registry.ensureGlobalName(String.format(MBEAN_NAME_PATTERN,
-//                f_subscriber.getNamedTopic().getName(), sGroup, nId));
         String sName = String.format(MBEAN_NAME_PATTERN, f_subscriber.getNamedTopic().getName(), sGroup, nId);
         registry.register(sName, this);
         return sName;
@@ -220,6 +218,7 @@ public class PagedTopicSubscriberMBean
     @Override
     protected void connect()
         {
+        f_subscriber.ensureActive();
         f_subscriber.ensureConnected();
         }
 

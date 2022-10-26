@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -7,8 +7,17 @@
 package com.tangosol.internal.net.topic.impl.paged.model;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.io.pof.ConfigurablePofContext;
+
+import com.tangosol.net.Member;
+import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.Subscriber.Convert;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.UUID;
+import com.tangosol.util.filter.AlwaysFilter;
 
 import org.junit.Test;
 
@@ -22,19 +31,24 @@ import java.util.TreeSet;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
-
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+/**
+ * @author jf 2019.11.20
+ */
 public class SubscriptionTest
     {
     @Test
     public void shouldNotHaveChannelAllocations()
         {
         Subscription subscription = new Subscription();
-        assertThat(subscription.getOwningSubscriber(), is(0L));
+        assertThat(subscription.getOwningSubscriber(), is(nullValue()));
         assertThat(subscription.getSubscribers(), is(emptyIterable()));
         }
 
@@ -43,71 +57,84 @@ public class SubscriptionTest
         {
         int          cChannel     = 17;
         int          nMember      = 1;
+        Member       member       = mockMember(nMember);
         long         nId          = PagedTopicSubscriber.createId(19L, nMember);
+        SubscriberId subscriberId = new SubscriberId(nId, member.getUuid());
         Subscription subscription = new Subscription();
-        subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
-        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId));
+        subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(subscriberId));
 
         for (int i = 0; i < cChannel; i++)
             {
-            assertThat(subscription.getChannelOwner(i), is(nId));
+            assertThat(subscription.getChannelOwner(i), is(subscriberId));
             }
         }
 
     @Test
     public void shouldRemoveDeadSubscriberOnAllocate()
         {
-        int          cChannel     = 17;
-        int          nMember1     = 1;
-        int          nMember2     = 2;
-        long         nId1         = PagedTopicSubscriber.createId(19L, nMember1);
-        long         nId2         = PagedTopicSubscriber.createId(76L, nMember2);
-        long         nId3         = PagedTopicSubscriber.createId(66L, nMember1);
-        Subscription subscription = new Subscription();
-        Set<Integer> setMember    = new HashSet<>(Arrays.asList(nMember1, nMember2));
+        int          cChannel      = 17;
+        int          nMember1      = 1;
+        Member       member1       = mockMember(nMember1);
+        int          nMember2      = 2;
+        Member       member2       = mockMember(nMember2);
+        long         nId1          = PagedTopicSubscriber.createId(19L, nMember1);
+        SubscriberId subscriberId1 = new SubscriberId(nId1, member1.getUuid());
+        long         nId2          = PagedTopicSubscriber.createId(76L, nMember2);
+        SubscriberId subscriberId2 = new SubscriberId(nId2, member2.getUuid());
+        long         nId3          = PagedTopicSubscriber.createId(66L, nMember1);
+        SubscriberId subscriberId3 = new SubscriberId(nId3, member1.getUuid());
+        Subscription subscription  = new Subscription();
+        Set<Member>  setMember     = new HashSet<>(Arrays.asList(member1, member2));
 
-        subscription.addSubscriber(nId1, cChannel, setMember);
-        subscription.addSubscriber(nId2, cChannel, setMember);
-        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId1, nId2));
+        subscription.addSubscriber(subscriberId1, cChannel, setMember);
+        subscription.addSubscriber(subscriberId2, cChannel, setMember);
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(subscriberId1, subscriberId2));
 
-        setMember.remove(nMember2);
-        subscription.addSubscriber(nId3, cChannel, setMember);
-        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId1, nId3));
+        setMember.remove(member2);
+        subscription.addSubscriber(subscriberId3, cChannel, setMember);
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(subscriberId1, subscriberId3));
         }
 
     @Test
     public void shouldAllocateTwoSubscriberToAllChannels()
         {
-        int          cChannel     = 17;
-        int          nMember      = 1;
-        long         nId1         = PagedTopicSubscriber.createId(19L, nMember);
-        long         nId2         = PagedTopicSubscriber.createId(66L, nMember);
-        Subscription subscription = new Subscription();
-        subscription.addSubscriber(nId1, cChannel, Collections.singleton(nMember));
-        subscription.addSubscriber(nId2, cChannel, Collections.singleton(nMember));
-        assertThat(subscription.getSubscribers(), containsInAnyOrder(nId1, nId2));
+        int          cChannel      = 17;
+        int          nMember       = 1;
+        Member       member        = mockMember(nMember);
+        long         nId1          = PagedTopicSubscriber.createId(19L, nMember);
+        SubscriberId subscriberId1 = new SubscriberId(nId1, member.getUuid());
+        long         nId2          = PagedTopicSubscriber.createId(66L, nMember);
+        SubscriberId subscriberId2 = new SubscriberId(nId2, member.getUuid());
+        Subscription subscription  = new Subscription();
+
+        subscription.addSubscriber(subscriberId1, cChannel, Collections.singleton(member));
+        subscription.addSubscriber(subscriberId2, cChannel, Collections.singleton(member));
+        assertThat(subscription.getSubscribers(), containsInAnyOrder(subscriberId1, subscriberId2));
 
         for (int i = 0; i < cChannel; i++)
             {
-            assertThat(subscription.getChannelOwner(i), anyOf(is(nId1), is(nId2)));
+            assertThat(subscription.getChannelOwner(i), anyOf(is(subscriberId1), is(subscriberId2)));
             }
         }
 
     @Test
     public void shouldAllocateSameNumberOfSubscribersAsChannels()
         {
-        int          cChannel      = 17;
-        int          nMember       = 1;
-        Subscription subscription  = new Subscription();
-        Set<Long>    setSubscriber = new TreeSet<>();
-        long[]       alExpected    = new long[cChannel];
-        int          n             = 0;
+        int               cChannel      = 17;
+        int               nMember       = 1;
+        Member            member        = mockMember(nMember);
+        Subscription      subscription  = new Subscription();
+        Set<SubscriberId> setSubscriber = new TreeSet<>();
+        long[]            alExpected    = new long[cChannel];
+        int               n             = 0;
 
         for (long id = 1; id <= cChannel; id++)
             {
-            long nId = PagedTopicSubscriber.createId(id, nMember);
-            subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
-            setSubscriber.add(nId);
+            long         nId           = PagedTopicSubscriber.createId(id, nMember);
+            SubscriberId subscriberId  = new SubscriberId(nId, member.getUuid());
+            subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
+            setSubscriber.add(subscriberId);
             alExpected[n++] = nId;
             }
 
@@ -118,18 +145,20 @@ public class SubscriptionTest
     @Test
     public void shouldAllocateMoreSubscriberThanChannels()
         {
-        int          cChannel      = 17;
-        int          nMember       = 1;
-        Subscription subscription  = new Subscription();
-        Set<Long>    setSubscriber = new TreeSet<>();
-        long[]       alExpected    = new long[cChannel];
-        int          n             = 0;
+        int               cChannel      = 17;
+        int               nMember       = 1;
+        Member            member        = mockMember(nMember);
+        Subscription      subscription  = new Subscription();
+        Set<SubscriberId> setSubscriber = new TreeSet<>();
+        long[]            alExpected    = new long[cChannel];
+        int               n             = 0;
 
-        for (long s = 1; s <= cChannel * 2; s++)
+        for (long id = 1; id <= cChannel * 2; id++)
             {
-            long nId = PagedTopicSubscriber.createId(s, nMember);
-            subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
-            setSubscriber.add(nId);
+            long         nId           = PagedTopicSubscriber.createId(id, nMember);
+            SubscriberId subscriberId  = new SubscriberId(nId, member.getUuid());
+            subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
+            setSubscriber.add(subscriberId);
             if (n < cChannel)
                 {
                 alExpected[n++] = nId;
@@ -151,6 +180,7 @@ public class SubscriptionTest
         {
         int                cChannel    = 17;
         int                nMember     = 1;
+        Member             member      = mockMember(nMember);
         List<Subscription> list        = new ArrayList<>();
         long               nIdStart    = 100;
         long               cSubscriber = nIdStart + (cChannel * 2); // create more subscribers than channels
@@ -166,8 +196,9 @@ public class SubscriptionTest
             // Allocate a new subscriber identifier to each subscription in turn
             for (Subscription subscription : list)
                 {
-                long nId = PagedTopicSubscriber.createId(s, nMember);
-                subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
+                long         nId          = PagedTopicSubscriber.createId(s, nMember);
+                SubscriberId subscriberId = new SubscriberId(nId, member.getUuid());
+                subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
                 }
             // assert that all the subscriptions have the same allocation as the first one
             Subscription subscriptionZero = list.get(0);
@@ -188,6 +219,7 @@ public class SubscriptionTest
         {
         int                cChannel         = 17;
         int                nMember          = 1;
+        Member             member           = mockMember(nMember);
         List<Subscription> listSubscription = new ArrayList<>();
         List<Long>         listSubscriber   = new ArrayList<>();
         long               nIdStart         = 100;
@@ -211,8 +243,9 @@ public class SubscriptionTest
             for (long s : listSubscriber)
                 {
                 // Allocate a new subscriber identifier to each subscription in turn
-                long nId = PagedTopicSubscriber.createId(s, nMember);
-                subscription.addSubscriber(nId, cChannel, Collections.singleton(nMember));
+                long         nId          = PagedTopicSubscriber.createId(s, nMember);
+                SubscriberId subscriberId = new SubscriberId(nId, member.getUuid());
+                subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
                 }
             }
 
@@ -222,5 +255,14 @@ public class SubscriptionTest
             {
             assertThat(subscription.getChannelAllocations(), is(subscriptionZero.getChannelAllocations()));
             }
+        }
+
+    private Member mockMember(int nId)
+        {
+        Member member = mock(Member.class);
+        UUID uuid     = new UUID();
+        when(member.getId()).thenReturn(nId);
+        when(member.getUuid()).thenReturn(uuid);
+        return member;
         }
     }

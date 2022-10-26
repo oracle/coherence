@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,8 +10,7 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
-import com.oracle.bedrock.runtime.coherence.options.Multicast;
-import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -302,6 +301,7 @@ public class NamedTopicTests
                     .include(STORAGE_MEMBER_COUNT,
                              CoherenceClusterMember.class,
                              DisplayName.of("NamedTopicTests"),
+                             RoleName.of("storage"),
                              s_testLogs.builder());
 
     private boolean m_fExtend = false;

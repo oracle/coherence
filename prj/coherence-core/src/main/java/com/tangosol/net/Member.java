@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.net;
 
 
 import com.tangosol.util.UID;
+import com.tangosol.util.UUID;
 
 import java.net.InetAddress;
 
@@ -69,4 +70,16 @@ public interface Member
     * @since Coherence 1.2
     */
     public int getId();
+
+    /**
+     * Return the universal unique id of the Member.
+     *
+     * @return the universal unique id of the Member
+     *
+     * @since 22.06
+     */
+    default public UUID getUuid()
+        {
+        throw new UnsupportedOperationException();
+        }
     }

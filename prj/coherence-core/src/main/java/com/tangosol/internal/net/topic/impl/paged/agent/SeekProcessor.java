@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.tangosol.internal.net.topic.impl.paged.agent;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.io.AbstractEvolvable;
@@ -41,33 +42,33 @@ public class SeekProcessor
      */
     public SeekProcessor()
         {
-        this(PagedTopicPartition::ensureTopic, null, 0L);
+        this(PagedTopicPartition::ensureTopic, null, SubscriberId.NullSubscriber);
         }
 
     /**
      * Create a {@link SeekProcessor} to seek to the specified position.
      *
-     * @param position       the position to move to
-     * @param nSubscriberId  the identifier of the subscriber
+     * @param position      the position to move to
+     * @param subscriberId  the identifier of the subscriber
      */
-    public SeekProcessor(PagedPosition position, long nSubscriberId)
+    public SeekProcessor(PagedPosition position, SubscriberId subscriberId)
         {
-        this(PagedTopicPartition::ensureTopic, position, nSubscriberId);
+        this(PagedTopicPartition::ensureTopic, position, subscriberId);
         }
 
     /**
      * Create a {@link SeekProcessor} to seek to the specified position.
      *
-     * @param supplier       the supplier to provide a {@link PagedTopicPartition} from a {@link BinaryEntry}
-     * @param position       the position to move to
-     * @param nSubscriberId  the identifier of the subscriber performing the seek
+     * @param supplier      the supplier to provide a {@link PagedTopicPartition} from a {@link BinaryEntry}
+     * @param position      the position to move to
+     * @param subscriberId  the identifier of the subscriber performing the seek
      */
     @SuppressWarnings("rawtypes")
-    SeekProcessor(Function<BinaryEntry, PagedTopicPartition> supplier, PagedPosition position, long nSubscriberId)
+    SeekProcessor(Function<BinaryEntry, PagedTopicPartition> supplier, PagedPosition position, SubscriberId subscriberId)
         {
         super(supplier);
         m_position      = position;
-        m_nSubscriberId = nSubscriberId;
+        m_subscriberId = subscriberId;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -76,7 +77,7 @@ public class SeekProcessor
     public Result process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
         {
         return ensureTopic(entry).seekPosition((BinaryEntry<Subscription.Key, Subscription>) entry,
-                                               m_position, m_nSubscriberId);
+                                               m_position, m_subscriberId);
         }
 
     @Override
@@ -88,15 +89,25 @@ public class SeekProcessor
     @Override
     public void readExternal(PofReader in) throws IOException
         {
-        m_nSubscriberId = in.readLong(0);
-        m_position      = in.readObject(1);
+        int  nVersion = in.getVersionId();
+        long nId      = in.readLong(0);
+        m_position    = in.readObject(1);
+        if (nVersion >= 2)
+            {
+            m_subscriberId = in.readObject(2);
+            }
+        else
+            {
+            m_subscriberId = new SubscriberId(nId, null);
+            }
         }
 
     @Override
     public void writeExternal(PofWriter out) throws IOException
         {
-        out.writeLong(0, m_nSubscriberId);
+        out.writeLong(0, m_subscriberId.getId());
         out.writeObject(1, m_position);
+        out.writeObject(2, m_subscriberId);
         }
 
     // ----- inner class: Result --------------------------------------------
@@ -202,14 +213,14 @@ public class SeekProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 1;
+    public static final int DATA_VERSION = 2;
 
     // ----- data members ---------------------------------------------------
 
     /**
      * The identifier of the subscriber performing the seek.
      */
-    private long m_nSubscriberId;
+    private SubscriberId m_subscriberId;
 
     /**
      * The position to seek to.

@@ -23,6 +23,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
@@ -98,7 +99,7 @@ import static com.tangosol.net.cache.TypeAssertion.withTypes;
  */
 @SuppressWarnings("rawtypes")
 public class PagedTopicCaches
-    implements ClassLoaderAware
+    implements ClassLoaderAware, AutoCloseable
     {
     // ----- constructors ---------------------------------------------------
 
@@ -120,8 +121,8 @@ public class PagedTopicCaches
      * @param cacheService   the {@link CacheService} owning the underlying caches
      * @param functionCache  the function to invoke to obtain each underlying cache
      */
-    public PagedTopicCaches(String sName, CacheService cacheService,
-                            BiFunction<String, ClassLoader, NamedCache> functionCache)
+    PagedTopicCaches(String sName, CacheService cacheService,
+            BiFunction<String, ClassLoader, NamedCache> functionCache)
         {
         if (sName == null || sName.isEmpty())
             {
@@ -179,6 +180,12 @@ public class PagedTopicCaches
     public Serializer getSerializer()
         {
         return f_cacheService.getSerializer();
+        }
+
+    @Override
+    public void close()
+        {
+        release();
         }
 
     /**
@@ -748,24 +755,24 @@ public class PagedTopicCaches
     protected void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter)
         {
         SubscriberGroupId subscriberGroupId = SubscriberGroupId.withName(sName);
-        initializeSubscription(subscriberGroupId, 1, filter, fnConverter, false, true, false);
+        initializeSubscription(subscriberGroupId, SubscriberId.NullSubscriber, filter, fnConverter, false, true, false);
         }
 
     /**
      * Initialise a subscription.
      *
      * @param subscriberGroupId  the subscriber group identifier
-     * @param nSubscriberId      the subscriber identifier
+     * @param subscriberId       the subscriber identifier
      * @param filter             the filter to use to filter messages received by the subscription
      * @param fnConverter        the converter function to convert the messages received by the subscription
      * @param fReconnect         {@code true} if this is a reconnection
      * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
-     * @param fDisconnected      {@code true} if this is an existing disconnected subscription
+     * @param fDisconnected      {@code true} if this is an existing, disconnected subscription
      *
      * @return the pages that are the heads of the channels
      */
     protected long[] initializeSubscription(SubscriberGroupId subscriberGroupId,
-                                            long              nSubscriberId,
+                                            SubscriberId      subscriberId,
                                             Filter<?>         filter,
                                             Function<?, ?>    fnConverter,
                                             boolean           fReconnect,
@@ -789,7 +796,7 @@ public class PagedTopicCaches
             // Otherwise, there is no guarantee that there isn't gaps in our pinned pages.
             // check results to verify if initialization has already completed
             EnsureSubscriptionProcessor processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_INQUIRE,
-                    null, filter,  fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+                    null, filter,  fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
             Collection<EnsureSubscriptionProcessor.Result> results;
             if (sName == null)
                 {
@@ -826,7 +833,7 @@ public class PagedTopicCaches
             long[] alHead = new long[cChannel];
             if (colPages == null || colPages.contains(null) || fDisconnected)
                 {
-                alHead = initialiseSubscriptionPages(subscriberGroupId, nSubscriberId, filter, fnConverter, fReconnect, fCreateGroupOnly, setSubKeys);
+                alHead = initialiseSubscriptionPages(subscriberGroupId, subscriberId, filter, fnConverter, fReconnect, fCreateGroupOnly, setSubKeys);
                 }
             else
                 {
@@ -851,7 +858,12 @@ public class PagedTopicCaches
      * Initialise the head pages for the subscriber.
      *
      * @param subscriberGroupId  the subscriber group identifier
-     * @param setSubKeys  the set of {@link Subscription.Key keys} to use to initialise the subscription pages
+     * @param subscriberId       the subscriber identifier
+     * @param filter             the filter to use to filter messages received by the subscription
+     * @param fnConverter        the converter function to convert the messages received by the subscription
+     * @param fReconnect         {@code true} if this is a reconnection
+     * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
+     * @param setSubKeys         the set of {@link Subscription.Key keys} to use to initialise the subscription pages
      *
      * @return an array of head pages
      *
@@ -860,7 +872,7 @@ public class PagedTopicCaches
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     protected long[] initialiseSubscriptionPages(SubscriberGroupId     subscriberGroupId,
-                                                 long                  nSubscriberId,
+                                                 SubscriberId          subscriberId,
                                                  Filter<?>             filter,
                                                  Function<?, ?>        fnConverter,
                                                  boolean               fReconnect,
@@ -883,7 +895,7 @@ public class PagedTopicCaches
             {
             EnsureSubscriptionProcessor processor
                     = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
-                                                      filter, fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+                                                      filter, fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
 
             CompletableFuture<Map<Subscription.Key, EnsureSubscriptionProcessor.Result>> future
                     = InvocableMapHelper.invokeAllAsync(Subscriptions,
@@ -941,7 +953,7 @@ public class PagedTopicCaches
                 }
 
             // finish the initialization by having subscription in all partitions advance to our selected heads
-            processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter, fnConverter, nSubscriberId, fReconnect, fCreateGroupOnly);
+            processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter, fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
             InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
                     key -> getUnitOfOrder(key.getPartitionId()), processor).join();
 
@@ -1106,7 +1118,7 @@ public class PagedTopicCaches
                 {
                 m_state = fDestroy ? State.Destroyed : State.Released;
 
-                Consumer<NamedCache> function    = fDestroy ? this::destroyCache : this::releaseCache;
+                Consumer<NamedCache> function    = fDestroy ? NamedCache::destroy : NamedCache::release;
                 Set<Listener>        setListener = m_mapListener.keySet();
 
                 for (Listener listener : setListener)
@@ -1142,22 +1154,6 @@ public class PagedTopicCaches
                         }
                     }
                 }
-            }
-        }
-
-    private void destroyCache(NamedCache<?, ?> cache)
-        {
-        if (cache.isActive())
-            {
-            cache.destroy();
-            }
-        }
-
-    private void releaseCache(NamedCache<?, ?> cache)
-        {
-        if (cache.isActive())
-            {
-            cache.release();
             }
         }
 
@@ -1613,7 +1609,7 @@ public class PagedTopicCaches
     /**
      * The caches which back the topic.
      */
-    protected Set<NamedCache> f_setCaches;
+    protected volatile Set<NamedCache> f_setCaches;
 
     /**
      * The cache that holds the topic pages.
