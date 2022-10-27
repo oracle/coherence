@@ -222,6 +222,11 @@ then
   buildah login -u "${OCR_DOCKER_USERNAME}" -p "${OCR_DOCKER_PASSWORD}" "${OCR_DOCKER_SERVER}"
 fi
 
+if [ "${GHCR_USERNAME}" != "" ] && [ "${GHCR_PASSWORD}" != "" ]
+then
+  buildah login -u "${GHCR_USERNAME}" -p "${GHCR_PASSWORD}" ghcr.io
+fi
+
 # Build the amd64 image
 common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64"
 
