@@ -1640,7 +1640,7 @@ abstract class AbstractGrpcClientIT
         cache.put("key-2", "val-2");
         cache.destroy();
 
-        assertThat(listener.awaitEvents(3, TimeUnit.SECONDS), is(true));
+        assertThat(listener.awaitEvents(1, TimeUnit.MINUTES), is(true));
         assertThat(listener.isTruncated(), is(true));
         assertThat(listener.isDestroyed(), is(true));
         }
