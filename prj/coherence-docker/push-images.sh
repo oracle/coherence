@@ -37,7 +37,7 @@ LOCAL_NAME="localhost/${IMAGE_SUFFIX}"
 buildah images
 
 # Create distroless based images
-buildah rmi "${IMAGE_NAME}"
+buildah rmi "${IMAGE_NAME}" || true
 buildah manifest create "${IMAGE_NAME}"
 buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-amd64"
 buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-arm64"
@@ -46,7 +46,7 @@ buildah manifest inspect "${IMAGE_NAME}"
 buildah manifest push --all -f v2s2 "${IMAGE_NAME}" "docker://${IMAGE_NAME}"
 
 # Create Graal based images
-buildah rmi "${IMAGE_NAME}-graal"
+buildah rmi "${IMAGE_NAME}-graal" || true
 buildah manifest create "${IMAGE_NAME}-graal"
 buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}-graal" "${IMAGE_NAME}-graal-amd64"
 buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}-graal" "${IMAGE_NAME}-graal-arm64"
