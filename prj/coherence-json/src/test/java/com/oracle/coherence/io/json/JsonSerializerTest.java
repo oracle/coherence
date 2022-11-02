@@ -38,6 +38,7 @@ import common.data.PutAll;
 import java.io.IOException;
 import java.io.StringWriter;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import java.nio.charset.StandardCharsets;
@@ -178,6 +179,16 @@ class JsonSerializerTest
         }
 
     @Test
+    void testBigDecimal()
+            throws IOException
+        {
+        BigDecimal decimal = new BigDecimal("9.0000045678901");
+        System.out.printf("BigDecimal: %s, %s", decimal, decimal.precision());
+        assertRoundTrip(decimal);
+        }
+
+
+    @Test
     void testMapWithConverter()
             throws IOException
         {
@@ -248,7 +259,7 @@ class JsonSerializerTest
         // account for json deserialization to deserialize to smallest
         // java data type.  Compare as BigInteger.
         List<Number> expectedNums = (List<Number>) expected;
-        List<String> actualNums   = (List<String>) actual;
+        List<BigInteger> actualNums   = (List<BigInteger>) actual;
 
         if (expectedNums.size() != actualNums.size())
             {
@@ -259,10 +270,10 @@ class JsonSerializerTest
             Object expectedElement = expectedNums.get(i);
             Object actualElement   = actualNums.get(i);
 
-            System.out.println("expectedElementClass= " + expectedElement.getClass().getName() +
+            System.out.println("expectedElementClass=" + expectedElement.getClass().getName() +
                                "  actual ElementClass=" + actualElement.getClass().getName());
 
-            BigInteger a = new BigInteger(actualNums.get(i));
+            BigInteger a = actualNums.get(i);
             if (!expectedNums.get(i).equals(a))
                 {
                 return false;
