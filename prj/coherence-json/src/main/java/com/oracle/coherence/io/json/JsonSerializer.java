@@ -150,7 +150,7 @@ public class JsonSerializer
                 .setDefaultType(ValueType.INTEGER, Number.class)
                 .setDefaultType(ValueType.DOUBLE, Number.class)
                 .useClassMetadata(true)
-                .useClassMetadataWithStaticType(false)
+                .useClassMetadataWithStaticType(true)
                 .useFields(true, VisibilityFilter.PRIVATE)
                 .useMethods(false)
                 .useConstructorWithArguments(true)
@@ -303,7 +303,7 @@ public class JsonSerializer
                 }
             catch (Throwable thrown)
                 {
-                Base.err("JSON DEBUG: Failed to deserialize " + new String(abData));
+                Logger.err("JSON DEBUG: Failed to deserialize " + new String(abData), thrown);
                 throw Base.ensureRuntimeException(thrown);
                 }
             }

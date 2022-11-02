@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -1124,7 +1124,6 @@ public final class DefaultConverters {
     }
   }
 
-  @HandleClassMetadata
   @HandleBeanView
   public static class BigDecimalConverter implements Converter<BigDecimal> {
     public final static BigDecimalConverter instance = new BigDecimalConverter();
@@ -1134,31 +1133,70 @@ public final class DefaultConverters {
 
     @Override
     public BigDecimal deserialize(ObjectReader reader, Context ctx) {
-      return new BigDecimal(reader.valueAsString());
-    }
+      reader.beginObject();
+      BigDecimal bigDecimal = null;
+      while (reader.hasNext()) {
+        reader.next();
+        String name = reader.name();
+        if ("value".equals(name)) {
+          String v = reader.valueAsString();
+          if (v != null && !v.isEmpty()) {
+            bigDecimal = new BigDecimal(v.trim());
+            }
+          }
+        }
+      reader.endObject();
 
-    @Override
-    public void serialize(BigDecimal object, ObjectWriter writer, Context ctx) {
-      writer.writeValue(object.toString());
+      if (bigDecimal == null) {
+        throw new JsonBindingException("Unable to deserialize BigDecimal; no value present");
+        }
+      return bigDecimal;
+      }
+
+  @Override
+  public void serialize(BigDecimal object, ObjectWriter writer, Context ctx) {
+    writer.beginObject();
+    writer.writeString("value", object.toString());
+    writer.endObject();
     }
   }
 
-  @HandleClassMetadata
-  @HandleBeanView
-  public static class BigIntegerConverter implements Converter<BigInteger> {
-    public final static BigIntegerConverter instance = new BigIntegerConverter();
+@HandleBeanView
+public static class BigIntegerConverter
+        implements Converter<BigInteger>
+  {
+  public final static BigIntegerConverter instance = new BigIntegerConverter();
 
-    private BigIntegerConverter() {
+  private BigIntegerConverter() {
     }
 
-    @Override
-    public BigInteger deserialize(ObjectReader reader, Context ctx) {
-      return new BigInteger(reader.valueAsString());
+  @Override
+  public BigInteger deserialize(ObjectReader reader, Context ctx) {
+    reader.beginObject();
+    BigInteger bigInteger = null;
+    while (reader.hasNext()) {
+      reader.next();
+      String name = reader.name();
+      if ("value".equals(name)) {
+        String v = reader.valueAsString();
+        if (v != null && !v.isEmpty()) {
+          bigInteger = new BigInteger(v.trim());
+          }
+        }
+      }
+    reader.endObject();
+
+    if (bigInteger == null) {
+      throw new JsonBindingException("Unable to deserialize BigInteger; no value present");
+      }
+    return bigInteger;
     }
 
-    @Override
-    public void serialize(BigInteger object, ObjectWriter writer, Context ctx) {
-      writer.writeValue(object.toString());
+  @Override
+  public void serialize(BigInteger object, ObjectWriter writer, Context ctx) {
+    writer.beginObject();
+    writer.writeString("value", object.toString());
+    writer.endObject();
     }
   }
 
