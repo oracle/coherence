@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -30,7 +30,7 @@ import com.oracle.coherence.io.json.genson.stream.ObjectReader;
 public class CombinedObjectTest {
   @Test
   public void combineMultipleJsonObjectIntoSingleObject() {
-    String json = "{\"Person\":{\"id\":\"2\"},\"Dog\":{\"dateOfBirth\":\"2012-08-20 00:00:00\",\"price\" : \"10.00\"}}";
+    String json = "{\"Person\":{\"id\":\"2\"},\"Dog\":{\"dateOfBirth\":\"2012-08-20 00:00:00\",\"price\" : {\"@class\":\"java.math.BigDecimal\", \"value\":\"10.00\"}}}";
     Genson genson = new GensonBuilder().withDeserializerFactory(new MyClassConverterFactory())
       .create();
     MyClass myClass = genson.deserialize(json, MyClass.class);
