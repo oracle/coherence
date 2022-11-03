@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
@@ -74,13 +74,12 @@ public class OfferProcessor
      * @param supplier         the {@link Function} to use to provide a
      *                         {@link PagedTopicPartition} instance
      */
-    @SuppressWarnings("rawtypes")
     protected OfferProcessor(List<Binary> listElements, int nNotifyPostFull, boolean fSealPage,
-                             Function<BinaryEntry, PagedTopicPartition> supplier)
+                             Function<BinaryEntry<Page.Key, Page>, PagedTopicPartition> supplier)
         {
         super(supplier);
 
-        m_listValues = listElements;
+        m_listValues      = listElements;
         m_nNotifyPostFull = nNotifyPostFull;
         m_fSealPage       = fSealPage;
         }
@@ -115,9 +114,24 @@ public class OfferProcessor
         // Note: the PollProcessor and OfferProcessor both target the page, this ensures
         // that they cannot run concurrently on the same page.  Simply sharing the same association does not ensure
         // this.
+        return ensureTopic(entry).offerToPageTail((BinaryEntry<Page.Key, Page>) entry, this);
+        }
 
-        return ensureTopic(entry).offerToPageTail((BinaryEntry<Page.Key, Page>) entry,
-                m_listValues, m_nNotifyPostFull, m_fSealPage);
+    // ----- accessors ------------------------------------------------------
+
+    public List<Binary> getListValues()
+        {
+        return m_listValues;
+        }
+
+    public int getNotifyPostFull()
+        {
+        return m_nNotifyPostFull;
+        }
+
+    public boolean isSealPage()
+        {
+        return m_fSealPage;
         }
 
     // ----- EvolvablePortableObject interface ------------------------------
@@ -132,7 +146,7 @@ public class OfferProcessor
     public void readExternal(PofReader in)
             throws IOException
         {
-        m_listValues = in.readCollection(0, new LinkedList<>());
+        m_listValues      = in.readCollection(0, new LinkedList<>());
         m_nNotifyPostFull = in.readInt(1);
         m_fSealPage       = in.readBoolean(2);
         }
@@ -146,34 +160,7 @@ public class OfferProcessor
         out.writeBoolean(2, m_fSealPage);
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * {@link EvolvablePortableObject} data version of this class.
-     */
-    public static final int DATA_VERSION = 1;
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The elements to offer to the topic. The elements have already been serialized
-     * to Binary values.
-     */
-    protected List<Binary> m_listValues;
-
-    /**
-     * The post full notifier.
-     */
-    protected int m_nNotifyPostFull;
-
-    /**
-     * A flag indicating that after the offer is processed the page should be sealed
-     * to further offers regardless of the result of this offer.
-     * <p>
-     * This is primarily used by clients that know they have more than a pages worth of
-     * elements to send and hence know that the page will be filled by this request.
-     */
-    protected boolean m_fSealPage;
+    // ----- inner class: Result --------------------------------------------
 
     /**
      * This returned as the result of invoking an offer to a topic.
@@ -393,4 +380,33 @@ public class OfferProcessor
          */
         protected int m_nOffset;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * {@link EvolvablePortableObject} data version of this class.
+     */
+    public static final int DATA_VERSION = 2;
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The elements to offer to the topic. The elements have already been serialized
+     * to Binary values.
+     */
+    protected List<Binary> m_listValues;
+
+    /**
+     * The post full notifier.
+     */
+    protected int m_nNotifyPostFull;
+
+    /**
+     * A flag indicating that after the offer is processed the page should be sealed
+     * to further offers regardless of the result of this offer.
+     * <p>
+     * This is primarily used by clients that know they have more than a pages worth of
+     * elements to send and hence know that the page will be filled by this request.
+     */
+    protected boolean m_fSealPage;
     }

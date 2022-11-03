@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -66,13 +66,23 @@ public class SubscriberCleanupListener
     public void memberLeft(MemberEvent evt)
         {
         DistributedCacheService service = (DistributedCacheService) evt.getService();
-
-        if (!evt.isLocal())
+        CompletableFuture.runAsync(() ->
             {
-            // only do clean-up if it was not the local member that left
-            CleanupSubscribers processor = new CleanupSubscribers();
-            processor.execute(service);
-            }
+            if (!evt.isLocal())
+                {
+                // only do clean-up if it was not the local member that left
+                CleanupSubscribers processor = new CleanupSubscribers();
+                processor.execute(service);
+                }
+        }).handle((ignored, err) ->
+            {
+            // don't bother logging the error if the service shutdown
+            if (err != null && evt.getService().isRunning())
+                {
+                Logger.finer("Error invoking subscriber clean-up", err);
+                }
+            return null;
+            });
         }
 
     @Override
@@ -90,7 +100,7 @@ public class SubscriberCleanupListener
     /**
      * Run subscriber cleanup.
      *
-     * @param evt  the triggering pertition event
+     * @param evt  the triggering partition event
      */
     private void cleanup(PartitionEvent evt)
         {
@@ -104,7 +114,7 @@ public class SubscriberCleanupListener
                 // don't bother logging the error if the service shutdown
                 if (err != null && evt.getService().isRunning())
                     {
-                    Logger.err("Error invoking subscriber clean-up", err);
+                    Logger.finer("Error invoking subscriber clean-up", err);
                     }
                 return null;
                 });

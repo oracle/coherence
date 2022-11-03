@@ -24,7 +24,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
-import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
@@ -111,15 +111,15 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldGetChannelAllocations()
         {
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -147,16 +147,16 @@ public class TopicSubscriberManagementTests
     public void shouldDisconnectSingleSubscriberByKey() throws Exception
         {
         System.err.println(">>>>> Entering shouldDisconnectSingleSubscriberByKey");
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
         System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -242,15 +242,15 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectSingleSubscriberByGroupAndId() throws Exception
         {
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -329,15 +329,15 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectAllSubscribersInGroup() throws Exception
         {
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -412,17 +412,17 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectAllSubscribersAndReconnectOnPublishNotification() throws Exception
         {
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -509,17 +509,17 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectAndAutoReconnectSubscribersWithPendingReceives()
         {
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -581,17 +581,17 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectAndNotReconnectInactiveSubscribers()
         {
-        NamedTopic<String>      topic         = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service       = (DistributedCacheService) topic.getService();
-        String                  sGroupOne     = "group-one";
-        String                  sGroupTwo     = "group-two";
-        OwnershipListener       listenerOne   = new OwnershipListener();
-        OwnershipListener       listenerTwo   = new OwnershipListener();
-        OwnershipListener       listenerThree = new OwnershipListener();
+        NamedTopic<String> topic         = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service       = (PagedTopicService) topic.getService();
+        String             sGroupOne     = "group-one";
+        String             sGroupTwo     = "group-two";
+        OwnershipListener  listenerOne   = new OwnershipListener();
+        OwnershipListener  listenerTwo   = new OwnershipListener();
+        OwnershipListener  listenerThree = new OwnershipListener();
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service, null);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -640,13 +640,13 @@ public class TopicSubscriberManagementTests
     @Test
     public void shouldDisconnectSubscribersOnSpecificMember()
         {
-        NamedTopic<String>      topic       = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service     = (DistributedCacheService) topic.getService();
-        String                  sGroupOne   = "group-one";
-        String                  sGroupTwo   = "group-two";
-        OwnershipListener       listenerOne = new OwnershipListener();
-        OwnershipListener       listenerTwo = new OwnershipListener();
-        LocalPlatform           platform    = LocalPlatform.get();
+        NamedTopic<String> topic       = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service     = (PagedTopicService) topic.getService();
+        String             sGroupOne   = "group-one";
+        String             sGroupTwo   = "group-two";
+        OwnershipListener  listenerOne = new OwnershipListener();
+        OwnershipListener  listenerTwo = new OwnershipListener();
+        LocalPlatform      platform    = LocalPlatform.get();
 
         try (CoherenceClusterMember member    = platform.launch(CoherenceClusterMember.class,
                                                                  LocalStorage.disabled(),
@@ -655,7 +655,7 @@ public class TopicSubscriberManagementTests
             {
             Eventually.assertDeferred(() -> member.invoke(new IsCoherenceRunning()), is(true));
 
-            try (PagedTopicCaches             caches        = new PagedTopicCaches(topic.getName(), service, null);
+            try (PagedTopicCaches             caches        = new PagedTopicCaches(topic.getName(), service);
                  PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
                  PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerTwo)))
                 {

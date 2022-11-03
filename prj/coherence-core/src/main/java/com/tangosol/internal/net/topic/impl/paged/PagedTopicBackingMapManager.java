@@ -15,6 +15,8 @@ import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistic
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 
 import com.tangosol.net.topic.TopicBackingMapManager;
+import com.tangosol.util.LongArray;
+import com.tangosol.util.ReadHeavyLongArray;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -110,20 +112,20 @@ public class PagedTopicBackingMapManager
     /**
      * Returns the {@link PagedTopicStatistics} for a topic.
      *
-     * @param sTopic  the name of the topic
+     * @param sTopicName  the name of the topic
      *
      * @return the {@link PagedTopicStatistics} for the topic of {@code null}
      *         if no statistics exist for the topic
      */
-    public PagedTopicStatistics getStatistics(String sTopic)
+    public PagedTopicStatistics getStatistics(String sTopicName)
         {
-        PagedTopicStatistics statistics = m_mapStatistics.get(sTopic);
+        PagedTopicStatistics statistics = m_mapStatistics.get(sTopicName);
         if (statistics == null)
             {
             m_lock.lock();
             try
                 {
-                statistics = ensureStatistics(sTopic);
+                statistics = ensureStatistics(sTopicName);
                 }
             finally
                 {
@@ -131,6 +133,32 @@ public class PagedTopicBackingMapManager
                 }
             }
         return statistics;
+        }
+
+    public void updateChannelCount(String sTopicName, int cChannel)
+        {
+        m_lock.lock();
+        try
+            {
+            m_mapDeps.compute(sTopicName, (k, deps) ->
+                {
+                if (deps == null)
+                    {
+                    deps = createTopicDependencies(sTopicName);
+                    }
+                if (cChannel != deps.getConfiguredChannelCount())
+                    {
+                    DefaultPagedTopicDependencies depsUpdated = new DefaultPagedTopicDependencies(deps);
+                    depsUpdated.setChannelCount(cChannel);
+                    deps = depsUpdated;
+                    }
+                return deps;
+                });
+            }
+        finally
+            {
+            m_lock.unlock();
+            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -149,7 +177,7 @@ public class PagedTopicBackingMapManager
 
     private PagedTopicStatistics createStatistics(PagedTopicDependencies dependencies)
         {
-        return new PagedTopicStatistics(dependencies.getChannelCount());
+        return new PagedTopicStatistics(dependencies.getConfiguredChannelCount());
         }
 
     private PagedTopicStatistics ensureStatistics(String sTopicName)

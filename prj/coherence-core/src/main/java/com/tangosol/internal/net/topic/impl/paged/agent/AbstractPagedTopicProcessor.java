@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
@@ -36,9 +36,21 @@ public abstract class AbstractPagedTopicProcessor<K, V, R>
      * @param supplier  the {@link Function} to use to  provide a
      *                  {@link PagedTopicPartition} instance
      */
-    protected AbstractPagedTopicProcessor(Function<BinaryEntry, PagedTopicPartition> supplier)
+    protected AbstractPagedTopicProcessor(Function<BinaryEntry<K, V>, PagedTopicPartition> supplier)
         {
-        this.f_supplierTopic = supplier;
+        f_supplierTopic = supplier;
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Return the topics API version for the caller of this processor.
+     *
+     * @return the topics API version for the caller of this processor
+     */
+    public int getApiVersion()
+        {
+        return getDataVersion();
         }
 
     // ----- helper methods -------------------------------------------------
@@ -52,9 +64,9 @@ public abstract class AbstractPagedTopicProcessor<K, V, R>
      *
      * @return an instance of a {@link PagedTopicPartition}
      */
-    protected PagedTopicPartition ensureTopic(InvocableMap.Entry entry)
+    protected PagedTopicPartition ensureTopic(InvocableMap.Entry<K, V> entry)
         {
-        return f_supplierTopic.apply((BinaryEntry) entry);
+        return f_supplierTopic.apply(entry.asBinaryEntry());
         }
 
     // ----- data members ---------------------------------------------------
@@ -62,5 +74,5 @@ public abstract class AbstractPagedTopicProcessor<K, V, R>
     /**
      * The {@link Function} to use to create instances of {@link PagedTopicPartition}.
      */
-    private transient final Function<BinaryEntry,PagedTopicPartition> f_supplierTopic;
+    private transient final Function<BinaryEntry<K, V>,PagedTopicPartition> f_supplierTopic;
     }

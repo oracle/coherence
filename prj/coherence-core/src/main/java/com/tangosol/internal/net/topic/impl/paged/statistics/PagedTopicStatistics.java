@@ -12,9 +12,11 @@ import com.tangosol.internal.net.topic.impl.paged.management.PublishedMetrics;
 
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 
+import com.tangosol.util.LongArray;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ObservableHashMap;
 import com.tangosol.util.ObservableMap;
+import com.tangosol.util.SimpleLongArray;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,11 +37,10 @@ public class PagedTopicStatistics
      */
     public PagedTopicStatistics(int cChannel)
         {
-        f_cChannel      = cChannel;
-        m_aChannelStats = new PagedTopicChannelStatistics[cChannel];
+        f_cChannel = cChannel;
         for (int i = 0; i < cChannel; i++)
             {
-            m_aChannelStats[i] = new PagedTopicChannelStatistics(i);
+            m_aChannelStats.set(i, new PagedTopicChannelStatistics(i));
             }
         }
 
@@ -62,7 +63,21 @@ public class PagedTopicStatistics
      */
     public PagedTopicChannelStatistics getChannelStatistics(int nChannel)
         {
-        return m_aChannelStats[nChannel];
+        PagedTopicChannelStatistics statistics = m_aChannelStats.get(nChannel);
+        if (statistics == null)
+            {
+            f_lock.lock();
+            try
+                {
+                statistics = new PagedTopicChannelStatistics(nChannel);
+                m_aChannelStats.set(nChannel, statistics);
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+        return statistics;
         }
 
     /**
@@ -75,7 +90,7 @@ public class PagedTopicStatistics
     public void onPublished(int nChannel, long cMessage, PagedPosition tail)
         {
         f_metricPublished.mark(cMessage);
-        m_aChannelStats[nChannel].onPublished(cMessage, tail);
+        getChannelStatistics(nChannel).onPublished(cMessage, tail);
         }
 
     /**
@@ -183,7 +198,8 @@ public class PagedTopicStatistics
     /**
      * The channel statistics.
      */
-    private final PagedTopicChannelStatistics[] m_aChannelStats;
+    @SuppressWarnings("unchecked")
+    private final LongArray<PagedTopicChannelStatistics> m_aChannelStats = new SimpleLongArray();
 
     /**
      * The published messages metric.

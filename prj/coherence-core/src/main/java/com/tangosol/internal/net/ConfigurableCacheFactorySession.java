@@ -430,6 +430,11 @@ public class ConfigurableCacheFactorySession
             }
         }
 
+    protected boolean isClosed()
+        {
+        return m_fClosed;
+        }
+
     // ----- inner classes --------------------------------------------------
 
     /**

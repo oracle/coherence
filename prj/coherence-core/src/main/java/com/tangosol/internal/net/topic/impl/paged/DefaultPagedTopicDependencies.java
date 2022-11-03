@@ -34,13 +34,36 @@ public class DefaultPagedTopicDependencies
         }
 
     /**
+     * A copy constructor to create a {@link DefaultPagedTopicDependencies}
+     * from another {@link PagedTopicDependencies} instance.
+     *
+     * @param deps  the {@link PagedTopicDependencies} to copy
+     */
+    public DefaultPagedTopicDependencies(PagedTopicDependencies deps)
+        {
+        this(0);
+        setAllowUnownedCommits(deps.isAllowUnownedCommits());
+        setChannelCount(deps.getConfiguredChannelCount());
+        setElementCalculator(deps.getElementCalculator());
+        setElementExpiryMillis(deps.getElementExpiryMillis());
+        setMaxBatchSizeBytes(deps.getMaxBatchSizeBytes());
+        setPageCapacity(deps.getPageCapacity());
+        setReconnectRetryMillis(deps.getReconnectRetryMillis());
+        setReconnectTimeoutMillis(deps.getReconnectTimeoutMillis());
+        setReconnectWaitMillis(deps.getReconnectWaitMillis());
+        setRetainConsumed(deps.isRetainConsumed());
+        setServerCapacity(deps.getServerCapacity());
+        setSubscriberTimeoutMillis(deps.getSubscriberTimeoutMillis());
+        }
+
+    /**
      * Returns the number of channels in the topic, or {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
      * to indicate that the topic uses the default number of channels.
      *
      * @return the number of channels in the topic
      */
     @Override
-    public int getChannelCount()
+    public int getConfiguredChannelCount()
         {
         int cChannel = m_cChannel;
         if (cChannel == PagedTopic.DEFAULT_CHANNEL_COUNT)
@@ -175,7 +198,7 @@ public class DefaultPagedTopicDependencies
      *
      * @param cb  the max batch size
      */
-    public void setMaxBatchSizeBytes(int cb)
+    public void setMaxBatchSizeBytes(long cb)
         {
         m_cbMaxBatch = cb;
         }
@@ -409,7 +432,7 @@ public class DefaultPagedTopicDependencies
     /**
      * The target maximum batch size.
      */
-    private int m_cbMaxBatch;
+    private long m_cbMaxBatch;
 
     /**
      * Flag indicating whether this topic retains elements after they have been

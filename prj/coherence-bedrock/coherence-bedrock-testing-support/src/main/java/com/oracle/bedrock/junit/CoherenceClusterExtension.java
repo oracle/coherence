@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.bedrock.junit;
 
@@ -181,5 +181,15 @@ public class CoherenceClusterExtension
         }
 
         return session;
+    }
+
+    /**
+     * Return the common options for this {@link CoherenceClusterExtension}.
+     *
+     * @return the common options for this {@link CoherenceClusterExtension}
+     */
+    public Option[] getCommonOptions()
+    {
+        return commonOptionsByType.asArray();
     }
 }
