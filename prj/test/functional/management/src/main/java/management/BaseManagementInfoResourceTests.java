@@ -1333,9 +1333,11 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         Map mapPartitionResponse = readEntity(target, response);
 
-        // this timestamp could differ so just remove
+        // this timestamp, averageStorageSizeKB could differ so just remove
         mapPartitionResponse.remove("lastAnalysisTime");
+        mapPartitionResponse.remove("averageStorageSizeKB");
         mapResponse.remove("lastAnalysisTime");
+        mapResponse.remove("averageStorageSizeKB");
         assertThat(mapPartitionResponse, is(mapResponse));
         }
 
