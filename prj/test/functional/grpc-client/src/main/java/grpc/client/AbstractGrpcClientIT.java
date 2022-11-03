@@ -54,8 +54,11 @@ import com.tangosol.util.filter.MapEventFilter;
 
 import com.tangosol.util.processor.ExtractorProcessor;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 
 import org.junit.jupiter.params.provider.Arguments;
@@ -110,6 +113,18 @@ abstract class AbstractGrpcClientIT
     public AbstractGrpcClientIT(String sScopeName)
         {
         f_sScopeName = sScopeName;
+        }
+
+    @BeforeEach
+    void beforeEachTest(TestInfo info)
+        {
+        System.err.println(">>>>>>> Starting test " + info.getDisplayName());
+        }
+
+    @AfterEach
+    void afterEachTest(TestInfo info)
+        {
+        System.err.println(">>>>>>> Starting test " + info.getDisplayName());
         }
 
     // ----- test methods ---------------------------------------------------
@@ -1962,6 +1977,7 @@ abstract class AbstractGrpcClientIT
         public void entryDeleted(MapEvent evt)
             {
             // destroy/disconnect event
+            System.err.println("entryDeleted (destroy) - Received event " + evt);
             m_destroyed = true;
             f_latch.countDown();
             }
@@ -1970,6 +1986,7 @@ abstract class AbstractGrpcClientIT
         public void entryUpdated(MapEvent evt)
             {
             // "truncate" event
+            System.err.println("entryUpdated (truncate) - Received event " + evt);
             m_truncated = true;
             f_latch.countDown();
             }
@@ -2018,4 +2035,5 @@ abstract class AbstractGrpcClientIT
     // ----- data members ---------------------------------------------------
 
     protected final String f_sScopeName;
+
     }
