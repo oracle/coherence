@@ -36,7 +36,10 @@ import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.grpc.GrpcChannelDependencies;
 import com.tangosol.net.grpc.GrpcDependencies;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
@@ -111,6 +114,36 @@ public class DefaultInsecureCacheConfigGrpcIT
     static void shutdownCoherence()
         {
         Coherence.closeAll();
+        }
+
+    @BeforeEach
+    public void logStart(TestInfo info)
+        {
+        String sMsg = ">>>>> Starting test: " + info.getDisplayName();
+        for (CoherenceClusterMember member : CLUSTER_EXTENSION.getCluster())
+            {
+            member.submit(() ->
+                {
+                System.err.println(sMsg);
+                System.err.flush();
+                return null;
+                }).join();
+            }
+        }
+
+    @AfterEach
+    public void logEnd(TestInfo info)
+        {
+        String sMsg = ">>>>> Finished test: " + info.getDisplayName();
+        for (CoherenceClusterMember member : CLUSTER_EXTENSION.getCluster())
+            {
+            member.submit(() ->
+                {
+                System.err.println(sMsg);
+                System.err.flush();
+                return null;
+                }).join();
+            }
         }
 
     @Override
