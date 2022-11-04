@@ -61,8 +61,8 @@ public class CommitProcessor
      * @param position      the position to commit
      * @param subscriberId  the identifier of the subscriber performing the commit
      */
-    @SuppressWarnings("rawtypes")
-    CommitProcessor(Function<BinaryEntry, PagedTopicPartition> supplier, PagedPosition position, SubscriberId subscriberId)
+    CommitProcessor(Function<BinaryEntry<Subscription.Key, Subscription>, PagedTopicPartition> supplier,
+                    PagedPosition position, SubscriberId subscriberId)
         {
         super(supplier);
         m_position     = position;
@@ -75,7 +75,7 @@ public class CommitProcessor
     public Subscriber.CommitResult process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
         {
         return ensureTopic(entry).commitPosition((BinaryEntry<Subscription.Key, Subscription>) entry,
-                                                 m_position, m_subscriberId);
+                m_position, m_subscriberId);
         }
 
     @Override

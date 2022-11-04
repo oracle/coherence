@@ -82,4 +82,37 @@ public interface TopicService
      */
     @SuppressWarnings("rawtypes")
     TopicBackingMapManager getTopicBackingMapManager();
+
+    /**
+     * Return the number of channels the topic has.
+     *
+     * @param sName  the name of the topic
+     *
+     * @return the number of channels the topic has
+     */
+    int getChannelCount(String sName);
+
+    /**
+     * Ensure the specified topic has at least the required number of channels.
+     *
+     * @param sName     the name of the topic
+     * @param cChannel  the required channel count
+     *
+     * @return the number of channels the topic has
+     */
+    default int ensureChannelCount(String sName, int cChannel)
+        {
+        return ensureChannelCount(sName, cChannel, cChannel);
+        }
+
+    /**
+     * Ensure the specified topic has at least the required number of channels.
+     *
+     * @param sName      the name of the topic
+     * @param cRequired  the minimum required channel count
+     * @param cChannel   the channel count to set if the current count is less than {@code cRequired}
+     *
+     * @return the number of channels the topic has
+     */
+    int ensureChannelCount(String sName, int cRequired, int cChannel);
     }

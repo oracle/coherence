@@ -61,6 +61,14 @@ public class Subscription
         {
         }
 
+    /**
+     * Empty constructor for serialization.
+     */
+    public Subscription(int cChannel)
+        {
+        m_cChannel = cChannel;
+        }
+
     // ----- TopicPartitionSubscription methods -----------------------
 
     /**
@@ -243,6 +251,27 @@ public class Subscription
         }
 
     /**
+     * Return the latest channel count known to this {@link Subscription}.
+     *
+     * @return the latest channel count known to this {@link Subscription}
+     */
+    public int getLatestChannelCount()
+        {
+        return m_cChannel;
+        }
+
+    /**
+     * Set the count of channels when the Subscriber was created,
+     * or when the channel count was changed.
+     *
+     * @param cChannel  the channel count
+     */
+    public void setCreatedChannelCount(int cChannel)
+        {
+        m_cChannel = cChannel;
+        }
+
+    /**
      * Returns the identifier of the subscriber owning the specified channel
      *
      * @param nChannel  the channel to obtain the owning subscriber identifier for
@@ -256,8 +285,14 @@ public class Subscription
             return m_owningSubscriber;
             }
 
-        long nId = m_aChannel[nChannel];
-        return m_mapSubscriber.get(nId);
+        if (nChannel < m_aChannel.length)
+            {
+            long nId = m_aChannel[nChannel];
+            return m_mapSubscriber.get(nId);
+            }
+
+        // asked for a non-existent channel
+        return null;
         }
 
     /**
@@ -281,7 +316,8 @@ public class Subscription
             m_mapSubscriber = new TreeMap<>();
             }
 
-        if (m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId) == null)
+        SubscriberId idPrevious = m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId);
+        if (idPrevious == null || cChannel != m_cChannel)
             {
             return refresh(m_mapSubscriber, cChannel, setMember);
             }
@@ -552,21 +588,26 @@ public class Subscription
             m_aChannel     = in.readLongArray(7);
             m_posCommitted = in.readObject(8);
             m_posRollback  = in.readObject(9);
+            }
 
-            if (nVersion >= 3)
+        if (nVersion >= 3)
+            {
+            m_owningSubscriber = in.readObject(10);
+            m_mapSubscriber    = in.readMap(11, new TreeMap<>());
+            }
+        else
+            {
+            m_owningSubscriber = nId == 0 ? null : new SubscriberId(nId, null);
+            m_mapSubscriber    = new TreeMap<>();
+            for (Long n : listSubscriber)
                 {
-                m_owningSubscriber = in.readObject(10);
-                m_mapSubscriber    = in.readMap(11, new TreeMap<>());
+                m_mapSubscriber.put(n, new SubscriberId(n, null));
                 }
-            else
-                {
-                m_owningSubscriber = nId == 0 ? null : new SubscriberId(nId, null);
-                m_mapSubscriber    = new TreeMap<>();
-                for (Long n : listSubscriber)
-                    {
-                    m_mapSubscriber.put(n, new SubscriberId(n, null));
-                    }
-                }
+            }
+
+        if (nVersion >= 4)
+            {
+            m_cChannel = in.readInt(12);
             }
         }
 
@@ -590,6 +631,7 @@ public class Subscription
         out.writeObject(9, m_posRollback);
         out.writeObject(10, m_owningSubscriber);
         out.writeMap(11, m_mapSubscriber);
+        out.writeInt(12, m_cChannel);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -633,7 +675,7 @@ public class Subscription
         for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
             {
             SubscriberId subscriberId = entry.getValue();
-            UUID         uuid         =  subscriberId.getUID();
+            UUID         uuid         = subscriberId.getUID();
             int          nMemberId    = subscriberId.getMemberId();
             if (uuid == null && !setMemberID.contains(nMemberId))
                 {
@@ -704,6 +746,7 @@ public class Subscription
                 }
             }
         m_aChannel = aChannel;
+        m_cChannel = cChannel;
         return mapRemoved;
         }
 
@@ -953,7 +996,7 @@ public class Subscription
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 3;
+    public static final int DATA_VERSION = 4;
 
     // ----- data members ---------------------------------------------------
 
@@ -1018,4 +1061,9 @@ public class Subscription
      * This set is typically only populated for channel zero.
      */
     private long[] m_aChannel;
+
+    /**
+     * The latest channel count known to this {@link Subscription}.
+     */
+    private int m_cChannel;
     }

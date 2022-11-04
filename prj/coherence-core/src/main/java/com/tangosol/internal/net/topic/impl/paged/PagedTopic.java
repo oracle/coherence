@@ -123,7 +123,7 @@ public class PagedTopic<V>
 
     public CacheService getCacheService()
         {
-        return f_pagedTopicCaches.getCacheService();
+        return f_pagedTopicCaches.getService();
         }
 
     @Override

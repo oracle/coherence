@@ -22,8 +22,8 @@ import com.oracle.coherence.common.base.Timeout;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
@@ -69,7 +69,7 @@ public class TopicsRestartTests
         {
         String             sTopicName = "test-topic";
         NamedTopic<String> topic      = s_session.getTopic(sTopicName);
-        PagedTopicCaches   caches     = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches     = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
         LocalPlatform      platform   = LocalPlatform.get();
 
         // start a storage disabled member

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
@@ -37,7 +37,7 @@ public class TopicInitialiseProcessor
         this(PagedTopicPartition::ensureTopic);
         }
 
-    public TopicInitialiseProcessor(Function<BinaryEntry, PagedTopicPartition> supplier)
+    public TopicInitialiseProcessor(Function<BinaryEntry<Usage.Key, Usage>, PagedTopicPartition> supplier)
         {
         super(supplier);
         }

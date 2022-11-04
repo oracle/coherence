@@ -36,7 +36,9 @@ import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.PartitionedService;
+import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
@@ -101,6 +103,7 @@ public class PagedTopicPartition
     public PagedTopicPartition(BackingMapManagerContext ctxManager, String sName, int nPartition)
         {
         f_ctxManager = ctxManager;
+        f_service    = (PagedTopicService) ctxManager.getCacheService();
         f_sName      = sName;
         f_nPartition = nPartition;
         }
@@ -229,23 +232,31 @@ public class PagedTopicPartition
      * Offer a {@link List} of elements to the tail of the {@link Page} held in
      * the specified entry, creating the {@link Page} if required.
      *
-     * @param entry           the {@link BinaryEntry} holding the {@link Page}
-     * @param listElements    the {@link List} of elements to offer
-     * @param nNotifyPostFull the post full notifier, or zero for none
-     * @param fSealPage       a flag indicating whether the page should be sealed
-     *                        after this offer operation.
+     * @param entry      the {@link BinaryEntry} holding the {@link Page}
+     * @param processor  the {@link OfferProcessor} being executed
      *
      * @return the {@link OfferProcessor.Result} containing the results of this offer
      */
-    public OfferProcessor.Result offerToPageTail(BinaryEntry<Page.Key, Page> entry,
-            List<Binary> listElements, int nNotifyPostFull, boolean fSealPage)
+    public OfferProcessor.Result offerToPageTail(BinaryEntry<Page.Key, Page> entry, OfferProcessor processor)
         {
-        Page.Key                keyPage       = entry.getKey();
-        int                     nChannel      = keyPage.getChannelId();
-        long                    lPage         = keyPage.getPageId();
-        PagedTopicDependencies configuration = getDependencies();
-        int                     cbCapPage     = configuration.getPageCapacity();
-        long                    cbCapServer   = configuration.getServerCapacity();
+        Page.Key               keyPage         = entry.getKey();
+        int                    nChannel        = keyPage.getChannelId();
+        long                   lPage           = keyPage.getPageId();
+        PagedTopicDependencies configuration   = getDependencies();
+        int                    channelCount    = getChannelCount();
+        int                    cbCapPage       = configuration.getPageCapacity();
+        long                   cbCapServer     = configuration.getServerCapacity();
+        List<Binary>           listElements    = processor.getElements();
+        int                    nNotifyPostFull = processor.getNotifyPostFull();
+        boolean                fSealPage       = processor.isSealPage();
+
+        if (nChannel >= channelCount)
+            {
+            // publisher tried to publish to a non-existent channel,
+            // the publisher probably has an incorrect channel count
+            throw new RequestIncompleteException("Invalid channel " + nChannel
+                    + ", channel count is " + channelCount + ", valid channels are 0.." + (channelCount - 1));
+            }
 
         if (cbCapServer > 0 && nNotifyPostFull != 0)
             {
@@ -582,7 +593,7 @@ public class PagedTopicPartition
      */
     public int getChannelCount()
         {
-        return getDependencies().getChannelCount();
+        return f_service.getChannelCount(f_sName);
         }
 
     /**
@@ -889,7 +900,8 @@ public class PagedTopicPartition
         PagedTopicDependencies  dependencies             = getDependencies();
         SubscriberGroupId       subscriberGroupId        = key.getGroupId();
         boolean                 fAnonymous               = subscriberGroupId.getMemberTimestamp() != 0;
-        long[]                  alResult                 = new long[dependencies.getChannelCount()];
+        int                     cChannel                 = getChannelCount();
+        long[]                  alResult                 = new long[cChannel];
         int                     cParts                   = getPartitionCount();
         int                     nSyncPartition           = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
         boolean                 fSyncPartition           = key.getPartitionId() == nSyncPartition;
@@ -900,7 +912,7 @@ public class PagedTopicPartition
                 {
                 throw new IllegalArgumentException("Cannot specify create group only action for an anonymous subscriber");
                 }
-            // cannot be a reconnect request, and group creation only
+            // cannot be a reconnect request, only group creation
             fReconnect = false;
             }
 
@@ -977,7 +989,7 @@ public class PagedTopicPartition
             else if (nPhase == EnsureSubscriptionProcessor.PHASE_PIN &&
                      subscription == null) // if non-null another member beat us here in which case the final else will simply return the pinned page
                 {
-                subscription = new Subscription();
+                subscription = new Subscription(cChannel);
 
                 if (fAnonymous)
                     {
@@ -1091,6 +1103,9 @@ public class PagedTopicPartition
                     : position.getPage();
                 }
 
+            // check whether the subscription channel count is out of date
+            boolean fChannelCountChanged = subscription.getLatestChannelCount() != cChannel;
+
             if (!fCreateGroupOnly)
                 {
                 if (subscriberId.isNotAnonymous())
@@ -1101,11 +1116,12 @@ public class PagedTopicPartition
                     if (nChannel == 0)
                         {
                         subscriptionZero = subscription;
-                        if (!subscriptionZero.hasSubscriber(subscriberId))
+                        if (fChannelCountChanged || !subscriptionZero.hasSubscriber(subscriberId))
                             {
-                            // this is a new subscriber and is not an anonymous subscriber (nSubscriberId != 0)
+                            // the subscription is out of date, or this is a new subscriber and
+                            // is not an anonymous subscriber (nSubscriberId != 0)
                             Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
-                                    .addSubscriber(subscriberId, getChannelCount(), getMemberSet());
+                                    .addSubscriber(subscriberId, cChannel, getMemberSet());
 
                             if (fSyncPartition)
                                 {
@@ -1128,9 +1144,10 @@ public class PagedTopicPartition
                     subscription.setOwningSubscriber(nOwner);
                     getStatistics().getSubscriberGroupStatistics(subscriberGroupId.getGroupName()).setOwningSubscriber(nChannel, nOwner);
 
-                    if (fReconnect && Objects.equals(nOwner, subscriberId))
+                    if (fChannelCountChanged || (fReconnect && Objects.equals(nOwner, subscriberId)))
                         {
-                        // the subscriber is the channel owner and is reconnecting, so rollback to the last committed position
+                        // either the channel count has changed, or the subscriber is the channel owner and is
+                        // reconnecting, so rollback to the last committed position
                         subscription.rollback();
                         }
                     }
@@ -1138,9 +1155,9 @@ public class PagedTopicPartition
                     {
                     // This is an anonymous subscriber.
                     // We do not need to do channel allocation as anonymous subscribers have all channels
-                    if (fReconnect)
+                    if (fChannelCountChanged || fReconnect)
                         {
-                        // this is a reconnect request so rollback
+                        // this is either a reconnect request, or the channel count has changed, so rollback
                         subscription.rollback();
                         }
                     }
@@ -1271,17 +1288,35 @@ public class PagedTopicPartition
     public PollProcessor.Result pollFromPageHead(BinaryEntry<Subscription.Key, Subscription> entrySubscription,
             long lPage, int cReqValues, int nNotifierId, SubscriberId subscriberId)
         {
+        PagedTopicDependencies dependencies    = getDependencies();
+        Subscription.Key       keySubscription = entrySubscription.getKey();
+        int                    nChannel        = keySubscription.getChannelId();
+        int                    cChannel        = getChannelCount();
+
+        if (nChannel >= cChannel || nChannel < 0)
+            {
+            // the subscriber requested a channel that does not exist
+            // the subscriber may have an incorrect channel count
+            return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, 0, null);
+            }
+
         if (!entrySubscription.isPresent() || entrySubscription.getValue() == null)
             {
             // the subscriber is unknown, but we're allowing that as the client should handle it
             return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
             }
 
-        Subscription.Key keySubscription = entrySubscription.getKey();
-        Subscription     subscription    = entrySubscription.getValue();
-        int              nChannel        = keySubscription.getChannelId();
+        // check whether the channel count has changed
+        Subscription subscriptionZero = peekSubscriptionZero(entrySubscription);
+        if (cChannel != subscriptionZero.getLatestChannelCount())
+            {
+            // the channel count has changed to force the subscriber to reconnect, which will refresh allocations
+            return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
+            }
 
-        SubscriberId owner = subscription.getOwningSubscriber();
+        Subscription subscription = entrySubscription.getValue();
+        SubscriberId owner        = subscription.getOwningSubscriber();
+
         if (!Objects.equals(owner, subscriberId))
             {
             // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
@@ -1365,7 +1400,7 @@ public class PagedTopicPartition
         Filter             filter      = subscription.getFilter();
         Function           fnConvert   = subscription.getConverter();
         int                cbResult    = 0;
-        final long         cbLimit     = getDependencies().getMaxBatchSizeBytes();
+        final long         cbLimit     = dependencies.getMaxBatchSizeBytes();
 
         Converter<Binary, Object> converterFrom = getValueFromInternalConverter();
         Converter<Object, Binary> converterTo   = getValueToInternalConverter();
@@ -2285,6 +2320,25 @@ public class PagedTopicPartition
         }
 
     /**
+     * Return the read-only {@link Subscription} for channel zero.
+     *
+     *  @param entry  the current subscription {@link BinaryEntry}
+     *
+     * @return the read-only {@link Subscription} for channel zero
+     */
+    protected Subscription peekSubscriptionZero(BinaryEntry<Subscription.Key, Subscription> entry)
+        {
+        Subscription.Key key = entry.getKey();
+        if (key.getChannelId() == 0)
+            {
+            return entry.getValue();
+            }
+        Binary binKeyZero = toBinaryKey(new Subscription.Key(getPartition(), 0, key.getGroupId()));
+        BinaryEntry<Subscription.Key, Subscription> entryZero = peekBackingMapEntry(PagedTopicCaches.Names.SUBSCRIPTIONS, binKeyZero);
+        return entryZero.getValue();
+        }
+
+    /**
      * Obtain the backing map entry from the specified cache backing map
      * for the specified key.
      *
@@ -2424,6 +2478,11 @@ public class PagedTopicPartition
      * The {@link BackingMapManagerContext} for the caches underlying this topic.
      */
     protected final BackingMapManagerContext f_ctxManager;
+
+    /**
+     * The {@link PagedTopicService} for the topic.
+     */
+    protected final PagedTopicService f_service;
 
     /**
      * The name of this topic.

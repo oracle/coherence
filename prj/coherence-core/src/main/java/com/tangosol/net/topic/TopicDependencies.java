@@ -17,13 +17,20 @@ import com.tangosol.internal.util.Primes;
 public interface TopicDependencies
     {
     /**
-     * Returns the number of channels in the topic, or
+     * Returns the number of channels configured for the topic, or
      * {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic#DEFAULT_CHANNEL_COUNT}
      * to indicate that the topic uses the default number of channels.
+     * <p>
+     * This number may be less than the actual number of channels, which is controlled by
+     * the {@link com.tangosol.net.TopicService}, if another cluster member has configured
+     * a higher number of channels.
+     * <p>
+     * The actual number of channels in use for a topic can be obtained by calling the
+     * {@link com.tangosol.net.PagedTopicService#getChannelCount(String)} method.
      *
-     * @return the number of channels in the topic
+     * @return the number of channels configured for the topic
      */
-    int getChannelCount();
+    int getConfiguredChannelCount();
 
     /**
      * Compute the channel count based on the supplied partition count.

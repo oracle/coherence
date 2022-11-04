@@ -33,9 +33,8 @@ import com.tangosol.io.pof.reflect.SimplePofPath;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
-import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.Service;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 
@@ -332,8 +331,8 @@ public abstract class AbstractNamedTopicTests
         assertThat(topic.isActive(), is(true));
         assertThat(topic.isDestroyed(), is(false));
 
-        CacheService     service = (CacheService) topic.getService();
-        PagedTopicCaches caches  = new PagedTopicCaches(sName, service, null);
+        PagedTopicService service = (PagedTopicService) topic.getService();
+        PagedTopicCaches  caches  = new PagedTopicCaches(sName, service);
 
         for (NamedCache<?, ?> cache : caches.getCaches())
             {
@@ -377,8 +376,8 @@ public abstract class AbstractNamedTopicTests
         assertThat(topic.isActive(), is(true));
         assertThat(topic.isReleased(), is(false));
 
-        CacheService     service = (CacheService) topic.getService();
-        PagedTopicCaches caches  = new PagedTopicCaches(sName, service, null);
+        PagedTopicService service = (PagedTopicService) topic.getService();
+        PagedTopicCaches  caches  = new PagedTopicCaches(sName, service);
 
         for (NamedCache<?, ?> cache : caches.getCaches())
             {
@@ -630,7 +629,7 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic     = ensureTopic();
         TopicPublisher     publisher = new TopicPublisher(topic, "Element-", 500, false);
 
-        PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
         assertThat(caches.Pages.isEmpty(), is(true));
 
         assertPopulateAndConsumeInParallel(publisher);
@@ -1039,7 +1038,7 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic  = ensureTopic();
         String             sName  = topic.getName();
-        PagedTopicCaches   caches = new PagedTopicCaches(sName, (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(sName, (PagedTopicService) topic.getService());
 
         // must not be rewindable
         PagedTopicDependencies dependencies = getDependencies(topic);
@@ -1068,8 +1067,8 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String>      topic        = ensureTopic();
         String                  sName        = topic.getName();
-        CacheService            service      = (CacheService) topic.getService();
-        PagedTopicCaches        caches       = new PagedTopicCaches(sName, service, null);
+        PagedTopicService       service      = (PagedTopicService) topic.getService();
+        PagedTopicCaches        caches       = new PagedTopicCaches(sName, service);
         PagedTopicDependencies dependencies = getDependencies(topic);
         int                     cbPageSize   = dependencies.getPageCapacity();
         int                     cMessage     = cbPageSize * caches.getPartitionCount() * 3; // publish enough to have multiple pages per partition
@@ -1214,8 +1213,8 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String>      topic        = ensureTopic(m_sSerializer + "-page-test");
         String                  sName        = topic.getName();
-        CacheService            service      = (CacheService) topic.getService();
-        PagedTopicCaches        caches       = new PagedTopicCaches(sName, service, null);
+        PagedTopicService       service      = (PagedTopicService) topic.getService();
+        PagedTopicCaches        caches       = new PagedTopicCaches(sName, service);
         int                     cChannel     = caches.getChannelCount();
         PagedTopicDependencies dependencies = caches.getDependencies();
         int                     cbPageSize   = dependencies.getPageCapacity();
@@ -1629,14 +1628,14 @@ public abstract class AbstractNamedTopicTests
         try (Subscriber<String> subscriberA  = topic.createSubscriber();
              Subscriber<String> subscriberB  = topic.createSubscriber())
             {
-            DistributedCacheService service      = (DistributedCacheService) topic.getService();
+            PagedTopicService      service      = (PagedTopicService) topic.getService();
             PagedTopicDependencies dependencies = getDependencies(topic);
-            int                     cbPageSize   = dependencies.getPageCapacity();
+            int                    cbPageSize   = dependencies.getPageCapacity();
 
             Assume.assumeThat("Test only applies if paged-topic-scheme sets page-size to a much lower value than default page-size",
                               cbPageSize, lessThanOrEqualTo(100));
 
-            PagedTopicCaches caches   = new PagedTopicCaches(topic.getName(), service, null);
+            PagedTopicCaches caches   = new PagedTopicCaches(topic.getName(), service);
             int              cPart    = service.getPartitionCount();
             int              cChan    = caches.getChannelCount();
             int              cRecords = cbPageSize * cPart; // ensure we use every partition a few times
@@ -3012,7 +3011,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekEmptyTopic() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic();
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
@@ -3034,7 +3033,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekGroupSubscriberForwards() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-3");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
@@ -3099,7 +3098,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekGroupSubscriberForwardsUsingTimestamp() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-3");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
@@ -3265,7 +3264,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekGroupSubscriberForwardsAfterReadingSome() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-3");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
@@ -3334,7 +3333,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberForwardsToEndOfPage() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-4");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           getDependencies(topic).isRetainConsumed(), is(true));
@@ -3413,7 +3412,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberForwardsToEndOfTopic() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-5");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
         int                cMsg   = 10019;
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
@@ -3466,7 +3465,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberForwardsToEndOfTopicWhereTopicEndsOnPageEnd() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-6");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
         int                cMsg   = 10019;
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
@@ -3545,7 +3544,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberForwardsPastEndOfTopic() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-5");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
         int                cMsg   = 10019;
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
@@ -3597,7 +3596,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekGroupSubscriberBackwards() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-3");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
@@ -3673,7 +3672,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekGroupSubscriberBackAndResetCommitRewindableTopic() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-3");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
@@ -3753,7 +3752,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekGroupSubscriberBackAndResetCommit() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-4");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
@@ -3833,7 +3832,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberBackwardsToEndOfPage() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-4");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
@@ -3918,7 +3917,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberBackToBeginningOfTopic() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-4");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));
@@ -3989,7 +3988,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldSeekAnonymousSubscriberBackBeforeBeginningOfTopic() throws Exception
         {
         NamedTopic<String> topic  = ensureTopic(m_sSerializer + "-rewindable-4");
-        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+        PagedTopicCaches   caches = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             getDependencies(topic).isRetainConsumed(), is(true));

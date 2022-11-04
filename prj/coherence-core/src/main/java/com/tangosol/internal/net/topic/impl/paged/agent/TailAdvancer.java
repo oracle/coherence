@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
@@ -22,7 +22,7 @@ import java.util.function.Function;
 
 /**
  * This entry processor advances the {@link Usage}
- * publication tail if the new value greater then
+ * publication tail if the new value greater than
  * the current value.
  *
  * @author jk 2015.05.16
@@ -59,7 +59,7 @@ public class TailAdvancer
      * @param lTailNew    the new value
      * @param supplier    the {@link Function} to use to provide a {@link PagedTopicPartition} instance
      */
-    protected TailAdvancer(long lTailNew, Function<BinaryEntry, PagedTopicPartition> supplier)
+    protected TailAdvancer(long lTailNew, Function<BinaryEntry<Usage.Key, Usage>, PagedTopicPartition> supplier)
         {
         super(supplier);
 
@@ -74,13 +74,13 @@ public class TailAdvancer
     // ----- AbstractProcessor methods --------------------------------------
 
     /**
-     * This method will update the tail page ID of the meta data
-     * if the new tail will be greater then the current tail.
+     * This method will update the tail page ID of the metadata
+     * if the new tail will be greater than the current tail.
      *
      * @param entry  the cache entry containing the {@link Usage} to
      *               be updated.
      *
-     * @return the up to date tail page id from the {@link Usage} in the entry
+     * @return the up-to-date tail page id from the {@link Usage} in the entry
      */
     @Override
     public Long process(InvocableMap.Entry<Usage.Key, Usage> entry)

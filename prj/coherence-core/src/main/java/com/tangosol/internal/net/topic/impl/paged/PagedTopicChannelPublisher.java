@@ -85,7 +85,7 @@ public class PagedTopicChannelPublisher
         f_keyUsageSync            = m_caches.getUsageSyncKey(nChannel);
         f_nUsageSyncUnitOfOrder   = m_caches.getUnitOfOrder(f_keyUsageSync.getPartitionId());
         f_serializer              = m_caches.getSerializer();
-        f_keyPartitioningStrategy = ((PartitionedService) m_caches.getCacheService()).getKeyPartitioningStrategy();
+        f_keyPartitioningStrategy = m_caches.getService().getKeyPartitioningStrategy();
 
         BatchingOperationsQueue.Executor executor   = new AssociatedExecutor(pool);
         NamedTopic.ElementCalculator     calculator = caches.getElementCalculator();

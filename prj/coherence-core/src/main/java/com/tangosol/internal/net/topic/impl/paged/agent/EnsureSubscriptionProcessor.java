@@ -6,8 +6,6 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
-import com.oracle.coherence.common.base.Logger;
-
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
@@ -18,7 +16,6 @@ import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
-import com.tangosol.net.Member;
 import com.tangosol.net.topic.TopicException;
 
 import com.tangosol.util.Filter;
@@ -29,7 +26,6 @@ import java.io.IOException;
 
 import java.util.Collection;
 
-import java.util.Set;
 import java.util.function.Function;
 
 import java.util.stream.Collectors;
@@ -92,12 +88,6 @@ public class EnsureSubscriptionProcessor
             }
         catch (Throwable thrown)
             {
-            if (!(thrown instanceof TopicException))
-                {
-                // log anything other than TopicException, which is a legitimate error which we
-                // just pass back to the caller
-                Logger.err("Caught exception ensuring subscription", thrown);
-                }
             return new Result(null, thrown);
             }
         }
@@ -413,7 +403,7 @@ public class EnsureSubscriptionProcessor
     private SubscriberId m_subscriberId;
 
     /**
-     * A flag indicating that this is a reconnect.
+     * A flag indicating that this is a reconnection.
      */
     private boolean m_fReconnect;
 

@@ -2,11 +2,13 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.tangosol.net.CacheService;
+import com.tangosol.net.PagedTopicService;
+import com.tangosol.net.TopicService;
 import com.tangosol.net.topic.NamedTopic;
 
 import org.junit.Test;
@@ -93,16 +95,16 @@ public class NamedTopicImplTest
     @Test
     public void shouldReturnService()
         {
-        PagedTopicCaches caches = mock(PagedTopicCaches.class);
-        CacheService cacheService  = mock(CacheService.class);
+        PagedTopicCaches  caches  = mock(PagedTopicCaches.class);
+        PagedTopicService service = mock(PagedTopicService.class);
 
         when(caches.isActive()).thenReturn(true);
-        when(caches.getCacheService()).thenReturn(cacheService);
+        when(caches.getService()).thenReturn(service);
 
         PagedTopic<String> topic = new PagedTopic<>(caches);
 
-        assertThat(topic.getService(), is(sameInstance(cacheService)));
-        assertThat(topic.getService(), is(sameInstance(cacheService)));
+        assertThat(topic.getService(), is(sameInstance(service)));
+        assertThat(topic.getService(), is(sameInstance(service)));
         }
 
     @Test

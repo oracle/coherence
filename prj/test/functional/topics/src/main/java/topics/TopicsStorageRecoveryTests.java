@@ -16,6 +16,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
@@ -712,9 +713,15 @@ public class TopicsStorageRecoveryTests
         CoherenceClusterBuilder builder     = new CoherenceClusterBuilder();
         String                  sMethodName = m_testName.getMethodName();
         OptionsByType           options     = OptionsByType.of(s_options)
-                                                .addAll(LocalStorage.enabled(),
+                                                .addAll(OperationalOverride.of("common-tangosol-coherence-override.xml"),
+                                                        CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
+                                                        SystemProperty.of("test.log.level", "9"),
+                                                        SystemProperty.of("test.log", "stderr"),
+                                                        SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                        LocalStorage.enabled(),
                                                         StabilityPredicate.none(),
-                                                        Logging.at(9),
+                                                        Logging.atMax(),
+                                                        JMXManagementMode.ALL,
                                                         DisplayName.of(sMethodName + '-' + suffix),
                                                         s_testLogs.builder());
 
