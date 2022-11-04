@@ -23,6 +23,10 @@ import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
+import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
@@ -43,6 +47,9 @@ import com.tangosol.util.filter.InKeySetFilter;
 
 import com.tangosol.util.listener.SimpleMapListener;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -81,7 +88,7 @@ public class PagedTopicPublisher<V>
      * Create a {@link PagedTopicPublisher}.
      *
      * @param pagedTopicCaches  the {@link PagedTopicCaches} managing this topic's caches
-     * @param opts           the {@link Option}s controlling this {@link PagedTopicPublisher}
+     * @param opts              the {@link Option}s controlling this {@link PagedTopicPublisher}
      */
     @SafeVarargs
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -93,7 +100,7 @@ public class PagedTopicPublisher<V>
         registerDeactivationListener();
 
         Serializer      serializer = pagedTopicCaches.getSerializer();
-        Cluster         cluster    = m_caches.getCacheService().getCluster();
+        Cluster         cluster    = m_caches.getService().getCluster();
         Options<Option> options    = Options.from(Option.class, opts);
 
         f_nId                 = createId(System.identityHashCode(this), cluster.getLocalMember().getId());
@@ -103,8 +110,12 @@ public class PagedTopicPublisher<V>
         f_funcOrder           = computeOrderByOption(options);
         f_onFailure           = options.get(OnFailure.class);
 
+        ChannelCount channelCount = options.get(ChannelCount.class, ChannelCount.USE_CONFIGURED);
+        int          cChannel     = channelCount.isUseConfigured()
+                                            ? pagedTopicCaches.getPublisherChannelCount()
+                                            : channelCount.getChannelCount();
+
         long cbBatch  = m_caches.getDependencies().getMaxBatchSizeBytes();
-        int  cChannel = pagedTopicCaches.getChannelCount();
 
         f_aChannel          = new PagedTopicChannelPublisher[cChannel];
         f_setOfferedChannel = new BitSet(cChannel);
@@ -149,7 +160,7 @@ public class PagedTopicPublisher<V>
     // ----- TopicPublisher methods -----------------------------------------
 
     /**
-     * Specifies whether or not the publisher is active.
+     * Specifies whether the publisher is active.
      *
      * @return true if the publisher is active; false otherwise
      */
@@ -164,9 +175,18 @@ public class PagedTopicPublisher<V>
     public CompletableFuture<Status> publish(V value)
         {
         ensureActive();
-        PagedTopicChannelPublisher channel = ensureChannelPublisher(value);
-        CompletableFuture<Status>  future  = channel.publish(f_convValueToBinary.convert(value));
-        future.handleAsync((status, error) -> handlePublished(channel.getChannel()));
+        PagedTopicChannelPublisher channelPublisher = ensureChannelPublisher(value);
+        int                        nChannel         = channelPublisher.getChannel();
+
+        // we must ensure the topic has the required number of channels
+        int cActual = m_caches.getService().ensureChannelCount(f_sTopicName, nChannel + 1, f_aChannel.length);
+        if (nChannel >= cActual)
+            {
+            Logger.warn(() -> String.format("This publisher is publishing to channel %d, but the topic is configured with %d channels", nChannel, cActual));
+            }
+
+        CompletableFuture<Status>  future  = channelPublisher.publish(f_convValueToBinary.convert(value));
+        future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()));
         return future;
         }
 
@@ -516,23 +536,23 @@ public class PagedTopicPublisher<V>
 
     /**
      * Obtain a {@link CompletableFuture} that will be complete when
-     * all of the currently outstanding add operations complete.
+     * all the currently outstanding add operations complete.
      * <p>
      * If this method is called in response to a topic destroy then the
      * outstanding operations will be completed with an exception as the underlying
-     * topic caches have been destroyed so they can never complete normally.
+     * topic caches have been destroyed, so they can never complete normally.
      * <p>
      * if this method is called in response to a timeout waiting for flush to complete normally,
      * indicated by {@link FlushMode#FLUSH_CLOSE_EXCEPTIONALLY}, complete exceptionally all outstanding
      * asynchronous operations so close finishes.
-     *
+     * <p>
      * The returned {@link CompletableFuture} will always complete
      * normally, even if the outstanding operations complete exceptionally.
      *
      * @param mode  {@link FlushMode} flush mode to use
      *
      * @return a {@link CompletableFuture} that will be completed when
-     *         all of the currently outstanding add operations are complete
+     *         all the currently outstanding add operations are complete
      */
     private CompletableFuture<Void> flushInternal(FlushMode mode)
         {
@@ -765,6 +785,121 @@ public class PagedTopicPublisher<V>
          * The position that the element was published to.
          */
         private final PagedPosition f_position;
+        }
+
+    // ----- inner class: ChannelCount --------------------------------------
+
+    /**
+     * This option controls the channel count for a {@link Publisher}, which
+     * may be different to the channel count configured for the topic.
+     */
+    public static class ChannelCount
+            implements Option<Object>, ExternalizableLite, PortableObject
+        {
+        /**
+         * Default constructor for serialization.
+         */
+        public ChannelCount()
+            {
+            this(-1);
+            }
+
+        /**
+         * Create a {@link ChannelCount} option.
+         *
+         * @param cChannel  the channel count (a value less than zero will
+         *                  use the configured channel count)
+         */
+        public ChannelCount(int cChannel)
+            {
+            m_cChannel = cChannel;
+            }
+
+        /**
+         * Whether the publisher should use the configured channel count.
+         *
+         * @return {code true} if the publisher should use the configured channel count
+         */
+        public boolean isUseConfigured()
+            {
+            return m_cChannel < 0;
+            }
+
+        /**
+         * Return the channel count the publisher should use.
+         *
+         * @return  the channel count the publisher should use
+         */
+        public int getChannelCount()
+            {
+            return m_cChannel;
+            }
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_cChannel = in.readInt();
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            out.writeInt(m_cChannel);
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_cChannel = in.readInt(0);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeInt(0, m_cChannel);
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Return a {@link ChannelCount} option with the specified channel count.
+         *
+         * @param cChannel  the channel count the publisher should use
+         *
+         * @return a {@link ChannelCount} option with the specified channel count
+         */
+        public static ChannelCount of(int cChannel)
+            {
+            return new ChannelCount(cChannel);
+            }
+
+        /**
+         * Return a {@link ChannelCount} option to make a publisher to use
+         * the configured channel count.
+         *
+         * @return a {@link ChannelCount} option to make a publisher to use
+         *         the configured channel count
+         */
+        @Options.Default
+        public static ChannelCount useConfigured()
+            {
+            return USE_CONFIGURED;
+            }
+
+        // ----- constants --------------------------------------------------
+
+        /**
+         * A singleton {@link ChannelCount} option to make a publisher to use
+         * the configured channel count.
+         */
+        public static final ChannelCount USE_CONFIGURED = new ChannelCount(-1);
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The channel count to use for the publisher.
+         */
+        private int m_cChannel;
         }
 
     // ----- constants ------------------------------------------------------

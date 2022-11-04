@@ -205,7 +205,7 @@ public class PagedTopicSchemeProcessorTest
         PagedTopicDependencies dependencies = scheme.createConfiguration(nullResolver, null);
 
         assertThat(dependencies, is(notNullValue()));
-        assertThat(dependencies.getChannelCount(), is(19));
+        assertThat(dependencies.getConfiguredChannelCount(), is(19));
         }
 
     @Test

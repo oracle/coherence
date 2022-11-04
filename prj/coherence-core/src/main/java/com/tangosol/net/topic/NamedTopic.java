@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.topic;
 
 
-import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.net.NamedCollection;
 
+import com.tangosol.net.TopicService;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
@@ -210,6 +210,16 @@ public interface NamedTopic<V>
      * @return  the number of remaining messages for the subscriber group
      */
     int getRemainingMessages(String sSubscriberGroup, int... anChannel);
+
+    /**
+     * Return the {@link TopicService} managing this {@link NamedTopic}.
+     *
+     * @return the {@link TopicService} managing this {@link NamedTopic}
+     */
+    default TopicService getTopicService()
+        {
+        return (TopicService) getService();
+        }
 
     // ----- inner interface: ElementCalculator -----------------------------
 

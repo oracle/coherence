@@ -63,8 +63,7 @@ public class SeekProcessor
      * @param position      the position to move to
      * @param subscriberId  the identifier of the subscriber performing the seek
      */
-    @SuppressWarnings("rawtypes")
-    SeekProcessor(Function<BinaryEntry, PagedTopicPartition> supplier, PagedPosition position, SubscriberId subscriberId)
+    SeekProcessor(Function<BinaryEntry<Subscription.Key, Subscription>, PagedTopicPartition> supplier, PagedPosition position, SubscriberId subscriberId)
         {
         super(supplier);
         m_position      = position;

@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
+import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
@@ -37,6 +38,7 @@ import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.TypeAssertion;
 
@@ -44,6 +46,7 @@ import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 
+import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
@@ -107,11 +110,10 @@ public class PagedTopicCaches
      *
      * @param sName         the name of the topic
      * @param cacheService  the {@link CacheService} owning the underlying caches
-     * @param dependencies  the {@link PagedTopicDependencies}
      */
-    public PagedTopicCaches(String sName, CacheService cacheService, PagedTopicDependencies dependencies)
+    public PagedTopicCaches(String sName, PagedTopicService cacheService)
         {
-        this(sName, cacheService, dependencies, null);
+        this(sName, cacheService, null);
         }
 
     /**
@@ -119,11 +121,9 @@ public class PagedTopicCaches
      *
      * @param sName          the name of the topic
      * @param cacheService   the {@link CacheService} owning the underlying caches
-     * @param dependencies   the {@link PagedTopicDependencies}
      * @param functionCache  the function to invoke to obtain each underlying cache
      */
-    PagedTopicCaches(String sName, CacheService cacheService,
-            PagedTopicDependencies dependencies,
+    PagedTopicCaches(String sName, PagedTopicService cacheService,
             BiFunction<String, ClassLoader, NamedCache> functionCache)
         {
         if (sName == null || sName.isEmpty())
@@ -142,10 +142,9 @@ public class PagedTopicCaches
             }
 
         f_sTopicName        = sName;
-        f_cacheService      = cacheService;
+        f_topicService = cacheService;
         f_sCacheServiceName = cacheService.getInfo().getServiceName();
-        f_cPartition        = ((DistributedCacheService) cacheService).getPartitionCount();
-        f_dependencies      = dependencies == null ? new DefaultPagedTopicDependencies(f_cPartition) : dependencies;
+        f_cPartition        = cacheService.getPartitionCount();
         f_functionCache     = functionCache;
 
         initializeCaches();
@@ -162,7 +161,7 @@ public class PagedTopicCaches
      */
     public Serializer getSerializer()
         {
-        return f_cacheService.getSerializer();
+        return f_topicService.getSerializer();
         }
 
     @Override
@@ -210,7 +209,7 @@ public class PagedTopicCaches
         }
 
     /**
-     * Returns whether or not the caches are released,
+     * Returns whether the caches are released,
      * specifically the page cache for the topic.
      *
      * @return true if the caches are released; false otherwise
@@ -263,7 +262,7 @@ public class PagedTopicCaches
     @Override
     public ClassLoader getContextClassLoader()
         {
-        return f_cacheService.getContextClassLoader();
+        return f_topicService.getContextClassLoader();
         }
 
     @Override
@@ -311,7 +310,27 @@ public class PagedTopicCaches
      */
     public int getChannelCount()
         {
-        return getDependencies().getChannelCount();
+        return f_topicService.getChannelCount(f_sTopicName);
+        }
+
+    /**
+     * Return the default publisher channel count for this topic.
+     * <p>
+     * If the system property {@link Publisher#PROP_CHANNEL_COUNT} with a suffix of a dot
+     * followed by the topic name is set, that value will be used.
+     * <p>
+     * If the system property {@link Publisher#PROP_CHANNEL_COUNT} with no suffix is set,
+     * that value will be used.
+     * <p>
+     * If neither property is set the configured channel count will be used.
+     *
+     * @return the default publisher channel count for this topic
+     */
+    public int getPublisherChannelCount()
+        {
+        int cChannel = getDependencies().getConfiguredChannelCount();
+        cChannel = Config.getInteger(Publisher.PROP_CHANNEL_COUNT, cChannel);
+        return Config.getInteger(Publisher.PROP_CHANNEL_COUNT + "." + f_sTopicName, cChannel);
         }
 
     /**
@@ -345,13 +364,13 @@ public class PagedTopicCaches
         }
 
     /**
-     * Return the associated CacheService.
+     * Return the associated {@link PagedTopicService}.
      *
-     * @return the cache service
+     * @return the {@link PagedTopicService}
      */
-    public CacheService getCacheService()
+    public PagedTopicService getService()
         {
-        return f_cacheService;
+        return f_topicService;
         }
 
     /**
@@ -361,7 +380,7 @@ public class PagedTopicCaches
      */
     public PagedTopicDependencies getDependencies()
         {
-        return f_dependencies;
+        return f_topicService.getTopicBackingMapManager().getTopicDependencies(f_sTopicName);
         }
 
     /**
@@ -422,11 +441,11 @@ public class PagedTopicCaches
         Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
         Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
 
-        InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPosn
+        InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPos
                 = Aggregators.comparableMax(Subscription::getCommittedPosition);
 
         // Aggregate the subscription commits and remove any null values from the returned map
-        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPosn, filterPosition))
+        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPos, filterPosition))
                 .entrySet()
                 .stream()
                 .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
@@ -448,11 +467,11 @@ public class PagedTopicCaches
         Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
         Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
 
-        InvocableMap.EntryAggregator<Subscription.Key, Subscription, PagedPosition> aggregatorPosn
+        InvocableMap.EntryAggregator<Subscription.Key, Subscription, PagedPosition> aggregatorPos
                 = Aggregators.comparableMin(new Subscription.HeadExtractor(nSubscriberId));
 
         // Aggregate the subscription commits and remove any null values from the returned map
-        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPosn, filterPosition))
+        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPos, filterPosition))
                 .entrySet()
                 .stream()
                 .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
@@ -504,7 +523,7 @@ public class PagedTopicCaches
     /**
      * Returns the identifiers for all the subscribers belonging to a subscriber group.
      * <p>
-     * There is no guarantee that all of the subscribers are actually still active. If a subscriber
+     * There is no guarantee that all the subscribers are actually still active. If a subscriber
      * process exits without closing the subscriber, the identifier remains in the cache until it
      * is timed-out.
      *
@@ -586,7 +605,7 @@ public class PagedTopicCaches
      */
     public void printChannelAllocations(String sGroup, PrintStream out)
         {
-        Map<Integer, String> mapMember = f_cacheService.getCluster()
+        Map<Integer, String> mapMember = f_topicService.getCluster()
                 .getMemberSet()
                 .stream()
                 .collect(Collectors.toMap(Member::getId, Member::toString));
@@ -767,7 +786,6 @@ public class PagedTopicCaches
         {
         try
             {
-            int     cChannel = getChannelCount();
             String  sName    = subscriberGroupId.getGroupName();
 
             Set<Subscription.Key> setSubKeys = new HashSet<>(f_cPartition);
@@ -816,7 +834,7 @@ public class PagedTopicCaches
 
             Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
 
-            long[] alHead = new long[cChannel];
+            long[] alHead;
             if (colPages == null || colPages.contains(null) || fDisconnected)
                 {
                 alHead = initialiseSubscriptionPages(subscriberGroupId, subscriberId, filter, fnConverter, fReconnect, fCreateGroupOnly, setSubKeys);
@@ -824,11 +842,14 @@ public class PagedTopicCaches
             else
                 {
                 // all partitions were already initialized, min is our head
+                int cChannel = colPages.stream().mapToInt(an -> an.length).max().orElse(getChannelCount());
+                alHead = new long[cChannel];
                 for (int nChannel = 0; nChannel < cChannel; ++nChannel)
                     {
                     final int finChan = nChannel;
-                    alHead[nChannel] = colPages.stream().mapToLong((alResult) -> alResult[finChan])
-                        .min().orElse(Page.NULL_PAGE);
+                    alHead[nChannel] = colPages.stream()
+                            .mapToLong((alResult) -> alResult[finChan])
+                            .min().orElse(Page.NULL_PAGE);
                     }
                 }
 
@@ -869,7 +890,7 @@ public class PagedTopicCaches
         String sGroupName = subscriberGroupId.getGroupName();
 
         // The subscription doesn't exist in at least some partitions, create it under lock. A lock is used only
-        // to protect against concurrent create/destroy/create resulting an gaps in the pinned pages.  Specifically
+        // to protect against concurrent create/destroy/create resulting gaps in the pinned pages.  Specifically
         // it would be safe for multiple subscribers to concurrently "create" the subscription, it is only unsafe
         // if there is also a concurrent destroy as this could result in gaps in the pinned pages.
         if (sGroupName != null)
@@ -909,9 +930,9 @@ public class PagedTopicCaches
                 }
 
             Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
+            int                cChannel = colPages.stream().mapToInt(an -> an.length).max().orElse(getChannelCount());
 
             PagedTopicDependencies dependencies = getDependencies();
-            int                    cChannel      = getChannelCount();
             long                   lPageBase     = getBasePage();
             long[]                 alHead        = new long[cChannel];
 
@@ -924,7 +945,7 @@ public class PagedTopicCaches
                     {
                     // select lowest page in each channel as our channel heads
                     alHead[nChannel] = colPages.stream()
-                        .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
+                        .mapToLong((alPage) -> alPage.length > finChan ? Math.max(alPage[finChan], lPageBase) : lPageBase)
                         .min()
                         .getAsLong();
                     }
@@ -998,7 +1019,7 @@ public class PagedTopicCaches
 
             InvocableMap.EntryAggregator counter = new Count();
             Binary bin = (Binary) Data.aggregate(new UnreadTopicContentFilter(mapHeads, mapTails), counter);
-            return ((Number) f_cacheService.getBackingMapManager().getContext()
+            return ((Number) f_topicService.getBackingMapManager().getContext()
                     .getValueFromInternalConverter().convert(bin)).intValue();
             }
         // subscriber group does not exist, return the total number of messages
@@ -1021,7 +1042,7 @@ public class PagedTopicCaches
 
         PagedTopicCaches that = (PagedTopicCaches) o;
 
-        return f_sTopicName.equals(that.f_sTopicName) && f_cacheService.equals(that.f_cacheService);
+        return f_sTopicName.equals(that.f_sTopicName) && f_topicService.equals(that.f_topicService);
         }
 
     @Override
@@ -1044,9 +1065,9 @@ public class PagedTopicCaches
     @SuppressWarnings("unchecked")
     private synchronized void initializeCaches()
         {
-        f_cacheService.start();
+        f_topicService.start();
 
-        ClassLoader loader = f_cacheService.getContextClassLoader();
+        ClassLoader loader = f_topicService.getContextClassLoader();
 
         Pages         = f_functionCache.apply(Names.PAGES.cacheNameForTopicName(f_sTopicName), loader);
         Subscribers   = f_functionCache.apply(Names.SUBSCRIBERS.cacheNameForTopicName(f_sTopicName), loader);
@@ -1072,7 +1093,7 @@ public class PagedTopicCaches
         {
         DeactivationListener listener = m_deactivationListener;
         Pages.addMapListener(listener);
-        f_cacheService.addMemberListener(listener);
+        f_topicService.addMemberListener(listener);
         }
 
     @SuppressWarnings("unchecked")
@@ -1083,7 +1104,7 @@ public class PagedTopicCaches
             {
             Pages.removeMapListener(listener);
             }
-        f_cacheService.removeMemberListener(listener);
+        f_topicService.removeMemberListener(listener);
         }
 
     /**
@@ -1187,7 +1208,7 @@ public class PagedTopicCaches
     // ----- inner class: Names ---------------------------------------------
 
     /**
-     * An pseudo enumeration representing the different caches used
+     * A pseudo enumeration representing the different caches used
      * by topic and topic implementations.
      *
      * @author jk 2015.06.08
@@ -1338,7 +1359,7 @@ public class PagedTopicCaches
             }
 
         /**
-         * Return true if corresponding cache should be considered an internal submapping.
+         * Return true if corresponding cache should be considered an internal sub-mapping.
          *
          * @return true if corresponding sub cache mapping should be considered internal.
          */
@@ -1394,7 +1415,7 @@ public class PagedTopicCaches
 
         /**
          * The cache that holds the topic content.
-         *
+         * <p>
          * Use of no prefix rather than METACACHE_PREFIX since it is being used to filter out internal topic meta caches.
          */
         public static final Names<ContentKey,Object> CONTENT =
@@ -1579,6 +1600,7 @@ public class PagedTopicCaches
         Disconnected,
         Closed
         }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -1589,12 +1611,7 @@ public class PagedTopicCaches
     /**
      * The cache service.
      */
-    protected final CacheService f_cacheService;
-
-    /**
-     * The topic dependencies.
-     */
-    protected final PagedTopicDependencies f_dependencies;
+    protected final PagedTopicService f_topicService;
 
     /**
      * The cache service name (mainly used in logging but calls to serv,ce.getInfo().getServiceName()

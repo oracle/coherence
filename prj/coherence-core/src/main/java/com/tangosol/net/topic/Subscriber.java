@@ -8,6 +8,7 @@ package com.tangosol.net.topic;
 
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
@@ -1802,5 +1803,56 @@ public interface Subscriber<V>
          * @return  {@code true} if the channel is owned by this subscriber
          */
         boolean isOwned();
+
+        /**
+         * A default empty channel implementation.
+         */
+        class EmptyChannel implements Channel
+            {
+            public EmptyChannel(int nId)
+                {
+                f_nId = nId;
+                }
+
+            @Override
+            public int getId()
+                {
+                return f_nId;
+                }
+
+            @Override
+            public Position getHead()
+                {
+                return PagedPosition.NULL_POSITION;
+                }
+
+            @Override
+            public Position getLastCommit()
+                {
+                return PagedPosition.NULL_POSITION;
+                }
+
+            @Override
+            public Position getLastReceived()
+                {
+                return PagedPosition.NULL_POSITION;
+                }
+
+            @Override
+            public boolean isEmpty()
+                {
+                return true;
+                }
+
+            @Override
+            public boolean isOwned()
+                {
+                return false;
+                }
+
+            // ----- data members -------------------------------------------
+
+            private final int f_nId;
+            }
         }
     }

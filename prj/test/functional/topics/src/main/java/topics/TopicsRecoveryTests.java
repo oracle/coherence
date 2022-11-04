@@ -34,10 +34,10 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
@@ -47,7 +47,6 @@ import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
-import com.tangosol.net.topic.TopicBackingMapManager;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.TaskDaemon;
@@ -658,7 +657,7 @@ public class TopicsRecoveryTests
             try
                 {
                 NamedTopic<Message>     topic        = m_publisher.getNamedTopic();
-                PagedTopicCaches        caches       = new PagedTopicCaches(topic.getName(), (CacheService) topic.getService(), null);
+                PagedTopicCaches        caches       = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
                 PagedTopicDependencies  dependencies = caches.getDependencies();
                 int                     cbPage       = dependencies.getPageCapacity();
                 int                     cMsgPerPage  = 10;

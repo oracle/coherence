@@ -15,7 +15,7 @@ import com.tangosol.net.topic.TopicBackingMapManager;
  * A {@link TopicService} which provides globally ordered topics.
  */
 public interface PagedTopicService
-        extends TopicService
+        extends TopicService, DistributedCacheService
     {
     /**
      * Return the {@link TopicBackingMapManager} for this service.

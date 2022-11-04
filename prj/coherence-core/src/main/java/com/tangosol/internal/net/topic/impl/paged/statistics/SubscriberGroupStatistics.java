@@ -11,6 +11,12 @@ import com.tangosol.internal.net.topic.impl.paged.management.PolledMetrics;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
+import com.tangosol.util.LongArray;
+import com.tangosol.util.SimpleLongArray;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * The class holding statistics for a subscriber group in a
  * {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic}.
@@ -30,10 +36,9 @@ public class SubscriberGroupStatistics
      */
     public SubscriberGroupStatistics(int cChannel)
         {
-        m_aChannelStats = new SubscriberGroupChannelStatistics[cChannel];
         for (int i = 0; i < cChannel; i++)
             {
-            m_aChannelStats[i] = new SubscriberGroupChannelStatistics(i);
+            m_aChannelStats.set(i, new SubscriberGroupChannelStatistics(i));
             }
         }
 
@@ -46,7 +51,21 @@ public class SubscriberGroupStatistics
      */
     public SubscriberGroupChannelStatistics getChannelStatistics(int nChannel)
         {
-        return m_aChannelStats[nChannel];
+        SubscriberGroupChannelStatistics statistics = m_aChannelStats.get(nChannel);
+        if (statistics == null)
+            {
+            f_lock.lock();
+            try
+                {
+                statistics = new SubscriberGroupChannelStatistics(nChannel);
+                m_aChannelStats.set(nChannel, statistics);
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+        return statistics;
         }
 
     /**
@@ -59,7 +78,7 @@ public class SubscriberGroupStatistics
     public void onPolled(int nChannel, long cMessage, PagedPosition head)
         {
         f_metricPolled.mark(cMessage);
-        m_aChannelStats[nChannel].onPolled(cMessage, head);
+        getChannelStatistics(nChannel).onPolled(cMessage, head);
         }
 
     /**
@@ -70,7 +89,7 @@ public class SubscriberGroupStatistics
      */
     public void onCommitted(int nChannel, PagedPosition committedPosition)
         {
-        m_aChannelStats[nChannel].onCommitted(committedPosition);
+        getChannelStatistics(nChannel).onCommitted(committedPosition);
         }
 
     /**
@@ -81,7 +100,7 @@ public class SubscriberGroupStatistics
      */
     public void setOwningSubscriber(int nChannel, SubscriberId nOwningSubscriber)
         {
-        m_aChannelStats[nChannel].setOwningSubscriber(nOwningSubscriber);
+        getChannelStatistics(nChannel).setOwningSubscriber(nOwningSubscriber);
         }
 
     @Override
@@ -119,7 +138,13 @@ public class SubscriberGroupStatistics
     /**
      * The channel statistics.
      */
-    private final SubscriberGroupChannelStatistics[] m_aChannelStats;
+    @SuppressWarnings("unchecked")
+    private final LongArray<SubscriberGroupChannelStatistics> m_aChannelStats = new SimpleLongArray();
+
+    /**
+     * The lock to use to synchronize access to internal state.
+     */
+    private final Lock f_lock = new ReentrantLock(true);
 
     /**
      * The polled messages metric.

@@ -24,7 +24,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.net.Coherence;
-import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.topic.NamedTopic;
@@ -76,10 +76,10 @@ public class TopicSubscribeCleanupTests
     @Test
     public void shouldRemoveSubscriberInfoOnClose()
         {
-        NamedTopic<String>      topic = s_session.getTopic(f_testName.getMethodName());
-        DistributedCacheService service = (DistributedCacheService) topic.getService();
+        NamedTopic<String> topic   = s_session.getTopic(f_testName.getMethodName());
+        PagedTopicService  service = (PagedTopicService) topic.getService();
+        PagedTopicCaches   caches  = new PagedTopicCaches(topic.getName(), service);
 
-        PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service, null);
         assertThat(caches.Subscribers.isEmpty(), is(true));
 
         try (PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("group-one")))
@@ -102,11 +102,11 @@ public class TopicSubscribeCleanupTests
                                                         ClassName.of(Coherence.class),
                                                         s_testLogs.builder()))
             {
-            NamedTopic<String>      topic   = s_session.getTopic(f_testName.getMethodName());
-            DistributedCacheService service = (DistributedCacheService) topic.getService();
+            NamedTopic<String> topic   = s_session.getTopic(f_testName.getMethodName());
+            PagedTopicService  service = (PagedTopicService) topic.getService();
             Eventually.assertDeferred(() -> service.getOwnershipEnabledMembers().size(), is(2));
 
-            PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service, null);
+            PagedTopicCaches caches = new PagedTopicCaches(topic.getName(), service);
 
             topic.ensureSubscriberGroup("group-one");
             topic.ensureSubscriberGroup("group-two");
