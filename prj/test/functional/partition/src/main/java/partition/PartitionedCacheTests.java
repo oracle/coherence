@@ -44,7 +44,11 @@ import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.AbstractRollingRestartTest;
 import com.oracle.coherence.testing.TestSynchronousMapListener;
+
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 
 import java.util.Enumeration;
 import java.util.EventListener;
@@ -53,16 +57,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
+import static com.oracle.bedrock.deferred.DeferredHelper.delayedBy;
 
 /**
 * A collection of functional tests for partitioned NamedCache.
@@ -529,6 +538,15 @@ public class PartitionedCacheTests
             startCacheServer("secondary", "partition");
             startCacheServer("tertiary", "partition");
 
+            SafeService      serviceSafe = (SafeService) cache.getCacheService();
+            PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
+
+            // prevent orphaned partitions by waiting for partition assignment to complete
+            // across all servers.
+            // (this client has local storage enabled along with two servers started by test)
+            Eventually.assertDeferred(() -> serviceReal.getOwnershipEnabledMembers().size(), is(3));
+            waitForBalanced(cache.getCacheService());
+
             Map mapTemp = new HashMap();
             for (int i = 1; i <= CACHE_SIZE; i++)
                 {
@@ -540,6 +558,10 @@ public class PartitionedCacheTests
 
             stopCacheServer("secondary");
             assertEquals(CACHE_SIZE, cache.size());
+
+            // prevent orphan partitions by waiting until not endangered
+            Eventually.assertDeferred(() -> serviceReal.getOwnershipEnabledMembers().size(), is(2));
+            waitForBalanced(cache.getCacheService());
 
             stopCacheServer("tertiary");
             assertEquals(CACHE_SIZE, cache.size());
