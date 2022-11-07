@@ -2245,26 +2245,28 @@ if (Config.getBoolean("coherence.subscriber.debug"))
                 }
 
             // see note in TopicSubscriber constructor regarding the need for locking
-            boolean fNamed = subscriberGroupId.getMemberTimestamp() == 0;
-            if (fNamed)
-                {
-                pagedTopicCaches.Subscriptions.lock(subscriberGroupId, -1);
-                }
-
-            try
-                {
+// ToDo: This causes a deadlock if the service is suspended during subscription removal
+//
+//            boolean fNamed = subscriberGroupId.getMemberTimestamp() == 0;
+//            if (fNamed)
+//                {
+//                pagedTopicCaches.Subscriptions.lock(subscriberGroupId, -1);
+//                }
+//
+//            try
+//                {
                 InvocableMapHelper.invokeAllAsync(pagedTopicCaches.Subscriptions, setSubParts,
                                                   (key) -> pagedTopicCaches.getUnitOfOrder(key.getPartitionId()),
                                                   DestroySubscriptionProcessor.INSTANCE)
                         .join();
-                }
-            finally
-                {
-                if (fNamed)
-                    {
-                    pagedTopicCaches.Subscriptions.unlock(subscriberGroupId);
-                    }
-                }
+//                }
+//            finally
+//                {
+//                if (fNamed)
+//                    {
+//                    pagedTopicCaches.Subscriptions.unlock(subscriberGroupId);
+//                    }
+//                }
             }
         }
 
