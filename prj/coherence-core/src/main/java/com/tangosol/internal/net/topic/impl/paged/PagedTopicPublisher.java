@@ -30,6 +30,7 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
@@ -137,7 +138,7 @@ public class PagedTopicPublisher<V>
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
             {
             f_aChannel[nChannel]
-                    = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches, f_nNotifyPostFull, backlog, f_daemon, this::handlePublishError);
+                    = new PagedTopicChannelPublisher(f_nId, nChannel, cChannel, m_caches, f_nNotifyPostFull, backlog, f_daemon, this::handlePublishError);
             }
 
         f_listenerNotification = new SimpleMapListener<NotificationKey, int[]>()
@@ -176,17 +177,10 @@ public class PagedTopicPublisher<V>
         {
         ensureActive();
         PagedTopicChannelPublisher channelPublisher = ensureChannelPublisher(value);
-        int                        nChannel         = channelPublisher.getChannel();
+        CompletableFuture<Status>  future           = channelPublisher.publish(f_convValueToBinary.convert(value));
 
-        // we must ensure the topic has the required number of channels
-        int cActual = m_caches.getService().ensureChannelCount(f_sTopicName, nChannel + 1, f_aChannel.length);
-        if (nChannel >= cActual)
-            {
-            Logger.warn(() -> String.format("This publisher is publishing to channel %d, but the topic is configured with %d channels", nChannel, cActual));
-            }
-
-        CompletableFuture<Status>  future  = channelPublisher.publish(f_convValueToBinary.convert(value));
         future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()));
+
         return future;
         }
 
@@ -395,7 +389,7 @@ public class PagedTopicPublisher<V>
                     {
                     m_caches.ensureConnected();
                     Logger.info("Restarting publisher for channel " + nChannel + " topic " + m_caches.getTopicName() + " publisher " + f_nId);
-                    publisher = f_aChannel[nChannel] = new PagedTopicChannelPublisher(f_nId, nChannel, m_caches,
+                    publisher = f_aChannel[nChannel] = new PagedTopicChannelPublisher(f_nId, nChannel, f_aChannel.length, m_caches,
                             f_nNotifyPostFull, f_flowControl, f_daemon, this::handlePublishError);
                     }
                 }

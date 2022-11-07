@@ -21,9 +21,14 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher;
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.Cluster;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.Service;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
@@ -294,7 +299,7 @@ public class TopicChannelCountTests
         }
 
     @Test
-    @Ignore("Temporarily skipped: Bug 34767222")
+    //@Ignore("Temporarily skipped: Bug 34767222")
     public void shouldIncreaseChannelCountWhileActive() throws Exception
         {
         String sTopicName = m_testWatcher.getMethodName();
@@ -443,7 +448,7 @@ public class TopicChannelCountTests
                     {
                     long nStart = System.currentTimeMillis();
                     long nNow   = nStart;
-                    long nEnd   = nStart + 2000 + ((long) m_nId * 1500);
+                    long nEnd   = nStart + 2000 + ((long) m_nId * 1000);
                     while (nNow < nEnd)
                         {
                         CompletableFuture<Subscriber.Element<String>> future = subscriber.receive();
@@ -508,7 +513,7 @@ public class TopicChannelCountTests
                 while (element != null)
                     {
                     m_mapMessage.put(new PositionAndChannel(element.getChannel(), element.getPosition()), element.getValue());
-                    element.commit();
+                    //element.commit();
                     element = subscriber.receive().get(1, TimeUnit.MINUTES);
                     }
                 m_future.complete(null);

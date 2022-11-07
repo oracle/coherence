@@ -893,13 +893,15 @@ public class PagedTopicCaches
         // to protect against concurrent create/destroy/create resulting gaps in the pinned pages.  Specifically
         // it would be safe for multiple subscribers to concurrently "create" the subscription, it is only unsafe
         // if there is also a concurrent destroy as this could result in gaps in the pinned pages.
-        if (sGroupName != null)
-            {
-            Subscriptions.lock(subscriberGroupId, -1);
-            }
-
-        try
-            {
+//        if (sGroupName != null)
+//            {
+// ToDo: This causes a deadlock if the service is suspended during subscription initialisation
+//
+//            Subscriptions.lock(subscriberGroupId, -1);
+//            }
+//
+//        try
+//            {
             EnsureSubscriptionProcessor processor
                     = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
                                                       filter, fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
@@ -965,14 +967,14 @@ public class PagedTopicCaches
                     key -> getUnitOfOrder(key.getPartitionId()), processor).join();
 
             return alHead;
-            }
-        finally
-            {
-            if (sGroupName != null)
-                {
-                Subscriptions.unlock(subscriberGroupId);
-                }
-            }
+//            }
+//        finally
+//            {
+//            if (sGroupName != null)
+//                {
+//                Subscriptions.unlock(subscriberGroupId);
+//                }
+//            }
         }
 
     /**
