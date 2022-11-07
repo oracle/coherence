@@ -8,6 +8,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Associated;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.DebouncedFlowControl;
@@ -23,8 +24,7 @@ import com.tangosol.internal.util.DaemonPool;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.PartitionedService;
-
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 
 import com.tangosol.net.topic.NamedTopic;
@@ -70,6 +70,7 @@ public class PagedTopicChannelPublisher
      */
     public PagedTopicChannelPublisher(long                           lPublisherId,
                                       int                            nChannel,
+                                      int                            nChannelCount,
                                       PagedTopicCaches               caches,
                                       int                            nNotifyPostFull,
                                       DebouncedFlowControl           flowControl,
@@ -78,6 +79,7 @@ public class PagedTopicChannelPublisher
         {
         f_lPublisherId            = lPublisherId;
         f_nChannel                = nChannel;
+        f_nChannelCount           = nChannelCount;
         f_sTopicName              = caches.getTopicName();
         f_onErrorHandler          = onErrorHandler;
         m_caches                  = caches;
@@ -122,6 +124,21 @@ public class PagedTopicChannelPublisher
             try
                 {
                 m_caches.ensureConnected();
+
+                // we must ensure the topic has the required number of channels
+                PagedTopicService service = m_caches.getService();
+                if (service.isSuspended())
+                    {
+                    Blocking.sleep(100);
+                    break;
+                    }
+
+                int cActual = service.ensureChannelCount(f_sTopicName, f_nChannel + 1, f_nChannelCount);
+                if (f_nChannel >= cActual)
+                    {
+                    Logger.warn(() -> String.format("This publisher is publishing to channel %d, but the topic is configured with %d channels", f_nChannel, cActual));
+                    }
+
                 error = null;
                 break;
                 }
@@ -705,6 +722,11 @@ public class PagedTopicChannelPublisher
      * The channel to publish to.
      */
     private final int f_nChannel;
+
+    /**
+     * The total number of channels.
+     */
+    private final int f_nChannelCount;
 
     /**
      * The name of the topic being published to
