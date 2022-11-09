@@ -323,7 +323,7 @@ public class ManagementInfoResourceTests
         assertThat(oListMemberIds, instanceOf(List.class));
         List listMemberIds = (List) oListMemberIds;
 
-        String   GC_PREFIX      = s_bTestJdk11 ? "g1" : "ps";
+        String   GC_PREFIX      = (s_bTestJdk11 || s_bIsEPP) ? "g1" : "ps";
         String[] arr_sMbeanName = { GC_PREFIX + "OldGen", GC_PREFIX + "SurvivorSpace"};
 
         for (String mbean : arr_sMbeanName)
@@ -433,6 +433,14 @@ public class ManagementInfoResourceTests
                 CacheFactory.log(target.getUri().toString(), LOG_INFO);
 
                 response = target.request().get();
+
+                // g1CodeCacheManager or g1MetaSpaceManager is not available on EPP (Enterprise Performance Pack)
+                if (s_bIsEPP && ("g1CodeCacheManager".equals(platformMBean)
+                		|| ("g1MetaSpaceManager").equals(platformMBean)))
+                    {
+                    continue;
+                    }
+
                 assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
                 mapResponse = new LinkedHashMap(readEntity(target, response));
                 assertThat(mapResponse.size(), greaterThan(0));
@@ -827,7 +835,7 @@ public class ManagementInfoResourceTests
 
         // for JDK11, when dump file is not provided,
         // DiagnosticCommand generates a file name instead of throwing exception
-        if (!s_bTestJdk11)
+        if (!(s_bTestJdk11 || s_bIsEPP))
             {
             assertThat(result.indexOf("Exception"), greaterThan(0));
             }
@@ -873,7 +881,7 @@ public class ManagementInfoResourceTests
 
         String result = response.readEntity(String.class);
 
-        File testFile1 = new File(sFilePath +"1-testMemberJfr-myRecording.jfr");
+        File testFile1 = new File(sFilePath + "1-testMemberJfr-myRecording.jfr");
         assertThat(testFile1.exists(), is(true));
         testFile1.delete();
 
@@ -982,9 +990,13 @@ public class ManagementInfoResourceTests
 
             oName = new ObjectName(sName);
             mBeanServer = m_aMembers[0].get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
-            mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+
+            if (!s_bIsEPP)
+                {
+                mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+                }
             }
-        catch (Exception InstanceNotFoundException)
+        catch (Exception e) // InstanceNotFoundException
             {
             try
                 {
@@ -992,7 +1004,11 @@ public class ManagementInfoResourceTests
 
                 mBeanServer = m_aMembers[1].get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
                 oName = new ObjectName(sName);
-                mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+
+                if (!s_bIsEPP)
+                    {
+                    mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
+                    }
                 }
             catch (Exception e1)
                 {
@@ -3257,6 +3273,11 @@ public class ManagementInfoResourceTests
     protected static final long REMOTE_MODEL_PAUSE_DURATION = 128L + /*buffer*/ 16L;
 
     protected static final Boolean s_bTestJdk11 = Integer.valueOf(System.getProperty("java.version").split("\\.")[0]) > 10 ? true : false;
+
+    /**
+     * Flag to check whether running with Enterprise Performance Pack(EPP)
+     */
+    protected static final Boolean s_bIsEPP = System.getProperty("java.runtime.version").contains("-perf-") ? true : false;
 
     /**
      * The number of attributes to check for.

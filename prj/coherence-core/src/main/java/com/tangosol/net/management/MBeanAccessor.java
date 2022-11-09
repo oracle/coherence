@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.management;
 
@@ -827,6 +827,14 @@ public class MBeanAccessor
                 }
             catch (Exception e)
                 {
+                // "vmUnlockCommercialFeatures" does not exist on DiagnosticComamnd MBean on all JVM
+                // e.g EPP(Enterprise Performance Pack) and should not result into an error condition.
+                if ("vmUnlockCommercialFeatures".equals(m_sOperationName)
+                        && System.getProperty("java.runtime.version").contains("-perf-"))
+                    {
+                    return null;
+                    }
+
                 throw Base.ensureRuntimeException(e, "invoke operation " + m_sOperationName + " to MBean " + sObjectName + " failed with an exception");
                 }
             }
