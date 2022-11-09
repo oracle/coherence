@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -119,7 +120,9 @@ public class DefaultInsecureCacheConfigGrpcIT
     @BeforeEach
     public void logStart(TestInfo info)
         {
-        String sMsg = ">>>>> Starting test: " + info.getDisplayName();
+        String sClass  = info.getTestClass().map(Class::toString).orElse("");
+        String sMethod = info.getTestMethod().map(Method::toString).orElse("");
+        String sMsg = ">>>>>>> Starting test " + sClass + "." + sMethod + " - " + info.getDisplayName();
         for (CoherenceClusterMember member : CLUSTER_EXTENSION.getCluster())
             {
             member.submit(() ->
@@ -134,7 +137,9 @@ public class DefaultInsecureCacheConfigGrpcIT
     @AfterEach
     public void logEnd(TestInfo info)
         {
-        String sMsg = ">>>>> Finished test: " + info.getDisplayName();
+        String sClass  = info.getTestClass().map(Class::toString).orElse("");
+        String sMethod = info.getTestMethod().map(Method::toString).orElse("");
+        String sMsg = ">>>>>>> Finished test " + sClass + "." + sMethod + " - " + info.getDisplayName();
         for (CoherenceClusterMember member : CLUSTER_EXTENSION.getCluster())
             {
             member.submit(() ->
