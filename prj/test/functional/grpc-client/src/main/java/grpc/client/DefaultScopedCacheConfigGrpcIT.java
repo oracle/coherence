@@ -35,10 +35,14 @@ import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.grpc.GrpcDependencies;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -122,6 +126,39 @@ public class DefaultScopedCacheConfigGrpcIT
         Coherence.closeAll();
         }
 
+    @BeforeEach
+    public void logStart(TestInfo info)
+        {
+        String sClass  = info.getTestClass().map(Class::toString).orElse("");
+        String sMethod = info.getTestMethod().map(Method::toString).orElse("");
+        String sMsg = ">>>>>>> Starting test " + sClass + "." + sMethod + " - " + info.getDisplayName();
+        for (CoherenceClusterMember member : CLUSTER_EXTENSION.getCluster())
+            {
+            member.submit(() ->
+                {
+                System.err.println(sMsg);
+                System.err.flush();
+                return null;
+                }).join();
+            }
+        }
+
+    @AfterEach
+    public void logEnd(TestInfo info)
+        {
+        String sClass  = info.getTestClass().map(Class::toString).orElse("");
+        String sMethod = info.getTestMethod().map(Method::toString).orElse("");
+        String sMsg = ">>>>>>> Finished test " + sClass + "." + sMethod + " - " + info.getDisplayName();
+        for (CoherenceClusterMember member : CLUSTER_EXTENSION.getCluster())
+            {
+            member.submit(() ->
+                {
+                System.err.println(sMsg);
+                System.err.flush();
+                return null;
+                }).join();
+            }
+        }
 
     @Test
     public void shouldUseScopes()

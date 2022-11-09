@@ -64,6 +64,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.lang.reflect.Method;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,13 +119,17 @@ abstract class AbstractGrpcClientIT
     @BeforeEach
     void beforeEachTest(TestInfo info)
         {
-        System.err.println(">>>>>>> Starting test " + info.getDisplayName());
+        String sClass  = info.getTestClass().map(Class::toString).orElse("");
+        String sMethod = info.getTestMethod().map(Method::toString).orElse("");
+        System.err.println(">>>>>>> Starting test " + sClass + "." + sMethod + " - " + info.getDisplayName());
         }
 
     @AfterEach
     void afterEachTest(TestInfo info)
         {
-        System.err.println(">>>>>>> Starting test " + info.getDisplayName());
+        String sClass  = info.getTestClass().map(Class::toString).orElse("");
+        String sMethod = info.getTestMethod().map(Method::toString).orElse("");
+        System.err.println(">>>>>>> Finished test " + sClass + "." + sMethod + " - " + info.getDisplayName());
         }
 
     // ----- test methods ---------------------------------------------------
@@ -1638,7 +1643,7 @@ abstract class AbstractGrpcClientIT
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
-    @MethodSource("serializers")
+    @MethodSource("serializers")                                                                                                                                                      
     @SuppressWarnings("unchecked")
     void shouldReceiveTruncateAndDeactivationEvent(String sSerializerName, Serializer serializer) throws Exception
         {
@@ -1651,11 +1656,18 @@ abstract class AbstractGrpcClientIT
         NamedCache<String, String> grpcClient  = createClient(cacheName, sSerializerName, serializer);
         grpcClient.addMapListener(listener);
 
+        System.err.println("Calling truncate on cache " + cacheName);
         cache.truncate();
+        System.err.println("Called truncate on cache " + cacheName);
         cache.put("key-2", "val-2");
+        System.err.println("Calling destroy on cache " + cacheName);
         cache.destroy();
+        System.err.println("Called destroy on cache " + cacheName);
 
-        assertThat(listener.awaitEvents(1, TimeUnit.MINUTES), is(true));
+        System.err.println("Waiting for events from cache " + cacheName);
+        boolean fEvents = listener.awaitEvents(1, TimeUnit.MINUTES);
+        System.err.println("Finished waiting for events from cache " + cacheName);
+        assertThat(fEvents, is(true));
         assertThat(listener.isTruncated(), is(true));
         assertThat(listener.isDestroyed(), is(true));
         }
