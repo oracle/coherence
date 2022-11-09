@@ -1734,7 +1734,14 @@ public class CachingMap<K, V>
                     Set setKeys = s_tloKeys.get();
                     if (setKeys != null)
                         {
-                        setKeys.add(oKey);
+                        boolean fAdded = setKeys.add(oKey);
+                        if (!fAdded)
+                            {
+                            // Fix COH-26224
+                            // all keys in setKeys are already locked once, so release the redundant lock acquired by this method.
+                            // Final unregisterListeners processing will only release one lock per key in set.
+                            mapControl.unlock(oKey);
+                            }
 
                         // the key is still locked; it will be unlocked
                         // along with other keys after bulk un-registration
