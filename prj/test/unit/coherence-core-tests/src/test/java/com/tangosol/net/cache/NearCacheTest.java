@@ -7,10 +7,12 @@
 
 package com.tangosol.net.cache;
 
+import com.oracle.coherence.testing.SystemPropertyIsolation;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import java.util.Set;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -96,6 +98,13 @@ public class NearCacheTest
             fail("regression test for COH-26224 has failed, unable to get lock, still held by other thread");
             }
         }
+
+    /**
+     * A {@link ClassRule} to isolate system properties set between test class
+     * execution (not individual test method executions).
+     */
+    @ClassRule
+    public static SystemPropertyIsolation s_systemPropertyIsolation = new SystemPropertyIsolation();
 
     protected static final String FILE_CFG_CACHE = "near-cache-server-config.xml";
     }
