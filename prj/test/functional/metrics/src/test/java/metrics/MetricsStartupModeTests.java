@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
 
@@ -263,7 +263,8 @@ public class MetricsStartupModeTests
         while ((line = bufferedReader.readLine()) != null)
             {
             if (line.contains("<Error>") && line.contains(MetricsHttpHelper.getServiceName()) &&
-                line.contains(Integer.toString(DEFAULT_PROMETHEUS_METRICS_PORT)) && line.contains("Address already in use"))
+                line.contains(Integer.toString(DEFAULT_PROMETHEUS_METRICS_PORT))
+                       && (line.contains("Address already in use") || line.contains("Address in use")))
                 {
                 return true;
                 }
