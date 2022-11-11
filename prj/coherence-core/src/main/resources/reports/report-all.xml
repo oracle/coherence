@@ -3,7 +3,7 @@
   Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <report-group xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -27,6 +27,9 @@
     </report-config>
     <report-config>
       <location>reports/report-service.xml</location>
+    </report-config>
+    <report-config>
+      <location>reports/report-service-partitions.xml</location>
     </report-config>
     <report-config>
       <location>reports/report-cache-size.xml</location>
