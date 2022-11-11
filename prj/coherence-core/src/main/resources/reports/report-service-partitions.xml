@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+  <report>
+    <file-name>{date}-service-partitions.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=PartitionAssignment,responsibility=DistributionCoordinator,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>ReportTime</header>
+      </column>
+
+      <column id="Service">
+        <type>key</type>
+        <name>service</name>
+        <header>Service</header>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+        <group-by>true</group-by>
+      </column>
+
+      <column id="PartitionCount">
+        <name>PartitionCount</name>
+      </column>
+
+      <column id="BackupCount">
+        <name>BackupCount</name>
+      </column>
+
+      <column id="FairSharePrimary">
+        <name>FairSharePrimary</name>
+      </column>
+
+      <column id="FairShareBackup">
+        <name>FairShareBackup</name>
+      </column>
+
+      <column id="ServiceNodeCount">
+        <name>ServiceNodeCount</name>
+      </column>
+
+      <column id="ServiceMachineCount">
+        <name>ServiceMachineCount</name>
+      </column>
+
+      <column id="ServiceRackCount">
+        <name>ServiceRackCount</name>
+      </column>
+
+      <column id="ServiceSiteCount">
+        <name>ServiceSiteCount</name>
+      </column>
+      
+      <column id="StrategyName">
+        <name>StrategyName</name>
+      </column>
+
+      <column id="HAStatus">
+        <name>HAStatus</name>
+      </column>
+      
+      <column id="HATarget">
+        <name>HATarget</name>
+      </column>
+
+      <column id="RemainingDistributionCount">
+        <name>RemainingDistributionCount</name>
+      </column>
+
+      <column id="AveragePartitionSizeKB">
+        <name>AveragePartitionSizeKB</name>
+      </column>
+
+      <column id="MaxPartitionSizeKB">
+        <name>MaxPartitionSizeKB</name>
+      </column>
+
+      <column id="AverageStorageSizeKB">
+        <name>AverageStorageSizeKB</name>
+      </column>
+
+      <column id="MaxStorageSizeKB">
+        <name>MaxStorageSizeKB</name>
+      </column>
+
+      <column id="MaxLoadNodeId">
+        <name>MaxLoadNodeId</name>
+      </column>
+    </row>
+  </report>
+</report-config>
