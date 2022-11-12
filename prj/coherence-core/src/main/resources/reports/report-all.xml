@@ -29,6 +29,9 @@
       <location>reports/report-service.xml</location>
     </report-config>
     <report-config>
+      <location>reports/report-service-partitions.xml</location>
+    </report-config>
+    <report-config>
       <location>reports/report-cache-size.xml</location>
     </report-config>
     <report-config>
