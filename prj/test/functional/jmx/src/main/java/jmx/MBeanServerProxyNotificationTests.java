@@ -127,17 +127,20 @@ public class MBeanServerProxyNotificationTests
         MBeanServerProxy       proxy      = s_registry.getMBeanServerProxy();
         String                 sMBeanName = String.format(UNIQUE_MBEAN_PATTERN, nMemberId);
         String                 sHandback  = UUID.randomUUID().toString();
-        Listener               listener   = new Listener(1, sHandback);
+        Listener               listener   = new Listener(5, sHandback);
         int                    cBefore    = countMBeanListeners(member, sMBeanName);
 
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
         Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        assertThat(listener.getCount(), is(5L));
 
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 111);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 222);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 333);
+
+        Eventually.assertThat("verify that listener has been called 3 times", invoking(listener).getCount(), is(2L));
 
         // the listener should eventually receive the notifications
         Eventually.assertThat(invoking(listener).getNewValue(), is(333));
@@ -149,19 +152,21 @@ public class MBeanServerProxyNotificationTests
 
         // should not receive this notification
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 444);
+        assertThat("verify listener was unregistered and not called for modification setting CacheSize to 444", listener.getCount(), is(2L));
 
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
         Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 1));
 
+        assertThat("verify listener still not called for modification setting CacheSize to 444", listener.getCount(), is(2L));
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 555);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 666);
 
-        assertThat(listener.await(1, TimeUnit.MINUTES), is(true));
+        assertThat("wait until no outstanding expected notifications to listener", listener.await(1, TimeUnit.MINUTES), is(true));
+        Eventually.assertThat("wait until see last expected modification", invoking(listener).getNewValue(), is(666));
 
-        assertThat(listener.getNewValue(), is(666));
-        assertThat(listener.getValues().contains(444), is(false));
+        assertThat("CacheSize of 444 should not have been sent to listener", listener.getValues().contains(444), is(false));
         }
 
     @Test
@@ -200,7 +205,7 @@ public class MBeanServerProxyNotificationTests
         MBeanServerProxy       proxy      = s_registry.getMBeanServerProxy();
         String                 sMBeanName = String.format(UNIQUE_MBEAN_PATTERN, nMemberId);
         String                 sHandback  = UUID.randomUUID().toString();
-        Listener               listener   = new Listener(1, sHandback);
+        Listener               listener   = new Listener(5, sHandback);
         int                    cBefore    = countMBeanListeners(member, sMBeanName);
         NotificationFilter     filterMod3 = new PredicateNotificationFilter(new ModThreePredicate());
         NotificationFilter     filterMod4 = new PredicateNotificationFilter(new ModFourPredicate());
