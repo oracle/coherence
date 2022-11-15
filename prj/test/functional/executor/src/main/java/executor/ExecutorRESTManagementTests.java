@@ -389,7 +389,7 @@ public class ExecutorRESTManagementTests
             {
             if (m_baseURI == null)
                 {
-                int nPort = Integer.getInteger("test.multicast.port", 7777);
+                int nPort = Integer.getInteger("test.multicast.port", 7778);
                 m_baseURI = NSLookup.lookupHTTPManagementURL(new InetSocketAddress("127.0.0.1", nPort)).iterator().next().toURI();
 
                 Logger.info("Management HTTP Acceptor lookup returned: " + m_baseURI);
