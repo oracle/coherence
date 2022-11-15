@@ -394,6 +394,7 @@ public abstract class AbstractDistEntryProcessorTests
 
             Eventually.assertDeferred(cache::size, is(SIZE));
             SerializationCountingKey.reset();
+            Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
             Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
             Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
 
