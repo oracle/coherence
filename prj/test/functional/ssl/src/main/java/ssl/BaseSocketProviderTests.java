@@ -162,7 +162,7 @@ public abstract class BaseSocketProviderTests
 
     protected int getPort()
         {
-        return Integer.getInteger("test.extend.port", 7777);
+        return Integer.getInteger("test.extend.port", 7778);
         }
 
     protected int getIterations()

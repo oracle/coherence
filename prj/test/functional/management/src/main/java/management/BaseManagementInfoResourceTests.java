@@ -3773,7 +3773,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             if (m_baseURI == null)
                 {
-                String          sPort  = s_cluster.getAny().getSystemProperties().getProperty("test.multicast.port", "7777");
+                String          sPort  = s_cluster.getAny().getSystemProperties().getProperty("test.multicast.port", "7778");
                 int             nPort  = Integer.parseInt(sPort);
                 Collection<URL> colURL = NSLookup.lookupHTTPManagementURL(f_sClusterName, new InetSocketAddress("127.0.0.1", nPort));
 
