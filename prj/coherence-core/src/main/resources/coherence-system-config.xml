@@ -16,7 +16,7 @@ It will be loaded automatically when CDI integration is used.
 
   <defaults>
     <scope-name>$SYS</scope-name>
-    <serializer>${coherence.serializer}</serializer>
+    <serializer>${coherence.system.serializer ${coherence.serializer}}</serializer>
   </defaults>
 
   <caching-scheme-mapping>
