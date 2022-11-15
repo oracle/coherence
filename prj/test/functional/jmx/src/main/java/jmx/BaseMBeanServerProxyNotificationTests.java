@@ -158,7 +158,10 @@ public abstract class BaseMBeanServerProxyNotificationTests
         {
         try
             {
-            return member.submit(new CountMBeanNotificationListeners(sMBean)).get();
+            int cListeners = member.submit(new CountMBeanNotificationListeners(sMBean)).get();
+
+            CacheFactory.log("countMBeanListeners  Mbean=" + sMBean + " numberOfListeners=" + cListeners);
+            return cListeners;
             }
         catch (Throwable t)
             {
@@ -348,11 +351,15 @@ public abstract class BaseMBeanServerProxyNotificationTests
                 AttributeChangeNotification changeNotification = (AttributeChangeNotification) notification;
                 Object oOldValue = changeNotification.getOldValue();
                 Object oNewValue = changeNotification.getNewValue();
-                CacheFactory.log("Received notification: " + changeNotification
-                                         + " old=" + oOldValue + " new=" + oNewValue);
 
                 m_listValues.add((Integer) oNewValue);
 
+                // silence log messages from Notifications registered from completed tests
+                if (getCount() > 0L)
+                    {
+                    CacheFactory.log("Received notification: " + changeNotification
+                                     + " old=" + oOldValue + " new=" + oNewValue + " CountDownLatch:" + getCount() + " Identifier=" + oHandback);
+                    }
                 countDown();
                 }
             }
