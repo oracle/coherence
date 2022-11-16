@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -695,6 +695,33 @@ public abstract class Base
             s = s.substring(s.indexOf('\n') + 1);
             }
         return s;
+        }
+    
+    /**
+     * Print stack trace for running thread.
+     *
+     * @param t  thread
+     *
+     * @return thread stack trace or empty string if thread is not running
+     *
+     * @since Coherence 12.2.1.4.16
+     */
+    public static String getStackTrace(Thread t)
+        {
+        StackTraceElement[] arrElement = t.isAlive() ? t.getStackTrace() : null;
+        StringBuilder       sb         = new StringBuilder(System.lineSeparator());
+
+        if (arrElement != null)
+            {
+            for (int i = 0; i < arrElement.length; i++)
+                {
+                sb.append("at " + arrElement[i]).append(System.lineSeparator());
+                }
+
+            return "Stack trace for thread " + t + ": " + sb.toString();
+            }
+
+        return "";
         }
 
     /**
