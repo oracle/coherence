@@ -162,6 +162,8 @@ our own [operator](https://github.com/oracle/coherence-operator).
 
 ### Prerequisites
 
+You must have the following installed and available on your PATH.
+
   1. Java - JDK 17 or higher
   2. Maven - 3.8.5 or higher
   3. Cohrence CLI Installed (see below)
@@ -221,11 +223,11 @@ Storage Heap - Total: 128 MB Used: 16 MB Available: 112 MB (87.5%)
 
 NODE ID  ADDRESS     PORT   PROCESS  MEMBER     ROLE             STORAGE  MAX HEAP  USED HEAP  AVAIL HEAP
       1  /127.0.0.1  55654    58270  storage-1  CoherenceServer  true       128 MB      16 MB      112 MB
-      2  /127.0.0.1  55655    58271  storage-2  CoherenceServer  false      128 MB      74 MB       54 MB
-      3  /127.0.0.1  55656    58269  storage-0  CoherenceServer  false      128 MB      24 MB      104 MB
+      2  /127.0.0.1  55655    58271  storage-2  CoherenceServer  true       128 MB      74 MB       54 MB
+      3  /127.0.0.1  55656    58269  storage-0  CoherenceServer  true       128 MB      24 MB      104 MB
 ```
 
-Note: If you do not see the above, then ensure you are using JDK17, and then issue `cohctl start cluster my-cluster` to start the cluster.
+Note: If you do not see the above, then ensure the `java` executable is on your PATH, you are using JDK17, and then issue `cohctl start cluster my-cluster` to start the cluster.
 
 #### <a name="cohql"></a>CohQL Console
 
