@@ -1753,8 +1753,12 @@ public class ExtensibleConfigurableCacheFactory
         @Override
         public void releaseBackingMap(String sName, Map map)
             {
-            MBeanHelper.unregisterCacheMBean(getContext().getCacheService(), sName, "tier=back");
+            BackingMapManagerContext context = getContext();
 
+            if (context != null)
+                {
+                MBeanHelper.unregisterCacheMBean(context.getCacheService(), sName, "tier=back");
+                }
             getCacheFactory().release(map, m_mapBackingMapListeners);
 
             setBackingMap(sName, null);
