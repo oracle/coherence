@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.performance;
 
@@ -158,7 +158,7 @@ public class PsrPerformanceEnvironment<E extends PsrPerformanceEnvironment>
 
         m_captureConsoleClusterPort = new Capture<>(ports);
         m_captureClusterPort        = new Capture<>(clusterPorts);
-        m_nConsolePort              = 7777;
+        m_nConsolePort              = 7778;
 
         killProcesses();
 

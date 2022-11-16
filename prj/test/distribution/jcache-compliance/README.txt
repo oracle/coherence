@@ -52,7 +52,7 @@ following steps:
 
 % mvn -s ../../settings.xml -Dimpl=remote -Dcacheconfig=coherence-jcache-tck-extendclient-cache-config.xml \
 -Dtangosol.coherence.remote.address=AA.BBB.CCC.DDD \
--Dtangosol.coherence.clusterport=7777 -Dtangosol.coherence.clusteraddress="225.123.124.125" \
+-Dtangosol.coherence.clusterport=7778 -Dtangosol.coherence.clusteraddress="225.123.124.125" \
 -Dtangosol.coherence.distributed.localstorage=false test
 
 The cache config is configured so Coherence NamedCache is accessed via remote-scheme.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package rest;
 
@@ -330,7 +330,7 @@ public class PersistenceResourceTests
             {
             if (m_baseURI == null)
                 {
-                int nPort = Integer.getInteger("test.multicast.port", 7777);
+                int nPort = Integer.getInteger("test.multicast.port", 7778);
                 m_baseURI = NSLookup.lookupHTTPManagementURL(new InetSocketAddress("127.0.0.1", nPort)).iterator().next().toURI();
 
                 CacheFactory.log("Management HTTP Acceptor lookup returned: " + m_baseURI, CacheFactory.LOG_INFO);
