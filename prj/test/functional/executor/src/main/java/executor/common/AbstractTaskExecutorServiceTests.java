@@ -992,7 +992,7 @@ public abstract class AbstractTaskExecutorServiceTests
             .collect(TaskCollectors.lastOf())
             .subscribe(subscriber3).submit();
 
-        Eventually.assertDeferred(subscriber3::getThrowable, Matchers.nullValue());
+        Eventually.assertDeferred(subscriber3::getThrowable, Matchers.notNullValue());
         Eventually.assertDeferred(subscriber3::isCompleted, Matchers.is(false));
 
         coordinator3.cancel(true);
