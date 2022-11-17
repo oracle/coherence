@@ -1100,7 +1100,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorService::size,
                                   is(EXPECTED_EXECUTORS),
-                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 5000, TimeUnit.MILLISECONDS));
+                                  within(ClusteredExecutorInfo.LEASE_DURATION_MS + 15000, TimeUnit.MILLISECONDS));
 
             // verify that the executors can all still execute tasks
             RecordingSubscriber<Integer> subscriber = new RecordingSubscriber<>();
