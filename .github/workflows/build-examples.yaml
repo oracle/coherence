@@ -52,7 +52,7 @@ jobs:
 
       # Build and Test examples
     - name: build-test-examples
-      timeout-minutes: 120
+      timeout-minutes: 180
       shell: bash
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
