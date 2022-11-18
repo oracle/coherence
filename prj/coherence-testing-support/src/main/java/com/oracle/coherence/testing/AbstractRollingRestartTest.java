@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.testing;
@@ -340,10 +340,22 @@ public abstract class AbstractRollingRestartTest
     */
     public static void waitForBalanced(CacheService service)
         {
+        waitForBalanced(service, 120L);
+        }
+
+    /**
+     * Wait until the specified (partitioned) cache service has finished
+     * partition balancing, for the specified amount of time in seconds.
+     *
+     * @param service   the partitioned cache
+     * @param ldtTime   the time to wait before failing, in seconds
+     */
+    public static void waitForBalanced(CacheService service, long ldtTime)
+        {
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertDeferred(() -> serviceReal.calculateUnbalanced(), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateUnbalanced(), is(0), within(ldtTime, TimeUnit.SECONDS));
         }
 
     /**
