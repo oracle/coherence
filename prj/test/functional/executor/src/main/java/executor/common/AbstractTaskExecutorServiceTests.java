@@ -933,6 +933,11 @@ public abstract class AbstractTaskExecutorServiceTests
         Eventually.assertDeferred(() -> subscriber3.received("Hello World"), is(true));
         MatcherAssert.assertThat(subscriber3.size(), is(1));
 
+        MatcherAssert.assertThat(subscriber4.isCompleted(), is(false));
+        MatcherAssert.assertThat(subscriber4.isSubscribed(), is(true));
+        Eventually.assertDeferred(() -> subscriber4.received("Hello World"), is(true));
+        MatcherAssert.assertThat(subscriber4.size(), is(1));
+
         MatcherAssert.assertThat(((AbstractTaskCoordinator) coordinator).hasSubscribers(), is(true));
         MatcherAssert.assertThat(coordinator.isCancelled(), is(false));
         MatcherAssert.assertThat(coordinator.isDone(), is(false));
