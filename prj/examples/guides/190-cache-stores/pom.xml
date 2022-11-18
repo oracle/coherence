@@ -23,7 +23,7 @@
     <coherence.version>${project.version}</coherence.version>
 
     <coherence.hibernate.cache.store.version>2.0.0</coherence.hibernate.cache.store.version>
-    <hsqldb.version>2.5.1</hsqldb.version>
+    <hsqldb.version>2.7.1</hsqldb.version>
     <hibernate.version>5.4.27.Final</hibernate.version>
     <h2.version>2.1.210</h2.version>
     <r2dbc-h2.version>0.9.0.RELEASE</r2dbc-h2.version>
