@@ -6,6 +6,7 @@
  */
 package processor;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 /**
@@ -43,6 +44,15 @@ public class ViewDistProcessorTests
         System.setProperty("coherence.distributed.localstorage", "true");
 
         AbstractDistEntryProcessorTests._startup();
+        }
+
+    /**
+     * Shutdown the test class.
+     */
+    @AfterClass
+    public static void shutdown()
+        {
+        AbstractDistEntryProcessorTests._shutdown();
         }
 
     // ----- constants ------------------------------------------------------

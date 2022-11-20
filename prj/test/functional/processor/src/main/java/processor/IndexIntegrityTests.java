@@ -203,7 +203,7 @@ public class IndexIntegrityTests
         boolean       fRollingRestart = cRollingRestart > 0;
         MemberHandler memberHandler   = new MemberHandler(
                 CacheFactory.ensureCluster(), sTest,
-                /*fExternalKill*/true, /*fGraceful*/false);
+                /*fExternalKill*/true, /*fGraceful*/true);
         for (int i = 0; i < nServers; i++)
             {
             memberHandler.addServer();
