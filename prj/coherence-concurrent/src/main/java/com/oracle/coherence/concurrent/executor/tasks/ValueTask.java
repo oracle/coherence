@@ -2,11 +2,12 @@
  * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.tasks;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.concurrent.executor.Task;
 
 import com.tangosol.io.pof.PofReader;
@@ -50,7 +51,13 @@ public class ValueTask<T>
     @SuppressWarnings("unused")
     public ValueTask(T value)
         {
-        m_value = value;
+        this(value, -1);
+        }
+
+    public ValueTask(T value, long cInitialDelay)
+        {
+        m_value         = value;
+        m_cInitialDelay = cInitialDelay;
         }
 
     // ----- Task interface -------------------------------------------------
@@ -58,6 +65,13 @@ public class ValueTask<T>
     @Override
     public T execute(Context<T> context) throws Exception
         {
+        long cInitialDelay = m_cInitialDelay;
+
+        if (cInitialDelay > 0)
+            {
+            Blocking.sleep(cInitialDelay);
+            }
+
         return m_value;
         }
 
@@ -66,12 +80,15 @@ public class ValueTask<T>
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_value = ExternalizableHelper.readObject(in);
+        m_value         = ExternalizableHelper.readObject(in);
+        m_cInitialDelay = ExternalizableHelper.readLong(in);
+
         }
 
     public void writeExternal(DataOutput out) throws IOException
         {
         ExternalizableHelper.writeObject(out, m_value);
+        ExternalizableHelper.writeLong(out, m_cInitialDelay);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -80,7 +97,8 @@ public class ValueTask<T>
     public void readExternal(PofReader in)
         throws IOException
         {
-        m_value = in.readObject(0);
+        m_value         = in.readObject(0);
+        m_cInitialDelay = in.readLong(1);
         }
 
     @Override
@@ -88,6 +106,7 @@ public class ValueTask<T>
         throws IOException
         {
         out.writeObject(0, m_value);
+        out.writeLong(1, m_cInitialDelay);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -97,6 +116,7 @@ public class ValueTask<T>
         {
         return "ValueTask{"
                + "value=" + m_value
+               + ", initial-delay=" + m_cInitialDelay
                + '}';
         }
 
@@ -114,13 +134,14 @@ public class ValueTask<T>
 
         ValueTask<?> valueTask = (ValueTask<?>) o;
 
-        return Objects.equals(m_value, valueTask.m_value);
+        return Objects.equals(m_value, valueTask.m_value)
+               && m_cInitialDelay == valueTask.m_cInitialDelay;
         }
 
     @Override
     public int hashCode()
         {
-        return m_value != null ? m_value.hashCode() : 0;
+        return Objects.hash(m_value, m_cInitialDelay);
         }
 
     // ----- data members ---------------------------------------------------
@@ -129,4 +150,9 @@ public class ValueTask<T>
      * The value for the {@link Task}.
      */
     protected T m_value;
+
+    /**
+     * The initial delay before returning the result.
+     */
+    protected long m_cInitialDelay;
     }

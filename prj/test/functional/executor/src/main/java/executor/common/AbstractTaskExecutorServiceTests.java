@@ -923,7 +923,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
         // start a task that never completes
         coordinator =
-            m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
+            m_taskExecutorService.orchestrate(new ValueTask<>("Hello World", 3000))
                 .collect(TaskCollectors.lastOf()).subscribe(subscriber3).submit();
 
         coordinator.subscribe(subscriber4);
