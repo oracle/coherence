@@ -229,8 +229,14 @@ public class GrpcCacheLifecycleEventDispatcher
         public String getSessionName()
             {
             GrpcCacheLifecycleEventDispatcher dispatcher = (GrpcCacheLifecycleEventDispatcher) getEventDispatcher();
+            GrpcRemoteCacheService            cacheService = dispatcher.getService();
 
-            return dispatcher.getService()
+            if (cacheService == null)
+                {
+                return dispatcher.getSession().getName();
+                }
+
+            return cacheService
                     .getBackingMapManager()
                     .getCacheFactory()
                     .getResourceRegistry()
