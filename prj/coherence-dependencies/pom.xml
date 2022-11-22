@@ -209,7 +209,7 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
-    <helidon.version>3.0.0</helidon.version>
+    <helidon.version>3.0.2</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <groovy.version>3.0.12</groovy.version>
@@ -232,7 +232,7 @@
     <jakarta.servlet.jsp.version>2.3.6</jakarta.servlet.jsp.version>
     <jakarta.ws.rs.version>3.0.0</jakarta.ws.rs.version>
     <jakarta.xml.bind.version>3.0.1</jakarta.xml.bind.version>
-    <jandex.version>2.4.2.Final</jandex.version>
+    <jandex.version>2.4.3.Final</jandex.version>
     <javax.cache.version>1.1.1</javax.cache.version>
     <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
