@@ -1652,12 +1652,13 @@ abstract class AbstractGrpcClientIT
         cache.clear();
         cache.put("key-1", "val-1");
 
-        TestDeactivationListener         listener = new TestDeactivationListener(2);
-        NamedCache<String, String> grpcClient  = createClient(cacheName, sSerializerName, serializer);
+        TestDeactivationListener   listener   = new TestDeactivationListener(2);
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
         grpcClient.addMapListener(listener);
 
         System.err.println("Calling truncate on cache " + cacheName);
         cache.truncate();
+        Eventually.assertDeferred(listener::count, is(1));
         System.err.println("Called truncate on cache " + cacheName);
         cache.put("key-2", "val-2");
         System.err.println("Calling destroy on cache " + cacheName);
@@ -2020,6 +2021,16 @@ abstract class AbstractGrpcClientIT
         public boolean awaitEvents(long timeout, TimeUnit units) throws InterruptedException
             {
             return f_latch.await(timeout, units);
+            }
+
+        /**
+         * Returns the current count of events.
+         *
+         * @return the current count of events
+         */
+        public int count()
+            {
+            return (int) f_latch.getCount();
             }
 
         // ----- accessors --------------------------------------------------
