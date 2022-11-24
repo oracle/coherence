@@ -1,5 +1,4 @@
-{
-  "swagger": "2.0",
+{"swagger": "2.0",
   "info": {
     "title": "RESTful Management Interface for Oracle Coherence MBeans",
     "description": "RESTful Management Interface for Oracle Coherence MBeans",
@@ -79,6 +78,16 @@
       "name": "Executor",
       "description": "The Executor resource provides a set of endpoints for managing executor service. Use this resource to access operational information and performance statistics for executor operations.",
       "x-priority":14
+    },
+    {
+      "name": "Topic",
+      "description": "The Topic resource provides a set of endpoints for managing Coherence topics based on the topic service instance to which it belongs. Use this resource to access operational information and performance statistics. Topic data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover topics and their associated topic names. Topic names are required to access management data.",
+      "x-priority":15
+    },
+    {
+      "name": "Topic (Short Form)",
+      "description": "The Topic (Short Form) resource provides a set of endpoints for managing Coherence topics and does not require the service name to which the topic belongs. Use this resource to access operational information and performance statistics. Topic data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover topics and their associated topic names. Topic names are required to access management data.",
+      "x-priority":16
     }
   ],
   "paths": {
@@ -3861,6 +3870,510 @@
       }
     },
 
+    "/management/coherence/cluster/services/{serviceName}/topics": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "description": "Use this endpoint to view a list of topics in the cluster. Topic names are often used as parameters when performing other topic resource operations.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns a list of topics",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/topic"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Information",
+        "description": "Use this endpoint to view information about a topir.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/role"
+          },
+          {
+            "$ref": "#/parameters/collector"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a topic",
+            "schema": {
+              "$ref": "#/definitions/topicAggregate"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/members": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Members",
+        "description": "Use this endpoint to list the members of a topic.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic members",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/topicMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/members/{memberIdentifier}": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Member Information",
+        "description": "Use this endpoint to view information about topic on a specific member.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a topic",
+            "schema": {
+              "$ref": "#/definitions/topicMember"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/channels": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Channels",
+        "description": "Use this endpoint to list the channels of a topic.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/channels GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic channels",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "channels": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "$ref": "#/definitions/topicChannel"
+                        }
+                      },
+                      "nodeId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of member to which the topic channels belong",
+                        "readOnly": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Subscribers",
+        "description": "Use this endpoint to list the subscriber of a topic.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic subscribers",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriber"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Subscribers",
+        "description": "Use this endpoint to view statistics for a subscriber.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a subscriber",
+            "schema": {
+              "$ref": "#/definitions/subscriber"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/connect": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Ensure this subscriber is connected",
+        "description": "Use this endpoint to ensure subscriber is connected.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/connect POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/disconnect": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Force this subscriber to disconnect and reset itself",
+        "description": "Use this endpoint to force subscriber to disconnect and reset itself.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/disconnect POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/heads": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Retrieve the current head positions for each channel",
+        "description": "Use this endpoint to retrieve the current head positions for each channel",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/heads POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "heads": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/head"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/notifyPopulated": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Send a channel populated notification to this subscriber",
+        "description": "Use this endpoint to send a channel populated notification to this subscriber",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/notifyPopulated POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          },
+          {
+            "$ref": "#/parameters/channel"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/remainingMessages": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Retrieve the count of remaining messages for each channel",
+        "description": "Use this endpoint to retrieve the count of remaining messages for each channel",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscribers/{subscriberId}/remainingMessages POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "remainingMessages": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/remainingMessage"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Subscriber Groups",
+        "description": "Use this endpoint to list the subscriber groups of a topic.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic subscriber groups",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriberGroup"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups/{subscriberGroupName}": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Subscriber Group",
+        "description": "Use this endpoint to view statistics for a subscriber group.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups/{subscriberGroupName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a subscriber group",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriberGroup"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
 
     "/management/coherence/cluster/webApplications": {
       "get": {
@@ -4224,6 +4737,466 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "description": "Use this endpoint to view a list of topics in the cluster. Topic names are often used as parameters when performing other topic resource operations.",
+        "operationId": "/management/coherence/cluster/topics GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns a list of topics",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/topic"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Information",
+        "description": "Use this endpoint to view information about a topir.",
+        "operationId": "/management/coherence/cluster/topics/{topicName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/role"
+          },
+          {
+            "$ref": "#/parameters/collector"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a topic",
+            "schema": {
+              "$ref": "#/definitions/topicAggregate"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/members": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Members",
+        "description": "Use this endpoint to list the members of a topic.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/members GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic members",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/topicMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/members/{memberIdentifier}": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Member Information",
+        "description": "Use this endpoint to view information about topic on a specific member.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/members/{memberIdentifier} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a topic",
+            "schema": {
+              "$ref": "#/definitions/topicMember"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/channels": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Channels",
+        "description": "Use this endpoint to list the channels of a topic.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/channels GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic channels",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "channels": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "$ref": "#/definitions/topicChannel"
+                        }
+                      },
+                      "nodeId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of member to which the topic channels belong",
+                        "readOnly": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Subscribers",
+        "description": "Use this endpoint to list the subscriber of a topic.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic subscribers",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriber"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Subscribers",
+        "description": "Use this endpoint to view statistics for a subscriber.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a subscriber",
+            "schema": {
+              "$ref": "#/definitions/subscriber"
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/connect": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Ensure this subscriber is connected",
+        "description": "Use this endpoint to ensure subscriber is connected.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/connect POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/disconnect": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Force this subscriber to disconnect and reset itself",
+        "description": "Use this endpoint to force subscriber to disconnect and reset itself.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/disconnect POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/heads": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Retrieve the current head positions for each channel",
+        "description": "Use this endpoint to retrieve the current head positions for each channel",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/heads POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "heads": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/head"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/notifyPopulated": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Send a channel populated notification to this subscriber",
+        "description": "Use this endpoint to send a channel populated notification to this subscriber",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/notifyPopulated POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          },
+          {
+            "$ref": "#/parameters/channel"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/remainingMessages": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Retrieve the count of remaining messages for each channel",
+        "description": "Use this endpoint to retrieve the count of remaining messages for each channel",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscribers/{subscriberId}/remainingMessages POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "remainingMessages": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/definitions/remainingMessage"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscriberGroups": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Subscriber Groups",
+        "description": "Use this endpoint to list the subscriber groups of a topic.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscriberGroups GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic subscriber groups",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriberGroup"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscriberGroups/{subscriberGroupName}": {
+      "get": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "View Topic Subscriber Group",
+        "description": "Use this endpoint to view statistics for a subscriber group.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscriberGroups/{subscriberGroupName} GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns information about a subscriber group",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriberGroup"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -5119,6 +6092,30 @@
         }
       }
     },
+    "topic": {
+      "type": "object",
+      "description": "Details of the particular topic.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the topic."
+        },
+        "nodeId": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Topic members."
+        },
+        "service": {
+          "type": "string",
+          "description": "Name of the service."
+        },
+        "type": {
+          "enum": [
+            "PagedTopic"
+          ]
+        }
+      }
+    },
     "cacheAggregate": {
       "type": "object",
       "properties": {
@@ -5136,6 +6133,25 @@
         "highUnits": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "topicAggregate": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the topic."
+        },
+        "reconnectRetry": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "retainConsumed": {
+          "type": "boolean"
+        },
+        "elementCalculator": {
+          "type": "string",
+          "description": "Element calculator that calculates size of an element based on the size of the serialized binary value."
         }
       }
     },
@@ -5554,6 +6570,563 @@
           "items": {
             "type": "string"
           },
+          "readOnly": true
+        }
+      }
+    },
+    "topicMember": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The ID of member to which the MBean belongs",
+          "readOnly": true
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the MBean",
+          "enum": [
+            "PagedTopic"
+          ],
+          "readOnly": true
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the topic",
+          "readOnly": true
+        },
+        "service": {
+          "type": "string",
+          "description": "The topic service name.",
+          "readOnly": true
+        },
+        "cluster": {
+          "type": "string",
+          "description": "The cluster name.",
+          "readOnly": true
+        },
+        "retainConsumed": {
+          "type": "boolean",
+          "description": "Determine whether to retain consumed values.",
+          "readOnly": true
+        },
+        "reconnectRetry": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The amount of time publishers and subscribers will wait between attempts to reconnect after being disconnected.",
+          "readOnly": true
+        },
+        "publishedCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The published messages count.",
+          "readOnly": true
+        },
+        "channelCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The number of channels that this topic has.",
+          "readOnly": true
+        },
+        "subscriberTimeout": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Number of milliseconds within which a subscriber must issue a heartbeat or be forcefully considered closed.",
+          "readOnly": true
+        },
+        "allowUnownedCommits": {
+          "type": "boolean",
+          "description": "True if the topic allows commits for a position in a channel by subscribers that do not own the channel.",
+          "readOnly": true
+        },
+        "publishedOneMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "the published messages one-minute rate.",
+          "readOnly": true
+        },
+        "pageCapacity": {
+          "type": "integer",
+          "format": "int64",
+          "description": "the capacity of a page in the topic.",
+          "readOnly": true
+        },
+        "elementCalculator": {
+          "type": "string",
+          "description": "The calculator name used to calculate element sizes.",
+          "readOnly": true
+        },
+        "publishedMeanRate": {
+          "type": "number",
+          "format": "double",
+          "description": "the published messages mean rate.",
+          "readOnly": true
+        },
+        "reconnectTimeout": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The maximum amount of time publishers and subscribers will attempt to reconnect after being disconnected",
+          "readOnly": true
+        },
+        "publishedFifteenMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The published messages fifteen minute rate.",
+          "readOnly": true
+        },
+        "publishedFiveMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The published messages five minute rate.",
+          "readOnly": true
+        },
+        "reconnectWait": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The maximum amount of time publishers and subscribers will wait before attempting to reconnect after being disconnected.",
+          "readOnly": true
+        },
+        "channels": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/topicChannel"
+          }
+        }
+      }
+    },
+    "topicChannel": {
+      "type": "object",
+      "properties": {
+        "Channel": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The channel.",
+          "readOnly": true
+        },
+        "PublishedCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The published messages count.",
+          "readOnly": true
+        },
+        "PublishedFifteenMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The published messages fifteen minute rate.",
+          "readOnly": true
+        },
+        "PublishedFiveMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The published messages five minute rate.",
+          "readOnly": true
+        },
+        "PublishedOneMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The published messages one minute rate.",
+          "readOnly": true
+        },
+        "PublishedMeanRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The published messages mean rate.",
+          "readOnly": true
+        },
+        "Tail": {
+          "type": "string",
+          "description": "Tail position.",
+          "readOnly": true
+        }
+      }
+    },
+    "subscriber": {
+      "type":       "object",
+      "properties": {
+        "maxBacklog":         {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The maximum allowed backlog of receive requests not yet complete.",
+          "readOnly":    true
+        },
+        "channelCount":       {
+          "type":        "integer",
+          "format":      "int32",
+          "description": "The number of channels the topic has.",
+          "readOnly":    true
+        },
+        "receiveCompletions": {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of completed received requests."
+        },
+        "stateName":          {
+          "type":        "string",
+          "description": "The subscriber's state.",
+          "readOnly":    true
+        },
+        "waits":              {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of times the subscriber has had to wait on an empty topic.",
+          "readOnly":    true
+        },
+        "receiveErrors":      {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of received requests completed in error.",
+          "readOnly":    true
+        },
+        "subscriberGroup":    {
+          "type":        "string",
+          "description": "The group the subscriber belongs to, if part of a group.",
+          "readOnly":    true
+        },
+        "channelAllocations": {
+          "type":        "string",
+          "description": "The subscriber's allocated channels.",
+          "readOnly":    true
+        },
+        "channels":           {
+          "type":  "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/subscriberChannel"
+          }
+        },
+        "polls":              {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of times the subscriber has polled for messages.",
+          "readOnly":    true
+        },
+        "receiveEmpty":       {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of empty receive requests.",
+          "readOnly":    true
+        },
+        "type":               {
+          "type":        "string",
+          "description": "The type of the MBean",
+          "enum":        [
+            "PagedTopicSubscriber"
+          ],
+          "readOnly":    true
+        },
+        "filter":             {
+          "type":        "string",
+          "description": "The optional filter being used to filter messages.",
+          "readOnly":    true
+        },
+        "state":              {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The state of the subscriber.",
+          "readOnly":    true
+        },
+        "disconnections":     {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of times this subscriber has disconnected.",
+          "readOnly":    true
+        },
+        "converter":          {
+          "type":        "string",
+          "description": "The optional converter being used to transform messages.",
+          "readOnly":    true
+        },
+        "backlog":            {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of outstanding receive requests.",
+          "readOnly":    true
+        },
+        "id":                 {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The subscriber's identifier.",
+          "readOnly":    true
+        },
+        "completeOnEmpty":    {
+          "type":        "boolean",
+          "description": "A flag indicating whether the subscriber completes receive requests with a null message when the topic is empty.",
+          "readOnly":    true
+        },
+        "receivedCount":      {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of elements received.",
+          "readOnly":    true
+        },
+        "member":             {
+          "type":        "string",
+          "description": "Name of the cluster member",
+          "readOnly":    true
+        },
+        "notifications":      {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The number of channel notifications received.",
+          "readOnly":    true
+        },
+        "serializer":         {
+          "type":        "string",
+          "description": "The serializer used to deserialize messages.",
+          "readOnly":    true
+        },
+        "service":            {
+          "type":        "string",
+          "description": "The topic service name.",
+          "readOnly":    true
+        },
+        "nodeId":             {
+          "type":        "integer",
+          "format":      "int64",
+          "description": "The ID of member to which the MBean belongs",
+          "readOnly":    true
+        },
+        "topic":              {
+          "type":        "string",
+          "description": "Name of the topic.",
+          "readOnly":    true
+        },
+        "cluster":            {
+          "type":        "string",
+          "description": "The cluster name.",
+          "readOnly":    true
+        }
+      }
+    },
+    "subscriberChannel": {
+      "type": "object",
+      "properties": {
+        "Channel": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The channel.",
+          "readOnly": true
+        },
+        "Empty": {
+          "type": "boolean",
+          "description": "True if the channel is empty.",
+          "readOnly": true
+        },
+        "Head": {
+          "type": "string",
+          "description": "Head position.",
+          "readOnly": true
+        },
+        "LastCommit": {
+          "type": "string",
+          "description": "Last committed position.",
+          "readOnly": true
+        },
+        "LastReceived": {
+          "type": "string",
+          "description": "Last committed position.",
+          "readOnly": true
+        },
+        "Owned": {
+          "type": "boolean",
+          "description": "True if the channel is owned by this subscriber.",
+          "readOnly": true
+        }
+      }
+    },
+    "subscriberGroup": {
+      "type": "object",
+      "properties": {
+        "polledFiveMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages five minute rate.",
+          "readOnly": true
+        },
+        "transformer":  {
+          "type": "string",
+          "description": "The transformer for the subscriber group.",
+          "readOnly": true
+        },
+        "channelCount":  {
+          "type": "integer",
+          "format": "int32",
+          "description": "The channel count.",
+          "readOnly": true
+        },
+        "filter": {
+          "type": "string",
+          "description": "The filter for the subscriber group.",
+          "readOnly": true
+        },
+        "polledMeanRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages mean rate.",
+          "readOnly": true
+        },
+        "polledFifteenMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages fifteen minute rate.",
+          "readOnly": true
+        },
+        "polledOneMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages one minute rate.",
+          "readOnly": true
+        },
+        "polledCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The polled messages count.",
+          "readOnly": true
+        },
+        "channels": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/subscriberGroupChannel"
+          }
+        },
+        "service": {
+          "type": "string",
+          "description": "The topic service name."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the MBean",
+          "enum": [
+            "PagedTopicSubscriberGroup"
+          ],
+          "readOnly": true
+        },
+        "nodeId": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The ID of member to which the MBean belongs",
+          "readOnly": true
+        },
+        "topic": {
+          "type": "string",
+          "description": "Name of the topic.",
+          "readOnly": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the subscriber group.",
+          "readOnly": true
+        },
+        "cluster": {
+          "type": "string",
+          "description": "The cluster name.",
+          "readOnly": true
+        }
+      }
+    },
+    "subscriberGroupChannel": {
+      "type": "object",
+      "properties": {
+        "Channel": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The channel.",
+          "readOnly": true
+        },
+        "Head": {
+          "type": "string",
+          "description": "Head position.",
+          "readOnly": true
+        },
+        "LastCommittedPosition": {
+          "type": "string",
+          "description": "Last committed position.",
+          "readOnly": true
+        },
+        "LastCommittedTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The last committed position.",
+          "readOnly": true
+        },
+        "LastPolledTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The last polled timestamp.",
+          "readOnly": true
+        },
+        "OwningSubscriberId": {
+          "type": "string",
+          "description": "The owning subscriber.",
+          "readOnly": true
+        },
+        "PolledCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The polled messages count.",
+          "readOnly": true
+        },
+        "PolledFifteenMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages fifteen minute rate.",
+          "readOnly": true
+        },
+        "PolledFiveMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages five minute rate.",
+          "readOnly": true
+        },
+        "PolledOneMinuteRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages one minute rate.",
+          "readOnly": true
+        },
+        "PolledMeanRate": {
+          "type": "number",
+          "format": "double",
+          "description": "The polled messages mean rate.",
+          "readOnly": true
+        },
+        "RemainingUnpolledMessages": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The remaining unpolled messages count.",
+          "readOnly": true
+        }
+      }
+    },
+    "head": {
+      "type": "object",
+      "properties": {
+        "Channel": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The channel.",
+          "readOnly": true
+        },
+        "Position": {
+          "type": "string",
+          "description": "The position.",
+          "readOnly": true
+        }
+      }
+    },
+    "remainingMessage": {
+      "type": "object",
+      "properties": {
+        "Channel": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The channel.",
+          "readOnly": true
+        },
+        "Count": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The count.",
           "readOnly": true
         }
       }
@@ -7813,6 +9386,34 @@
       "description": "Name of the cache.",
       "required": true,
       "type": "string"
+    },
+    "topicName": {
+      "name": "topicName",
+      "in": "path",
+      "description": "Name of the topic.",
+      "required": true,
+      "type": "string"
+    },
+    "subscriberId": {
+      "name": "subscriberId",
+      "in": "path",
+      "description": "ID of the subscriber.",
+      "required": true,
+      "type": "string"
+    },
+    "subscriberGroupName": {
+      "name": "subscriberGroupName",
+      "in": "path",
+      "description": "Name of the subscriber group.",
+      "required": true,
+      "type": "string"
+    },
+    "channel": {
+      "name": "channel",
+      "in": "query",
+      "description": "The channel identifier.",
+      "required": true,
+      "type": "integer"
     },
     "topologyName": {
       "name": "topologyName",

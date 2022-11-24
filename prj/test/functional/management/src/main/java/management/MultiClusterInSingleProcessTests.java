@@ -105,11 +105,20 @@ public class MultiClusterInSingleProcessTests
      * in the remote process.
      *
      * @param sCluster  the name of the cluster in the remote process
+     * @param sMember   the name of the cluster member in the remote process
      * @param callable  the {@link RemoteCallable} to execute
      */
-    protected static void invokeInCluster(String sCluster, RemoteCallable<Void> callable)
+    protected static void invokeInCluster(String sCluster, String sMember, RemoteCallable<Void> callable)
         {
-        CoherenceClusterMember member = s_cluster.getAny();
+        CoherenceClusterMember member;
+        if (sMember == null)
+            {
+            member = s_cluster.getAny();
+            }
+        else
+            {
+            member = s_cluster.get(sMember);
+            }
         MultiCluster.invokeInCluster(member, sCluster, callable);
         }
 

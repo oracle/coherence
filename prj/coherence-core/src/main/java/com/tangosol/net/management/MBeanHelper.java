@@ -646,6 +646,7 @@ public abstract class MBeanHelper
                     "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
                     ",topic=" + sTopicName + ",id=" + subscriber.getId();
 
+                sName = registry.ensureGlobalName(sName);
                 if (!registry.isRegistered(sName))
                     {
                     registry.register(sName, new SubscriberModel(subscriber));
