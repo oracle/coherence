@@ -14,10 +14,8 @@ import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Resources;
 
 import java.io.IOException;
@@ -72,6 +70,7 @@ public class ClusterResource
         router.addRoutes(sPathRoot + "/" + MEMBERS, new ClusterMembersResource());
         router.addRoutes(sPathRoot + "/" + REPORTERS, new ReportersResource());
         router.addRoutes(sPathRoot + "/" + SERVICES, new ServicesResource());
+        router.addRoutes(sPathRoot + "/" + TOPICS, new TopicsResource());
         }
 
     // ----- GET API --------------------------------------------------------
@@ -516,5 +515,5 @@ public class ClusterResource
      */
     public static final String TRACING_RATIO = "tracingRatio";
 
-    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, HOTCACHE, REPORTERS, WEB_APPS, EXECUTORS};
+    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, HOTCACHE, REPORTERS, WEB_APPS, EXECUTORS, TOPICS};
     }

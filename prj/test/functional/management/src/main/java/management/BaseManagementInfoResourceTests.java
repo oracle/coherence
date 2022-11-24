@@ -59,18 +59,27 @@ import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
-
+import com.tangosol.net.Session;
 import com.tangosol.net.management.MapJsonBodyHandler;
+
+import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Publisher;
+import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
+import java.math.BigDecimal;
+
 import org.glassfish.jersey.logging.LoggingFeature;
 
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Description;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -122,9 +131,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import java.util.function.BiConsumer;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -151,7 +161,9 @@ import static com.tangosol.internal.management.resources.ClusterMemberResource.D
 import static com.tangosol.internal.management.resources.ClusterResource.DUMP_CLUSTER_HEAP;
 import static com.tangosol.internal.management.resources.ClusterResource.ROLE;
 import static com.tangosol.internal.management.resources.ClusterResource.TRACING_RATIO;
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -160,8 +172,11 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.oneOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -195,7 +210,7 @@ public abstract class BaseManagementInfoResourceTests
         this(CLUSTER_NAME, BaseManagementInfoResourceTests::invokeInCluster);
         }
 
-    public BaseManagementInfoResourceTests(String sClusterName, BiConsumer<String, RemoteCallable<Void>> inClusterInvoker)
+    public BaseManagementInfoResourceTests(String sClusterName, InClusterInvoker inClusterInvoker)
         {
         f_sClusterName     = sClusterName;
         f_inClusterInvoker = inClusterInvoker;
@@ -1187,6 +1202,7 @@ public abstract class BaseManagementInfoResourceTests
 
         List<Map> listItemMaps = (List<Map>) mapResponse.get("items");
         assertThat(listItemMaps, notNullValue());
+        listItemMaps.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listItemMaps.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
         String sDistServiceName  = null;
@@ -2007,7 +2023,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         final String CACHE_NAME = CACHE_NAME_FOO;
 
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
@@ -2031,7 +2047,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         while (sleep(() -> acTmp[0] <= 0L, REMOTE_MODEL_PAUSE_DURATION));
 
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
@@ -2087,7 +2103,7 @@ public abstract class BaseManagementInfoResourceTests
         int cMinUnits = ((int) cEntrySize) * 4;
         listUnits.forEach(n -> assertThat(n.intValue(), greaterThanOrEqualTo(cMinUnits)));
 
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             // fill a cache
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
@@ -2106,7 +2122,7 @@ public abstract class BaseManagementInfoResourceTests
         Base.sleep(10000);
 
         int nSize = 20;
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
@@ -2427,7 +2443,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         final String CACHE_NAME = CACHE_NAME_FOO;
 
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             // fill a cache
             NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
@@ -2690,6 +2706,7 @@ public abstract class BaseManagementInfoResourceTests
         Map membersResponseMap = (Map) mapResponse.get(SERVICES);
         assertThat(membersResponseMap, notNullValue());
         List<Map> listMembers = (List<Map>) membersResponseMap.get("items");
+        listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
         assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
@@ -2732,6 +2749,8 @@ public abstract class BaseManagementInfoResourceTests
         Map membersResponseMap = (Map) mapResponse.get(SERVICES);
         assertThat(membersResponseMap, notNullValue());
         List<Map> listServices = (List<Map>) membersResponseMap.get("items");
+        listServices.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
+
         assertThat(listServices, notNullValue());
         assertThat(listServices.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
@@ -2797,6 +2816,7 @@ public abstract class BaseManagementInfoResourceTests
         Map membersResponseMap = (Map) mapResponse.get(SERVICES);
         assertThat(membersResponseMap, notNullValue());
         List<Map> listMembers = (List<Map>) membersResponseMap.get("items");
+        listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
         assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
@@ -2875,6 +2895,7 @@ public abstract class BaseManagementInfoResourceTests
         Map mapMembersResponse = (Map) mapResponse.get(SERVICES);
         assertThat(mapMembersResponse, notNullValue());
         List<Map> listMembers = (List<Map>) mapMembersResponse.get("items");
+        listMembers.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listMembers, notNullValue());
         assertThat(listMembers.size(), is(EXPECTED_SERVICE_COUNT)); // <---- This is SO brittle!!!
 
@@ -2973,7 +2994,7 @@ public abstract class BaseManagementInfoResourceTests
 
         String sCacheName = PERSISTENCE_CACHE_NAME;
 
-        f_inClusterInvoker.accept(f_sClusterName, () ->
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             NamedCache cache = CacheFactory.getCache(sCacheName);
             cache.clear();
@@ -2990,7 +3011,7 @@ public abstract class BaseManagementInfoResourceTests
             Eventually.assertDeferred(() -> assertSnapshotExists("empty", SNAPSHOTS), is(true));
 
             // add some data
-            f_inClusterInvoker.accept(f_sClusterName, () ->
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
                 {
                 NamedCache cache = CacheFactory.getCache(sCacheName);
                 cache.put("key-1", "value-1");
@@ -3036,7 +3057,7 @@ public abstract class BaseManagementInfoResourceTests
             Eventually.assertDeferred(() -> assertSnapshotExists("2-entries", ARCHIVES), is(false));
 
             // now we have local snapshot, clear the cache and then recover the snapshot
-            f_inClusterInvoker.accept(f_sClusterName, () ->
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
                 {
                 NamedCache cache = CacheFactory.getCache(sCacheName);
                 cache.clear();
@@ -3051,7 +3072,7 @@ public abstract class BaseManagementInfoResourceTests
             response.close();
             ensureServiceStatusIdle();
 
-            f_inClusterInvoker.accept(f_sClusterName, () ->
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
                 {
                 NamedCache cache = CacheFactory.getCache(sCacheName);
                 Eventually.assertDeferred(cache::size, is(2));
@@ -3065,7 +3086,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         finally
             {
-            f_inClusterInvoker.accept(f_sClusterName, () ->
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
                 {
                 NamedCache cache = CacheFactory.getCache(sCacheName);
                 cache.destroy();
@@ -3306,6 +3327,165 @@ public abstract class BaseManagementInfoResourceTests
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
         assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        }
+
+    @Test
+    public void testTopicSubscriberConnect()
+        {
+        // topics
+        WebTarget target  = getBaseTarget().path("topics");
+        Response response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Map<String, Object> mapResponse = readEntity(target, response);
+        assertThat(mapResponse, notNullValue());
+
+        List<Map> listTopics = (List<Map>) mapResponse.get("items");
+        assertThat(listTopics, notNullValue());
+        assertThat(listTopics.size(), is(2));
+
+        List members = List.of("1", "2");
+        assertThat(listTopics, Matchers.hasItem(Matchers.<Map<String, Object>>allOf(
+                hasEntry("name", TOPIC_NAME + "A"),
+                hasEntry("type", "PagedTopic"))));
+        assertTrue(listTopics.stream().anyMatch(t -> members.equals(t.get("nodeId"))));
+
+        assertThat(listTopics, Matchers.hasItem(Matchers.<Map<String, Object>>allOf(
+                hasEntry("name", TOPIC_NAME + "B"),
+                hasEntry("type", "PagedTopic"))));
+        assertTrue(listTopics.stream().anyMatch(t -> members.equals(t.get("nodeId"))));
+
+        Map<String, Object> mapTopic = listTopics.stream()
+                .filter(t -> t.get("name").equals(TOPIC_NAME + "A"))
+                .findFirst()
+                .get();
+        Object oListLinks = mapTopic.get("links");
+        assertThat(oListLinks, instanceOf(List.class));
+
+        List<Map> listLinks = (List) oListLinks;
+
+        mapTopic = listLinks.stream()
+                .filter(m -> m.get("rel").equals("canonical"))
+                .findFirst()
+                .get();
+        String sTopicUrl = (String) mapTopic.get("href");
+
+        // topic-A
+        target = m_client.target(sTopicUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        mapTopic = readEntity(target, response);
+        assertThat(mapTopic, notNullValue());
+        assertThat(mapTopic.get("type"), is("PagedTopic"));
+        assertThat(mapTopic.get("name"), is(listTopics.get(0).get("name")));
+        assertThat(mapTopic.get("retainConsumed"), equalTo(List.of(false, false)));
+        assertThat(mapTopic.get("elementCalculator"), equalTo(List.of("BinaryElementCalculator", "BinaryElementCalculator")));
+
+        // topic-A channels
+        String sTopicChannelsUrl = ((List<Map<String, String>>) (mapTopic.get("links"))).stream()
+                .filter(m -> m.get("rel").equals("channels"))
+                .findFirst()
+                .get().get("href");
+
+        target = m_client.target(sTopicChannelsUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        mapResponse = readEntity(target, response);
+        List<Map<String, Object>> items = (List<Map<String, Object>>) mapResponse.get("items");
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(2));
+
+        assertThat(items, CoreMatchers.<Map<String, Object>>hasItem(hasEntry("nodeId", "1")));
+        assertThat(items, CoreMatchers.<Map<String, Object>>hasItem(hasEntry("nodeId", "2")));
+        assertThat(items, Matchers.everyItem(hasKey("channels")));
+
+        assertEquals(17, ((Map)items.get(0).get("channels")).size());
+        assertEquals(17, ((Map)items.get(1).get("channels")).size());
+        List<Map<String, Object>> channels = items.stream().flatMap(item -> ((Map) item.get("channels")).values().stream()).toList();
+        assertNotNull(channels.stream().filter(stringObjectMap ->
+                                                   {
+                                                   Object publishedCount = stringObjectMap.get("PublishedCount");
+                                                   if (publishedCount instanceof Long)
+                                                       {
+                                                       return publishedCount.equals(3L);
+                                                       }
+                                                   else if (publishedCount instanceof Integer)
+                                                       {
+                                                       return publishedCount.equals(3);
+                                                       }
+                                                   return false;
+                                                   }
+        ).findFirst().orElse(null));
+
+        assertThat(channels, everyItem(allOf(
+                hasKey("Channel"),
+                //hasKey("PublishedCount"),
+                hasKey("PublishedFifteenMinuteRate"),
+                hasKey("PublishedFiveMinuteRate"),
+                hasKey("PublishedMeanRate"),
+                hasKey("PublishedOneMinuteRate"),
+                hasKey("Tail"))));
+
+        // topic-A subscribers
+        String sTopicSubscribersUrl = ((List<Map<String, String>>) (mapTopic.get("links"))).stream()
+                .filter(m -> m.get("rel").equals("subscribers"))
+                .findFirst()
+                .get().get("href");
+        target = m_client.target(sTopicSubscribersUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        mapResponse = readEntity(target, response);
+        items = (List<Map<String, Object>>) mapResponse.get("items");
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(2));
+        Map<String, Object> item = items.stream()
+                .filter(s -> s.get("subscriberGroup").equals(SUBSCRIBER_GROUP_NAME + "A"))
+                .findFirst()
+                .get();
+        assertThat(item, hasEntry(equalTo("channelCount"), new IsEqualNumber(17)));
+        assertThat(item, hasEntry("subscriberGroup", SUBSCRIBER_GROUP_NAME + "A"));
+        assertThat(item, hasEntry("stateName", "Connected"));
+        assertThat(item, hasEntry("converter", "n/a"));
+        assertThat((String) (item.get("service")), containsString("TestTopicService"));
+        assertThat(item, hasEntry("type", "PagedTopicSubscriber"));
+        assertThat(item, hasEntry("topic", TOPIC_NAME + "A"));
+        assertThat(item, allOf(hasKey("channels"),
+                               hasKey("polls"),
+                               hasKey("id"),
+                               hasKey("member"),
+                               hasKey("notifications")));
+
+        // topic subscribers
+        String sTopicSubscriberGroupsUrl = ((List<Map<String, String>>) (mapTopic.get("links"))).stream()
+                .filter(m -> m.get("rel").equals("subscriberGroups"))
+                .findFirst()
+                .get().get("href");
+        target = m_client.target(sTopicSubscriberGroupsUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        mapResponse = readEntity(target, response);
+        items = (List<Map<String, Object>>) mapResponse.get("items");
+        assertThat(items, notNullValue());
+        assertThat(items.size(), is(4));
+        item = items.stream()
+                .filter(sg -> sg.get("name").equals(SUBSCRIBER_GROUP_NAME + "A")
+                              && sg.get("nodeId").equals("1"))
+                .findFirst()
+                .get();
+
+        assertThat(item, hasEntry(equalTo("channelCount"), new IsEqualNumber(17)));
+        assertThat(item, hasEntry("filter", null));
+        assertThat(item, hasEntry("transformer", null));
+        assertThat(item, hasEntry("name", SUBSCRIBER_GROUP_NAME + "A"));
+        assertThat((String) (item.get("service")), containsString("TestTopicService"));
+        assertThat(item, hasEntry("type", "PagedTopicSubscriberGroup"));
+        assertThat(item, hasEntry("topic", TOPIC_NAME + "A"));
+        assertThat(item, allOf(hasKey("channels"),
+                               hasKey("filter"),
+                               hasKey("transformer")));
         }
 
     // ----- utility methods----------------------------------------------------
@@ -3600,6 +3780,7 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(mapResponse, notNullValue());
         List<Map> listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
         assertThat(listCacheMaps.size(), greaterThan(1));
 
         for (Map mapCache : listCacheMaps)
@@ -3623,6 +3804,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse   = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
         assertThat(listCacheMaps.size(), greaterThan(1));
 
         for (Map mapCache : listCacheMaps)
@@ -3638,6 +3820,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
 
         for (Map mapCache : listCacheMaps)
             {
@@ -3662,6 +3845,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
 
         for (Map mapCache : listCacheMaps)
             {
@@ -3677,6 +3861,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse    = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps  = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(serviceName -> ((String) cacheMap.get(SERVICE)).contains(serviceName)));
 
         for (Map mapCache : listCacheMaps)
             {
@@ -3694,6 +3879,7 @@ public abstract class BaseManagementInfoResourceTests
         List<Map> listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
         assertThat(listCacheMaps.size(), greaterThan(1));
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
 
         for (Map mapCache : listCacheMaps)
             {
@@ -3731,6 +3917,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps = (List<Map>) mapResponse.get("items");
         assertThat(listCacheMaps, notNullValue());
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPIC_CACHES_LIST).anyMatch(topicCacheName -> topicCacheName.equals(cacheMap.get(NAME))));
 
         for (Map mapCache : listCacheMaps)
             {
@@ -3753,6 +3940,8 @@ public abstract class BaseManagementInfoResourceTests
         cachesResponse = cachesTarget.request().get();
         mapResponse = new LinkedHashMap(readEntity(cachesTarget, cachesResponse));
         listCacheMaps = (List<Map>) mapResponse.get("items");
+        listCacheMaps.removeIf(cacheMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) cacheMap.get(SERVICE)).contains(topicServiceName)));
+
         assertThat(listCacheMaps, notNullValue());
 
         for (Map mapCache : listCacheMaps)
@@ -3942,6 +4131,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse = readEntity(target, response);
         List<Map> listServiceMaps = (List<Map>) mapResponse.get("items");
         assertThat(listServiceMaps, notNullValue());
+        listServiceMaps.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
         assertThat(listServiceMaps.size(), greaterThan(1));
 
         int cServices = 0;
@@ -4105,7 +4295,7 @@ public abstract class BaseManagementInfoResourceTests
     public static void startTestCluster(Class<?> clsMain,
                                         String sClusterName,
                                         Consumer<CoherenceCluster> clusterReady,
-                                        BiConsumer<String, RemoteCallable<Void>> inClusterInvoker,
+                                        InClusterInvoker inClusterInvoker,
                                         Function<OptionsByType, OptionsByType> beforeLaunch,
                                         Option... opts)
         {
@@ -4192,7 +4382,9 @@ public abstract class BaseManagementInfoResourceTests
         s_cluster = builder.build(LocalPlatform.get());
 
         clusterReady.accept(s_cluster);
-        inClusterInvoker.accept(sClusterName, BaseManagementInfoResourceTests::popluateCaches);
+        inClusterInvoker.accept(sClusterName, null, BaseManagementInfoResourceTests::popluateCaches);
+        inClusterInvoker.accept(sClusterName, SERVER_PREFIX + "-1", BaseManagementInfoResourceTests::populateTopics);
+        inClusterInvoker.accept(sClusterName, SERVER_PREFIX + "-2", BaseManagementInfoResourceTests::createTopics);
 
         m_client = ClientBuilder.newBuilder()
                 .register(MapProvider.class)
@@ -4221,9 +4413,45 @@ public abstract class BaseManagementInfoResourceTests
         return null;
         }
 
-    protected static void invokeInCluster(String sCluster, RemoteCallable<Void> callable)
+    protected static Void populateTopics()
+            throws InterruptedException, ExecutionException, TimeoutException
         {
-        s_cluster.getAny().invoke(callable);
+        Session session = Session.create();
+        NamedTopic<Object> topicA = session.getTopic(TOPIC_NAME + "A");
+        NamedTopic<Object> topicB = session.getTopic(TOPIC_NAME + "B");
+        topicA.ensureSubscriberGroup(SUBSCRIBER_GROUP_NAME + "A");
+        Publisher<Object> publisherA = session.createPublisher(TOPIC_NAME + "A");
+        Subscriber<Object> subscriberA1 = topicA.createSubscriber(Subscriber.inGroup(SUBSCRIBER_GROUP_NAME + "A"));
+        Subscriber<Object> subscriberA2 = topicA.createSubscriber();
+
+        publisherA.publish("test1");
+        publisherA.publish("test2");
+        publisherA.publish("test3");
+        publisherA.flush().join();
+        subscriberA1.receive();
+        subscriberA2.receive();
+        return null;
+        }
+
+    protected static Void createTopics()
+            throws InterruptedException, ExecutionException, TimeoutException
+        {
+        Session session = Session.create();
+        session.getTopic(TOPIC_NAME + "A");
+        session.getTopic(TOPIC_NAME + "B");
+        return null;
+        }
+
+    protected static void invokeInCluster(String sCluster, String sMember, RemoteCallable<Void> callable)
+        {
+        if (sMember == null)
+            {
+            s_cluster.getAny().invoke(callable);
+            }
+        else
+            {
+            s_cluster.get(sMember).invoke(callable);
+            }
         }
 
     protected static void assertClusterReady(CoherenceCluster cluster)
@@ -4448,9 +4676,19 @@ public abstract class BaseManagementInfoResourceTests
             "DistributedCachePersistence", HttpHelper.getServiceName(), INVOCATION_SERVICE_NAME};
 
     /**
+     * The list of services used by topics.
+     */
+    private static final String[] TOPICS_SERVICES_LIST = {"TestTopicService"};
+
+    /**
      * The list of caches used by this test class.
      */
     private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME};
+
+    /**
+     * The list of topics caches used by this test class.
+     */
+    private static final String[] TOPIC_CACHES_LIST = {"$topic$topic-A", "$topic$topic-B"};
 
     /**
      * Prefix for the spawned processes.
@@ -4486,6 +4724,16 @@ public abstract class BaseManagementInfoResourceTests
     public static final String CLUSTER_NAME = "mgmtRestCluster";
 
     /**
+     * The name of topic.
+     */
+    protected static final String TOPIC_NAME = "topic-";
+
+    /**
+     * The name of subscriber group.
+     */
+    protected static final String SUBSCRIBER_GROUP_NAME = "subscriber-group-";
+
+    /**
      * The cluster members.
      */
     protected static CoherenceCluster s_cluster;
@@ -4498,7 +4746,52 @@ public abstract class BaseManagementInfoResourceTests
     @ClassRule
     public static final TestLogs m_testLogs = new TestLogs();
 
-    private final BiConsumer<String, RemoteCallable<Void>> f_inClusterInvoker;
+    private final InClusterInvoker f_inClusterInvoker;
 
     private final MapJsonBodyHandler f_jsonHandler = MapJsonBodyHandler.ensureMapJsonBodyHandler();
+
+    interface InClusterInvoker
+        {
+        void accept(String clusterName, String member, RemoteCallable<Void> callable);
+        }
+
+    /**
+     * Convenient matcher that compares numbers (integers or longs) while
+     * not taking into account their type.
+     */
+    public static class IsEqualNumber extends TypeSafeDiagnosingMatcher<Object>
+        {
+        public IsEqualNumber(long number)
+            {
+            this.expected = new BigDecimal(number);
+            }
+
+        public IsEqualNumber(int number)
+            {
+            this.expected = new BigDecimal(number);
+            }
+
+        protected boolean matchesSafely(Object item, Description mismatchDescription)
+            {
+            mismatchDescription.appendText("was ")
+                    .appendValue(item)
+                    .appendText(" which does not match ")
+                    .appendValue(item);
+            if (item instanceof Long)
+                {
+                return new BigDecimal((Long) item).equals(expected);
+                }
+            if (item instanceof Integer)
+                {
+                return new BigDecimal((Integer) item).equals(expected);
+                }
+            return false;
+            }
+
+        public void describeTo(Description description)
+            {
+            description.appendText("matches number=`" + expected + "`");
+            }
+        private final BigDecimal expected;
+        }
     }

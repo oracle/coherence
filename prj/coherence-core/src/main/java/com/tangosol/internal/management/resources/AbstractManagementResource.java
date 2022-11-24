@@ -1875,6 +1875,46 @@ public abstract class AbstractManagementResource
     public static final String CACHE_QUERY = CACHES_QUERY + ",name=";
 
     /**
+     * MBean query to filter out all the PagedTopicMBean objects in the cluster.
+     */
+    public static final String TOPICS_QUERY = ":" + Registry.PAGED_TOPIC_TYPE;
+
+    /**
+     * MBean query to filter out all the PagedTopicMBean objects of a particular topic.
+     */
+    public static final String TOPIC_QUERY = TOPICS_QUERY + ",name=";
+
+    /**
+     * MBean query to filter out all the TopicSubscriberMBean  objects in the cluster.
+     */
+    public static final String SUBSCRIBERS_QUERY = ":" + Registry.SUBSCRIBER_TYPE;
+
+    /**
+     * MBean query to filter out all the TopicSubscriberMBean objects of a particular topic.
+     */
+    public static final String SUBSCRIBER_QUERY = SUBSCRIBERS_QUERY + ",id=";
+
+    /**
+     * MBean query to filter out all the TopicSubscriberMBean objects of a particular topic.
+     */
+    public static final String TOPIC_SUBSCRIBERS_QUERY = SUBSCRIBERS_QUERY + ",topic=";
+
+    /**
+     * MBean query to filter out all the TopicSubscriberMBean  objects in the cluster.
+     */
+    public static final String SUBSCRIBER_GROUPS_QUERY = ":" + Registry.SUBSCRIBER_GROUP_TYPE;
+
+    /**
+     * MBean query to filter out all the TopicSubscriberMBean objects of a particular topic.
+     */
+    public static final String TOPIC_SUBSCRIBER_GROUPS_QUERY = SUBSCRIBER_GROUPS_QUERY + ",topic=";
+
+    /**
+     * MBean query to filter out all the TopicSubscriberGroupsMBean objects of a particular topic.
+     */
+    public static final String TOPIC_SUBSCRIBER_GROUP_QUERY = SUBSCRIBER_GROUPS_QUERY + ",topic=%s,name=%s";
+
+    /**
      * MBean query to filter out all the CacheMBean objects of a particular cache and service.
      */
     public static final String CACHE_MEMBERS_WITH_SERVICE_QUERY = CACHES_QUERY +",name=";
@@ -2179,6 +2219,8 @@ public abstract class AbstractManagementResource
     public static final String TOPOLOGIES       = "topologies";
     public static final String SNAPSHOT_NAME    = "snapshotName";
     public static final String JFR_CMD          = "jfrCmd";
+    public static final String TOPIC_NAME       = "topicName";
+    public static final String SUBSCRIBER_GROUP_NAME = "subscriberGroupName";
 
     // ------------------------------ Path param constants ends --------------------------------------
 
@@ -2212,6 +2254,10 @@ public abstract class AbstractManagementResource
     public static final String STATE            = "state";
     public static final String ENVIRONMENT      = "environment";
     public static final String HEALTH           = "health";
+    public static final String TOPICS           = "topics";
+    public static final String SUBSCRIBERS      = "subscribers";
+    public static final String SUBSCRIBER_GROUPS = "subscriberGroups";
+    public static final String CHANNELS         = "channels";
 
     // ------------------------------ URL constants ends ---------------------------------------------
 
@@ -2240,6 +2286,7 @@ public abstract class AbstractManagementResource
 
     public static final String DOMAIN_NAME        = "domainName";
     public static final String DOMAIN_FILTER      = "domainPartitionFilter";
+    public static final String SUBSCRIBER_ID      = "id";
 
     /**
      * Map of URL to platform Mbean query.

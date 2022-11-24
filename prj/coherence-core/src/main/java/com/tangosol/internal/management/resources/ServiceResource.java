@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
 
@@ -55,6 +55,7 @@ public class ServiceResource
         router.addRoutes(sPathRoot + "/" + MEMBERS, new ServiceMembersResource());
         router.addRoutes(sPathRoot + "/" + CACHES, new CachesResource());
         router.addRoutes(sPathRoot + "/" + PERSISTENCE, new PersistenceResource());
+        router.addRoutes(sPathRoot + "/" + TOPICS, new TopicsResource());
         }
 
     // ----- GET API --------------------------------------------------------
@@ -286,6 +287,8 @@ public class ServiceResource
                                             mapArguments);
                 addChildResourceQueryResult(request, new PersistenceResource(), PERSISTENCE, mapEntity,
                                             mapChildrenQuery, mapArguments);
+                addChildResourceQueryResult(request, new TopicsResource(), TOPICS, mapEntity, mapChildrenQuery,
+                                            mapArguments);
                 }
             }
         return response;
@@ -323,5 +326,5 @@ public class ServiceResource
 
     public static final String SCHEDULED_DISTRIBUTIONS = "scheduledDistributions";
 
-    public static String[] CHILD_LINKS = {CACHES, MEMBERS, PARTITION, FEDERATION};
+    public static String[] CHILD_LINKS = {CACHES, MEMBERS, PARTITION, FEDERATION, TOPICS};
     }

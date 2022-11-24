@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management;
 
@@ -23,6 +23,7 @@ import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Objects;
 
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.management.openmbean.CompositeData;
@@ -151,10 +152,19 @@ public class Converter
             }
         else
             {
-            // with the testing I did, it does seem that complicated CompositeType
-            // data is not present in the current Coherence Mbean tree. So does not make
-            // sense to understand how that structure works and code for that
-            return dataTabular;
+            Map<String, Object> json = new LinkedHashMap<>();
+            for(Map.Entry<Object, Object> entry : dataTabular.entrySet())
+                {
+                CompositeData value = (CompositeData) entry.getValue();
+                Set<String> keySet = value.getCompositeType().keySet();
+                Map<String, Object> props = new LinkedHashMap<>();
+                for (String key : keySet)
+                    {
+                    props.put(key, value.get(key));
+                    }
+                json.put(entry.getKey().toString(), props);
+                }
+            return json;
             }
         }
 

@@ -26,6 +26,13 @@
       <scheme-name>dist-near</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
+  
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>topic-*</topic-name>
+      <scheme-name>topic-scheme</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
 
   <caching-schemes>
     <near-scheme>
@@ -73,5 +80,11 @@
       <scheme-name>invovacation</scheme-name>
       <service-name>TestInvocationService</service-name>
     </invocation-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>topic-scheme</scheme-name>
+      <service-name>TestTopicService</service-name>
+      <autostart system-property="test.dist.enabled">true</autostart>
+    </paged-topic-scheme>
   </caching-schemes>
 </cache-config>
