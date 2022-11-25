@@ -236,7 +236,7 @@ public class KeyTool
 
     private static void toPem(File fileKey, File filePEM, String sKeyPass)
         {
-        Arguments arguments = Arguments.of("pkcs8", "-topk8", "-outform", "pem",
+        Arguments arguments = Arguments.of("pkcs8", "-topk8", "-outform", "pem", "-v1", "PBE-MD5-DES",
                                            "-in", fileKey.getAbsolutePath(),
                                            "-out", filePEM.getAbsolutePath());
 
