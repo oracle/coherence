@@ -6,8 +6,10 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.management;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupChannelStatistics;
+import com.tangosol.util.UUID;
 
 import java.util.Date;
 import java.util.Objects;
@@ -95,9 +97,45 @@ public class SubscriberGroupChannelModel
      *
      * @return the owning subscriber
      */
-    public String getOwningSubscriber()
+    public long getOwningSubscriber()
         {
-        return Objects.toString(getStatistics().getOwningSubscriber(), "");
+        SubscriberId subscriberId = getStatistics().getOwningSubscriber();
+        return subscriberId == null ? -1 : subscriberId.getId();
+        }
+
+    /**
+     * Return the owning subscriber.
+     *
+     * @return the owning subscriber
+     */
+    public int getOwningSubscriberNotificationId()
+        {
+        SubscriberId subscriberId = getStatistics().getOwningSubscriber();
+        return subscriberId == null ? -1 : subscriberId.getNotificationId();
+        }
+
+    /**
+     * Return the owning subscriber.
+     *
+     * @return the owning subscriber
+     */
+    public int getOwningSubscriberMemberId()
+        {
+        SubscriberId subscriberId = getStatistics().getOwningSubscriber();
+        return subscriberId == null ? -1 : subscriberId.getMemberId();
+        }
+
+
+    /**
+     * Return the owning subscriber.
+     *
+     * @return the owning subscriber
+     */
+    public String getOwningSubscriberMemberUuid()
+        {
+        SubscriberId subscriberId = getStatistics().getOwningSubscriber();
+        UUID         uuid         = subscriberId == null ? null : subscriberId.getUID();
+        return String.valueOf(uuid);
         }
 
     /**

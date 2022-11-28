@@ -42,7 +42,9 @@ public class SubscriberGroupChannelTableModel
                 ATTRIBUTE_CHANNEL, ATTRIBUTE_POLLED_COUNT, ATTRIBUTE_POLLED_MEAN,
                 ATTRIBUTE_POLLED_ONE_MINUTE, ATTRIBUTE_POLLED_FIVE_MINUTE,
                 ATTRIBUTE_POLLED_FIFTEEN_MINUTE, ATTRIBUTE_HEAD,
-                ATTRIBUTE_OWNING_SUBSCRIBER_ID, ATTRIBUTE_LAST_COMMITTED_POSITION,
+                ATTRIBUTE_OWNING_SUBSCRIBER_ID, ATTRIBUTE_OWNING_SUBSCRIBER_MEMBER_ID,
+                ATTRIBUTE_OWNING_SUBSCRIBER_MEMBER_UUID, ATTRIBUTE_OWNING_SUBSCRIBER_NOTIFICATION_ID,
+                ATTRIBUTE_LAST_COMMITTED_POSITION,
                 ATTRIBUTE_LAST_COMMITTED_TIMESTAMP, ATTRIBUTE_LAST_POLLED_TIMESTAMP,
                 ATTRIBUTE_REMAINING_UNPOLLED_MESSAGES
                 };
@@ -113,9 +115,36 @@ public class SubscriberGroupChannelTableModel
      * The owning subscriber attribute.
      */
     protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_OWNING_SUBSCRIBER_ID =
-            SimpleModelAttribute.stringBuilder("OwningSubscriberId", SubscriberGroupChannelModel.class)
+            SimpleModelAttribute.longBuilder("OwningSubscriberId", SubscriberGroupChannelModel.class)
                     .withDescription("The Owning Subscriber ID")
                     .withFunction(SubscriberGroupChannelModel::getOwningSubscriber)
+                    .build();
+
+    /**
+     * The owning subscriber member id attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_OWNING_SUBSCRIBER_NOTIFICATION_ID =
+            SimpleModelAttribute.intBuilder("OwningSubscriberMemberNotificationId", SubscriberGroupChannelModel.class)
+                    .withDescription("The Owning Subscriber Notification ID")
+                    .withFunction(SubscriberGroupChannelModel::getOwningSubscriberNotificationId)
+                    .build();
+
+    /**
+     * The owning subscriber member id attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_OWNING_SUBSCRIBER_MEMBER_ID =
+            SimpleModelAttribute.intBuilder("OwningSubscriberMemberId", SubscriberGroupChannelModel.class)
+                    .withDescription("The Owning Subscriber Member ID")
+                    .withFunction(SubscriberGroupChannelModel::getOwningSubscriberMemberId)
+                    .build();
+
+    /**
+     * The owning subscriber member uuid attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_OWNING_SUBSCRIBER_MEMBER_UUID =
+            SimpleModelAttribute.stringBuilder("OwningSubscriberMemberUuid", SubscriberGroupChannelModel.class)
+                    .withDescription("The Owning Subscriber Member UUID")
+                    .withFunction(SubscriberGroupChannelModel::getOwningSubscriberMemberUuid)
                     .build();
 
     /**
