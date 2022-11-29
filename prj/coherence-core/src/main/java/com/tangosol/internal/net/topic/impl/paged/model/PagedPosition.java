@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
@@ -37,7 +37,7 @@ public class PagedPosition
      */
     public PagedPosition()
         {
-        this(-1L, -1);
+        this(Page.NULL_PAGE, NULL_OFFSET);
         }
 
     /**
@@ -189,6 +189,11 @@ public class PagedPosition
      * A singleton null position.
      */
     public static final PagedPosition NULL_POSITION = new PagedPosition(Page.EMPTY, Integer.MAX_VALUE);
+
+    /**
+     * The null page offset.
+     */
+    public static final int NULL_OFFSET = -1;
 
     // ----- data members ---------------------------------------------------
 

@@ -18,6 +18,7 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.net.metrics.Meter;
+
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.DestroySubscriptionProcessor;
@@ -86,6 +87,8 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.InKeySetFilter;
 
 import com.tangosol.util.listener.SimpleMapListener;
+
+import java.io.PrintStream;
 
 import java.time.Instant;
 
@@ -164,8 +167,19 @@ public class PagedTopicSubscriber<V>
         Cluster      cluster      = cacheService.getCluster();
         Member       member       = cluster.getLocalMember();
 
+        boolean            fWarn  = false;
+        WithNotificationId withId = optionsMap.get(WithNotificationId.class);
+        if (withId == null)
+            {
+            f_nNotificationId = System.identityHashCode(this);
+            }
+        else
+            {
+            f_nNotificationId = withId.getId();
+            fWarn = true;
+            }
+
         f_fCompleteOnEmpty   = optionsMap.contains(CompleteOnEmpty.class);
-        f_nNotificationId    = System.identityHashCode(this); // used even if we don't wait to avoid endless channel scanning
         f_filterNotification = new InKeySetFilter<>(/*filter*/ null, m_caches.getPartitionNotifierSet(f_nNotificationId));
         f_id                 = f_fAnonymous
                                     ? new SubscriberId(0, member.getId(), member.getUuid())
@@ -198,16 +212,24 @@ public class PagedTopicSubscriber<V>
         f_setHitChannels    = new BitSet(cChannel);
         m_aChannel          = initializeChannels(m_caches, cChannel, f_subscriberGroupId);
 
+        WithIdentifyingName withIdentifyingName = optionsMap.get(WithIdentifyingName.class);
+        f_sIdentifyingName = withIdentifyingName == null ? null : withIdentifyingName.getName();
+
         registerChannelAllocationListener();
         registerDeactivationListener();
         registerMBean();
+
+        if (fWarn)
+            {
+            Logger.warn("Subscriber " + f_id + " is being created with a custom notification id " + f_nNotificationId);
+            }
 
         ensureConnected();
 
         // Note: post construction this implementation must be fully async
         }
 
-    // ----- accessors ------------------------------------------------------
+    // ----- PagedTopicSubscriber methods -----------------------------------
 
     /**
      * Returns the subscriber's unique identifier.
@@ -217,6 +239,16 @@ public class PagedTopicSubscriber<V>
     public long getId()
         {
         return f_id.getId();
+        }
+
+    /**
+     * Returns the subscriber's optional identifying name.
+     *
+     * @return the subscriber's unique identifying name
+     */
+    public String getIdentifyingName()
+        {
+        return f_sIdentifyingName;
         }
 
     /**
@@ -279,6 +311,53 @@ public class PagedTopicSubscriber<V>
     public boolean isCompleteOnEmpty()
         {
         return f_fCompleteOnEmpty;
+        }
+
+    /**
+     * Print the state of this subscriber's channels.
+     *
+     * @param out  the {@link PrintStream} to print to
+     */
+    public void printChannels(PrintStream out)
+        {
+        Gate<?> gate = f_gate;
+        // Wait to enter the gate
+        gate.enter(-1);
+        try
+            {
+            out.println("Owned: " + Arrays.toString(m_aChannelOwned));
+            for (int c = 0; c < m_aChannel.length; c++)
+                {
+                out.printf("%d: %s current=%b\n", c, m_aChannel[c], (c == m_nChannel));
+                }
+            }
+        finally
+            {
+            // and finally exit from the gate
+            gate.exit();
+            }
+        }
+
+    /**
+     * Print the state of this subscriber's channels.
+     *
+     * @param out  the {@link PrintStream} to print to
+     */
+    public void printPreFetchCache(PrintStream out)
+        {
+        Gate<?> gate = f_gate;
+        // Wait to enter the gate
+        gate.enter(-1);
+        try
+            {
+            out.println("Pre-Fetch Cache: ");
+            m_queueValuesPrefetched.forEach(out::println);
+            }
+        finally
+            {
+            // and finally exit from the gate
+            gate.exit();
+            }
         }
 
     // ----- Subscriber methods ---------------------------------------------
@@ -417,7 +496,7 @@ public class PagedTopicSubscriber<V>
             try
                 {
                 return Arrays.stream(m_aChannel)
-                        .filter(c -> c.m_fOwned)
+                        .filter(PagedTopicChannel::isOwned)
                         .map(c -> c.subscriberPartitionSync.getChannelId())
                         .collect(Collectors.toSet());
                 }
@@ -437,7 +516,7 @@ public class PagedTopicSubscriber<V>
         {
         if (m_nState == STATE_CONNECTED)
             {
-            return nChannel >= 0 && m_aChannel[nChannel].m_fOwned;
+            return nChannel >= 0 && m_aChannel[nChannel].isOwned();
             }
         return false;
         }
@@ -633,11 +712,14 @@ public class PagedTopicSubscriber<V>
                 sState = "Unknown(" + m_nState + ")";
             }
 
-        return getClass().getSimpleName() + "(" + "topic=" + m_caches.getTopicName() +
+        String sName = f_sIdentifyingName == null ? "" : ", name=" + f_sIdentifyingName;
+
+        return getClass().getSimpleName() + "(" + "topic=" + m_caches.getTopicName() + sName +
             ", id=" + f_id +
             ", group=" + f_subscriberGroupId +
             ", durable=" + !f_fAnonymous +
             ", state=" + sState +
+            ", prefetched=" + m_queueValuesPrefetched.size() +
             ", backlog=" + f_backlog +
             ", channelAllocation=" + (f_fAnonymous ? "[ALL]" : Arrays.toString(m_aChannelOwned)) +
             ", channelsPolled=" + sChannelsPolled + cChannelsPolled +
@@ -670,6 +752,7 @@ public class PagedTopicSubscriber<V>
             {
             PagedTopicChannel[] aChannel = new PagedTopicChannel[cChannel];
             int                 cPart    = caches.getPartitionCount();
+
             for (int nChannel = 0; nChannel < cChannel; nChannel++)
                 {
                 if (existing != null && nChannel < existing.length)
@@ -881,8 +964,8 @@ public class PagedTopicSubscriber<V>
                 {
                 PagedTopicChannel channel = m_aChannel[nChannel];
                 channel.m_lHead  = alHead[nChannel];
-                channel.m_nNext  = -1; // unknown page position to start
-                channel.m_fEmpty = false; // even if we could infer emptiness here it is unsafe unless we've registered for events
+                channel.m_nNext  = -1;  // unknown page position to start
+                channel.setPopulated(); // even if we could infer emptiness here it is unsafe unless we've registered for events
                 }
 
             if (f_fAnonymous)
@@ -959,8 +1042,9 @@ public class PagedTopicSubscriber<V>
                 {
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
                 PagedTopicChannel channel  = m_aChannel[nChannel];
-                long              lHead    = channel.m_lHead;
                 long              lVersion = channel.m_lVersion;
+                long              lHead    = channel.m_lHead == PagedTopicChannel.HEAD_UNKNOWN
+                                                    ? getSubscriptionHead(channel) : channel.m_lHead;
 
                 int nPart = ((PartitionedService) m_caches.Subscriptions.getCacheService())
                                     .getKeyPartitioningStrategy()
@@ -1028,6 +1112,29 @@ public class PagedTopicSubscriber<V>
                     }
                 }
             }
+        }
+
+    /**
+     * Returns the initial head page.
+     *
+     * @return the initial head page
+     */
+    private long getSubscriptionHead(PagedTopicChannel channel)
+        {
+        Subscription subscription = m_caches.Subscriptions.get(channel.subscriberPartitionSync);
+        if (subscription == null)
+            {
+            try
+                {
+                initialise();
+                }
+            catch (Throwable e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            return m_aChannel[channel.getId()].m_lHead;
+            }
+        return subscription.getSubscriptionHead();
         }
 
     /**
@@ -1153,7 +1260,7 @@ public class PagedTopicSubscriber<V>
     private void onReceiveComplete(Element<?> element)
         {
         int c = element.getChannel();
-        if (m_aChannel[c].m_fOwned)
+        if (m_aChannel[c].isOwned())
             {
             m_aChannel[c].m_lastReceived = (PagedPosition) element.getPosition();
             }
@@ -1731,11 +1838,18 @@ public class PagedTopicSubscriber<V>
             ++m_cNotify;
 
             int nChannelCurrent  = m_nChannel;
-            fWasEmpty = nChannelCurrent < 0 || m_aChannel[nChannelCurrent].m_fEmpty;
+            fWasEmpty = nChannelCurrent < 0 || m_aChannel[nChannelCurrent].isEmpty();
             for (int nChannel : anChannel)
                 {
                 m_aChannel[nChannel].onChannelPopulatedNotification();
                 }
+            }
+
+        // If the pre-fetch queue has the empty element at its head, we need to remove it
+        CommittableElement element = m_queueValuesPrefetched.peek();
+        if (element != null && element.isEmpty())
+            {
+            m_queueValuesPrefetched.poll();
             }
 
         if (fWasEmpty)
@@ -1898,22 +2012,14 @@ public class PagedTopicSubscriber<V>
                 Set<Integer> setAdded = new HashSet<>(listChannels);
                 setAdded = Collections.unmodifiableSet(setAdded);
 
-                Logger.finest(String.format("Subscriber %d channel allocation changed, assigned=%s revoked=%s",
-                                          f_id.getId(), setAdded, setRevoked));
+                Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s revoked=%s",
+                                            f_id.getId(), f_sIdentifyingName, setAdded, setRevoked));
 
                 m_aChannelOwned = aChannel;
 
                 if (!f_fAnonymous)
                     {
                     // reset revoked channel heads - we'll re-sync if they are reallocated
-                    setRevoked.forEach(c ->
-                        {
-                        PagedTopicChannel channel = m_aChannel[c];
-                        channel.m_fContended = false;
-                        channel.m_fOwned     = false;
-                        channel.m_lastCommit = null;
-                        channel.setPopulated();
-                        });
 
                     // if we're initializing and not anonymous, we do not own any channels,
                     // we'll update with the allocated ownership
@@ -1921,19 +2027,35 @@ public class PagedTopicSubscriber<V>
                         {
                         for (PagedTopicChannel channel : m_aChannel)
                             {
-                            channel.m_fOwned = false;
+                            channel.setUnowned();
                             channel.m_lastCommit = null;
+                            channel.setPopulated();
                             }
                         }
 
-                    // re-sync added channel heads and reset empty flag
-                    setNew.forEach(c ->
+                    // clear all channel flags
+                    for (PagedTopicChannel channel : m_aChannel)
+                        {
+                        channel.m_fContended = false;
+                        channel.m_lastCommit = null;
+                        channel.setUnowned();
+                        channel.setPopulated();
+                        }
+                    // reset channel flags for channels we now own
+                    for (int c : m_aChannelOwned)
                         {
                         PagedTopicChannel channel = m_aChannel[c];
                         channel.m_fContended = false;
-                        channel.m_fOwned     = true;
+                        channel.setOwned();
                         channel.setPopulated();
-                        });
+                        }
+                    }
+
+                // if the pre-fetch queue contains the empty marker, we need to remove it
+                CommittableElement element = m_queueValuesPrefetched.peek();
+                if (element != null && element.isEmpty())
+                    {
+                    m_queueValuesPrefetched.poll();
                     }
 
                 if (m_aChannelOwnershipListener.length > 0)
@@ -1985,7 +2107,7 @@ public class PagedTopicSubscriber<V>
      */
     protected int ensureOwnedChannel()
         {
-        if (m_nChannel >= 0 && m_aChannel[m_nChannel].m_fOwned)
+        if (m_nChannel >= 0 && m_aChannel[m_nChannel].isOwned())
             {
             return m_nChannel;
             }
@@ -2014,10 +2136,6 @@ public class PagedTopicSubscriber<V>
         gate.enter(-1);
         try
             {
-if (Config.getBoolean("coherence.subscriber.debug"))
-    {
-    Logger.info("Subscriber " + f_id + " switching channel current=" + m_nChannel + " owned=" + Arrays.toString(m_aChannelOwned));
-    }
 
             if (m_aChannelOwned.length == 0)
                 {
@@ -2029,12 +2147,8 @@ if (Config.getBoolean("coherence.subscriber.debug"))
                 {
                 int nChannel = m_aChannelOwned[0];
                 // only one allocated channel
-                if (m_aChannel[nChannel].m_fEmpty)
+                if (m_aChannel[nChannel].isEmpty())
                     {
-//if (Config.getBoolean("coherence.subscriber.debug"))
-//    {
-//    Logger.info("Subscriber " + f_id + " switching channel - single owned channel is empty");
-//    }
                     // our single channel is empty
                     m_nChannel = -1;
                     return false;
@@ -2042,10 +2156,6 @@ if (Config.getBoolean("coherence.subscriber.debug"))
                 else
                     {
                     // our single channel is not empty, switch to it
-//if (Config.getBoolean("coherence.subscriber.debug"))
-//    {
-//    Logger.info("Subscriber " + f_id + " switching channel - single owned channel is not empty");
-//    }
                     m_nChannel = nChannel;
                     return true;
                     }
@@ -2077,7 +2187,7 @@ if (Config.getBoolean("coherence.subscriber.debug"))
 
             // now ensure the channel is not empty
             int cTried = 0;
-            while (nChannel != nChannelStart && cTried < m_aChannel.length && (!m_aChannel[nChannel].m_fOwned || m_aChannel[nChannel].m_fEmpty))
+            while (nChannel != nChannelStart && cTried < m_aChannel.length && (!m_aChannel[nChannel].isOwned() || m_aChannel[nChannel].isEmpty()))
                 {
                 cTried++;
                 nChannel++;
@@ -2087,19 +2197,11 @@ if (Config.getBoolean("coherence.subscriber.debug"))
                     }
                 }
 
-            if (m_aChannel[nChannel].m_fOwned && !m_aChannel[nChannel].m_fEmpty)
+            if (m_aChannel[nChannel].isOwned() && !m_aChannel[nChannel].isEmpty())
                 {
-if (Config.getBoolean("coherence.subscriber.debug"))
-    {
-    Logger.info("Subscriber " + f_id + " switching channel - switched to " + nChannel);
-    }
                 m_nChannel = nChannel;
                 return true;
                 }
-if (Config.getBoolean("coherence.subscriber.debug"))
-    {
-    Logger.info("Subscriber " + f_id + " switching channel - All Channels Empty!");
-    }
             m_nChannel = -1;
             return false;
             }
@@ -2121,10 +2223,6 @@ if (Config.getBoolean("coherence.subscriber.debug"))
     protected void onReceiveResult(PagedTopicChannel channel, long lVersion, long lPageId, PollProcessor.Result result, Throwable e)
         {
         int nChannel = channel.subscriberPartitionSync.getChannelId();
-if (Config.getBoolean("coherence.subscriber.debug"))
-    {
-    Logger.info("Subscriber " + f_id + " onReceiveResult channel=" + channel + " page=" + lPageId + " result=" + result + " error=" + e);
-    }
 
         // check that there is no error, and we still own the channel
         if (e == null )
@@ -2701,6 +2799,70 @@ if (Config.getBoolean("coherence.subscriber.debug"))
         return (int) (nId & 0xFFFFFFFFL);
         }
 
+    /**
+     * Return an option to set the identifying name.
+     *
+     * @param sName  the name to use for the identifier
+     *
+     * @return an option to set the identifying name
+     */
+    public static Option withIdentifyingName(String sName)
+        {
+        return new WithIdentifyingName(sName);
+        }
+
+    /**
+     * Return an option to set the Subscriber's id.
+     * <p/>
+     * This option should only be used in testing.
+     *
+     * @param nId  the Subscriber's id
+     *
+     * @return an option to set the Subscriber's id
+     */
+    public static Option withNotificationId(int nId)
+        {
+        return (WithNotificationId) () -> nId;
+        }
+
+    // ----- inner class: WithIdentifier ------------------------------------
+
+    /**
+     * An {@link Option} that provides a human-readable name to a {@link PagedTopicSubscriber}.
+     * <p/>
+     * This can be useful in testing to make it easier to identify specific subscribers
+     * in a log message.
+     */
+    public static class WithIdentifyingName
+            implements Option
+        {
+        public WithIdentifyingName(String sName)
+            {
+            f_sName = sName;
+            }
+
+        public String getName()
+            {
+            return f_sName;
+            }
+
+        private final String f_sName;
+        }
+
+    // ----- inner class: WithIdentifier ------------------------------------
+
+    /**
+     * An {@link Option} that provides a notification id to a {@link PagedTopicSubscriber}.
+     * <p/>
+     * This can be useful in testing to make it easier to control subscribes and channel allocations,
+     * it should not be used in production systems.
+     */
+    public interface WithNotificationId<V, U>
+            extends Option<V, U>
+        {
+        int getId();
+        }
+
     // ----- inner class: CommittableElement --------------------------------
 
     /**
@@ -2868,6 +3030,8 @@ if (Config.getBoolean("coherence.subscriber.debug"))
             return new PagedPosition(m_lHead, m_nNext);
             }
 
+        // ----- helper methods ---------------------------------------------
+
         /**
          * Set this channel as empty only if the channel version matches the specified version.
          *
@@ -2883,6 +3047,16 @@ if (Config.getBoolean("coherence.subscriber.debug"))
                 return true;
                 }
             return false;
+            }
+
+        protected void setOwned()
+            {
+            m_fOwned = true;
+            }
+
+        protected void setUnowned()
+            {
+            m_fOwned = false;
             }
 
         /**
@@ -2950,6 +3124,13 @@ if (Config.getBoolean("coherence.subscriber.debug"))
                     ", contended=" + m_fContended;
             }
 
+        // ----- constants --------------------------------------------------
+
+        /**
+         * A page id value to indicate that the head page is unknown.
+         */
+        public static final int HEAD_UNKNOWN = -1;
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -2959,7 +3140,7 @@ if (Config.getBoolean("coherence.subscriber.debug"))
          * completed on IO threads. We don't go with a full blow AtomicLong as either value is suitable and worst case
          * we update to an older value and this would be harmless and just get corrected on the next attempt.
          */
-        volatile long m_lHead;
+        volatile long m_lHead = HEAD_UNKNOWN;
 
         /**
          * The current version of this channel.
@@ -3201,7 +3382,6 @@ if (Config.getBoolean("coherence.subscriber.debug"))
             }
 
         @Override
-        @SuppressWarnings("unchecked")
         protected void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queueBatch)
             {
             Map<Integer, Position> map = subscriber.seekInternal(this);
@@ -3444,17 +3624,10 @@ if (Config.getBoolean("coherence.subscriber.debug"))
         @Override
         protected void onMapEvent(MapEvent<Subscription.Key, Subscription> evt)
             {
-            f_daemonChannels.executeTask(() -> onChannelAllocation(evt));
-            //onChannelAllocation(evt);
-//            CompletableFuture.runAsync(() -> onChannelAllocation(evt))
-//                .handle((ignored, err) ->
-//                    {
-//                    if (err != null)
-//                        {
-//                        Logger.finer("Error on channel allocation in subscriber " + getId(), err);
-//                        }
-//                    return null;
-//                    });
+            if (f_daemonChannels.isRunning() && !f_daemonChannels.isStopping())
+                {
+                f_daemonChannels.executeTask(() -> onChannelAllocation(evt));
+                }
             }
 
         // ----- Object methods ---------------------------------------------
@@ -4003,4 +4176,9 @@ if (Config.getBoolean("coherence.subscriber.debug"))
      * The {@link ReconnectTask} to use to reconnect this subscriber.
      */
     private final ReconnectTask f_taskReconnect;
+
+    /**
+     * A human-readable name for this subscriber.
+     */
+    private final String f_sIdentifyingName;
     }

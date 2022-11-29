@@ -15,7 +15,13 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
+import com.tangosol.util.LongArray;
+import com.tangosol.util.SimpleLongArray;
+
 import javax.management.DynamicMBean;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * An MBean model for a {@link PagedTopic}
@@ -38,15 +44,14 @@ public class PagedTopicModel
         {
         super(MBEAN_DESCRIPTION);
         f_pagedTopic = pagedTopic;
-        f_cChannel   = pagedTopic.getChannelCount();
         f_statistics = ((PagedTopicBackingMapManager) pagedTopic.getCacheService().getBackingMapManager())
                 .getStatistics(pagedTopic.getName());
 
         // create the array of channel models
-        f_aChannel = new PagedTopicChannelModel[f_cChannel];
-        for (int nChannel = 0; nChannel < f_cChannel; nChannel++)
+        int cChannel = pagedTopic.getChannelCount();
+        for (int nChannel = 0; nChannel < cChannel; nChannel++)
             {
-            f_aChannel[nChannel] = new PagedTopicChannelModel(pagedTopic, nChannel);
+            f_aChannel.set(nChannel, new PagedTopicChannelModel(pagedTopic, nChannel));
             }
 
         // configure the attributes of the MBean (ordering does not matter)
@@ -76,7 +81,7 @@ public class PagedTopicModel
      */
     protected int getChannelCount()
         {
-        return f_cChannel;
+        return f_pagedTopic.getChannelCount();
         }
 
     /**
@@ -188,7 +193,25 @@ public class PagedTopicModel
      */
     protected PagedTopicChannelModel getChannelModel(int nChannel)
         {
-        return f_aChannel[nChannel];
+        PagedTopicChannelModel model = f_aChannel.get(nChannel);
+        if (model == null)
+            {
+            f_lock.lock();
+            try
+                {
+                model = f_aChannel.get(nChannel);
+                if (model == null)
+                    {
+                    model = new PagedTopicChannelModel(f_pagedTopic, nChannel);
+                    f_aChannel.set(nChannel, model);
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+        return model;
         }
 
     // ----- PublishedMetrics methods ---------------------------------------
@@ -369,12 +392,13 @@ public class PagedTopicModel
     private final PagedTopicStatistics f_statistics;
 
     /**
-     * The channel count;
-     */
-    private final int f_cChannel;
-
-    /**
      * The channel models.
      */
-    private final PagedTopicChannelModel[] f_aChannel;
+    @SuppressWarnings("unchecked")
+    private final LongArray<PagedTopicChannelModel> f_aChannel = new SimpleLongArray();
+
+    /**
+     * The lock to use to synchronize access to internal state.
+     */
+    private final Lock f_lock = new ReentrantLock(true);
     }

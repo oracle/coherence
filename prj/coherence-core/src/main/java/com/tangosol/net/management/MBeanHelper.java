@@ -28,6 +28,8 @@ import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.TopicService;
+
 import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.management.annotation.Description;
 import com.tangosol.net.management.annotation.Notification;
@@ -565,16 +567,15 @@ public abstract class MBeanHelper
     /**
     * Register the specified PagedTopic subscriber group with the cluster registry.
     *
-    * @param service     the PagedTopic Service that the topic belongs to
+    * @param service     the topic Service that the topic belongs to
     * @param sTopicName  the cache name
     * @param sGroupName  the subscriber group name
     * @param statistics  the paged topic statistics
     * @param filter      the filter used to filter messages
     * @param fnConvert   the Function used to convert messages
     */
-    public static void registerSubscriberGroupMBean(CacheService service, String sTopicName,
-            String sGroupName, PagedTopicStatistics statistics,
-            Filter filter, Function fnConvert)
+    public static void registerSubscriberGroupMBean(TopicService service, String sTopicName,
+            String sGroupName, PagedTopicStatistics statistics, Filter filter, Function fnConvert)
         {
         try
             {
@@ -589,7 +590,7 @@ public abstract class MBeanHelper
                 sName = registry.ensureGlobalName(sName);
                 if (!registry.isRegistered(sName))
                     {
-                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName, filter, fnConvert));
+                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName, filter, fnConvert, service));
                     }
                 }
             }

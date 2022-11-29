@@ -168,9 +168,29 @@ public class Usage
         }
 
     /**
+     * Increment the waiting subscriber count.
+     *
+     * @return the new count
+     */
+    public int incrementWaitingSubscriberCount()
+        {
+        return adjustWaitingSubscriberCount(1);
+        }
+
+    /**
+     * Decrement the waiting subscriber count.
+     *
+     * @return the new count
+     */
+    public int decrementWaitingSubscriberCount()
+        {
+        return adjustWaitingSubscriberCount(-1);
+        }
+
+    /**
      * Adjust the waiting subscriber count.
      *
-     * @param cAdjust  the adjust
+     * @param cAdjust  the amount to adjust the count by
      *
      * @return the new count
      */

@@ -33,11 +33,12 @@ public class PagedTopicStatistics
     /**
      * Create a {@link PagedTopicStatistics}.
      *
-     * @param cChannel  the channel count.
+     * @param cChannel    the current channel count
+     * @param sTopicName  the name of the topic
      */
-    public PagedTopicStatistics(int cChannel)
+    public PagedTopicStatistics(int cChannel, String sTopicName)
         {
-        f_cChannel = cChannel;
+        m_sTopicName = sTopicName;
         for (int i = 0; i < cChannel; i++)
             {
             m_aChannelStats.set(i, new PagedTopicChannelStatistics(i));
@@ -45,13 +46,13 @@ public class PagedTopicStatistics
         }
 
     /**
-     * Return the number of channels in the topic.
+     * Returns the name of the topic.
      *
-     * @return the number of channels in the topic
+     * @return the name of the topic
      */
-    public int getChannelCount()
+    public String getTopicName()
         {
-        return f_cChannel;
+        return m_sTopicName;
         }
 
     /**
@@ -108,7 +109,8 @@ public class PagedTopicStatistics
             f_lock.lock();
             try
                 {
-                statistics = f_mapSubscriberGroups.computeIfAbsent(sName, s -> new SubscriberGroupStatistics(f_cChannel));
+                int cChannel = (int) m_aChannelStats.getLastIndex();
+                statistics = f_mapSubscriberGroups.computeIfAbsent(sName, s -> new SubscriberGroupStatistics(cChannel));
                 }
             finally
                 {
@@ -191,9 +193,9 @@ public class PagedTopicStatistics
     // ----- data members ---------------------------------------------------
 
     /**
-     * The channel count.
+     * The name of the topic.
      */
-    private final int f_cChannel;
+    private final String m_sTopicName;
 
     /**
      * The channel statistics.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
@@ -12,7 +12,6 @@ import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.AbstractEvolvable;
 
-import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -36,9 +35,9 @@ import java.util.Map;
 
 /**
  * This class represents information about a page in a topic.
- *
+ * <p/>
  * In the implementation of a topic elements in the topic are
- * stored in pages so as to store the elements in groups for more
+ * stored in pages to store the elements in groups for more
  * efficient access but still spread them around the cluster in a reasonably
  * even manner.
  *
@@ -292,6 +291,26 @@ public class Page
     public void setInsertionNotifies(int[] anNotifiers)
         {
         m_anNotifiers = anNotifiers;
+        }
+
+    /**
+     * Increment the pages reference count by one.
+     *
+     * @return the new count
+     */
+    public int incrementReferenceCount()
+        {
+        return adjustReferenceCount(1);
+        }
+
+    /**
+     * Decrement the pages reference count by one.
+     *
+     * @return the new count
+     */
+    public int decrementReferenceCount()
+        {
+        return adjustReferenceCount(-1);
         }
 
     /**

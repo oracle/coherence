@@ -13,7 +13,6 @@ import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.util.DaemonPool;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Gate;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.NullImplementation;
@@ -662,7 +661,10 @@ public class BatchingOperationsQueue<V, R>
      */
     protected void assertActive()
         {
-        Base.azzert(isActive(), "This batching queue is no longer active");
+        if (!isActive())
+            {
+            throw new IllegalStateException("This batching queue is no longer active");
+            }
         }
 
     /**

@@ -7,6 +7,8 @@
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
+
+import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
@@ -143,13 +145,15 @@ public class PollProcessor
          *
          * @param cElementsRemaining  true iff the target page has been exhausted
          * @param nNext               the index of the next element in the page
-         * @param queueElements        the elements to return in this result
+         * @param queueElements       the elements to return in this result
+         * @param lHead               the initial head page for the subscription
          */
-        public Result(int cElementsRemaining, int nNext, Queue<Binary> queueElements)
+        public Result(int cElementsRemaining, int nNext, Queue<Binary> queueElements, long lHead)
             {
             m_cElementsRemaining = cElementsRemaining;
             m_nNext              = nNext;
             m_queueElements      = queueElements == null ? new LinkedList<>() : queueElements;
+            m_lSubscriptionHead  = lHead;
             }
 
         // ----- accessor methods -----------------------------------------------
@@ -185,6 +189,52 @@ public class PollProcessor
             return m_queueElements == null ? new LinkedList<>() : m_queueElements;
             }
 
+        /**
+         * Return the subscription head page.
+         *
+         * @return the subscription head page
+         */
+        public long getSubscriptionHead()
+            {
+            return m_lSubscriptionHead;
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Returns a new "exhausted" {@link Result}.
+         *
+         * @param subscription  the current {@link Subscription}
+         *
+         * @return a new "exhausted" {@link Result}
+         */
+        public static Result exhausted(Subscription subscription)
+            {
+            return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null, subscription.getSubscriptionHead());
+            }
+
+        /**
+         * Returns a new "unknown subscriber" {@link Result}.
+         *
+         * @return a new "unknown subscriber" {@link Result}
+         */
+        public static Result unknownSubscriber()
+            {
+            return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null, Page.NULL_PAGE);
+            }
+
+        /**
+         * Returns a new "not allocated channel" {@link Result}.
+         *
+         * @param nNext  the index of the next element in the page
+         *
+         * @return a new "not allocated channel" {@link Result}
+         */
+        public static Result notAllocated(int nNext)
+            {
+            return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, nNext, null, Page.NULL_PAGE);
+            }
+
         // ----- EvolvablePortableObject interface --------------------------
 
         @Override
@@ -196,9 +246,19 @@ public class PollProcessor
        @Override
         public void readExternal(PofReader in) throws IOException
             {
+            int nVersion = getDataVersion();
+
             m_cElementsRemaining = in.readInt(0);
             m_nNext              = in.readInt(1);
             m_queueElements      = in.readCollection(2, new LinkedList<>());
+            if (nVersion >= 3)
+                {
+                m_lSubscriptionHead = in.readLong(3);
+                }
+            else
+                {
+                m_lSubscriptionHead = Page.NULL_PAGE;
+                }
             }
 
         @Override
@@ -207,6 +267,7 @@ public class PollProcessor
             out.writeInt(0, m_cElementsRemaining);
             out.writeInt(1, m_nNext);
             out.writeCollection(2, m_queueElements, Binary.class);
+            out.writeLong(3, m_lSubscriptionHead);
             }
 
         // ----- object methods -------------------------------------------------
@@ -218,6 +279,7 @@ public class PollProcessor
                     "remaining=" + m_cElementsRemaining +
                     ", next=" + m_nNext +
                     ", retrieved=" + m_queueElements +
+                    ", subscriptionHead=" + m_lSubscriptionHead +
                     ')';
             }
 
@@ -232,7 +294,7 @@ public class PollProcessor
         /**
          * {@link EvolvablePortableObject} data version of this class.
          */
-        public static final int DATA_VERSION = 2;
+        public static final int DATA_VERSION = 3;
 
         /**
          * Special value indicating that the subscriber is unknown.
@@ -253,7 +315,7 @@ public class PollProcessor
 
         /**
          * The index of the next element in this page.
-         *
+         * <p/>
          * This can be used by the subscriber to help in detection channel collisions.
          */
         private int m_nNext;
@@ -262,6 +324,11 @@ public class PollProcessor
          * A {@link Queue} containing the elements retrieved from the topic
          */
         private Queue<Binary> m_queueElements;
+
+        /**
+         * The head page for the subscription.
+         */
+        private long m_lSubscriptionHead = Page.NULL_PAGE;
         }
 
     // ----- constants ------------------------------------------------------

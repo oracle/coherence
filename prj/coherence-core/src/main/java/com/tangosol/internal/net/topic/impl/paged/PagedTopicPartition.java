@@ -32,26 +32,29 @@ import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
+
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.RequestIncompleteException;
 
+import com.tangosol.net.TopicService;
+
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.net.management.MBeanHelper;
+
 import com.tangosol.net.partition.ObservableSplittingBackingMap;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.Subscriber.CommitResultStatus;
 import com.tangosol.net.topic.TopicException;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ConverterCollections;
@@ -222,7 +225,7 @@ public class PagedTopicPartition
                 // else; if there are other full pages, and we aren't preventing their removal
                 }
 
-            return new OfferProcessor.Result(OfferProcessor.Result.Status.TopicFull, 0, cbCapPage, -1);
+            return new OfferProcessor.Result(OfferProcessor.Result.Status.TopicFull, 0, cbCapPage, PagedPosition.NULL_OFFSET);
             }
 
         return null;
@@ -284,7 +287,7 @@ public class PagedTopicPartition
             {
             // The page has been removed or is full so the producer's idea of the tail
             // is out of date, and it needs to re-offer to the correct tail page
-            return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, 0, -1);
+            return new OfferProcessor.Result(OfferProcessor.Result.Status.PageSealed, 0, 0, PagedPosition.NULL_OFFSET);
             }
         else if (page.getTail() == Page.EMPTY)
             {
@@ -457,7 +460,7 @@ public class PagedTopicPartition
         else
             {
             // attach old tail to new tail
-            page.adjustReferenceCount(1); // ref from old tail to new page
+            page.incrementReferenceCount(); // ref from old tail to new page
 
             Page pagePrev = enlistPage(nChannel, lTailPrev);
             if (pagePrev != null)
@@ -760,7 +763,7 @@ public class PagedTopicPartition
             Page                        pageNext  = entryNext.getValue();
             if (pageNext != null)
                 {
-                pageNext.adjustReferenceCount(-1);
+                pageNext.decrementReferenceCount();
                 entryNext.setValue(pageNext);
                 }
             }
@@ -849,7 +852,7 @@ public class PagedTopicPartition
                     {
                     // the next page does not exist, thus we have nothing to detach from other than removing
                     // our interest in auto-attaching to the next insert
-                    usage.adjustWaitingSubscriberCount(-1);
+                    usage.decrementWaitingSubscriberCount();
                     page = null;
                     }
                 else
@@ -858,7 +861,7 @@ public class PagedTopicPartition
                     }
                 }
 
-            while (page != null && page.adjustReferenceCount(-1) == 0)
+            while (page != null && page.decrementReferenceCount() == 0)
                 {
                 removePageIfNotRetainingElements(nChannel, lPage);
 
@@ -961,7 +964,7 @@ public class PagedTopicPartition
                     return null;
                     }
 
-                if (filter != null && !Base.equals(subscription.getFilter(), filter))
+                if (filter != null && !Objects.equals(subscription.getFilter(), filter))
                     {
                     // do not allow new subscriber instances to update the filter
                     throw new TopicException("Cannot change the Filter in existing Subscriber group \""
@@ -969,7 +972,7 @@ public class PagedTopicPartition
                             + subscription.getFilter() + " new=" + filter);
                     }
 
-                if (fnConvert != null && !Base.equals(subscription.getConverter(), fnConvert))
+                if (fnConvert != null && !Objects.equals(subscription.getConverter(), fnConvert))
                     {
                     // do not allow new subscriber instances to update the converter function
                     throw new TopicException("Cannot change the converter in existing Subscriber group \""
@@ -1003,7 +1006,7 @@ public class PagedTopicPartition
                 if (lPage == Page.NULL_PAGE)
                     {
                     // the partition is empty; register interest to auto-pin the next added page
-                    usage.adjustWaitingSubscriberCount(1);
+                    usage.incrementWaitingSubscriberCount();
 
                     lPage = usage.getPartitionMax();
 
@@ -1016,7 +1019,7 @@ public class PagedTopicPartition
                     }
                 else
                     {
-                    enlistPage(nChannel, lPage).adjustReferenceCount(1);
+                    enlistPage(nChannel, lPage).incrementReferenceCount();
                     subscription.setPage(lPage);
                     }
 
@@ -1051,7 +1054,7 @@ public class PagedTopicPartition
                 while (lPage < alSubscriptionHeadGlobal[nChannel] && page != null)
                     {
                     long lPageNext = page.getNextPartitionPage();
-                    if (page.adjustReferenceCount(-1) == 0)
+                    if (page.decrementReferenceCount() == 0)
                         {
                         removePageIfNotRetainingElements(nChannel, lPage);
                         }
@@ -1060,7 +1063,7 @@ public class PagedTopicPartition
                     if (lPageNext == Page.NULL_PAGE)
                         {
                         page = null;
-                        usage.adjustWaitingSubscriberCount(1);
+                        usage.incrementWaitingSubscriberCount();
 
                         // we leave the subscription pointing at the prior non-existent page; same as in poll
                         // the page doesn't exist and thus poll will advance to the polled page
@@ -1072,7 +1075,7 @@ public class PagedTopicPartition
                         page  = enlistPage(nChannel, lPage);
 
                         subscription.setPage(lPage);
-                        page.adjustReferenceCount(1);
+                        page.incrementReferenceCount();
                         }
                     }
 
@@ -1116,7 +1119,7 @@ public class PagedTopicPartition
                     if (nChannel == 0)
                         {
                         subscriptionZero = subscription;
-                        if (fChannelCountChanged || !subscriptionZero.hasSubscriber(subscriberId))
+                        if (!subscriptionZero.hasSubscriber(subscriberId))
                             {
                             // the subscription is out of date, or this is a new subscriber and
                             // is not an anonymous subscriber (nSubscriberId != 0)
@@ -1144,7 +1147,7 @@ public class PagedTopicPartition
                     subscription.setOwningSubscriber(nOwner);
                     getStatistics().getSubscriberGroupStatistics(subscriberGroupId.getGroupName()).setOwningSubscriber(nChannel, nOwner);
 
-                    if (fChannelCountChanged || (fReconnect && Objects.equals(nOwner, subscriberId)))
+                    if ((fReconnect && Objects.equals(nOwner, subscriberId)))
                         {
                         // either the channel count has changed, or the subscriber is the channel owner and is
                         // reconnecting, so rollback to the last committed position
@@ -1155,7 +1158,7 @@ public class PagedTopicPartition
                     {
                     // This is an anonymous subscriber.
                     // We do not need to do channel allocation as anonymous subscribers have all channels
-                    if (fChannelCountChanged || fReconnect)
+                    if (fReconnect)
                         {
                         // this is either a reconnect request, or the channel count has changed, so rollback
                         subscription.rollback();
@@ -1168,7 +1171,7 @@ public class PagedTopicPartition
 
         String               sGroupName   = subscriberGroupId.getGroupName();
         String               sTopicName   = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
-        CacheService         service      = f_ctxManager.getCacheService();
+        TopicService         service      = (TopicService) f_ctxManager.getCacheService();
         PagedTopicStatistics statistics = getStatistics();
         MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, sGroupName, statistics, filter, fnConvert);
         return alResult;
@@ -1185,8 +1188,20 @@ public class PagedTopicPartition
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void closeSubscription(Subscription.Key key, SubscriberId subscriberId)
         {
+        int cChannel;
+
+        try
+            {
+            cChannel = getChannelCount();
+            }
+        catch (IllegalArgumentException ignored)
+            {
+            // topic has been closed
+            return;
+            }
+
         BackingMapContext ctxSubscriptions  = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
-        long[]            alResult          = new long[getChannelCount()];
+        long[]            alResult          = new long[cChannel];
         SubscriberGroupId subscriberGroupId = key.getGroupId();
         int               cParts            = getPartitionCount();
         int               nSyncPartition    = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
@@ -1207,7 +1222,6 @@ public class PagedTopicPartition
                 // we only do this in channel zero, so as not to bloat all the other entries with the subscriber maps
                 if (subscriptionZero == null)
                     {
-                    int cChannel     = getChannelCount();
                     subscriptionZero = subscription;
                     Map<Integer, Set<SubscriberId>> mapRemoved = SubscriberId.NullSubscriber.equals(subscriberId)
                             ? subscriptionZero.removeAllSubscribers(cChannel, getMemberSet())
@@ -1297,13 +1311,13 @@ public class PagedTopicPartition
             {
             // the subscriber requested a channel that does not exist
             // the subscriber may have an incorrect channel count
-            return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, 0, null);
+            return PollProcessor.Result.notAllocated(0);
             }
 
         if (!entrySubscription.isPresent() || entrySubscription.getValue() == null)
             {
             // the subscriber is unknown, but we're allowing that as the client should handle it
-            return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
+            return PollProcessor.Result.unknownSubscriber();
             }
 
         // check whether the channel count has changed
@@ -1311,7 +1325,7 @@ public class PagedTopicPartition
         if (cChannel != subscriptionZero.getLatestChannelCount())
             {
             // the channel count has changed to force the subscriber to reconnect, which will refresh allocations
-            return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null);
+            return PollProcessor.Result.unknownSubscriber();
             }
 
         Subscription subscription = entrySubscription.getValue();
@@ -1320,13 +1334,19 @@ public class PagedTopicPartition
         if (!Objects.equals(owner, subscriberId))
             {
             // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
-            return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, Integer.MAX_VALUE, null);
+            return PollProcessor.Result.notAllocated(Integer.MAX_VALUE);
+            }
+
+        if (lPage == Page.NULL_PAGE)
+            {
+            // subscriber tried to poll a page that is before the first ever head
+            return PollProcessor.Result.exhausted(subscription);
             }
 
         Page          page           = peekPage(nChannel, lPage); // we'll later enlist but only if we've exhausted the page
         PagedPosition posCommitted   = subscription.getCommittedPosition();
-        long          lPageCommitted = posCommitted == null ? -1 : posCommitted.getPage();
-        int           nPosCommitted  = posCommitted == null ? -1 : posCommitted.getOffset();
+        long          lPageCommitted = posCommitted == null ? Page.NULL_PAGE : posCommitted.getPage();
+        int           nPosCommitted  = posCommitted == null ? PagedPosition.NULL_OFFSET : posCommitted.getOffset();
 
         if (lPage < lPageCommitted)
             {
@@ -1335,7 +1355,7 @@ public class PagedTopicPartition
             // We should have previously exhausted and detached from this page, we can't just fall through
             // as the page has already been detached we can't allow a double detach
             checkForPageCleanup(entrySubscription, lPage, page);
-            return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+            return PollProcessor.Result.exhausted(subscription);
             }
 
         if (lPage == lPageCommitted)
@@ -1348,7 +1368,7 @@ public class PagedTopicPartition
                 // We should have previously exhausted and detached from this page, we can't just fall through
                 // as the page has already been detached we can't allow a double detach
                 checkForPageCleanup(entrySubscription, lPage, page);
-                return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+                return PollProcessor.Result.exhausted(subscription);
                 }
             }
 
@@ -1363,12 +1383,12 @@ public class PagedTopicPartition
                 // the client is making a blind request, or
                 // we'd previously exhausted and detached from this page, we can't just fall through
                 // as the page has already been detached we can't allow a double detach
-                return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+                return PollProcessor.Result.exhausted(subscription);
                 }
             }
         else if (lPage < lPageThis) // read from fully consumed page
             {
-            return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+            return PollProcessor.Result.exhausted(subscription);
             }
         else // otherwise lPage > lPageThis; first poll from page, start at the beginning
             {
@@ -1379,7 +1399,7 @@ public class PagedTopicPartition
                 page = ensurePage(nChannel, enlistPageEntry(nChannel, lPage));
                 if (page == null)
                     {
-                    return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null);
+                    return PollProcessor.Result.exhausted(subscription);
                     }
                 }
 
@@ -1405,7 +1425,7 @@ public class PagedTopicPartition
         Converter<Binary, Object> converterFrom = getValueFromInternalConverter();
         Converter<Object, Binary> converterTo   = getValueToInternalConverter();
 
-        if (lPage == lPageCommitted && nPosCommitted != -1)
+        if (lPage == lPageCommitted && nPosCommitted != PagedPosition.NULL_OFFSET)
             {
             nPos = Math.max(nPos, nPosCommitted + 1);
             }
@@ -1450,7 +1470,7 @@ public class PagedTopicPartition
                 {
                 // next page for this partition doesn't exist yet, register this subscriber's interest so that
                 // that next page will be initialized with a reference count which includes this subscriber
-                enlistUsage(nChannel).adjustWaitingSubscriberCount(1);
+                enlistUsage(nChannel).incrementWaitingSubscriberCount();
 
                 subscription.setPosition(Integer.MAX_VALUE); // indicator that we're waiting to learn the next page
                 }
@@ -1459,7 +1479,7 @@ public class PagedTopicPartition
                 subscription.setPage(lPageNext);
                 subscription.setPosition(0);
                 }
-            result = new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, nPos, listValues);
+            result = new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, nPos, listValues, subscription.getSubscriptionHead());
             }
         else
             {
@@ -1471,7 +1491,7 @@ public class PagedTopicPartition
                 // that position is currently empty; register for notification when it is set
                 requestInsertionNotification(enlistPage(nChannel, lPage), nNotifierId, nChannel);
                 }
-            result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues);
+            result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues, subscription.getSubscriptionHead());
             }
 
         if (!subscriberId.isAnonymous())
@@ -1535,7 +1555,7 @@ public class PagedTopicPartition
         if (cSubscription == 0)
             {
             // There are no subscriptions left for this page, it can be deleted...
-            if (page.adjustReferenceCount(-1) == 0)
+            if (page.decrementReferenceCount() == 0)
                 {
                 Logger.fine(String.format("Removing previously fully committed page. Channel=%d Page=%d Group=%s",
                                           nChannel, lPage, key.getGroupId().getGroupName()));
@@ -1736,7 +1756,7 @@ public class PagedTopicPartition
             Page                        pageDereference  = entryDereference.getValue();
 
             // adjust the reference count of the first page to remove (the lowest page number)
-            if (pageDereference.adjustReferenceCount(-1) == 0)
+            if (pageDereference.decrementReferenceCount() == 0)
                 {
                 removePageIfNotRetainingElements(nChannel, entryDereference.getKey().getPageId());
                 }
@@ -1773,7 +1793,7 @@ public class PagedTopicPartition
                 long lPageNext = pageFirst.getNextPartitionPage();
                 if (lPageNext != Page.NULL_PAGE)
                     {
-                    enlistPage(nChannel, lPageNext).adjustReferenceCount(1);
+                    enlistPage(nChannel, lPageNext).incrementReferenceCount();
                     }
                 }
             }
