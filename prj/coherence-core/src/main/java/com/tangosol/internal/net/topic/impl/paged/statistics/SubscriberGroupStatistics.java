@@ -32,7 +32,7 @@ public class SubscriberGroupStatistics
     /**
      * Create a {@link SubscriberGroupStatistics}.
      *
-     * @param cChannel  the channel count
+     * @param cChannel  the current channel count
      */
     public SubscriberGroupStatistics(int cChannel)
         {

@@ -8,59 +8,80 @@ package topics;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
+
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
+
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
+
 import com.oracle.bedrock.runtime.options.DisplayName;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.oracle.bedrock.testsupport.junit.TestLogs;
-import com.oracle.coherence.common.base.Blocking;
+
 import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+
+import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
+
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheService;
-import com.tangosol.net.Cluster;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.Service;
 import com.tangosol.net.Session;
+
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
+
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.junit.rules.TestName;
+
 import topics.callables.GetChannelsWithMessages;
 import topics.callables.PublishMessages;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.tangosol.net.topic.Subscriber.completeOnEmpty;
 import static com.tangosol.net.topic.Subscriber.inGroup;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+
+import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @SuppressWarnings({"resource", "unchecked"})
@@ -135,7 +156,8 @@ public class TopicChannelCountTests
                 for (int i = 0; i < cChannel; i++)
                     {
                     Eventually.assertDeferred(aFuture[i]::isDone, is(true));
-                    assertThat("Future " + i + " should have completed normally", aFuture[i].isCompletedExceptionally(), is(false));
+                    // the future should have completed normally
+                    aFuture[i].get();
                     }
 
                 CoherenceClusterMember member = m_cluster.getCluster()
@@ -190,7 +212,8 @@ public class TopicChannelCountTests
                 for (int i = 0; i < cChannel; i++)
                     {
                     Eventually.assertDeferred(aFuture[i]::isDone, is(true));
-                    assertThat("Future " + i + " should have completed normally", aFuture[i].isCompletedExceptionally(), is(false));
+                    // we're effectively asserting the future completed normally
+                    aFuture[i].get();
                     }
 
                 CoherenceClusterMember member = m_cluster.getCluster()
@@ -299,7 +322,6 @@ public class TopicChannelCountTests
         }
 
     @Test
-    //@Ignore("Temporarily skipped: Bug 34767222")
     public void shouldIncreaseChannelCountWhileActive() throws Exception
         {
         String sTopicName = m_testWatcher.getMethodName();
@@ -324,13 +346,22 @@ public class TopicChannelCountTests
                     }
                 });
 
-            NamedTopic<String>    topic       = session.getTopic(sTopicName);
-            Queue<SubscriberTask> subscribers = new LinkedList<>();
-            Queue<PublisherTask>  publishers  = new LinkedList<>();
+            NamedTopic<String>   topic       = session.getTopic(sTopicName);
+            List<SubscriberTask> subscribers = new ArrayList<>();
+            List<PublisherTask>  publishers  = new ArrayList<>();
+            Queue<Integer>       queueId     = new LinkedList<>();
 
             for (int i = 0; i < 10; i++)
                 {
-                subscribers.add(new SubscriberTask(topic, i));
+                Integer nId = queueId.poll();
+                if (nId == null)
+                    {
+                    subscribers.add(new SubscriberTask(topic, i));
+                    }
+                else
+                    {
+                    subscribers.add(new SubscriberTask(topic, i, nId));
+                    }
                 }
 
             int cChannel = 17;
@@ -339,6 +370,7 @@ public class TopicChannelCountTests
                 {
                 publishers.add(new PublisherTask(topic, nId++, cChannel));
                 }
+
             for (int i = 0; i < 5; i++)
                 {
                 Thread.sleep(2000);
@@ -385,8 +417,10 @@ public class TopicChannelCountTests
             Logger.info("Published to  : " + Arrays.toString(anPublished) + " of " + cChannel);
             Logger.info("Received from : " + Arrays.toString(anReceived) + " of " + cChannel);
             Logger.info("Missing       : ");
+
             if (setMissing.size() > 0)
                 {
+                // The tes will fail in later assertions below, so we dump out some debug information
                 Set<Integer> setChannel = new HashSet<>();
                 for (PositionAndChannel p : setMissing)
                     {
@@ -404,6 +438,10 @@ public class TopicChannelCountTests
                                     + " first=" + position + " last=" + subscriberTask.m_mapLast.get(nChannel));
                             }
                         }
+                    }
+                for (SubscriberTask subscriber : subscribers)
+                    {
+                    subscriber.dumpStats();
                     }
                 }
 
@@ -424,13 +462,130 @@ public class TopicChannelCountTests
             }
         }
 
+    @Test
+    public void shouldIncreaseChannelCountWhileActiveSubscriber() throws Exception
+        {
+        String sTopicName = m_testWatcher.getMethodName();
+
+        try (Session session = m_cluster.buildSession(SessionBuilders.storageDisabledMember()))
+            {
+            NamedTopic<String> topic       = session.getTopic(sTopicName);
+            int                nChannelOne = 1;
+            int                nChannelTwo = 21;
+
+            try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("test-group"), completeOnEmpty(), PagedTopicSubscriber.withIdentifyingName("one"));
+                 Publisher<String>  publisherOne  = topic.createPublisher(PagedTopicPublisher.ChannelCount.of(17), Publisher.OrderBy.id(nChannelOne));
+                 Publisher<String>  publisherTwo  = topic.createPublisher(PagedTopicPublisher.ChannelCount.of(34), Publisher.OrderBy.id(nChannelTwo)))
+                {
+                List<String> listMessage = new ArrayList<>();
+
+                for (int i = 0; i < 10; i++)
+                    {
+                    publisherOne.publish("message-1-" + i).get(1, TimeUnit.MINUTES);
+                    }
+
+                Subscriber.Element<String> element = subscriberOne.receive().get(1, TimeUnit.MINUTES);
+                String sValue = element.getValue() + " from " + subscriberOne;
+                listMessage.add(sValue);
+                System.err.println("Received: " + sValue);
+                element.commit();
+
+                System.err.println("Publishing from Publisher Two: " + publisherTwo);
+                publisherTwo.publish("message-2-0").get(1, TimeUnit.MINUTES);
+
+                System.err.println("Creating Additional Subscribers");
+                PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("test-group"), completeOnEmpty(), PagedTopicSubscriber.withIdentifyingName("two"));
+                PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup("test-group"), completeOnEmpty(), PagedTopicSubscriber.withIdentifyingName("three"));
+
+                System.err.println("Receive from Subscriber Two");
+                element = subscriberTwo.receive().get(1, TimeUnit.MINUTES);
+                if (element != null)
+                    {
+                    sValue = element.getValue() + " from " + subscriberTwo;
+                    listMessage.add(sValue);
+                    System.err.println("Received: " + sValue);
+                    element.commit();
+                    }
+
+                System.err.println("Receive from Subscriber Three");
+                element = subscriberThree.receive().get(1, TimeUnit.MINUTES);
+                if (element != null)
+                    {
+                    sValue = element.getValue() + " from " + subscriberThree;
+                    listMessage.add(sValue);
+                    System.err.println("Received: " + sValue);
+                    element.commit();
+                    }
+
+                System.err.println("Subscribers:");
+                System.err.println(subscriberOne);
+                System.err.println(subscriberTwo);
+                System.err.println(subscriberThree);
+
+                long cNotifyTwo   = subscriberTwo.getNotify();
+                long cNotifyThree = subscriberThree.getNotify();
+
+                System.err.println("Publishing more messages from publisher two");
+                for (int i = 1; i < 10; i++)
+                    {
+                    publisherTwo.publish("message-2-" + i).get(1, TimeUnit.MINUTES);
+                    }
+
+                // wait for whichever subscriber owns channel "nChannelTwo" to be notified of additional messages
+
+                //noinspection StatementWithEmptyBody
+                if (subscriberOne.isOwner(nChannelTwo))
+                    {
+                    // nothing to do as subscriber one will not be waiting
+                    }
+                else if (subscriberTwo.isOwner(nChannelTwo))
+                    {
+                    System.err.println("Waiting for Subscriber two to be notified");
+                    Eventually.assertDeferred(subscriberTwo::getNotify, is(greaterThan(cNotifyTwo)));
+                    }
+                else if (subscriberThree.isOwner(nChannelTwo))
+                    {
+                    System.err.println("Waiting for Subscriber three to be notified");
+                    Eventually.assertDeferred(subscriberThree::getNotify, is(greaterThan(cNotifyThree)));
+                    }
+
+                for (PagedTopicSubscriber<String> subscriber : Arrays.asList(subscriberOne, subscriberTwo, subscriberThree))
+                    {
+                    System.err.println(">>> Using " + subscriber);
+                    subscriber.printChannels(System.err);
+                    subscriber.printPreFetchCache(System.err);
+
+                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                    while (element != null)
+                        {
+                        sValue = element.getValue() + " from " + subscriber;
+                        listMessage.add(sValue);
+                        System.err.println("Received: " + sValue);
+                        element.commit();
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        }
+                    }
+
+                System.err.println(">>>> Received messages:");
+                listMessage.forEach(System.err::println);
+                assertThat(listMessage.size(), is(greaterThanOrEqualTo(20)));
+                }
+            }
+        }
+
     static class SubscriberTask
         implements Runnable
         {
         public SubscriberTask(NamedTopic<String> topic, int nId)
             {
-            m_topic = topic;
-            m_nId   = nId;
+            this(topic, nId, -1);
+            }
+
+        public SubscriberTask(NamedTopic<String> topic, int nId, int nNotificationId)
+            {
+            m_topic           = topic;
+            m_nId             = nId;
+            m_nNotificationId = nNotificationId;
             }
 
         public Map<PositionAndChannel, String> getMessages()
@@ -438,12 +593,27 @@ public class TopicChannelCountTests
             return m_mapMessage;
             }
 
+        protected Subscriber<String> createSubscriber()
+            {
+            if (m_nNotificationId == -1)
+                {
+                return m_topic.createSubscriber(inGroup("test"),
+                                                PagedTopicSubscriber.withIdentifyingName(String.valueOf(m_nId)),
+                                                Subscriber.CompleteOnEmpty.enabled());
+                }
+
+            return m_topic.createSubscriber(inGroup("test"),
+                    PagedTopicSubscriber.withIdentifyingName(String.valueOf(m_nId)),
+                    PagedTopicSubscriber.withNotificationId(m_nNotificationId),
+                    Subscriber.CompleteOnEmpty.enabled());
+            }
+
         @Override
         public void run()
             {
-            Logger.info("SubscriberTask " + m_nId + " starting");
-            try (Subscriber<String> subscriber = m_topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()))
+            try (Subscriber<String> subscriber = m_subscriber = createSubscriber())
                 {
+                Logger.info("SubscriberTask starting: " + subscriber);
                 try
                     {
                     long nStart = System.currentTimeMillis();
@@ -480,9 +650,27 @@ public class TopicChannelCountTests
                 }
             }
 
+        public void dumpStats()
+            {
+            if (m_subscriber != null)
+                {
+                PagedTopicSubscriber<?> pagedTopicSubscriber = (PagedTopicSubscriber<?>) m_subscriber;
+                System.err.println("--------------------------------------------------");
+                System.err.println("Attributes for subscriber: id=" + pagedTopicSubscriber.getId()
+                        + " name=" + pagedTopicSubscriber.getIdentifyingName());
+                SubscriberModel model = new SubscriberModel((PagedTopicSubscriber<?>) m_subscriber);
+                model.dumpAttributes(System.err);
+                System.err.println("--------------------------------------------------");
+                }
+            }
+
         protected final NamedTopic<String> m_topic;
 
+        protected Subscriber<String> m_subscriber;
+
         protected final int m_nId;
+
+        protected final int m_nNotificationId;
 
         protected final Map<PositionAndChannel, String> m_mapMessage = new HashMap<>();
 
@@ -501,13 +689,17 @@ public class TopicChannelCountTests
             super(topic, nId);
             }
 
+        public FinalSubscriberTask(NamedTopic<String> topic, int nId, int nNotificationId)
+            {
+            super(topic, nId, nNotificationId);
+            }
+
         @Override
         public void run()
             {
-            //System.setProperty("coherence.subscriber.debug", "true");
-            Logger.info("SubscriberTask " + m_nId + " starting");
-            try (Subscriber<String> subscriber = m_topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()))
+            try (Subscriber<String> subscriber = m_subscriber = createSubscriber())
                 {
+                Logger.info("FinalSubscriberTask starting: " + subscriber);
                 CompletableFuture<Subscriber.Element<String>> future = subscriber.receive();
                 Subscriber.Element<String> element = future.get(1, TimeUnit.MINUTES);
                 while (element != null)
@@ -517,12 +709,12 @@ public class TopicChannelCountTests
                     element = subscriber.receive().get(1, TimeUnit.MINUTES);
                     }
                 m_future.complete(null);
+                Logger.info("FinalSubscriberTask " + m_nId + " completed (" + m_mapMessage.size() + ") subscriber=" + subscriber);
                 }
             catch (Throwable t)
                 {
                 m_future.completeExceptionally(t);
                 }
-            Logger.info("SubscriberTask " + m_nId + " completed (" + m_mapMessage.size() + ")");
             }
         }
 

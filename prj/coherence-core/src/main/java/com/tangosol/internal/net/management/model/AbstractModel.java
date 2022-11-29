@@ -7,6 +7,7 @@
 package com.tangosol.internal.net.management.model;
 
 import com.oracle.coherence.common.base.Logger;
+import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -21,8 +22,11 @@ import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
 
 import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
+import javax.management.openmbean.TabularDataSupport;
 
+import java.io.PrintStream;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -176,6 +180,32 @@ public abstract class AbstractModel<M extends AbstractModel<M>>
                 }
             }
         return m_mBeanInfo;
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Print the model's attributes to the specified {@link PrintStream}.
+     *
+     * @param out  the {@link PrintStream} to print the attributes to
+     */
+    @SuppressWarnings("unchecked")
+    public void dumpAttributes(PrintStream out)
+        {
+        for (Map.Entry<String, ModelAttribute<M>> entry : f_mapAttribute.entrySet())
+            {
+            ModelAttribute<M> attribute = entry.getValue();
+            if (attribute instanceof TabularModel)
+                {
+                ((TabularModel<?, M>) attribute).dumpRows(out, (M) this, entry.getKey());
+                }
+            else
+                {
+                Function<M, ?>    function = attribute.getFunction();
+                Object            oValue   = function.apply((M) this);
+                out.printf("%s %s\n", entry.getKey(), oValue);
+                }
+            }
         }
 
     // ----- data members ---------------------------------------------------
