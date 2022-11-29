@@ -1791,6 +1791,13 @@ public interface Subscriber<V>
         Position getLastReceived();
 
         /**
+         * Returns the last position polled by this subscriber.
+         *
+         * @return the last position polled by this subscriber
+         */
+        Position getLastPolled();
+
+        /**
          * Returns {@code true} if the channel is empty.
          *
          * @return  {@code true} if the channel is empty
@@ -1834,6 +1841,12 @@ public interface Subscriber<V>
 
             @Override
             public Position getLastReceived()
+                {
+                return PagedPosition.NULL_POSITION;
+                }
+
+            @Override
+            public Position getLastPolled()
                 {
                 return PagedPosition.NULL_POSITION;
                 }

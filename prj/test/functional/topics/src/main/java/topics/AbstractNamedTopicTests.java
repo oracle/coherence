@@ -2389,6 +2389,38 @@ public abstract class AbstractNamedTopicTests
         }
 
     @Test
+    public void shouldNotMissMessagesWhenCancellingFutures() throws Exception
+        {
+        NamedTopic<String> topic = ensureTopic();
+
+        try (Publisher<String>            publisher  = topic.createPublisher();
+             PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(m_testName.getMethodName())))
+            {
+            long cWait = subscriber.getWaitCount();
+            CompletableFuture<Element<String>> futureOne = subscriber.receive();
+            CompletableFuture<Element<String>> futureTwo = subscriber.receive();
+
+            // allow subscriber to enter wait state
+            Eventually.assertDeferred(subscriber::getWaitCount, is(greaterThan(cWait)));
+
+            futureOne.cancel(true);
+
+            publisher.publish("message-one").get(1, TimeUnit.MINUTES);
+            publisher.publish("message-two").get(1, TimeUnit.MINUTES);
+
+            Eventually.assertDeferred(futureOne::isDone, is(true));
+            assertThat(futureOne.isCancelled(), is(true));
+
+            Eventually.assertDeferred(futureTwo::isDone, is(true));
+            assertThat(futureTwo.isCancelled(), is(false));
+
+            Element<String> element = futureTwo.get();
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is("message-one"));
+            }
+        }
+
+    @Test
     public void shouldCancelWaitOnClose() throws Exception
         {
         NamedTopic<String> topic = ensureTopic();

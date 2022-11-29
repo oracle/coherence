@@ -47,6 +47,7 @@ public class SubscriberChannelTableModel
                 ATTRIBUTE_HEAD,
                 ATTRIBUTE_LAST_COMMIT,
                 ATTRIBUTE_LAST_RECEIVED,
+                ATTRIBUTE_LAST_POLLED,
                 ATTRIBUTE_OWNED};
         }
 
@@ -86,6 +87,15 @@ public class SubscriberChannelTableModel
             SimpleModelAttribute.stringBuilder("LastReceived", Subscriber.Channel.class)
                     .withDescription("The last position received by this subscriber since it was last assigned ownership of this channel")
                     .withFunction(c -> String.valueOf(c.getLastReceived()))
+                    .build();
+
+    /**
+     * The position of the last element polled from the channel.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_POLLED =
+            SimpleModelAttribute.stringBuilder("LastPolled", Subscriber.Channel.class)
+                    .withDescription("The last position polled by this subscriber since it was last assigned ownership of this channel")
+                    .withFunction(c -> String.valueOf(c.getLastPolled()))
                     .build();
 
     /**
