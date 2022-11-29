@@ -20,6 +20,7 @@ import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
 import org.hamcrest.MatcherAssert;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
@@ -53,6 +54,7 @@ import static org.hamcrest.Matchers.nullValue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CoherenceConfigSourceIT
     {
+
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                         .addExtension(new CoherenceExtension())
@@ -67,6 +69,14 @@ class CoherenceConfigSourceIT
         {
         System.setProperty("coherence.member", "sysprop01");
         System.setProperty("config.value", "sysprop");
+        }
+
+    @BeforeEach
+    void clearSystemProperties()
+        {
+        config = getConfig();
+        source = getCoherenceSource(config);
+        source.getConfigMap().truncate();
         }
 
     private static Config getConfig()
@@ -91,19 +101,7 @@ class CoherenceConfigSourceIT
         throw new IllegalStateException("CoherenceConfigSource is not in a list of sources");
         }
 
-    @Inject
-    private TestObserver observer;
-
-    private Config config;
-    private CoherenceConfigSource source;
-
-    @BeforeEach
-    void clearSystemProperties()
-        {
-        config = getConfig();
-        source = getCoherenceSource(config);
-        source.getConfigMap().truncate();
-        }
+    // ----- test methods ---------------------------------------------
 
     @Test
     void testDefaults()
@@ -143,7 +141,15 @@ class CoherenceConfigSourceIT
     @Test
     void testChangeNotification()
         {
+        Eventually.assertDeferred(() -> source.getConfigMap().entrySet(), hasSize(0));
+        Eventually.assertDeferred(() -> source.getProperties().entrySet(), hasSize(0));
+
         source.setValue("config.value", "one");
+
+        Eventually.assertDeferred(() -> source.getConfigMap().entrySet(), hasSize(1));
+        Eventually.assertDeferred(() -> source.getProperties().entrySet(), hasSize(1));
+        Eventually.assertDeferred(() -> source.getPropertyNames(), hasItem("config.value"));
+        Eventually.assertDeferred(() -> source.getValue("config.value"), is("one"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
 
         source.setValue("config.value", "two");
@@ -165,8 +171,16 @@ class CoherenceConfigSourceIT
 
         void observer(@Observes ConfigPropertyChanged event)
             {
-            System.out.println(event);
+            System.out.println("[TestObserver.observer] : " + event);
             latestValue = event.getValue();
             }
         }
+
+    // ----- data members ---------------------------------------------
+
+    @Inject
+    private TestObserver observer;
+
+    private Config config;
+    private CoherenceConfigSource source;
     }
