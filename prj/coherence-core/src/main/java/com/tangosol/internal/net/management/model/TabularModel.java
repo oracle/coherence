@@ -29,6 +29,8 @@ import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
 import javax.management.openmbean.TabularType;
 
+import java.io.PrintStream;
+
 import java.util.Arrays;
 
 import java.util.function.BiFunction;
@@ -189,11 +191,11 @@ public abstract class TabularModel<R, M>
         try
             {
             TabularDataSupport table      = new TabularDataSupport(f_tableType);
-            int                cChannel   = f_fnRowCount.apply(m);
-            CompositeData[]    rows       = new CompositeData[cChannel];
+            int                cRow       = f_fnRowCount.apply(m);
+            CompositeData[]    rows       = new CompositeData[cRow];
             int                cAttribute = f_aAttribute.length;
 
-            for (int nRow = 0; nRow < cChannel; nRow++)
+            for (int nRow = 0; nRow < cRow; nRow++)
                 {
                 Object[] aoValue = new Object[cAttribute];
                 for (int a = 0; a < cAttribute; a++)
@@ -231,6 +233,32 @@ public abstract class TabularModel<R, M>
     public String[] getAttributeNames()
         {
         return f_asAttributeNames;
+        }
+
+    /**
+     * Print the model's attributes to the specified {@link PrintStream}.
+     *
+     * @param out      the {@link PrintStream} to print the attributes to
+     * @param m        the parent model
+     * @param sPrefix  the prefix to print at the start of the data
+     */
+    public void dumpRows(PrintStream out, M m, String sPrefix)
+        {
+        int cRow = f_fnRowCount.apply(m);
+        for (int nRow = 0; nRow < cRow; nRow++)
+            {
+            StringBuilder sb = new StringBuilder(sPrefix)
+                    .append(" row=")
+                    .append(nRow);
+
+            for (ModelAttribute<R> attribute : f_aAttribute)
+                {
+                R      oRow   = f_fnRow.apply(m, nRow);
+                Object oValue = attribute.getFunction().apply(oRow);
+                sb.append(", ").append(attribute.getName()).append("=").append(oValue);
+                }
+            out.println(sb);
+            }
         }
 
     // ----- data members ---------------------------------------------------

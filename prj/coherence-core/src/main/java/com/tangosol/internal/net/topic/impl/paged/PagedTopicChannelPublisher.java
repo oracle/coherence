@@ -109,7 +109,16 @@ public class PagedTopicChannelPublisher
     public CompletableFuture<Publisher.Status> publish(Binary binValue)
         {
         ensureConnected();
-        return f_batchingQueue.add(binValue);
+        try
+            {
+            return f_batchingQueue.add(binValue);
+            }
+        catch (IllegalStateException e)
+            {
+            // The batching queue throws an IllegalStateException if closed,
+            // so we throw another with a more meaningful message
+            throw new IllegalStateException("This publisher is no longer active", e);
+            }
         }
 
     private void ensureConnected()
@@ -153,7 +162,7 @@ public class PagedTopicChannelPublisher
             now = System.currentTimeMillis();
             if (now < timeout)
                 {
-                Logger.info("Failed to reconnect publisher, will retry in "
+                Logger.finer("Failed to reconnect publisher, will retry in "
                         + retry + " millis " + this + " due to " + error.getMessage());
                 try
                     {

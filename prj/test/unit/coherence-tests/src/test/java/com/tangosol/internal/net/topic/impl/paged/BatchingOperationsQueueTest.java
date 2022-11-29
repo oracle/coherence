@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -94,7 +94,7 @@ public class BatchingOperationsQueueTest
 
         queue.close();
 
-        assertThrows(AssertionException.class, () -> queue.add(new Binary()));
+        assertThrows(IllegalStateException.class, () -> queue.add(new Binary()));
         assertThat(queue.getCurrentBatch().isEmpty(), is(true));
         assertThat(queue.getPending().isEmpty(), is(true));
         assertThat(queue.getTrigger().get(), is(BatchingOperationsQueue.TRIGGER_OPEN));

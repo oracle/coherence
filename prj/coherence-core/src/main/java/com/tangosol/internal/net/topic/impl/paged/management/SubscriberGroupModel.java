@@ -9,15 +9,25 @@ package com.tangosol.internal.net.topic.impl.paged.management;
 import com.tangosol.internal.net.management.model.AbstractModel;
 import com.tangosol.internal.net.management.model.ModelAttribute;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
+
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
+
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
 
 import javax.management.DynamicMBean;
 
+import com.tangosol.net.TopicService;
+
 import com.tangosol.util.Filter;
+import com.tangosol.util.LongArray;
+import com.tangosol.util.SimpleLongArray;
 
 import java.util.Objects;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import java.util.function.Function;
 
 /**
@@ -39,21 +49,23 @@ public class SubscriberGroupModel
      * @param sGroupName           the name of the subscriber group
      * @param filter               the filter used to filter messages to be received by subscribers in the group
      * @param fnConvert            the Function used to convert messages to be received by subscribers in the group
+     * @param service              the topic service
      */
-    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, String sGroupName, Filter<?> filter, Function<?, ?> fnConvert)
+    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, String sGroupName, Filter<?> filter,
+            Function<?, ?> fnConvert, TopicService service)
         {
         super(MBEAN_DESCRIPTION);
         f_sGroupName = sGroupName;
         f_filter     = filter;
         f_fnConvert  = fnConvert;
-        f_cChannel   = pagedTopicStatistics.getChannelCount();
         f_statistics = pagedTopicStatistics;
+        f_service    = service;
 
         // create the array of channel models
-        f_aChannel = new SubscriberGroupChannelModel[f_cChannel];
-        for (int nChannel = 0; nChannel < f_cChannel; nChannel++)
+        int cChannel = service.getChannelCount(pagedTopicStatistics.getTopicName());
+        for (int nChannel = 0; nChannel < cChannel; nChannel++)
             {
-            f_aChannel[nChannel] = new SubscriberGroupChannelModel(f_statistics, sGroupName, nChannel);
+            f_aChannel.set(nChannel, new SubscriberGroupChannelModel(f_statistics, sGroupName, nChannel));
             }
 
         // configure the attributes of the MBean
@@ -77,7 +89,7 @@ public class SubscriberGroupModel
      */
     protected int getChannelCount()
         {
-        return f_cChannel;
+        return f_service.getChannelCount(f_statistics.getTopicName());
         }
 
     /**
@@ -115,7 +127,25 @@ public class SubscriberGroupModel
      */
     protected SubscriberGroupChannelModel getChannelModel(int nChannel)
         {
-        return f_aChannel[nChannel];
+        SubscriberGroupChannelModel model = f_aChannel.get(nChannel);
+        if (model == null)
+            {
+            f_lock.lock();
+            try
+                {
+                model = f_aChannel.get(nChannel);
+                if (model == null)
+                    {
+                    model = new SubscriberGroupChannelModel(f_statistics, f_sGroupName, nChannel);
+                    f_aChannel.set(nChannel, model);
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+        return model;
         }
 
     // ----- PolledMetrics methods ---------------------------------------
@@ -246,6 +276,11 @@ public class SubscriberGroupModel
     private final PagedTopicStatistics f_statistics;
 
     /**
+     * The topic service.
+     */
+    private final TopicService f_service;
+
+    /**
      * The name of the subscriber group.
      */
     private final String f_sGroupName;
@@ -261,12 +296,13 @@ public class SubscriberGroupModel
     private final Function<?, ?> f_fnConvert;
 
     /**
-     * The channel count;
-     */
-    private final int f_cChannel;
-
-    /**
      * The channel models.
      */
-    private final SubscriberGroupChannelModel[] f_aChannel;
+    @SuppressWarnings("unchecked")
+    private final LongArray<SubscriberGroupChannelModel> f_aChannel = new SimpleLongArray();
+
+    /**
+     * The lock to use to synchronize access to internal state.
+     */
+    private final Lock f_lock = new ReentrantLock(true);
     }

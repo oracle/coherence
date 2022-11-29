@@ -189,6 +189,27 @@ public class SubscriberId
                 '}';
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * A main method that takes one or more subscriber identifiers and parses
+     * them to display the corresponding member id and notification id.
+     *
+     * @param args  one or more subscriber identifiers
+     */
+    public static void main(String[] args)
+        {
+        if (args.length > 0)
+            {
+            for (String s : args)
+                {
+                long nId = Long.parseLong(s);
+                System.out.println(PagedTopicSubscriber.notificationIdFromId(nId)
+                        + " " + PagedTopicSubscriber.memberIdFromId(nId));
+                }
+            }
+        }
+
     // ----- constructors ---------------------------------------------------
 
     /**

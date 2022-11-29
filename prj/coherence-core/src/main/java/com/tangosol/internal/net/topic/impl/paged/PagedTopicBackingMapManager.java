@@ -15,8 +15,6 @@ import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistic
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 
 import com.tangosol.net.topic.TopicBackingMapManager;
-import com.tangosol.util.LongArray;
-import com.tangosol.util.ReadHeavyLongArray;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -135,32 +133,6 @@ public class PagedTopicBackingMapManager
         return statistics;
         }
 
-    public void updateChannelCount(String sTopicName, int cChannel)
-        {
-        m_lock.lock();
-        try
-            {
-            m_mapDeps.compute(sTopicName, (k, deps) ->
-                {
-                if (deps == null)
-                    {
-                    deps = createTopicDependencies(sTopicName);
-                    }
-                if (cChannel != deps.getConfiguredChannelCount())
-                    {
-                    DefaultPagedTopicDependencies depsUpdated = new DefaultPagedTopicDependencies(deps);
-                    depsUpdated.setChannelCount(cChannel);
-                    deps = depsUpdated;
-                    }
-                return deps;
-                });
-            }
-        finally
-            {
-            m_lock.unlock();
-            }
-        }
-
     // ----- helper methods -------------------------------------------------
 
     private PagedTopicDependencies createTopicDependencies(String sName)
@@ -175,15 +147,15 @@ public class PagedTopicBackingMapManager
         return scheme.createConfiguration(resolver, loader);
         }
 
-    private PagedTopicStatistics createStatistics(PagedTopicDependencies dependencies)
+    private PagedTopicStatistics createStatistics(PagedTopicDependencies dependencies, String sTopicName)
         {
-        return new PagedTopicStatistics(dependencies.getConfiguredChannelCount());
+        return new PagedTopicStatistics(dependencies.getConfiguredChannelCount(), sTopicName);
         }
 
     private PagedTopicStatistics ensureStatistics(String sTopicName)
         {
         PagedTopicDependencies dependencies = m_mapDeps.computeIfAbsent(sTopicName, this::createTopicDependencies);
-        return m_mapStatistics.computeIfAbsent(sTopicName, s -> createStatistics(dependencies));
+        return m_mapStatistics.computeIfAbsent(sTopicName, s -> createStatistics(dependencies, sTopicName));
         }
 
     // ----- data members ---------------------------------------------------
