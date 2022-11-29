@@ -1257,6 +1257,12 @@ public class PagedTopicSubscriber<V>
             }
         }
 
+    private void onPolled(Element<?> element)
+        {
+        int c = element.getChannel();
+        m_aChannel[c].m_lastPolled = (PagedPosition) element.getPosition();
+        }
+
     private void onReceiveComplete(Element<?> element)
         {
         int c = element.getChannel();
@@ -2259,6 +2265,8 @@ public class PagedTopicSubscriber<V>
                 queueValues.stream()
                         .map(bin -> new CommittableElement(bin, nChannel))
                         .forEach(m_queueValuesPrefetched::add);
+
+                channel.setLastPolled((PagedPosition) m_queueValuesPrefetched.getLast().getPosition());
                 }
 
             channel.m_nNext = nNext;
@@ -3009,6 +3017,22 @@ public class PagedTopicSubscriber<V>
             }
 
         @Override
+        public Position getLastPolled()
+            {
+            return m_lastPolled;
+            }
+
+        /**
+         * Set the last polled position.
+         *
+         * @param lastPolled  the last polled position
+         */
+        public void setLastPolled(PagedPosition lastPolled)
+            {
+            m_lastPolled = lastPolled;
+            }
+
+        @Override
         public boolean isEmpty()
             {
             return m_fEmpty;
@@ -3189,6 +3213,11 @@ public class PagedTopicSubscriber<V>
          * The last position received by this subscriber
          */
         PagedPosition m_lastReceived;
+
+        /**
+         * The last position received by this subscriber
+         */
+        PagedPosition m_lastPolled;
 
         /**
          * The last position successfully committed by this subscriber
@@ -3998,7 +4027,7 @@ public class PagedTopicSubscriber<V>
     /**
      * Optional queue of prefetched values which can be used to fulfil future receive requests.
      */
-    protected Queue<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
+    protected ConcurrentLinkedDeque<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
 
     /**
      * Queue of pending receive awaiting values.
