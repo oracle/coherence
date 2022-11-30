@@ -37,8 +37,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
@@ -242,7 +244,7 @@ public abstract class AbstractRollingRestartTest
         SafeService serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateVulnerable(true), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateVulnerable(true), is(0));
         }
 
     // ----- inner class: WaitForNodeSafeRunnable --------------------------
@@ -284,7 +286,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateEndangered(), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateEndangered(), is(0), within(5, TimeUnit.MINUTES));
         }
 
     // ----- inner class: WaitForNoOrphansRunnable ------------------------
@@ -327,7 +329,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateOwnership(null, true), new IntArraySlotMatcher(0, 0));
+        Eventually.assertDeferred(() -> serviceReal.calculateOwnership(null, true), new IntArraySlotMatcher(0, 0));
         }
 
     /**
@@ -341,7 +343,7 @@ public abstract class AbstractRollingRestartTest
         SafeService      serviceSafe = (SafeService) service;
         PartitionedCache serviceReal = (PartitionedCache) serviceSafe.getService();
 
-        Eventually.assertThat(invoking(serviceReal).calculateUnbalanced(), is(0));
+        Eventually.assertDeferred(() -> serviceReal.calculateUnbalanced(), is(0));
         }
 
     /**
