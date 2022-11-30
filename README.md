@@ -13,7 +13,6 @@
 [![CI Build](https://github.com/oracle/coherence/workflows/CI%20Build/badge.svg?branch=master)](https://github.com/oracle/coherence/actions?query=workflow%3A%22CI+Build%22+branch%3Amaster)
 [![Maven Central](https://img.shields.io/maven-central/v/com.oracle.coherence.ce/coherence.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.oracle.coherence.ce%22)
 [![License](http://img.shields.io/badge/license-UPL%201.0-blue.svg)](https://oss.oracle.com/licenses/upl/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/oraclecoherence/coherence-ce)](https://hub.docker.com/r/oraclecoherence/coherence-ce)
 
 # Oracle Coherence Community Edition
 
@@ -72,7 +71,7 @@ the natural place to consume this dependency is from Maven:
 </dependencies>
 ```
 
-You can also get Coherence from the official [Docker site](https://hub.docker.com/r/oraclecoherence/coherence-ce).
+You can also get Coherence from the official [GitHub Packages site](https://github.com/oracle/coherence/pkgs/container/coherence-ce).
 For other language clients, use [C++](https://github.com/oracle/coherence-cpp-extend-client) and
 [.NET](https://github.com/oracle/coherence-dotnet-extend-client) and for the non-community
 edition, see [Oracle Technology Network](https://www.oracle.com/middleware/technologies/coherence-downloads.html).
