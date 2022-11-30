@@ -3869,7 +3869,6 @@
         }
       }
     },
-
     "/management/coherence/cluster/services/{serviceName}/topics": {
       "get": {
         "tags": [
@@ -4374,7 +4373,6 @@
         }
       }
     },
-
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [
@@ -6101,8 +6099,11 @@
           "description": "Name of the topic."
         },
         "nodeId": {
-          "type": "integer",
-          "format": "int32",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
           "description": "Topic members."
         },
         "service": {
@@ -6113,6 +6114,60 @@
           "enum": [
             "PagedTopic"
           ]
+        },
+        "retainConsumed": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          },
+          "description": "Retain consumed values."
+        },
+        "reconnectRetry": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "publishedCount": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "channelCount": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "subscriberTimeout": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "allowUnownedCommits": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          },
+          "description": "Allow unowned commits"
+        },
+        "publishedOneMinuteRate": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "pageCapacity": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "elementCalculator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Element calculator."
+        },
+        "publishedMeanRate": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "reconnectTimeout": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "publishedFifteenMinuteRate": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "publishedFiveMinuteRate": {
+          "$ref": "#/definitions/summaryNumber"
+        },
+        "reconnectWait": {
+          "$ref": "#/definitions/summaryNumber"
         }
       }
     },
