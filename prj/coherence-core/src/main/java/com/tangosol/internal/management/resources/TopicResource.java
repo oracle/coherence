@@ -144,6 +144,8 @@ public class TopicResource
                                                                  CHILD_LINKS);
 
         addObjectNamesToResponse(request, setObjectNames, response);
+        Map<String, Object> mapEntity = response.getEntity();
+        addAggregatedMetricsToResponseMap(request, "*", null, queryBuilder, mapEntity);
         return response;
         }
 
