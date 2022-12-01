@@ -150,7 +150,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
                                           return e;
                                           }
                                       return null;
-                                      }, instanceOf(IllegalStateException.class), Eventually.within(10, TimeUnit.SECONDS));
+                                      }, instanceOf(Exception.class));
 
         // Try for 10 seconds to acquire write lock on second member (should fail)
         assertThat(member2.invoke(new TryWriteLock("foo", Duration.ofSeconds(10))), is(false));

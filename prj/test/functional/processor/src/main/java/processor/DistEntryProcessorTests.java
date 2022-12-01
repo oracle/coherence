@@ -10,6 +10,7 @@ package processor;
 
 import com.tangosol.util.InvocableMap;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 
@@ -48,5 +49,14 @@ public class DistEntryProcessorTests
         System.setProperty("coherence.distributed.localstorage", "true");
 
         AbstractDistEntryProcessorTests._startup();
+        }
+
+    /**
+     * Shutdown the test class.
+     */
+    @AfterClass
+    public static void shutdown()
+        {
+        AbstractDistEntryProcessorTests._shutdown();
         }
     }

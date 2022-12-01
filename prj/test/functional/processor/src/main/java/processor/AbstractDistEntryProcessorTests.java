@@ -16,6 +16,8 @@ import com.oracle.coherence.common.base.NonBlocking;
 import com.oracle.coherence.common.base.Notifier;
 import com.oracle.coherence.common.base.SingleWaiterMultiNotifier;
 
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -27,7 +29,6 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
@@ -53,6 +54,8 @@ import com.tangosol.util.processor.SingleEntryAsynchronousProcessor;
 import com.tangosol.util.processor.UpdaterProcessor;
 
 import org.junit.Test;
+import org.junit.runner.OrderWith;
+import org.junit.runner.manipulation.Alphanumeric;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -91,6 +94,7 @@ import static org.junit.Assert.fail;
 *
 * @author gg Mar 17, 2010
 */
+@OrderWith(value = Alphanumeric.class)
 public abstract class AbstractDistEntryProcessorTests
         extends AbstractEntryProcessorTests
     {
@@ -252,19 +256,25 @@ public abstract class AbstractDistEntryProcessorTests
             // thrown by async processing or an attempt to restart the service
             }
 
-       try
-           {
-           cache = getNamedCache();
-           cache.invokeAll(AlwaysFilter.INSTANCE, aproc2);
+        try
+            {
+            cache = getNamedCache();
 
-           Map mapResult = (Map) aproc2.get();
+            SafeService      safeService = (SafeService) cache.getCacheService();
+            PartitionedCache distService = (PartitionedCache) safeService.getService();
 
-           assertEquals(RESULT, mapResult);
-           }
-       catch (Exception e)
-           {
-           fail(getStackTrace());
-           }
+            waitForBalanced(cache.getCacheService());
+
+            cache.invokeAll(AlwaysFilter.INSTANCE, aproc2);
+
+            Map mapResult = (Map) aproc2.get();
+
+            assertEquals(RESULT, mapResult);
+            }
+        catch (Exception e)
+            {
+            fail(getStackTrace());
+            }
         }
 
     /**
@@ -392,8 +402,17 @@ public abstract class AbstractDistEntryProcessorTests
                 cache.put(key, "bar-" + i);
                 }
 
+            SafeService      safeService = (SafeService) cache.getCacheService();
+            PartitionedCache distService = (PartitionedCache) safeService.getService();
+            Eventually.assertDeferred(() -> distService.getOwnershipEnabledMembers().size(), is(1));
+            waitForBalanced(cache.getCacheService());
             Eventually.assertDeferred(cache::size, is(SIZE));
+            Eventually.assertDeferred(() -> distService.isDistributionStable(), is(true));
+
             SerializationCountingKey.reset();
+            Eventually.assertThat(SerializationCountingKey.DESERIALIZATION_COUNTER.get(), is(0));
+            Eventually.assertThat(SerializationCountingKey.SERIALIZATION_COUNTER.get(), is(0));
+
             Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
             Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
 
@@ -640,3 +659,4 @@ public abstract class AbstractDistEntryProcessorTests
             }
         }
     }
+

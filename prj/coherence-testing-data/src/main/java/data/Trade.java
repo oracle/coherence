@@ -42,10 +42,10 @@ public class Trade
 
     public Trade(int iId, double dPrice, String sSymbol, int nShares)
         {
-        setId(iId);
-        setPrice(dPrice);
-        setSymbol(sSymbol);
-        setLot(nShares);
+        m_iId     = iId;
+        m_dPrice  = dPrice;
+        m_sSymbol = sSymbol;
+        m_nLot    = nShares;
         }
 
     // ----- properties -----------------------------------------------------
@@ -132,6 +132,14 @@ public class Trade
                 && m_iId == other.m_iId
                 && m_nLot == other.m_nLot
                 && Objects.equals(m_sSymbol, other.m_sSymbol);
+        }
+
+    @Override
+    public String toString()
+        {
+        return new StringBuffer().append("Symbol: " + m_sSymbol).append(", Id: " + m_iId)
+                .append(", Lot: " + m_nLot).append(", Price: " + m_dPrice)
+                .append(", isOddLot " + isOddLot()).toString();
         }
 
     // ----- calculated properties -----------------------------------------

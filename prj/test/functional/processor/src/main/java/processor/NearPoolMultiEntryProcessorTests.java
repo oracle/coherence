@@ -8,10 +8,12 @@
 package processor;
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.tangosol.util.InvocableMap;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 
 /**
@@ -45,8 +47,10 @@ public class NearPoolMultiEntryProcessorTests
     @BeforeClass
     public static void startup()
         {
-        startCacheServer("NearPoolMultiProcessorTests-1", "processor");
-        startCacheServer("NearPoolMultiProcessorTests-2", "processor");
+        CoherenceClusterMember member1 = startCacheServer("NearPoolMultiProcessorTests-1", "processor");
+        CoherenceClusterMember member2 = startCacheServer("NearPoolMultiProcessorTests-2", "processor");
+        m_listClusterMembers.add(member1);
+        m_listClusterMembers.add(member2);
         }
 
     /**

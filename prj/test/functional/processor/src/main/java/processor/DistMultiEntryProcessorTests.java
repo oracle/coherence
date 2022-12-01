@@ -8,11 +8,12 @@
 package processor;
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.tangosol.util.InvocableMap;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 /**
 * A collection of functional tests for the various
@@ -45,8 +46,10 @@ public class DistMultiEntryProcessorTests
     @BeforeClass
     public static void startup()
         {
-        startCacheServer("DistMultiProcessorTests-1", "processor");
-        startCacheServer("DistMultiProcessorTests-2", "processor");
+        CoherenceClusterMember member1 = startCacheServer("DistMultiProcessorTests-1", "processor");
+        CoherenceClusterMember member2 = startCacheServer("DistMultiProcessorTests-2", "processor");
+        m_listClusterMembers.add(member1);
+        m_listClusterMembers.add(member2);
         }
 
     /**
