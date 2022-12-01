@@ -141,6 +141,7 @@ class CoherenceConfigSourceIT
     @Test
     void testChangeNotification()
         {
+        Eventually.assertDeferred(() -> weld.isRunning(), is(true));
         Eventually.assertDeferred(() -> source.getConfigMap().entrySet(), hasSize(0));
         Eventually.assertDeferred(() -> source.getProperties().entrySet(), hasSize(0));
 
@@ -160,7 +161,7 @@ class CoherenceConfigSourceIT
         }
 
     @ApplicationScoped
-    static class TestObserver
+    public static class TestObserver
         {
         volatile String latestValue;
 
