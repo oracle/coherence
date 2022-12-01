@@ -673,7 +673,7 @@ public class SubscriberModel
                     .build();
 
     /**
-     * The subscriber dconnect operation.
+     * The subscriber disconnect operation.
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_CONNECT =
             SimpleModelOperation.builder("Connect", SubscriberModel.class)
