@@ -45,6 +45,7 @@ import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -322,6 +323,7 @@ public class TopicChannelCountTests
         }
 
     @Test
+    @Ignore("Skipped until Bug 34767222 is fixed")
     public void shouldIncreaseChannelCountWhileActive() throws Exception
         {
         String sTopicName = m_testWatcher.getMethodName();
@@ -465,6 +467,7 @@ public class TopicChannelCountTests
         }
 
     @Test
+    @Ignore("Skipped until Bug 34767222 is fixed")
     public void shouldIncreaseChannelCountWhileActiveSubscriber() throws Exception
         {
         String sTopicName = m_testWatcher.getMethodName();
