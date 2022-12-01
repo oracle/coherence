@@ -49,7 +49,7 @@
     <!--       Coherence JCache Properties       -->
     <!--                                         -->
     <!-- valid values: local or partitioned. unspecified also defaults to local -->
-    <impl>partitioned</impl>
+    <impl>local</impl>
 
     <!-- alternative values: coherence-jcache-cache-config.xml.   To test java serialization.  The default test config uses SafePOF. -->
     <cacheconfig>coherence-jcache-tck-cache-config.xml</cacheconfig>
@@ -188,8 +188,7 @@
             <!-- will not pass cache statistics test against partitioned cache with multiple servers without this set to disable throttling client lookup of cache statistics across cluster -->
             <tangosol.coherence.jcache.statistics.refreshtime>0s</tangosol.coherence.jcache.statistics.refreshtime>
             <tangosol.coherence.cacheconfig>${cacheconfig}</tangosol.coherence.cacheconfig>
-            <tangosol.coherence.jcache.configuration.classname>${impl}
-            </tangosol.coherence.jcache.configuration.classname>
+            <tangosol.coherence.jcache.configuration.classname>${impl}</tangosol.coherence.jcache.configuration.classname>
 
             <!-- speed up testing for single member testing. -->
             <tangosol.coherence.join.timeout>0</tangosol.coherence.join.timeout>
