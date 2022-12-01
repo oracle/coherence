@@ -142,6 +142,7 @@ public class GuardianTests
             System.setProperty("test.guardian.GuardianTests.threads", "0");
 
             service = startService("PartitionedCacheDefaultPolicies");
+            assertTrue(service.isRunning());
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
@@ -158,6 +159,7 @@ public class GuardianTests
             System.setProperty("test.guardian.GuardianTests.threads", "2");
 
             service = startService("PartitionedCacheDefaultPolicies");
+            assertTrue(service.isRunning());
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             assertNotSame("Slow task was not interrupted after " + cDelay + "ms", 0, oResult);
@@ -176,6 +178,7 @@ public class GuardianTests
                                "" + CustomServiceFailurePolicy.TYPE_DEFAULT);
 
             service = startService("PartitionedCacheCustomPolicy");
+            assertTrue(service.isRunning());
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
@@ -200,6 +203,7 @@ public class GuardianTests
 
             service = startService("PartitionedCacheCustomPolicy");
             cache   = service.ensureCache("foo", null);
+            assertTrue(service.isRunning());
             oResult = cache.invoke("key", new LoserTask(cDelay, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
 
@@ -222,6 +226,7 @@ public class GuardianTests
                                "" + CustomServiceFailurePolicy.TYPE_SKIP_ONE);
 
             service = startService("PartitionedCacheCustomPolicy");
+            assertTrue(service.isRunning());
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
@@ -245,6 +250,7 @@ public class GuardianTests
                                "" + CustomServiceFailurePolicy.TYPE_SKIP_ONE);
 
             service = startService("PartitionedCacheCustomPolicy");
+            assertTrue(service.isRunning());
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
@@ -269,6 +275,7 @@ public class GuardianTests
                                "" + CustomServiceFailurePolicy.TYPE_DEFAULT);
 
             service = startService("PartitionedCacheCustomPolicy");
+            assertTrue(service.isRunning());
             cache   = service.ensureCache("foo", null);
             oResult = cache.invoke("key", new LoserTask(15000, /*fInterruptible*/ true));
             policy  = getServicePolicy(service);
@@ -952,7 +959,7 @@ public class GuardianTests
         /**
         * Is this task interruptible?
         */
-        protected boolean m_fInterruptible;
+        protected volatile boolean m_fInterruptible;
         }
 
     // ----- helpers ------------------------------------------------------
