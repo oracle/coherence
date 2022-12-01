@@ -1627,9 +1627,23 @@ public abstract class AbstractSimplePersistenceTests
                 {
                 Object oStorage   = ClassHelper.invoke(service, "getStorage", new Object[] { bmc.getCacheName() });
                 Map    mapIndices = (Map) ClassHelper.invoke(oStorage, "getIndexExtractorMap", new Object[0]);
-
                 Set setExtractors = mapIndices.keySet();
-                Set setTriggers   = (Set) ClassHelper.invoke(oStorage, "getTriggerSet", new Object[0]);
+
+                // triggers are recovered by being sent to the service senior in a
+                // ListenerRequest; on slow platforms this can take some time.
+                // poll for 10s if necessary
+                long ldtStart = CacheFactory.getSafeTimeMillis();
+                long ldtNow   = 0L;
+                Set setTriggers = null;
+                do
+                    {
+                    if (ldtNow > 0L)
+                        {
+                        Base.sleep(500L);
+                        }
+                    setTriggers = (Set) ClassHelper.invoke(oStorage, "getTriggerSet", new Object[0]);
+                    ldtNow      = CacheFactory.getSafeTimeMillis();
+                    } while (setTriggers == null && ldtNow < ldtStart + 10000L);
 
                 return new Object[] { setExtractors, setTriggers };
                 }
