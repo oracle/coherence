@@ -1167,7 +1167,13 @@ public class ManagementInfoResourceTests
         target = m_client.target(getSelfLink(mapResponse));
         response = target.request().get();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        LinkedHashMap mapPartitionResponse = new LinkedHashMap(readEntity(target, response));
+        Map mapPartitionResponse = readEntity(target, response);
+
+        // this timestamp, averageStorageSizeKB could differ so just remove
+        mapPartitionResponse.remove("lastAnalysisTime");
+        mapPartitionResponse.remove("averageStorageSizeKB");
+        mapResponse.remove("lastAnalysisTime");
+        mapResponse.remove("averageStorageSizeKB");
         assertThat(mapPartitionResponse, is(mapResponse));
         }
 
