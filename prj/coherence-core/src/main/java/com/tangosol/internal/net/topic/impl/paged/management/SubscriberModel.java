@@ -677,7 +677,7 @@ public class SubscriberModel
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_CONNECT =
             SimpleModelOperation.builder("Connect", SubscriberModel.class)
-                    .withDescription("Ensure this subscriber to connected")
+                    .withDescription("Ensure this subscriber is connected")
                     .withFunction(SubscriberModel::connect)
                     .build();
 
