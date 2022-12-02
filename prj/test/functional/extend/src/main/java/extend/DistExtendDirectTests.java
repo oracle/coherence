@@ -293,12 +293,23 @@ public class DistExtendDirectTests
     protected double getCPUAverage()
         {
         double cpu = 0;
-        for (int i = 0; i < 5; i++)
+
+        GetCPU getCPU = new GetCPU();
+
+        int i, c = 0;
+        for (i = 0; i < 5; i++)
             {
-            cpu += m_cMember.invoke(new GetCPU());
+            try
+                {
+                cpu += m_cMember.invoke(getCPU);
+                }
+            catch (Throwable ignore)
+                {
+                c++;
+                }
             }
 
-        return cpu / 5;
+        return (i - c) > 0 ? cpu / (i - c) : cpu;
         }
 
     // ----- inner class: RemoteThreadDump ----------------------------------
