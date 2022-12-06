@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
 
@@ -52,7 +52,7 @@ package com.oracle.coherence.common.util;
  * executing thread. As this number is generally unknown the actual number
  * of monitors is pre-sized based on a multiple of the number of processors
  * available to the JVM. The value may also be manually specified via the
- * <code>com.oracle.common.util.CommonMonitor.monitors</code> system property.
+ * <code>com.oracle.coherence.common.util.CommonMonitor.monitors</code> system property.
  *
  * @author mf 2007.07.05
  */
