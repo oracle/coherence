@@ -85,6 +85,7 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -3327,6 +3328,7 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    @Ignore("re-enable when topic MBeans are enabled")
     public void testTopicSubscriberConnect()
         {
         // topics

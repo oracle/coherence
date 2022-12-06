@@ -517,24 +517,24 @@ public abstract class MBeanHelper
     */
     public static void registerPagedTopicMBean(CacheService service, String sTopicName, PagedTopic topic)
         {
-        try
-            {
-            Cluster  cluster  = service.getCluster();
-            Registry registry = cluster.getManagement();
-            if (registry != null)
-                {
-                String sName = Registry.PAGED_TOPIC_TYPE +
-                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-                    ",name=" + sTopicName;
-
-                sName = registry.ensureGlobalName(sName);
-                registry.register(sName, new PagedTopicModel(topic));
-                }
-            }
-        catch (Throwable e)
-            {
-            Logger.warn("Failed to register topic \"" + sTopicName + "\"", e);
-            }
+//        try
+//            {
+//            Cluster  cluster  = service.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                String sName = Registry.PAGED_TOPIC_TYPE +
+//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+//                    ",name=" + sTopicName;
+//
+//                sName = registry.ensureGlobalName(sName);
+//                registry.register(sName, new PagedTopicModel(topic));
+//                }
+//            }
+//        catch (Throwable e)
+//            {
+//            Logger.warn("Failed to register topic \"" + sTopicName + "\"", e);
+//            }
         }
 
     /**
@@ -546,22 +546,22 @@ public abstract class MBeanHelper
     */
     public static void unregisterPagedTopicMBean(String sTopicName, String sServiceName)
         {
-        try
-            {
-            Cluster  cluster  = CacheFactory.getCluster();
-            Registry registry = cluster.getManagement();
-            if (registry != null)
-                {
-                Member member   = cluster.getLocalMember();
-                String sPattern = Registry.PAGED_TOPIC_TYPE
-                    + "," + Registry.KEY_SERVICE + sServiceName
-                    + ",name="    + sTopicName +
-                    (member == null ? "" : ",nodeId=" + member.getId());
-                registry.unregister(sPattern);
-                unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
-                }
-            }
-        catch (Throwable ignored) {}
+//        try
+//            {
+//            Cluster  cluster  = CacheFactory.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                Member member   = cluster.getLocalMember();
+//                String sPattern = Registry.PAGED_TOPIC_TYPE
+//                    + "," + Registry.KEY_SERVICE + sServiceName
+//                    + ",name="    + sTopicName +
+//                    (member == null ? "" : ",nodeId=" + member.getId());
+//                registry.unregister(sPattern);
+//                unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
+//                }
+//            }
+//        catch (Throwable ignored) {}
         }
 
     /**
@@ -577,28 +577,28 @@ public abstract class MBeanHelper
     public static void registerSubscriberGroupMBean(TopicService service, String sTopicName,
             String sGroupName, PagedTopicStatistics statistics, Filter filter, Function fnConvert)
         {
-        try
-            {
-            Cluster  cluster  = service.getCluster();
-            Registry registry = cluster.getManagement();
-            if (registry != null)
-                {
-                String sName = Registry.SUBSCRIBER_GROUP_TYPE +
-                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-                    ",topic=" + sTopicName + ",name=" + sGroupName;
-
-                sName = registry.ensureGlobalName(sName);
-                if (!registry.isRegistered(sName))
-                    {
-                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName, filter, fnConvert, service));
-                    }
-                }
-            }
-        catch (Throwable e)
-            {
-            Logger.warn("Failed to register subscriber group \"" + sGroupName
-                        + "\" in topic \"" + sTopicName + "\"", e);
-            }
+//        try
+//            {
+//            Cluster  cluster  = service.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                String sName = Registry.SUBSCRIBER_GROUP_TYPE +
+//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+//                    ",topic=" + sTopicName + ",name=" + sGroupName;
+//
+//                sName = registry.ensureGlobalName(sName);
+//                if (!registry.isRegistered(sName))
+//                    {
+//                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName, filter, fnConvert, service));
+//                    }
+//                }
+//            }
+//        catch (Throwable e)
+//            {
+//            Logger.warn("Failed to register subscriber group \"" + sGroupName
+//                        + "\" in topic \"" + sTopicName + "\"", e);
+//            }
         }
 
     /**
@@ -611,21 +611,21 @@ public abstract class MBeanHelper
     */
     public static void unregisterSubscriberGroupMBean(String sGroupName, String sTopicName, String sServiceName)
         {
-        try
-            {
-            Cluster  cluster  = CacheFactory.getCluster();
-            Registry registry = cluster.getManagement();
-            if (registry != null)
-                {
-                Member member   = cluster.getLocalMember();
-                String sPattern = Registry.SUBSCRIBER_GROUP_TYPE
-                    + "," + Registry.KEY_SERVICE + sServiceName
-                    + ",topic="    + sTopicName + ",name=" + sGroupName +
-                    (member == null ? "" : ",nodeId=" + member.getId());
-                registry.unregister(sPattern);
-                }
-            }
-        catch (Throwable ignored) {}
+//        try
+//            {
+//            Cluster  cluster  = CacheFactory.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                Member member   = cluster.getLocalMember();
+//                String sPattern = Registry.SUBSCRIBER_GROUP_TYPE
+//                    + "," + Registry.KEY_SERVICE + sServiceName
+//                    + ",topic="    + sTopicName + ",name=" + sGroupName +
+//                    (member == null ? "" : ",nodeId=" + member.getId());
+//                registry.unregister(sPattern);
+//                }
+//            }
+//        catch (Throwable ignored) {}
         }
 
     /**
@@ -637,28 +637,28 @@ public abstract class MBeanHelper
     */
     public static void registerSubscriberMBean(CacheService service, String sTopicName, PagedTopicSubscriber<?> subscriber)
         {
-        try
-            {
-            Cluster  cluster  = service.getCluster();
-            Registry registry = cluster.getManagement();
-            if (registry != null)
-                {
-                String sName = Registry.SUBSCRIBER_TYPE +
-                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-                    ",topic=" + sTopicName + ",id=" + subscriber.getId();
-
-                sName = registry.ensureGlobalName(sName);
-                if (!registry.isRegistered(sName))
-                    {
-                    registry.register(sName, new SubscriberModel(subscriber));
-                    }
-                }
-            }
-        catch (Throwable e)
-            {
-            Logger.warn("Failed to register subscriber \"" + subscriber.getId()
-                        + "\" in topic \"" + sTopicName + "\"", e);
-            }
+//        try
+//            {
+//            Cluster  cluster  = service.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                String sName = Registry.SUBSCRIBER_TYPE +
+//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+//                    ",topic=" + sTopicName + ",id=" + subscriber.getId();
+//
+//                sName = registry.ensureGlobalName(sName);
+//                if (!registry.isRegistered(sName))
+//                    {
+//                    registry.register(sName, new SubscriberModel(subscriber));
+//                    }
+//                }
+//            }
+//        catch (Throwable e)
+//            {
+//            Logger.warn("Failed to register subscriber \"" + subscriber.getId()
+//                        + "\" in topic \"" + sTopicName + "\"", e);
+//            }
         }
 
     /**
@@ -671,20 +671,20 @@ public abstract class MBeanHelper
     */
     public static void unregisterSubscriberMBean(long nSubscriberId, String sTopicName, String sServiceName)
         {
-        try
-            {
-            Cluster  cluster  = CacheFactory.getCluster();
-            Registry registry = cluster.getManagement();
-            if (registry != null)
-                {
-                String sPattern = Registry.SUBSCRIBER_TYPE +
-                    "," + Registry.KEY_SERVICE + sServiceName +
-                    ",topic=" + sTopicName + ",id=" + nSubscriberId;
-
-                registry.unregister(sPattern);
-                }
-            }
-        catch (Throwable ignored) {}
+//        try
+//            {
+//            Cluster  cluster  = CacheFactory.getCluster();
+//            Registry registry = cluster.getManagement();
+//            if (registry != null)
+//                {
+//                String sPattern = Registry.SUBSCRIBER_TYPE +
+//                    "," + Registry.KEY_SERVICE + sServiceName +
+//                    ",topic=" + sTopicName + ",id=" + nSubscriberId;
+//
+//                registry.unregister(sPattern);
+//                }
+//            }
+//        catch (Throwable ignored) {}
         }
 
     /**
