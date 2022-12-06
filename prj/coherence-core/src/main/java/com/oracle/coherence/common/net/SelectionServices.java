@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net;
 
@@ -31,12 +31,12 @@ public class SelectionServices
      * managing a large number of SelectableChannels efficiently.
      * <p>
      * The number of threads used to handle the load can be influenced via the
-     * <code>com.oracle.common.net.SelectionServices.threads</code> system property, and defaults to a value
+     * <code>com.oracle.coherence.common.net.SelectionServices.threads</code> system property, and defaults to a value
      * relative to the number of available cores and percentage of system memory the VM has been sized to use.
      * <p>
      * The threads used to run the service will be dynamically started and
      * stopped.  The idle timeout can be specified via the
-     * <code>com.oracle.common.net.SelectionServices.timeout</code> system property, and defaults to 5s.
+     * <code>com.oracle.coherence.common.net.SelectionServices.timeout</code> system property, and defaults to 5s.
      *
      * @return the default SelectionService
      */

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.io;
 
@@ -35,11 +35,11 @@ public final class BufferManagers
      * Return the heap ByteBuffer based BufferManager.
      * <p>
      * The maximum size of this buffer manager pool may be specified via the
-     * <code>com.oracle.common.io.BufferManagers.heap.pool</code> system property. Setting this
+     * <code>com.oracle.coherence.common.io.BufferManagers.heap.pool</code> system property. Setting this
      * value to <code>0</code> results in a non-pooled implementation. The default
      * value is a small percentage of the JVM's total heap size.
      * <p>
-     * For pooled implementations setting <code>com.oracle.common.io.BufferManagers.heap.checked</code>
+     * For pooled implementations setting <code>com.oracle.coherence.common.io.BufferManagers.heap.checked</code>
      * to <code>true</code> will provide pool which provides more stringent checks
      * in an attempt to ensure that the application doesn't misuse the pool,
      * for instance by double releasing a buffer. The default value is <code>false</code>.
@@ -55,11 +55,11 @@ public final class BufferManagers
      * Return the direct ByteBuffer based BufferManager.
      * <p>
      * The maximum size of this buffer manager pool may be specified via the
-     * <code>com.oracle.common.io.BufferManagers.direct.pool</code> system property. Setting this
+     * <code>com.oracle.coherence.common.io.BufferManagers.direct.pool</code> system property. Setting this
      * value to <code>0</code> results in a non-pooled implementation. The default
      * value is a small percentage of the JVM's total heap size.
      * <p>
-     * For pooled implementations setting <code>com.oracle.common.io.BufferManagers.direct.checked</code>
+     * For pooled implementations setting <code>com.oracle.coherence.common.io.BufferManagers.direct.checked</code>
      * to <code>true</code> will provide pool which provides more stringent checks
      * in an attempt to ensure that the application doesn't misuse the pool,
      * for instance by double releasing a buffer. The default value is <code>false</code>.
@@ -79,11 +79,11 @@ public final class BufferManagers
      * On some platforms this method may simply return the DirectManager.
      * <p>
      * The maximum size of this buffer manager pool may be specified via the
-     * <code>com.oracle.common.io.BufferManagers.network.pool</code> system property. Setting this
+     * <code>com.oracle.coherence.common.io.BufferManagers.network.pool</code> system property. Setting this
      * value to <code>0</code> results in a non-pooled implementation. The default
      * value is a small percentage of the JVM's total heap size.
      * <p>
-     * For pooled implementations setting <code>com.oracle.common.io.BufferManagers.network.checked</code>
+     * For pooled implementations setting <code>com.oracle.coherence.common.io.BufferManagers.network.checked</code>
      * to <code>true</code> will provide pool which provides more stringent checks
      * in an attempt to ensure that the application doesn't misuse the pool,
      * for instance by double releasing a buffer. The default value is <code>false</code>.
