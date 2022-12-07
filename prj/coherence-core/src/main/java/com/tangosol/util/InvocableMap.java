@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import java.util.function.BiFunction;
@@ -46,13 +45,9 @@ import java.util.stream.Stream;
  * which the entries-to-be-processed are being managed, thus providing
  * efficiency by localization of processing.
  * <p>
- * <b>Note: When using the Coherence Enterprise Edition or Grid Edition, the
- * Partitioned Cache implements the InvocableMap interface by partitioning and
+ * <b>Note: The Partitioned Cache implements the InvocableMap interface by partitioning and
  * localizing the invocations, resulting in extremely high throughput and low
- * latency. When using Coherence Standard Edition, the InvocableMap processes
- * the invocations on the originating node, typically resulting in higher
- * network, memory and CPU utilization, which translates to lower performance,
- * and particularly when processing large data sets.</b>
+ * latency.</b>
  *
  * @param <K> the type of the Map entry keys
  * @param <V> the type of the Map entry values
