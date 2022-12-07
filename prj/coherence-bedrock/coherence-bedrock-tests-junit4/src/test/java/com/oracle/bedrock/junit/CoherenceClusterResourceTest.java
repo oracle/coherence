@@ -2,7 +2,7 @@
  * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.junit;
@@ -44,6 +44,7 @@ public class CoherenceClusterResourceTest
                     .with(LocalHost.only(),
                           Multicast.ttl(0),
                           ClusterPort.automatic(),
+                          SystemProperty.of("coherence.mode", System.getProperty("coherence.mode", "dev")),
                           SystemProperty.of("tangosol.coherence.extend.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                           SystemProperty.of("tangosol.coherence.extend.port", Capture.of(LocalPlatform.get().getAvailablePorts())))
                     .include(2,
