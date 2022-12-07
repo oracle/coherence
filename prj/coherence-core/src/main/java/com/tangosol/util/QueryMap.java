@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -38,11 +38,8 @@ public interface QueryMap<K, V>
      * not be backed by the map, so changes to the set may not reflected in the
      * map, and vice-versa.
      * <p>
-     * <b>Note: When using the Coherence Enterprise Edition or Grid Edition, the
-     * Partitioned Cache implements the QueryMap interface using the Parallel
-     * Query feature. When using Coherence Standard Edition, the Parallel Query
-     * feature is not available, resulting in lower performance for most
-     * queries, and particularly when querying large data sets.</b>
+     * <b>Note: The Partitioned Cache implements the QueryMap interface using the Parallel
+     * Query feature.</b>
      *
      * @param filter the Filter object representing the criteria that the
      *               entries of this map should satisfy
@@ -60,11 +57,8 @@ public interface QueryMap<K, V>
      * may not be backed by the map, so changes to the set may not be reflected
      * in the map, and vice-versa.
      * <p>
-     * <b>Note: When using the Coherence Enterprise Edition or Grid Edition, the
-     * Partitioned Cache implements the QueryMap interface using the Parallel
-     * Query feature. When using Coherence Standard Edition, the Parallel Query
-     * feature is not available, resulting in lower performance for most
-     * queries, and particularly when querying large data sets.</b>
+     * <b>Note: The Partitioned Cache implements the QueryMap interface using the Parallel
+     * Query feature.</b>
      *
      * @param filter the Filter object representing the criteria that the
      *               entries of this map should satisfy
@@ -85,11 +79,8 @@ public interface QueryMap<K, V>
      * may not be backed by the map, so changes to the set may not be reflected
      * in the map, and vice-versa.
      * <p>
-     * <b>Note: When using the Coherence Enterprise Edition or Grid Edition, the
-     * Partitioned Cache implements the QueryMap interface using the Parallel
-     * Query feature. When using Coherence Standard Edition, the Parallel Query
-     * feature is not available, resulting in lower performance for most
-     * queries, and particularly when querying large data sets.</b>
+     * <b>Note: The Partitioned Cache implements the QueryMap interface using the Parallel
+     * Query feature.</b>
      *
      * @param filter     the Filter object representing the criteria that the
      *                   entries of this map should satisfy
@@ -111,11 +102,8 @@ public interface QueryMap<K, V>
      * method may not be backed by the map, so changes to the collection may not
      * be reflected in the map, and vice-versa.
      * <p>
-     * <b>Note: When using the Coherence Enterprise Edition or Grid Edition, the
-     * Partitioned Cache implements the QueryMap interface using the Parallel
-     * Query feature. When using Coherence Standard Edition, the Parallel Query
-     * feature is not available, resulting in lower performance for most
-     * queries, and particularly when querying large data sets.</b>
+     * <b>Note: The Partitioned Cache implements the QueryMap interface using the Parallel
+     * Query feature.</b>
      *
      * @param filter the Filter object representing the criteria that the
      *               entries of this map should satisfy
@@ -140,11 +128,8 @@ public interface QueryMap<K, V>
      * method may not be backed by the map, so changes to the collection may not
      * be reflected in the map, and vice-versa.
      * <p>
-     * <b>Note: When using the Coherence Enterprise Edition or Grid Edition, the
-     * Partitioned Cache implements the QueryMap interface using the Parallel
-     * Query feature. When using Coherence Standard Edition, the Parallel Query
-     * feature is not available, resulting in lower performance for most
-     * queries, and particularly when querying large data sets.</b>
+     * <b>Note: The Partitioned Cache implements the QueryMap interface using the Parallel
+     * Query feature.</b>
      *
      * @param filter     the Filter object representing the criteria that the
      *                   entries of this map should satisfy
@@ -187,9 +172,6 @@ public interface QueryMap<K, V>
      * regardless of whether another server has already requested the same
      * indexes.
      * <p>
-     * <b>Note: Indexes are a feature of Coherence Enterprise Edition and
-     * Coherence Grid Edition. This method will have no effect when using
-     * Coherence Standard Edition.</b>
      *
      * @param <T>        the type of the value to extract from
      * @param <E>        the type of value that will be extracted
@@ -224,8 +206,6 @@ public interface QueryMap<K, V>
      * regardless of whether another server has already requested the same
      * indexes.
      * <p>
-     * <b>Note: This method will have no effect when using Coherence Standard
-     * Edition.</b>
      *
      * @param <T>        the type of the value to extract from
      * @param <E>        the type of value that will be extracted
