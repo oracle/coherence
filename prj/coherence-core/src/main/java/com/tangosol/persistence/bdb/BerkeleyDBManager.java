@@ -1464,7 +1464,7 @@ public class BerkeleyDBManager
 
     /**
      * True if BerkeleyDBStore instances should collect statistics about BDB
-     * performance and maintenance. This option is only recommended for for use
+     * performance and maintenance. This option is only recommended for use
      * as directed by Oracle Support. (Disabled by default)
      */
     protected static final boolean STATS_ENABLED =
@@ -1472,7 +1472,7 @@ public class BerkeleyDBManager
 
     /**
      * True if debug information should be displayed for BDB maintenance operations.
-     * This option is only recommended for for use as directed by Oracle Support.
+     * This option is only recommended for use as directed by Oracle Support.
      * (Disabled by default)
      */
     protected static final boolean MAINTENANCE_DEBUG_ENABLED =
