@@ -24,14 +24,12 @@ import org.hamcrest.MatcherAssert;
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.rules.TestName;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -75,6 +73,8 @@ class CoherenceConfigSourceIT
     @BeforeEach
     void clearSystemProperties()
         {
+        MatcherAssert.assertThat(System.getProperty("coherence.config.ordinal"), is(nullValue()));
+
         config = getConfig();
         source = getCoherenceSource(config);
         source.getConfigMap().clear();
@@ -82,7 +82,6 @@ class CoherenceConfigSourceIT
         Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()));
         Eventually.assertDeferred(() -> source.getConfigMap().entrySet(), hasSize(0));
         Eventually.assertDeferred(() -> source.getProperties().entrySet(), hasSize(0));
-
 
         Eventually.assertDeferred(() -> weld.isRunning(), is(true));
         }
@@ -123,9 +122,6 @@ class CoherenceConfigSourceIT
         assertThat(source.getValue("config.value"), is("value"));
         assertThat(source.getOrdinal(), is(500));
         assertThat(source.getName(), is("CoherenceConfigSource"));
-
-        source.getConfigMap().remove("config.value");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()));
         }
 
     @Test
@@ -138,9 +134,6 @@ class CoherenceConfigSourceIT
         MatcherAssert.assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
         MatcherAssert.assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));
         MatcherAssert.assertThat(config.getValue("config.value", String.class), is("cache"));
-
-        source.getConfigMap().remove("config.value");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()));
         }
 
     @Test
@@ -150,17 +143,15 @@ class CoherenceConfigSourceIT
 
         Config config = getConfig();
         MatcherAssert.assertThat(config.getValue("config.value", String.class), is("sysprop"));
+
+        System.clearProperty("coherence.config.ordinal");
+        MatcherAssert.assertThat(System.getProperty("coherence.config.ordinal"), is(nullValue()));
         }
 
     @Test
     void testChangeNotification()
         {
         source.setValue("config.value", "one");
-
-        Eventually.assertDeferred(() -> source.getConfigMap().entrySet(), hasSize(1));
-        Eventually.assertDeferred(() -> source.getProperties().entrySet(), hasSize(1));
-        Eventually.assertDeferred(() -> source.getPropertyNames(), hasItem("config.value"));
-        Eventually.assertDeferred(() -> source.getValue("config.value"), is("one"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
 
         source.setValue("config.value", "two");
@@ -191,9 +182,6 @@ class CoherenceConfigSourceIT
 
     @Inject
     private TestObserver observer;
-
-    @Rule
-    public TestName m_testName = new TestName();
 
     private Config config;
     private CoherenceConfigSource source;
