@@ -290,7 +290,17 @@ public abstract class AbstractSimplePersistenceTests
     public void testMultipleRestartsBalanced()
             throws IOException, MBeanException
         {
-        testMultipleRestarts("testMultipleBalanced", "simple-persistent", 10, true);
+        testMultipleRestarts("testMultipleBalanced", "active", "simple-persistent", 10, true);
+        }
+
+    /**
+     * Test multiple restarts and wait for balanced between each one.
+     */
+    @Test
+    public void testMultipleRestartsBalancedBackup()
+            throws IOException, MBeanException
+        {
+        testMultipleRestarts("testMultipleBalancedBackup", "active-backup", "simple-persistent", 10, true);
         }
 
     /**
@@ -1365,32 +1375,55 @@ public abstract class AbstractSimplePersistenceTests
             }
         }
 
+
     /**
      * Test for multiple restarts of cache servers in quick succession and
      * ensure there is no data loss.
      *
      * @param sServer           the prefix name of the servers to create
+     * @param sMode             the persistence mode
      * @param sPersistentCache  the name of the cache
      * @param nRestartCount     the number of restarts to issue
      * @param fWaitForBalanced  indicates if we should wait for balanced cluster
      */
-    private void testMultipleRestarts(String sServer, String sPersistentCache,int nRestartCount,
+    private void testMultipleRestarts(String sServer, String sMode, String sPersistentCache,int nRestartCount,
                                       boolean fWaitForBalanced)
                 throws IOException, MBeanException
         {
         File fileSnapshot = FileHelper.createTempDir();
-        File fileActive   = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
 
+        File fileActive1  = FileHelper.createTempDir();
+        File fileBackup1  = FileHelper.createTempDir();
+        File fileActive2  = FileHelper.createTempDir();
+        File fileBackup2  = FileHelper.createTempDir();
+        File fileActive3  = FileHelper.createTempDir();
+        File fileBackup3  = FileHelper.createTempDir();
+
         Properties props = new Properties();
-        props.setProperty("test.persistence.mode", "active");
-        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
+        props.setProperty("test.persistence.mode", sMode);
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.threads", "5");
-        props.setProperty("test.persistence.members", "2");
+        props.setProperty("test.persistence.members", "3");
+        props.setProperty("test.distribution.members", "3");
         props.setProperty("coherence.distribution.2server", "false");
         props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        Properties props1 = new Properties();
+        props1.putAll(props);
+        props1.setProperty("test.persistence.active.dir", fileActive1.getAbsolutePath());
+        props1.setProperty("test.persistence.backup.dir", fileBackup1.getAbsolutePath());
+
+        Properties props2 = new Properties(props);
+        props2.putAll(props);
+        props2.setProperty("test.persistence.active.dir", fileActive2.getAbsolutePath());
+        props2.setProperty("test.persistence.backup.dir", fileBackup2.getAbsolutePath());
+
+        Properties props3 = new Properties(props);
+        props3.putAll(props);
+        props3.setProperty("test.persistence.active.dir", fileActive3.getAbsolutePath());
+        props3.setProperty("test.persistence.backup.dir", fileBackup3.getAbsolutePath());
 
         ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
                 .getConfigurableCacheFactory("client-cache-config.xml", null);
@@ -1401,6 +1434,7 @@ public abstract class AbstractSimplePersistenceTests
 
         String sServer1;
         String sServer2;
+        String sServer3;
 
         int i = 0;
         try
@@ -1408,30 +1442,35 @@ public abstract class AbstractSimplePersistenceTests
             while (++i <= nRestartCount)
                 {
                 System.out.println("**** Iteration: " + i + " of " + nRestartCount);
-                sServer1 = sServer + "-" + (i*2 - 1);
-                sServer2 = sServer + "-" + (i*2);
+                sServer1 = sServer + "-" + (i*3 - 2);
+                sServer2 = sServer + "-" + (i*3 - 1);
+                sServer3 = sServer + "-" + (i*3);
 
-                startCacheServer(sServer1, getProjectName(), getCacheConfigPath(), props);
-                startCacheServer(sServer2, getProjectName(), getCacheConfigPath(), props);
+                startCacheServer(sServer1, getProjectName(), getCacheConfigPath(), props1);
+                startCacheServer(sServer2, getProjectName(), getCacheConfigPath(), props2);
+                startCacheServer(sServer3, getProjectName(), getCacheConfigPath(), props3);
 
                 if (fWaitForBalanced)
                     {
-                    Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+                    Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
                     waitForBalanced(service);
                     }
 
-                // populate with some data if first time only
-                if (i == 1)
-                    {
-                    PersistenceTestHelper.populateData(cache, 10000);
-                    }
-
                 // always assert the size to ensure we have not lost data
-                assertEquals(cache.size(), 10000);
+                assertEquals((i - 1)*10000, cache.size());
+
+                // populate with some data
+                PersistenceTestHelper.populateData(cache, i*10000, 10000);
+
+                // leave some time for backups to persist, they are async
+                Base.sleep(10*1000);
 
                 // abruptly shutdown
                 stopCacheServer(sServer1);
+                Base.sleep(1000L);
                 stopCacheServer(sServer2);
+                Base.sleep(1000L);
+                stopCacheServer(sServer3);
                 }
             }
         finally
@@ -1439,7 +1478,12 @@ public abstract class AbstractSimplePersistenceTests
             stopAllApplications();
             CacheFactory.shutdown();
 
-            FileHelper.deleteDirSilent(fileActive);
+            FileHelper.deleteDirSilent(fileActive1);
+            FileHelper.deleteDirSilent(fileBackup1);
+            FileHelper.deleteDirSilent(fileActive2);
+            FileHelper.deleteDirSilent(fileBackup2);
+            FileHelper.deleteDirSilent(fileActive3);
+            FileHelper.deleteDirSilent(fileBackup3);
             FileHelper.deleteDirSilent(fileSnapshot);
             FileHelper.deleteDirSilent(fileTrash);
             }
@@ -1696,6 +1740,13 @@ public abstract class AbstractSimplePersistenceTests
                 int nCheckValue = Integer.getInteger("test.persistence.members", 1);
                 CacheFactory.log("Checking Quorum Policy: Service = " + service.getInfo().getServiceName() + ", Action="
                         + action + ", CheckValue=" + nCheckValue + ", Members=" + nMembers, CacheFactory.LOG_INFO);
+                return (nMembers >= nCheckValue);
+                }
+            else if (action == PartitionedService.PartitionedAction.DISTRIBUTE)
+                {
+                int nMembers    = ((PartitionedService) service).getOwnershipEnabledMembers().size();
+                int nCheckValue = Integer.getInteger("test.distribution.members", 1);
+
                 return (nMembers >= nCheckValue);
                 }
             return true;
