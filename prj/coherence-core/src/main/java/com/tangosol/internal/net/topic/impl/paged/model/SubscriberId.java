@@ -90,16 +90,6 @@ public class SubscriberId
         return m_nId;
         }
 
-    public boolean isAnonymous()
-        {
-        return m_nId == 0;
-        }
-
-    public boolean isNotAnonymous()
-        {
-        return m_nId != 0;
-        }
-
     // ----- Comparable methods ---------------------------------------------
 
     @Override

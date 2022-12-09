@@ -504,15 +504,45 @@ public interface Registry
      * String representing the "type" part of <tt>ObjectName</tt> for the
      * Paged Topic MBean.
      *
-     * @since 23.03
+     * @since 22.06.3
      */
     public final static String PAGED_TOPIC_TYPE = "type=PagedTopic";
+
+    /**
+     * String representing the "name" part of <tt>ObjectName</tt> for MBeans.
+     *
+     * @since 22.06.3
+     */
+    public final static String KEY_NAME = "name=";
+
+    /**
+     * String representing the "topic" name part of <tt>ObjectName</tt> for the
+     * Paged Topic MBean.
+     *
+     * @since 22.06.3
+     */
+    public final static String KEY_TOPIC = "topic=";
+
+    /**
+     * String representing the "group" name part of <tt>ObjectName</tt> for the
+     * Paged Topic Subscriber MBean.
+     *
+     * @since 22.06.3
+     */
+    public final static String KEY_TOPIC_GROUP = "group=";
+
+    /**
+     * String representing the "id" name part of <tt>ObjectName</tt> for an MBean.
+     *
+     * @since 22.06.3
+     */
+    public final static String KEY_ID = "id=";
 
     /**
      * String representing the "type" part of <tt>ObjectName</tt> for the
      * Subscriber Group MBean.
      *
-     * @since 23.03
+     * @since 22.06.3
      */
     public final static String SUBSCRIBER_GROUP_TYPE = "type=PagedTopicSubscriberGroup";
 
@@ -520,8 +550,32 @@ public interface Registry
      * String representing the "type" part of <tt>ObjectName</tt> for the
      * Subscriber MBean.
      *
-     * @since 23.03
+     * @since 22.06.3
      */
     public final static String SUBSCRIBER_TYPE = "type=PagedTopicSubscriber";
+
+    /**
+     * String representing the "subtype" key of <tt>ObjectName</tt> for a
+     * Durable Subscriber MBean.
+     *
+     * @since 22.06.3
+     */
+    public final static String KEY_SUBTYPE_TYPE = "subType=";
+
+    /**
+     * String representing the "subtype" part of <tt>ObjectName</tt> for a
+     * Durable Subscriber MBean.
+     *
+     * @since 22.06.3
+     */
+    public final static String SUBSCRIBER_DURABLE_TYPE = KEY_SUBTYPE_TYPE + "Durable";
+
+    /**
+     * String representing the "subtype" part of <tt>ObjectName</tt> for an
+     * Anonymous Subscriber MBean.
+     *
+     * @since 22.06.3
+     */
+    public final static String SUBSCRIBER_ANONYMOUS_TYPE = KEY_SUBTYPE_TYPE + "Anonymous";
     }
 

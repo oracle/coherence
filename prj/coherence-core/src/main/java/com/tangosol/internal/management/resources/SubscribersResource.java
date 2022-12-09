@@ -13,6 +13,7 @@ import com.tangosol.internal.management.EntityMBeanResponse;
 import java.net.URI;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
+import com.tangosol.net.management.Registry;
 
 import java.util.HashMap;
 
@@ -41,9 +42,27 @@ public class SubscribersResource
      */
     public Response get(HttpRequest request)
         {
-        String       sTopicName   = request.getFirstPathParameter(TOPIC_NAME);
+        String sTopicName = request.getFirstPathParameter(TOPIC_NAME);
+        String sGroupName = request.getFirstPathParameter(SUBSCRIBER_GROUP_NAME);
+        String sSubType   = request.getFirstQueryParameter(SUB_TYPE);
+        String sBaseQuery = TOPIC_SUBSCRIBERS_QUERY + sTopicName;
+
+        if ("durable".equalsIgnoreCase(sSubType))
+            {
+            sBaseQuery = sBaseQuery + "," + Registry.SUBSCRIBER_DURABLE_TYPE;
+            }
+        else if ("anon".equalsIgnoreCase(sSubType) || "anonymous".equalsIgnoreCase(sSubType))
+            {
+            sBaseQuery = sBaseQuery + "," + Registry.SUBSCRIBER_ANONYMOUS_TYPE;
+            }
+
+        if (sGroupName != null && !sGroupName.isBlank())
+            {
+            sBaseQuery = sBaseQuery + "," + Registry.KEY_TOPIC_GROUP + sGroupName;
+            }
+
         QueryBuilder queryBuilder = createQueryBuilder(request)
-                .withBaseQuery(TOPIC_SUBSCRIBERS_QUERY + sTopicName)
+                .withBaseQuery(sBaseQuery)
                 .withService(getService(request));
 
         URI uriCurrent = getCurrentUri(request);

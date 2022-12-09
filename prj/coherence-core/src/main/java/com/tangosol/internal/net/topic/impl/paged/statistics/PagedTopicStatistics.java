@@ -12,6 +12,7 @@ import com.tangosol.internal.net.topic.impl.paged.management.PublishedMetrics;
 
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ObservableHashMap;
@@ -97,20 +98,20 @@ public class PagedTopicStatistics
     /**
      * Return the {@link SubscriberGroupStatistics statistics for a subscriber group}.
      *
-     * @param sName  the name of the subscriber group
+     * @param id  the {@link SubscriberGroupId id} of the subscriber group
      *
      * @return the {@link SubscriberGroupStatistics statistics for a subscriber group}
      */
-    public SubscriberGroupStatistics getSubscriberGroupStatistics(String sName)
+    public SubscriberGroupStatistics getSubscriberGroupStatistics(SubscriberGroupId id)
         {
-        SubscriberGroupStatistics statistics = f_mapSubscriberGroups.get(sName);
+        SubscriberGroupStatistics statistics = f_mapSubscriberGroups.get(id);
         if (statistics == null)
             {
             f_lock.lock();
             try
                 {
                 int cChannel = (int) m_aChannelStats.getLastIndex();
-                statistics = f_mapSubscriberGroups.computeIfAbsent(sName, s -> new SubscriberGroupStatistics(cChannel));
+                statistics = f_mapSubscriberGroups.computeIfAbsent(id, s -> new SubscriberGroupStatistics(cChannel));
                 }
             finally
                 {
@@ -123,14 +124,14 @@ public class PagedTopicStatistics
     /**
      * Remove the {@link SubscriberGroupStatistics statistics for a subscriber group}.
      *
-     * @param sName  the name of the subscriber group
+     * @param id  the {@link SubscriberGroupId id} of the subscriber group
      */
-    public void removeSubscriberGroupStatistics(String sName)
+    public void removeSubscriberGroupStatistics(SubscriberGroupId id)
         {
         f_lock.lock();
         try
             {
-            f_mapSubscriberGroups.remove(sName);
+            f_mapSubscriberGroups.remove(id.getGroupName());
             }
         finally
             {
@@ -143,7 +144,7 @@ public class PagedTopicStatistics
      *
      * @param listener  the listener to add
      */
-    public void addSubscriberGroupListener(MapListener<String, SubscriberGroupStatistics> listener)
+    public void addSubscriberGroupListener(MapListener<SubscriberGroupId, SubscriberGroupStatistics> listener)
         {
         f_mapSubscriberGroups.addMapListener(listener);
         }
@@ -153,7 +154,7 @@ public class PagedTopicStatistics
      *
      * @param listener  the listener to remove
      */
-    public void removeSubscriberGroupListener(MapListener<String, SubscriberGroupStatistics> listener)
+    public void removeSubscriberGroupListener(MapListener<SubscriberGroupId, SubscriberGroupStatistics> listener)
         {
         f_mapSubscriberGroups.removeMapListener(listener);
         }
@@ -211,7 +212,7 @@ public class PagedTopicStatistics
     /**
      * A map of {@link SubscriberGroupStatistics} keyed by subscriber group name.
      */
-    private final ObservableMap<String, SubscriberGroupStatistics> f_mapSubscriberGroups = new ObservableHashMap<>();
+    private final ObservableMap<SubscriberGroupId, SubscriberGroupStatistics> f_mapSubscriberGroups = new ObservableHashMap<>();
 
     /**
      * The lock to use to synchronize access to internal state.

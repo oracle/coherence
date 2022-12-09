@@ -3457,7 +3457,7 @@ public abstract class BaseManagementInfoResourceTests
                                hasKey("member"),
                                hasKey("notifications")));
 
-        // topic subscribers
+        // topic subscriber groups (we only have MBeans for durable groups)
         String sTopicSubscriberGroupsUrl = ((List<Map<String, String>>) (mapTopic.get("links"))).stream()
                 .filter(m -> m.get("rel").equals("subscriberGroups"))
                 .findFirst()
@@ -3469,7 +3469,7 @@ public abstract class BaseManagementInfoResourceTests
         mapResponse = readEntity(target, response);
         items = (List<Map<String, Object>>) mapResponse.get("items");
         assertThat(items, notNullValue());
-        assertThat(items.size(), is(4));
+        assertThat(items.size(), is(2));
         item = items.stream()
                 .filter(sg -> sg.get("name").equals(SUBSCRIBER_GROUP_NAME + "A")
                               && sg.get("nodeId").equals("1"))
@@ -3477,8 +3477,8 @@ public abstract class BaseManagementInfoResourceTests
                 .get();
 
         assertThat(item, hasEntry(equalTo("channelCount"), new IsEqualNumber(17)));
-        assertThat(item, hasEntry("filter", null));
-        assertThat(item, hasEntry("transformer", null));
+        assertThat(item, hasEntry("filter", "n/a"));
+        assertThat(item, hasEntry("transformer", "n/a"));
         assertThat(item, hasEntry("name", SUBSCRIBER_GROUP_NAME + "A"));
         assertThat((String) (item.get("service")), containsString("TestTopicService"));
         assertThat(item, hasEntry("type", "PagedTopicSubscriberGroup"));
