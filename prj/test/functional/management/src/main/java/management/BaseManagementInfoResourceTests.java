@@ -3446,12 +3446,12 @@ public abstract class BaseManagementInfoResourceTests
                 .get();
         assertThat(item, hasEntry(equalTo("channelCount"), new IsEqualNumber(17)));
         assertThat(item, hasEntry("subscriberGroup", SUBSCRIBER_GROUP_NAME + "A"));
-        assertThat(item, hasEntry("stateName", "Connected"));
         assertThat(item, hasEntry("converter", "n/a"));
         assertThat((String) (item.get("service")), containsString("TestTopicService"));
         assertThat(item, hasEntry("type", "PagedTopicSubscriber"));
         assertThat(item, hasEntry("topic", TOPIC_NAME + "A"));
         assertThat(item, allOf(hasKey("channels"),
+                               hasKey("stateName"),
                                hasKey("polls"),
                                hasKey("id"),
                                hasKey("member"),
