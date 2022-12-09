@@ -352,12 +352,24 @@ public class PersistenceTestHelper
      */
     public static void populateData(NamedCache nc, int cMax)
         {
+        populateData(nc, 0, cMax);
+        }
+
+    /**
+     * Populate a cache with data.
+     *
+     * @param nc      the cache to populate
+     * @param nStart  the start key
+     * @param cMax    the amount of objects to insert
+     */
+    public static void populateData(NamedCache nc, int nStart, int cMax)
+        {
         Map<Integer, Integer> mapBuffer = new HashMap<>();
         int                   BATCH     = 1000;
 
         for (int i = 0; i < cMax; i++)
             {
-            mapBuffer.put(i, i);
+            mapBuffer.put(i + nStart, i + nStart);
 
             if (i % BATCH == 0)
                 {
