@@ -35,6 +35,7 @@ import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistic
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.PartitionedService;
@@ -871,11 +872,10 @@ public class PagedTopicPartition
                 }
             }
 
-        String sGroupName   = subscriberGroupId.getGroupName();
-        String sTopicName   = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
-        String sServiceName = f_ctxManager.getCacheService().getInfo().getServiceName();
-        getStatistics().removeSubscriberGroupStatistics(sGroupName);
-        MBeanHelper.unregisterSubscriberGroupMBean(sGroupName, sTopicName, sServiceName);
+        String       sTopicName = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
+        CacheService service    = f_ctxManager.getCacheService();
+        MBeanHelper.unregisterSubscriberGroupMBean(subscriberGroupId, sTopicName, service);
+        getStatistics().removeSubscriberGroupStatistics(subscriberGroupId);
         }
 
     /**
@@ -1106,74 +1106,60 @@ public class PagedTopicPartition
                     : position.getPage();
                 }
 
-            // check whether the subscription channel count is out of date
-            boolean fChannelCountChanged = subscription.getLatestChannelCount() != cChannel;
-
             if (!fCreateGroupOnly)
                 {
-                if (subscriberId.isNotAnonymous())
+                // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
+                // not to bloat all the other entries with the subscriber maps
+                if (nChannel == 0)
                     {
-                    // This is not an anonymous subscriber (i.e. it is part of a group)
-                    // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
-                    // not to bloat all the other entries with the subscriber maps
-                    if (nChannel == 0)
+                    subscriptionZero = subscription;
+                    if (!subscriptionZero.hasSubscriber(subscriberId))
                         {
-                        subscriptionZero = subscription;
-                        if (!subscriptionZero.hasSubscriber(subscriberId))
+                        // the subscription is out of date, or this is a new subscriber and
+                        // is not an anonymous subscriber (nSubscriberId != 0)
+                        Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
+                                .addSubscriber(subscriberId, cChannel, getMemberSet());
+
+                        if (fSyncPartition)
                             {
-                            // the subscription is out of date, or this is a new subscriber and
-                            // is not an anonymous subscriber (nSubscriberId != 0)
-                            Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
-                                    .addSubscriber(subscriberId, cChannel, getMemberSet());
-
-                            if (fSyncPartition)
+                            // we only log the update for the sync partition
+                            // (no need to repeat the same message for every partition)
+                            Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
+                                    subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
+                            if (!mapRemoved.isEmpty())
                                 {
-                                // we only log the update for the sync partition
-                                // (no need to repeat the same message for every partition)
-                                Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
-                                        subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
-                                if (!mapRemoved.isEmpty())
-                                    {
-                                    logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
-                                    }
+                                logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
                                 }
-
-                            fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
                             }
-                        }
 
-                    // Update the subscription/channel owner as it may have changed if this is a new subscriber
-                    SubscriberId nOwner = subscriptionZero.getChannelOwner(nChannel);
-                    subscription.setOwningSubscriber(nOwner);
-                    getStatistics().getSubscriberGroupStatistics(subscriberGroupId.getGroupName()).setOwningSubscriber(nChannel, nOwner);
-
-                    if ((fReconnect && Objects.equals(nOwner, subscriberId)))
-                        {
-                        // either the channel count has changed, or the subscriber is the channel owner and is
-                        // reconnecting, so rollback to the last committed position
-                        subscription.rollback();
+                        fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
                         }
                     }
-                else
+
+                // Update the subscription/channel owner as it may have changed if this is a new subscriber
+                SubscriberId nOwner = subscriptionZero.getChannelOwner(nChannel);
+                subscription.setOwningSubscriber(nOwner);
+                getStatistics().getSubscriberGroupStatistics(subscriberGroupId).setOwningSubscriber(nChannel, nOwner);
+
+                if ((fReconnect && Objects.equals(nOwner, subscriberId)))
                     {
-                    // This is an anonymous subscriber.
-                    // We do not need to do channel allocation as anonymous subscribers have all channels
-                    if (fReconnect)
-                        {
-                        // this is either a reconnect request, or the channel count has changed, so rollback
-                        subscription.rollback();
-                        }
+                    // either the channel count has changed, or the subscriber is the channel owner and is
+                    // reconnecting, so rollback to the last committed position
+                    subscription.rollback();
                     }
                 }
 
             entrySub.setValue(subscription);
             }
 
-        String               sGroupName   = subscriberGroupId.getGroupName();
-        String               sTopicName   = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
-        TopicService         service      = (TopicService) f_ctxManager.getCacheService();
-        PagedTopicStatistics statistics = getStatistics();
-        MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, sGroupName, statistics, filter, fnConvert);
+        if (!subscriberGroupId.isAnonymous())
+            {
+            // only register MBeans for durable subscriber groups
+            String               sTopicName = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
+            TopicService         service    = (TopicService) f_ctxManager.getCacheService();
+            PagedTopicStatistics statistics = getStatistics();
+            MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, subscriberGroupId, statistics, filter, fnConvert);
+            }
         return alResult;
         }
 
@@ -1238,7 +1224,7 @@ public class PagedTopicPartition
 
                 SubscriberId owner = subscriptionZero.getChannelOwner(nChannel);
                 subscription.setOwningSubscriber(owner);
-                getStatistics().getSubscriberGroupStatistics(sGroup).setOwningSubscriber(nChannel, owner);
+                getStatistics().getSubscriberGroupStatistics(subscriberGroupId).setOwningSubscriber(nChannel, owner);
                 entrySub.setValue(subscription);
                 }
             }
@@ -1494,12 +1480,9 @@ public class PagedTopicPartition
             result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues, subscription.getSubscriptionHead());
             }
 
-        if (!subscriberId.isAnonymous())
-            {
-            String        sGroupName = keySubscription.getGroupId().getGroupName();
-            PagedPosition posHead    = new PagedPosition(lPageNext, nPosNext);
-            getStatistics().getSubscriberGroupStatistics(sGroupName).onPolled(nChannel, listValues.size(), posHead);
-            }
+        SubscriberGroupId subscriberGroupId = keySubscription.getGroupId();
+        PagedPosition     posHead            = new PagedPosition(lPageNext, nPosNext);
+        getStatistics().getSubscriberGroupStatistics(subscriberGroupId).onPolled(nChannel, listValues.size(), posHead);
 
         return result;
         }
@@ -1727,7 +1710,7 @@ public class PagedTopicPartition
         subscription.setSubscriptionHead(pagedPosition.getPage());
 
         subscription.setCommittedPosition(commitPosition, rollbackPosition);
-        getStatistics().getSubscriberGroupStatistics(keySubscription.getGroupId().getGroupName()).onCommitted(nChannel, commitPosition);
+        getStatistics().getSubscriberGroupStatistics(keySubscription.getGroupId()).onCommitted(nChannel, commitPosition);
         entrySubscription.setValue(subscription);
 
         // Ensure any pages still left in the partition are removed if no longer referenced

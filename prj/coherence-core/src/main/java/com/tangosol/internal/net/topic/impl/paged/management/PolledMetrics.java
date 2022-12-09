@@ -56,7 +56,7 @@ public interface PolledMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_COUNT = SimpleModelAttribute.longBuilder("PolledCount", Object.class)
             .withDescription("The number of polled messages")
-            .withMetricLabels("count")
+            .metric(true)
             .build();
 
     /**
@@ -64,6 +64,7 @@ public interface PolledMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_MEAN_RATE = SimpleModelAttribute.doubleBuilder("PolledMeanRate", Object.class)
             .withDescription("The polled messages mean rate")
+            .metric("PolledRate")
             .withMetricLabels("rate", "mean")
             .build();
 
@@ -72,6 +73,7 @@ public interface PolledMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_ONE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PolledOneMinuteRate", Object.class)
             .withDescription("The polled messages one-minute rate")
+            .metric("PolledRate")
             .withMetricLabels("rate", "1min")
             .build();
 
@@ -80,6 +82,7 @@ public interface PolledMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_FIVE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PolledFiveMinuteRate", Object.class)
             .withDescription("The polled messages five-minute rate")
+            .metric("PolledRate")
             .withMetricLabels("rate", "5min")
             .build();
 
@@ -88,5 +91,7 @@ public interface PolledMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_FIFTEEN_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PolledFifteenMinuteRate", Object.class)
             .withDescription("The polled messages fifteen-minute rate")
+            .metric("PolledRate")
             .withMetricLabels("rate", "15min")
-            .build();    }
+            .build();
+    }

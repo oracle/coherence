@@ -4373,6 +4373,46 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups/{subscriberGroupName}/subscribers": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Subscribers in the subscriber group",
+        "description": "Use this endpoint to list the subscriber of a topic in a subscriber group.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/{subscriberGroupName}/subscribers GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic subscribers in a subscriber group",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriber"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [
@@ -5191,6 +5231,43 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/definitions/subscriberGroup"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscriberGroups/{subscriberGroupName}/subscribers": {
+      "get": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "View Topic Subscribers in the subscriber group",
+        "description": "Use this endpoint to list the subscriber of a topic in a subscriber group.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/{subscriberGroupName}/subscribers GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that lists topic subscribers in a subscriber group",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/subscriber"
                   }
                 }
               }

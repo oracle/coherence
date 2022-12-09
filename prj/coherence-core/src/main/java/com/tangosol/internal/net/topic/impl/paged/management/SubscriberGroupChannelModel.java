@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.management;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupChannelStatistics;
@@ -29,13 +30,13 @@ public class SubscriberGroupChannelModel
      * Create a model for a specific channel in a topic.
      *
      * @param statistics  the {@link SubscriberGroupChannelStatistics}
-     * @param sGroupName  the subscriber group name
+     * @param groupId     the subscriber group {@link SubscriberGroupId id}
      * @param nChannel    the channel
      */
-    public SubscriberGroupChannelModel(PagedTopicStatistics statistics, String sGroupName, int nChannel)
+    public SubscriberGroupChannelModel(PagedTopicStatistics statistics, SubscriberGroupId groupId, int nChannel)
         {
         f_statistics = statistics;
-        f_sGroupName = sGroupName;
+        f_groupId    = groupId;
         f_nChannel   = nChannel;
         }
 
@@ -193,7 +194,7 @@ public class SubscriberGroupChannelModel
      */
     private SubscriberGroupChannelStatistics getStatistics()
         {
-        return f_statistics.getSubscriberGroupStatistics(f_sGroupName).getChannelStatistics(f_nChannel);
+        return f_statistics.getSubscriberGroupStatistics(f_groupId).getChannelStatistics(f_nChannel);
         }
 
     // ----- data members ---------------------------------------------------
@@ -204,9 +205,9 @@ public class SubscriberGroupChannelModel
     private final PagedTopicStatistics f_statistics;
 
     /**
-     * The subscriber group name.
+     * The subscriber group {@link SubscriberGroupId id}.
      */
-    private final String f_sGroupName;
+    private final SubscriberGroupId f_groupId;
 
     /**
      * The channel this model represents

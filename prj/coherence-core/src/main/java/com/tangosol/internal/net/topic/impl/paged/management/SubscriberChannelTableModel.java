@@ -48,7 +48,13 @@ public class SubscriberChannelTableModel
                 ATTRIBUTE_LAST_COMMIT,
                 ATTRIBUTE_LAST_RECEIVED,
                 ATTRIBUTE_LAST_POLLED,
-                ATTRIBUTE_OWNED};
+                ATTRIBUTE_OWNED,
+                ATTRIBUTE_RECEIVE_COMPLETIONS,
+                ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN,
+                ATTRIBUTE_RECEIVE_COMPLETIONS_ONE,
+                ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE,
+                ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN
+                };
         }
 
     // ----- constants ------------------------------------------------------
@@ -115,4 +121,58 @@ public class SubscriberChannelTableModel
                     .withDescription("A flag indicating whether the channel is owned by this subscriber")
                     .withFunction(Subscriber.Channel::isOwned)
                     .build();
+
+    /**
+     * The number of completed received requests.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS  =
+                SimpleModelAttribute.longBuilder("ReceiveCompletionsCount", Subscriber.Channel.class)
+                        .withDescription("The number completed receive requests")
+                        .withFunction(Subscriber.Channel::getReceived)
+                        .metric("ReceiveCompletionsCount")
+                        .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN  =
+            SimpleModelAttribute.doubleBuilder("ReceiveCompletionsMeanRate", Subscriber.Channel.class)
+                    .withDescription("The completed receive requests, mean rate")
+                    .withFunction(Subscriber.Channel::getReceivedOneMinuteRate)
+                    .metric("ReceiveCompletions")
+                    .withMetricLabels("rate", "mean")
+                    .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_ONE  =
+            SimpleModelAttribute.doubleBuilder("ReceiveCompletionsOneMinuteRate", Subscriber.Channel.class)
+                    .withDescription("The completed receive requests, one-minute rate")
+                    .withFunction(Subscriber.Channel::getReceivedOneMinuteRate)
+                    .metric("ReceiveCompletions")
+                    .withMetricLabels("rate", "1-min")
+                    .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE  =
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFiveMinuteRate", Subscriber.Channel.class)
+                        .withDescription("The completed receive requests, five-minute rate")
+                        .withFunction(Subscriber.Channel::getReceivedFiveMinuteRate)
+                        .metric("ReceiveCompletions")
+                        .withMetricLabels("rate", "5-min")
+                        .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN  =
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFifteenMinuteRate", Subscriber.Channel.class)
+                        .withDescription("The completed receive requests, fifteen-minute rate")
+                        .withFunction(Subscriber.Channel::getReceivedFifteenMinuteRate)
+                        .metric("ReceiveCompletions")
+                        .withMetricLabels("rate", "15-min")
+                        .build();
     }

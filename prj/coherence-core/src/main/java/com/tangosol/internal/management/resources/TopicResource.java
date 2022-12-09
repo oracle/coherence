@@ -46,6 +46,7 @@ public class TopicResource
         // child resources
         router.addRoutes(sPathRoot + "/" + MEMBERS, new TopicMembersResource());
         router.addRoutes(sPathRoot + "/" + SUBSCRIBER_GROUPS, new SubscriberGroupsResource());
+        router.addRoutes(sPathRoot + "/" + SUBSCRIBER_GROUPS_LCASE, new SubscriberGroupsResource());
         router.addRoutes(sPathRoot + "/" + SUBSCRIBERS, new SubscribersResource());
         }
 

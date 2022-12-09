@@ -628,10 +628,21 @@ public class MetricSupport
         TabularData       tabularData      = (TabularData) proxy.getAttribute(sMBeanName, sAttributeName);
         List<String>      listTagNames     = tabularType.getIndexNames();
         Set<List<?>>      setListTagValues = (Set<List<?>>) tabularData.keySet();
-        String[]          asMetricColumns  = (String[]) attributeInfo.getDescriptor().getFieldValue("metrics.columns");
+        Descriptor        descriptor       = attributeInfo.getDescriptor();
+        String[]          asMetricColumns  = (String[]) descriptor.getFieldValue("metrics.columns");
 
         for (String sColumn : asMetricColumns)
             {
+            String   sScope   = (String) descriptor.getFieldValue(sColumn + '.' + MetricsScope.KEY);
+            String   sValue   = (String) descriptor.getFieldValue(sColumn + '.' + MetricsValue.DESCRIPTOR_KEY);
+            String[] asLabels = (String[]) descriptor.getFieldValue(sColumn + '.' + MetricsLabels.DESCRIPTOR_KEY);
+            String   sSuffix  = sValue == null || sValue.isBlank() ? sColumn : sValue;
+
+            if (sScope != null && !sScope.isBlank())
+                {
+                scope = MBeanMetric.Scope.valueOf(sScope);
+                }
+
             for (List<?> listTag : setListTagValues)
                 {
                 Map<String, String> mapTableTags = new LinkedHashMap<>(mapTag);
@@ -639,12 +650,19 @@ public class MetricSupport
                     {
                     addTag(mapTableTags, listTagNames.get(i), listTag.get(i));
                     }
+                if (asLabels != null)
+                    {
+                    for (int i = 0; i < asLabels.length; i++)
+                        {
+                        addTag(mapTableTags, asLabels[i++], asLabels[i]);
+                        }
+                    }
                 Object[] aoKey = listTag.toArray(new Object[0]);
 
                 Function<MBeanServerProxy,CompositeData> fn = mbsp ->
                         ((TabularData) mbsp.getAttribute(sMBeanName, sAttributeName)).get(aoKey);
 
-                String sMetricName = createMetricName(objectName, attributeInfo) + '.' + sColumn;
+                String sMetricName = createMetricName(objectName, attributeInfo) + '.' + sSuffix;
                 MBeanMetric metric = createCompositeMetric(sMBeanName, sMetricName, fn, sColumn, scope, mapTableTags, "");
                 listMetrics.add(metric);
                 }

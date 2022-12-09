@@ -30,6 +30,11 @@
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>

@@ -10,11 +10,13 @@ import com.oracle.coherence.common.base.Exceptions;
 
 import com.tangosol.net.management.OpenMBeanHelper;
 
+import com.tangosol.net.management.annotation.MetricsLabels;
 import com.tangosol.net.management.annotation.MetricsScope;
 import com.tangosol.net.management.annotation.MetricsValue;
 
 import com.tangosol.net.metrics.MBeanMetric;
 
+import javax.management.Descriptor;
 import javax.management.MBeanAttributeInfo;
 
 import javax.management.modelmbean.DescriptorSupport;
@@ -152,7 +154,20 @@ public abstract class TabularModel<R, M>
 
             if (f_fHasMetrics)
                 {
+                descriptor.setField(MetricsScope.KEY, MBeanMetric.Scope.VENDOR.name());
                 descriptor.setField(MetricsValue.DESCRIPTOR_KEY, f_sName);
+
+                for (ModelAttribute<?> attribute : f_aAttribute)
+                    {
+                    if (attribute.isMetric())
+                        {
+                        String     sName = attribute.getName();
+                        Descriptor desc  = attribute.getMBeanAttributeInfo().getDescriptor();
+                        descriptor.setField(sName + '.' + MetricsScope.KEY, desc.getFieldValue(MetricsScope.KEY));
+                        descriptor.setField(sName + '.' + MetricsValue.DESCRIPTOR_KEY, desc.getFieldValue(MetricsValue.DESCRIPTOR_KEY));
+                        descriptor.setField(sName + '.' + MetricsLabels.DESCRIPTOR_KEY, desc.getFieldValue(MetricsLabels.DESCRIPTOR_KEY));
+                        }
+                    }
 
                 String[] asMetricNames = Arrays.stream(f_aAttribute)
                         .filter(ModelAttribute::isMetric)

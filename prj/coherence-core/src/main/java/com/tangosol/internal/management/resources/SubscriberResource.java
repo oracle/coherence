@@ -162,7 +162,6 @@ public class SubscriberResource
 
     // ----- AbstractManagementResource methods -------------------------------------------
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     protected EntityMBeanResponse getQueryResult(HttpRequest         request,
                                                  URI                 uriParent,
@@ -170,13 +169,13 @@ public class SubscriberResource
                                                  Map<String, Object> mapQuery,
                                                  Map<String, String> mapArguments)
         {
-        String sTopicName = mapArguments.get(SUBSCRIBER_ID);
+        String sSubscriber = mapArguments.get(SUBSCRIBER_ID);
 
         // collect attributes from the ObjectNames
-        URI            uriSelf        = getSubUri(uriParent, sTopicName);
+        URI            uriSelf        = getSubUri(uriParent, sSubscriber);
         Filter<String> filterLinks    = getLinksFilter(request, mapQuery);
         String         sServiceName   = request.getPathParameters().getFirst(SERVICE_NAME);
-        QueryBuilder   queryBuilder   = getQuery(request, sTopicName, sServiceName);
+        QueryBuilder   queryBuilder   = getQuery(request, sSubscriber, sServiceName);
         Set<String>    setObjectNames = ensureBeanAccessor(request).queryKeys(queryBuilder.build());
 
         if (setObjectNames == null || setObjectNames.isEmpty())

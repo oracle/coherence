@@ -240,7 +240,6 @@ public abstract class AbstractManagementResource
     /**
      * Calculate the response body required for a single MBean.
      *
-     *
      * @param request       the {@link HttpRequest}
      * @param queryBuilder  the {@link QueryBuilder} to be used to generate MBean query
      * @param uriParent     the parent URI of the request, the parent URI is one level up
@@ -1872,7 +1871,7 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out all the CacheMBean objects of a particular cache.
      */
-    public static final String CACHE_QUERY = CACHES_QUERY + ",name=";
+    public static final String CACHE_QUERY = CACHES_QUERY + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the PagedTopicMBean objects in the cluster.
@@ -1882,7 +1881,7 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out all the PagedTopicMBean objects of a particular topic.
      */
-    public static final String TOPIC_QUERY = TOPICS_QUERY + ",name=";
+    public static final String TOPIC_QUERY = TOPICS_QUERY + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the TopicSubscriberMBean  objects in the cluster.
@@ -1897,7 +1896,7 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out all the TopicSubscriberMBean objects of a particular topic.
      */
-    public static final String TOPIC_SUBSCRIBERS_QUERY = SUBSCRIBERS_QUERY + ",topic=";
+    public static final String TOPIC_SUBSCRIBERS_QUERY = SUBSCRIBERS_QUERY + "," + Registry.KEY_TOPIC;
 
     /**
      * MBean query to filter out all the TopicSubscriberMBean  objects in the cluster.
@@ -1907,17 +1906,18 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out all the TopicSubscriberMBean objects of a particular topic.
      */
-    public static final String TOPIC_SUBSCRIBER_GROUPS_QUERY = SUBSCRIBER_GROUPS_QUERY + ",topic=";
+    public static final String TOPIC_SUBSCRIBER_GROUPS_QUERY = SUBSCRIBER_GROUPS_QUERY + "," + Registry.KEY_TOPIC;
 
     /**
      * MBean query to filter out all the TopicSubscriberGroupsMBean objects of a particular topic.
      */
-    public static final String TOPIC_SUBSCRIBER_GROUP_QUERY = SUBSCRIBER_GROUPS_QUERY + ",topic=%s,name=%s";
+    public static final String TOPIC_SUBSCRIBER_GROUP_QUERY = SUBSCRIBER_GROUPS_QUERY + "," + Registry.KEY_TOPIC
+            + "%s," + Registry.KEY_NAME + "%s";
 
     /**
      * MBean query to filter out all the CacheMBean objects of a particular cache and service.
      */
-    public static final String CACHE_MEMBERS_WITH_SERVICE_QUERY = CACHES_QUERY +",name=";
+    public static final String CACHE_MEMBERS_WITH_SERVICE_QUERY = CACHES_QUERY +"," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the NodeMBean objects.
@@ -1932,12 +1932,12 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out all the Flash journal MBean objects.
      */
-    public static final String FLASH_JOURNAL_QUERY = ":" + Registry.JOURNAL_TYPE + ",name=FlashJournalRM";
+    public static final String FLASH_JOURNAL_QUERY = ":" + Registry.JOURNAL_TYPE + ","  + Registry.KEY_NAME + "FlashJournalRM";
 
     /**
      * MBean query to filter out all the RAM journal MBean objects.
      */
-    public static final String RAM_JOURNAL_QUERY = ":" + Registry.JOURNAL_TYPE + ",name=RamJournalRM";
+    public static final String RAM_JOURNAL_QUERY = ":" + Registry.JOURNAL_TYPE + "," + Registry.KEY_NAME + "RamJournalRM";
 
     /**
      * MBean query to filter out all the Cluster MBeans.
@@ -1962,17 +1962,17 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out all the ConnectionManager(Proxy) MBeans of a specific proxy service.
      */
-    public static final String CONNECTION_MANAGER_QUERY = CONNECTION_MANAGERS_QUERY + ",name=";
+    public static final String CONNECTION_MANAGER_QUERY = CONNECTION_MANAGERS_QUERY + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the Connection(Proxy) MBeans.
      */
-    public static final String CONNECTIONS_QUERY = ":" + Registry.CONNECTION_TYPE + ",name=";
+    public static final String CONNECTIONS_QUERY = ":" + Registry.CONNECTION_TYPE + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the ServiceMBean of a specific service.
      */
-    public static final String SERVICE_MEMBERS_QUERY = ":" + Registry.SERVICE_TYPE + ",name=";
+    public static final String SERVICE_MEMBERS_QUERY = ":" + Registry.SERVICE_TYPE + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out PartitionAssignment MBean of a specific service.
@@ -1997,7 +1997,8 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out Topology MBeans of a specific federated service and a specific participant.
      */
-    public static final String FEDERATION_TOPOLOGY_MEMBER_QUERY = FEDERATION_TYPE + ",subType=Topology,name=%s";
+    public static final String FEDERATION_TOPOLOGY_MEMBER_QUERY = FEDERATION_TYPE + "," + Registry.KEY_SUBTYPE_TYPE
+            + "Topology,"  + Registry.KEY_NAME + "%s";
 
     /**
      * MBean query to filter out Topology MBeans.
@@ -2007,7 +2008,7 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out Destination MBeans of a specific federated service and a specific participant.
      */
-    public static final String DESTINATIONS_QUERY = FEDERATION_TYPE + ",subType=Destination,name=";
+    public static final String DESTINATIONS_QUERY = FEDERATION_TYPE + ",subType=Destination," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out Destination MBeans of a specific federated service.
@@ -2022,7 +2023,7 @@ public abstract class AbstractManagementResource
     /**
      * MBean query to filter out Origin MBeans of a specific federated service and specific participant.
      */
-    public static final String ORIGINS_QUERY = FEDERATION_TYPE + ",subType=Origin,name=";
+    public static final String ORIGINS_QUERY = FEDERATION_TYPE + ",subType=Origin," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out PersistenceCoordinator MBean of a specific service.
@@ -2188,7 +2189,7 @@ public abstract class AbstractManagementResource
      *
      * @since 21.12
      */
-    public static final String EXECUTOR_QUERY = EXECUTORS_QUERY + ",name=";
+    public static final String EXECUTOR_QUERY = EXECUTORS_QUERY + "," + Registry.KEY_NAME;
 
     /**
      * MBean query to filter out all the Health MBeans.
@@ -2257,6 +2258,8 @@ public abstract class AbstractManagementResource
     public static final String TOPICS           = "topics";
     public static final String SUBSCRIBERS      = "subscribers";
     public static final String SUBSCRIBER_GROUPS = "subscriberGroups";
+
+    public static final String SUBSCRIBER_GROUPS_LCASE = "subscribergroups";
     public static final String CHANNELS         = "channels";
 
     // ------------------------------ URL constants ends ---------------------------------------------
