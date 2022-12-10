@@ -9,6 +9,13 @@ package com.tangosol.net.grpc;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
+import com.tangosol.coherence.config.unit.Seconds;
+
+import com.tangosol.config.expression.Expression;
+import com.tangosol.config.expression.LiteralExpression;
+import com.tangosol.config.expression.NullParameterResolver;
+import com.tangosol.config.expression.ParameterResolver;
+
 import com.tangosol.net.SocketAddressProvider;
 
 import java.util.Optional;
@@ -74,6 +81,23 @@ public interface GrpcChannelDependencies
      * @return the value for the default load balancer policy
      */
     String getDefaultLoadBalancingPolicy();
+
+    /**
+     * Return the load balancer timeout in seconds.
+     *
+     * @return the load balancer timeout in seconds
+     */
+    default long getLoadBalancerTimeout()
+        {
+        return getLoadBalancerTimeout(new NullParameterResolver());
+        }
+
+    /**
+     * Return the load balancer timeout in seconds.
+     *
+     * @return the load balancer timeout in seconds
+     */
+    long getLoadBalancerTimeout(ParameterResolver resolver);
 
     /**
      * Return the configurer that will apply further configuration
@@ -150,4 +174,9 @@ public interface GrpcChannelDependencies
      * The default load balancer policy to pass to a managed channel builder.
      */
     String DEFAULT_LOAD_BALANCER_POLICY = "round_robin";
+
+    /**
+     * The default gRPC load balancer address resolution timeout.
+     */
+    Expression<Seconds> DEFAULT_LOAD_BALANCER_TIMEOUT = new LiteralExpression<>(new Seconds(10));
     }
