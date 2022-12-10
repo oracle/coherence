@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.coherence.callables.GetClusterMemberUIDs;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterName;
 import com.oracle.bedrock.runtime.coherence.callables.GetClusterSize;
 import com.oracle.bedrock.runtime.coherence.callables.GetExtendConnectionCount;
+import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberClusterPort;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberId;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberMachineName;
 import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberName;
@@ -115,6 +116,13 @@ public abstract class AbstractCoherenceClusterMember
     public int getClusterSize()
         {
         return invoke(new GetClusterSize());
+        }
+
+
+    @Override
+    public int getLocalMemberClusterPort()
+        {
+        return invoke(new GetLocalMemberClusterPort());
         }
 
 

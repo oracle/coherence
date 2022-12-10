@@ -50,6 +50,14 @@ public interface CoherenceClusterMember
 
 
     /**
+     * Obtains the cluster port for the {@link CoherenceClusterMember}.
+     *
+     * @return the cluster port
+     */
+    int getLocalMemberClusterPort();
+
+
+    /**
      * Obtains the local member id for the {@link CoherenceClusterMember}.
      *
      * @return the local member id

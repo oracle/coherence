@@ -52,4 +52,11 @@ public interface GrpcAcceptorDependencies
      * @return the gRPC server controller
      */
     GrpcAcceptorController getController();
+
+    /**
+     * Return the max page size for the Channelz service.
+     *
+     * @return the max page size for the Channelz service
+     */
+    int getChannelzPageSize();
     }

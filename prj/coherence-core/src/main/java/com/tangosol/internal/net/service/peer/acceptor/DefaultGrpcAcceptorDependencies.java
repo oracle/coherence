@@ -139,6 +139,22 @@ public class DefaultGrpcAcceptorDependencies
         m_sInProcessName = sName;
         }
 
+    @Override
+    public int getChannelzPageSize()
+        {
+        return m_nChannelzPageSize <= 0 ? GrpcDependencies.DEFAULT_CHANNELZ_MAX_PAGE_SIZE : m_nChannelzPageSize;
+        }
+
+    /**
+     * Set the max page size for the Channelz service.
+     *
+     * @param nPageSize  the max page size for the Channelz service.
+     */
+    public void setChannelzPageSize(int nPageSize)
+        {
+        m_nChannelzPageSize = nPageSize;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -165,4 +181,9 @@ public class DefaultGrpcAcceptorDependencies
      * The name of the in-process gRPC server.
      */
     private String m_sInProcessName = GrpcDependencies.DEFAULT_IN_PROCESS_NAME;
+
+    /**
+     * The max page size for the Channelz service.
+     */
+    private int m_nChannelzPageSize;
     }

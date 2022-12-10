@@ -6,9 +6,11 @@
  */
 package com.oracle.coherence.client;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.net.InetSocketAddress32;
 
 import com.oracle.coherence.grpc.CredentialsHelper;
@@ -45,6 +47,7 @@ import io.grpc.Channel;
 import io.grpc.ChannelCredentials;
 import io.grpc.EquivalentAddressGroup;
 import io.grpc.Grpc;
+import io.grpc.LoadBalancer;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.NameResolver;
 import io.grpc.NameResolverProvider;
@@ -56,19 +59,20 @@ import io.grpc.internal.GrpcUtil;
 
 import io.grpc.internal.SharedResourceHolder;
 
-import java.io.IOException;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A default implementation of {@link GrpcChannelFactory}.
@@ -98,9 +102,33 @@ public class GrpcChannelFactory
      */
     public static GrpcChannelFactory singleton()
         {
-        return Instance.Singleton.getFactory();
+        GrpcChannelFactory factory = s_instance;
+        if (factory == null)
+            {
+            s_lock.lock();
+            try
+                {
+                factory = s_instance;
+                if (factory == null)
+                    {
+                    factory = s_instance = new GrpcChannelFactory();
+                    }
+                }
+            finally
+                {
+                s_lock.unlock();
+                }
+            }
+        return factory;
         }
 
+    /**
+     * Create a {@link Channel}.
+     *
+     * @param service  the {@link GrpcRemoteCacheService} to create the channel for
+     *
+     * @return a {@link Channel}
+     */
     public Channel getChannel(GrpcRemoteCacheService service)
         {
         RemoteGrpcCacheServiceDependencies depsService = service.getDependencies();
@@ -113,6 +141,13 @@ public class GrpcChannelFactory
 
     // ----- helper methods -------------------------------------------------
 
+    /**
+     * Create a {@link ManagedChannelBuilder} to build a channel.
+     *
+     * @param service  the {@link GrpcRemoteCacheService} to create the channel for
+     *
+     * @return a {@link ManagedChannelBuilder} to build a channel
+     */
     private ManagedChannelBuilder<?> createManagedChannelBuilder(GrpcRemoteCacheService service)
         {
         RemoteGrpcCacheServiceDependencies depsService    = service.getDependencies();
@@ -141,6 +176,11 @@ public class GrpcChannelFactory
                 .filter(GrpcChannelConfigurer.class::isInstance)
                 .map(GrpcChannelConfigurer.class::cast)
                 .ifPresent(c -> c.apply(channelBuilder));
+
+        Map<String, Object> mapServiceConfig = new HashMap<>();
+        mapServiceConfig.put("healthCheckConfig", Collections.singletonMap("serviceName", GrpcDependencies.SCOPED_PROXY_SERVICE_NAME));
+
+        channelBuilder.defaultServiceConfig(mapServiceConfig);
 
         channelBuilder.defaultLoadBalancingPolicy(depsChannel.getDefaultLoadBalancingPolicy());
         channelBuilder.userAgent("Coherence Java Client");
@@ -179,10 +219,13 @@ public class GrpcChannelFactory
 
     // ----- inner class: AddressProviderNameResolver -----------------------
 
+    /**
+     * A custom gRPC {@link NameResolver}.
+     */
     public static class AddressProviderNameResolver
             extends NameResolver
         {
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public AddressProviderNameResolver(GrpcChannelDependencies deps,
                 GrpcServiceInfo serviceInfo, NameResolver.Args args)
             {
@@ -191,12 +234,13 @@ public class GrpcChannelFactory
             m_serviceInfo                 = serviceInfo;
             m_nameResolverArgs            = args;
 
-            ParameterizedBuilder bldr = deps.getRemoteAddressProviderBuilder();
+            ParameterizedBuilder<? extends SocketAddressProvider> bldr = deps.getRemoteAddressProviderBuilder();
             if (bldr == null)
                 {
                 // default to the "cluster-discovery" address provider which consists of MC or WKAs
                 AddressProviderFactory factory = serviceInfo.getOperationalContext()
-                        .getAddressProviderMap().get("cluster-discovery");
+                        .getAddressProviderMap()
+                        .get("cluster-discovery");
 
                 if (factory != null)
                     {
@@ -209,14 +253,19 @@ public class GrpcChannelFactory
                         bldr = new FactoryBasedAddressProviderBuilder(factory);
                         }
                     }
+                else
+                    {
+                    throw new IllegalStateException("Cannot locate the cluster-discovery address provider factory");
+                    }
                 }
 
-            ClassLoader loader = Classes.getContextClassLoader();
-            m_addressProvider = (SocketAddressProvider) bldr.realize(new NullParameterResolver(), loader, null);
+            m_addressProviderBuilder = bldr;
 
             // run an initial resolve to set the authority
             new Resolve(this, serviceInfo).run();
             }
+
+        // ----- NameResolver methods ---------------------------------------
 
         @Override
         public String getServiceAuthority()
@@ -262,9 +311,10 @@ public class GrpcChannelFactory
             return m_nameResolverArgs;
             }
 
-        protected SocketAddressProvider getSocketAddressProvider()
+        protected SocketAddressProvider buildSocketAddressProvider()
             {
-            return m_addressProvider;
+            ClassLoader loader = Classes.getContextClassLoader();
+            return m_addressProviderBuilder.realize(new NullParameterResolver(), loader, null);
             }
 
         protected boolean isNameServiceAddressProvider()
@@ -295,7 +345,7 @@ public class GrpcChannelFactory
 
         private String m_sAuthority;
 
-        private final SocketAddressProvider m_addressProvider;
+        private final ParameterizedBuilder<? extends SocketAddressProvider> m_addressProviderBuilder;
 
         private final boolean m_fNameServiceAddressProvider;
 
@@ -312,85 +362,152 @@ public class GrpcChannelFactory
 
     // ----- inner class: Resolve -------------------------------------------
 
+    /**
+     * A {@link Runnable} that will actually resolve the gRPC endpoints.
+     */
     protected static class Resolve
             implements Runnable
         {
-        protected Resolve(AddressProviderNameResolver addressProviderNameResolver, GrpcServiceInfo serviceInfo)
+        /**
+         * Create a new resolve runnable.
+         *
+         * @param parent       the parent {@link AddressProviderNameResolver}
+         * @param serviceInfo  the gRPC service info
+         */
+        protected Resolve(AddressProviderNameResolver parent, GrpcServiceInfo serviceInfo)
             {
-            this(addressProviderNameResolver, serviceInfo, null);
+            this(parent, serviceInfo, NullNameResolverListener.INSTANCE);
             }
 
-        protected Resolve(AddressProviderNameResolver addressProviderNameResolver,
-                GrpcServiceInfo serviceInfo, NameResolver.Listener2 listener)
+        /**
+         * Create a new resolve runnable.
+         *
+         * @param parent       the parent {@link AddressProviderNameResolver}
+         * @param serviceInfo  the gRPC service info
+         * @param listener     the listener to receive the resolve result
+         */
+        protected Resolve(AddressProviderNameResolver parent, GrpcServiceInfo serviceInfo, NameResolver.Listener2 listener)
             {
-            m_addressProviderNameResolver = addressProviderNameResolver;
-            m_serviceInfo                 = serviceInfo;
-            m_listener                    = listener;
+            f_parent = Objects.requireNonNull(parent);
+            f_serviceInfo                 = Objects.requireNonNull(serviceInfo);
+            f_listener                    = Objects.requireNonNull(listener);
             }
+
+        // ----- Runnable implementation ------------------------------------
 
         @Override
         public void run()
             {
-            List<SocketAddress> list = m_addressProviderNameResolver.isNameServiceAddressProvider()
-                    ? lookupAddresses()
-                    : resolveAddresses();
+            List<Throwable>               listError       = new ArrayList<>();
+            NameResolver.ResolutionResult result          = null;
+            int                           cAttempt        = 1;
+            GrpcChannelDependencies       dependencies    = f_serviceInfo.getDependencies();
+            long                          cTimeoutSeconds = dependencies.getLoadBalancerTimeout();
 
-            NameResolver.ResolutionResult result;
-            if (list.isEmpty())
+            if (cTimeoutSeconds < 1)
                 {
+                cTimeoutSeconds = GrpcChannelDependencies.DEFAULT_LOAD_BALANCER_TIMEOUT
+                        .evaluate(new NullParameterResolver()).get();
+                }
+
+            try (Timeout ignored = Timeout.after(cTimeoutSeconds, TimeUnit.SECONDS))
+                {
+                while(result == null)
+                    {
+                    try
+                        {
+                        List<SocketAddress> list = f_parent.isNameServiceAddressProvider()
+                                ? lookupAddresses()
+                                : resolveAddresses();
+
+                        if (list.isEmpty())
+                            {
+                            NameResolver.ConfigOrError error = NameResolver.ConfigOrError
+                                    .fromError(Status.FAILED_PRECONDITION.withDescription("Failed to resolve any gRPC proxy addresses"));
+
+                            result = NameResolver.ResolutionResult.newBuilder()
+                                    .setServiceConfig(error)
+                                    .setAttributes(Attributes.EMPTY)
+                                    .build();
+                            }
+                        else
+                            {
+                            NameResolver.Args args          = f_parent.getNameResolverArgs();
+                            ProxyDetector     proxyDetector = args == null ? null : args.getProxyDetector();
+
+                            if (proxyDetector != null)
+                                {
+                                List<SocketAddress> proxiedAddresses = new ArrayList<>();
+                                for (SocketAddress socketAddress : list)
+                                    {
+                                    proxiedAddresses.add(Objects.requireNonNullElse(proxyDetector.proxyFor(socketAddress), socketAddress));
+                                    }
+                                list = proxiedAddresses;
+                                }
+
+                            Map<String, Object> config = Collections.singletonMap("serviceName", GrpcDependencies.SCOPED_PROXY_SERVICE_NAME);
+                            Attributes          attrs  = Attributes.newBuilder()
+                                                                   .set(LoadBalancer.ATTR_HEALTH_CHECKING_CONFIG, config)
+                                                                   .build();
+
+                            result = NameResolver.ResolutionResult.newBuilder()
+                                    .setAddresses(Collections.singletonList(new EquivalentAddressGroup(list, attrs)))
+                                    .setAttributes(Attributes.EMPTY)
+                                    .build();
+                            }
+
+                        Logger.config("Refreshed gRPC endpoints: " + result.getAddresses());
+                        }
+                    catch(Throwable t)
+                        {
+                        listError.add(t);
+                         Logger.finest("Failed to lookup gRPC endpoints, attempts=" + cAttempt
+                                + " : " + t.getMessage());
+
+                        try
+                            {
+                            Blocking.sleep(1000);
+                            }
+                        catch (InterruptedException e)
+                            {
+                            // ignored
+                            }
+                        cAttempt++;
+                        }
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                // We timed-out trying to look up the endpoints
+                // Add any previously thrown exceptions to the InterruptedException
+                listError.forEach(e::addSuppressed);
+
                 NameResolver.ConfigOrError error = NameResolver.ConfigOrError
-                        .fromError(Status.FAILED_PRECONDITION.withDescription("Failed to resolve any gRPC proxy addresses"));
+                        .fromError(Status.DEADLINE_EXCEEDED.withDescription(e.getMessage()));
 
                 result = NameResolver.ResolutionResult.newBuilder()
                         .setServiceConfig(error)
                         .setAttributes(Attributes.EMPTY)
                         .build();
                 }
-            else
+            finally
                 {
-                try
-                    {
-                    NameResolver.Args args          = m_addressProviderNameResolver.getNameResolverArgs();
-                    ProxyDetector     proxyDetector = args == null ? null : args.getProxyDetector();
-
-                    if (proxyDetector != null)
-                        {
-                        List<SocketAddress> proxiedAddresses = new ArrayList<>();
-                        for (SocketAddress socketAddress : list)
-                            {
-                            proxiedAddresses.add(Objects.requireNonNullElse(proxyDetector.proxyFor(socketAddress), socketAddress));
-                            }
-                        list = proxiedAddresses;
-                        }
-
-                    result = NameResolver.ResolutionResult.newBuilder()
-                            .setAddresses(Collections.singletonList(new EquivalentAddressGroup(list)))
-                            .setAttributes(Attributes.EMPTY)
-                            .build();
-                    }
-                catch (IOException e)
-                    {
-                    Logger.err(e);
-
-                    NameResolver.ConfigOrError error = NameResolver.ConfigOrError
-                            .fromError(Status.INTERNAL.withDescription(e.getMessage()));
-
-                    result = NameResolver.ResolutionResult.newBuilder()
-                            .setServiceConfig(error)
-                            .setAttributes(Attributes.EMPTY)
-                            .build();
-                    }
+                f_parent.m_fResolving = false;
                 }
 
-            if (m_listener != null)
-                {
-                m_listener.onResult(result);
-                }
+            f_listener.onResult(result);
             }
 
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Resolve the endpoints.
+         *
+         * @return  the gRPC endpoint addresses
+         */
         protected List<SocketAddress> resolveAddresses()
             {
-            SocketAddressProvider addressProvider = m_addressProviderNameResolver.getSocketAddressProvider();
+            SocketAddressProvider addressProvider = f_parent.buildSocketAddressProvider();
             List<SocketAddress>   list            = new ArrayList<>();
             SocketAddress         address         = addressProvider.getNextAddress();
             boolean               fFirst          = true;
@@ -418,22 +535,32 @@ public class GrpcChannelFactory
             return list;
             }
 
+        /**
+         * Update the authority form an address.
+         *
+         * @param address  the address to use to obtain the authority
+         */
         private void updateAuthority(InetSocketAddress address)
             {
             String sAuthority = GrpcUtil.authorityFromHostAndPort(address.getHostString(), address.getPort());
-            m_addressProviderNameResolver.setAuthority(sAuthority);
+            f_parent.setAuthority(sAuthority);
             }
 
+        /**
+         * Lookup the gRPC endpoints using the name service.
+         *
+         * @return  the gRPC endpoint addresses
+         */
         @SuppressWarnings("resource")
         protected List<SocketAddress> lookupAddresses()
             {
-            SocketAddressProvider addressProvider = m_addressProviderNameResolver.getSocketAddressProvider();
+            SocketAddressProvider addressProvider = f_parent.buildSocketAddressProvider();
             RemoteNameService     serviceNS       = new RemoteNameService();
-            OperationalContext    context         = m_serviceInfo.getOperationalContext();
+            OperationalContext    context         = f_serviceInfo.getOperationalContext();
 
             serviceNS.setOperationalContext(context);
             serviceNS.setContextClassLoader(Classes.getContextClassLoader());
-            serviceNS.setServiceName(m_serviceInfo.getService() + ':' + NameService.TYPE_REMOTE);
+            serviceNS.setServiceName(f_serviceInfo.getService() + ':' + NameService.TYPE_REMOTE);
 
             DefaultRemoteNameServiceDependencies nameServiceDeps =
                     LegacyXmlRemoteNameServiceHelper.fromXml(
@@ -452,8 +579,8 @@ public class GrpcChannelFactory
             // use the default socket provider, as we don't want to inherit SSL settings, NS is always in the clear
             depsNsTcp.setSocketProviderBuilder(new SocketProviderBuilder(SocketProviderFactory.DEFAULT_SOCKET_PROVIDER, false));
 
-            String sServiceRemote = m_serviceInfo.getRemoteService();
-            String sCluster       = m_serviceInfo.getRemoteCluster();
+            String sServiceRemote = f_serviceInfo.getRemoteService();
+            String sCluster       = f_serviceInfo.getRemoteCluster();
 
             if (sCluster == null || sCluster.isEmpty())
                 {
@@ -480,7 +607,7 @@ public class GrpcChannelFactory
                     {
                     // we got an answer, which means we found the cluster, but not the service
                     throw new ConnectionException("Unable to locate ProxyService '" + sServiceRemote
-                                                        + "' within cluster '" + m_serviceInfo.getRemoteCluster() + "'");
+                                                        + "' within cluster '" + f_serviceInfo.getRemoteCluster() + "'");
                     }
 
                 List<SocketAddress> list = new ArrayList<>();
@@ -513,15 +640,55 @@ public class GrpcChannelFactory
                 }
             }
 
-        private final AddressProviderNameResolver m_addressProviderNameResolver;
+        // ----- data members -----------------------------------------------
 
-        private final NameResolver.Listener2 m_listener;
+        /**
+         * The parent {@link AddressProviderNameResolver}.
+         */
+        private final AddressProviderNameResolver f_parent;
 
-        private final GrpcServiceInfo m_serviceInfo;
+        /**
+         * The listener to receive the resolver result.
+         */
+        private final NameResolver.Listener2 f_listener;
+
+        /**
+         * The gRPC service info.
+         */
+        private final GrpcServiceInfo f_serviceInfo;
+        }
+
+    // ----- inner class: NullNameResolverListener --------------------------
+
+    /**
+     * A no-op implementation of a {@link NameResolver.Listener2}.
+     */
+    protected static class NullNameResolverListener
+            extends NameResolver.Listener2
+        {
+        @Override
+        public void onResult(NameResolver.ResolutionResult resolutionResult)
+            {
+            }
+
+        @Override
+        public void onError(Status error)
+            {
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * A singleton instance of {@link NullNameResolverListener}.
+         */
+        protected static final NullNameResolverListener INSTANCE = new NullNameResolverListener();
         }
 
     // ----- inner class: GrpcServiceInfo -----------------------------------
 
+    /**
+     * A holder for gRPC service information.
+     */
     public static class GrpcServiceInfo
         {
         public GrpcServiceInfo(OperationalContext ctx, String sService, String sRemoteService,
@@ -617,30 +784,24 @@ public class GrpcChannelFactory
         private final GrpcChannelDependencies m_dependencies;
         }
 
-    // ----- singleton enum -------------------------------------------------
-
-    private enum Instance
-        {
-        Singleton(new GrpcChannelFactory());
-
-        Instance(GrpcChannelFactory factory)
-            {
-            m_factory = factory;
-            }
-
-        public GrpcChannelFactory getFactory()
-            {
-            return m_factory;
-            }
-
-        private final GrpcChannelFactory m_factory;
-        }
-
     // ----- constants ------------------------------------------------------
 
+    /**
+     * The name of the custom Coherence gRPC name resolver.
+     */
     public static final String RESOLVER_SCHEME = "coherence";
 
     // ----- data members ---------------------------------------------------
 
     private final Map<String, GrpcServiceInfo> m_mapServiceInfo = new ConcurrentHashMap<>();
+
+    /**
+     * A lock to control creation of the singleton factory.
+     */
+    private static final ReentrantLock s_lock = new ReentrantLock();
+
+    /**
+     * The singleton {@link GrpcChannelFactory}.
+     */
+    private static volatile GrpcChannelFactory s_instance;
     }

@@ -74,4 +74,9 @@ public interface GrpcDependencies
     String SCOPED_PROXY_SERVICE_NAME = PROXY_SERVICE_SCOPE_NAME + ":" + PROXY_SERVICE_NAME;
     // This suffix here must match the fully scoped name used for the gRPC proxy
     // in grpc-proxy-cache-config.xml file and for the NSLookup.GRPC_PROXY_URL field
+
+    /**
+     * The default max page size used by the gRPC debug Channelz service.
+     */
+    int DEFAULT_CHANNELZ_MAX_PAGE_SIZE = 100;
     }
