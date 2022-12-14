@@ -2405,11 +2405,11 @@ public abstract class AbstractNamedTopicTests
 
             futureOne.cancel(true);
 
-            publisher.publish("message-one").get(1, TimeUnit.MINUTES);
-            publisher.publish("message-two").get(1, TimeUnit.MINUTES);
-
             Eventually.assertDeferred(futureOne::isDone, is(true));
             assertThat(futureOne.isCancelled(), is(true));
+
+            publisher.publish("message-one").get(1, TimeUnit.MINUTES);
+            publisher.publish("message-two").get(1, TimeUnit.MINUTES);
 
             Eventually.assertDeferred(futureTwo::isDone, is(true));
             assertThat(futureTwo.isCancelled(), is(false));
