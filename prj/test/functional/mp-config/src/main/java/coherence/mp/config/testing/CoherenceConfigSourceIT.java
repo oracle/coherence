@@ -77,13 +77,7 @@ class CoherenceConfigSourceIT
 
         config = getConfig();
         source = getCoherenceSource(config);
-        source.getConfigMap().clear();
-
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()));
-        Eventually.assertDeferred(() -> source.getConfigMap().entrySet(), hasSize(0));
-        Eventually.assertDeferred(() -> source.getProperties().entrySet(), hasSize(0));
-
-        Eventually.assertDeferred(() -> weld.isRunning(), is(true));
+        source.getConfigMap().truncate();
         }
 
     private static Config getConfig()
@@ -164,7 +158,7 @@ class CoherenceConfigSourceIT
     @ApplicationScoped
     static class TestObserver
         {
-        volatile String latestValue;
+        String latestValue;
 
         public String getLatestValue()
             {
