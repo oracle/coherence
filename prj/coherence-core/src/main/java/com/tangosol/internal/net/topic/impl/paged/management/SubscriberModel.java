@@ -622,7 +622,7 @@ public class SubscriberModel
      * The number of completed received requests in one-minute.
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE  =
-                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsRate", SubscriberModel.class)
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFiveMinuteRate", SubscriberModel.class)
                         .withDescription("The completed receive requests, five-minute rate")
                         .withFunction(SubscriberModel::getReceivedFiveMinuteRate)
                         .metric("ReceiveCompletions")
@@ -633,7 +633,7 @@ public class SubscriberModel
      * The number of completed received requests in one-minute.
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN  =
-                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsRate", SubscriberModel.class)
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFifteenMinuteRate", SubscriberModel.class)
                         .withDescription("The completed receive requests, fifteen-minute rate")
                         .withFunction(SubscriberModel::getReceivedFifteenMinuteRate)
                         .metric("ReceiveCompletions")
