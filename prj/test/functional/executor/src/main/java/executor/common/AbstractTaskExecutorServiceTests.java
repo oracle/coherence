@@ -221,7 +221,7 @@ public abstract class AbstractTaskExecutorServiceTests
         // execute and complete on just one Executor
         subscriber = new RecordingSubscriber<>();
 
-        m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
+        m_taskExecutorService.orchestrate(new ValueTask<>("Hello World", 3000))
                 .limit(1)
                 .subscribe(subscriber)
                 .submit();
@@ -1510,7 +1510,7 @@ public abstract class AbstractTaskExecutorServiceTests
         TaskExecutorService executorService = m_taskExecutorService;
 
         ScheduledFuture<?> result1 = executorService.schedule(new MyRunnable("hello"), 30, TimeUnit.SECONDS);
-        Repetitively.assertThat(invoking(result1).isDone(), Matchers.is(false), within(28, TimeUnit.SECONDS));
+        Repetitively.assertThat(invoking(result1).isDone(), Matchers.is(false), within(25, TimeUnit.SECONDS));
         Eventually.assertDeferred(() ->
                 {
                 try
