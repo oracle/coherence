@@ -45,7 +45,7 @@ public class MultiClusterInSingleProcessTests
     public MultiClusterInSingleProcessTests()
         {
         super(CLUSTER_NAME, MultiClusterInSingleProcessTests::invokeInCluster);
-        super.EXPECTED_SERVICE_COUNT = 5;
+        super.EXPECTED_SERVICE_COUNT = 4;
         }
 
     @BeforeClass
@@ -160,6 +160,4 @@ public class MultiClusterInSingleProcessTests
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(ACTIVE_SERVICE)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, IsReady.INSTANCE), is(true), within(5, TimeUnit.MINUTES));
         }
-
-        protected void ensureServicesAreAvailable() {}
     }

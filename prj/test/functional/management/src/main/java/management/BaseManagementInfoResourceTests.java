@@ -55,7 +55,6 @@ import com.tangosol.internal.management.resources.ClusterMemberResource;
 
 import com.tangosol.internal.net.management.HttpHelper;
 
-import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
 import com.tangosol.io.FileHelper;
 
@@ -89,7 +88,6 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -107,7 +105,6 @@ import jakarta.ws.rs.client.WebTarget;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.junit.runners.MethodSorters;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -139,7 +136,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -207,7 +203,6 @@ import static org.junit.Assert.assertTrue;
  * @author gh 2022.05.13
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class BaseManagementInfoResourceTests
     {
     // ----- constructors ---------------------------------------------------
@@ -270,7 +265,6 @@ public abstract class BaseManagementInfoResourceTests
             startService(INVOCATION_SERVICE_NAME, INVOCATION_SERVICE_TYPE);
             s_fInvocationServiceStarted = true;
             }
-        ensureServicesAreAvailable();
         }
 
     @After
@@ -1271,53 +1265,6 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         mapResponse = readEntity(target, response);
         assertThat(((Number) ((Map) mapResponse.get("storageEnabled")).get("false")).longValue(), is(1L));
-        }
-
-    /**
-     * Verifies COH-25823 - MetricsHttpProxy service fails to restart when Node MBean shutdown() issued
-     *
-     * This test will shutdown Cluster Node-2 which runs the Metrics Service. Once restarted the node should have the
-     * metrics service running again.
-     */
-    @Test
-    public void xtestClusterNodeShutdownWithServicesRestart()
-        {
-        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
-        WebTarget target = getBaseTarget().path(SERVICES).path(MetricsHttpHelper.getServiceName()).path("members");
-        Response response = target.request().get();
-        Map mapResponse = readEntity(target, response);
-        List<Map>listItemMaps = (List<Map>) mapResponse.get("items");
-        assertThat(listItemMaps.size(), is(1));
-        assertThat(listItemMaps.get(0).get("nodeId"), is("2"));
-        assertThat(listItemMaps.get(0).get("member"), is(SERVER_PREFIX + "-2"));
-        assertThat(listItemMaps.get(0).get("running"), is(true));
-
-        response = getBaseTarget().path("members").path(SERVER_PREFIX + "-2").path("shutdown").request(MediaType.APPLICATION_JSON_TYPE).post(null);
-        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-
-        AtomicReference<Response> serviceMemberResponse = new AtomicReference<>();
-        WebTarget serviceMemberTarget = getBaseTarget().path(SERVICES).path(MetricsHttpHelper.getServiceName()).path("members");
-
-        Eventually.assertDeferred(() ->
-            {
-                Response localResponse = serviceMemberTarget.request().get();
-                serviceMemberResponse.set(localResponse);
-                return localResponse.getStatus();
-            }, is(Response.Status.OK.getStatusCode()), within(5, TimeUnit.MINUTES), delayedBy(5, TimeUnit.SECONDS));
-        
-            assertThat(serviceMemberResponse.get().getStatus(), is(Response.Status.OK.getStatusCode()));
-            assertThat(serviceMemberResponse.get().getHeaderString("X-Content-Type-Options"), is("nosniff"));
-            Map mapServicesResponse = readEntity(serviceMemberTarget, serviceMemberResponse.get());
-
-            assertThat(mapServicesResponse, notNullValue());
-
-            List<Map> members = (List<Map>) mapServicesResponse.get("items");
-            assertThat(members, notNullValue());
-
-            assertThat(members.size(), is(1));
-            assertThat(members.get(0).get("nodeId"), is("3"));
-            assertThat(members.get(0).get("member"), is(SERVER_PREFIX + "-2"));
-            assertThat(members.get(0).get("running"), is(true));
         }
 
     @Test
@@ -2454,7 +2401,7 @@ public abstract class BaseManagementInfoResourceTests
 
         List<Map> listItems = (List<Map>) mapResponse.get("items");
         assertThat(listItems, notNullValue());
-        assertThat(listItems.size(), is(4));
+        assertThat(listItems.size(), is(3));
 
         for (Map mapEntry : listItems)
             {
@@ -2659,7 +2606,7 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
-    public void atestCachesOfAService()
+    public void testCachesOfAService()
         {
         WebTarget target   = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME)).path(CACHES);
         Response  response = target.request().get();
@@ -4058,25 +4005,6 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(listMessages, nullValue());
         }
 
-    protected void ensureServicesAreAvailable() {
-        Eventually.assertDeferred(() ->
-        {
-            WebTarget servicesTarget = getBaseTarget().path(SERVICES);
-            Response servicesResponse = servicesTarget.request().get();
-
-            assertThat(servicesResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
-            assertThat(servicesResponse.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-            Map mapServicesResponse = readEntity(servicesTarget, servicesResponse);
-
-            assertThat(mapServicesResponse, notNullValue());
-
-            List<Map> services = (List<Map>) mapServicesResponse.get("items");
-            assertThat(services, notNullValue());
-            services.removeIf(serviceMap -> Arrays.stream(TOPICS_SERVICES_LIST).anyMatch(topicServiceName -> ((String) serviceMap.get(NAME)).contains(topicServiceName)));
-            return services.size();
-        }, is(EXPECTED_SERVICE_COUNT), within(5, TimeUnit.MINUTES));
-    }
-
     /**
      * Returns whether the GC in use is G1.
      *
@@ -4450,13 +4378,13 @@ public abstract class BaseManagementInfoResourceTests
         propsServer2.add(SystemProperty.of("coherence.member", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.role", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
-        propsServer2.add(SystemProperty.of("coherence.metrics.http.enabled", "true"));
+
         builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
 
         s_cluster = builder.build(LocalPlatform.get());
 
         clusterReady.accept(s_cluster);
-        inClusterInvoker.accept(sClusterName, null, BaseManagementInfoResourceTests::populateCaches);
+        inClusterInvoker.accept(sClusterName, null, BaseManagementInfoResourceTests::popluateCaches);
         inClusterInvoker.accept(sClusterName, SERVER_PREFIX + "-1", BaseManagementInfoResourceTests::populateTopics);
         inClusterInvoker.accept(sClusterName, SERVER_PREFIX + "-2", BaseManagementInfoResourceTests::createTopics);
 
@@ -4469,7 +4397,7 @@ public abstract class BaseManagementInfoResourceTests
                 .build();
         }
 
-    protected static Void populateCaches()
+    protected static Void popluateCaches()
         {
         NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
         Binary     binValue = Binary.getRandomBinary(1024, 1024);
@@ -4747,7 +4675,7 @@ public abstract class BaseManagementInfoResourceTests
      * The list of services used by this test class.
      */
     private static final String[] SERVICES_LIST = {SERVICE_NAME, PROXY_SERVICE_NAME,
-            "DistributedCachePersistence", HttpHelper.getServiceName(), INVOCATION_SERVICE_NAME, MetricsHttpHelper.getServiceName()};
+            "DistributedCachePersistence", HttpHelper.getServiceName(), INVOCATION_SERVICE_NAME};
 
     /**
      * The list of services used by topics.
@@ -4788,7 +4716,7 @@ public abstract class BaseManagementInfoResourceTests
 
     /**
      * The expected number of services on the server, this is very brittle!
-     * May be overridden.
+     * May be overriden.
      */
     protected int EXPECTED_SERVICE_COUNT = SERVICES_LIST.length;
 
