@@ -797,7 +797,7 @@ public abstract class AbstractClusteredExecutorServiceTests
             // ensure the executor information is eventually cleaned up
             Eventually.assertDeferred(cacheExecutorServiceInner::size,
                                       is(getInitialExecutorCount() + 2),
-                                      within(ClusteredExecutorInfo.LEASE_DURATION_MS + 5000, TimeUnit.MILLISECONDS));
+                                      within(ClusteredExecutorInfo.LEASE_DURATION_MS + 8000, TimeUnit.MILLISECONDS));
 
             m_taskExecutorService.register(executorService3);
 
