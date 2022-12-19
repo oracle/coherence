@@ -7,6 +7,7 @@
 package com.tangosol.internal.net.management.model;
 
 import com.tangosol.net.management.annotation.MetricsLabels;
+import com.tangosol.net.management.annotation.MetricsScope;
 import com.tangosol.net.management.annotation.MetricsTag;
 import com.tangosol.net.management.annotation.MetricsValue;
 
@@ -20,8 +21,6 @@ import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import java.util.function.Function;
@@ -56,7 +55,7 @@ public class SimpleModelAttribute<M>
         f_fMetricTag   = builder.m_fMetricTag;
         f_sMetricName  = builder.m_sMetricName;
         f_metricScope  = builder.m_metricScope;
-        f_asLabels     = builder.f_setLabels.toArray(new String[0]);
+        f_asLabels     = builder.m_asLabels;
         }
 
     // ----- SubscriberAttribute methods ------------------------------------
@@ -98,6 +97,7 @@ public class SimpleModelAttribute<M>
                     String            sName      = f_sMetricName == null || f_sMetricName.isBlank() ? f_sName : f_sMetricName;
                     if (f_fMetric)
                         {
+                        descriptor.setField(MetricsScope.KEY, MBeanMetric.Scope.VENDOR.name());
                         descriptor.setField(MetricsValue.DESCRIPTOR_KEY, sName);
                         if (f_asLabels.length != 0)
                             {
@@ -143,12 +143,17 @@ public class SimpleModelAttribute<M>
         {
         Builder<T> builder = builder(f_sName, f_type, cls);
 
-        return builder.withDescription(f_sDescription)
-                .withFunction((Function<T, ?>) f_function)
-                .readable(f_fReadable)
-                .writeable(f_fWritable)
-                .metric(f_fMetric)
-                .withMetricLabels(f_asLabels);
+        builder.m_sMetricName  = f_sMetricName;
+        builder.m_asLabels     = f_asLabels;
+        builder.m_fMetric      = f_fMetric;
+        builder.m_fMetricTag   = f_fMetricTag;
+        builder.m_fReadable    = f_fReadable;
+        builder.m_function     = (Function<T, ?>) f_function;
+        builder.m_fWritable    = f_fWritable;
+        builder.m_metricScope  = f_metricScope;
+        builder.m_sDescription = f_sDescription;
+
+        return builder;
         }
 
     /**
@@ -328,8 +333,8 @@ public class SimpleModelAttribute<M>
          */
         public Builder<M> withMetricLabels(String... asLabel)
             {
-            m_fMetric = true;
-            f_setLabels.addAll(Arrays.asList(asLabel));
+            m_fMetric  = true;
+            m_asLabels = asLabel;
             return this;
             }
 
@@ -342,8 +347,8 @@ public class SimpleModelAttribute<M>
          */
         public Builder<M> withMetricLabels(Set<String> setLabel)
             {
-            m_fMetric = true;
-            f_setLabels.addAll(setLabel);
+            m_fMetric  = true;
+            m_asLabels = setLabel == null || setLabel.isEmpty() ? new String[0] : setLabel.toArray(new String[0]);
             return this;
             }
 
@@ -456,7 +461,7 @@ public class SimpleModelAttribute<M>
         /**
          * The set of metrics labels.
          */
-        private final Set<String> f_setLabels = new HashSet<>();
+        private String[] m_asLabels = {};
 
         /**
          * The metric name

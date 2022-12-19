@@ -12,6 +12,7 @@ import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
 
@@ -22,8 +23,6 @@ import com.tangosol.net.TopicService;
 import com.tangosol.util.Filter;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SimpleLongArray;
-
-import java.util.Objects;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,16 +45,16 @@ public class SubscriberGroupModel
      * Create a {@link SubscriberGroupModel}.
      *
      * @param pagedTopicStatistics the topic this model represents
-     * @param sGroupName           the name of the subscriber group
+     * @param groupId              the {@link SubscriberGroupId id} of the subscriber group
      * @param filter               the filter used to filter messages to be received by subscribers in the group
      * @param fnConvert            the Function used to convert messages to be received by subscribers in the group
      * @param service              the topic service
      */
-    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, String sGroupName, Filter<?> filter,
+    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, SubscriberGroupId groupId, Filter<?> filter,
             Function<?, ?> fnConvert, TopicService service)
         {
         super(MBEAN_DESCRIPTION);
-        f_sGroupName = sGroupName;
+        f_groupId    = groupId;
         f_filter     = filter;
         f_fnConvert  = fnConvert;
         f_statistics = pagedTopicStatistics;
@@ -65,7 +64,7 @@ public class SubscriberGroupModel
         int cChannel = service.getChannelCount(pagedTopicStatistics.getTopicName());
         for (int nChannel = 0; nChannel < cChannel; nChannel++)
             {
-            f_aChannel.set(nChannel, new SubscriberGroupChannelModel(f_statistics, sGroupName, nChannel));
+            f_aChannel.set(nChannel, new SubscriberGroupChannelModel(f_statistics, groupId, nChannel));
             }
 
         // configure the attributes of the MBean
@@ -99,7 +98,7 @@ public class SubscriberGroupModel
      */
     protected String getFilter()
         {
-        return Objects.toString(f_filter, null);
+        return valueOrNotApplicable(f_filter);
         }
 
     /**
@@ -109,7 +108,7 @@ public class SubscriberGroupModel
      */
     protected String getTransformer()
         {
-        return Objects.toString(f_fnConvert, null);
+        return valueOrNotApplicable(f_fnConvert);
         }
 
     /**
@@ -136,7 +135,7 @@ public class SubscriberGroupModel
                 model = f_aChannel.get(nChannel);
                 if (model == null)
                     {
-                    model = new SubscriberGroupChannelModel(f_statistics, f_sGroupName, nChannel);
+                    model = new SubscriberGroupChannelModel(f_statistics, f_groupId, nChannel);
                     f_aChannel.set(nChannel, model);
                     }
                 }
@@ -184,7 +183,7 @@ public class SubscriberGroupModel
 
     protected SubscriberGroupStatistics getStatistics()
         {
-        return f_statistics.getSubscriberGroupStatistics(f_sGroupName);
+        return f_statistics.getSubscriberGroupStatistics(f_groupId);
         }
 
     // ----- constants ------------------------------------------------------
@@ -281,9 +280,9 @@ public class SubscriberGroupModel
     private final TopicService f_service;
 
     /**
-     * The name of the subscriber group.
+     * The id of the subscriber group.
      */
-    private final String f_sGroupName;
+    private final SubscriberGroupId f_groupId;
 
     /**
      * The filter used to filter messages to be received by subscribers in the group.

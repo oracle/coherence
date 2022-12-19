@@ -32,7 +32,8 @@ public class SubscriberGroupResource
         router.addGet(sPathRoot, this::get);
 
         // child resources
-        router.addRoutes(sPathRoot + "/{" + MEMBER_KEY + "}", new SubscriberGroupMemberResource());
+        router.addRoutes(sPathRoot + "/" + MEMBER_KEY + "}", new SubscriberGroupMemberResource());
+        router.addRoutes(sPathRoot + "/" + SUBSCRIBERS, new SubscribersResource());
         }
 
     // ----- GET API --------------------------------------------------------

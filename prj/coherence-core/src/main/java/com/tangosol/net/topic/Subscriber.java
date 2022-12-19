@@ -1812,6 +1812,41 @@ public interface Subscriber<V>
         boolean isOwned();
 
         /**
+         * Return the number of completed receive requests.
+         *
+         * @return the number of completed receive requests
+         */
+        long getReceived();
+
+        /**
+         * Return the mean rate of completed receive requests.
+         *
+         * @return the mean rate of completed receive requests
+         */
+        double getReceivedMeanRate();
+
+        /**
+         * Return the one-minute rate of completed receive requests.
+         *
+         * @return the one-minute rate of completed receive requests
+         */
+        double getReceivedOneMinuteRate();
+
+        /**
+         * Return the five-minute rate of completed receive requests.
+         *
+         * @return the five-minute rate of completed receive requests
+         */
+        double getReceivedFiveMinuteRate();
+
+        /**
+         * Return the fifteen-minute rate of completed receive requests.
+         *
+         * @return the fifteen-minute rate of completed receive requests
+         */
+        double getReceivedFifteenMinuteRate();
+
+        /**
          * A default empty channel implementation.
          */
         class EmptyChannel implements Channel
@@ -1861,6 +1896,36 @@ public interface Subscriber<V>
             public boolean isOwned()
                 {
                 return false;
+                }
+
+            @Override
+            public long getReceived()
+                {
+                return 0L;
+                }
+
+            @Override
+            public double getReceivedMeanRate()
+                {
+                return 0.0d;
+                }
+
+            @Override
+            public double getReceivedOneMinuteRate()
+                {
+                return 0.0d;
+                }
+
+            @Override
+            public double getReceivedFiveMinuteRate()
+                {
+                return 0.0d;
+                }
+
+            @Override
+            public double getReceivedFifteenMinuteRate()
+                {
+                return 0.0d;
                 }
 
             // ----- data members -------------------------------------------

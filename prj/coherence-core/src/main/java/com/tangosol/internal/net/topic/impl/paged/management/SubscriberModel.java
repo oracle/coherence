@@ -68,11 +68,17 @@ public class SubscriberModel
         addAttribute(ATTRIBUTE_ELEMENTS);
         addAttribute(ATTRIBUTE_FILTER);
         addAttribute(ATTRIBUTE_ID);
+        addAttribute(ATTRIBUTE_IDENTIFYING_NAME);
         addAttribute(ATTRIBUTE_MAX_BACKLOG);
         addAttribute(ATTRIBUTE_MEMBER);
         addAttribute(ATTRIBUTE_NOTIFICATIONS);
+        addAttribute(ATTRIBUTE_NOTIFICATION_ID);
         addAttribute(ATTRIBUTE_POLLS);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS);
+        addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN);
+        addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_ONE);
+        addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE);
+        addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN);
         addAttribute(ATTRIBUTE_RECEIVE_EMPTY);
         addAttribute(ATTRIBUTE_RECEIVE_ERRORS);
         addAttribute(ATTRIBUTE_SERIALIZER);
@@ -110,6 +116,27 @@ public class SubscriberModel
     protected long getId()
         {
         return f_subscriber.getId();
+        }
+
+    /**
+     * Return the subscriber notification identifier.
+     *
+     * @return the subscriber notification identifier
+     */
+    protected long getNotificationId()
+        {
+        return f_subscriber.getNotificationId();
+        }
+
+    /**
+     * Return the subscriber identifying name.
+     *
+     * @return the subscriber identifying name
+     */
+    protected String getIdentifyingName()
+        {
+        String sName = f_subscriber.getIdentifyingName();
+        return valueOrNotApplicable(sName);
         }
 
     /**
@@ -254,7 +281,7 @@ public class SubscriberModel
     protected String getFilter()
         {
         Filter<?> filter = f_subscriber.getFilter();
-        return filter == null ? "n/a" : String.valueOf(filter);
+        return valueOrNotApplicable(filter);
         }
 
     /**
@@ -265,7 +292,7 @@ public class SubscriberModel
     protected String getConverter()
         {
         Function<?, ?> function = f_subscriber.getConverter();
-        return function == null ? "n/a" : String.valueOf(function);
+        return valueOrNotApplicable(function);
         }
 
     /**
@@ -286,6 +313,46 @@ public class SubscriberModel
     protected long getReceivedCount()
         {
         return f_subscriber.getReceived();
+        }
+
+    /**
+     * Return the mean rate of receive requests completed.
+     *
+     * @return the mean rate of receive requests completed
+     */
+    protected double getReceivedMeanRate()
+        {
+        return f_subscriber.getReceivedMeanRate();
+        }
+
+    /**
+     * Return the one-minute rate of receive requests completed.
+     *
+     * @return the one-minute rate of receive requests completed
+     */
+    protected double getReceivedOneMinuteRate()
+        {
+        return f_subscriber.getReceivedOneMinuteRate();
+        }
+
+    /**
+     * Return the five-minute rate of receive requests completed.
+     *
+     * @return the five-minute rate of receive requests completed
+     */
+    protected double getReceivedFiveMinuteRate()
+        {
+        return f_subscriber.getReceivedFiveMinuteRate();
+        }
+
+    /**
+     * Return the fifteen-minute rate of receive requests completed.
+     *
+     * @return the fifteen-minute rate of receive requests completed
+     */
+    protected double getReceivedFifteenMinuteRate()
+        {
+        return f_subscriber.getReceivedFifteenMinuteRate();
         }
 
     /**
@@ -465,6 +532,15 @@ public class SubscriberModel
                     .build();
 
     /**
+     * The subscriber notification id attribute.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_NOTIFICATION_ID =
+            SimpleModelAttribute.longBuilder("NotificationId", SubscriberModel.class)
+                    .withDescription("The subscriber's notification identifier")
+                    .withFunction(SubscriberModel::getNotificationId)
+                    .build();
+
+    /**
      * The subscriber type attribute.
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_TYPE =
@@ -498,6 +574,7 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("Polls", SubscriberModel.class)
                         .withDescription("The total number of polls for messages")
                         .withFunction(SubscriberModel::getPolls)
+                        .metric(true)
                         .build();
     /**
      * The number of received elements attribute.
@@ -506,15 +583,61 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("ReceivedCount", SubscriberModel.class)
                         .withDescription("The number of elements received")
                         .withFunction(SubscriberModel::getElementsPolled)
+                        .metric(true)
                         .build();
 
     /**
      * The number of completed received requests.
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS  =
-                SimpleModelAttribute.longBuilder("ReceiveCompletions", SubscriberModel.class)
+                SimpleModelAttribute.longBuilder("ReceiveCompletionsCount", SubscriberModel.class)
                         .withDescription("The number completed receive requests")
                         .withFunction(SubscriberModel::getReceivedCount)
+                        .metric("ReceiveCompletionsCount")
+                        .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN  =
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsMeanRate", SubscriberModel.class)
+                        .withDescription("The completed receive requests, mean rate")
+                        .withFunction(SubscriberModel::getReceivedMeanRate)
+                        .metric("ReceiveCompletions")
+                        .withMetricLabels("rate", "mean")
+                        .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_ONE  =
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsOneMinuteRate", SubscriberModel.class)
+                        .withDescription("The completed receive requests, one-minute rate")
+                        .withFunction(SubscriberModel::getReceivedOneMinuteRate)
+                        .metric("ReceiveCompletions")
+                        .withMetricLabels("rate", "1-min")
+                        .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE  =
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFiveMinuteRate", SubscriberModel.class)
+                        .withDescription("The completed receive requests, five-minute rate")
+                        .withFunction(SubscriberModel::getReceivedFiveMinuteRate)
+                        .metric("ReceiveCompletions")
+                        .withMetricLabels("rate", "5-min")
+                        .build();
+
+    /**
+     * The number of completed received requests in one-minute.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN  =
+                SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFifteenMinuteRate", SubscriberModel.class)
+                        .withDescription("The completed receive requests, fifteen-minute rate")
+                        .withFunction(SubscriberModel::getReceivedFifteenMinuteRate)
+                        .metric("ReceiveCompletions")
+                        .withMetricLabels("rate", "15-min")
                         .build();
 
     /**
@@ -524,6 +647,7 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("ReceiveErrors", SubscriberModel.class)
                         .withDescription("The number exceptionally completed receive requests")
                         .withFunction(SubscriberModel::getErrorCount)
+                        .metric(true)
                         .build();
 
     /**
@@ -533,6 +657,7 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("ReceiveEmpty", SubscriberModel.class)
                         .withDescription("The number empty receive requests")
                         .withFunction(SubscriberModel::getReceivedEmptyCount)
+                        .metric(true)
                         .build();
 
     /**
@@ -578,6 +703,7 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("Backlog", SubscriberModel.class)
                         .withDescription("The number of outstanding receive requests")
                         .withFunction(SubscriberModel::getBacklog)
+                        .metric(true)
                         .build();
 
     /**
@@ -596,6 +722,7 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("Disconnections", SubscriberModel.class)
                         .withDescription("The number of times this subscriber has disconnected")
                         .withFunction(SubscriberModel::getDisconnectCount)
+                        .metric(true)
                         .build();
 
     /**
@@ -641,6 +768,15 @@ public class SubscriberModel
                     SimpleModelAttribute.stringBuilder("Member", SubscriberModel.class)
                             .withDescription("The cluster member owning this subscriber")
                             .withFunction(SubscriberModel::getMember)
+                            .build();
+
+    /**
+     * The member owning the subscriber.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_IDENTIFYING_NAME =
+                    SimpleModelAttribute.stringBuilder("IdentifyingName", SubscriberModel.class)
+                            .withDescription("An optional name to help identify this subscriber")
+                            .withFunction(SubscriberModel::getIdentifyingName)
                             .build();
 
     /**

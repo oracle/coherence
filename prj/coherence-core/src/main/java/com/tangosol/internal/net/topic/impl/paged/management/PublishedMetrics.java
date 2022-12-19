@@ -57,7 +57,7 @@ public interface PublishedMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_COUNT = SimpleModelAttribute.longBuilder("PublishedCount", Object.class)
             .withDescription("The number of published messages")
-            .withMetricLabels("count")
+            .metric(true)
             .build();
 
     /**
@@ -65,6 +65,7 @@ public interface PublishedMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_MEAN_RATE = SimpleModelAttribute.doubleBuilder("PublishedMeanRate", Object.class)
             .withDescription("The published messages mean rate")
+            .metric("PublishedRate")
             .withMetricLabels("rate", "mean")
             .build();
 
@@ -73,6 +74,7 @@ public interface PublishedMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_ONE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PublishedOneMinuteRate", Object.class)
             .withDescription("The published messages one-minute rate")
+            .metric("PublishedRate")
             .withMetricLabels("rate", "1min")
             .build();
 
@@ -81,6 +83,7 @@ public interface PublishedMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_FIVE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PublishedFiveMinuteRate", Object.class)
             .withDescription("The published messages five-minute rate")
+            .metric("PublishedRate")
             .withMetricLabels("rate", "5min")
             .build();
 
@@ -89,6 +92,7 @@ public interface PublishedMetrics
      */
     SimpleModelAttribute<?> ATTRIBUTE_FIFTEEN_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PublishedFifteenMinuteRate", Object.class)
             .withDescription("The published messages fifteen-minute rate")
+            .metric("PublishedRate")
             .withMetricLabels("rate", "15min")
             .build();
     }

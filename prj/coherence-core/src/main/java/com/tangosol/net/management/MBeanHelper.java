@@ -19,6 +19,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.management.PagedTopicModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberGroupModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
 import com.tangosol.net.CacheFactory;
@@ -28,12 +29,14 @@ import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Service;
 import com.tangosol.net.TopicService;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.management.annotation.Description;
 import com.tangosol.net.management.annotation.Notification;
 
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
@@ -104,7 +107,7 @@ public abstract class MBeanHelper
         }
 
     /**
-     *Checks whether or not the "write" operation is allowed.
+     *Checks whether "write" operations are allowed.
      *
      * @throws SecurityException if the model is "read-only"
      */
@@ -512,56 +515,90 @@ public abstract class MBeanHelper
     * Register the specified PagedTopic with the cluster registry.
     *
     * @param service     the PagedTopic Service that the topic belongs to
-    * @param sTopicName  the cache name
     * @param topic       the topic object to register
     */
-    public static void registerPagedTopicMBean(CacheService service, String sTopicName, PagedTopic topic)
+    public static void registerPagedTopicMBean(Service service, PagedTopic<?> topic)
         {
-//        try
-//            {
-//            Cluster  cluster  = service.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                String sName = Registry.PAGED_TOPIC_TYPE +
-//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-//                    ",name=" + sTopicName;
-//
-//                sName = registry.ensureGlobalName(sName);
-//                registry.register(sName, new PagedTopicModel(topic));
-//                }
-//            }
-//        catch (Throwable e)
-//            {
-//            Logger.warn("Failed to register topic \"" + sTopicName + "\"", e);
-//            }
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            String sName = registry.ensureGlobalName(getTopicMBeanName(topic));
+            registry.register(sName, new PagedTopicModel(topic));
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register topic \"" + topic.getName() + "\"", e);
+            }
         }
 
     /**
     * Unregister all managed objects related to the given topic name
     * from the cluster registry.
     *
-     * @param sTopicName    the topic name
-     * @param sServiceName  the service name
+     * @param service  the topic service
+     * @param topic    the topic
     */
-    public static void unregisterPagedTopicMBean(String sTopicName, String sServiceName)
+    public static void unregisterPagedTopicMBean(Service service, NamedTopic<?> topic)
         {
-//        try
-//            {
-//            Cluster  cluster  = CacheFactory.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                Member member   = cluster.getLocalMember();
-//                String sPattern = Registry.PAGED_TOPIC_TYPE
-//                    + "," + Registry.KEY_SERVICE + sServiceName
-//                    + ",name="    + sTopicName +
-//                    (member == null ? "" : ",nodeId=" + member.getId());
-//                registry.unregister(sPattern);
-//                unregisterSubscriberGroupMBean("*", sTopicName, sServiceName);
-//                }
-//            }
-//        catch (Throwable ignored) {}
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            registry.unregister(registry.ensureGlobalName(getTopicMBeanName(topic)));
+            unregisterSubscriberGroupMBean(null, topic.getName(), service);
+            }
+        catch (Throwable ignored) {}
+        }
+
+    /**
+     * Return the MBean name for the topic.
+     * <p/>
+     * The name returned will be the generic name without the member's
+     * {@code nodeId} key.
+     *
+     * @param topic  the topic to obtain the MBean name for
+     *
+     * @return the MBean name for the topic
+     */
+    public static String getTopicMBeanName(NamedTopic<?> topic)
+        {
+        return getTopicMBeanName(topic.getTopicService().getInfo().getServiceName(), topic.getName());
+        }
+
+    /**
+     * Return the MBean name pattern that will match all topic MBeans for the service.
+     * <p/>
+     * The name returned will be the generic name without the member's
+     * {@code nodeId} key.
+     *
+     * @param service  the topic to service
+     *
+     * @return the MBean name for the topic
+     */
+    public static String getTopicMBeanPattern(TopicService service)
+        {
+        return getTopicMBeanName(service.getInfo().getServiceName(), "*");
+        }
+
+    /**
+     * Return the MBean name pattern that will match all topic MBeans.
+     * <p/>
+     * The name returned will be the generic name without the member's
+     * {@code nodeId} key.
+     *
+     * @return the MBean name for the topic
+     */
+    public static String getTopicMBeanPattern()
+        {
+        return getTopicMBeanName("*", "*");
+        }
+
+    private static String getTopicMBeanName(String sService, String sTopic)
+        {
+        return Registry.PAGED_TOPIC_TYPE +
+                "," + Registry.KEY_SERVICE + sService +
+                "," + Registry.KEY_NAME + sTopic;
         }
 
     /**
@@ -569,122 +606,203 @@ public abstract class MBeanHelper
     *
     * @param service     the topic Service that the topic belongs to
     * @param sTopicName  the cache name
-    * @param sGroupName  the subscriber group name
+    * @param id          the subscriber group {@link SubscriberGroupId id}
     * @param statistics  the paged topic statistics
     * @param filter      the filter used to filter messages
     * @param fnConvert   the Function used to convert messages
     */
     public static void registerSubscriberGroupMBean(TopicService service, String sTopicName,
-            String sGroupName, PagedTopicStatistics statistics, Filter filter, Function fnConvert)
+            SubscriberGroupId id, PagedTopicStatistics statistics, Filter filter, Function fnConvert)
         {
-//        try
-//            {
-//            Cluster  cluster  = service.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                String sName = Registry.SUBSCRIBER_GROUP_TYPE +
-//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-//                    ",topic=" + sTopicName + ",name=" + sGroupName;
-//
-//                sName = registry.ensureGlobalName(sName);
-//                if (!registry.isRegistered(sName))
-//                    {
-//                    registry.register(sName, new SubscriberGroupModel(statistics, sGroupName, filter, fnConvert, service));
-//                    }
-//                }
-//            }
-//        catch (Throwable e)
-//            {
-//            Logger.warn("Failed to register subscriber group \"" + sGroupName
-//                        + "\" in topic \"" + sTopicName + "\"", e);
-//            }
+        if (id.isAnonymous())
+            {
+            // only register durable subscriber groups
+            return;
+            }
+
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            if (registry != null)
+                {
+                String sName = registry.ensureGlobalName(getSubscriberGroupMBeanName(id, sTopicName, service));
+                if (!registry.isRegistered(sName))
+                    {
+                    registry.register(sName, new SubscriberGroupModel(statistics, id, filter, fnConvert, service));
+                    }
+                }
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register subscriber group \"" + id.getGroupName()
+                        + "\" in topic \"" + sTopicName + "\"", e);
+            }
         }
 
     /**
     * Unregister all managed objects related to the given topic subscriber group name
     * from the cluster registry.
     *
-    * @param sGroupName    the subscriber group name
+    * @param id            the subscriber group {@link SubscriberGroupId id} or {@code null}
+     *                     to unregister all groups for the topic
     * @param sTopicName    the topic name
-    * @param sServiceName  the service name
+    * @param service       the topic service
     */
-    public static void unregisterSubscriberGroupMBean(String sGroupName, String sTopicName, String sServiceName)
+    public static void unregisterSubscriberGroupMBean(SubscriberGroupId id, String sTopicName, Service service)
         {
-//        try
-//            {
-//            Cluster  cluster  = CacheFactory.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                Member member   = cluster.getLocalMember();
-//                String sPattern = Registry.SUBSCRIBER_GROUP_TYPE
-//                    + "," + Registry.KEY_SERVICE + sServiceName
-//                    + ",topic="    + sTopicName + ",name=" + sGroupName +
-//                    (member == null ? "" : ",nodeId=" + member.getId());
-//                registry.unregister(sPattern);
-//                }
-//            }
-//        catch (Throwable ignored) {}
+        try
+            {
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            String   sName    = registry.ensureGlobalName(getSubscriberGroupMBeanName(id, sTopicName, service));
+            registry.unregister(sName);
+            }
+        catch (Throwable ignored) {}
+        }
+
+    /**
+     * Return the MBean name for a subscriber group.
+     * <p/>
+     * The name returned will be the generic name without the member's
+     * {@code nodeId} key.
+     *
+     * @param id          the {@link SubscriberGroupId}
+     * @param sTopicName  the name of the topic
+     * @param service     the service owning the topic
+     *
+     * @return the MBean name for a subscriber group
+     */
+    public static String getSubscriberGroupMBeanName(SubscriberGroupId id, String sTopicName, Service service)
+        {
+        String sGroupName = id == null ? "*" : id.getGroupName();
+        return Registry.SUBSCRIBER_GROUP_TYPE +
+                "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+                "," + Registry.KEY_TOPIC + sTopicName + "," + Registry.KEY_NAME + sGroupName;
         }
 
     /**
     * Register the specified PagedTopic subscriber with the cluster registry.
     *
-    * @param service     the PagedTopic Service that the topic belongs to
-    * @param sTopicName  the cache name
     * @param subscriber  the topic subscriber
     */
-    public static void registerSubscriberMBean(CacheService service, String sTopicName, PagedTopicSubscriber<?> subscriber)
+    public static void registerSubscriberMBean(PagedTopicSubscriber<?> subscriber)
         {
-//        try
-//            {
-//            Cluster  cluster  = service.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                String sName = Registry.SUBSCRIBER_TYPE +
-//                    "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
-//                    ",topic=" + sTopicName + ",id=" + subscriber.getId();
-//
-//                sName = registry.ensureGlobalName(sName);
-//                if (!registry.isRegistered(sName))
-//                    {
-//                    registry.register(sName, new SubscriberModel(subscriber));
-//                    }
-//                }
-//            }
-//        catch (Throwable e)
-//            {
-//            Logger.warn("Failed to register subscriber \"" + subscriber.getId()
-//                        + "\" in topic \"" + sTopicName + "\"", e);
-//            }
+        NamedTopic<?> topic = subscriber.getNamedTopic();
+        try
+            {
+            Service  service  = topic.getService();
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+
+            if (registry != null)
+                {
+                String sName = registry.ensureGlobalName(getSubscriberMBeanName(subscriber));
+                if (!registry.isRegistered(sName))
+                    {
+                    registry.register(sName, new SubscriberModel(subscriber));
+                    }
+                }
+            }
+        catch (Throwable e)
+            {
+            Logger.warn("Failed to register subscriber \"" + subscriber.getId()
+                        + "\" in topic \"" + topic.getName() + "\"", e);
+            }
         }
 
     /**
     * Unregister all managed objects related to the given topic subscriber
     * from the cluster registry.
     *
-    * @param nSubscriberId  the subscriber id
-    * @param sTopicName     the topic name
-    * @param sServiceName   the service name
+    * @param subscriber  the topic subscriber
     */
-    public static void unregisterSubscriberMBean(long nSubscriberId, String sTopicName, String sServiceName)
+    public static void unregisterSubscriberMBean(PagedTopicSubscriber<?> subscriber)
         {
-//        try
-//            {
-//            Cluster  cluster  = CacheFactory.getCluster();
-//            Registry registry = cluster.getManagement();
-//            if (registry != null)
-//                {
-//                String sPattern = Registry.SUBSCRIBER_TYPE +
-//                    "," + Registry.KEY_SERVICE + sServiceName +
-//                    ",topic=" + sTopicName + ",id=" + nSubscriberId;
-//
-//                registry.unregister(sPattern);
-//                }
-//            }
-//        catch (Throwable ignored) {}
+        try
+            {
+            Service  service  = subscriber.getNamedTopic().getService();
+            Cluster  cluster  = service.getCluster();
+            Registry registry = cluster.getManagement();
+            String   sName    = registry.ensureGlobalName(getSubscriberMBeanName(subscriber));
+            registry.unregister(sName);
+            }
+        catch (Throwable ignored) {}
+        }
+
+    /**
+     * Return the MBean name for a {@link PagedTopicSubscriber}.
+     *
+     * @param subscriber  the {@link PagedTopicSubscriber}
+     *
+     * @return the MBean name for a {@link PagedTopicSubscriber}
+     */
+    public static String getSubscriberMBeanName(PagedTopicSubscriber subscriber)
+        {
+        NamedTopic<?> topic      = subscriber.getNamedTopic();
+        Service       service    = topic.getService();
+        long          nNodeId    = service.getCluster().getLocalMember().getId();
+        String        sTopicName = topic.getName();
+        String        sGroup     = subscriber.getSubscriberGroupId().getGroupName();
+        String        subType    = subscriber.isAnonymous()
+                                        ? Registry.SUBSCRIBER_ANONYMOUS_TYPE
+                                        : Registry.SUBSCRIBER_DURABLE_TYPE;
+        long          nId        = subscriber.getId();
+        String        sNode      = Registry.KEY_NODE_ID + nNodeId + ",";
+        String        sId        = subscriber.isAnonymous()
+                                        ? sNode + Registry.KEY_ID + nId
+                                        : Registry.KEY_TOPIC_GROUP + sGroup + "," + sNode + Registry.KEY_ID + nId;
+
+        return Registry.SUBSCRIBER_TYPE +
+            "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+            "," + Registry.KEY_TOPIC + sTopicName + "," + subType + "," + sId;
+        }
+
+    /**
+     * Return the MBean name pattern for all subscribers in a topic.
+     *
+     * @param topic  the {@link NamedTopic}
+     *
+     * @return the MBean name pattern for all subscribers in a topic
+     */
+    public static String getSubscriberMBeanPattern(NamedTopic<?> topic, boolean fLocalOnly)
+        {
+        Service service    = topic.getService();
+        String  sTopicName = topic.getName();
+        int     nNodeId    = service.getCluster().getLocalMember().getId();
+        String  sNode      = fLocalOnly ? "," + Registry.KEY_NODE_ID + nNodeId : "";
+
+        return Registry.SUBSCRIBER_TYPE +
+            "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+            "," + Registry.KEY_TOPIC + sTopicName + sNode + ",*";
+        }
+
+    /**
+     * Return the MBean name pattern for all subscribers in a
+     * subscriber group for topic.
+     *
+     * @param topic  the {@link NamedTopic}
+     *
+     * @return the MBean name pattern for all subscribers in a
+     *         subscriber group for a topic
+     */
+    public static String getSubscriberMBeanPattern(NamedTopic<?> topic, SubscriberGroupId groupId, boolean fLocalOnly)
+        {
+        Service service    = topic.getService();
+        String  sTopicName = topic.getName();
+        int     nNodeId    = service.getCluster().getLocalMember().getId();
+        String  sNode      = fLocalOnly ? "," + Registry.KEY_NODE_ID + nNodeId : Registry.KEY_NODE_ID + "*";
+        String  sGroup     = groupId.getGroupName();
+        String  subType    = groupId.isAnonymous()
+                                    ? Registry.SUBSCRIBER_ANONYMOUS_TYPE
+                                    : Registry.SUBSCRIBER_DURABLE_TYPE;
+        String  sId        = groupId.isAnonymous()
+                                    ? sNode + "," + Registry.KEY_ID + sGroup
+                                    : Registry.KEY_TOPIC_GROUP + sGroup + "," + sNode + "," + Registry.KEY_ID + "*";
+
+        return Registry.SUBSCRIBER_TYPE +
+            "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+            "," + Registry.KEY_TOPIC + sTopicName + "," + subType + "," + sId;
         }
 
     /**
@@ -1759,6 +1877,21 @@ public abstract class MBeanHelper
         mapSimple.put("string", SimpleType.STRING);
 
         SCALAR_SIMPLETYPES = Collections.unmodifiableMap(mapSimple);
+        }
+
+    /**
+     * Returns {@code true} if the specified MBean name is a non-member specific name.
+     *
+     * @param sName  the MBean name to test
+     *
+     * @return  {@code true} if the specified MBean name is a non-member specific name
+     */
+    public static boolean isNonMemberMBean(String sName)
+        {
+        return sName.contains(Registry.CLUSTER_TYPE) ||
+               sName.contains(Registry.MANAGEMENT_TYPE) ||
+               sName.contains(Registry.KEY_RESPONSIBILITY) ||
+               sName.contains(Registry.SUBSCRIBER_TYPE + ",");
         }
 
     /**

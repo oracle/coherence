@@ -76,6 +76,7 @@ import com.tangosol.util.MultiplexingMapListener;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ThreadGateLite;
+import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.aggregator.ComparableMin;
@@ -181,9 +182,7 @@ public class PagedTopicSubscriber<V>
 
         f_fCompleteOnEmpty   = optionsMap.contains(CompleteOnEmpty.class);
         f_filterNotification = new InKeySetFilter<>(/*filter*/ null, m_caches.getPartitionNotifierSet(f_nNotificationId));
-        f_id                 = f_fAnonymous
-                                    ? new SubscriberId(0, member.getId(), member.getUuid())
-                                    : new SubscriberId(f_nNotificationId, member.getId(), member.getUuid());
+        f_id                 = new SubscriberId(f_nNotificationId, member.getId(), member.getUuid());
 
         f_subscriberGroupId  = f_fAnonymous ? SubscriberGroupId.anonymous() : SubscriberGroupId.withName(sName);
         f_key                = new SubscriberInfo.Key(f_subscriberGroupId, f_id.getId());
@@ -232,9 +231,9 @@ public class PagedTopicSubscriber<V>
     // ----- PagedTopicSubscriber methods -----------------------------------
 
     /**
-     * Returns the subscriber's unique identifier.
+     * Returns the subscriber's identifier.
      *
-     * @return the subscriber's unique identifier
+     * @return the subscriber's identifier
      */
     public long getId()
         {
@@ -793,6 +792,46 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
+     * Return the mean rate of completed receive requests.
+     *
+     * @return the mean rate of completed receive requests
+     */
+    public double getReceivedMeanRate()
+        {
+        return m_cReceived.getMeanRate();
+        }
+
+    /**
+     * Return the one-minute rate of completed receive requests.
+     *
+     * @return the one-minute rate of completed receive requests
+     */
+    public double getReceivedOneMinuteRate()
+        {
+        return m_cReceived.getOneMinuteRate();
+        }
+
+    /**
+     * Return the five-minute rate of completed receive requests.
+     *
+     * @return the five-minute rate of completed receive requests
+     */
+    public double getReceivedFiveMinuteRate()
+        {
+        return m_cReceived.getFiveMinuteRate();
+        }
+
+    /**
+     * Return the fifteen-minute rate of completed receive requests.
+     *
+     * @return the fifteen-minute rate of completed receive requests
+     */
+    public double getReceivedFifteenMinuteRate()
+        {
+        return m_cReceived.getFifteenMinuteRate();
+        }
+
+    /**
      * Return the number of receive requests completed empty.
      * <p>
      * This wil only apply to subscribers using the {@link com.tangosol.net.topic.Subscriber.CompleteOnEmpty}
@@ -929,7 +968,7 @@ public class PagedTopicSubscriber<V>
      * @throws InterruptedException if the wait for channel allocation is interrupted
      * @throws ExecutionException if the wait for channel allocation fails
      */
-    protected synchronized void initialise() throws InterruptedException, ExecutionException, TimeoutException
+    protected void initialise() throws InterruptedException, ExecutionException, TimeoutException
         {
         ensureActive();
         if (m_nState == STATE_CONNECTED)
@@ -957,7 +996,8 @@ public class PagedTopicSubscriber<V>
             if (cChannel > m_aChannel.length)
                 {
                 // this subscriber has fewer channels than the server so needs to be resized
-                m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId, m_aChannel);
+                PagedTopicChannel[] aChannel = m_aChannel;
+                m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId, aChannel);
                 }
 
             for (int nChannel = 0; nChannel < cChannel; ++nChannel)
@@ -1269,6 +1309,7 @@ public class PagedTopicSubscriber<V>
         if (m_aChannel[c].isOwned())
             {
             m_aChannel[c].m_lastReceived = (PagedPosition) element.getPosition();
+            m_aChannel[c].m_cReceived.mark();
             }
         }
 
@@ -2535,7 +2576,10 @@ public class PagedTopicSubscriber<V>
                 listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
                 }
 
-            cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(subscriberId));
+            if (cache.isActive())
+                {
+                cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(subscriberId));
+                }
             }
         catch (Throwable t)
             {
@@ -2687,19 +2731,17 @@ public class PagedTopicSubscriber<V>
     /**
      * Register the subscriber MBean.
      */
-    protected synchronized void registerMBean()
+    protected void registerMBean()
         {
-        CacheService service = m_caches.getService();
-        MBeanHelper.registerSubscriberMBean(service, f_topic.getName(), this);
+        MBeanHelper.registerSubscriberMBean(this);
         }
 
     /**
      * Register the subscriber MBean.
      */
-    protected synchronized void unregisterMBean()
+    protected void unregisterMBean()
         {
-        CacheService service = m_caches.getService();
-        MBeanHelper.unregisterSubscriberMBean(getId(), f_topic.getName(), service.getInfo().getServiceName());
+        MBeanHelper.unregisterSubscriberMBean(this);
         }
 
     /**
@@ -3054,6 +3096,40 @@ public class PagedTopicSubscriber<V>
             return new PagedPosition(m_lHead, m_nNext);
             }
 
+        @Override
+        public long getReceived()
+            {
+            return m_cReceived.getCount();
+            }
+
+        /**
+         * Return the mean rate of receive requests completed.
+         *
+         * @return the mean rate of receive requests completed
+         */
+        public double getReceivedMeanRate()
+            {
+            return m_cReceived.getMeanRate();
+            }
+
+        @Override
+        public double getReceivedOneMinuteRate()
+            {
+            return m_cReceived.getOneMinuteRate();
+            }
+
+        @Override
+        public double getReceivedFiveMinuteRate()
+            {
+            return m_cReceived.getFiveMinuteRate();
+            }
+
+        @Override
+        public double getReceivedFifteenMinuteRate()
+            {
+            return m_cReceived.getFifteenMinuteRate();
+            }
+
         // ----- helper methods ---------------------------------------------
 
         /**
@@ -3063,7 +3139,7 @@ public class PagedTopicSubscriber<V>
          *
          * @return {@code true} if the version matched and the channel was marked as empty
          */
-        protected synchronized boolean setEmpty(long lVersion)
+        protected boolean setEmpty(long lVersion)
             {
             if (m_lVersion == lVersion)
                 {
@@ -3086,7 +3162,7 @@ public class PagedTopicSubscriber<V>
         /**
          * Called to notify the channel that a populated notification was received.
          */
-        protected synchronized void onChannelPopulatedNotification()
+        protected void onChannelPopulatedNotification()
             {
             m_cNotify++;
             setPopulated();
@@ -3095,7 +3171,7 @@ public class PagedTopicSubscriber<V>
         /**
          * Set this channel as populated and bump the version up by one.
          */
-        protected synchronized void setPopulated()
+        protected void setPopulated()
             {
             m_lVersion++;
             m_fEmpty = false;
@@ -3223,6 +3299,11 @@ public class PagedTopicSubscriber<V>
          * The last position successfully committed by this subscriber
          */
         PagedPosition m_lastCommit;
+
+        /**
+         * The counter of completed receives for the channel.
+         */
+        Meter m_cReceived = new Meter();
         }
 
     // ----- inner class: FlushMode ----------------------------------------
@@ -3970,7 +4051,7 @@ public class PagedTopicSubscriber<V>
     protected final boolean f_fAnonymous;
 
     /**
-     * This subscribers cluster wide unique identifier.
+     * This subscriber's identifier.
      */
     protected final SubscriberId f_id;
 

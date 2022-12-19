@@ -8,10 +8,14 @@ package com.tangosol.internal.net.management.model;
 
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
+import com.tangosol.net.management.annotation.MetricsScope;
+import com.tangosol.net.metrics.MBeanMetric;
+import org.glassfish.hk2.utilities.DescriptorBuilder;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
+import javax.management.Descriptor;
 import javax.management.DynamicMBean;
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
@@ -21,6 +25,7 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
 
+import javax.management.modelmbean.DescriptorSupport;
 import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
 import javax.management.openmbean.TabularDataSupport;
 
@@ -70,6 +75,16 @@ public abstract class AbstractModel<M extends AbstractModel<M>>
     protected void addOperation(ModelOperation<M> operation)
         {
         f_mapOperation.put(operation.getName(), operation);
+        }
+
+    /**
+     * Set the scope name to use for metrics from this MBean.
+     *
+     * @param scope the scope of the metrics
+     */
+    protected void setScope(MBeanMetric.Scope scope)
+        {
+        m_scope = scope == null ? MBeanMetric.Scope.VENDOR : scope;
         }
 
     // ----- DynamicMBean methods -------------------------------------------
@@ -157,27 +172,25 @@ public abstract class AbstractModel<M extends AbstractModel<M>>
         {
         if (m_mBeanInfo == null)
             {
-            synchronized (this)
-                {
-                if (m_mBeanInfo == null)
-                    {
-                    MBeanAttributeInfo[] aAttributeInfo = f_mapAttribute.values().stream()
-                            .map(ModelAttribute::getMBeanAttributeInfo)
-                            .toArray(MBeanAttributeInfo[]::new);
+            MBeanAttributeInfo[] aAttributeInfo = f_mapAttribute.values().stream()
+                    .map(ModelAttribute::getMBeanAttributeInfo)
+                    .toArray(MBeanAttributeInfo[]::new);
 
-                    MBeanOperationInfo[] aOperation = f_mapOperation.values()
-                            .stream()
-                            .map(ModelOperation::getOperation)
-                            .toArray(MBeanOperationInfo[]::new);
+            MBeanOperationInfo[] aOperation = f_mapOperation.values()
+                    .stream()
+                    .map(ModelOperation::getOperation)
+                    .toArray(MBeanOperationInfo[]::new);
 
-                    m_mBeanInfo = new MBeanInfo(this.getClass().getName(),
-                                                f_sDescription,
-                                                aAttributeInfo,
-                                                new OpenMBeanConstructorInfoSupport[0],
-                                                aOperation,
-                                                new MBeanNotificationInfo[0]);
-                    }
-                }
+            DescriptorSupport descriptor = new DescriptorSupport();
+            descriptor.setField(MetricsScope.KEY, m_scope.name());
+
+            m_mBeanInfo = new MBeanInfo(this.getClass().getName(),
+                                        f_sDescription,
+                                        aAttributeInfo,
+                                        new OpenMBeanConstructorInfoSupport[0],
+                                        aOperation,
+                                        new MBeanNotificationInfo[0],
+                                        descriptor);
             }
         return m_mBeanInfo;
         }
@@ -208,6 +221,19 @@ public abstract class AbstractModel<M extends AbstractModel<M>>
             }
         }
 
+    /**
+     * If the specified value is {@code null} then the String "n/a"
+     * is returned, otherwise the String value is returned.
+     *
+     * @param o  the value to return the String of
+     *
+     * @return the String value of the object or "n/a" if the value is {@code null}
+     */
+    protected String valueOrNotApplicable(Object o)
+        {
+        return o == null ? "n/a" : String.valueOf(o);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -229,4 +255,9 @@ public abstract class AbstractModel<M extends AbstractModel<M>>
      * The lazily created MBean definition.
      */
     private volatile MBeanInfo m_mBeanInfo;
+
+    /**
+     * The scope of the MBean metrics.
+     */
+    private MBeanMetric.Scope m_scope = MBeanMetric.Scope.VENDOR;
     }
