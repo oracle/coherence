@@ -70,5 +70,14 @@
     <report-config>
       <location>reports/report-view-effectiveness.xml</location>
     </report-config>
+    <report-config>
+      <location>reports/report-topic.xml</location>
+    </report-config>
+    <report-config>
+      <location>reports/report-topic-subscribers.xml</location>
+    </report-config>
+    <report-config>
+      <location>reports/report-topic-subscriber-groups.xml</location>
+    </report-config>
   </report-list>
 </report-group>
