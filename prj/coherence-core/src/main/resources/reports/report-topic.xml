@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+  <report>
+    <file-name>{date}-topic.txt</file-name>
+    <delim>{tab}</delim>
+
+    <query>
+      <pattern>Coherence:type=PagedTopic,*</pattern>
+    </query>
+
+    <row>
+      <column id="BatchCounter">
+        <type>global</type>
+        <name>{batch-counter}</name>
+        <header>Batch Counter</header>
+      </column>
+
+      <column id="ReportTime">
+        <type>global</type>
+        <name>{report-time}</name>
+        <header>Report Time</header>
+      </column>
+
+      <column id="Service">
+        <type>key</type>
+        <name>service</name>
+        <header>Service</header>
+      </column>
+
+      <column id="Name">
+        <type>key</type>
+        <name>name</name>
+        <header>Topic</header>
+      </column>
+
+      <column id="DomainPartition">
+        <type>key</type>
+        <name>domainPartition</name>
+        <header>Domain Partition</header>
+        <hidden>{non-MT}</hidden>
+      </column>
+
+      <column id="NodeId">
+        <type>key</type>
+        <name>nodeId</name>
+        <header>NodeID</header>
+      </column>
+
+      <column id="NodeTS">
+        <name>Timestamp</name>
+        <header>Timestamp</header>
+        <query>
+          <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+        </query>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="ChannelCount">
+        <name>ChannelCount</name>
+        <header>Channel Count</header>
+      </column>
+
+      <column id="PublishedCount">
+        <name>PublishedCount</name>
+        <header>Published Count</header>
+        <hidden>true</hidden>
+      </column>
+
+      <column id="DeltaPublishedCount">
+        <type>function</type>
+        <name>DeltaPublishedCount</name>
+        <header>Published Count</header>
+        <column-ref>PublishedCount</column-ref>
+        <function-name>delta</function-name>
+        <params>
+          <column-ref>NodeId</column-ref>
+          <column-ref>NodeTS</column-ref>
+          <column-ref>Name</column-ref>
+          <column-ref>Service</column-ref>
+        </params>
+      </column>
+
+      <column id="PublishedFifteenMinuteRate">
+        <name>PublishedFifteenMinuteRate</name>
+        <header>Published Fifteen Minute Rate</header>
+      </column>
+
+      <column id="PublishedFiveMinuteRate">
+        <name>PublishedFiveMinuteRate</name>
+        <header>Published Five Minute Rate</header>
+      </column>
+
+      <column id="PublishedOneMinuteRate">
+        <name>PublishedOneMinuteRate</name>
+        <header>Published One Minute Rate</header>
+      </column>
+
+      <column id="PublishedMeanRate">
+        <name>PublishedMeanRate</name>
+        <header>Published Mean Rate</header>
+      </column>
+    </row>
+  </report>
+</report-config>
