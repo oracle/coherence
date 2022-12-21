@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package security;
 
@@ -43,6 +43,23 @@ import java.util.Enumeration;
 
 /**
  * This class creates a set of keystores used by the Security tests.
+ *
+ * Note: This class dependends on sun.security.x509.* which is no longer
+ *       available in JDK11.  The class needs to be built using JDK8.
+ *       To build with JDK 8, modify the <configuration></configuration>
+ *       of <maven-compiler-plugin></maven-compiler-plugin>
+ *       section in the pom.xml by replacing
+ *
+ * <testExcludes>
+ *   <testExclude>**\/CreateKeyStore.java</testExclude>
+ * </testExcludes>
+ *
+ * with
+ *
+ * <source>${java.version}</source>
+ * <target>${java.version}</target>
+ *
+ * where java.version = 1.8
  *
  * @author lh 2018.1l.01
  */

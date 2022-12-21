@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -69,13 +69,20 @@
 
   <build>
     <plugins>
-      <!-- Can be removed when COH-20993 is resolved -->
+      <!-- CreateKeyStore.java is used to create key stores for
+           the security tests and requires a Sun JDK to build.
+           To build CreateKeyStore.java, replace
+           <excludes> with
+           <source>${java.version}</source>
+           <target>${java.version}</target>
+           and make sure the JDK is a Sun JDK -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <configuration combine.self="override">
-          <source>${java.version}</source>
-          <target>${java.version}</target>
+        <configuration>
+          <excludes>
+            <exclude>**/CreateKeyStore.java</exclude>
+          </excludes>
         </configuration>
       </plugin>
     </plugins>
