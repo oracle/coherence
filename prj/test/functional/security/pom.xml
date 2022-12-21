@@ -80,9 +80,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <excludes>
-            <exclude>**/CreateKeyStore.java</exclude>
-          </excludes>
+          <testExcludes>
+            <testExclude>**/CreateKeyStore.java</testExclude>
+          </testExcludes>
         </configuration>
       </plugin>
     </plugins>
