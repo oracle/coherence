@@ -49,6 +49,7 @@ public class SubscriberChannelTableModel
                 ATTRIBUTE_LAST_RECEIVED,
                 ATTRIBUTE_LAST_POLLED,
                 ATTRIBUTE_OWNED,
+                ATTRIBUTE_OWNED_CODE,
                 ATTRIBUTE_RECEIVE_COMPLETIONS,
                 ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN,
                 ATTRIBUTE_RECEIVE_COMPLETIONS_ONE,
@@ -123,6 +124,16 @@ public class SubscriberChannelTableModel
                     .build();
 
     /**
+     * An integer attribute indicating whether the subscriber owns this channel.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_OWNED_CODE =
+            SimpleModelAttribute.intBuilder("OwnedCode", Subscriber.Channel.class)
+                    .withDescription("An integer indicating whether the channel is owned by this subscriber (1 indicates true and 0 indicates false)")
+                    .withFunction(Subscriber.Channel::getOwnedCode)
+                    .metric("OwnedCode")
+                    .build();
+
+    /**
      * The number of completed received requests.
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS  =
@@ -140,7 +151,7 @@ public class SubscriberChannelTableModel
                     .withDescription("The completed receive requests, mean rate")
                     .withFunction(Subscriber.Channel::getReceivedOneMinuteRate)
                     .metric("ReceiveCompletions")
-                    .withMetricLabels("rate", "mean")
+                    .withMetricLabels("rate", RATE_MEAN)
                     .build();
 
     /**
@@ -151,7 +162,7 @@ public class SubscriberChannelTableModel
                     .withDescription("The completed receive requests, one-minute rate")
                     .withFunction(Subscriber.Channel::getReceivedOneMinuteRate)
                     .metric("ReceiveCompletions")
-                    .withMetricLabels("rate", "1-min")
+                    .withMetricLabels("rate", RATE_1MIN)
                     .build();
 
     /**
@@ -162,7 +173,7 @@ public class SubscriberChannelTableModel
                         .withDescription("The completed receive requests, five-minute rate")
                         .withFunction(Subscriber.Channel::getReceivedFiveMinuteRate)
                         .metric("ReceiveCompletions")
-                        .withMetricLabels("rate", "5-min")
+                        .withMetricLabels("rate", RATE_5MIN)
                         .build();
 
     /**
@@ -173,6 +184,6 @@ public class SubscriberChannelTableModel
                         .withDescription("The completed receive requests, fifteen-minute rate")
                         .withFunction(Subscriber.Channel::getReceivedFifteenMinuteRate)
                         .metric("ReceiveCompletions")
-                        .withMetricLabels("rate", "15-min")
+                        .withMetricLabels("rate", RATE_15MIN)
                         .build();
     }

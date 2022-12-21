@@ -74,6 +74,7 @@ public class SubscriberModel
         addAttribute(ATTRIBUTE_NOTIFICATIONS);
         addAttribute(ATTRIBUTE_NOTIFICATION_ID);
         addAttribute(ATTRIBUTE_POLLS);
+        addAttribute(ATTRIBUTE_SUB_TYPE_CODE);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN);
         addAttribute(ATTRIBUTE_RECEIVE_COMPLETIONS_ONE);
@@ -191,6 +192,16 @@ public class SubscriberModel
     protected long getPolls()
         {
         return f_subscriber.getPolls();
+        }
+
+    /**
+     * Return 1 if the subscriber is Durable or 0 if the subscriber is Anonymous.
+     *
+     * @return 1 if the subscriber is Durable or 0 if the subscriber is Anonymous
+     */
+    protected int getSubTypeCode()
+        {
+        return f_subscriber.isAnonymous() ? 0 : 1;
         }
 
     /**
@@ -574,6 +585,16 @@ public class SubscriberModel
                 SimpleModelAttribute.longBuilder("Polls", SubscriberModel.class)
                         .withDescription("The total number of polls for messages")
                         .withFunction(SubscriberModel::getPolls)
+                        .metric(true)
+                        .build();
+
+    /**
+     * The numeric representation of the subType. Value of 1 = Durable or 0 = Anonymous.
+     */
+    protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_SUB_TYPE_CODE  =
+                SimpleModelAttribute.longBuilder("SubTypeCode", SubscriberModel.class)
+                        .withDescription("Indicates if the subscriber is Durable (1) or Anonymous (0)")
+                        .withFunction(SubscriberModel::getSubTypeCode)
                         .metric(true)
                         .build();
     /**
