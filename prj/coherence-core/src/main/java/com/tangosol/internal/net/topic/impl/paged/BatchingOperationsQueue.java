@@ -21,6 +21,7 @@ import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ThreadGateLite;
 
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -220,6 +221,7 @@ public class BatchingOperationsQueue<V, R>
      */
     public boolean isBatchComplete()
         {
+        purgeCurrentBatch();
         return getCurrentBatchValues().isEmpty();
         }
 
@@ -401,6 +403,7 @@ public class BatchingOperationsQueue<V, R>
                 {
                 V value = element.getValue();
                 long lSize = f_backlogCalculator.applyAsLong(value);
+                element.setSize(lSize);
                 try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
                     {
                     f_backlog.adjustBacklog(-lSize);
@@ -725,6 +728,47 @@ public class BatchingOperationsQueue<V, R>
             }
         return "TRIGGER_UNKNOWN";
         }
+
+    /**
+     * Remove any completed elements from the current batch.
+     *
+     * @return  {@code true} if the current batch is empty
+     */
+    private boolean purgeCurrentBatch()
+        {
+        if (f_queueCurrentBatch.isEmpty())
+            {
+            return true;
+            }
+
+        // Shut the gate so that no more offers come
+        // into the queue while we remove some elements
+        Gate<?> gate = getGate();
+        gate.close(-1);
+
+        try
+            {
+            Iterator<Element> iterator = f_queueCurrentBatch.iterator();
+            long              cbSize   = m_cbCurrentBatch;
+            while (iterator.hasNext())
+                {
+                Element element = iterator.next();
+                if (element.isDone())
+                    {
+                    iterator.remove();
+                    cbSize -= element.getSize();
+                    }
+                }
+            m_cbCurrentBatch = cbSize;
+            }
+        finally
+            {
+            // Don't forget to open the gate
+            gate.open();
+            }
+        return getCurrentBatchValues().isEmpty();
+        }
+
     // ----- inner class: Element -------------------------------------------
 
     /**
@@ -743,7 +787,12 @@ public class BatchingOperationsQueue<V, R>
             f_value  = value;
             f_future = new CompletableFuture<>();
             // ensure we're set to done if the future is completed
-            f_future.handle((r, error) -> m_fDone = true);
+            f_future.handle((r, error) ->
+                            {
+                            m_fCancelled = error instanceof CancellationException;
+                            m_fDone = true;
+                            return null;
+                            });
             }
 
         /**
@@ -770,13 +819,23 @@ public class BatchingOperationsQueue<V, R>
 
         /**
          * Determine whether this element's add operations has completed
-         * either successfully or exceptionally.
+         * either successfully or exceptionally, or has been cancelled.
          *
-         * @return  true if this element;s add operation has completed
+         * @return  true if this element's add operation has completed
          */
         public boolean isDone()
             {
             return m_fDone || f_future.isDone();
+            }
+
+        /**
+         * Determine whether this element's add operations has been cancelled.
+         *
+         * @return  true if this element's add operation has been cancelled
+         */
+        public boolean isCancelled()
+            {
+            return m_fCancelled || f_future.isCancelled();
             }
 
         /**
@@ -828,6 +887,15 @@ public class BatchingOperationsQueue<V, R>
                 }
             }
 
+        public long getSize()
+            {
+            return m_cbSize;
+            }
+
+        public void setSize(long cbSize)
+            {
+            m_cbSize = cbSize;
+            }
 
         // ----- data members -------------------------------------------
 
@@ -846,6 +914,16 @@ public class BatchingOperationsQueue<V, R>
          * A flag indicating whether this element has completed.
          */
         private volatile boolean m_fDone = false;
+
+        /**
+         * A flag indicating whether this element has been cancelled.
+         */
+        private volatile boolean m_fCancelled = false;
+
+        /**
+         * The size of this element;
+         */
+        private long m_cbSize;
         }
 
     // ----- inner class: OnErrorAction -------------------------------------------

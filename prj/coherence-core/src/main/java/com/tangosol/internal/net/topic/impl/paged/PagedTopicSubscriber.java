@@ -281,6 +281,16 @@ public class PagedTopicSubscriber<V>
         return f_fCompleteOnEmpty;
         }
 
+    /**
+     * Returns the number of times the subscriber has waited on empty channels.
+     *
+     * @return the number of times the subscriber has waited on empty channels
+     */
+    public long getWaitCount()
+        {
+        return m_cWait;
+        }
+
     // ----- Subscriber methods ---------------------------------------------
 
     @Override
@@ -1094,6 +1104,12 @@ public class PagedTopicSubscriber<V>
                 onReceiveComplete(e);
                 }
             }
+        }
+
+    private void onPolled(Element<?> element)
+        {
+        int c = element.getChannel();
+        f_aChannel[c].m_lastPolled = (PagedPosition) element.getPosition();
         }
 
     private void onReceiveComplete(Element<?> element)
@@ -2055,6 +2071,8 @@ public class PagedTopicSubscriber<V>
                 queueValues.stream()
                         .map(bin -> new CommittableElement(bin, nChannel))
                         .forEach(m_queueValuesPrefetched::add);
+
+                channel.setLastPolled((PagedPosition) m_queueValuesPrefetched.getLast().getPosition());
                 }
 
             channel.m_nNext = nNext;
@@ -2741,6 +2759,22 @@ public class PagedTopicSubscriber<V>
             }
 
         @Override
+        public Position getLastPolled()
+            {
+            return m_lastPolled;
+            }
+
+        /**
+         * Set the last polled position.
+         *
+         * @param lastPolled  the last polled position
+         */
+        public void setLastPolled(PagedPosition lastPolled)
+            {
+            m_lastPolled = lastPolled;
+            }
+
+        @Override
         public boolean isEmpty()
             {
             return m_fEmpty;
@@ -2902,6 +2936,11 @@ public class PagedTopicSubscriber<V>
          * The last position received by this subscriber
          */
         PagedPosition m_lastReceived;
+
+        /**
+         * The last position received by this subscriber
+         */
+        PagedPosition m_lastPolled;
 
         /**
          * The last position successfully committed by this subscriber
@@ -3645,7 +3684,7 @@ public class PagedTopicSubscriber<V>
     /**
      * Optional queue of prefetched values which can be used to fulfil future receive requests.
      */
-    protected Queue<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
+    protected ConcurrentLinkedDeque<CommittableElement> m_queueValuesPrefetched = new ConcurrentLinkedDeque<>();
 
     /**
      * Queue of pending receive awaiting values.
