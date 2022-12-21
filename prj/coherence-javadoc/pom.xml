@@ -484,6 +484,8 @@
                     <include>com/oracle/coherence/mp/**/*.java</include>
 
                     <include>com/oracle/coherence/grpc/**/*.java</include>
+                    
+                    <include>com/oracle/coherence/caffeine/**/*.java</include>
 
                     <include>com/tangosol/coherence/commonj/*.java</include>
 
@@ -580,6 +582,7 @@
                     <include>com/tangosol/net/partition/*.java</include>
                     <include>com/tangosol/net/proxy/*.java</include>
                     <include>com/tangosol/net/security/*.java</include>
+                    <include>com/tangosol/net/ssl/*.java</include>
                     <include>com/tangosol/net/topic/*.java</include>
 
                     <include>com/tangosol/persistence/*.java</include>
