@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.management;
 
+import com.tangosol.internal.net.management.model.ModelAttribute;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 
 /**
@@ -65,7 +66,7 @@ public interface PolledMetrics
     SimpleModelAttribute<?> ATTRIBUTE_MEAN_RATE = SimpleModelAttribute.doubleBuilder("PolledMeanRate", Object.class)
             .withDescription("The polled messages mean rate")
             .metric("PolledRate")
-            .withMetricLabels("rate", "mean")
+            .withMetricLabels("rate", ModelAttribute.RATE_MEAN)
             .build();
 
     /**
@@ -74,7 +75,7 @@ public interface PolledMetrics
     SimpleModelAttribute<?> ATTRIBUTE_ONE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PolledOneMinuteRate", Object.class)
             .withDescription("The polled messages one-minute rate")
             .metric("PolledRate")
-            .withMetricLabels("rate", "1min")
+            .withMetricLabels("rate", ModelAttribute.RATE_1MIN)
             .build();
 
     /**
@@ -83,7 +84,7 @@ public interface PolledMetrics
     SimpleModelAttribute<?> ATTRIBUTE_FIVE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PolledFiveMinuteRate", Object.class)
             .withDescription("The polled messages five-minute rate")
             .metric("PolledRate")
-            .withMetricLabels("rate", "5min")
+            .withMetricLabels("rate", ModelAttribute.RATE_5MIN)
             .build();
 
     /**
@@ -92,6 +93,6 @@ public interface PolledMetrics
     SimpleModelAttribute<?> ATTRIBUTE_FIFTEEN_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PolledFifteenMinuteRate", Object.class)
             .withDescription("The polled messages fifteen-minute rate")
             .metric("PolledRate")
-            .withMetricLabels("rate", "15min")
+            .withMetricLabels("rate", ModelAttribute.RATE_15MIN)
             .build();
     }

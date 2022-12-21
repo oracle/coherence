@@ -71,4 +71,26 @@ public interface ModelAttribute<M>
      * @return the metrics scope
      */
     MBeanMetric.Scope getMetricScope();
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Metric label for mean rate.
+     */
+    String RATE_MEAN  = "mean";
+
+    /**
+     * Metric label for 1-minute rate.
+     */
+    String RATE_1MIN  = "1min";
+
+    /**
+     * Metric label for 5-minute rate.
+     */
+    String RATE_5MIN  = "5min";
+
+    /**
+     * Metric label for 15-minute rate.
+     */
+    String RATE_15MIN = "15min";
     }
