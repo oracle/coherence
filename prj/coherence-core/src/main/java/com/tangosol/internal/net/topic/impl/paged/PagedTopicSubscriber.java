@@ -3087,6 +3087,12 @@ public class PagedTopicSubscriber<V>
             }
 
         @Override
+        public int getOwnedCode()
+            {
+            return isOwned() ? 1 : 0;
+            }
+
+        @Override
         public PagedPosition getHead()
             {
             if (m_lHead == Page.EMPTY)

@@ -118,6 +118,7 @@ public class SubscriberGroupChannelTableModel
             SimpleModelAttribute.longBuilder("OwningSubscriberId", SubscriberGroupChannelModel.class)
                     .withDescription("The Owning Subscriber ID")
                     .withFunction(SubscriberGroupChannelModel::getOwningSubscriber)
+                    .metric("OwningSubscriberId")
                     .build();
 
     /**

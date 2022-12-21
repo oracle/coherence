@@ -1812,6 +1812,15 @@ public interface Subscriber<V>
         boolean isOwned();
 
         /**
+         * Returns a numeric representation of if the channel is owned by this subscriber
+         * where {@code 1} represents true and {@code 0} represents false.
+         *
+         * @return a numeric representation of if the channel is owned by this subscriber
+         * where {@code 1} represents true and {@code 0} represents false
+         */
+        int getOwnedCode();
+
+        /**
          * Return the number of completed receive requests.
          *
          * @return the number of completed receive requests
@@ -1896,6 +1905,12 @@ public interface Subscriber<V>
             public boolean isOwned()
                 {
                 return false;
+                }
+
+            @Override
+            public int getOwnedCode()
+                {
+                return 0;
                 }
 
             @Override
