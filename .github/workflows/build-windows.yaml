@@ -48,18 +48,19 @@ jobs:
          - stage13
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up JDK
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v3
       with:
-        java-version: 17
+        distribution: 'zulu'
+        java-version: '17'
 
     - name: Print Maven & Java version
       run: mvn -version
 
     - name: Cache Maven packages
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -80,15 +81,17 @@ jobs:
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: test-output
-        path: prj/**/target/test-output/**/*
+        path: prj/examples/**/target/test-output/**/*
+        if-no-files-found: ignore
 
     - name: Build Artifacts test reports
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: test-reports
-        path: prj/**/target/*-reports/**/*
+        name: failsafe-surefire-test-reports
+        path: prj/examples/**/target/*-reports/**/*
+        if-no-files-found: ignore
