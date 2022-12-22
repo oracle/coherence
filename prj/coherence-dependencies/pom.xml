@@ -213,8 +213,8 @@
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <groovy.version>3.0.12</groovy.version>
-    <jackson.version>2.13.3</jackson.version>
-    <jackson.databind.version>2.13.3</jackson.databind.version>
+    <jackson.version>2.14.1</jackson.version>
+    <jackson.databind.version>2.14.1</jackson.databind.version>
     <jacoco.version>0.8.8</jacoco.version>
     <jaeger.version>1.6.0</jaeger.version>
     <!-- NOTE: these Jakarta versions should ideally be in sync' with that used by Helidon -->

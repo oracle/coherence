@@ -1126,6 +1126,7 @@ public abstract class AbstractEntryAggregatorTests
             }
 
         Trade.fillRandom(cache, 1000);
+        Eventually.assertDeferred(() -> cache.size(), is(1000));
 
         Map mapResult, mapTest;
 
@@ -1137,11 +1138,12 @@ public abstract class AbstractEntryAggregatorTests
 
         NamedCache cacheTest = new WrapperNamedCache(new LocalCache(), "test");
         cacheTest.putAll(cache);
+        Eventually.assertDeferred(() -> cacheTest.size(), is(1000));
 
-        for (int i = 0, c = aAgent.length; i < c; i++)
+        for (int i = 0; i < aAgent.length; i++)
             {
-            mapResult = (Map) cache.aggregate((Filter) null, aAgent[i]);
-            mapTest   = (Map) cacheTest.aggregate((Filter) null, aAgent[i]);
+            mapResult = (Map) cache.aggregate(aAgent[i]);
+            mapTest   = (Map) cacheTest.aggregate(aAgent[i]);
 
             // NOTE: GroupAggregator w/ Filter requires data affinity to return
             //       correct data, so the correctness check is relaxed
@@ -1150,17 +1152,17 @@ public abstract class AbstractEntryAggregatorTests
             if (!fOK)
                 {
                 fail("cache " + cache.getCacheName() + "; agent " + aAgent[i] +
-                    "; servers " + getCacheServerCount() +
+                    "; servers=" + getCacheServerCount() +
                     "; result=" + mapResult + ", test=" + mapTest);
                 }
             }
 
-        cache.addIndex(new ReflectionExtractor("getSymbol"), false, null);
-        cache.addIndex(new ReflectionExtractor("isOddLot"), false, null);
-        for (int i = 0, c = aAgent.length; i < c; i++)
+        cache.addIndex(new ReflectionExtractor("getSymbol"));
+        cache.addIndex(new ReflectionExtractor("isOddLot"));
+        for (int i = 0; i < aAgent.length; i++)
             {
-            mapResult = (Map) cache.aggregate((Filter) null, aAgent[i]);
-            mapTest   = (Map) cacheTest.aggregate((Filter) null, aAgent[i]);
+            mapResult = (Map) cache.aggregate(aAgent[i]);
+            mapTest   = (Map) cacheTest.aggregate(aAgent[i]);
 
             // NOTE: GroupAggregator w/ Filter requires data affinity to return
             //       correct data, so the correctness check is relaxed
@@ -1168,7 +1170,8 @@ public abstract class AbstractEntryAggregatorTests
                 mapResult.keySet().containsAll(mapTest.keySet()) : mapResult.equals(mapTest);
             if (!fOK)
                 {
-                fail("cache " + cache.getCacheName() + "; agent " + aAgent[i] +
+                fail("[After addIndex] cache " + cache.getCacheName() + "; agent " + aAgent[i] +
+                    "; servers=" + getCacheServerCount() +
                     "; result= " + mapResult + ", test=" + mapTest);
                 }
             }
