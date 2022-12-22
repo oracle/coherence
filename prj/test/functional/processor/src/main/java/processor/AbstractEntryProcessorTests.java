@@ -165,8 +165,13 @@ public abstract class AbstractEntryProcessorTests
             assertTrue("Result=" + aoResult[1], equals(aoResult[1], 4));
 
             mapResult = cache.invokeAll(Collections.singletonList("1"), processor);
-            aoResult = (Object[]) mapResult.get("1");
+            for (Object obj : mapResult.entrySet())
+                {
+                System.out.println("[Composite Processor] : " + obj);
+                }
+
             assertTrue("Size=" + mapResult.size(), mapResult.size() == 1);
+            aoResult = (Object[]) mapResult.get("1");
             assertTrue("Result=" + mapResult, aoResult.length == 2);
             assertTrue("Result=" + aoResult[0], equals(aoResult[0], 5));
             assertTrue("Result=" + aoResult[1], equals(aoResult[1], 10));
