@@ -130,6 +130,7 @@ public abstract class AbstractEntryAggregatorTests
         {
         NamedCache cache = getNamedCache(getCacheName());
         cache.clear();
+        Eventually.assertDeferred(() -> cache.size(), is(0));
         return cache;
         }
 
@@ -260,6 +261,9 @@ public abstract class AbstractEntryAggregatorTests
 
         setResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
         assertEquals(setResult, setExpected);
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     /**
@@ -289,6 +293,9 @@ public abstract class AbstractEntryAggregatorTests
 
         oResult = cache.aggregate(AlwaysFilter.INSTANCE, agent);
         assertTrue("Result=" + oResult, equals(oResult, 5.5D));
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     /**
@@ -892,6 +899,9 @@ public abstract class AbstractEntryAggregatorTests
         Person personMin = (Person)cache.aggregate((Filter)null, comparatorMin);
         assertTrue("Expected: " + sExpectedMin + ", actual: " + personMin.getFirstName(),
                 sExpectedMin.equals(personMin.getFirstName()));
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     /**
@@ -1008,6 +1018,9 @@ public abstract class AbstractEntryAggregatorTests
         assertTrue("Result=" + listResult.get(0), equals(listResult.get(0), setFirst));
         assertTrue("Result=" + listResult.get(1), equals(listResult.get(1), setLast) );
         removeIndexFrom(cache, extrFirst);
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     /**
@@ -1057,6 +1070,9 @@ public abstract class AbstractEntryAggregatorTests
         assertEquals("666-22-1111", results.get(0));
         assertEquals("George", results.get(1));
         assertEquals("Person2", results.get(2));
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     /**
@@ -1206,6 +1222,9 @@ public abstract class AbstractEntryAggregatorTests
                     "; " + DblAverage + "!=" + dblPrice/nCount);
                 }
             }
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     /**
@@ -1268,6 +1287,9 @@ public abstract class AbstractEntryAggregatorTests
 
         oResult = (Object[]) cache.aggregate((Filter) null, agent);
         assertArrayEquals("Result=" + Arrays.toString(oResult), aoTop10, oResult);
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
 
@@ -1287,6 +1309,9 @@ public abstract class AbstractEntryAggregatorTests
 
         F = (Boolean) cache.aggregate(AlwaysFilter.INSTANCE, aggrNotEmpty);
         assertTrue("empty", F.booleanValue());
+
+        cache.clear();
+        Eventually.assertThat(cache.size(), is(0));
         }
 
     public static class NotEmptyAggregator
