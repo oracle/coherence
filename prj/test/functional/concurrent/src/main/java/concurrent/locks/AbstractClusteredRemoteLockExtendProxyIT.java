@@ -141,18 +141,18 @@ public abstract class AbstractClusteredRemoteLockExtendProxyIT
         proxy.submit(exit);
 
         // Wait for proxy to stop
-        Eventually.assertDeferred(() ->
-                                      {
-                                      try
-                                          {
-                                          proxy.isReady();
-                                          }
-                                      catch (Exception e)
-                                          {
-                                          return e;
-                                          }
-                                      return null;
-                                      }, instanceOf(IllegalStateException.class), Eventually.within(10, TimeUnit.SECONDS));
+        Eventually.assertDeferred(() -> {
+                                        try
+                                            {
+                                            proxy.isReady();
+                                            }
+                                        catch (Exception e)
+                                            {
+                                            return e;
+                                            }
+                                        return null;
+                                        },
+                                  instanceOf(Exception.class));
 
         // Try for 10 seconds to acquire the lock on second member (should fail)
         assertThat(member2.invoke(new TryLock(sLockName, Duration.ofSeconds(10))), is(false));
