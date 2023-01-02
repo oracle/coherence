@@ -1,4 +1,4 @@
-# Copyright 2022 Oracle Corporation and/or its affiliates.
+# Copyright 2022, 2023, Oracle Corporation and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -96,7 +96,7 @@ jobs:
       if: failure()
       with:
         name: test-output
-        path: prj/examples/**/target/test-output/**/*
+        path: prj/**/target/test-output/**/*
         if-no-files-found: ignore
 
     - name: Build Artifacts test reports
@@ -104,5 +104,5 @@ jobs:
       if: failure()
       with:
         name: failsafe-surefire-test-reports
-        path: prj/examples/**/target/*-reports/**/*
+        path: prj/**/target/*-reports/**/*
         if-no-files-found: ignore
