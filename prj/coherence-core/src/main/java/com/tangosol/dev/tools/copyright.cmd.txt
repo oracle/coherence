@@ -1,7 +1,7 @@
 @rem
 @rem %file%
 @rem
-@rem Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+@rem Copyright (c) 2000, 2023, Oracle and/or its affiliates. All rights reserved.
 @rem
 @rem Oracle is a registered trademarks of Oracle Corporation and/or its
 @rem affiliates.
