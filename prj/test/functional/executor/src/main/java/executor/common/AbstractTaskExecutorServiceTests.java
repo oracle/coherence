@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -196,7 +196,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
         // execute and complete on all Executors
         Task.Coordinator<String> coordinator =
-                m_taskExecutorService.orchestrate(new ValueTask<>("Hello World"))
+                m_taskExecutorService.orchestrate(new ValueTask<>("Hello World", 3000))
                         .subscribe(subscriber)
                         .submit();
 
@@ -233,8 +233,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
         // execute and complete calling CES.submit()
         subscriber  = new RecordingSubscriber<>();
-        coordinator = m_taskExecutorService.submit(new ValueTask<>("Hello World"));
-
+        coordinator = m_taskExecutorService.submit(new ValueTask<>("Hello World", 3000));
         coordinator.subscribe(subscriber);
 
         Eventually.assertDeferred(subscriber::isCompleted, is(true));
