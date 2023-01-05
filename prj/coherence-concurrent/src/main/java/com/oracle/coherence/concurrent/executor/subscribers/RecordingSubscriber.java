@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.subscribers;
@@ -13,8 +13,9 @@ import com.oracle.coherence.concurrent.executor.internal.ExecutorTrace;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * A {@link Task.Subscriber} that records iteration with a {@link Task.Coordinator}.
@@ -33,12 +34,8 @@ public class RecordingSubscriber<T>
      */
     public RecordingSubscriber()
         {
-        f_fCompleted   = new AtomicBoolean(false);
-        f_fErrored     = new AtomicBoolean(false);
-        f_throwable    = new AtomicReference<>();
-        f_listItems    = new CopyOnWriteArrayList<>();
-        f_subscription = new AtomicReference<>();
-        f_fUsed        = new AtomicBoolean(false);
+        f_listItems = new CopyOnWriteArrayList<>();
+        f_rwLock    = new ReentrantReadWriteLock();
         }
 
     // ----- Task.Subscriber interface --------------------------------------
@@ -48,8 +45,17 @@ public class RecordingSubscriber<T>
         {
         ExecutorTrace.entering(RecordingSubscriber.class, "onComplete");
 
-        f_fCompleted.compareAndSet(false, true);
-        f_subscription.set(null);
+        Lock wLock = f_rwLock.writeLock();
+        try
+            {
+            wLock.lock();
+            m_fCompleted   = true;
+            m_subscription = null;
+            }
+        finally
+            {
+            wLock.unlock();
+            }
 
         ExecutorTrace.exiting(RecordingSubscriber.class, "onComplete");
         }
@@ -59,9 +65,18 @@ public class RecordingSubscriber<T>
         {
         ExecutorTrace.entering(RecordingSubscriber.class, "onError", throwable);
 
-        f_fErrored.compareAndSet(false, true);
-        f_subscription.set(null);
-        f_throwable.set(throwable);
+        Lock wLock = f_rwLock.writeLock();
+        try
+            {
+            wLock.lock();
+            m_fErrored     = true;
+            m_subscription = null;
+            m_throwable    = throwable;
+            }
+        finally
+            {
+            wLock.unlock();
+            }
 
         ExecutorTrace.exiting(RecordingSubscriber.class, "onError");
         }
@@ -81,11 +96,14 @@ public class RecordingSubscriber<T>
         {
         ExecutorTrace.entering(RecordingSubscriber.class, "onSubscribe", subscription);
 
+        Lock wLock = f_rwLock.writeLock();
         try
             {
-            if (f_fUsed.compareAndSet(false, true))
+            wLock.lock();
+            if (!m_fUsed)
                 {
-                f_subscription.set(subscription);
+                m_fUsed        = true;
+                m_subscription = subscription;
                 }
             else
                 {
@@ -94,6 +112,7 @@ public class RecordingSubscriber<T>
             }
             finally
                 {
+                wLock.unlock();
                 ExecutorTrace.exiting(RecordingSubscriber.class, "onSubscribe");
                 }
         }
@@ -108,7 +127,16 @@ public class RecordingSubscriber<T>
      */
     public boolean isError()
         {
-        return f_fErrored.get();
+        Lock rLock = f_rwLock.readLock();
+        try
+            {
+            rLock.lock();
+            return m_fErrored;
+            }
+        finally
+            {
+            rLock.unlock();
+            }
         }
 
     /**
@@ -119,7 +147,16 @@ public class RecordingSubscriber<T>
      */
     public boolean isCompleted()
         {
-        return f_fCompleted.get();
+        Lock rLock = f_rwLock.readLock();
+        try
+            {
+            rLock.lock();
+            return m_fCompleted;
+            }
+        finally
+            {
+            rLock.unlock();
+            }
         }
 
     /**
@@ -130,7 +167,16 @@ public class RecordingSubscriber<T>
      */
     public boolean isSubscribed()
         {
-        return f_subscription.get() != null;
+        Lock rLock = f_rwLock.readLock();
+        try
+            {
+            rLock.lock();
+            return m_subscription != null;
+            }
+        finally
+            {
+            rLock.unlock();
+            }
         }
 
     /**
@@ -186,7 +232,16 @@ public class RecordingSubscriber<T>
      */
     public Throwable getThrowable()
         {
-        return f_throwable.get();
+        Lock rLock = f_rwLock.readLock();
+        try
+            {
+            rLock.lock();
+            return m_throwable;
+            }
+        finally
+            {
+            rLock.unlock();
+            }
         }
 
     // ----- data members ---------------------------------------------------
@@ -195,30 +250,35 @@ public class RecordingSubscriber<T>
      * Tracks whether this {@link RecordingSubscriber} has ever been subscribed to a {@link Task.Coordinator}. {@link
      * RecordingSubscriber}s are not reusable.
      */
-    protected final AtomicBoolean f_fUsed;
+    protected boolean m_fUsed;
 
     /**
      * Completed flag.
      */
-    protected final AtomicBoolean f_fCompleted;
+    protected boolean m_fCompleted;
 
     /**
      * Error flag.
      */
-    protected final AtomicBoolean f_fErrored;
+    protected boolean m_fErrored;
 
     /**
      * Failure cause.
      */
-    protected final AtomicReference<Throwable> f_throwable;
+    protected Throwable m_throwable;
 
     /**
      * Items received by this subscriber.
      */
-    protected final CopyOnWriteArrayList<T> f_listItems;
+    protected CopyOnWriteArrayList<T> f_listItems;
 
     /**
      * The {@link Task.Subscription}.
      */
-    protected final AtomicReference<Task.Subscription<? extends T>> f_subscription;
+    protected Task.Subscription<? extends T> m_subscription;
+
+    /**
+     * {@link ReadWriteLock} to guard mutations.
+     */
+    protected final ReadWriteLock f_rwLock;
     }
