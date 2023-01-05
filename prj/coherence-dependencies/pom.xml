@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -241,7 +241,7 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <jersey.version>3.0.5</jersey.version>
-    <jettison.version>1.4.1</jettison.version>
+    <jettison.version>1.5.3</jettison.version>
     <jline.version>3.20.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
     <micrometer.version>1.6.6</micrometer.version>
@@ -255,7 +255,7 @@
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
-    <protobuf.version>3.21.3</protobuf.version>
+    <protobuf.version>3.21.12</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
@@ -786,13 +786,10 @@
       <!-- Protobuf -->
       <dependency>
         <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
+        <artifactId>protobuf-bom</artifactId>
         <version>${protobuf.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java-util</artifactId>
-        <version>${protobuf.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <!-- Caffeine -->
@@ -893,60 +890,6 @@
       <!-- gRPC -->
       <dependency>
         <groupId>io.grpc</groupId>
-        <artifactId>grpc-core</artifactId>
-        <version>${grpc.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_annotations</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>animal-sniffer-annotations</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-api</artifactId>
-        <version>${grpc.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>animal-sniffer-annotations</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>com.google.errorprone</groupId>
-            <artifactId>error_prone_annotations</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- Used for compilation of "their" sources -->
-            <groupId>com.google.j2objc</groupId>
-            <artifactId>j2objc-annotations</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-context</artifactId>
-        <version>${grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.grpc</groupId>
         <artifactId>grpc-protobuf</artifactId>
         <version>${grpc.version}</version>
         <exclusions>
@@ -987,6 +930,20 @@
         <groupId>io.grpc</groupId>
         <artifactId>grpc-netty</artifactId>
         <version>${grpc.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-context</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <!-- required for dependency convergence, used from guava and perfmark-api -->
