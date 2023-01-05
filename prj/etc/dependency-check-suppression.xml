@@ -383,4 +383,14 @@
      <packageUrl regex="true">^pkg:maven/org\.graalvm\.truffle/truffle\-api@.*$</packageUrl>
      <cve>CVE-2022-31569</cve>
   </suppress>
+
+   <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
+       call "fredsmith utils".  Unable to find anything of value regarding this library. -->
+  <suppress>
+     <notes><![CDATA[
+     file name: hk2-utils-2.6.1.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.glassfish\.hk2/hk2\-utils@.*$</packageUrl>
+     <cpe>cpe:/a:utils_project:utils</cpe>
+  </suppress>
 </suppressions>
