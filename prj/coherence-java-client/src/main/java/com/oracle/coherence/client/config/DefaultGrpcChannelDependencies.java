@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,10 @@ import com.tangosol.coherence.config.builder.AddressProviderBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.coherence.config.builder.WrapperSocketAddressProviderBuilder;
+import com.tangosol.coherence.config.unit.Seconds;
 import com.tangosol.config.annotation.Injectable;
+import com.tangosol.config.expression.Expression;
+import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.SocketAddressProvider;
@@ -195,6 +198,25 @@ public class DefaultGrpcChannelDependencies
         return sPolicy;
         }
 
+    @Injectable("load-balancer-timeout")
+    public void setLoadBalancerTimeout(Expression<Seconds> expr)
+        {
+        m_expLoadBalancerTimeout = expr == null
+                ? GrpcChannelDependencies.DEFAULT_LOAD_BALANCER_TIMEOUT
+                : expr;
+        }
+
+    @Override
+    public long getLoadBalancerTimeout(ParameterResolver resolver)
+        {
+        Seconds seconds = m_expLoadBalancerTimeout.evaluate(resolver);
+        if (seconds == null)
+            {
+            seconds = GrpcChannelDependencies.DEFAULT_LOAD_BALANCER_TIMEOUT.evaluate(resolver);
+            }
+        return seconds.get();
+        }
+
     /**
      * Set the optional {@link ParameterizedBuilder} that will build a {@link GrpcChannelConfigurer}
      * that can apply further configuration to a {@link io.grpc.ManagedChannelBuilder}.
@@ -253,6 +275,11 @@ public class DefaultGrpcChannelDependencies
      * The value to pass to the {@link io.grpc.ManagedChannelBuilder#defaultLoadBalancingPolicy(String)}} method.
      */
     private String m_sLoadBalancerPolicy;
+
+    /**
+     * The timeout to apply to load balancer address resolution.
+     */
+    private Expression<Seconds> m_expLoadBalancerTimeout = GrpcChannelDependencies.DEFAULT_LOAD_BALANCER_TIMEOUT;
 
     /**
      * A {@link ParameterizedBuilder} that can build a {@link GrpcChannelConfigurer}.

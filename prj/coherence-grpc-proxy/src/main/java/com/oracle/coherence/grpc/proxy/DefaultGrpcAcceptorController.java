@@ -13,15 +13,20 @@ import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDepend
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.grpc.GrpcDependencies;
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
+import io.grpc.health.v1.HealthCheckResponse;
 import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.protobuf.services.ChannelzService;
+import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ServiceLoader;
@@ -74,13 +79,18 @@ public class DefaultGrpcAcceptorController
                 serviceDeps.setExecutor(new DaemonPoolExecutor(m_daemonPool));
                 }
 
+            List<String> listService = new ArrayList<>();
             for (BindableGrpcProxyService service : createGrpcServices(serviceDeps))
                 {
                 GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
                 ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
                 serverBuilder.addService(definition);
                 inProcessBuilder.addService(definition);
+                listService.add(definition.getServiceDescriptor().getName());
                 }
+
+            serverBuilder.addService(f_healthStatusManager.getHealthService());
+            serverBuilder.addService(ChannelzService.newInstance(deps.getChannelzPageSize()));
 
             configure(serverBuilder, inProcessBuilder);
 
@@ -95,6 +105,8 @@ public class DefaultGrpcAcceptorController
 
             m_server = server;
             m_inProcessServer = inProcessServer;
+            f_healthStatusManager.setStatus(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME, HealthCheckResponse.ServingStatus.SERVING);
+            listService.forEach(s -> f_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
             m_fRunning = true;
             }
         catch (IOException e)
@@ -108,6 +120,7 @@ public class DefaultGrpcAcceptorController
         {
         if (isRunning())
             {
+            f_healthStatusManager.enterTerminalState();
             stopServer(m_inProcessServer, "in-process server");
             m_inProcessServer = null;
             stopServer(m_server, "server");
@@ -249,4 +262,9 @@ public class DefaultGrpcAcceptorController
      * The {@link DaemonPool} the services may use.
      */
     private DaemonPool m_daemonPool;
+
+    /**
+     * The gRPC health check service manager.
+     */
+    private final HealthStatusManager f_healthStatusManager = new HealthStatusManager();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,6 +47,14 @@ public interface CoherenceClusterMember
      * @return the number of members in the cluster
      */
     int getClusterSize();
+
+
+    /**
+     * Obtains the cluster port for the {@link CoherenceClusterMember}.
+     *
+     * @return the cluster port
+     */
+    int getLocalMemberClusterPort();
 
 
     /**

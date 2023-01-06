@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified"
@@ -2127,11 +2127,49 @@
                 </xsd:choice>
                 <xsd:element name="socket-provider" type="grpc-socket-provider-type" minOccurs="0"/>
                 <xsd:element name="override-authority" type="coherence-string-type" minOccurs="0"/>
-                <xsd:element name="load-balancer-policy" type="coherence-string-type" minOccurs="0"/>
+                <xsd:element ref="load-balancer-policy" minOccurs="0"/>
+                <xsd:element ref="load-balancer-timeout" minOccurs="0"/>
                 <xsd:element name="configurer" minOccurs="0" type="grpc-channel-configurer-type"/>
             </xsd:sequence>
         </xsd:choice>
     </xsd:complexType>
+
+    <xsd:element name="load-balancer-policy" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures the gRPC load balancer policy.
+                The default is round_robin.
+
+                Used in: grpc-channel
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="load-balancer-timeout" type="coherence-time-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures the gRPC load balancer address resolution timeout.
+                If this value is configured to be less than 1 second, the
+                default value will be used instead.
+                The default is 10 seconds.
+
+                Used in: grpc-channel
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="channelz-max-page-size" type="coherence-positiveInteger-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures the maximum page size used by the gRPC debug Channelz
+                service.
+                See: https://grpc.io/blog/a-short-introduction-to-channelz/
+                The default is 100.
+
+                Used in: grpc-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="grpc-channel-configurer-type">
         <xsd:annotation>
@@ -2143,6 +2181,18 @@
     </xsd:complexType>
 
     <xsd:complexType name="grpc-socket-provider-type" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                The socket-provider element contains the configuration info for
+                a socket and channel factory.
+
+                In addition to defining a socket-provider, it is also acceptable
+                and in fact preferred to provide the name of a provider from the
+                socket-providers configuration within the operational configuration.
+
+                Used in: grpc-channel
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:choice minOccurs="0">
                 <xsd:element ref="ssl" />

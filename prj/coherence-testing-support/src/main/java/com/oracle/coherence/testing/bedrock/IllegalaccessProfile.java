@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.testing.bedrock;
@@ -50,7 +50,6 @@ public class IllegalaccessProfile
             OptionsByType optionsByType)
         {
         Jdk jdk = optionsByType.get(Jdk.class);
-        System.out.println("IllegalAccessProfile.onLaunching    JDK version is " + jdk.getVersion());
 
         if (jdk.getVersion() > 8)
             {
