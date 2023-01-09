@@ -162,6 +162,8 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.config.version>1.4</eclipse.mp.config.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
+    <eclipse.mp.health.version>2.2</eclipse.mp.health.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>2.3.2</eclipse.mp.metrics.version>
     <felix.version>6.0.4</felix.version>
     <glassfish.jmxmp.version>1.0-b01-ea</glassfish.jmxmp.version>
@@ -340,6 +342,17 @@
         <groupId>org.eclipse.microprofile.config</groupId>
         <artifactId>microprofile-config-api</artifactId>
         <version>${eclipse.mp.config.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.microprofile.health</groupId>
+        <artifactId>microprofile-health-api</artifactId>
+        <version>${eclipse.mp.health.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.eclipse.microprofile.metrics</groupId>
