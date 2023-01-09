@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 // Authors:
@@ -278,9 +278,9 @@ message AddIndexRequest {
     string cache = 2;
     // The serialization format.
     string format = 3;
-    // The serialized ValueExtractor to use to creat the index.
+    // The serialized ValueExtractor to use to create the index.
     bytes extractor = 4;
-    // A flag indicating whether to sort the index
+    // A flag indicating whether to sort the index.
     bool sorted = 5;
     // The optional comparator to use to sort the index.
     bytes comparator = 6;
@@ -294,7 +294,7 @@ message RemoveIndexRequest {
     string cache = 2;
     // The serialization format.
     string format = 3;
-    // The serialized ValueExtractor to use to creat the index.
+    // The serialized ValueExtractor to use to create the index.
     bytes extractor = 4;
 }
 
@@ -306,7 +306,7 @@ message AggregateRequest {
     string cache = 2;
     // The serialization format.
     string format = 3;
-    // The serialized EntryAggregator to use to creat the index.
+    // The serialized EntryAggregator to aggregate.
     bytes aggregator = 4;
     // The optional set of serialized keys of the entries to aggregate.
     repeated bytes keys = 5;
@@ -322,7 +322,7 @@ message InvokeRequest {
     string cache = 2;
     // The serialization format.
     string format = 3;
-    // The serialized EntryProcessor to use to creat the index.
+    // The serialized EntryProcessor to invoke.
     bytes processor = 4;
     // The serialized key of the entry to process.
     bytes key = 5;
@@ -336,7 +336,7 @@ message InvokeAllRequest {
     string cache = 2;
     // The serialization format.
     string format = 3;
-    // The serialized EntryProcessor to use to creat the index.
+    // The serialized EntryProcessor to invoke.
     bytes processor = 4;
     // The optional set of serialized keys of the entries to process.
     repeated bytes keys = 5;
