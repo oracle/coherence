@@ -223,7 +223,7 @@ public abstract class AbstractSimplePersistenceTests
     /**
      * Tests the create and recover snapshot functionality.
      */
-    //@Test
+    @Test
     public void testPassiveSnapshot()
             throws IOException, MBeanException
         {
