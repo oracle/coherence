@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,6 @@ import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-import com.tangosol.net.topic.Position;
 import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.EntryExtractor;
@@ -110,7 +109,58 @@ public class SubscriberInfo
         return m_owningUid;
         }
 
-    // ----- EvolvablePortableObject methods --------------------------------
+    /**
+     * Set the {@link UUID} of the owning member.
+     *
+     * @param uuid  the {@link UUID} of the owning member
+     */
+    public void setOwningUid(UUID uuid)
+        {
+        m_owningUid = uuid;
+        }
+
+    /**
+     * Return the unique identifier of the subscription.
+     *
+     * @return the unique identifier of the subscription
+     */
+    public long getSubscriptionId()
+        {
+        return m_lSubscriptionId;
+        }
+
+    /**
+     * Set the unique identifier of the subscription.
+     *
+     * @param lSubscriptionId  the unique identifier of the subscription
+     */
+    public void setSubscriptionId(long lSubscriptionId)
+        {
+        m_lSubscriptionId = lSubscriptionId;
+        }
+
+    /**
+     * Returns the subscriber's connection timestamp.
+     *
+     * @return the subscriber's connection timestamp
+     */
+    public long getConnectionTimestamp()
+        {
+        return m_lConnectionTimestamp;
+        }
+
+    /**
+     * Set the subscriber's connection timestamp.
+     *
+     * @param lTimestamp  the subscriber's connection timestamp
+     */
+    public void setlConnectionTimestamp(long lTimestamp)
+        {
+        m_lConnectionTimestamp = lTimestamp;
+        }
+
+
+// ----- EvolvablePortableObject methods --------------------------------
 
     @Override
     public int getImplVersion()
@@ -130,6 +180,12 @@ public class SubscriberInfo
             {
             m_owningUid = in.readObject(2);
             }
+
+        if (nVersion >= 3)
+            {
+            m_lSubscriptionId      = in.readLong(3);
+            m_lConnectionTimestamp = in.readLong(4);
+            }
         }
 
     @Override
@@ -138,6 +194,8 @@ public class SubscriberInfo
         out.writeDateTime(0, m_dtLastHeartbeat);
         out.writeLong(1, m_cTimeoutMillis);
         out.writeObject(2, m_owningUid);
+        out.writeLong(3, m_lSubscriptionId);
+        out.writeLong(4, m_lConnectionTimestamp);
         }
 
     // ----- Object methods ---------------------------------------------
@@ -148,6 +206,8 @@ public class SubscriberInfo
         return "SubscriberInfo(" +
                 "lastHeartbeat=" + m_dtLastHeartbeat +
                 "uid=" + m_owningUid +
+                "subscription=" + m_lSubscriptionId +
+                "connectedTime=" + m_lConnectionTimestamp +
                 ')';
         }
 
@@ -315,9 +375,14 @@ public class SubscriberInfo
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 2;
+    public static final int DATA_VERSION = 3;
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The timestamp of the subscriber's connection.
+     */
+    private long m_lConnectionTimestamp;
 
     /**
      * The last heartbeat time.
@@ -333,4 +398,9 @@ public class SubscriberInfo
      * The {@link UUID} of the owning member.
      */
     private UUID m_owningUid;
+
+    /**
+     * The unique identifier of the subscription the subscriber is subscribed to.
+     */
+    private long m_lSubscriptionId;
     }

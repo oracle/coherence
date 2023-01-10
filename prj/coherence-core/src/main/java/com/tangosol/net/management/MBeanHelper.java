@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,11 +14,11 @@ import com.tangosol.internal.net.management.DefaultGatewayDependencies;
 import com.tangosol.internal.net.management.GatewayDependencies;
 import com.tangosol.internal.net.management.LegacyXmlGatewayHelper;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.management.PagedTopicModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberGroupModel;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
@@ -29,6 +29,7 @@ import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Service;
 import com.tangosol.net.TopicService;
 
@@ -40,6 +41,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
+import com.tangosol.util.ValueExtractor;
 
 import java.lang.annotation.Annotation;
 
@@ -55,7 +57,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.function.Function;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanNotificationInfo;
@@ -515,20 +518,21 @@ public abstract class MBeanHelper
     * Register the specified PagedTopic with the cluster registry.
     *
     * @param service     the PagedTopic Service that the topic belongs to
-    * @param topic       the topic object to register
+    * @param sTopicName  the name of the topic to register
     */
-    public static void registerPagedTopicMBean(Service service, PagedTopic<?> topic)
+    public static void registerPagedTopicMBean(PagedTopicService service, String sTopicName)
         {
         try
             {
-            Cluster  cluster  = service.getCluster();
-            Registry registry = cluster.getManagement();
-            String sName = registry.ensureGlobalName(getTopicMBeanName(topic));
-            registry.register(sName, new PagedTopicModel(topic));
+            Cluster  cluster      = service.getCluster();
+            Registry registry     = cluster.getManagement();
+            String   sServiceName = service.getInfo().getServiceName();
+            String   sMBeanName   = registry.ensureGlobalName(getTopicMBeanName(sServiceName, sTopicName));
+            registry.register(sMBeanName, new PagedTopicModel(service, sTopicName));
             }
         catch (Throwable e)
             {
-            Logger.warn("Failed to register topic \"" + topic.getName() + "\"", e);
+            Logger.warn("Failed to register topic \"" + sTopicName + "\"", e);
             }
         }
 
@@ -604,22 +608,20 @@ public abstract class MBeanHelper
     /**
     * Register the specified PagedTopic subscriber group with the cluster registry.
     *
-    * @param service     the topic Service that the topic belongs to
-    * @param sTopicName  the cache name
-    * @param id          the subscriber group {@link SubscriberGroupId id}
-    * @param statistics  the paged topic statistics
-    * @param filter      the filter used to filter messages
-    * @param fnConvert   the Function used to convert messages
+    * @param service      the topic Service that the topic belongs to
+    * @param subscription the {@link PagedTopicSubscription subscription}
     */
-    public static void registerSubscriberGroupMBean(TopicService service, String sTopicName,
-            SubscriberGroupId id, PagedTopicStatistics statistics, Filter filter, Function fnConvert)
+    public static void registerSubscriberGroupMBean(PagedTopicService service, PagedTopicSubscription subscription)
         {
+        SubscriberGroupId id = subscription.getSubscriberGroupId();
+
         if (id.isAnonymous())
             {
             // only register durable subscriber groups
             return;
             }
 
+        String sTopicName = subscription.getTopicName();
         try
             {
             Cluster  cluster  = service.getCluster();
@@ -629,7 +631,21 @@ public abstract class MBeanHelper
                 String sName = registry.ensureGlobalName(getSubscriberGroupMBeanName(id, sTopicName, service));
                 if (!registry.isRegistered(sName))
                     {
-                    registry.register(sName, new SubscriberGroupModel(statistics, id, filter, fnConvert, service));
+                    s_lockTopicSubscriberGroups.lock();
+                    try
+                        {
+                        if (!registry.isRegistered(sName))
+                            {
+                            PagedTopicStatistics statistics = service.getTopicStatistics(sTopicName);
+                            Filter<?> filter = subscription.getFilter();
+                            ValueExtractor<?, ?> extractor = subscription.getConverter();
+                            registry.register(sName, new SubscriberGroupModel(statistics, id, filter, extractor, service));
+                            }
+                        }
+                    finally
+                        {
+                        s_lockTopicSubscriberGroups.unlock();
+                        }
                     }
                 }
             }
@@ -644,12 +660,26 @@ public abstract class MBeanHelper
     * Unregister all managed objects related to the given topic subscriber group name
     * from the cluster registry.
     *
+    * @param service      the topic Service that the topic belongs to
+    * @param subscription the {@link PagedTopicSubscription subscription}
+    */
+    public static void unregisterSubscriberGroupMBean(PagedTopicService service, PagedTopicSubscription subscription)
+        {
+        String            sTopicName = subscription.getTopicName();
+        SubscriberGroupId groupId    = subscription.getSubscriberGroupId();
+        unregisterSubscriberGroupMBean(groupId, sTopicName, service);
+        }
+
+    /**
+    * Unregister all managed objects related to the given topic subscriber group name
+    * from the cluster registry.
+    *
     * @param id            the subscriber group {@link SubscriberGroupId id} or {@code null}
      *                     to unregister all groups for the topic
     * @param sTopicName    the topic name
     * @param service       the topic service
     */
-    public static void unregisterSubscriberGroupMBean(SubscriberGroupId id, String sTopicName, Service service)
+    private static void unregisterSubscriberGroupMBean(SubscriberGroupId id, String sTopicName, Service service)
         {
         try
             {
@@ -1898,4 +1928,9 @@ public abstract class MBeanHelper
     * Package name for TDE-based dynamic MBean objects.
     */
     private static final String MANAGEABLE = "com.tangosol.coherence.component.manageable.";
+
+    /**
+     * A lock to sync topic subscriber group MBean access.
+     */
+    private static final Lock s_lockTopicSubscriberGroups = new ReentrantLock();
     }

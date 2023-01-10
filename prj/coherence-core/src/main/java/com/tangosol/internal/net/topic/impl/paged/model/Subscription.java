@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.io.AbstractEvolvable;
@@ -20,7 +21,6 @@ import com.tangosol.net.partition.KeyPartitioningStrategy;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.HashHelper;
-import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
@@ -38,6 +38,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import java.util.stream.Collectors;
@@ -214,6 +216,26 @@ public class Subscription
         }
 
     /**
+     * Return the {@link SubscriberId id} of the last subscriber to poll this subscription.
+     *
+     * @return the {@link SubscriberId id} of the last subscriber to poll this subscription
+     */
+    public SubscriberId getLastPolledSubscriber()
+        {
+        return m_lastPolledSubscriber;
+        }
+
+    /**
+     * Set the {@link SubscriberId id} of the last subscriber to poll this subscription.
+     *
+     * @param id  the {@link SubscriberId id} of the last subscriber to poll this subscription
+     */
+    public void setLastPolledSubscriber(SubscriberId id)
+        {
+        m_lastPolledSubscriber = id;
+        }
+
+    /**
      * Returns {@code true} if a given subscriber is allocated to this owns the channel,
      * or zero if no subscriber owns the channel.
      *
@@ -304,25 +326,32 @@ public class Subscription
      *
      * @return a map of any removed subscribers, keyed by departed member identifier
      */
-    public synchronized Map<Integer, Set<SubscriberId>> addSubscriber(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
+    public Map<Integer, Set<SubscriberId>> addSubscriber(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
         {
         if (subscriberId == null || subscriberId.getId() == 0)
             {
             return Collections.emptyMap();
             }
 
-        if (m_mapSubscriber == null)
+        f_lock.lock();
+        try
             {
-            m_mapSubscriber = new TreeMap<>();
-            }
+            if (m_mapSubscriber == null)
+                {
+                m_mapSubscriber = new TreeMap<>();
+                }
 
-        SubscriberId idPrevious = m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId);
-        if (idPrevious == null || cChannel != m_cChannel)
+            SubscriberId idPrevious = m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId);
+            if (idPrevious == null || cChannel != m_cChannel)
+                {
+                return refresh(m_mapSubscriber, cChannel, setMember);
+                }
+            return Collections.emptyMap();
+            }
+        finally
             {
-            return refresh(m_mapSubscriber, cChannel, setMember);
+            f_lock.unlock();
             }
-
-        return Collections.emptyMap();
         }
 
     /**
@@ -334,31 +363,38 @@ public class Subscription
      *
      * @return a map of any removed subscribers, keyed by departed member identifier
      */
-    public synchronized Map<Integer, Set<SubscriberId>> removeSubscriber(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
+    public Map<Integer, Set<SubscriberId>> removeSubscriber(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
         {
         if (subscriberId == null || subscriberId.getId() == 0)
             {
             return Collections.emptyMap();
             }
 
-        if (m_mapSubscriber != null)
+        f_lock.lock();
+        try
             {
-            if (m_mapSubscriber.remove(subscriberId.getId()) != null)
+            if (m_mapSubscriber != null)
                 {
-                Map<Integer, Set<SubscriberId>> mapRemoved = refresh(m_mapSubscriber, cChannel, setMember);
-                int                             nMember    = m_owningSubscriber.getMemberId();
-                mapRemoved.compute(nMember, (key, set) -> ensureSet(nMember, subscriberId, set));
-                return mapRemoved;
+                if (m_mapSubscriber.remove(subscriberId.getId()) != null)
+                    {
+                    Map<Integer, Set<SubscriberId>> mapRemoved = refresh(m_mapSubscriber, cChannel, setMember);
+                    int                             nMember    = m_owningSubscriber.getMemberId();
+                    mapRemoved.compute(nMember, (key, set) -> ensureSet(nMember, subscriberId, set));
+                    return mapRemoved;
+                    }
                 }
+            else if (Objects.equals(m_owningSubscriber, subscriberId))
+                {
+                int nMember = subscriberId.getMemberId();
+                m_owningSubscriber = null;
+                return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
+                }
+            return Collections.emptyMap();
             }
-        else if (Objects.equals(m_owningSubscriber, subscriberId))
+        finally
             {
-            int nMember = subscriberId.getMemberId();
-            m_owningSubscriber = null;
-            return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
+            f_lock.unlock();
             }
-
-        return Collections.emptyMap();
         }
 
     /**
@@ -369,22 +405,29 @@ public class Subscription
      *
      * @return a map of any removed subscribers, keyed by departed member identifier
      */
-    public synchronized Map<Integer, Set<SubscriberId>> removeAllSubscribers(int cChannel, Set<Member> setMember)
+    public Map<Integer, Set<SubscriberId>> removeAllSubscribers(int cChannel, Set<Member> setMember)
         {
-        if (m_mapSubscriber != null)
+        f_lock.lock();
+        try
             {
-            m_mapSubscriber.clear();
-            return refresh(m_mapSubscriber, cChannel, setMember);
+            if (m_mapSubscriber != null)
+                {
+                m_mapSubscriber.clear();
+                return refresh(m_mapSubscriber, cChannel, setMember);
+                }
+            else if (m_owningSubscriber != null)
+                {
+                SubscriberId subscriberId = m_owningSubscriber;
+                int          nMember      = m_owningSubscriber.getMemberId();
+                m_owningSubscriber = null;
+                return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
+                }
+            return Collections.emptyMap();
             }
-        else if (m_owningSubscriber != null)
+        finally
             {
-            SubscriberId subscriberId = m_owningSubscriber;
-            int          nMember      = m_owningSubscriber.getMemberId();
-            m_owningSubscriber = null;
-            return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
+            f_lock.unlock();
             }
-
-        return Collections.emptyMap();
         }
 
     /**
@@ -524,6 +567,71 @@ public class Subscription
         }
 
     /**
+     * Update this subscription.
+     *
+     * @param subscription  the {@link PagedTopicSubscription} to update the state from
+     */
+    public void update(PagedTopicSubscription subscription)
+        {
+        if (subscription != null)
+            {
+            f_lock.lock();
+            try
+                {
+                if (m_mapSubscriber == null)
+                    {
+                    m_mapSubscriber = new TreeMap<>();
+                    }
+
+                m_mapSubscriber.putAll(subscription.getSubscribers());
+                long[] alChannel = subscription.getChannelAllocations();
+
+                if (m_aChannel == null || m_aChannel.length != alChannel.length)
+                    {
+                    m_aChannel = new long[alChannel.length];
+                    }
+                System.arraycopy(alChannel, 0, m_aChannel, 0, alChannel.length);
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+        }
+
+    /**
+     * Assign all channels to this subscriber.
+     *
+     * @param subscriberId  the {@link SubscriberId subscriber identifier}
+     * @param cChannel      the number of channels
+     * @param setMember     the set of current member identifiers
+     */
+    public void assignAll(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
+        {
+        f_lock.lock();
+        try
+            {
+            if (m_mapSubscriber == null)
+                {
+                m_mapSubscriber = new TreeMap<>();
+                }
+
+            long   nId       = subscriberId.getId();
+            long[] alChannel = new long[cChannel];
+            Arrays.fill(alChannel, nId);
+
+            m_mapSubscriber.clear();
+            m_mapSubscriber.put(nId, subscriberId);
+
+            m_aChannel = alChannel;
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+        }
+
+    /**
      * Create the {@link Key} to the {@link Subscription} used as the sync for the subscriptions
      * global information.
      *
@@ -632,6 +740,7 @@ public class Subscription
         out.writeObject(10, m_owningSubscriber);
         out.writeMap(11, m_mapSubscriber);
         out.writeInt(12, m_cChannel);
+        out.writeObject(13, m_lastPolledSubscriber);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -640,11 +749,15 @@ public class Subscription
     public String toString()
         {
         return getClass().getSimpleName() + "(head=" + m_lHeadSubscription
-            + ", page=" + m_lPage + ", position=" + m_nPosition
-            + ", committed=" + (m_posCommitted.getPage() == Page.NULL_PAGE ? "None" : m_posCommitted)
-            + ", rollback=" + (m_posRollback.getPage() == Page.NULL_PAGE ? "Unset" : m_posRollback)
-            + ", filter=" + m_filter + ", converter=" + m_fnConvert
-            + ", owner=" + m_owningSubscriber + " subscribers=" + m_mapSubscriber + ")";
+                + ", page=" + m_lPage
+                + ", position=" + m_nPosition
+                + ", committed=" + (m_posCommitted.getPage() == Page.NULL_PAGE ? "None" : m_posCommitted)
+                + ", rollback=" + (m_posRollback.getPage() == Page.NULL_PAGE ? "Unset" : m_posRollback)
+                + ", filter=" + m_filter
+                + ", converter=" + m_fnConvert
+                + ", owner=" + m_owningSubscriber
+                + ", lastPolledBy=" + m_lastPolledSubscriber
+                + ", subscribers=" + m_mapSubscriber + ")";
         }
 
     // ----- helper methods -------------------------------------------------
@@ -666,86 +779,9 @@ public class Subscription
      */
     private Map<Integer, Set<SubscriberId>> refresh(SortedMap<Long, SubscriberId> mapSubscriber, int cChannel, Set<Member> setMember)
         {
-        long[]                          aChannel     = new long[cChannel];
-        Map<Integer, Set<SubscriberId>> mapRemoved   = new TreeMap<>();
-        Set<UUID>                       setMemberUID = setMember.stream().map(Member::getUuid).collect(Collectors.toSet());
-        Set<Integer>                    setMemberID  = setMember.stream().map(Member::getId).collect(Collectors.toSet());
-
-        // remove any departed subscribers
-        for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
-            {
-            SubscriberId subscriberId = entry.getValue();
-            UUID         uuid         = subscriberId.getUID();
-            int          nMemberId    = subscriberId.getMemberId();
-            if (uuid == null && !setMemberID.contains(nMemberId))
-                {
-                mapRemoved.compute(nMemberId, (key, set) -> ensureSet(nMemberId, subscriberId, set));
-                }
-            else if (!setMemberUID.contains(uuid))
-                {
-                mapRemoved.compute(nMemberId, (key, set) -> ensureSet(nMemberId, subscriberId, set));
-                }
-            }
-
-        mapRemoved.values().stream()
-                .flatMap(Set::stream)
-                .forEach(id -> mapSubscriber.remove(id.getId()));
-
-        int cSubscriber = mapSubscriber.size();
-        if (cSubscriber == 0)
-            {
-            // we have no subscribers
-            Arrays.fill(aChannel, 0L);
-            }
-        else if (cSubscriber == 1)
-            {
-            // there is one subscriber so it gets everything
-            Arrays.fill(aChannel, mapSubscriber.values().iterator().next().getId());
-            }
-        else if (cSubscriber >= cChannel)
-            {
-            // we have more subscribers than channels (or an equal number)
-            // so give one channel to each subscriber starting at the beginning
-            // until we run out of channels
-            int nChannel = 0;
-            for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
-                {
-                aChannel[nChannel++] = entry.getValue().getId();
-                if (nChannel >= cChannel)
-                    {
-                    break;
-                    }
-                }
-            }
-        else
-            {
-            // we have fewer subscribers than channels
-            int nChannel = 0;
-            int cAlloc   = cChannel / cSubscriber;  // channels per subscriber, rounded down
-
-            // allocate the required number of channels to the subscriber
-            for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
-                {
-                for (int i = 0; i < cAlloc; i++)
-                    {
-                    aChannel[nChannel++] = entry.getValue().getId();
-                    }
-                }
-
-            // assign the remainder round-robin
-            if (nChannel < cChannel)
-                {
-                for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
-                    {
-                    aChannel[nChannel++] = entry.getValue().getId();
-                    if (nChannel >= cChannel)
-                        {
-                        break;
-                        }
-                    }
-                }
-            }
-        m_aChannel = aChannel;
+        SimpleChannelAllocationStrategy strategy   = new SimpleChannelAllocationStrategy();
+        Map<Integer, Set<SubscriberId>> mapRemoved = strategy.cleanup(mapSubscriber, setMember);
+        m_aChannel = strategy.allocate(mapSubscriber, cChannel);
         m_cChannel = cChannel;
         return mapRemoved;
         }
@@ -1002,7 +1038,7 @@ public class Subscription
 
     /**
      * The head page across all partitions for this subscriber.
-     *
+     * <p/>
      * Note: this value is only maintained within a single well known partition once the subscription has been initialized.
      */
     private long m_lHeadSubscription = Page.NULL_PAGE;
@@ -1047,6 +1083,11 @@ public class Subscription
     private SubscriberId m_owningSubscriber;
 
     /**
+     * The subscriber that last polled this channel.
+     */
+    private SubscriberId m_lastPolledSubscriber;
+
+    /**
      * The map of subscribers.
      * <p>
      * This is a sorted map to ensure that subscribers are always iterated over in a consistent order.
@@ -1066,4 +1107,9 @@ public class Subscription
      * The latest channel count known to this {@link Subscription}.
      */
     private int m_cChannel;
+
+    /**
+     * A lock to control access to internal state.
+     */
+    private final Lock f_lock = new ReentrantLock();
     }

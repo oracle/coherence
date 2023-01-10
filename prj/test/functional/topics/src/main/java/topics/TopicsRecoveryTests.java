@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,7 +55,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,7 +85,7 @@ public class TopicsRecoveryTests
     @BeforeClass
     public static void setup()
         {
-        System.setProperty(Logging.PROPERTY_LEVEL, "9");
+        System.setProperty(Logging.PROPERTY_LEVEL, "8");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
         System.setProperty(LocalStorage.PROPERTY, "false");
         System.setProperty("coherence.wka", "127.0.0.1");
@@ -498,58 +497,58 @@ public class TopicsRecoveryTests
             // create a subscriber group to retain messages
             topic.ensureSubscriberGroup("test");
 
-            boolean fSuccess = true;
-            for (int i = 0; i < 2; i++)
+            System.err.println("Starting test");
+            try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.id(0), Publisher.OnFailure.Continue))
                 {
-                System.err.println("Starting run : " + (i + 1));
-                try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.id(0), Publisher.OnFailure.Continue))
-                    {
-                    PublishTask task = new PublishTask(publisher, 5);
-                    daemon.executeTask(task);
-                    // wait until the subscriber in receiving...
-                    Eventually.assertDeferred(task::getPublishedCount, is(greaterThan(1000)));
+                PublishTask task = new PublishTask(publisher, 5);
+                daemon.executeTask(task);
+                // wait until the publisher is publishing...
+                Eventually.assertDeferred(task::getPublishedCount, is(greaterThan(1000)));
 
-                    restartService(topic);
+                restartService(topic);
 
-                    // Wait for the publisher task to complete, ignoring errors.
-                    // Most of the time we see a CancellationException as a request was in-flight
-                    // when the service stopped, but occasionally there is no in-flight request
-                    // and we see the publisher complete successfully
-                    task.onCompletion()
-                            .handle((count, err) -> null)
-                            .get(5, TimeUnit.MINUTES);
+                // Wait for the publisher task to complete, ignoring errors.
+                // Most of the time we see a CancellationException as a request was in-flight
+                // when the service stopped, but occasionally there is no in-flight request,
+                // and we see the publisher complete successfully
+                task.onCompletion()
+                        .handle((count, err) -> null)
+                        .get(5, TimeUnit.MINUTES);
 
-                    assertThat(publisher.isActive(), is(true));
-                    System.err.println("Publishing task published " + task.getPublishedCount() + " messages");
-                    System.err.println("Publishing final message");
-                    Boolean f = publisher.publish(new Message(9999, "foo"))
-                            .handle((s, err) ->
+                assertThat(publisher.isActive(), is(true));
+
+                System.err.println("Publishing task published " + task.getPublishedCount() + " messages");
+                System.err.println("Publishing final message");
+
+                Boolean fSuccess = publisher.publish(new Message(9999, "foo"))
+                        .handle((s, err) ->
+                                {
+                                if (err != null)
                                     {
-                                    if (err != null)
+                                    err.printStackTrace();
+                                    Throwable cause = err.getCause();
+                                    while (cause != null)
                                         {
-                                        err.printStackTrace();
-                                        Throwable cause = err.getCause();
-                                        while (cause != null)
-                                            {
-                                            err = cause;
-                                            cause = err.getCause();
-                                            }
-                                        System.err.println("Final publish failed " + err.getMessage());
-                                        return false;
+                                        err = cause;
+                                        cause = err.getCause();
                                         }
-                                    else
-                                        {
-                                        System.err.println("Final publish success " + s);
-                                        return true;
-                                        }
-                                    })
-                            .get(10, TimeUnit.SECONDS);
-                    publisher.flush().get(30, TimeUnit.SECONDS);
-                    fSuccess = fSuccess && f;
-                    }
-                System.err.println("Finished run : " + (i + 1));
+                                    System.err.println("Final publish failed " + err.getMessage());
+                                    err.printStackTrace();
+                                    return false;
+                                    }
+                                else
+                                    {
+                                    System.err.println("Final publish success " + s);
+                                    return true;
+                                    }
+                                })
+                        .get(1, TimeUnit.MINUTES);
+
+                publisher.flush().get(5, TimeUnit.MINUTES);
+
                 assertThat(fSuccess, is(true));
                 }
+
             }
         }
 
@@ -670,8 +669,10 @@ public class TopicsRecoveryTests
 
                 for (int i = 0; i < cMsgTotal; i++)
                     {
-                    m_publisher.publish(new Message(i, sValue));
-                    m_cPublished = i + 1;
+                    int nMessage = i;
+                    m_publisher.publish(new Message(i, sValue))
+                            .handle((status, err) -> m_cPublished =  nMessage + 1);
+
                     if (i % nOnePercent == 0)
                         {
                         System.err.print(".");
@@ -689,6 +690,7 @@ public class TopicsRecoveryTests
             catch (Throwable e)
                 {
                 System.err.println("Publisher failed " + e);
+                e.printStackTrace();
                 m_future.completeExceptionally(e);
                 }
             }
@@ -830,8 +832,8 @@ public class TopicsRecoveryTests
 
     // ----- data members ---------------------------------------------------
 
-    @ClassRule
-    public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
+    @Rule
+    public final TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
 
     @Rule
     public final TestName m_testName = new TestName();

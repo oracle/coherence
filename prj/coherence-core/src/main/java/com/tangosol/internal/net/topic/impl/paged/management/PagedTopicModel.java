@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,8 +13,10 @@ import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SimpleLongArray;
 
@@ -27,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * An MBean model for a {@link PagedTopic}
  *
  * @author Jonathan Knight 2022.09.10
- * @since 23.03
+ * @since 22.06.4
  */
 public class PagedTopicModel
         extends AbstractModel<PagedTopicModel>
@@ -38,20 +40,20 @@ public class PagedTopicModel
     /**
      * Create a {@link PagedTopicModel}.
      *
-     * @param pagedTopic  the topic this model represents
+     * @param service     the topic service
+     * @param sTopicName  the name of the topic this model represents
      */
-    public PagedTopicModel(PagedTopic<?> pagedTopic)
+    public PagedTopicModel(PagedTopicService service, String sTopicName)
         {
         super(MBEAN_DESCRIPTION);
-        f_pagedTopic = pagedTopic;
-        f_statistics = ((PagedTopicBackingMapManager) pagedTopic.getCacheService().getBackingMapManager())
-                .getStatistics(pagedTopic.getName());
+        f_service    = service;
+        f_sTopicName = sTopicName;
 
         // create the array of channel models
-        int cChannel = pagedTopic.getChannelCount();
+        int cChannel = service.getChannelCount(sTopicName);
         for (int nChannel = 0; nChannel < cChannel; nChannel++)
             {
-            f_aChannel.set(nChannel, new PagedTopicChannelModel(pagedTopic, nChannel));
+            f_aChannel.set(nChannel, new PagedTopicChannelModel(this::getStatistics, nChannel));
             }
 
         // configure the attributes of the MBean (ordering does not matter)
@@ -81,7 +83,7 @@ public class PagedTopicModel
      */
     protected int getChannelCount()
         {
-        return f_pagedTopic.getChannelCount();
+        return f_service.getChannelCount(f_sTopicName);
         }
 
     /**
@@ -91,7 +93,7 @@ public class PagedTopicModel
      */
     public int getPageCapacity()
         {
-        return f_pagedTopic.getDependencies().getPageCapacity();
+        return getDependencies().getPageCapacity();
         }
 
     /**
@@ -105,7 +107,7 @@ public class PagedTopicModel
      */
     public boolean isRetainConsumed()
         {
-        return f_pagedTopic.getDependencies().isRetainConsumed();
+        return getDependencies().isRetainConsumed();
         }
 
     /**
@@ -117,7 +119,7 @@ public class PagedTopicModel
      */
     public boolean isAllowUnownedCommits()
         {
-        return f_pagedTopic.getDependencies().isAllowUnownedCommits();
+        return getDependencies().isAllowUnownedCommits();
         }
 
     /**
@@ -129,7 +131,7 @@ public class PagedTopicModel
      */
     public long getSubscriberTimeout()
         {
-        return f_pagedTopic.getDependencies().getSubscriberTimeoutMillis();
+        return getDependencies().getSubscriberTimeoutMillis();
         }
 
     /**
@@ -139,7 +141,7 @@ public class PagedTopicModel
      */
     public String getElementCalculator()
         {
-        return f_pagedTopic.getDependencies().getElementCalculator().getName();
+        return getDependencies().getElementCalculator().getName();
         }
 
     /**
@@ -151,7 +153,7 @@ public class PagedTopicModel
      */
     public long getReconnectWait()
         {
-        return f_pagedTopic.getDependencies().getReconnectWaitMillis();
+        return getDependencies().getReconnectWaitMillis();
         }
 
     /**
@@ -163,7 +165,7 @@ public class PagedTopicModel
      */
     public long getReconnectTimeout()
         {
-        return f_pagedTopic.getDependencies().getReconnectTimeoutMillis();
+        return getDependencies().getReconnectTimeoutMillis();
         }
 
     /**
@@ -175,7 +177,7 @@ public class PagedTopicModel
      */
     public long getReconnectRetry()
         {
-        return f_pagedTopic.getDependencies().getReconnectRetryMillis();
+        return getDependencies().getReconnectRetryMillis();
         }
 
     /**
@@ -202,7 +204,7 @@ public class PagedTopicModel
                 model = f_aChannel.get(nChannel);
                 if (model == null)
                     {
-                    model = new PagedTopicChannelModel(f_pagedTopic, nChannel);
+                    model = new PagedTopicChannelModel(this::getStatistics, nChannel);
                     f_aChannel.set(nChannel, model);
                     }
                 }
@@ -219,33 +221,46 @@ public class PagedTopicModel
     @Override
     public long getPublishedCount()
         {
-        return f_statistics.getPublishedCount();
+        return getStatistics().getPublishedCount();
         }
 
     @Override
     public double getPublishedFifteenMinuteRate()
         {
-        return f_statistics.getPublishedFifteenMinuteRate();
+        return getStatistics().getPublishedFifteenMinuteRate();
         }
 
     @Override
     public double getPublishedFiveMinuteRate()
         {
-        return f_statistics.getPublishedFiveMinuteRate();
+        return getStatistics().getPublishedFiveMinuteRate();
         }
 
     @Override
     public double getPublishedOneMinuteRate()
         {
-        return f_statistics.getPublishedOneMinuteRate();
+        return getStatistics().getPublishedOneMinuteRate();
         }
 
     @Override
     public double getPublishedMeanRate()
         {
-        return f_statistics.getPublishedMeanRate();
+        return getStatistics().getPublishedMeanRate();
         }
 
+    // ----- helper methods -------------------------------------------------
+    
+    private PagedTopicDependencies getDependencies()
+        {
+        return f_service.getTopicBackingMapManager().getTopicDependencies(f_sTopicName);
+        }
+
+    private PagedTopicStatistics getStatistics()
+        {
+        return ((PagedTopicBackingMapManager) f_service.getBackingMapManager())
+                .getStatistics(f_sTopicName);
+        }
+    
     // ----- constants ------------------------------------------------------
 
     /**
@@ -382,14 +397,14 @@ public class PagedTopicModel
     // ----- data members ---------------------------------------------------
 
     /**
-     * The paged topic represented by this MBean.
+     * The {@link PagedTopicService}
      */
-    private final PagedTopic<?> f_pagedTopic;
+    private final PagedTopicService f_service;
 
     /**
-     * The topic statistics.
+     * The name of the topic.
      */
-    private final PagedTopicStatistics f_statistics;
+    private final String f_sTopicName;
 
     /**
      * The channel models.

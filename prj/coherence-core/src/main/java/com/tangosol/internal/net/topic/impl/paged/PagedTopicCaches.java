@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -39,10 +39,8 @@ import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.PagedTopicService;
-import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.TypeAssertion;
 
-import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 
@@ -50,7 +48,6 @@ import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
@@ -66,8 +63,6 @@ import com.tangosol.util.aggregator.GroupAggregator;
 
 import com.tangosol.util.extractor.EntryExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
-import com.tangosol.util.filter.AlwaysFilter;
-import com.tangosol.util.filter.PartitionedFilter;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -84,7 +79,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -142,10 +136,11 @@ public class PagedTopicCaches
             }
 
         f_sTopicName        = sName;
-        f_topicService = cacheService;
+        f_topicService      = cacheService;
         f_sCacheServiceName = cacheService.getInfo().getServiceName();
         f_cPartition        = cacheService.getPartitionCount();
         f_functionCache     = functionCache;
+        f_dependencies      = cacheService.getTopicBackingMapManager().getTopicDependencies(sName);
 
         initializeCaches();
 
@@ -219,13 +214,12 @@ public class PagedTopicCaches
         return Pages.isReleased();
         }
 
-    public synchronized void addListener(Listener listener)
+    public void addListener(Listener listener)
         {
-        ensureListeners();
         m_mapListener.put(listener, Boolean.TRUE);
         }
 
-    public synchronized void removeListener(Listener listener)
+    public void removeListener(Listener listener)
         {
         m_mapListener.remove(listener);
         }
@@ -380,7 +374,7 @@ public class PagedTopicCaches
      */
     public PagedTopicDependencies getDependencies()
         {
-        return f_topicService.getTopicBackingMapManager().getTopicDependencies(f_sTopicName);
+        return f_dependencies;
         }
 
     /**
@@ -527,15 +521,13 @@ public class PagedTopicCaches
      * process exits without closing the subscriber, the identifier remains in the cache until it
      * is timed-out.
      *
-     * @param sSubscriberGroup  the subscriber group name to get subscribers for
+     * @param sGroupName  the subscriber group name to get subscribers for
      *
      * @return the identifiers for all the subscribers belonging to a subscriber group
      */
-    public Set<SubscriberInfo.Key> getSubscribers(String sSubscriberGroup)
+    public Set<SubscriberId> getSubscribers(String sGroupName)
         {
-        ValueExtractor<SubscriberInfo.Key, SubscriberGroupId> extractor
-                = ValueExtractor.of(SubscriberInfo.Key::getGroupId).fromKey();
-        return Subscribers.keySet(Filters.equal(extractor, SubscriberGroupId.withName(sSubscriberGroup)));
+        return f_topicService.getSubscribers(f_sTopicName, SubscriberGroupId.withName(sGroupName));
         }
 
     /**
@@ -561,20 +553,9 @@ public class PagedTopicCaches
      */
     public Set<SubscriberGroupId> getSubscriberGroupsIds(boolean fAnonymous)
         {
-        int          cParts  = ((PartitionedService) Subscriptions.getCacheService()).getPartitionCount();
-        PartitionSet setPart = new PartitionSet(cParts);
-
-        setPart.add(Base.getRandom().nextInt(cParts));
-
-        Set<Subscription.Key> setSubs = Subscriptions.keySet(new PartitionedFilter<>(AlwaysFilter.INSTANCE(), setPart));
-
-        Stream<SubscriberGroupId> stream = setSubs.stream()
-                .map(Subscription.Key::getGroupId);
-
-        if (!fAnonymous)
-            {
-            stream = stream.filter((key) -> !key.isAnonymous());
-            }
+        Stream<SubscriberGroupId> stream = fAnonymous
+                ? f_topicService.getSubscriberGroups(f_sTopicName).stream()
+                : f_topicService.getSubscriberGroups(f_sTopicName).stream().filter(SubscriberGroupId::isDurable);
 
         return stream.collect(Collectors.toSet());
         }
@@ -626,30 +607,12 @@ public class PagedTopicCaches
      * positions to be rolled back to the last commit for the channels
      * owned by the disconnected subscriber.
      *
-     * @param sGroup  the name of the subscriber group
-     * @param nId     the subscriber id
-     *
-     * @return {@code true} if the subscriber was disconnected
+     * @param groupId  the name of the subscriber group
+     * @param id       the subscriber id
      */
-    public boolean disconnectSubscriber(String sGroup, long nId)
+    public void disconnectSubscriber(SubscriberGroupId groupId, SubscriberId id)
         {
-        return Subscribers.invoke(new SubscriberInfo.Key(SubscriberGroupId.withName(sGroup), nId), EvictSubscriber.INSTANCE);
-        }
-
-    /**
-     * Disconnect a specific subscriber from a topic.
-     * <p>
-     * Disconnecting a subscriber will cause channels to be reallocated and
-     * positions to be rolled back to the last commit for the channels
-     * owned by the disconnected subscriber.
-     *
-     * @param key  the {@link SubscriberInfo.Key key} of the subscriber to disconnect
-     *
-     * @return {@code true} if the subscriber was disconnected
-     */
-    public boolean disconnectSubscriber(SubscriberInfo.Key key)
-        {
-        return Subscribers.invoke(key, EvictSubscriber.INSTANCE);
+        Subscribers.invoke(new SubscriberInfo.Key(groupId, id.getId()), EvictSubscriber.INSTANCE);
         }
 
     /**
@@ -730,37 +693,29 @@ public class PagedTopicCaches
      * Disconnecting subscribers will cause channels to be reallocated and
      * positions to be rolled back to the last commit for the channels
      * owned by the disconnected subscriber.
-     *
-     * @return the identifiers of the disconnected subscribers
      */
-    public long[] disconnectAllSubscribers()
+    public void disconnectAllSubscribers()
         {
-        long[] alId = Subscribers.keySet()
-                            .stream()
-                            .mapToLong(SubscriberInfo.Key::getSubscriberId)
-                            .toArray();
-
         for (SubscriberGroupId id : getSubscriberGroupsIds(false))
             {
-            PagedTopicSubscriber.notifyClosed(Subscriptions, id, SubscriberId.NullSubscriber);
+            long lSubscription = f_topicService.getSubscriptionId(f_sTopicName, id);
+            PagedTopicSubscriber.notifyClosed(Subscriptions, id, lSubscription, SubscriberId.NullSubscriber);
             }
 
         Subscribers.clear();
-
-        return alId;
         }
 
     /**
      * Ensure the specified subscriber group exists.
      *
-     * @param sName        the name of the group
-     * @param filter       the filter to use to filter messages received by the group
-     * @param fnConverter  the converter function to convert the messages received by the group
+     * @param sName      the name of the group
+     * @param filter     the filter to use to filter messages received by the group
+     * @param extractor  the {@link ValueExtractor} to convert the messages received by the group
      */
-    protected void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter)
+    public void ensureSubscriberGroup(String sName, Filter<?> filter, ValueExtractor<?, ?> extractor)
         {
         SubscriberGroupId subscriberGroupId = SubscriberGroupId.withName(sName);
-        initializeSubscription(subscriberGroupId, SubscriberId.NullSubscriber, filter, fnConverter, false, true, false);
+        initializeSubscription(subscriberGroupId, SubscriberId.NullSubscriber, 0L, filter, extractor, false, true, false);
         }
 
     /**
@@ -769,26 +724,32 @@ public class PagedTopicCaches
      * @param subscriberGroupId  the subscriber group identifier
      * @param subscriberId       the subscriber identifier
      * @param filter             the filter to use to filter messages received by the subscription
-     * @param fnConverter        the converter function to convert the messages received by the subscription
+     * @param extractor          the {@link ValueExtractor} function to convert the messages received by the subscription
      * @param fReconnect         {@code true} if this is a reconnection
      * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
      * @param fDisconnected      {@code true} if this is an existing, disconnected subscription
      *
      * @return the pages that are the heads of the channels
      */
-    protected long[] initializeSubscription(SubscriberGroupId subscriberGroupId,
-                                            SubscriberId      subscriberId,
-                                            Filter<?>         filter,
-                                            Function<?, ?>    fnConverter,
-                                            boolean           fReconnect,
-                                            boolean           fCreateGroupOnly,
-                                            boolean           fDisconnected)
+    protected long[] initializeSubscription(SubscriberGroupId    subscriberGroupId,
+                                            SubscriberId         subscriberId,
+                                            long                 lSubscription,
+                                            Filter<?>            filter,
+                                            ValueExtractor<?, ?> extractor,
+                                            boolean              fReconnect,
+                                            boolean              fCreateGroupOnly,
+                                            boolean              fDisconnected)
         {
         try
             {
-            String  sName    = subscriberGroupId.getGroupName();
+            String                sName         = subscriberGroupId.getGroupName();
+            Set<Subscription.Key> setSubKeys    = new HashSet<>(f_cPartition);
 
-            Set<Subscription.Key> setSubKeys = new HashSet<>(f_cPartition);
+            if (lSubscription == 0)
+                {
+                lSubscription = getService().ensureSubscription(f_sTopicName, subscriberGroupId, subscriberId, filter, extractor);
+                }
+
             for (int i = 0; i < f_cPartition; ++i)
                 {
                 // Note: we ensure against channel 0 in each partition, and it will in turn initialize all channels
@@ -800,7 +761,7 @@ public class PagedTopicCaches
             // Otherwise, there is no guarantee that there isn't gaps in our pinned pages.
             // check results to verify if initialization has already completed
             EnsureSubscriptionProcessor processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_INQUIRE,
-                    null, filter,  fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
+                    null, filter,  extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
             Collection<EnsureSubscriptionProcessor.Result> results;
             if (sName == null)
                 {
@@ -837,7 +798,8 @@ public class PagedTopicCaches
             long[] alHead;
             if (colPages == null || colPages.contains(null) || fDisconnected)
                 {
-                alHead = initialiseSubscriptionPages(subscriberGroupId, subscriberId, filter, fnConverter, fReconnect, fCreateGroupOnly, setSubKeys);
+                alHead = initialiseSubscriptionPages(subscriberId, lSubscription, filter, extractor,
+                                                     fReconnect, fCreateGroupOnly, setSubKeys);
                 }
             else
                 {
@@ -857,17 +819,20 @@ public class PagedTopicCaches
             }
         catch (InterruptedException | ExecutionException e)
             {
-            throw Exceptions.ensureRuntimeException(e);
+            if (isActive())
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            return new long[0];
             }
         }
 
     /**
      * Initialise the head pages for the subscriber.
      *
-     * @param subscriberGroupId  the subscriber group identifier
      * @param subscriberId       the subscriber identifier
      * @param filter             the filter to use to filter messages received by the subscription
-     * @param fnConverter        the converter function to convert the messages received by the subscription
+     * @param extractor        the converter function to convert the messages received by the subscription
      * @param fReconnect         {@code true} if this is a reconnection
      * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
      * @param setSubKeys         the set of {@link Subscription.Key keys} to use to initialise the subscription pages
@@ -878,103 +843,81 @@ public class PagedTopicCaches
      * @throws ExecutionException if any asynchronous operations fail
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    protected long[] initialiseSubscriptionPages(SubscriberGroupId     subscriberGroupId,
-                                                 SubscriberId          subscriberId,
+    protected long[] initialiseSubscriptionPages(SubscriberId          subscriberId,
+                                                 long                  lSubscription,
                                                  Filter<?>             filter,
-                                                 Function<?, ?>        fnConverter,
+                                                 ValueExtractor<?, ?>  extractor,
                                                  boolean               fReconnect,
                                                  boolean               fCreateGroupOnly,
                                                  Set<Subscription.Key> setSubKeys)
             throws InterruptedException, ExecutionException
         {
-        String sGroupName = subscriberGroupId.getGroupName();
+        EnsureSubscriptionProcessor processor
+                = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
+                        filter, extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
 
-        // The subscription doesn't exist in at least some partitions, create it under lock. A lock is used only
-        // to protect against concurrent create/destroy/create resulting gaps in the pinned pages.  Specifically
-        // it would be safe for multiple subscribers to concurrently "create" the subscription, it is only unsafe
-        // if there is also a concurrent destroy as this could result in gaps in the pinned pages.
-//        if (sGroupName != null)
-//            {
-// ToDo: This causes a deadlock if the service is suspended during subscription initialisation
-//
-//            Subscriptions.lock(subscriberGroupId, -1);
-//            }
-//
-//        try
-//            {
-            EnsureSubscriptionProcessor processor
-                    = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
-                                                      filter, fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
+        CompletableFuture<Map<Subscription.Key, EnsureSubscriptionProcessor.Result>> future
+                = InvocableMapHelper.invokeAllAsync(Subscriptions,
+                                                    setSubKeys,
+                                                    key -> getUnitOfOrder(key.getPartitionId()),
+                                                    processor);
 
-            CompletableFuture<Map<Subscription.Key, EnsureSubscriptionProcessor.Result>> future
-                    = InvocableMapHelper.invokeAllAsync(Subscriptions,
-                                                        setSubKeys,
-                                                        key -> getUnitOfOrder(key.getPartitionId()),
-                                                        processor);
-
-            Collection<EnsureSubscriptionProcessor.Result> results;
+        Collection<EnsureSubscriptionProcessor.Result> results;
+        try
+            {
+            long cMillis = getDependencies().getSubscriberTimeoutMillis();
+            results = future.get(cMillis, TimeUnit.MILLISECONDS).values();
+            }
+        catch (TimeoutException e)
+            {
             try
                 {
-                long cMillis = getDependencies().getSubscriberTimeoutMillis();
-                results = future.get(cMillis, TimeUnit.MILLISECONDS).values();
+                future.cancel(true);
                 }
-            catch (TimeoutException e)
+            catch (Throwable ignored)
                 {
-                try
-                    {
-                    future.cancel(true);
-                    }
-                catch (Throwable ignored)
-                    {
-                    // ignored
-                    }
-                throw Exceptions.ensureRuntimeException(e);
+                // ignored
                 }
+            throw Exceptions.ensureRuntimeException(e);
+            }
 
-            Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
-            int                cChannel = colPages.stream().mapToInt(an -> an.length).max().orElse(getChannelCount());
+        Collection<long[]> colPages = EnsureSubscriptionProcessor.Result.assertPages(results);
+        int                cChannel = colPages.stream().mapToInt(an -> an.length).max().orElse(getChannelCount());
 
-            PagedTopicDependencies dependencies = getDependencies();
-            long                   lPageBase     = getBasePage();
-            long[]                 alHead        = new long[cChannel];
+        PagedTopicDependencies dependencies = getDependencies();
+        long                   lPageBase     = getBasePage();
+        long[]                 alHead        = new long[cChannel];
 
-            // mapPages now reflects pinned pages
-            for (int nChannel = 0; nChannel < cChannel; ++nChannel)
+        // mapPages now reflects pinned pages
+        for (int nChannel = 0; nChannel < cChannel; ++nChannel)
+            {
+            final int finChan = nChannel;
+
+            if (fReconnect || dependencies.isRetainConsumed())
                 {
-                final int finChan = nChannel;
-
-                if (fReconnect || dependencies.isRetainConsumed())
-                    {
-                    // select lowest page in each channel as our channel heads
-                    alHead[nChannel] = colPages.stream()
-                        .mapToLong((alPage) -> alPage.length > finChan ? Math.max(alPage[finChan], lPageBase) : lPageBase)
-                        .min()
-                        .getAsLong();
-                    }
-                else
-                    {
-                    // select highest page in each channel as our channel heads
-                    alHead[nChannel] = colPages.stream()
-                        .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
-                        .max()
-                        .getAsLong();
-                    }
+                // select lowest page in each channel as our channel heads
+                alHead[nChannel] = colPages.stream()
+                    .mapToLong((alPage) -> alPage.length > finChan ? Math.max(alPage[finChan], lPageBase) : lPageBase)
+                    .min()
+                    .getAsLong();
                 }
+            else
+                {
+                // select highest page in each channel as our channel heads
+                alHead[nChannel] = colPages.stream()
+                    .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
+                    .max()
+                    .getAsLong();
+                }
+            }
 
-            // finish the initialization by having subscription in all partitions advance to our selected heads
-            processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter, fnConverter, subscriberId, fReconnect, fCreateGroupOnly);
-            InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
-                    key -> getUnitOfOrder(key.getPartitionId()), processor).join();
+        // finish the initialization by having subscription in all partitions advance to our selected heads
+        processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter,
+                extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
+        InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
+                key -> getUnitOfOrder(key.getPartitionId()), processor).join();
 
-            return alHead;
-//            }
-//        finally
-//            {
-//            if (sGroupName != null)
-//                {
-//                Subscriptions.unlock(subscriberGroupId);
-//                }
-//            }
+        return alHead;
         }
 
     /**
@@ -1065,7 +1008,7 @@ public class PagedTopicCaches
     // ----- helper methods -------------------------------------------------
 
     @SuppressWarnings("unchecked")
-    private synchronized void initializeCaches()
+    private void initializeCaches()
         {
         f_topicService.start();
 
@@ -1091,7 +1034,7 @@ public class PagedTopicCaches
         }
 
     @SuppressWarnings("unchecked")
-    private synchronized void ensureListeners()
+    private void ensureListeners()
         {
         DeactivationListener listener = m_deactivationListener;
         Pages.addMapListener(listener);
@@ -1099,7 +1042,7 @@ public class PagedTopicCaches
         }
 
     @SuppressWarnings("unchecked")
-    private synchronized void removeListeners()
+    private void removeListeners()
         {
         DeactivationListener listener = m_deactivationListener;
         if (Pages.isActive())
@@ -1116,50 +1059,45 @@ public class PagedTopicCaches
      */
     private void releaseOrDestroy(boolean fDestroy)
         {
-        if (!isActive())
+        if (isActive())
             {
-            return;
-            }
+            m_state = fDestroy ? State.Destroyed : State.Released;
 
-        synchronized (this)
-            {
-            if (isActive())
+            Set<Listener> setListener = m_mapListener.keySet();
+            for (Listener listener : setListener)
                 {
-                m_state = fDestroy ? State.Destroyed : State.Released;
-
-                Set<Listener> setListener = m_mapListener.keySet();
-                for (Listener listener : setListener)
+                try
                     {
-                    try
+                    if (fDestroy)
                         {
-                        if (fDestroy)
-                            {
-                            listener.onDestroy();
-                            }
-                        else
-                            {
-                            listener.onRelease();
-                            }
+                        listener.onDestroy();
                         }
-                    catch (Throwable t)
+                    else
                         {
-                        Logger.err(t);
+                        listener.onRelease();
                         }
                     }
+                catch (Throwable t)
+                    {
+                    Logger.err(t);
+                    }
+                }
 
-                removeListeners();
+            removeListeners();
 
+            if (f_setCaches != null)
+                {
+                Consumer<NamedCache> function = fDestroy ? this::destroyCache : this::releaseCache;
                 if (f_setCaches != null)
                     {
-                    Consumer<NamedCache> function = fDestroy ? this::destroyCache : this::releaseCache;
-                    synchronized (this)
+                    f_setCaches.forEach(c ->
                         {
-                        if (f_setCaches != null)
+                        if (c.isActive())
                             {
-                            f_setCaches.forEach(function);
-                            f_setCaches = null;
+                            function.accept(c);
                             }
-                        }
+                        });
+                    f_setCaches = null;
                     }
                 }
             }
@@ -1169,7 +1107,7 @@ public class PagedTopicCaches
         {
         if (cache.isActive() && !cache.isReleased())
             {
-            cache.release();
+            f_topicService.releaseCache(cache);
             }
         }
 
@@ -1177,7 +1115,7 @@ public class PagedTopicCaches
         {
         if (cache.isActive() && !cache.isDestroyed())
             {
-            cache.destroy();
+            f_topicService.destroyCache(cache);
             }
         }
 
@@ -1370,6 +1308,18 @@ public class PagedTopicCaches
             return Storage.MetaData.equals(getStorage());
             }
 
+        /**
+         * Return {@code true} if the specified cache name matches this {@link Names}.
+         *
+         * @param sCacheName  the cache name to test
+         *
+         * @return {@code true} if the specified cache name matches this {@link Names}
+         */
+        public boolean isA(String sCacheName)
+            {
+            return sCacheName != null && sCacheName.startsWith(f_sPrefix);
+            }
+
         // ----- object methods -------------------------------------------------
 
         @Override
@@ -1416,12 +1366,17 @@ public class PagedTopicCaches
         public static final String METACACHE_PREFIX="$meta$topic";
 
         /**
+         * The name prefix for all topic content {@link Names} used to implement a {@link NamedTopic}.
+         */
+        public static final String CONTENT_PREFIX="$topic";
+
+        /**
          * The cache that holds the topic content.
          * <p>
          * Use of no prefix rather than METACACHE_PREFIX since it is being used to filter out internal topic meta caches.
          */
         public static final Names<ContentKey,Object> CONTENT =
-            new Names<>("content", "$topic$", ContentKey.class, Object.class, Names.Storage.Data);
+            new Names<>("content", CONTENT_PREFIX + "$", ContentKey.class, Object.class, Names.Storage.Data);
 
         /**
          * The cache that holds the topic pages.
@@ -1518,8 +1473,6 @@ public class PagedTopicCaches
 
             if (fReleased || fDestroyed)
                 {
-                String sReason = fReleased ? "release" : "destroy";
-                Logger.fine("Detected " + sReason + " of topic " + f_sTopicName);
                 PagedTopicCaches.this.releaseOrDestroy(fDestroyed);
                 }
             }
@@ -1677,4 +1630,9 @@ public class PagedTopicCaches
      * The {@link Listener} instances to be notified of connection and disconnection events.
      */
     private final Map<Listener, Object> m_mapListener = new ConcurrentHashMap<>();
+
+    /**
+     * The {@link PagedTopicDependencies dependencies} for the topic.
+     */
+    private final PagedTopicDependencies f_dependencies;
     }

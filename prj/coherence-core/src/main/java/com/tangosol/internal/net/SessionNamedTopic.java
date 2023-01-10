@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
@@ -17,10 +17,10 @@ import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.HashHelper;
+import com.tangosol.util.ValueExtractor;
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * A {@link Session}-based implementation of {@link NamedTopic}, that delegates
@@ -213,9 +213,9 @@ public class SessionNamedTopic<V>
         }
 
     @Override
-    public void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter)
+    public void ensureSubscriberGroup(String sName, Filter<?> filter, ValueExtractor<?, ?> extractor)
         {
-        f_topic.ensureSubscriberGroup(sName, filter, fnConverter);
+        f_topic.ensureSubscriberGroup(sName, filter, extractor);
         }
 
     /**

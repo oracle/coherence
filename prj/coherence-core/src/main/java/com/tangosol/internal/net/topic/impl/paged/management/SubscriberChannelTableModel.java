@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,7 @@ import com.tangosol.net.topic.Subscriber;
  * A table model representing topic subscriber channel statistics.
  *
  * @author Jonathan Knight 2022.09.10
- * @since 23.03
+ * @since 22.06.4
  */
 public class SubscriberChannelTableModel
         extends TabularModel<Subscriber.Channel, SubscriberModel>
@@ -46,10 +46,16 @@ public class SubscriberChannelTableModel
                 ATTRIBUTE_EMPTY, 
                 ATTRIBUTE_HEAD,
                 ATTRIBUTE_LAST_COMMIT,
+                ATTRIBUTE_COMMIT_COUNT,
                 ATTRIBUTE_LAST_RECEIVED,
+                ATTRIBUTE_RECEIVE_COUNT,
                 ATTRIBUTE_LAST_POLLED,
                 ATTRIBUTE_OWNED,
                 ATTRIBUTE_OWNED_CODE,
+                ATTRIBUTE_LAST_POLLED_TIMESTAMP,
+                ATTRIBUTE_POLL_COUNT,
+                ATTRIBUTE_FIRST_POLLED,
+                ATTRIBUTE_FIRST_POLLED_TIMESTAMP,
                 ATTRIBUTE_RECEIVE_COMPLETIONS,
                 ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN,
                 ATTRIBUTE_RECEIVE_COMPLETIONS_ONE,
@@ -67,6 +73,7 @@ public class SubscriberChannelTableModel
             SimpleModelAttribute.intBuilder("Channel", Subscriber.Channel.class)
                     .withDescription("The number of channels in the topic")
                     .withFunction(Subscriber.Channel::getId)
+                    .metricTag(true)
                     .build();
 
     /**
@@ -97,12 +104,69 @@ public class SubscriberChannelTableModel
                     .build();
 
     /**
+     * The number of completed receive requests.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COUNT =
+            SimpleModelAttribute.longBuilder("ReceivedCount", Subscriber.Channel.class)
+                    .withDescription("The number of receive requests completed from this channel")
+                    .withFunction(Subscriber.Channel::getReceiveCount)
+                    .metric(true)
+                    .build();
+
+    /**
+     * The number elements polled from the channel.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_POLL_COUNT =
+            SimpleModelAttribute.longBuilder("PolledCount", Subscriber.Channel.class)
+                    .withDescription("The number of elements in the channel polled by this subscriber")
+                    .withFunction(Subscriber.Channel::getPolls)
+                    .metric(true)
+                    .build();
+
+    /**
+     * The position of the first element polled from the channel.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_FIRST_POLLED =
+            SimpleModelAttribute.stringBuilder("FirstPolled", Subscriber.Channel.class)
+                    .withDescription("The first position in the channel polled by this subscriber")
+                    .withFunction(c -> String.valueOf(c.getFirstPolled()))
+                    .build();
+
+    /**
+     * The timestamp of the first element polled from the channel.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_FIRST_POLLED_TIMESTAMP =
+            SimpleModelAttribute.longBuilder("FirstPolledTimestamp", Subscriber.Channel.class)
+                    .withDescription("The first position in the channel polled by this subscriber")
+                    .withFunction(Subscriber.Channel::getFirstPolledTimestamp)
+                    .build();
+
+    /**
      * The position of the last element polled from the channel.
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_POLLED =
             SimpleModelAttribute.stringBuilder("LastPolled", Subscriber.Channel.class)
                     .withDescription("The last position polled by this subscriber since it was last assigned ownership of this channel")
                     .withFunction(c -> String.valueOf(c.getLastPolled()))
+                    .build();
+
+    /**
+     * The timestamp of the last element polled from the channel.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_POLLED_TIMESTAMP =
+            SimpleModelAttribute.longBuilder("LastPolledTimestamp", Subscriber.Channel.class)
+                    .withDescription("The timestamp of the first entry in the channel polled by this subscriber")
+                    .withFunction(Subscriber.Channel::getLastPolledTimestamp)
+                    .build();
+
+    /**
+     * The number of completed commit requests.
+     */
+    protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_COMMIT_COUNT =
+            SimpleModelAttribute.longBuilder("CommittedCount", Subscriber.Channel.class)
+                    .withDescription("The number of commit requests completed from this channel")
+                    .withFunction(Subscriber.Channel::getCommitCount)
+                    .metric(true)
                     .build();
 
     /**

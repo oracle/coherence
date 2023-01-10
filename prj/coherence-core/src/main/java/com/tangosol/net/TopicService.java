@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package com.tangosol.net;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.TopicBackingMapManager;
+
+import java.util.Set;
 
 /**
  * A TopicService is a service providing Topics that can be used for
@@ -115,4 +117,11 @@ public interface TopicService
      * @return the number of channels the topic has
      */
     int ensureChannelCount(String sName, int cRequired, int cChannel);
+
+    /**
+     * Returns the names of the topics known to this service.
+     *
+     * @return  the names of the topics known to this service
+     */
+    Set<String> getTopicNames();
     }

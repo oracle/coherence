@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,11 +16,9 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.junit.SessionBuilders;
 
-import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
@@ -28,25 +26,20 @@ import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
-import com.tangosol.coherence.component.util.SafeService;
 
+import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.util.invoke.Lambdas;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-import com.tangosol.net.Service;
 import com.tangosol.net.Session;
+
 import com.tangosol.net.topic.NamedTopic;
-import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
-import com.tangosol.util.Base;
-
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -60,11 +53,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import java.util.concurrent.CompletableFuture;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.tangosol.net.topic.Subscriber.Name.of;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jk 2015.05.28
@@ -76,11 +65,9 @@ public class NamedTopicTests
     {
     // ----- constructors ---------------------------------------------------
 
-    public NamedTopicTests(String sSerializer, boolean fExtend)
+    public NamedTopicTests(String sSerializer)
         {
         super(sSerializer);
-
-        m_fExtend = fExtend;
         }
 
     @BeforeClass
@@ -126,10 +113,7 @@ public class NamedTopicTests
         {
         return Arrays.asList(new Object[][]
             {
-            {"pof", false}, {"java", false}
-
-            // disable extend testing since not currently supported
-            //, {"pof", true}, {"java", true}
+            {"pof"}, {"java"}
             });
         }
 
@@ -150,9 +134,9 @@ public class NamedTopicTests
         String             sTopicName = ensureTopicName(m_sSerializer + "-topic-foo");
         NamedTopic<String> topic      = getSession().getTopic(sTopicName);
 
-        Subscriber<String> foo = topic.createSubscriber(Subscriber.Name.of("foo"));
+        Subscriber<String> foo = topic.createSubscriber(Subscriber.inGroup("foo"));
 
-        topic.createPublisher().publish("value-1");
+        topic.createPublisher().publish("value-1").get(1, TimeUnit.MINUTES);
 
         CompletableFuture<Subscriber.Element<String>> future1 = foo.receive();
         CompletableFuture<Subscriber.Element<String>> future2 = foo.receive();
@@ -184,62 +168,16 @@ public class NamedTopicTests
        // Thread.sleep(60000);
         }
 
-
-    //@Test
-    public void shouldConsumeAfterDisconnection() throws Exception
-        {
-        Assume.assumeThat("Test only applies to Extend tests", m_fExtend, is(true));
-
-        NamedTopic<String> queue    = ensureTopic(m_sSerializer + "-Extend");
-        Publisher<String> publisher = queue.createPublisher();
-
-        for (int i=0; i<1000; i++)
-            {
-            publisher.publish("Element-" + i);
-            }
-
-        bounceProxy();
-
-        try (Subscriber<String> subscriber = queue.createSubscriber(of("Foo")))
-            {
-            for (int i = 0; i < 100; i++)
-                {
-                assertThat(subscriber.receive().get().getValue(), is("Element-" + i));
-                }
-            }
-
-        }
-
     // ----- helper methods -------------------------------------------------
-
-    public void bounceProxy()
-            throws Exception
-        {
-        CoherenceCluster       cluster      = NamedTopicTests.cluster.getCluster();
-        CoherenceClusterMember memberProxy  = cluster.get("proxy-1");
-        String                 sServiceName = Character.toUpperCase(m_sSerializer.charAt(0))
-                + m_sSerializer.substring(1, m_sSerializer.length()) + "Proxy";
-
-
-        memberProxy.submit(new ProxyBounce(sServiceName));
-        Eventually.assertThat(invoking(memberProxy).isServiceRunning(sServiceName), is(true));
-        Thread.sleep(2000);
-        }
 
     @Override
     protected Session getSession()
         {
-        return new ConfigurableCacheFactorySession(getECCF(), Base.getContextClassLoader());
+        return new ConfigurableCacheFactorySession(getECCF(), Classes.getContextClassLoader());
         }
 
     protected ExtensibleConfigurableCacheFactory getECCF()
         {
-        if (m_fExtend)
-            {
-            return (ExtensibleConfigurableCacheFactory) cluster.createSession(
-                    SessionBuilders.extendClient("client-cache-config.xml"));
-            }
-
         return (ExtensibleConfigurableCacheFactory) cluster
             .createSession(SessionBuilders.storageDisabledMember());
         }
@@ -260,38 +198,6 @@ public class NamedTopicTests
     protected String getCoherenceCacheConfig()
         {
         return CACHE_CONFIG_FILE;
-        }
-
-    // ----- inner class: ProxyBounce -------------------------------------
-
-    public static class ProxyBounce
-            implements RemoteRunnable
-        {
-        public ProxyBounce(String sServiceName)
-            {
-            m_sServiceName = sServiceName;
-            }
-
-        @Override
-        public void run()
-            {
-            try
-                {
-                Service service = CacheFactory.getService(m_sServiceName);
-
-                ((SafeService) service).getService().shutdown();
-
-                service = CacheFactory.getService(m_sServiceName);
-                Eventually.assertThat(service.isRunning(), is(true));
-                }
-            catch (Throwable t)
-                {
-                t.printStackTrace();
-                }
-
-            }
-
-        private String m_sServiceName;
         }
 
     // ----- constants ------------------------------------------------------
@@ -323,6 +229,4 @@ public class NamedTopicTests
                              DisplayName.of("NamedTopicTests"),
                              RoleName.of("storage"),
                              s_testLogs.builder());
-
-    private boolean m_fExtend = false;
     }

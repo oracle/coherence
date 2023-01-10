@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.internal.net.topic.impl.paged;
 
 import com.oracle.coherence.common.base.Converter;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.util.MemorySize;
@@ -30,7 +31,6 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.FlowControl;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
@@ -62,6 +62,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher.FlushMode.*;
 
@@ -176,12 +178,34 @@ public class PagedTopicPublisher<V>
     public CompletableFuture<Status> publish(V value)
         {
         ensureActive();
-        PagedTopicChannelPublisher channelPublisher = ensureChannelPublisher(value);
-        CompletableFuture<Status>  future           = channelPublisher.publish(f_convValueToBinary.convert(value));
 
-        future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()));
+        Throwable thrown = null;
 
-        return future;
+        for (int attempt = 0; attempt < 2; attempt++)
+            {
+            try
+                {
+                PagedTopicChannelPublisher channelPublisher = ensureChannelPublisher(value);
+                CompletableFuture<Status>  future           = channelPublisher.publish(f_convValueToBinary.convert(value));
+
+                future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()));
+
+                return future;
+                }
+            catch (IllegalStateException e)
+                {
+                if (thrown == null)
+                    {
+                    thrown = e;
+                    }
+                else
+                    {
+                    thrown.addSuppressed(e);
+                    }
+                }
+            ensureActive();
+            }
+        throw Exceptions.ensureRuntimeException(thrown);
         }
 
     @Override
@@ -339,7 +363,7 @@ public class PagedTopicPublisher<V>
                 {
                 case Stop:
                     // Stop the publisher.
-                    Logger.info("Closing publisher due to publishing error from channel " + nChannel + ", " + error);
+                    Logger.fine("Closing publisher due to publishing error from channel " + nChannel + ", " + error);
                     // we need to do the actual close async as we're on the service thread here
                     // setting the state to OnError will stop us accepting further messages to publish
                     m_state = State.OnError;
@@ -348,7 +372,7 @@ public class PagedTopicPublisher<V>
                 case Continue:
                     // Do nothing as the individual errors will
                     // already have been handled
-                    Logger.info("Publisher set to continue on error, ignoring publishing error from channel " + nChannel + ", " + error);
+                    Logger.finer("Publisher set to continue on error, ignoring publishing error from channel " + nChannel + ", " + error);
                     break;
                 }
             }
@@ -381,17 +405,22 @@ public class PagedTopicPublisher<V>
                 throw new IllegalStateException("This publisher is no longer active");
                 }
 
-            synchronized (this)
+            f_lock.lock();
+            try
                 {
                 // create a new publisher for the closed channel
                 publisher = f_aChannel[nChannel];
                 if (isActive() && !publisher.isActive())
                     {
                     m_caches.ensureConnected();
-                    Logger.info("Restarting publisher for channel " + nChannel + " topic " + m_caches.getTopicName() + " publisher " + f_nId);
+                    Logger.finer("Restarted publisher for channel " + nChannel + " topic " + m_caches.getTopicName() + " publisher " + f_nId);
                     publisher = f_aChannel[nChannel] = new PagedTopicChannelPublisher(f_nId, nChannel, f_aChannel.length, m_caches,
                             f_nNotifyPostFull, f_flowControl, f_daemon, this::handlePublishError);
                     }
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
 
@@ -445,7 +474,8 @@ public class PagedTopicPublisher<V>
             return;
             }
 
-        synchronized (this)
+        f_lock.lock();
+        try
             {
             if (m_caches == null || m_state == State.Closing || m_state == State.Closed)
                 {
@@ -525,6 +555,10 @@ public class PagedTopicPublisher<V>
                 f_daemon.shutdown();
                 m_state = State.Closed;
                 }
+            }
+        finally
+            {
+            f_lock.unlock();
             }
         }
 
@@ -989,4 +1023,9 @@ public class PagedTopicPublisher<V>
      * The action to take when a publish request fails.
      */
     private final OnFailure f_onFailure;
+
+    /**
+     * A lock to control access to internal state.
+     */
+    private final Lock f_lock = new ReentrantLock();
     }
