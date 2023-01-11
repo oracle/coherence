@@ -18,21 +18,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A config map for a {@link com.tangosol.net.PagedTopicService}.
+ * A config map utility class for a {@link com.tangosol.net.PagedTopicService}.
  *
  * @author Jonathan Knight
  * @since 22.06.4
  */
-public interface PagedTopicConfigMap
+public abstract class PagedTopicConfigMap
     {
     /**
      * Return a {@link Set} of topic names known to this config map.
      *
      * @return a {@link Set} of topic names known to this config map
      */
-    default Set<String> getTopicNames()
+    public static Set<String> getTopicNames(Map<?, ?> configMap)
         {
-        return getConfigMap().keySet().stream()
+        return configMap.keySet().stream()
                 .filter(key -> key instanceof String)
                 .map(String.class::cast)
                 .collect(Collectors.toSet());
@@ -47,9 +47,9 @@ public interface PagedTopicConfigMap
      * @return a {@link Set} of {@link SubscriberGroupId subscriber group identifiers}
      *         for a specific topic known to this config map
      */
-    default Set<SubscriberGroupId> getSubscriberGroups(String sTopicName)
+    public static Set<SubscriberGroupId> getSubscriberGroups(Map<?, ?> configMap, String sTopicName)
         {
-        return getConfigMap().keySet().stream()
+        return configMap.keySet().stream()
                 .filter(v -> v instanceof PagedTopicSubscription.Key)
                 .map(PagedTopicSubscription.Key.class::cast)
                 .filter(key -> key.getTopicName().equals(sTopicName))
@@ -68,9 +68,9 @@ public interface PagedTopicConfigMap
      *         that sre subscribed to a specific subscriber group for a specific topic known to
      *         this config map
      */
-    default Set<SubscriberId> getSubscribers(String sTopicName, SubscriberGroupId groupId)
+    public static Set<SubscriberId> getSubscribers(Map<?, ?> configMap, String sTopicName, SubscriberGroupId groupId)
         {
-        PagedTopicSubscription subscription = getSubscription(sTopicName, groupId);
+        PagedTopicSubscription subscription = getSubscription(configMap, sTopicName, groupId);
         if (subscription != null)
             {
             return new HashSet<>(subscription.getSubscribers().values());
@@ -85,9 +85,9 @@ public interface PagedTopicConfigMap
      * @return an {@link Iterable} of {@link PagedTopicSubscription subscriptions}
      *         known to this config map
      */
-    default Iterable<PagedTopicSubscription> getSubscriptions()
+    public static Iterable<PagedTopicSubscription> getSubscriptions(Map<?, ?> configMap)
         {
-        return getConfigMap().values().stream()
+        return configMap.values().stream()
                 .filter(v -> v instanceof PagedTopicSubscription)
                 .map(PagedTopicSubscription.class::cast)
                 .collect(Collectors.toList());
@@ -98,9 +98,9 @@ public interface PagedTopicConfigMap
      *
      * @param subscription  the {@link PagedTopicSubscription subscription} to update
      */
-    default void updateSubscription(PagedTopicSubscription subscription)
+    public static void updateSubscription(Map<Object, Object> configMap, PagedTopicSubscription subscription)
         {
-        getConfigMap().put(subscription.getKey(), subscription);
+        configMap.put(subscription.getKey(), subscription);
         }
 
     /**
@@ -112,9 +112,9 @@ public interface PagedTopicConfigMap
      *         if no {@link PagedTopicSubscription subscription} exists
      *         for the specified identifier
      */
-    default PagedTopicSubscription getSubscription(long lSubscriptionId)
+    public static PagedTopicSubscription getSubscription(Map<?, ?> configMap, long lSubscriptionId)
         {
-        return getConfigMap().values().stream()
+        return configMap.values().stream()
                 .filter(PagedTopicSubscription.class::isInstance)
                 .map(PagedTopicSubscription.class::cast)
                 .filter(s -> s.getSubscriptionId() == lSubscriptionId)
@@ -132,9 +132,9 @@ public interface PagedTopicConfigMap
      *         if no {@link PagedTopicSubscription subscription} exists
      *         for the specified topic and subscriber group identifier
      */
-    default PagedTopicSubscription getSubscription(String sTopicName, SubscriberGroupId groupId)
+    public static PagedTopicSubscription getSubscription(Map<?, ?> configMap, String sTopicName, SubscriberGroupId groupId)
         {
-        return (PagedTopicSubscription) getConfigMap().get(new PagedTopicSubscription.Key(sTopicName, groupId));
+        return (PagedTopicSubscription) configMap.get(new PagedTopicSubscription.Key(sTopicName, groupId));
         }
 
     /**
@@ -147,9 +147,9 @@ public interface PagedTopicConfigMap
      *         zero if no {@link PagedTopicSubscription subscription} exists
      *         for the specified topic and subscriber group identifier
      */
-    default long getSubscriptionId(String sTopicName, SubscriberGroupId groupId)
+    public static long getSubscriptionId(Map<?, ?> configMap, String sTopicName, SubscriberGroupId groupId)
         {
-        PagedTopicSubscription subscription = getSubscription(sTopicName, groupId);
+        PagedTopicSubscription subscription = getSubscription(configMap, sTopicName, groupId);
         return subscription == null ? 0 : subscription.getSubscriptionId();
         }
 
@@ -158,9 +158,9 @@ public interface PagedTopicConfigMap
      *
      * @param key  the {@link PagedTopicSubscription.Key key} of the subscription to remove
      */
-    default void removeSubscription(PagedTopicSubscription.Key key)
+    public static void removeSubscription(Map<Object, Object> configMap, PagedTopicSubscription.Key key)
         {
-        getConfigMap().computeIfPresent(key, (k, v) -> null);
+        configMap.computeIfPresent(key, (k, v) -> null);
         }
 
     /**
@@ -173,9 +173,9 @@ public interface PagedTopicConfigMap
      * @return  {@code true} if the specified subscription exists with the
      *          specified subscriber subscribed to it
      */
-    default boolean hasSubscription(long lSubscriptionId, SubscriberId subscriberId)
+    public static boolean hasSubscription(Map<?, ?> configMap, long lSubscriptionId, SubscriberId subscriberId)
         {
-        PagedTopicSubscription subscription = getSubscription(lSubscriptionId);
+        PagedTopicSubscription subscription = getSubscription(configMap, lSubscriptionId);
         if (subscription != null)
             {
             return subscriberId == null
@@ -189,9 +189,8 @@ public interface PagedTopicConfigMap
      *
      * @param sTopicName  the name of the topic to remove
      */
-    default void removeTopic(String sTopicName)
+    public static void removeTopic(Map<?, ?> configMap, String sTopicName)
         {
-        Map<Object, Object> configMap = getConfigMap();
         // remove the topic entry
         configMap.remove(sTopicName);
         // remove all the subscriptions for the topic
@@ -202,11 +201,4 @@ public interface PagedTopicConfigMap
                 .collect(Collectors.toSet());
         setKeys.forEach(configMap::remove);
         }
-
-    /**
-     * Return the config map.
-     *
-     * @return  the actual config map
-     */
-    Map<Object, Object> getConfigMap();
     }
