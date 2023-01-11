@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,10 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged.management;
 import com.tangosol.internal.net.management.model.ModelAttribute;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 import com.tangosol.internal.net.management.model.TabularModel;
-import com.tangosol.net.topic.Position;
 
-import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -24,7 +21,7 @@ import java.util.function.Function;
  * attribute is the count.
  *
  * @author Jonathan Knight 2022.09.10
- * @since 23.03
+ * @since 22.06.4
  */
 public class ChannelCountsTableModel<M>
         extends TabularModel<Integer[], M>

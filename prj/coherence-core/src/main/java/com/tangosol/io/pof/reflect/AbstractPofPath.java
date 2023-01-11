@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof.reflect;
 
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PortableObject;
 import com.tangosol.util.Base;
 
@@ -21,7 +22,7 @@ import com.tangosol.util.Base;
 */
 public abstract class AbstractPofPath
         extends    Base
-        implements PofNavigator, PortableObject
+        implements PofNavigator, PortableObject, ExternalizableLite
     {
     // ----- PofNavigator interface ----------------------------------------------
 

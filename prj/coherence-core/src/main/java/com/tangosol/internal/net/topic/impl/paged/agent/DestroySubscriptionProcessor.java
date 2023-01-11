@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
@@ -30,11 +30,23 @@ public class DestroySubscriptionProcessor
     // ----- constructors ---------------------------------------------------
     
     /**
-     * Default constructor (for serialization).
+     * Default constructor for serialization.
      */
     public DestroySubscriptionProcessor()
         {
         super(PagedTopicPartition::ensureTopic);
+        }
+
+
+    /**
+     * Create a {@link DestroySubscriptionProcessor}.
+     *
+     * @param lSubscriptionId  the id of the subscription to destroy
+     */
+    public DestroySubscriptionProcessor(long lSubscriptionId)
+        {
+        super(PagedTopicPartition::ensureTopic);
+        m_lSubscriptionId = lSubscriptionId;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -42,7 +54,7 @@ public class DestroySubscriptionProcessor
     @Override
     public Void process(InvocableMap.Entry<Subscription.Key, Subscription> entry)
         {
-        ensureTopic(entry).removeSubscription(entry.getKey().getGroupId());
+        ensureTopic(entry).removeSubscription(entry.getKey().getGroupId(), m_lSubscriptionId);
         return null;
         }
 
@@ -59,12 +71,18 @@ public class DestroySubscriptionProcessor
     public void readExternal(PofReader in)
             throws IOException
         {
+        int nVersion = getDataVersion();
+        if (nVersion > 1)
+            {
+            m_lSubscriptionId = in.readLong(0);
+            }
         }
 
     @Override
     public void writeExternal(PofWriter out)
             throws IOException
         {
+        out.writeLong(0, m_lSubscriptionId);
         }
 
     // ----- constants ------------------------------------------------------
@@ -72,10 +90,12 @@ public class DestroySubscriptionProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 1;
+    public static final int DATA_VERSION = 2;
+
+    // ----- data members ---------------------------------------------------
 
     /**
-     * Singleton destroyer.
+     * The subscription identifier.
      */
-    public static final DestroySubscriptionProcessor INSTANCE = new DestroySubscriptionProcessor();
+    private long m_lSubscriptionId;
     }

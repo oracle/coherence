@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -37,6 +37,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.CacheFactory;
@@ -70,11 +71,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.withIdentifyingName;
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
+import static com.tangosol.net.topic.Subscriber.completeOnEmpty;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -185,6 +189,7 @@ public class TopicsStorageRecoveryTests
             AtomicBoolean fPublish    = new AtomicBoolean(true);
             AtomicBoolean fSubscribe  = new AtomicBoolean(true);
             AtomicBoolean fPublishing = new AtomicBoolean(false);
+            AtomicBoolean fPublished  = new AtomicBoolean(false);
             AtomicBoolean fSubscribed = new AtomicBoolean(false);
             AtomicInteger cPublished  = new AtomicInteger(0);
             AtomicInteger cReceived   = new AtomicInteger(0);
@@ -220,6 +225,7 @@ public class TopicsStorageRecoveryTests
                     {
                     Logger.err("Error in publish loop", t);
                     }
+                fPublished.set(true);
                 };
 
             // start the publisher thread
@@ -232,28 +238,58 @@ public class TopicsStorageRecoveryTests
             // start the subscriber runnable
             Runnable runSubscriber = () ->
                 {
-                for (int i = 0; i < 20 && fSubscribe.get(); i++)
+                int cSubscriber = 20;
+                for (int i = 0; i <= cSubscriber && fSubscribe.get(); i++)
                     {
-                    try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup)))
+                    String sName = "sub-" + i;
+
+                    if (i == cSubscriber)
                         {
+                        System.err.println("Waiting to for publisher to complete before creating subscriber " + sName);
+                        Eventually.assertDeferred(fPublished::get, is(true));
+                        }
+
+                    boolean fPublisherFinished = fPublished.get();
+                    Subscriber.Option<Message, Message> optComplete = fPublisherFinished
+                            ? completeOnEmpty() : Subscriber.Option.nullOption();
+
+                    System.err.println("Creating subscriber " + sName + " fPublisherFinished=" + fPublisherFinished + " published=" + cPublished.get() + " received=" + cReceived.get());
+                    try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup),
+                            optComplete, withIdentifyingName(sName)))
+                        {
+                        System.err.println("Created subscriber " + sName + " " + subscriber);
                         for (int j = 0; j < 5; j++)
                             {
+                            CompletableFuture<Subscriber.Element<Message>> future = null;
                             try
                                 {
-                                Subscriber.Element<Message> element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                                element.commit();
-                                cReceived.incrementAndGet();
-                                if (i >= 5)
+                                future = subscriber.receive();
+                                Subscriber.Element<Message> element = future.get(1, TimeUnit.MINUTES);
+                                if (element != null)
                                     {
-                                    fSubscribed.set(true);
+                                    element.commit();
+                                    cReceived.incrementAndGet();
+                                    if (i >= 5)
+                                        {
+                                        fSubscribed.set(true);
+                                        }
                                     }
                                 }
                             catch (Throwable t)
                                 {
-                                t.printStackTrace();
+                                if (future != null && !future.isDone())
+                                    {
+                                    future.cancel(true);
+                                    }
+                                if (!(t instanceof TimeoutException))
+                                    {
+                                    t.printStackTrace();
+                                    }
                                 }
                             }
+                        System.err.println("Closing subscriber " + sName + " " + subscriber);
                         }
+                    System.err.println("Closed subscriber " + sName);
                     }
                 };
 

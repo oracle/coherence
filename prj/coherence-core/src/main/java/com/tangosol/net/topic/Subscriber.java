@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,7 +22,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 
-import com.tangosol.util.function.Remote;
+import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -41,8 +41,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * A {@link Subscriber} subscribes either directly to a {@link NamedTopic} or to a {@link NamedTopic#getSubscriberGroups()
@@ -173,11 +171,13 @@ import java.util.function.Function;
  * the returned futures will complete in the correct order to maintain message ordering in a channel.
  * To maintain ordering, the futures are completed by a single daemon thread. This means that code using
  * any of the synchronous {@link CompletableFuture} handling patterns, such as
- * {@link CompletableFuture#thenApply(Function)} or {@link CompletableFuture#thenAccept(Consumer)}, etc. will run on
+ * {@link CompletableFuture#thenApply(java.util.function.Function)} or
+ * {@link CompletableFuture#thenAccept(java.util.function.Consumer)}, etc. will run on
  * the same daemon thread, so application code in the handler methods must complete before the next receive future
  * will be completed. Again, this is intentional, to maintain strict ordering of processing of received elements.
  * If the {@link CompletableFuture} asynchronous handler methods are used such as,
- * {@link CompletableFuture#thenApplyAsync(Function)} or {@link CompletableFuture#thenAcceptAsync(Consumer)}, etc.
+ * {@link CompletableFuture#thenApplyAsync(java.util.function.Function)}
+ * or {@link CompletableFuture#thenAcceptAsync(java.util.function.Consumer)}, etc.
  * then the application code handling the received element will execute on another thread, and at this point there
  * are no ordering guarantees.
  * <p>
@@ -234,7 +234,7 @@ public interface Subscriber<V>
      * to create the {@link Subscriber}.
      * <p>
      * If the poll of the topic returns nothing (i.e. the topic was empty and {@link CompleteOnEmpty}) is true then the
-     * {@link Consumer} will not be called.
+     * {@link java.util.function.Consumer} will not be called.
      * <p>
      * The {@link CompletableFuture futures} returned from calls to {@code receive} are completed sequentially.
      * If the methods used to handle completion in application code block this will block completions of
@@ -893,29 +893,16 @@ public interface Subscriber<V>
         }
 
     /**
-     * Return a Convert option with the specified function.
+     * Return a Convert option with the specified extractor.
      *
-     * @param function  the converter function
+     * @param extractor  the converter extractor
      * @param <V>       the type of the elements being received from the topic
      *
      * @return the Filtered option
      */
-    static <V, U> Convert<V, U> withConverter(Function<? super V, U> function)
+    static <V, U> Convert<V, U> withConverter(ValueExtractor<? super V, U> extractor)
         {
-        return Convert.using(function);
-        }
-
-    /**
-     * Return a Convert option with the specified function.
-     *
-     * @param function  the converter function
-     * @param <V>       the type of the elements being received from the topic
-     *
-     * @return the Filtered option
-     */
-    static <V, U> Convert<V, U> withConverter(Remote.Function<? super V, U> function)
-        {
-        return Convert.using(function);
+        return Convert.using(extractor);
         }
 
     /**
@@ -929,6 +916,15 @@ public interface Subscriber<V>
     public static <V> Filtered<V> withFilter(Filter<? super V> filter)
         {
         return Filtered.by(filter);
+        }
+
+    // ----- inner interface Id ---------------------------------------------
+
+    /**
+     * A marker interface for {@link Subscriber} identifiers.
+     */
+    interface Id
+        {
         }
 
     // ----- inner interface Element ----------------------------------------
@@ -1296,8 +1292,8 @@ public interface Subscriber<V>
      *         <br>Only one <tt>Filter</tt> per subscription group.</td>
      *     </tr>
      *     <tr>
-     *       <td valign="top">{@link Convert#using(Function)}</td>
-     *       <td valign="top">Convert topic value using provided {@link Function} (or {@link Remote.Function}) prior to {@link Subscriber#receive()}.
+     *       <td valign="top">{@link Convert#using(ValueExtractor)}</td>
+     *       <td valign="top">Convert topic value using provided {@link ValueExtractor} prior to {@link Subscriber#receive()}.
      *         <br>Only one <tt>Converter</tt> per subscription group.</td>
      *      </tr>
      *      <tr>
@@ -1311,7 +1307,7 @@ public interface Subscriber<V>
      *  <p>
      *  All members of subscriber group share at most a single {@link Filter} and single {@link Convert Converter}. The last
      *  {@link Subscriber} joining the group and specifying these option(s) are the ones used by all subscriber group members.
-     *  Note that when both a {@link Filtered#by(Filter)} and {@link Convert#using(Function)} are specified, the {@link Filter} is
+     *  Note that when both a {@link Filtered#by(Filter)} and {@link Convert#using(ValueExtractor)} are specified, the {@link Filter} is
      *  applied first and only {@link NamedTopic} values matching the filter are converted before being
      *  {@link Subscriber#receive() received by the Subscriber(s)}.
      *  <p>
@@ -1321,6 +1317,21 @@ public interface Subscriber<V>
      */
     public interface Option<V, U>
         {
+        /**
+         * A null implementation of an {@link Option}.
+         *
+         * @return a null implementation of an {@link Option}.
+         * @param <V>  the type of the value on the topic
+         * @param <U>  the type of the value returned to the subscriber
+         */
+        @SuppressWarnings("unchecked")
+        static <V, U> Option<V, U> nullOption()
+            {
+            return NULL_OPTION;
+            }
+
+        @SuppressWarnings("rawtypes")
+        Option NULL_OPTION = new Option(){};
         }
 
     // ----- inner interface: Name ------------------------------------------
@@ -1516,7 +1527,7 @@ public interface Subscriber<V>
     // ----- inner class: Convert ------------------------------------------
 
     /**
-     * The Convert option specifies a {@link Function} that will convert topic values that
+     * The Convert option specifies a {@link ValueExtractor} that will convert topic values that
      * a subscriber is interested in receiving prior to sending them to the subscriber.
      * Note that all members of a subscriber group share a single converter.  If members join the group using different
      * converter then the last one to join will set the converter function for the group.
@@ -1534,9 +1545,9 @@ public interface Subscriber<V>
             {
             }
 
-        protected Convert(Function<? super V, U> function)
+        protected Convert(ValueExtractor<? super V, U> extractor)
             {
-            m_function = function;
+            m_extractor = extractor;
             }
 
         /**
@@ -1544,63 +1555,51 @@ public interface Subscriber<V>
          *
          * @return the converter function
          */
-        public Function<? super V, U> getFunction()
+        public ValueExtractor<? super V, U> getExtractor()
             {
-            return m_function;
+            return m_extractor;
             }
 
         /**
-         * Return a Convert option with the specified function.
+         * Return a Convert option with the specified extractor.
          *
-         * @param function  the converter function
-         *
-         * @return the Filtered option
-         */
-        public static <V, U> Convert<V, U> using(Function<? super V, U> function)
-            {
-            return new Convert<>(function);
-            }
-
-        /**
-         * Return a Convert option with the specified function.
-         *
-         * @param function  the converter function
+         * @param extractor  the converter extractor
          *
          * @return the Filtered option
          */
-        public static <V, U> Convert<V, U> using(Remote.Function<? super V, U> function)
+        public static <V, U> Convert<V, U> using(ValueExtractor<? super V, U> extractor)
             {
-            return using((Function<? super V, U>) function);
+            return new Convert<>(extractor);
             }
 
         @Override
         public void readExternal(DataInput in) throws IOException
             {
-            m_function = ExternalizableHelper.readObject(in);
+            m_extractor = ExternalizableHelper.readObject(in);
             }
 
         @Override
         public void writeExternal(DataOutput out) throws IOException
             {
-            ExternalizableHelper.writeObject(out, m_function);
+            ExternalizableHelper.writeObject(out, m_extractor);
             }
 
         @Override
         public void readExternal(PofReader in) throws IOException
             {
-            m_function = in.readObject(0);
+            m_extractor = in.readObject(0);
             }
 
         @Override
         public void writeExternal(PofWriter out) throws IOException
             {
-            out.writeObject(0, m_function);
+            out.writeObject(0, m_extractor);
             }
 
         /**
-         * The filter.
+         * The {@link ValueExtractor}.
          */
-        private Function<? super V, U> m_function;
+        private ValueExtractor<? super V, U> m_extractor;
         }
 
     // ----- inner class: CompleteOnEmpty -------------------------------
@@ -1784,6 +1783,13 @@ public interface Subscriber<V>
         Position getLastCommit();
 
         /**
+         * Return the number of completed commit requests.
+         *
+         * @return the number of completed commit requests
+         */
+        long getCommitCount();
+
+        /**
          * Returns the last position received by this subscriber.
          *
          * @return the last position received by this subscriber
@@ -1791,11 +1797,46 @@ public interface Subscriber<V>
         Position getLastReceived();
 
         /**
+         * Return the number of completed receive requests.
+         *
+         * @return the number of completed receive requests
+         */
+        long getReceiveCount();
+
+        /**
+         * Returns the number of elements polled by this subscriber.
+         *
+         * @return the number of elements polled by this subscriber
+         */
+        long getPolls();
+
+        /**
+         * Returns the first position polled by this subscriber.
+         *
+         * @return the first position polled by this subscriber
+         */
+        Position getFirstPolled();
+
+        /**
+         * Returns the timestamp when the first element was polled by this subscriber.
+         *
+         * @return the timestamp when the first element was polled by this subscriber
+         */
+        long getFirstPolledTimestamp();
+
+        /**
          * Returns the last position polled by this subscriber.
          *
          * @return the last position polled by this subscriber
          */
         Position getLastPolled();
+
+        /**
+         * Returns the timestamp when the last element was polled by this subscriber.
+         *
+         * @return the timestamp when the last element was polled by this subscriber
+         */
+        long getLastPolledTimestamp();
 
         /**
          * Returns {@code true} if the channel is empty.
@@ -1884,15 +1925,51 @@ public interface Subscriber<V>
                 }
 
             @Override
+            public long getCommitCount()
+                {
+                return 0;
+                }
+
+            @Override
             public Position getLastReceived()
                 {
                 return PagedPosition.NULL_POSITION;
                 }
 
             @Override
+            public long getReceiveCount()
+                {
+                return 0;
+                }
+
+            @Override
+            public long getPolls()
+                {
+                return 0;
+                }
+
+            @Override
+            public Position getFirstPolled()
+                {
+                return PagedPosition.NULL_POSITION;
+                }
+
+            @Override
+            public long getFirstPolledTimestamp()
+                {
+                return 0L;
+                }
+
+            @Override
             public Position getLastPolled()
                 {
                 return PagedPosition.NULL_POSITION;
+                }
+
+            @Override
+            public long getLastPolledTimestamp()
+                {
+                return 0L;
                 }
 
             @Override

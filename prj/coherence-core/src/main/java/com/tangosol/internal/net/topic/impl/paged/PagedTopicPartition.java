@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.oracle.coherence.common.collections.Arrays;
 
 import com.oracle.coherence.common.util.Duration;
 
+import com.oracle.coherence.common.util.SafeClock;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
@@ -20,11 +21,13 @@ import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor;
 
+import com.tangosol.internal.net.topic.impl.paged.agent.SubscriberHeartbeatProcessor;
 import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
@@ -35,18 +38,13 @@ import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistic
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.RequestIncompleteException;
 
-import com.tangosol.net.TopicService;
-
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
-
-import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.net.partition.ObservableSplittingBackingMap;
 
@@ -64,6 +62,8 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapNotFoundException;
 import com.tangosol.util.ObservableMap;
+import com.tangosol.util.UUID;
+import com.tangosol.util.ValueExtractor;
 
 import java.time.LocalDateTime;
 
@@ -564,7 +564,7 @@ public class PagedTopicPartition
                 {
                 for (SubscriberGroupId subscriberGroupId : list)
                     {
-                    removeSubscription(subscriberGroupId);
+                    removeSubscription(subscriberGroupId, 0L);
                     }
                 }
             }
@@ -798,11 +798,20 @@ public class PagedTopicPartition
     /**
      * Remove the subscription from the partition
      *
-     * @param subscriberGroupId  the subscriber
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param lSubscriptionId    the subscription identifier
      */
     @SuppressWarnings("unchecked")
-    public void removeSubscription(SubscriberGroupId subscriberGroupId)
+    public void removeSubscription(SubscriberGroupId subscriberGroupId, long lSubscriptionId)
         {
+        if (lSubscriptionId != 0)
+            {
+            if (f_service.hasSubscription(lSubscriptionId))
+                {
+                f_service.destroySubscription(lSubscriptionId);
+                }
+            }
+
         BackingMapContext ctxSubscriptions = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
 
         for (int nChannel = 0, c = getChannelCount(); nChannel < c; ++nChannel)
@@ -871,11 +880,6 @@ public class PagedTopicPartition
                 page  = lPage == Page.NULL_PAGE ? null : enlistPage(nChannel, lPage);
                 }
             }
-
-        String       sTopicName = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
-        CacheService service    = f_ctxManager.getCacheService();
-        MBeanHelper.unregisterSubscriberGroupMBean(subscriberGroupId, sTopicName, service);
-        getStatistics().removeSubscriberGroupStatistics(subscriberGroupId);
         }
 
     /**
@@ -893,15 +897,17 @@ public class PagedTopicPartition
     public long[] ensureSubscription(Subscription.Key key, EnsureSubscriptionProcessor processor)
         {
         // ==============================================================================================
-        // Do not enlist eny other cache entries until after all the subscriptions have been enlisted.
+        // Do not enlist eny other cache entries until after all the subscriptions have been enlisted
+        // further down in this method.
         // ==============================================================================================
         int                     nPhase                   = processor.getPhase();
         long[]                  alSubscriptionHeadGlobal = processor.getPages();
         Filter                  filter                   = processor.getFilter();
-        Function                fnConvert                = processor.getConverter();
+        ValueExtractor          converter                = processor.getConverter();
         SubscriberId            subscriberId             = processor.getSubscriberId();
         boolean                 fReconnect               = processor.isReconnect();
         boolean                 fCreateGroupOnly         = processor.isCreateGroupOnly();
+        long                    lSubscriptionId          = processor.getSubscriptionId();
         BackingMapContext       ctxSubscriptions         = getBackingMapContext(PagedTopicCaches.Names.SUBSCRIPTIONS);
         PagedTopicDependencies  dependencies             = getDependencies();
         SubscriberGroupId       subscriberGroupId        = key.getGroupId();
@@ -911,6 +917,27 @@ public class PagedTopicPartition
         int                     cParts                   = getPartitionCount();
         int                     nSyncPartition           = Subscription.getSyncPartition(subscriberGroupId, 0, cParts);
         boolean                 fSyncPartition           = key.getPartitionId() == nSyncPartition;
+
+        if (!fAnonymous)
+            {
+            if (lSubscriptionId == 0)
+                {
+                // Ensure the subscription exists.
+                // If the cluster has been upgraded from a version prior to 22.06.4 the
+                // subscription may not be present in the service senior. If we already
+                // know about the subscription, this call is effectively a no-op.
+                lSubscriptionId = f_service.ensureSubscription(f_sName, subscriberGroupId,
+                        subscriberId, filter, converter);
+                // Update the entry processor so the correct subscription id is sent back
+                // to the subscriber.
+                processor.setSubscriptionId(lSubscriptionId);
+                }
+            else if (f_service.isSubscriptionDestroyed(lSubscriptionId))
+                {
+                throw new IllegalStateException("The subscriber group " + subscriberGroupId.getGroupName()
+                        + " (id=" + lSubscriptionId + ") has been destroyed");
+                }
+            }
 
         if (fCreateGroupOnly)
             {
@@ -935,18 +962,22 @@ public class PagedTopicPartition
             }
 
         // ==============================================================================================
-        // From this point on it is safe to enlist other cache entries.
+        // From this point on it is safe to enlist other cache entries as we have locked all the
+        // subscription entries. We can proceed safe in the knowledge that a subscriber will not try
+        // to poll the same entry and lock pages while were initializing.
         // ==============================================================================================
 
         switch (nPhase)
             {
             case EnsureSubscriptionProcessor.PHASE_INQUIRE:
-                // avoid leaking notification registrations in unused channels
+                // Avoid leaking notification registrations in unused channels.
+                // This call may enlist more entries.
                 cleanupSubscriberRegistrations();
                 break;
 
             case EnsureSubscriptionProcessor.PHASE_PIN:
-                // avoid leaking anon-subscribers when there are no active publishers
+                // Avoid leaking anon-subscribers when there are no active publishers.
+                // This call may enlist more entries.
                 cleanupNonDurableSubscribers(enlistUsage(0).getAnonymousSubscribers());
                 break;
 
@@ -956,8 +987,6 @@ public class PagedTopicPartition
 
         Subscription subscriptionZero = null;
 
-        // Now we have effectively locked all the Subscription entries we need, we can proceed safe in the knowledge
-        // that a subscriber will not try to poll the same entry and lock pages while were initializing
         for (int nChannel = 0; nChannel < alResult.length; ++nChannel)
             {
             BinaryEntry<Subscription.Key, Subscription> entrySub  = mapSubscriptionByChannel.get(nChannel);
@@ -981,7 +1010,7 @@ public class PagedTopicPartition
                             + subscription.getFilter() + " new=" + filter);
                     }
 
-                if (fnConvert != null && !Objects.equals(subscription.getConverter(), fnConvert))
+                if (converter != null && !Objects.equals(subscription.getConverter(), converter))
                     {
                     // do not allow new subscriber instances to update the converter function
                     throw new TopicException("Cannot change the converter in existing Subscriber group \""
@@ -1033,7 +1062,7 @@ public class PagedTopicPartition
                     }
 
                 subscription.setFilter(filter);
-                subscription.setConverter(fnConvert);
+                subscription.setConverter(converter);
 
                 entrySub.setValue(subscription);
 
@@ -1118,30 +1147,60 @@ public class PagedTopicPartition
             if (!fCreateGroupOnly)
                 {
                 // Ensure the subscriber is registered and allocated channels. We only do this in channel zero, so as
-                // not to bloat all the other entries with the subscriber maps
+                // not to bloat all the other entries with the subscriber maps.
+                // Since 22.06.4 the service senior manages subscriber registration and channel allocations,
+                // so here we will just copy the state from the subscription state held by the service.
                 if (nChannel == 0)
                     {
                     subscriptionZero = subscription;
-                    if (!subscriptionZero.hasSubscriber(subscriberId))
+                    if (fAnonymous)
                         {
-                        // the subscription is out of date, or this is a new subscriber and
-                        // is not an anonymous subscriber (nSubscriberId != 0)
-                        Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
-                                .addSubscriber(subscriberId, cChannel, getMemberSet());
-
-                        if (fSyncPartition)
+                        // An anonymous subscriber owns everything
+                        if (!subscriptionZero.hasSubscriber(subscriberId))
                             {
-                            // we only log the update for the sync partition
-                            // (no need to repeat the same message for every partition)
-                            Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
-                                    subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
-                            if (!mapRemoved.isEmpty())
+                            subscriptionZero.assignAll(subscriberId, cChannel, getMemberSet());
+                            }
+                        }
+                    else
+                        {
+                        if (lSubscriptionId != 0)
+                            {
+                            // We have a subscription id, so the service senior is 22.06.4 or higher.
+                            // Make sure we update subscriptionZero from that state.
+                            fReconnect = subscriptionZero.hasSubscriber(subscriberId);
+                            PagedTopicSubscription pagedTopicSubscription = f_service.getSubscription(lSubscriptionId);
+                            subscriptionZero.update(pagedTopicSubscription);
+                            }
+                        else
+                            {
+                            // This is the legacy subscription handling code prior to 22.06.4
+                            // If the senior is running version 22.06.4, or later we would have
+                            // a non-zero lSubscriptionId and the senior would be managing the
+                            // subscription and channel allocations.
+                            // Ideally we would not do this at all, but we have to account for
+                            // a rolling upgrade from an earlier version.
+                            if (!subscriptionZero.hasSubscriber(subscriberId))
                                 {
-                                logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
+                                // the subscription is out of date, or this is a new subscriber and
+                                // is not an anonymous subscriber (nSubscriberId != 0)
+                                Map<Integer, Set<SubscriberId>> mapRemoved = subscriptionZero
+                                        .addSubscriber(subscriberId, cChannel, getMemberSet());
+
+                                if (fSyncPartition)
+                                    {
+                                    // we only log the update for the sync partition
+                                    // (no need to repeat the same message for every partition)
+                                    Logger.finest(String.format("Added subscriber %s in group %s allocations %s",
+                                                                subscriberId, subscriberGroupId, subscriptionZero.getAllocations()));
+                                    if (!mapRemoved.isEmpty())
+                                        {
+                                        logRemoval(mapRemoved, f_sName, subscriberGroupId.getGroupName());
+                                        }
+                                    }
+
+                                fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
                                 }
                             }
-
-                        fReconnect = false; // reset reconnect flag as this is effectively a new subscriber
                         }
                     }
 
@@ -1161,14 +1220,6 @@ public class PagedTopicPartition
             entrySub.setValue(subscription);
             }
 
-        if (!subscriberGroupId.isAnonymous())
-            {
-            // only register MBeans for durable subscriber groups
-            String               sTopicName = PagedTopicCaches.Names.getTopicName(ctxSubscriptions.getCacheName());
-            TopicService         service    = (TopicService) f_ctxManager.getCacheService();
-            PagedTopicStatistics statistics = getStatistics();
-            MBeanHelper.registerSubscriberGroupMBean(service, sTopicName, subscriberGroupId, statistics, filter, fnConvert);
-            }
         return alResult;
         }
 
@@ -1267,17 +1318,30 @@ public class PagedTopicPartition
     /**
      * Update the heartbeat for a subscriber.
      *
-     * @param entry  the {@link SubscriberInfo} entry
+     * @param entry      the {@link SubscriberInfo} entry
+     * @param processor  the {@link SubscriberHeartbeatProcessor}
      */
     @SuppressWarnings("rawtypes")
-    public void heartbeat(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry)
+    public void heartbeat(InvocableMap.Entry<SubscriberInfo.Key, SubscriberInfo> entry,
+            SubscriberHeartbeatProcessor processor)
         {
-        PagedTopicDependencies  dependencies = getDependencies();
-        SubscriberInfo          info         = entry.isPresent() ? entry.getValue() : new SubscriberInfo();
-        long                    cMillis      = dependencies.getSubscriberTimeoutMillis();
+        UUID                    uuid          = processor.getUuid();
+        long                    lSubscription = processor.getSubscription();
+        long                    lTimestamp    = processor.getConnectionTimestamp();
+        PagedTopicDependencies  dependencies  = getDependencies();
+        SubscriberInfo          info          = entry.isPresent() ? entry.getValue() : new SubscriberInfo();
+        long                    cMillis       = dependencies.getSubscriberTimeoutMillis();
 
+        if (lTimestamp == 0)
+            {
+            lTimestamp = SafeClock.INSTANCE.getSafeTimeMillis();
+            }
+
+        info.setlConnectionTimestamp(lTimestamp);
         info.setLastHeartbeat(LocalDateTime.now());
         info.setTimeoutMillis(cMillis);
+        info.setOwningUid(uuid);
+        info.setSubscriptionId(lSubscription);
         entry.setValue(info);
         ((BinaryEntry) entry).expire(cMillis);
         }
@@ -1331,6 +1395,9 @@ public class PagedTopicPartition
             // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
             return PollProcessor.Result.notAllocated(Integer.MAX_VALUE);
             }
+
+        // update the "last polled by" subscriber
+        subscription.setLastPolledSubscriber(subscriberId);
 
         if (lPage == Page.NULL_PAGE)
             {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,12 +21,11 @@ import com.tangosol.net.topic.TopicException;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.UUID;
+import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
 
 import java.util.Collection;
-
-import java.util.function.Function;
 
 import java.util.stream.Collectors;
 
@@ -57,23 +56,25 @@ public class EnsureSubscriptionProcessor
      * @param nPhase         the initialization phase
      * @param alPage         the page (by channel) at which to start pinning
      * @param filter         the filter indicating which values are of interest
-     * @param fnConvert      the optional converter function to convert values before they are
+     * @param extractor      the optional converter function to convert values before they are
      *                       returned to subscribers
      * @param subscriberId   the unique identifier of the subscriber
      * @param fReconnect     {@code true} if this is a subscriber reconnection
      */
-    public EnsureSubscriptionProcessor(int nPhase, long[] alPage, Filter<?> filter, Function<?, ?> fnConvert,
-                                       SubscriberId subscriberId, boolean fReconnect, boolean fCreateGroupOnly)
+    public EnsureSubscriptionProcessor(int nPhase, long[] alPage, Filter<?> filter, ValueExtractor<?, ?> extractor,
+                                       SubscriberId subscriberId, boolean fReconnect, boolean fCreateGroupOnly,
+                                       long lSubscriptionId)
         {
         super(PagedTopicPartition::ensureTopic);
 
         m_nPhase           = nPhase;
         m_alPage           = alPage;
         m_filter           = filter;
-        m_fnConvert        = fnConvert;
+        m_extractor        = extractor;
         m_subscriberId     = subscriberId;
         m_fReconnect       = fReconnect;
         m_fCreateGroupOnly = fCreateGroupOnly;
+        m_lSubscriptionId  = lSubscriptionId;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -84,11 +85,11 @@ public class EnsureSubscriptionProcessor
         try
             {
             long[] alPage = ensureTopic(entry).ensureSubscription(entry.getKey(), this);
-            return new Result(alPage, null);
+            return new Result(alPage, m_lSubscriptionId, null);
             }
         catch (Throwable thrown)
             {
-            return new Result(null, thrown);
+            return new Result(null, m_lSubscriptionId, thrown);
             }
         }
 
@@ -109,9 +110,9 @@ public class EnsureSubscriptionProcessor
         return m_filter;
         }
 
-    public Function<?, ?> getConverter()
+    public ValueExtractor<?, ?> getConverter()
         {
-        return m_fnConvert;
+        return m_extractor;
         }
 
     public SubscriberId getSubscriberId()
@@ -127,6 +128,21 @@ public class EnsureSubscriptionProcessor
     public boolean isCreateGroupOnly()
         {
         return m_fCreateGroupOnly;
+        }
+
+    public long getSubscriptionId()
+        {
+        return m_lSubscriptionId;
+        }
+
+    /**
+     * Set the subscription identifier.
+     *
+     * @param lSubscriptionId  the subscription identifier
+     */
+    public void setSubscriptionId(long lSubscriptionId)
+        {
+        m_lSubscriptionId = lSubscriptionId;
         }
 
     // ----- EvolvablePortableObject interface ------------------------------
@@ -148,17 +164,23 @@ public class EnsureSubscriptionProcessor
         m_nPhase    = in.readInt(0);
         m_alPage    = in.readLongArray(1);
         m_filter    = in.readObject(2);
-        m_fnConvert = in.readObject(3);
+        m_extractor = in.readObject(3);
+
         if (nVersion >= 2)
             {
             nSubscriberId      = in.readLong(4);
             m_fReconnect       = in.readBoolean(5);
             m_fCreateGroupOnly = in.readBoolean(6);
+            }
 
-            if (nVersion >= 3)
-                {
-                uuid = in.readObject(7);
-                }
+        if (nVersion >= 3)
+            {
+            uuid = in.readObject(7);
+            }
+
+        if (nVersion >= 4)
+            {
+            m_lSubscriptionId = in.readLong(8);
             }
 
         m_subscriberId = new SubscriberId(nSubscriberId, uuid);
@@ -171,34 +193,13 @@ public class EnsureSubscriptionProcessor
         out.writeInt(0, m_nPhase);
         out.writeLongArray(1, m_alPage);
         out.writeObject(2, m_filter);
-        out.writeObject(3, m_fnConvert);
+        out.writeObject(3, m_extractor);
         out.writeObject(4, m_subscriberId.getId());
         out.writeBoolean(5, m_fReconnect);
         out.writeBoolean(6, m_fCreateGroupOnly);
         out.writeObject(7, m_subscriberId.getUID());
+        out.writeLong(8, m_lSubscriptionId);
         }
-
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * Mode indicating that we just want to inquire about any pinned page.
-     */
-    public static final int PHASE_INQUIRE = 0;
-
-    /**
-     * Mode indicating that we want to pin pages.
-     */
-    public static final int PHASE_PIN = 1;
-
-    /**
-     * Mode indicating that we want to advance to the specified page.
-     */
-    public static final int PHASE_ADVANCE = 2;
-
-    /**
-     * {@link EvolvablePortableObject} data version of this class.
-     */
-    public static final int DATA_VERSION = 3;
 
     // ----- inner class: Result --------------------------------------------
 
@@ -219,13 +220,15 @@ public class EnsureSubscriptionProcessor
         /**
          * Create a result.
          *
-         * @param alPage  the array of pages
-         * @param error   any error that may have occurred
+         * @param alPage         the array of pages
+         * @param lSubscription  the subscription identifier
+         * @param error          any error that may have occurred
          */
-        public Result(long[] alPage, Throwable error)
+        public Result(long[] alPage, long lSubscription, Throwable error)
             {
-            m_alPage = alPage;
-            m_error = error;
+            m_alPage        = alPage;
+            m_lSubscription = lSubscription;
+            m_error         = error;
             }
 
         // ----- accessors --------------------------------------------------
@@ -260,6 +263,16 @@ public class EnsureSubscriptionProcessor
             return m_error;
             }
 
+        /**
+         * Return the subscription identifier.
+         *
+         * @return  the subscription identifier
+         */
+        public long getSubscription()
+            {
+            return m_lSubscription;
+            }
+
         // ----- EvolvablePortableObject methods ----------------------------
 
         @Override
@@ -271,8 +284,14 @@ public class EnsureSubscriptionProcessor
         @Override
         public void readExternal(PofReader in) throws IOException
             {
+            int nVersion = getDataVersion();
             m_alPage = in.readLongArray(0);
             m_error  = in.readObject(1);
+
+            if (nVersion >= 3)
+                {
+                m_lSubscription = in.readLong(2);
+                }
             }
 
         @Override
@@ -280,6 +299,7 @@ public class EnsureSubscriptionProcessor
             {
             out.writeLongArray(0, m_alPage);
             out.writeObject(1, m_error);
+            out.writeLong(2, m_lSubscription);
             }
 
         // ----- helper methods ---------------------------------------------
@@ -358,9 +378,9 @@ public class EnsureSubscriptionProcessor
         // ----- constants --------------------------------------------------
 
         /**
-         * The evolvable data version.
+         * The evolvable data version for the {@link Result} class.
          */
-        public static final int DATA_VERSION = 2;
+        public static final int DATA_VERSION = 3;
 
         // ----- data members -----------------------------------------------
 
@@ -373,7 +393,34 @@ public class EnsureSubscriptionProcessor
          * Any error that occurred ensuring the subscription.
          */
         private Throwable m_error;
+
+        /**
+         * The subscription id.
+         */
+        private long m_lSubscription;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Mode indicating that we just want to inquire about any pinned page.
+     */
+    public static final int PHASE_INQUIRE = 0;
+
+    /**
+     * Mode indicating that we want to pin pages.
+     */
+    public static final int PHASE_PIN = 1;
+
+    /**
+     * Mode indicating that we want to advance to the specified page.
+     */
+    public static final int PHASE_ADVANCE = 2;
+
+    /**
+     * {@link EvolvablePortableObject} data version of this class.
+     */
+    public static final int DATA_VERSION = 4;
 
     // ----- data members ---------------------------------------------------
 
@@ -395,7 +442,7 @@ public class EnsureSubscriptionProcessor
     /**
      * The optional converter function to convert values before they are returned to subscribers.
      */
-    private Function<?, ?> m_fnConvert;
+    private ValueExtractor<?, ?> m_extractor;
 
     /**
      * The subscriber identifier.
@@ -411,4 +458,9 @@ public class EnsureSubscriptionProcessor
      * A flag indicating that this is only a subscriber group creation.
      */
     private boolean m_fCreateGroupOnly;
+
+    /**
+     * The unique id of the subscriber group.
+     */
+    private long m_lSubscriptionId;
     }

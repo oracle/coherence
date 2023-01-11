@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.management;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicChannelStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
+
+import java.util.function.Supplier;
 
 /**
  * The MBean model for a channel within a topic.
  *
  * @author Jonathan Knight 2022.09.10
- * @since 23.03
+ * @since 22.06.4
  */
 public class PagedTopicChannelModel
         implements PublishedMetrics
@@ -25,16 +25,13 @@ public class PagedTopicChannelModel
     /**
      * Create a model for a specific channel in a topic.
      *
-     * @param pagedTopic  the {@link PagedTopicModel}
-     * @param nChannel    the channel
+     * @param supplier  the {@link PagedTopicStatistics} supplier
+     * @param nChannel  the channel
      */
-    public PagedTopicChannelModel(PagedTopic<?> pagedTopic, int nChannel)
+    public PagedTopicChannelModel(Supplier<PagedTopicStatistics> supplier, int nChannel)
         {
-        PagedTopicBackingMapManager manager    = (PagedTopicBackingMapManager) pagedTopic.getCacheService().getBackingMapManager();
-        PagedTopicStatistics        statistics = manager.getStatistics(pagedTopic.getName());
-
         f_nChannel   = nChannel;
-        f_statistics = statistics.getChannelStatistics(f_nChannel);
+        f_statistics = supplier;
         }
 
     /**
@@ -54,7 +51,7 @@ public class PagedTopicChannelModel
      */
     public String getTail()
         {
-        return f_statistics.getTail().toString();
+        return getStatistics().getTail().toString();
         }
 
     // ----- PublishedMetrics methods ---------------------------------------
@@ -63,33 +60,40 @@ public class PagedTopicChannelModel
     public long getPublishedCount()
         {
 
-        return f_statistics.getPublishedCount();
+        return getStatistics().getPublishedCount();
         }
 
     @Override
     public double getPublishedFifteenMinuteRate()
         {
-        return f_statistics.getPublishedFifteenMinuteRate();
+        return getStatistics().getPublishedFifteenMinuteRate();
         }
 
     @Override
     public double getPublishedFiveMinuteRate()
         {
-        return f_statistics.getPublishedFiveMinuteRate();
+        return getStatistics().getPublishedFiveMinuteRate();
         }
 
     @Override
     public double getPublishedOneMinuteRate()
         {
-        return f_statistics.getPublishedOneMinuteRate();
+        return getStatistics().getPublishedOneMinuteRate();
         }
 
     @Override
     public double getPublishedMeanRate()
         {
-        return f_statistics.getPublishedMeanRate();
+        return getStatistics().getPublishedMeanRate();
         }
 
+    // ----- helper methods -------------------------------------------------
+    
+    private PagedTopicChannelStatistics getStatistics()
+        {
+        return f_statistics.get().getChannelStatistics(f_nChannel);
+        }
+    
     // ----- data members ---------------------------------------------------
 
     /**
@@ -98,7 +102,7 @@ public class PagedTopicChannelModel
     private final int f_nChannel;
 
     /**
-     * The topic channel statistics.
+     * The {@link PagedTopicStatistics} supplier.
      */
-    private final PagedTopicChannelStatistics f_statistics;
+    private final Supplier<PagedTopicStatistics> f_statistics;
     }

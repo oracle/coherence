@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -35,6 +35,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -378,68 +381,100 @@ public class OldCache
     /**
     * {@inheritDoc}
     */
-    public synchronized void addMapListener(MapListener listener, Object oKey, boolean fLite)
+    public void addMapListener(MapListener listener, Object oKey, boolean fLite)
         {
         Base.azzert(listener != null);
 
-        MapListenerSupport support = m_listenerSupport;
-        if (support == null)
+        f_listenerLock.lock();
+        try
             {
-            support = m_listenerSupport = new MapListenerSupport();
-            }
+            MapListenerSupport support = m_listenerSupport;
+            if (support == null)
+                {
+                support = m_listenerSupport = new MapListenerSupport();
+                }
 
-        support.addListener(listener, oKey, fLite);
+            support.addListener(listener, oKey, fLite);
+            }
+        finally
+            {
+            f_listenerLock.unlock();
+            }
         }
 
     /**
     * {@inheritDoc}
     */
-    public synchronized void removeMapListener(MapListener listener, Object oKey)
+    public void removeMapListener(MapListener listener, Object oKey)
         {
         Base.azzert(listener != null);
 
-        MapListenerSupport support = m_listenerSupport;
-        if (support != null)
+        f_listenerLock.lock();
+        try
             {
-            support.removeListener(listener, oKey);
-            if (support.isEmpty())
+            MapListenerSupport support = m_listenerSupport;
+            if (support != null)
                 {
-                m_listenerSupport = null;
+                support.removeListener(listener, oKey);
+                if (support.isEmpty())
+                    {
+                    m_listenerSupport = null;
+                    }
                 }
             }
-        }
-
-    /**
-    * {@inheritDoc}
-    */
-    public synchronized void addMapListener(MapListener listener, Filter filter, boolean fLite)
-        {
-        Base.azzert(listener != null);
-
-        MapListenerSupport support = m_listenerSupport;
-        if (support == null)
+        finally
             {
-            support = m_listenerSupport = new MapListenerSupport();
+            f_listenerLock.unlock();
             }
-
-        support.addListener(listener, filter, fLite);
         }
 
     /**
     * {@inheritDoc}
     */
-    public synchronized void removeMapListener(MapListener listener, Filter filter)
+    public void addMapListener(MapListener listener, Filter filter, boolean fLite)
         {
         Base.azzert(listener != null);
 
-        MapListenerSupport support = m_listenerSupport;
-        if (support != null)
+        f_listenerLock.lock();
+        try
             {
-            support.removeListener(listener, filter);
-            if (support.isEmpty())
+            MapListenerSupport support = m_listenerSupport;
+            if (support == null)
                 {
-                m_listenerSupport = null;
+                support = m_listenerSupport = new MapListenerSupport();
                 }
+
+            support.addListener(listener, filter, fLite);
+            }
+        finally
+            {
+            f_listenerLock.unlock();
+            }
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    public void removeMapListener(MapListener listener, Filter filter)
+        {
+        Base.azzert(listener != null);
+
+        f_listenerLock.lock();
+        try
+            {
+            MapListenerSupport support = m_listenerSupport;
+            if (support != null)
+                {
+                support.removeListener(listener, filter);
+                if (support.isEmpty())
+                    {
+                    m_listenerSupport = null;
+                    }
+                }
+            }
+        finally
+            {
+            f_listenerLock.unlock();
             }
         }
 
@@ -2901,6 +2936,11 @@ public class OldCache
     * The MapListenerSupport object.
     */
     protected MapListenerSupport m_listenerSupport;
+
+    /**
+     * A lock for access to {@link #m_listenerSupport}.
+     */
+    private final Lock f_listenerLock = new ReentrantLock();
 
     /**
     * The type of eviction policy employed by the cache; one of the
