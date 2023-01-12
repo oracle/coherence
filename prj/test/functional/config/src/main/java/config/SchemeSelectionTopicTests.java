@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package config;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.tangosol.coherence.config.TopicMapping;
 import com.tangosol.coherence.config.builder.SubscriberGroupBuilder;
 import com.tangosol.coherence.config.scheme.LocalScheme;
@@ -35,6 +36,8 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.tangosol.net.topic.Subscriber.Name;
 import static org.hamcrest.CoreMatchers.is;
@@ -332,36 +335,36 @@ public class SchemeSelectionTopicTests
 
         assertTrue(topic != null);
 
-        Subscriber<String> subscriber = topic.createSubscriber(Name.of("Foo"));
-        Publisher<String>  publisher  = topic.createPublisher();
         String             sPrefix    = "Element-";
         int                nCount     = 100;
 
-        for (int i = 0; i < nCount; i++)
+        try (Subscriber<String> subscriber = topic.createSubscriber(Name.of("Foo")))
             {
-            try
+            try (Publisher<String> publisher = topic.createPublisher())
                 {
-                publisher.publish(sPrefix + i).get();
+                for (int i = 0; i < nCount; i++)
+                    {
+                    try
+                        {
+                        publisher.publish(sPrefix + i).get();
+                        }
+                    catch (InterruptedException | ExecutionException e)
+                        {
+                        fail(e.getMessage());
+                        }
+                    }
                 }
-            catch (InterruptedException | ExecutionException e)
-                {
-                fail(e.getMessage());
-                }
-            }
 
-        try
-            {
             for (int i = 0; i < nCount; i++)
                 {
-                assertThat(subscriber.receive().get().getValue(), is(sPrefix + i));
+                assertThat(subscriber.receive().get(1, TimeUnit.MINUTES)
+                                   .getValue(), is(sPrefix + i));
                 }
             }
         catch (Exception e)
             {
-            throw Base.ensureRuntimeException(e);
+            throw Exceptions.ensureRuntimeException(e);
             }
-
-        subscriber.close();
 
         // validate the service type
         for (PagedTopicCaches.Names names : PagedTopicCaches.Names.values())

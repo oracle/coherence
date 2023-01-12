@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Filter;
+import com.tangosol.util.ValueExtractor;
 
 import javax.management.DynamicMBean;
 
@@ -35,13 +36,11 @@ import javax.management.openmbean.TabularData;
 import java.util.Arrays;
 import java.util.Map;
 
-import java.util.function.Function;
-
 /**
  * A topic subscriber MBean model.
  *
  * @author Jonathan Knight 2022.09.10
- * @since 23.03
+ * @since 22.06.4
  */
 public class SubscriberModel
         extends AbstractModel<SubscriberModel>
@@ -302,8 +301,8 @@ public class SubscriberModel
      */
     protected String getConverter()
         {
-        Function<?, ?> function = f_subscriber.getConverter();
-        return valueOrNotApplicable(function);
+        ValueExtractor<?, ?> extractor = f_subscriber.getConverter();
+        return valueOrNotApplicable(extractor);
         }
 
     /**

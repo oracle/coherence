@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -64,6 +64,18 @@
     </topic-mapping>
 
     <topic-mapping>
+      <topic-name>pof-small-rewindable*</topic-name>
+      <scheme-name>pof-one-kilobyte-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>retain-values</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+
+    <topic-mapping>
       <topic-name>pof-fixed*</topic-name>
       <scheme-name>pof-fixed-scheme</scheme-name>
       <value-type>java.lang.String</value-type>
@@ -108,6 +120,18 @@
     <topic-mapping>
       <topic-name>java-rewindable*</topic-name>
       <scheme-name>java-topic-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>retain-values</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>java-small-rewindable*</topic-name>
+      <scheme-name>java-one-kilobyte-scheme</scheme-name>
       <value-type>java.lang.String</value-type>
       <init-params>
         <init-param>
@@ -196,6 +220,7 @@
       <scheme-ref>common-pof-topic-scheme</scheme-ref>
       <storage>on-heap</storage>
       <page-size system-property="page.size">1KB</page-size>
+      <retain-consumed>{retain-values false}</retain-consumed>
     </paged-topic-scheme>
 
     <paged-topic-scheme>
@@ -243,6 +268,7 @@
       <scheme-ref>java-topic-scheme</scheme-ref>
       <storage>on-heap</storage>
       <page-size system-property="page.size">1KB</page-size>
+      <retain-consumed>{retain-values false}</retain-consumed>
     </paged-topic-scheme>
 
     <distributed-scheme>

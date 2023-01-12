@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,9 +13,9 @@ import com.tangosol.net.TopicService;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
+import com.tangosol.util.ValueExtractor;
 
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * NamedTopic represents a topic entity for publish/subscribe messaging.
@@ -24,7 +24,7 @@ import java.util.function.Function;
  * {@link Subscriber}s subscribe directly to the topic or subscribe to a logical {@link Subscriber.Name subscriber group} of the topic.
  * Each published value to a topic is delivered to all direct topic {@link Subscriber}s and
  * each subscriber group of the topic. Each value of a subscriber group is only consumed by one {@link Subscriber subscriber group member}.
- * Thus each subscriber group in effect behaves like a queue over the topic data.
+ * Thus, each subscriber group in effect behaves like a queue over the topic data.
  * <p>
  * Once {@link Publisher#publish published}, a value will be retained by the topic until it has either
  * expired or has been {@link Subscriber#receive received} by all {@link Subscriber.Name subscriber group(s)}
@@ -68,17 +68,17 @@ public interface NamedTopic<V>
      *
      * @return a {@link Publisher} that can publish values into this {@link NamedTopic}
      */
-    public Publisher<V> createPublisher(Publisher.Option<? super V>... options);
+    Publisher<V> createPublisher(Publisher.Option<? super V>... options);
 
     /**
      * Create a {@link Publisher} that can publish values into this {@link NamedTopic}.
      *
      * @return a {@link Publisher} that can publish values into this {@link NamedTopic}
      */
-    public default Publisher<V> createPublisher()
+    default Publisher<V> createPublisher()
         {
         // this method variant only exists so that callers which don't specify options won't get
-        // a compile time warning about the implicit generic array creation
+        // a compile-time warning about the implicit generic array creation
         return createPublisher(new Publisher.Option[0]);
         }
 
@@ -89,17 +89,17 @@ public interface NamedTopic<V>
      *
      * @return a {@link Subscriber} that can receive values from this {@link NamedTopic}
      */
-    public <U> Subscriber<U> createSubscriber(Subscriber.Option<? super V, U>... options);
+    <U> Subscriber<U> createSubscriber(Subscriber.Option<? super V, U>... options);
 
     /**
      * Create a direct {@link Subscriber} to the topic that receives all values from this {@link NamedTopic}.
      *
      * @return a {@link Subscriber} that can receive values from this {@link NamedTopic}
      */
-    public default Subscriber<V> createSubscriber()
+    default Subscriber<V> createSubscriber()
         {
         // this method variant only exists so that callers which don't specify options won't get
-        // a compile time warning about the implicit generic array creation
+        // a compile-time warning about the implicit generic array creation
         return createSubscriber(new Subscriber.Option[0]);
         }
 
@@ -111,7 +111,7 @@ public interface NamedTopic<V>
      * @throws IllegalStateException if the subscriber group already exists with a different filter
      *                               or converter function
      */
-    public default void ensureSubscriberGroup(String sName)
+    default void ensureSubscriberGroup(String sName)
         {
         ensureSubscriberGroup(sName, null, null);
         }
@@ -119,14 +119,14 @@ public interface NamedTopic<V>
     /**
      * Ensure that the specified subscriber group exists for this topic.
      *
-     * @param sName        the name of the subscriber group
-     * @param filter       the {@link Filter} used to filter messages to be received by subscribers in the group
-     * @param fnConverter  the {@link Function} used to convert messages to be received by subscribers in the group
+     * @param sName      the name of the subscriber group
+     * @param filter     the {@link Filter} used to filter messages to be received by subscribers in the group
+     * @param extractor  the {@link ValueExtractor} used to convert messages to be received by subscribers in the group
      *
      * @throws IllegalStateException if the subscriber group already exists with a different filter
-     *                               or converter function
+     *                               or converter extractor
      */
-    public void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter);
+    void ensureSubscriberGroup(String sName, Filter<?> filter, ValueExtractor<?, ?> extractor);
 
     /**
      * Destroy the {@link Subscriber.Name named} subscriber group for the associated topic.
@@ -144,13 +144,13 @@ public interface NamedTopic<V>
     Set<String> getSubscriberGroups();
 
     /**
-     * Specifies whether or not this NamedTopic has been destroyed.
-     *
+     * Specifies whether this NamedTopic has been destroyed.
+     * <p/>
      * Implementations must override this method to provide the necessary information.
      *
      * @return true if the NamedTopic has been destroyed; false otherwise
      */
-    public default boolean isDestroyed()
+    default boolean isDestroyed()
         {
         // to avoid cumbersome caller exception handling;
         // default is a no-op.
@@ -158,13 +158,13 @@ public interface NamedTopic<V>
         }
 
     /**
-     * Specifies whether or not this NamedTopic has been released.
-     *
+     * Specifies whether this NamedTopic has been released.
+     * <p/>
      * Implementations must override this method to provide the necessary information.
      *
      * @return true if the NamedTopic has been released; false otherwise
      */
-    public default boolean isReleased()
+    default boolean isReleased()
         {
         // to avoid cumbersome caller exception handling;
         // default is a no-op.
@@ -176,7 +176,7 @@ public interface NamedTopic<V>
      *
      *  @return the number of channels that this topic has
      */
-    public int getChannelCount();
+    int getChannelCount();
 
     /**
      * Returns the number of remaining messages to be read from the topic for the specific subscriber group.
@@ -244,7 +244,7 @@ public interface NamedTopic<V>
 
         /**
          * Obtain the name of the unit calculator. This is intended to be
-         * human readable for use in a monitoring tool; examples include
+         * human-readable for use in a monitoring tool; examples include
          * "SimpleMemoryCalculator" and "BinaryMemoryCalculator".
          *
          * @return the name of the unit calculator

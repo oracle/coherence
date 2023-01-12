@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -78,6 +78,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 import static com.tangosol.net.topic.Subscriber.Name.of;
 
+import static com.tangosol.net.topic.Subscriber.inGroup;
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -311,8 +312,8 @@ public class LocalNamedTopicTests
                 }
 
             // topic should contain just the first value
-            assertThat(subscriber.receive().get(10, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
-            assertThat(subscriber.receive().get(10, TimeUnit.MINUTES) == null, is(true));
+            assertThat(subscriber.receive().get(2, TimeUnit.MINUTES).getValue(), is(sPrefix + 0));
+            assertThat(subscriber.receive().get(2, TimeUnit.MINUTES) == null, is(true));
             }
 
         for (int i = 0; i < listFutures.size(); i++)
@@ -352,8 +353,8 @@ public class LocalNamedTopicTests
 
         NamedTopic<String> topic = ensureTopic();
 
-        Subscriber<String> subscriber1 = topic.createSubscriber(of("Foo"));
-        Subscriber<String> subscriber2 = topic.createSubscriber(of("Foo"));
+        Subscriber<String> subscriber1 = topic.createSubscriber(inGroup("Foo"));
+        Subscriber<String> subscriber2 = topic.createSubscriber(inGroup("Foo"));
         Subscriber<String> subscriber3 = topic.createSubscriber();
 
         subscriber1.close();

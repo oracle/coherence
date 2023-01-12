@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,8 +8,10 @@ package topics;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 
@@ -20,7 +22,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
-import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
@@ -42,15 +45,20 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+import static com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.withIdentifyingName;
 import static com.tangosol.net.topic.Subscriber.ChannelOwnershipListeners.withListener;
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
@@ -67,6 +75,8 @@ public class TopicSubscriberManagementTests
     @BeforeClass
     public static void setup()
         {
+        System.setProperty(WellKnownAddress.PROPERTY, "127.0.0.1");
+        System.setProperty(LocalHost.PROPERTY, "127.0.0.1");
         System.setProperty(LocalStorage.PROPERTY, "true");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
         System.setProperty(PagedTopicPartition.PROP_PUBLISHER_NOTIFICATION_EXPIRY_MILLIS, "10s");
@@ -172,14 +182,14 @@ public class TopicSubscriberManagementTests
 
             System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers " + caches.Subscribers.keySet());
 
-            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+            Set<SubscriberId> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberId> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
 
             System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers groupOne " + setSubscriberGroupOne);
             System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Subscribers groupTwo " + setSubscriberGroupTwo);
 
-            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getSubscriberId(), subscriberTwo.getSubscriberId()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getSubscriberId()));
 
             int cNotification = caches.Notifications.size();
             assertThat(cNotification, is(0));
@@ -198,7 +208,7 @@ public class TopicSubscriberManagementTests
             CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
 
             // disconnect subscriberOne *only* using its key
-            caches.disconnectSubscriber(subscriberOne.getKey());
+            caches.disconnectSubscriber(subscriberOne.getSubscriberGroupId(), subscriberOne.getSubscriberId());
 
             Eventually.assertDeferred(futureLostOne::isDone, is(true));
             assertThat(futureLostTwo.isDone(), is(false));
@@ -262,11 +272,11 @@ public class TopicSubscriberManagementTests
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
             Eventually.assertDeferred(() -> caches.Subscribers.keySet().size(), is(3));
 
-            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+            Set<SubscriberId> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberId> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
 
-            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getSubscriberId(), subscriberTwo.getSubscriberId()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getSubscriberId()));
 
             int cNotification = caches.Notifications.size();
             assertThat(cNotification, is(0));
@@ -285,7 +295,7 @@ public class TopicSubscriberManagementTests
             CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
 
             // disconnect subscriberOne *only* using the subscriber group name and subscriber id
-            caches.disconnectSubscriber(sGroupOne, subscriberOne.getId());
+            caches.disconnectSubscriber(subscriberOne.getSubscriberGroupId(), subscriberOne.getSubscriberId());
 
             Eventually.assertDeferred(futureLostOne::isDone, is(true));
             assertThat(futureLostTwo.isDone(), is(false));
@@ -348,11 +358,11 @@ public class TopicSubscriberManagementTests
 
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
 
-            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+            Set<SubscriberId> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberId> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
 
-            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getSubscriberId(), subscriberTwo.getSubscriberId()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getSubscriberId()));
 
             int cNotification = caches.Notifications.size();
             assertThat(cNotification, is(0));
@@ -420,24 +430,32 @@ public class TopicSubscriberManagementTests
         OwnershipListener  listenerTwo   = new OwnershipListener();
         OwnershipListener  listenerThree = new OwnershipListener();
 
+        SubscriberStateListener stateListenerOne   = new SubscriberStateListener();
+        SubscriberStateListener stateListenerTwo   = new SubscriberStateListener();
+        SubscriberStateListener stateListenerThree = new SubscriberStateListener();
+
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne), withIdentifyingName("one"));
+             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo), withIdentifyingName("two"));
+             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree), withIdentifyingName("three")))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(greaterThan(0)));
 
+            subscriberOne.addStateListener(stateListenerOne);
+            subscriberTwo.addStateListener(stateListenerTwo);
+            subscriberThree.addStateListener(stateListenerThree);
+
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
 
-            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+            Set<SubscriberId> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberId> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
 
-            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getSubscriberId(), subscriberTwo.getSubscriberId()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getSubscriberId()));
 
             int cNotification = caches.Notifications.size();
             assertThat(cNotification, is(0));
@@ -461,8 +479,16 @@ public class TopicSubscriberManagementTests
 
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnecting subscribers");
 
+            stateListenerOne.reset();
+            stateListenerTwo.reset();
+            stateListenerThree.reset();
+
             // disconnect ALL subscribers for topic
             caches.disconnectAllSubscribers();
+
+            stateListenerOne.awaitDisconnected(1, TimeUnit.MINUTES);
+            stateListenerTwo.awaitDisconnected(1, TimeUnit.MINUTES);
+            stateListenerThree.awaitDisconnected(1, TimeUnit.MINUTES);
 
             Eventually.assertDeferred(futureLostOne::isDone, is(true));
             Eventually.assertDeferred(futureLostTwo::isDone, is(true));
@@ -486,6 +512,10 @@ public class TopicSubscriberManagementTests
                     publisher.publish(sMessage).get(5, TimeUnit.MINUTES);
                     }
                 }
+
+            stateListenerOne.awaitConnected(1, TimeUnit.MINUTES);
+            stateListenerTwo.awaitConnected(1, TimeUnit.MINUTES);
+            stateListenerThree.awaitConnected(1, TimeUnit.MINUTES);
 
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for subscriber receives");
 
@@ -530,11 +560,11 @@ public class TopicSubscriberManagementTests
 
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
 
-            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+            Set<SubscriberId> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberId> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
 
-            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getSubscriberId(), subscriberTwo.getSubscriberId()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getSubscriberId()));
 
             int cNotification = caches.Notifications.size();
             assertThat(cNotification, is(0));
@@ -570,7 +600,6 @@ public class TopicSubscriberManagementTests
             assertThat(futureTwo.isDone(), is(false));
             assertThat(futureThree.isDone(), is(false));
 
-            
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for subscriber auto-reconnects");
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -602,11 +631,11 @@ public class TopicSubscriberManagementTests
 
             Eventually.assertDeferred(() -> caches.Subscribers.size(), is(3));
 
-            Set<SubscriberInfo.Key> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
-            Set<SubscriberInfo.Key> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
+            Set<SubscriberId> setSubscriberGroupOne = caches.getSubscribers(sGroupOne);
+            Set<SubscriberId> setSubscriberGroupTwo = caches.getSubscribers(sGroupTwo);
 
-            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getKey(), subscriberTwo.getKey()));
-            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getKey()));
+            assertThat(setSubscriberGroupOne, containsInAnyOrder(subscriberOne.getSubscriberId(), subscriberTwo.getSubscriberId()));
+            assertThat(setSubscriberGroupTwo, containsInAnyOrder(subscriberThree.getSubscriberId()));
 
             CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
             CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
@@ -649,9 +678,11 @@ public class TopicSubscriberManagementTests
         LocalPlatform      platform    = LocalPlatform.get();
 
         try (CoherenceClusterMember member    = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.of("127.0.0.1"),
+                                                                 LocalHost.of("127.0.0.1"),
                                                                  LocalStorage.disabled(),
                                                                  ClassName.of(Coherence.class),
-                                                                 s_testLogs.builder()))
+                                                                 s_testLogs))
             {
             Eventually.assertDeferred(() -> member.invoke(new IsCoherenceRunning()), is(true));
 
@@ -843,6 +874,73 @@ public class TopicSubscriberManagementTests
         private final List<Consumer<Set<Integer>>> f_listOnRevoked = new ArrayList<>();
 
         private final List<Consumer<Set<Integer>>> f_listOnLost = new ArrayList<>();
+        }
+
+    // ----- inner class: SubscriberStateListener ---------------------------
+
+    public static class SubscriberStateListener
+            implements PagedTopicSubscriber.StateListener
+        {
+        @Override
+        public void onStateChange(PagedTopicSubscriber<?> subscriber, int nNewState, int nPrevState)
+            {
+            f_lock.lock();
+            try
+                {
+                Logger.info("Subscriber state changed: from " + nPrevState + " to " + nNewState + " " + subscriber);
+                m_listState.add(nNewState);
+                if (nNewState == PagedTopicSubscriber.STATE_CONNECTED)
+                    {
+                    m_stateConnectedLatch.countDown();
+                    }
+                else if (nNewState == PagedTopicSubscriber.STATE_DISCONNECTED)
+                    {
+                    m_stateDisconnectedLatch.countDown();
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+
+        List<Integer> getStates()
+            {
+            return Collections.unmodifiableList(m_listState);
+            }
+
+        void awaitConnected(int nTimeout, TimeUnit units) throws InterruptedException
+            {
+            m_stateConnectedLatch.await(nTimeout, units);
+            }
+
+        void awaitDisconnected(int nTimeout, TimeUnit units) throws InterruptedException
+            {
+            m_stateDisconnectedLatch.await(nTimeout, units);
+            }
+
+        public void reset()
+            {
+            f_lock.lock();
+            try
+                {
+                m_listState.clear();
+                m_stateConnectedLatch = new CountDownLatch(1);
+                m_stateDisconnectedLatch = new CountDownLatch(1);
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+
+        private final List<Integer> m_listState = new ArrayList<>();
+
+        private CountDownLatch m_stateConnectedLatch = new CountDownLatch(1);
+
+        private CountDownLatch m_stateDisconnectedLatch = new CountDownLatch(1);
+
+        private Lock f_lock = new ReentrantLock();
         }
 
     // ----- data members ---------------------------------------------------

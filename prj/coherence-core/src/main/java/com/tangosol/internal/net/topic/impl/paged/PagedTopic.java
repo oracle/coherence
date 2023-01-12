@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,10 +21,10 @@ import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.Filter;
 
 import com.tangosol.io.ClassLoaderAware;
+import com.tangosol.util.ValueExtractor;
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * An implementation of a {@link NamedTopic} which provides global ordering.
@@ -78,9 +78,9 @@ public class PagedTopic<V>
         }
 
     @Override
-    public void ensureSubscriberGroup(String sName, Filter<?> filter, Function<?, ?> fnConverter)
+    public void ensureSubscriberGroup(String sName, Filter<?> filter, ValueExtractor<?, ?> extractor)
         {
-        f_pagedTopicCaches.ensureSubscriberGroup(sName, filter, fnConverter);
+        f_pagedTopicCaches.ensureSubscriberGroup(sName, filter, extractor);
         }
 
     @Override
@@ -90,8 +90,7 @@ public class PagedTopic<V>
             {
             throw new IllegalArgumentException("invalid group name");
             }
-
-        PagedTopicSubscriber.destroy(f_pagedTopicCaches, SubscriberGroupId.withName(sGroupName));
+        PagedTopicSubscriber.destroy(f_pagedTopicCaches, SubscriberGroupId.withName(sGroupName), 0L);
         }
 
     @Override

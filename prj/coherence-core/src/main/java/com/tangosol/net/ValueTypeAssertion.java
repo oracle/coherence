@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -118,7 +118,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             {
             if (mapping.usesRawTypes())
                 {
-                Logger.config("The topic \"" + sTopicName + "\" is configured without a value type "
+                Logger.finer("The topic \"" + sTopicName + "\" is configured without a value type "
                         + "but the application is requesting NamedTopic<" + getValueClassName() + ">");
                 return;
                 }
@@ -132,7 +132,6 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
                             + ">, but the application is requesting NamedTopic<" + getValueClassName() + ">");
                     }
                 }
-            return;
             }
 
         // ----- WithTypesAssertion methods ------------------------------------
@@ -231,7 +230,7 @@ public interface ValueTypeAssertion<V> extends NamedTopic.Option
             {
             if (!topicMapping.usesRawTypes())
                 {
-                Logger.config("The topic \"" + sTopicName + "\" has been configured as NamedTopic<"
+                Logger.finer("The topic \"" + sTopicName + "\" has been configured as NamedTopic<"
                         + topicMapping.getValueClassName()
                         + "> but the application is requesting the topic using raw types");
                 return;
