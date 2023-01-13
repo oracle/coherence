@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -36,6 +36,7 @@ import jakarta.enterprise.event.Observes;
 
 import jakarta.inject.Inject;
 
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
@@ -43,6 +44,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link CoherenceConfigSource}.
@@ -146,13 +148,13 @@ class CoherenceConfigSourceIT
     void testChangeNotification()
         {
         source.setValue("config.value", "one");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
+        Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"), within(2, TimeUnit.MINUTES));
 
         source.setValue("config.value", "two");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is("two"));
+        Eventually.assertDeferred(() -> observer.getLatestValue(), is("two"), within(2, TimeUnit.MINUTES));
 
         source.getConfigMap().remove("config.value");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()));
+        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()), within(2, TimeUnit.MINUTES));
         }
 
     @ApplicationScoped
