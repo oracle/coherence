@@ -545,12 +545,25 @@ public abstract class MBeanHelper
     */
     public static void unregisterPagedTopicMBean(Service service, NamedTopic<?> topic)
         {
+        unregisterPagedTopicMBean(service, topic.getName());
+        }
+
+    /**
+    * Unregister all managed objects related to the given topic name
+    * from the cluster registry.
+    *
+     * @param service     the topic service
+     * @param sTopicName  the topic name
+    */
+    public static void unregisterPagedTopicMBean(Service service, String sTopicName)
+        {
         try
             {
-            Cluster  cluster  = service.getCluster();
-            Registry registry = cluster.getManagement();
-            registry.unregister(registry.ensureGlobalName(getTopicMBeanName(topic)));
-            unregisterSubscriberGroupMBean(null, topic.getName(), service);
+            Cluster  cluster      = service.getCluster();
+            Registry registry     = cluster.getManagement();
+            String   sServiceName = service.getInfo().getServiceName();
+            registry.unregister(registry.ensureGlobalName(getTopicMBeanName(sServiceName, sTopicName)));
+            unregisterSubscriberGroupMBean(null, sTopicName, service);
             }
         catch (Throwable ignored) {}
         }
