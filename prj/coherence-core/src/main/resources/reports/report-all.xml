@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@
               xmlns="http://xmlns.oracle.com/coherence/coherence-report-group-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-group-config coherence-report-group-config.xsd">
 
-  <frequency>1m</frequency>
+  <frequency system-property="coherence.reporter.frequency">1m</frequency>
   <output-directory system-property="coherence.reporter.output.directory">./</output-directory>
   <report-list>
     <report-config>
