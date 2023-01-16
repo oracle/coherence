@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -38,9 +38,7 @@ import com.oracle.coherence.io.json.internal.InetAddressConverter;
 import com.oracle.coherence.io.json.internal.InetSocketAddressConverter;
 import com.oracle.coherence.io.json.internal.JsonObjectConverter;
 import com.oracle.coherence.io.json.internal.MapConverter;
-import com.oracle.coherence.io.json.internal.MathContextConverter;
 import com.oracle.coherence.io.json.internal.MissingClassConverter;
-import com.oracle.coherence.io.json.internal.RoundingModeConverter;
 import com.oracle.coherence.io.json.internal.SerializationGate;
 import com.oracle.coherence.io.json.internal.SerializationSupportConverter;
 import com.oracle.coherence.io.json.internal.ThrowableConverter;
@@ -65,9 +63,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import java.lang.ref.WeakReference;
-
-import java.math.MathContext;
-import java.math.RoundingMode;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -165,9 +160,7 @@ public class JsonSerializer
                 .withConverter(InetAddressConverter.INSTANCE, Inet4Address.class)
                 .withConverter(InetAddressConverter.INSTANCE, Inet6Address.class)
                 .withConverter(InetSocketAddressConverter.INSTANCE, InetSocketAddress.class)
-                .withConverter(JsonObjectConverter.INSTANCE, JsonObject.class)
-                .withConverter(MathContextConverter.INSTANCE, MathContext.class)
-                .withConverter(RoundingModeConverter.INSTANCE, RoundingMode.class);
+                .withConverter(JsonObjectConverter.INSTANCE, JsonObject.class);
 
         addSafeBundle(builder, JsonbBundle.class);
         addSafeBundle(builder, JSR353Bundle.class);
@@ -434,7 +427,7 @@ public class JsonSerializer
          * @param sClzGensonBundle  the {@link GensonBundle} class (as String) to instantiate
          *                          and invoke if {@code sClzGuard} can be loaded
          */
-        private BundleProxy(String sClzGuard, String sClzGensonBundle)
+        protected BundleProxy(String sClzGuard, String sClzGensonBundle)
             {
             f_sClzName        = sClzGuard;
             f_sClzGensonBundle = sClzGensonBundle;
@@ -475,13 +468,13 @@ public class JsonSerializer
          * The type that must be loadable before the {@link GensonBundle}
          * may be instantiated and invoked.
          */
-        private final String f_sClzName;
+        protected final String f_sClzName;
 
         /**
          * The {@link GensonBundle} (as String) to instantiate and invoke if the type
          * guard was successfully loaded.
          */
-        private final String f_sClzGensonBundle;
+        protected final String f_sClzGensonBundle;
         }
 
     // ----- constants ------------------------------------------------------

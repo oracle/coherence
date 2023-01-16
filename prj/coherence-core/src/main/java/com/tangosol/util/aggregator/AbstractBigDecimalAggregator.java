@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,15 +8,12 @@
 package com.tangosol.util.aggregator;
 
 import com.tangosol.internal.util.aggregator.BigDecimalSerializationWrapper;
-
 import com.tangosol.util.ValueExtractor;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
-
-import java.util.Objects;
 
 /**
 * Abstract aggregator that processes {@link Number} values extracted from
@@ -29,7 +26,7 @@ import java.util.Objects;
 * @param <T>  the type of the value to extract from
 *
 * @author gg              2006.02.13
-* @author Gunnar Hillert  2022.06.01
+* @author Gunnar Hillert  2006.06.01
 * @since Coherence 3.2
 */
 public abstract class AbstractBigDecimalAggregator<T>
@@ -113,44 +110,6 @@ public abstract class AbstractBigDecimalAggregator<T>
             }
         }
 
-    // ----- Object methods -------------------------------------------------
-
-    @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
-            return true;
-            }
-        if (!(o instanceof AbstractBigDecimalAggregator<?> that))
-            {
-            return false;
-            }
-        if (!super.equals(o))
-            {
-            return false;
-            }
-        return Objects.equals(isStripTrailingZeros(), that.isStripTrailingZeros())
-               && Objects.equals(getScale(), that.getScale())
-               && Objects.equals(getMathContext(), that.getMathContext())
-               && getRoundingMode() == that.getRoundingMode();
-        }
-
-    @Override
-    public int hashCode()
-        {
-        return Objects.hash(super.hashCode(), getScale(), getMathContext(),
-                getRoundingMode(), isStripTrailingZeros());
-        }
-
-    @Override
-    public String toString()
-        {
-        String str = "{scale=%s, roundingMode=%s, mathContext={%s}, stripTrailingZeroes=%s}";
-        return super.toString() +
-               String.format(str, getScale(), getRoundingMode(),
-                             getMathContext(), isStripTrailingZeros());
-        }
 
     // ----- helper methods -------------------------------------------------
 
@@ -214,7 +173,7 @@ public abstract class AbstractBigDecimalAggregator<T>
         }
 
     /**
-     * Specifies the scale to be applied to the aggregated result. Typically, scale is set together with
+     * Specifies the scale to be applied to the aggregated result. Typically scale is set together with
      * {@link #setRoundingMode(RoundingMode)}. However, if the specified scaling operation would require rounding then
      * a ArithmeticException will be thrown. If {@link #setMathContext(MathContext)} is specified and the operation
      * supports the {@link MathContext} then the {@link #setScale(Integer)} property is ignored.
@@ -235,7 +194,7 @@ public abstract class AbstractBigDecimalAggregator<T>
         }
 
     /**
-     * Sets the MathContext (allowing you to work with precision instead of scale).
+     * Sets the MathContext (allowing you to work with precission instead of scale).
      * If a {@link BigDecimal} operation supports both {@link MathContext} or scale and both properties are specified,
      * then the {@link MathContext} is used and the scale is ignored.
      * @param mathContext the MathContext to set.
