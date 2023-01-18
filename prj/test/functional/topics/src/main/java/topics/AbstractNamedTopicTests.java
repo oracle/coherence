@@ -3219,15 +3219,21 @@ public abstract class AbstractNamedTopicTests
 
             // we're now at the tail of a page
             // Seek subscriber one to the last timestamp read by subscription two
+            System.err.println(">>>> Seeking subscriber one to timestamp from element: " + element + " ");
             result = subscriberOne.seek(element.getChannel(), element.getTimestamp());
             // should have a seeked result
             assertThat(result, is(notNullValue()));
+            System.err.println(">>>> Seeked subscriber one to timestamp from element: " + element + " result: " + result);
 
             // Poll the next element for each subscriber, they should match
             elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementTwo, is(notNullValue()));
             elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementOne, is(notNullValue()));
+
+            System.err.println(">>>> ElementOne: " + elementOne + " ");
+            System.err.println(">>>> ElementTwo: " + elementOne + " ");
+
             assertThat(elementOne.getPosition(), is(elementTwo.getPosition()));
             assertThat(elementOne.getValue(), is(elementTwo.getValue()));
 
