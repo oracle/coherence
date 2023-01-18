@@ -115,14 +115,13 @@ public abstract class AbstractBigDecimalAggregator<T>
 
     // ----- Object methods -------------------------------------------------
 
-    @Override
     public boolean equals(Object o)
         {
         if (this == o)
             {
             return true;
             }
-        if (!(o instanceof AbstractBigDecimalAggregator<?> that))
+        if (!(o instanceof AbstractBigDecimalAggregator<?>))
             {
             return false;
             }
@@ -130,26 +129,17 @@ public abstract class AbstractBigDecimalAggregator<T>
             {
             return false;
             }
-        return Objects.equals(isStripTrailingZeros(), that.isStripTrailingZeros())
+        AbstractBigDecimalAggregator<?> that = (AbstractBigDecimalAggregator<?>) o;
+        return isStripTrailingZeros() == that.isStripTrailingZeros()
                && Objects.equals(getScale(), that.getScale())
                && Objects.equals(getMathContext(), that.getMathContext())
                && getRoundingMode() == that.getRoundingMode();
         }
 
-    @Override
     public int hashCode()
         {
         return Objects.hash(super.hashCode(), getScale(), getMathContext(),
                 getRoundingMode(), isStripTrailingZeros());
-        }
-
-    @Override
-    public String toString()
-        {
-        String str = "{scale=%s, roundingMode=%s, mathContext={%s}, stripTrailingZeroes=%s}";
-        return super.toString() +
-               String.format(str, getScale(), getRoundingMode(),
-                             getMathContext(), isStripTrailingZeros());
         }
 
     // ----- helper methods -------------------------------------------------
