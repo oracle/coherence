@@ -25,6 +25,11 @@ import com.tangosol.util.Binary;
 
 import com.tangosol.util.ExternalizableHelper;
 
+import com.tangosol.util.aggregator.BigDecimalAverage;
+import com.tangosol.util.aggregator.BigDecimalMax;
+import com.tangosol.util.aggregator.BigDecimalMin;
+import com.tangosol.util.aggregator.BigDecimalSum;
+import com.tangosol.util.aggregator.PriorityAggregator;
 import com.tangosol.util.comparator.SafeComparator;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -40,6 +45,7 @@ import java.io.StringWriter;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 
 import java.nio.charset.StandardCharsets;
 
@@ -61,8 +67,8 @@ import java.util.function.Supplier;
 
 import javax.naming.Name;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -82,14 +88,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author jf  2018.03.09
  * @since 20.06
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 class JsonSerializerTest
         extends AbstractSerializerTest
     {
     // ----- test lifecycle -------------------------------------------------
 
     @BeforeClass
-    public void _beforeClass()
+    public static void _beforeClass()
         {
         System.setProperty("coherence.log.level", "9");
         }
@@ -125,16 +131,6 @@ class JsonSerializerTest
 
         assertThat(serializer.getContextClassLoader(), is(sameInstance(loader)));
         }
-
-//    @Test
-//    void shouldNotSetLoaderTwice() {
-//        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-//        JsonSerializer serializer = new JsonSerializer();
-//
-//        serializer.setContextClassLoader(loader);
-//
-//        assertThrows(AssertionError.class, () -> serializer.setContextClassLoader(mock(ClassLoader.class)));
-//    }
 
     @Test
     void testBasicSerialization()
@@ -203,7 +199,7 @@ class JsonSerializerTest
     @Test
     @Disabled("Excluded due to bug in PutAll equality")
     void testMapWithAnArrayValue()
-            throws IOException, ClassNotFoundException
+            throws IOException
         {
         Map<Person, Object> map = new LinkedHashMap<>();
         map.put(new Person("Smith", 12, true), new Integer[] {1, 2, 3});
@@ -668,15 +664,16 @@ class JsonSerializerTest
             throws IOException
         {
         assertRoundTrip(Optional.empty());
-        assertRoundTrip(Optional.ofNullable(null));
-        assertRoundTrip(Optional.ofNullable("String"));
-        assertRoundTrip(Optional.ofNullable(42));
-        assertRoundTrip(Optional.ofNullable(42.35));
-        assertRoundTrip(Optional.ofNullable(true));
-        assertRoundTrip(Optional.ofNullable(false));
-        assertRoundTrip(Optional.ofNullable(new Person("smith", 33, false)));
+        assertRoundTrip(Optional.empty());
+        assertRoundTrip(Optional.of("String"));
+        assertRoundTrip(Optional.of(42));
+        assertRoundTrip(Optional.of(42.35));
+        assertRoundTrip(Optional.of(true));
+        assertRoundTrip(Optional.of(false));
+        assertRoundTrip(Optional.of(new Person("smith", 33, false)));
         }
 
+    @SuppressWarnings("EqualsWithItself")
     @Test
     void testSafeComparator()
             throws IOException
@@ -700,7 +697,7 @@ class JsonSerializerTest
         }
 
     @Test
-    public void shouldSerializeBackslash() throws Exception
+    public void shouldSerializeBackslash()
         {
         JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
                                                        builder -> builder.setEnforceTypeAliases(false),
@@ -719,7 +716,39 @@ class JsonSerializerTest
         }
 
     @Test
-    public void testUnicodeEscape() throws Exception
+    public void shouldRoundTripBigDecimalAggregatorsNoMathContext()
+            throws Exception
+        {
+        assertRoundTrip(new BigDecimalAverage<>("age"));
+        assertRoundTrip(new BigDecimalMax<>("age"));
+        assertRoundTrip(new BigDecimalMin<>("age"));
+        assertRoundTrip(new BigDecimalSum<>("age"));
+        }
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void shouldRoundTripBigDecimalAggregatorsWithMathContext()
+            throws Exception
+        {
+        MathContext       mCtx = new MathContext(10);
+        BigDecimalAverage avg  = new BigDecimalAverage("age");
+        BigDecimalMax     max  = new BigDecimalMax("age");
+        BigDecimalMin     min  = new BigDecimalMin("age");
+        BigDecimalSum     sum  = new BigDecimalSum("age");
+
+        avg.setMathContext(mCtx);
+        max.setMathContext(mCtx);
+        min.setMathContext(mCtx);
+        sum.setMathContext(mCtx);
+
+        assertRoundTrip(avg);
+        assertRoundTrip(max);
+        assertRoundTrip(min);
+        assertRoundTrip(sum);
+        }
+
+    @Test
+    public void testUnicodeEscape()
         {
         StringWriter sw = new StringWriter();
         JsonWriter   w  = new JsonWriter(sw);
@@ -734,8 +763,8 @@ class JsonSerializerTest
         JsonReader reader = new JsonReader(sw.toString());
         reader.beginObject();
         reader.next();
-        Assert.assertEquals("key", reader.name());
-        Assert.assertEquals(sNonUnicode, reader.valueAsString());
+        assertEquals("key", reader.name());
+        assertEquals(sNonUnicode, reader.valueAsString());
 
         sw = new StringWriter();
         w  = new JsonWriter(sw);
@@ -749,8 +778,8 @@ class JsonSerializerTest
         reader = new JsonReader(sw.toString());
         reader.beginObject();
         reader.next();
-        Assert.assertEquals("key", reader.name());
-        Assert.assertEquals(sNonUnicode, reader.valueAsString());
+        assertEquals("key", reader.name());
+        assertEquals(sNonUnicode, reader.valueAsString());
 
         sw = new StringWriter();
         w  = new JsonWriter(sw);
@@ -764,8 +793,8 @@ class JsonSerializerTest
         reader = new JsonReader(sw.toString());
         reader.beginObject();
         reader.next();
-        Assert.assertEquals("key", reader.name());
-        Assert.assertEquals("\\u00Z", reader.valueAsString());
+        assertEquals("key", reader.name());
+        assertEquals("\\u00Z", reader.valueAsString());
         }
 
 
@@ -814,8 +843,7 @@ class JsonSerializerTest
                     {
                     return m_value.equals(that.m_value);
                     }
-                if (m_values instanceof Collection &&
-                    that.m_values instanceof Collection)
+                if (m_values != null && that.m_values != null)
                     {
                     return m_values.containsAll(that.m_values);
                     }
