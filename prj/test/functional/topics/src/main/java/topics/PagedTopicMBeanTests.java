@@ -238,8 +238,8 @@ public class PagedTopicMBeanTests
 
             topic.destroy();
 
-            assertThat(s_mBeanProxy.queryNames(sQueryOne, Filters.always()), is(emptyIterable()));
-            assertThat(s_mBeanProxy.queryNames(sQueryTwo, Filters.always()), is(emptyIterable()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sQueryOne, Filters.always()), is(emptyIterable()));
+            Eventually.assertDeferred(() -> s_mBeanProxy.queryNames(sQueryTwo, Filters.always()), is(emptyIterable()));
             }
         }
 
