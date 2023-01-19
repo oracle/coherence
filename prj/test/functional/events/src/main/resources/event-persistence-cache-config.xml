@@ -30,7 +30,7 @@
     <distributed-scheme>
       <scheme-name>simple-persistence</scheme-name>
       <service-name>DistributedCachePersistence</service-name>
-      <thread-count-min system-property="test.threads">0</thread-count-min>
+      <thread-count-min system-property="test.threads">2</thread-count-min>
       <backing-map-scheme>
         <transient>{transient false}</transient>
         <local-scheme/>
