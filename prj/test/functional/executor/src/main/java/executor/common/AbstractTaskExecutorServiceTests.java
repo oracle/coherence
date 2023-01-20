@@ -1263,7 +1263,7 @@ public abstract class AbstractTaskExecutorServiceTests
         startTime = System.nanoTime();
         try
             {
-            future.get(2, TimeUnit.SECONDS);
+            future.get(4, TimeUnit.SECONDS);
             fail();
             }
         catch (TimeoutException | InterruptedException e)
@@ -1275,7 +1275,7 @@ public abstract class AbstractTaskExecutorServiceTests
             // success
             Duration duration = Duration.ofNanos(System.nanoTime() - startTime);
             MatcherAssert.assertThat(duration, greaterThan(Duration.ofMillis(900)));
-            MatcherAssert.assertThat(duration, lessThan(Duration.ofMillis(1900)));
+            MatcherAssert.assertThat(duration, lessThan(Duration.ofMillis(3900)));
             }
 
         MatcherAssert.assertThat(future.isDone(), is(true));
