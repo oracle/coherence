@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -916,6 +916,31 @@ public abstract class BaseManagementInfoResourceTests
         Number nMemberId = listMemberIds.get(0);
 
         response = getBaseTarget().path("members").path(nMemberId + "")
+                .path("resetStatistics").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(null);
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        }
+
+    @Test
+    public void testProxyConnectionManagerResetStats()
+        {
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
+
+        assertThat(listMemberIds, notNullValue());
+        assertThat(listMemberIds.size(), greaterThan(0));
+
+        Number nMemberId = listMemberIds.get(0);
+
+        response = getBaseTarget().path("services").path(getQuotedScopedServiceName(PROXY_SERVICE_NAME))
+                .path("members").path(nMemberId + "").path("proxy")
                 .path("resetStatistics").request(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
 

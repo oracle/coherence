@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
 
@@ -40,6 +40,7 @@ public class ServiceMemberResource
 
         router.addPost(sPathRoot, this::updateAttributes);
         router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
+        router.addPost(sPathRoot + "/" + PROXY + "/" + RESET_STATS, this::resetStatisticsProxy);
         router.addPost(sPathRoot + "/start", this::start);
         router.addPost(sPathRoot + "/stop", this::stop);
         router.addPost(sPathRoot + "/shutdown", this::shutdown);
@@ -135,6 +136,16 @@ public class ServiceMemberResource
         }
 
     /**
+     * Call "resetStatistics" operation on ConnectionManagerMBean.
+     *
+     * @return the response object
+     */
+    public Response resetStatisticsProxy(HttpRequest request)
+        {
+        return executeNoArgOperationProxy(request, RESET_STATS);
+        }
+
+    /**
      * Call "start/stop/shutdown" operation on ServiceMBean.
      *
      * @return the response object
@@ -164,11 +175,32 @@ public class ServiceMemberResource
         return executeNoArgOperation(request, "shutdown");
         }
 
+    /**
+     * Execute an MBean operation against a service member.
+     * @param request         {@link HttpRequest}
+     * @param sOperationName  operation to call
+     *
+     * @return the response object
+     */
     public Response executeNoArgOperation(HttpRequest request, String sOperationName)
         {
         String sServiceName = request.getFirstPathParameter(SERVICE_NAME);
         String sMemberKey   = request.getFirstPathParameter(MEMBER_KEY);
         return executeMBeanOperation(request, getQuery(request, sServiceName, sMemberKey), sOperationName, null, null);
+        }
+
+    /**
+     * Execute an MBean operation against a proxy member.
+     * @param request         {@link HttpRequest}
+     * @param sOperationName  operation to call
+     *
+     * @return the response object
+     */
+    public Response executeNoArgOperationProxy(HttpRequest request, String sOperationName)
+        {
+        String sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        String sMemberKey   = request.getFirstPathParameter(MEMBER_KEY);
+        return executeMBeanOperation(request, getConnectionManagerQuery(request, sServiceName, sMemberKey), sOperationName, null, null);
         }
 
     // ----- POST API(Update) -----------------------------------------------
