@@ -379,7 +379,7 @@
         ],
         "summary": "Reset Member Statistics for all the members",
         "description": "Use this endpoint to clear the current statistics for all the members.",
-        "operationId": "/management/coherence/cluster/resetStatististics POST",
+        "operationId": "/management/coherence/cluster/resetStatistics POST",
         "produces": [
           "application/json"
         ],
@@ -810,7 +810,7 @@
         ],
         "summary": "Reset Member Statistics",
         "description": "Use this endpoint to clear the current statistics for a specific member.",
-        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/resetStatististics POST",
+        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/resetStatistics POST",
         "produces": [
           "application/json"
         ],
@@ -2425,6 +2425,32 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/proxy/resetStatistics": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Reset Connection Manager Statistics",
+        "description": "Use this endpoint to clear the current statistics for a specific connection manager member.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/members/{memberIdentifier}/proxy/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
           }
         }
       }
