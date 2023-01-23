@@ -22,7 +22,7 @@
   <name>Coherence Topics 22.06.3 Tests</name>
 
   <properties>
-    <coherence.compatibility.version>22.06.3-SNAPSHOT</coherence.compatibility.version>
+    <coherence.compatibility.version>22.06.3</coherence.compatibility.version>
   </properties>
 
   <dependencies>
