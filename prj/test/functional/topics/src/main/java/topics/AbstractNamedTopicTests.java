@@ -3231,8 +3231,8 @@ public abstract class AbstractNamedTopicTests
             elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementOne, is(notNullValue()));
 
-            System.err.println(">>>> ElementOne: " + elementOne + " ");
-            System.err.println(">>>> ElementTwo: " + elementOne + " ");
+            System.err.println(">>>> ElementOne: " + elementOne);
+            System.err.println(">>>> ElementTwo: " + elementTwo);
 
             assertThat(elementOne.getPosition(), is(elementTwo.getPosition()));
             assertThat(elementOne.getValue(), is(elementTwo.getValue()));
@@ -3270,7 +3270,9 @@ public abstract class AbstractNamedTopicTests
 
             // we're now at the head of a page
             // Seek subscriber one to the last timestamp read by subscription two
+            System.err.println(">>>> Seeking subscriber one to timestamp from element: " + element + " ");
             result = subscriberOne.seek(element.getChannel(), element.getTimestamp());
+            System.err.println(">>>> Seeked subscriber one to timestamp from element: " + element + " result: " + result);
             // should have correct seeked result
             assertThat(result, is(expectedSeekPosition));
 
@@ -3279,6 +3281,8 @@ public abstract class AbstractNamedTopicTests
             assertThat(elementTwo, is(notNullValue()));
             elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementOne, is(notNullValue()));
+            System.err.println(">>>> ElementOne: " + elementOne);
+            System.err.println(">>>> ElementTwo: " + elementTwo);
             assertThat(elementOne.getPosition(), is(elementTwo.getPosition()));
             assertThat(elementOne.getValue(), is(elementTwo.getValue()));
             }
