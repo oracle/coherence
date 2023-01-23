@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -128,6 +128,7 @@ class CoherenceConfigSourceIT
         MatcherAssert.assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
         MatcherAssert.assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));
         MatcherAssert.assertThat(config.getValue("config.value", String.class), is("cache"));
+        MatcherAssert.assertThat(source.getValue("config.value"), is("cache"));
         }
 
     @Test
@@ -146,9 +147,11 @@ class CoherenceConfigSourceIT
     void testChangeNotification()
         {
         source.setValue("config.value", "one");
+        MatcherAssert.assertThat(source.getValue("config.value"), is("one"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
 
         source.setValue("config.value", "two");
+        MatcherAssert.assertThat(source.getValue("config.value"), is("two"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("two"));
 
         source.getConfigMap().remove("config.value");
@@ -169,6 +172,7 @@ class CoherenceConfigSourceIT
             {
             System.out.println("[TestObserver.observer] : " + event);
             latestValue = event.getValue();
+            System.out.println("[TestObserver.observer event latest val] : " + latestValue);
             }
         }
 
