@@ -36,7 +36,6 @@ import jakarta.enterprise.event.Observes;
 
 import jakarta.inject.Inject;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
@@ -44,7 +43,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
-import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link CoherenceConfigSource}.
@@ -130,6 +128,7 @@ class CoherenceConfigSourceIT
         MatcherAssert.assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
         MatcherAssert.assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));
         MatcherAssert.assertThat(config.getValue("config.value", String.class), is("cache"));
+        MatcherAssert.assertThat(source.getValue("config.value"), is("cache"));
         }
 
     @Test
@@ -148,13 +147,15 @@ class CoherenceConfigSourceIT
     void testChangeNotification()
         {
         source.setValue("config.value", "one");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"), within(2, TimeUnit.MINUTES));
+        MatcherAssert.assertThat(source.getValue("config.value"), is("one"));
+        Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
 
         source.setValue("config.value", "two");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is("two"), within(2, TimeUnit.MINUTES));
+        MatcherAssert.assertThat(source.getValue("config.value"), is("two"));
+        Eventually.assertDeferred(() -> observer.getLatestValue(), is("two"));
 
         source.getConfigMap().remove("config.value");
-        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()), within(2, TimeUnit.MINUTES));
+        Eventually.assertDeferred(() -> observer.getLatestValue(), is(nullValue()));
         }
 
     @ApplicationScoped
@@ -171,6 +172,7 @@ class CoherenceConfigSourceIT
             {
             System.out.println("[TestObserver.observer] : " + event);
             latestValue = event.getValue();
+            System.out.println("[TestObserver.observer event latest val] : " + latestValue);
             }
         }
 
