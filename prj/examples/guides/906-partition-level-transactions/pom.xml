@@ -19,7 +19,7 @@
   <properties>
     <revision>15.1.1-0-0-SNAPSHOT</revision>
 
-    <coherence.group.id>com.oracle.coherence</coherence.group.id>
+    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
 
     <java.version>17</java.version>
