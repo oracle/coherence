@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.common.util.Threads;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
@@ -46,8 +48,12 @@ import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.junit.After;
@@ -598,6 +604,83 @@ public class CQCTests
             cacheView.destroy();
             }
         }
+
+    /**
+     * Test case for https://jira.oraclecorp.com/jira/browse/COH-27085.
+     * CQC clients deadlock between ObservableHashMap and
+     * ContinuousQueryCache.ensureSynchronized
+     */
+    @Test
+    public void testCoh27085() throws Exception
+        {
+        int                     nAttempts = 1000;
+        NamedCache              raw       = getNamedCache("dist-test");
+        ExecutorService         service   = Executors.newFixedThreadPool(2);
+        AtomicInteger           t1Counter = new AtomicInteger();
+        AtomicInteger           t2Counter = new AtomicInteger();
+        AtomicReference<String> t1Name    = new AtomicReference<>();
+        AtomicReference<String> t2Name    = new AtomicReference<>();
+
+        Thread.sleep(3000);
+
+        service.submit(() ->
+                       {
+                       String sName = Thread.currentThread().getName();
+                       t1Name.set(sName);
+                       Logger.info(String.format("Starting thread [%s] which will create CQC instances", sName));
+                       while (t1Counter.incrementAndGet() < nAttempts)
+                           {
+                           try
+                               {
+                               new ContinuousQueryCache(raw);
+                               }
+                           catch (IllegalStateException ignored)
+                               {
+                               continue;
+                               }
+                           catch (Throwable t)
+                               {
+                               Logger.err(t);
+                               }
+                           Thread.yield();
+                           }
+                       Logger.info(String.format("Thread [%s] complete", sName));
+                       });
+
+        service.submit(() ->
+                       {
+                       String sName = Thread.currentThread().getName();
+                       t2Name.set(sName);
+                       Logger.info(String.format("Starting thread [%s] which will call truncate on distributed cache", sName));
+                       while (t2Counter.incrementAndGet() < nAttempts)
+                           {
+                           raw.truncate();
+                           Thread.yield();
+                           }
+                       Logger.info(String.format("Thread [%s] complete", sName));
+                       });
+
+        try
+            {
+            Eventually.assertDeferred(t1Counter::get, is(nAttempts),
+                                      Eventually.within(20, TimeUnit.SECONDS));
+            Eventually.assertDeferred(t2Counter::get, is(nAttempts),
+                                      Eventually.within(20, TimeUnit.SECONDS));
+            }
+        catch (Throwable t)
+            {
+            String sMsg = "Deadlock detected!  Look for threads %s and %s in the following thread dump:";
+            Logger.err(String.format(sMsg, t1Name.get(), t2Name.get()));
+            System.out.println(Threads.getThreadDump(Threads.LockAnalysis.FULL));
+            throw t;
+            }
+        finally
+            {
+            service.shutdownNow();
+            }
+        }
+
+    // ----- helper methods -------------------------------------------------
 
     /**
      * Stop the inner service.
