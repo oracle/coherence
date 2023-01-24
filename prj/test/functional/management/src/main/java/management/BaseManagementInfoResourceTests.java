@@ -3513,6 +3513,16 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(item, allOf(hasKey("channels"),
                                hasKey("filter"),
                                hasKey("transformer")));
+
+        String subscriberGroupUrl = sTopicSubscriberGroupsUrl + "/" + SUBSCRIBER_GROUP_NAME + "A";
+        target = m_client.target(subscriberGroupUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        String subscriberGroupMemberUrl = sTopicSubscriberGroupsUrl + "/" + SUBSCRIBER_GROUP_NAME + "A/1";
+        target = m_client.target(subscriberGroupMemberUrl);
+        response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         }
 
     // ----- utility methods----------------------------------------------------
