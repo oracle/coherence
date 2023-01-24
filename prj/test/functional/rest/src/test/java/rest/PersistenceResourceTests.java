@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,6 +54,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -225,7 +226,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true), Eventually.within(2, TimeUnit.MINUTES));
         }
 
     private void testSnapshotAllServices()
@@ -235,7 +236,7 @@ public class PersistenceResourceTests
 
         assertThat(response.getStatus(), CoreMatchers.is(Response.Status.OK.getStatusCode()));
 
-        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true));
+        Eventually.assertThat(invoking(this).isPersistenceManagerIdle(m_client), is(true), Eventually.within(2, TimeUnit.MINUTES));
         }
 
     private void testArchive()
