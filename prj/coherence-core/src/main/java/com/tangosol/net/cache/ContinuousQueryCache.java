@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.cache;
 
@@ -1894,11 +1894,20 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             {
             if (getState() <= STATE_CONFIGURING)
                 {
-                // since the listeners are being configured and the local
-                // cache is being populated, assume that the event is
-                // being processed out-of-order and requires a subsequent
-                // synchronization of the corresponding value
-                mapSyncReq.put(oKey, null);
+                // handle a truncation event being received during configuration
+                // clear any currently pending events.
+                if (DeactivationListener.class.getName().equals(oKey))
+                    {
+                    mapSyncReq.clear();
+                    }
+                else
+                    {
+                    // since the listeners are being configured and the local
+                    // cache is being populated, assume that the event is
+                    // being processed out-of-order and requires a subsequent
+                    // synchronization of the corresponding value
+                    mapSyncReq.put(oKey, null);
+                    }
                 fDeferred = true;
                 }
             else
@@ -1909,7 +1918,6 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
                 mapSyncReq.keySet().remove(oKey);
                 }
             }
-
         return fDeferred;
         }
 
@@ -2527,15 +2535,23 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         @Override
         public void entryUpdated(MapEvent evt)
             {
-            // "truncate" event
-            ObservableMap mapInternal = getInternalCache();
-            if (mapInternal instanceof ObservableHashMap)
+            // don't process if event should be deferred.  Record
+            // the event happening to re-trigger synchronization
+            if (!isEventDeferred(DeactivationListener.class.getName()))
                 {
-                ((ObservableHashMap) mapInternal).truncate();
-                }
-            else
-                {
-                mapInternal.clear();
+                // process truncate
+                Map<?, ?> local = m_mapLocal;
+                if (local != null)
+                    {
+                    if (local instanceof ObservableHashMap)
+                        {
+                        ((ObservableHashMap<?, ?>) local).truncate();
+                        }
+                    else
+                        {
+                        local.clear();
+                        }
+                    }
                 }
             }
         }
