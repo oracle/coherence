@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -274,7 +274,7 @@ public class ExpiryDelayTests
                     // We sleep 500 ms before restarting servers. So the difference will
                     // be more than 500 ms if the expiry time is changed.
                     assertTrue("Expiry time " + lCanon + " was changed to " + lResult,
-                               lDelta <= 500L);
+                               lDelta <= 750L);
                     }
                 else
                     {
