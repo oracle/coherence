@@ -153,6 +153,14 @@ This guide walks you through a use case for key association in Coherence.
 --
 
 [CARD]
+.Partition Level Transactions
+[link=examples/guides/906-partition-level-transactions/README.adoc]
+--
+This guide explains how to atomically access and update multiple related entries using
+an `EntryProcessor` in a partition level transaction.
+--
+
+[CARD]
 .Multi-Cluster Client
 [link=examples/guides/910-multi-cluster-client/README.adoc]
 --

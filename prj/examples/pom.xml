@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -46,6 +46,7 @@
     <module>guides/210-ssl</module>
     <module>guides/460-topics</module>
     <module>guides/905-key-association</module>
+    <module>guides/906-partition-level-transactions</module>
     <module>guides/910-multi-cluster-client</module>
     <module>tutorials/200-persistence</module>
     <module>tutorials/500-graphql/initial</module>
