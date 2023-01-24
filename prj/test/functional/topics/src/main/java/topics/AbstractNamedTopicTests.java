@@ -3204,7 +3204,6 @@ public abstract class AbstractNamedTopicTests
             pagedPosition        = (PagedPosition) element.getPosition();
             nOffset              = pagedPosition.getOffset();
             page                 = caches.Pages.get(new Page.Key(nChannel, pagedPosition.getPage()));
-            expectedSeekPosition = pagedPosition;
 
             // keep reading until subscriber two has read the tail of the page
             while (nOffset != page.getTail())
@@ -3214,13 +3213,13 @@ public abstract class AbstractNamedTopicTests
                 element              = future.get(2, TimeUnit.MINUTES);
                 pagedPosition        = (PagedPosition) element.getPosition();
                 nOffset              = pagedPosition.getOffset();
-                expectedSeekPosition = pagedPosition;
                 }
 
             // we're now at the tail of a page
             // Seek subscriber one to the last timestamp read by subscription two
             System.err.println(">>>> Seeking subscriber one to timestamp from element: " + element + " ");
-            result = subscriberOne.seek(element.getChannel(), element.getTimestamp());
+            seekTimestamp = element.getTimestamp();
+            result = subscriberOne.seek(element.getChannel(), seekTimestamp);
             // should have a seeked result
             assertThat(result, is(notNullValue()));
             System.err.println(">>>> Seeked subscriber one to timestamp from element: " + element + " result: " + result);
@@ -3228,6 +3227,13 @@ public abstract class AbstractNamedTopicTests
             // Poll the next element for each subscriber, they should match
             elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementTwo, is(notNullValue()));
+            // ensure that we have read a later timestamp than the seeked to position
+            while (!elementTwo.getTimestamp().isAfter(seekTimestamp))
+                {
+                elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                assertThat(elementTwo, is(notNullValue()));
+                }
+
             elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementOne, is(notNullValue()));
 
@@ -3271,7 +3277,8 @@ public abstract class AbstractNamedTopicTests
             // we're now at the head of a page
             // Seek subscriber one to the last timestamp read by subscription two
             System.err.println(">>>> Seeking subscriber one to timestamp from element: " + element + " ");
-            result = subscriberOne.seek(element.getChannel(), element.getTimestamp());
+            seekTimestamp = element.getTimestamp();
+            result = subscriberOne.seek(element.getChannel(), seekTimestamp);
             System.err.println(">>>> Seeked subscriber one to timestamp from element: " + element + " result: " + result);
             // should have correct seeked result
             assertThat(result, is(expectedSeekPosition));
@@ -3279,6 +3286,13 @@ public abstract class AbstractNamedTopicTests
             // Poll the next element for each subscriber, they should match
             elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementTwo, is(notNullValue()));
+            // ensure that we have read a later timestamp than the seeked to position
+            while (!elementTwo.getTimestamp().isAfter(seekTimestamp))
+                {
+                elementTwo = subscriberTwo.receive().get(2, TimeUnit.MINUTES);
+                assertThat(elementTwo, is(notNullValue()));
+                }
+
             elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
             assertThat(elementOne, is(notNullValue()));
             System.err.println(">>>> ElementOne: " + elementOne);
