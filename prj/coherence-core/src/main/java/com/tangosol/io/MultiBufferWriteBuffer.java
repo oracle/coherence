@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -185,7 +185,7 @@ public final class MultiBufferWriteBuffer
     */
     public int length()
         {
-        return m_ofLastBuffer + m_bufLast.length();
+        return m_ofLastBuffer + (m_bufLast == null ? 0 : m_bufLast.length());
         }
 
     /**
@@ -1292,7 +1292,7 @@ public final class MultiBufferWriteBuffer
     private WriteBufferPool m_bufferpool;
 
     /**
-    * The last buffer (never null). The "last" buffer is the "right-most"
+    * The last buffer. The "last" buffer is the "right-most"
     * buffer in the left-to-right (0..capacity) sequence of buffers.
     */
     private WriteBuffer m_bufLast;
