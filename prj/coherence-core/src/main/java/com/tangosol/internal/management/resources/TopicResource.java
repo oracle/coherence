@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,6 +42,8 @@ public class TopicResource
         {
         router.addGet(sPathRoot, this::get);
         router.addGet(sPathRoot + "/" + CHANNELS, this::getChannelsResponse);
+
+        router.addPost(sPathRoot + "/disconnectAll", this::disconnectAll);
 
         // child resources
         router.addRoutes(sPathRoot + "/" + MEMBERS, new TopicMembersResource());
@@ -91,6 +93,27 @@ public class TopicResource
         Map<String, Object> responseMap = responseEntity.toJson();
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, queryBuilder, responseMap);
         return response(responseMap);
+        }
+
+    // ----- POST API -------------------------------------------------------
+
+    /**
+     * Call "DisconnectAll" operation on PagedTopic MBean.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response disconnectAll(HttpRequest request)
+        {
+        String       sTopicName   = request.getFirstPathParameter(TOPIC_NAME);
+        String       sServiceName = request.getPathParameters().getFirst(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sTopicName, sServiceName);
+        return executeMBeanOperation(request,
+                                     queryBuilder,
+                                     "DisconnectAll",
+                                     null,
+                                     null);
         }
 
     /**
