@@ -2380,15 +2380,21 @@ public abstract class AbstractNamedTopicTests
              PagedTopicSubscriber<String> subscriber = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(ensureGroupName())))
             {
             long cWait = subscriber.getWaitCount();
+            System.err.println(">>>> Calling receive on subscriber: " + subscriber);
             CompletableFuture<Element<String>> futureOne = subscriber.receive();
             CompletableFuture<Element<String>> futureTwo = subscriber.receive();
 
             // allow subscriber to enter wait state
+            System.err.println(">>>> Waiting for subscriber wait count to be greater than " + cWait);
             Eventually.assertDeferred(subscriber::getWaitCount, is(greaterThan(cWait)));
+            System.err.println(">>>> Subscriber wait count has increased " +subscriber);
+            assertThat(futureOne.isDone(), is(false));
+            assertThat(futureTwo.isDone(), is(false));
 
-            futureOne.cancel(true);
-
-            Eventually.assertDeferred(futureOne::isDone, is(true));
+            System.err.println(">>>> Cancelling future " + futureOne);
+            boolean fCancelled = futureOne.cancel(true);
+            assertThat(fCancelled, is(true));
+            assertThat(futureOne.isDone(), is(true));
             assertThat(futureOne.isCancelled(), is(true));
 
             publisher.publish("message-one").get(1, TimeUnit.MINUTES);
