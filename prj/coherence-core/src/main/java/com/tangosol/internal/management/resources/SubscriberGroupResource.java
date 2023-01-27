@@ -31,6 +31,8 @@ public class SubscriberGroupResource
         {
         router.addGet(sPathRoot, this::get);
 
+        router.addPost(sPathRoot + "/disconnectAll", this::disconnectAll);
+
         // child resources
         router.addRoutes(sPathRoot + "/{" + MEMBER_KEY + "}", new SubscriberGroupMemberResource());
         router.addRoutes(sPathRoot + "/" + SUBSCRIBERS, new SubscribersResource());
@@ -59,6 +61,28 @@ public class SubscriberGroupResource
                                                           getCurrentUri(request),
                                                           getCurrentUri(request),
                                                           null));
+        }
+
+    // ----- POST API -------------------------------------------------------
+
+    /**
+     * Call "DisconnectAll" operation on SubscriberGroup MBean.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response disconnectAll(HttpRequest request)
+        {
+        String       sTopicName           = request.getFirstPathParameter(TOPIC_NAME);
+        String       sSubscriberGroupName = request.getFirstPathParameter(SUBSCRIBER_GROUP_NAME);
+        String       sServiceName         = request.getPathParameters().getFirst(SERVICE_NAME);
+        QueryBuilder queryBuilder         = getQuery(request, sTopicName, sSubscriberGroupName, sServiceName);
+        return executeMBeanOperation(request,
+                                     queryBuilder,
+                                     "DisconnectAll",
+                                     null,
+                                     null);
         }
 
     // ----- AbstractManagementResource methods -------------------------------------------

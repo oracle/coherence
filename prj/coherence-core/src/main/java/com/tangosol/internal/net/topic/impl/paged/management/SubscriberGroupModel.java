@@ -8,17 +8,20 @@ package com.tangosol.internal.net.topic.impl.paged.management;
 
 import com.tangosol.internal.net.management.model.AbstractModel;
 import com.tangosol.internal.net.management.model.ModelAttribute;
+import com.tangosol.internal.net.management.model.ModelOperation;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 
+import com.tangosol.internal.net.management.model.SimpleModelOperation;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.SubscriberGroupStatistics;
 
 import javax.management.DynamicMBean;
 
-import com.tangosol.net.TopicService;
+import com.tangosol.net.PagedTopicService;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.LongArray;
@@ -51,7 +54,7 @@ public class SubscriberGroupModel
      * @param service              the topic service
      */
     public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, SubscriberGroupId groupId, Filter<?> filter,
-            Function<?, ?> fnConvert, TopicService service)
+            Function<?, ?> fnConvert, PagedTopicService service)
         {
         super(MBEAN_DESCRIPTION);
         f_groupId    = groupId;
@@ -77,6 +80,9 @@ public class SubscriberGroupModel
         addAttribute(ATTRIBUTE_CHANNEL_TABLE);
         addAttribute(ATTRIBUTE_FILTER);
         addAttribute(ATTRIBUTE_TRANSFORMER);
+
+        // configure the operations of the MBean
+        addOperation(OPERATION_DISCONNECT_ALL);
         }
 
     // ----- PagedTopicModel methods ----------------------------------------
@@ -179,6 +185,15 @@ public class SubscriberGroupModel
         return getStatistics().getPolledMeanRate();
         }
 
+    /**
+     * Force the subscriber group to disconnect all subscribers.
+     */
+    protected void disconnectAll(Object[] aoParam)
+        {
+        new PagedTopicCaches(f_statistics.getTopicName(), f_service, false)
+                .disconnectAllSubscribers(f_groupId);
+        }
+
     // ----- helper methods -------------------------------------------------
 
     protected SubscriberGroupStatistics getStatistics()
@@ -267,6 +282,15 @@ public class SubscriberGroupModel
                     .withFunction(SubscriberGroupModel::getTransformer)
                     .build();
 
+    /**
+     * The subscriber group disconnect all operation.
+     */
+    protected static final ModelOperation<SubscriberGroupModel> OPERATION_DISCONNECT_ALL =
+            SimpleModelOperation.builder("DisconnectAll", SubscriberGroupModel.class)
+                    .withDescription("Force this subscriber group to disconnect all subscribers")
+                    .withFunction(SubscriberGroupModel::disconnectAll)
+                    .build();
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -277,7 +301,7 @@ public class SubscriberGroupModel
     /**
      * The topic service.
      */
-    private final TopicService f_service;
+    private final PagedTopicService f_service;
 
     /**
      * The id of the subscriber group.
