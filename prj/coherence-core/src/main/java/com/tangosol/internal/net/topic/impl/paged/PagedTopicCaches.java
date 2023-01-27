@@ -107,18 +107,32 @@ public class PagedTopicCaches
      */
     public PagedTopicCaches(String sName, PagedTopicService cacheService)
         {
-        this(sName, cacheService, null);
+        this(sName, cacheService, true);
         }
 
     /**
      * Create a {@link PagedTopicCaches}.
      *
-     * @param sName          the name of the topic
-     * @param cacheService   the {@link CacheService} owning the underlying caches
-     * @param functionCache  the function to invoke to obtain each underlying cache
+     * @param sName              the name of the topic
+     * @param cacheService       the {@link CacheService} owning the underlying caches
+     * @param registerListeners  {@code true} to register listeners
+     */
+    public PagedTopicCaches(String sName, PagedTopicService cacheService, boolean registerListeners)
+        {
+        this(sName, cacheService, null, registerListeners);
+        }
+
+    /**
+     * Create a {@link PagedTopicCaches}.
+     *
+     * @param sName              the name of the topic
+     * @param cacheService       the {@link CacheService} owning the underlying caches
+     * @param functionCache      the function to invoke to obtain each underlying cache
+     * @param registerListeners  {@code true} to register listeners
      */
     PagedTopicCaches(String sName, PagedTopicService cacheService,
-            BiFunction<String, ClassLoader, NamedCache> functionCache)
+            BiFunction<String, ClassLoader, NamedCache> functionCache,
+                     boolean registerListeners)
         {
         if (sName == null || sName.isEmpty())
             {
@@ -142,7 +156,7 @@ public class PagedTopicCaches
         f_functionCache     = functionCache;
         f_dependencies      = cacheService.getTopicBackingMapManager().getTopicDependencies(sName);
 
-        initializeCaches();
+        initializeCaches(registerListeners);
 
         m_state = State.Active;
         }
@@ -1008,7 +1022,7 @@ public class PagedTopicCaches
     // ----- helper methods -------------------------------------------------
 
     @SuppressWarnings("unchecked")
-    private void initializeCaches()
+    private void initializeCaches(boolean registerListeners)
         {
         f_topicService.start();
 
@@ -1030,7 +1044,10 @@ public class PagedTopicCaches
         setCaches.add(Notifications);
         setCaches.add(Usages);
 
-        ensureListeners();
+        if (registerListeners)
+            {
+            ensureListeners();
+            }
         }
 
     @SuppressWarnings("unchecked")

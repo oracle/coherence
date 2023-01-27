@@ -3963,6 +3963,38 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/disconnectAll": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Force this topic to disconnect all subscribers",
+        "description": "Use this endpoint to force topic to disconnect all subscribers.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/disconnectAll POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/role"
+          },
+          {
+            "$ref": "#/parameters/collector"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/members": {
       "get": {
         "tags": [
@@ -4439,6 +4471,35 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups/{subscriberGroupName}/disconnectAll": {
+      "post": {
+        "tags": [
+          "Topic"
+        ],
+        "summary": "Force this subscriber group to disconnect all subscribers",
+        "description": "Use this endpoint to force subscriber group to disconnect all subscribers.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/topics/{topicName}/subscriberGroups/{subscriberGroupName}/disconnectAll POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [
@@ -4865,6 +4926,29 @@
         }
       }
     },
+    "/management/coherence/cluster/topics/{topicName}/disconnectAll": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Force this topic to disconnect all subscribers",
+        "description": "Use this endpoint to force topic to disconnect all subscribers.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/disconnectAll POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/topics/{topicName}/members": {
       "get": {
         "tags": [
@@ -5268,7 +5352,7 @@
     "/management/coherence/cluster/topics/{topicName}/subscriberGroups/{subscriberGroupName}/subscribers": {
       "get": {
         "tags": [
-          "Topic"
+          "Topic (Short Form)"
         ],
         "summary": "View Topic Subscribers in the subscriber group",
         "description": "Use this endpoint to list the subscriber of a topic in a subscriber group.",
@@ -5298,6 +5382,32 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/topics/{topicName}/subscriberGroups/{subscriberGroupName}/disconnectAll": {
+      "post": {
+        "tags": [
+          "Topic (Short Form)"
+        ],
+        "summary": "Force this subscriber group to disconnect all subscribers",
+        "description": "Use this endpoint to force subscriber group to disconnect all subscribers.",
+        "operationId": "/management/coherence/cluster/topics/{topicName}/subscriberGroups/{subscriberGroupName}/disconnectAll POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/topicName"
+          },
+          {
+            "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
           }
         }
       }

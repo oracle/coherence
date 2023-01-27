@@ -8,11 +8,14 @@ package com.tangosol.internal.net.topic.impl.paged.management;
 
 import com.tangosol.internal.net.management.model.AbstractModel;
 import com.tangosol.internal.net.management.model.ModelAttribute;
+import com.tangosol.internal.net.management.model.ModelOperation;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 
+import com.tangosol.internal.net.management.model.SimpleModelOperation;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
@@ -72,6 +75,9 @@ public class PagedTopicModel
         addAttribute(ATTRIBUTE_PUBLISHED_FIVE_MINUTE);
         addAttribute(ATTRIBUTE_PUBLISHED_FIFTEEN_MINUTE);
         addAttribute(ATTRIBUTE_CHANNEL_TABLE);
+
+        // configure the operations of the MBean
+        addOperation(OPERATION_DISCONNECT_ALL);
         }
 
     // ----- PagedTopicModel methods ----------------------------------------
@@ -214,6 +220,15 @@ public class PagedTopicModel
                 }
             }
         return model;
+        }
+
+    /**
+     * Force the topic to disconnect all subscribers.
+     */
+    protected void disconnectAll(Object[] aoParam)
+        {
+        new PagedTopicCaches(f_sTopicName, f_service, false)
+                .disconnectAllSubscribers();
         }
 
     // ----- PublishedMetrics methods ---------------------------------------
@@ -387,6 +402,15 @@ public class PagedTopicModel
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_PUBLISHED_FIFTEEN_MINUTE =
             PublishedMetrics.ATTRIBUTE_FIFTEEN_MINUTE_RATE.asBuilder(PagedTopicModel.class)
                     .withFunction(PagedTopicModel::getPublishedFifteenMinuteRate)
+                    .build();
+
+    /**
+     * The topic disconnect all operation.
+     */
+    protected static final ModelOperation<PagedTopicModel> OPERATION_DISCONNECT_ALL =
+            SimpleModelOperation.builder("DisconnectAll", PagedTopicModel.class)
+                    .withDescription("Force this topic to disconnect all subscribers")
+                    .withFunction(PagedTopicModel::disconnectAll)
                     .build();
 
     /**
