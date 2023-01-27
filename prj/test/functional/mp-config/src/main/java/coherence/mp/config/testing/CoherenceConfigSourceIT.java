@@ -13,6 +13,10 @@ import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
 import com.oracle.coherence.mp.config.CoherenceConfigSource;
 import com.oracle.coherence.mp.config.ConfigPropertyChanged;
+
+import com.tangosol.coherence.component.application.console.Coherence;
+import com.tangosol.net.Service;
+
 import org.eclipse.microprofile.config.Config;
 
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
@@ -146,6 +150,9 @@ class CoherenceConfigSourceIT
     @Test
     void testChangeNotification()
         {
+        Service proxyService = Coherence.getCluster().getService("Proxy");
+        Eventually.assertDeferred(() -> proxyService.isRunning(), is(true));
+
         source.setValue("config.value", "one");
         MatcherAssert.assertThat(source.getValue("config.value"), is("one"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
