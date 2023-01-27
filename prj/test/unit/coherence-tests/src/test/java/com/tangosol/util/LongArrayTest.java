@@ -1,14 +1,22 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
 
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.util.LongArray.Iterator;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
@@ -21,6 +29,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 
@@ -32,6 +41,105 @@ import static org.junit.Assert.*;
 public class LongArrayTest
         extends Base
     {
+    @Test
+    public void keysTest()
+        {
+        LongArray<Integer> array = new SparseArray<>();
+        for (int i = 0; i < 10; i++)
+            {
+            array.add(i);
+            }
+
+        long[] expected = new long[10];
+        int counter = 0;
+        for (Iterator<Integer> iter = array.iterator(); iter.hasNext();)
+            {
+            iter.next();
+            expected[counter++] = iter.getIndex();
+            }
+
+        assertArrayEquals(expected, array.keys());
+        }
+
+    /**
+    * Validate fix for https://jira.oraclecorp.com/jira/browse/COH-27086
+    */
+    @Test
+    public void testCoh27086()
+        {
+        LongArray<Integer>         array    = new SparseArray<>();
+        ExecutorService            executor = Executors.newFixedThreadPool(2);
+        AtomicBoolean              poisoned = new AtomicBoolean();
+        AtomicReference<Throwable> error    = new AtomicReference<>();
+
+        try
+            {
+            // This thread performs mutations against the Sparsearray using
+            // the SparseArray for synchronization as SparseArray is not thread-safe.
+            executor.submit(() ->
+                    {
+                    try
+                        {
+                        int counter = 0;
+                        while (!poisoned.get() && counter < 1500000)
+                            {
+                            for (int i = 0; i < 100; i++)
+                                {
+                                synchronized (array)
+                                    {
+                                    array.add(i);
+                                    }
+                                }
+                            synchronized (array)
+                                {
+                                array.clear();
+                                }
+                            counter++;
+                            }
+                        }
+                    catch (Throwable t)
+                        {
+                        error.set(t);
+                        }
+
+                    poisoned.compareAndSet(false, true);
+                    });
+
+            // this thread repeatedly calls LongArray.keys() while the thread
+            // above performs mutations.  If the IndexOutOfBoundsException occurs,
+            // it will be from this thread.
+            executor.submit(() ->
+                    {
+                    try
+                        {
+                        while (!poisoned.get())
+                            {
+                            array.keys();
+                            }
+                        }
+                    catch (Throwable t)
+                        {
+                        error.set(t);
+                        }
+                    poisoned.compareAndSet(false, true);
+                    });
+
+            // pass or fail, we should eventually end up in a poisoned state
+            Eventually.assertDeferred(poisoned::get, is(true), Eventually.within(2, TimeUnit.MINUTES));
+
+            Throwable result = error.get();
+            if (result != null)
+                {
+                result.printStackTrace();
+                fail(error.toString());
+                }
+            }
+        finally
+            {
+            executor.shutdownNow();
+            }
+        }
+
     /**
     * Run tests with SimpleLongArray implementation
     */
