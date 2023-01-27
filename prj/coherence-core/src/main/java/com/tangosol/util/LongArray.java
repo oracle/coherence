@@ -1,14 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
 
 
 import java.io.Serializable;
+
+import java.util.Spliterators;
+
+import java.util.stream.StreamSupport;
+
 
 /**
 * An interface, similar in its methods to List, and similar in its purpose
@@ -274,14 +279,10 @@ public interface LongArray<V>
      */
     public default long[] keys()
         {
-        long[] alKeys = new long[getSize()];
-        int    i      = 0;
-        for (Iterator<V> iter = iterator(); iter.hasNext(); )
-            {
-            iter.next();
-            alKeys[i++] = iter.getIndex();
-            }
-        return alKeys;
+        Iterator<V> iterator = iterator();
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false)
+                .mapToLong(o -> iterator.getIndex())
+                .toArray();
         }
 
 
