@@ -613,7 +613,7 @@ public class CQCTests
     public void testCoh27085() throws Exception
         {
         int                     nAttempts = 1000;
-        NamedCache              raw       = getNamedCache("dist-test");
+        NamedCache              raw       = getNamedCache("dist-test-deadlock");
         ExecutorService         service   = Executors.newFixedThreadPool(2);
         AtomicInteger           t1Counter = new AtomicInteger();
         AtomicInteger           t2Counter = new AtomicInteger();
@@ -661,10 +661,8 @@ public class CQCTests
 
         try
             {
-            Eventually.assertDeferred(t1Counter::get, is(nAttempts),
-                                      Eventually.within(20, TimeUnit.SECONDS));
-            Eventually.assertDeferred(t2Counter::get, is(nAttempts),
-                                      Eventually.within(20, TimeUnit.SECONDS));
+            Eventually.assertDeferred(t1Counter::get, is(nAttempts));
+            Eventually.assertDeferred(t2Counter::get, is(nAttempts));
             }
         catch (Throwable t)
             {
