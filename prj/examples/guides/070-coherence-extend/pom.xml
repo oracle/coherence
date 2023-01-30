@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2022 Oracle and/or its affiliates.
+  ~ Copyright (c) 2022, 2023 Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -42,7 +42,7 @@
       <dependency>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-bom</artifactId>
-        <version>${revision}</version>
+        <version>${coherence.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -76,7 +76,7 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-bedrock-testing-support</artifactId>
-      <version>${revision}</version>
+      <version>${coherence.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
