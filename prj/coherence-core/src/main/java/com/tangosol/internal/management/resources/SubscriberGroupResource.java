@@ -80,7 +80,7 @@ public class SubscriberGroupResource
         QueryBuilder queryBuilder         = getQuery(request, sTopicName, sSubscriberGroupName, sServiceName);
         return executeMBeanOperation(request,
                                      queryBuilder,
-                                     "DisconnectAll",
+                                     "disconnectAll",
                                      null,
                                      null);
         }

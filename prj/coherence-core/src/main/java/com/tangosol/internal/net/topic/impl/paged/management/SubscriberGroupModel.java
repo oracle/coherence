@@ -286,8 +286,8 @@ public class SubscriberGroupModel
      * The subscriber group disconnect all operation.
      */
     protected static final ModelOperation<SubscriberGroupModel> OPERATION_DISCONNECT_ALL =
-            SimpleModelOperation.builder("DisconnectAll", SubscriberGroupModel.class)
-                    .withDescription("Force this subscriber group to disconnect all subscribers")
+            SimpleModelOperation.builder("disconnectAll", SubscriberGroupModel.class)
+                    .withDescription("Force this subscriber group to disconnect all subscribers.")
                     .withFunction(SubscriberGroupModel::disconnectAll)
                     .build();
 
