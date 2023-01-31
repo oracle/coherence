@@ -111,7 +111,7 @@ public class TopicResource
         QueryBuilder queryBuilder = getQuery(request, sTopicName, sServiceName);
         return executeMBeanOperation(request,
                                      queryBuilder,
-                                     "DisconnectAll",
+                                     "disconnectAll",
                                      null,
                                      null);
         }
