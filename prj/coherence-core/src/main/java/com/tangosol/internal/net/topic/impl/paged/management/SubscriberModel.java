@@ -823,8 +823,8 @@ public class SubscriberModel
      * The subscriber disconnect operation.
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_DISCONNECT =
-            SimpleModelOperation.builder("Disconnect", SubscriberModel.class)
-                    .withDescription("Force this subscriber to disconnect and reset itself")
+            SimpleModelOperation.builder("disconnect", SubscriberModel.class)
+                    .withDescription("Force this subscriber to disconnect and reset itself.")
                     .withFunction(SubscriberModel::disconnect)
                     .build();
 
@@ -832,8 +832,8 @@ public class SubscriberModel
      * The subscriber disconnect operation.
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_CONNECT =
-            SimpleModelOperation.builder("Connect", SubscriberModel.class)
-                    .withDescription("Ensure this subscriber is connected")
+            SimpleModelOperation.builder("connect", SubscriberModel.class)
+                    .withDescription("Ensure this subscriber is connected.")
                     .withFunction(SubscriberModel::connect)
                     .build();
 
@@ -841,8 +841,8 @@ public class SubscriberModel
      * The get channel heads operation.
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_HEADS =
-            SimpleModelOperation.builder("Heads", SubscriberModel.class)
-                    .withDescription("Retrieve the current head positions for each channel")
+            SimpleModelOperation.builder("heads", SubscriberModel.class)
+                    .withDescription("Retrieve the current head positions for each channel.")
                     .withFunction(SubscriberModel::getHeadsTable)
                     .returning(CHANNEL_HEADS_TABLE.getType())
                     .build();
@@ -851,8 +851,8 @@ public class SubscriberModel
      * The get remaining messages operation.
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_REMAINING =
-            SimpleModelOperation.builder("RemainingMessages", SubscriberModel.class)
-                    .withDescription("Retrieve the count of remaining messages for each channel")
+            SimpleModelOperation.builder("remainingMessages", SubscriberModel.class)
+                    .withDescription("Retrieve the count of remaining messages for each channel.")
                     .withFunction(SubscriberModel::getRemainingMessagesTable)
                     .returning(REMAINING_MESSAGES_TABLE.getType())
                     .build();
@@ -862,8 +862,8 @@ public class SubscriberModel
      * The force notification operation.
      */
     protected static final ModelOperation<SubscriberModel> OPERATION_NOTIFY =
-            SimpleModelOperation.builder("NotifyPopulated", SubscriberModel.class)
-                    .withDescription("Send a channel populated notification to this subscriber")
+            SimpleModelOperation.builder("notifyPopulated", SubscriberModel.class)
+                    .withDescription("Send a channel populated notification to this subscriber.")
                     .withParameter("Channel", "The channel identifier", SimpleType.INTEGER)
                     .withFunction(SubscriberModel::invokeNotifyChannel)
                     .build();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -74,7 +74,7 @@ public class SubscriberResource
 
         return executeMBeanOperation(request,
                                      queryBuilder,
-                                     "Connect",
+                                     "connect",
                                      null,
                                      null);
         }
@@ -92,7 +92,7 @@ public class SubscriberResource
 
         return executeMBeanOperation(request,
                                      queryBuilder,
-                                     "Disconnect",
+                                     "disconnect",
                                      null,
                                      null);
         }
@@ -111,7 +111,7 @@ public class SubscriberResource
         return response(getResponseFromMBeanOperation(request,
                                                       queryBuilder,
                                                       "heads",
-                                                      "Heads"));
+                                                      "heads"));
         }
 
     /**
@@ -129,7 +129,7 @@ public class SubscriberResource
             {
             return executeMBeanOperation(request,
                                          queryBuilder,
-                                         "NotifyPopulated",
+                                         "notifyPopulated",
                                          new Object[] {Integer.valueOf(channel)},
                                          new String[] {Integer.class.getName()});
             }
@@ -155,7 +155,7 @@ public class SubscriberResource
         return response(getResponseFromMBeanOperation(request,
                                                       queryBuilder,
                                                       "remainingMessages",
-                                                      "RemainingMessages"));
+                                                      "remainingMessages"));
         }
 
 

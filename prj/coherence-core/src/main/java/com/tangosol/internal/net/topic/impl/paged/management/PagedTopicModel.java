@@ -408,8 +408,8 @@ public class PagedTopicModel
      * The topic disconnect all operation.
      */
     protected static final ModelOperation<PagedTopicModel> OPERATION_DISCONNECT_ALL =
-            SimpleModelOperation.builder("DisconnectAll", PagedTopicModel.class)
-                    .withDescription("Force this topic to disconnect all subscribers")
+            SimpleModelOperation.builder("disconnectAll", PagedTopicModel.class)
+                    .withDescription("Force this topic to disconnect all subscribers.")
                     .withFunction(PagedTopicModel::disconnectAll)
                     .build();
 
