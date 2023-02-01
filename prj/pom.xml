@@ -638,6 +638,9 @@
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
 
+    <!-- When using Testcontainers, disable pulling the Ryuk image from Docker Hub as this is blocked by Oracle -->
+    <testcontainers.ryuk.disabled>true</testcontainers.ryuk.disabled>
+
     <skip.animal.sniffer.plugin>false</skip.animal.sniffer.plugin>
 
     <copyright.svn>-p4</copyright.svn>
@@ -1166,6 +1169,9 @@
               <exclude>**/**PerformanceTests.java</exclude>
             </excludes>
             <argLine>${failsafe.argLine} ${failsafe.coverage.argline}</argLine>
+            <environmentVariables>
+              <TESTCONTAINERS_RYUK_DISABLED>${testcontainers.ryuk.disabled}</TESTCONTAINERS_RYUK_DISABLED>
+            </environmentVariables>
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
@@ -1301,6 +1307,9 @@
               <exclude>**/**PerformanceTest.java</exclude>
             </excludes>
             <argLine>${surefire.argLine} ${surefire.coverage.argline}</argLine>
+            <environmentVariables>
+              <TESTCONTAINERS_RYUK_DISABLED>${testcontainers.ryuk.disabled}</TESTCONTAINERS_RYUK_DISABLED>
+            </environmentVariables>
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
