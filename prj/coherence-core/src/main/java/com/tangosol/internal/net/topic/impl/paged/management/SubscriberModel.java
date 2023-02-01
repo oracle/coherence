@@ -521,14 +521,14 @@ public class SubscriberModel
     /**
      * The MBean's description.
      */
-    protected static final String MBEAN_DESCRIPTION = "A Coherence PagedTopic Subscriber";
+    protected static final String MBEAN_DESCRIPTION = "A Coherence PagedTopic Subscriber.";
                                                  
     /**
      * The channel count attribute.
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_CHANNEL_COUNT =
             SimpleModelAttribute.intBuilder("ChannelCount", SubscriberModel.class)
-                    .withDescription("The number of channels in the topic")
+                    .withDescription("The number of channels in the topic.")
                     .withFunction(SubscriberModel::getChannelCount)
                     .build();
 
@@ -537,7 +537,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_ID =
             SimpleModelAttribute.longBuilder("Id", SubscriberModel.class)
-                    .withDescription("The subscriber's identifier")
+                    .withDescription("The subscriber's identifier.")
                     .withFunction(SubscriberModel::getId)
                     .build();
 
@@ -546,7 +546,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_NOTIFICATION_ID =
             SimpleModelAttribute.longBuilder("NotificationId", SubscriberModel.class)
-                    .withDescription("The subscriber's notification identifier")
+                    .withDescription("The subscriber's notification identifier.")
                     .withFunction(SubscriberModel::getNotificationId)
                     .build();
 
@@ -555,7 +555,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_TYPE =
                 SimpleModelAttribute.stringBuilder("Type", SubscriberModel.class)
-                        .withDescription("The type of this subscriber")
+                        .withDescription("The type of this subscriber.")
                         .withFunction(SubscriberModel::getSubscriberType)
                         .build();
 
@@ -564,7 +564,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_CHANNEL_ALLOCATIONS =
                     SimpleModelAttribute.stringBuilder("ChannelAllocations", SubscriberModel.class)
-                            .withDescription("The subscriber's allocated channels")
+                            .withDescription("The subscriber's allocated channels.")
                             .withFunction(SubscriberModel::getChannels)
                             .build();
 
@@ -573,7 +573,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_SUBSCRIBER_GROUP =
                     SimpleModelAttribute.stringBuilder("SubscriberGroup", SubscriberModel.class)
-                            .withDescription("The subscriber group the subscriber belongs to")
+                            .withDescription("The subscriber group the subscriber belongs to.")
                             .withFunction(SubscriberModel::getSubscriberGroup)
                             .build();
 
@@ -582,7 +582,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_POLLS  =
                 SimpleModelAttribute.longBuilder("Polls", SubscriberModel.class)
-                        .withDescription("The total number of polls for messages")
+                        .withDescription("The total number of polls for messages.")
                         .withFunction(SubscriberModel::getPolls)
                         .metric(true)
                         .build();
@@ -592,7 +592,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_SUB_TYPE_CODE  =
                 SimpleModelAttribute.longBuilder("SubTypeCode", SubscriberModel.class)
-                        .withDescription("Indicates if the subscriber is Durable (1) or Anonymous (0)")
+                        .withDescription("Indicates if the subscriber is Durable (1) or Anonymous (0).")
                         .withFunction(SubscriberModel::getSubTypeCode)
                         .metric(true)
                         .build();
@@ -601,7 +601,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_ELEMENTS =
                 SimpleModelAttribute.longBuilder("ReceivedCount", SubscriberModel.class)
-                        .withDescription("The number of elements received")
+                        .withDescription("The number of elements received.")
                         .withFunction(SubscriberModel::getElementsPolled)
                         .metric(true)
                         .build();
@@ -611,7 +611,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS  =
                 SimpleModelAttribute.longBuilder("ReceiveCompletionsCount", SubscriberModel.class)
-                        .withDescription("The number completed receive requests")
+                        .withDescription("The number completed receive requests.")
                         .withFunction(SubscriberModel::getReceivedCount)
                         .metric("ReceiveCompletionsCount")
                         .build();
@@ -621,7 +621,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN  =
                 SimpleModelAttribute.doubleBuilder("ReceiveCompletionsMeanRate", SubscriberModel.class)
-                        .withDescription("The completed receive requests, mean rate")
+                        .withDescription("The completed receive requests, mean rate.")
                         .withFunction(SubscriberModel::getReceivedMeanRate)
                         .metric("ReceiveCompletions")
                         .withMetricLabels("rate", "mean")
@@ -632,7 +632,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_ONE  =
                 SimpleModelAttribute.doubleBuilder("ReceiveCompletionsOneMinuteRate", SubscriberModel.class)
-                        .withDescription("The completed receive requests, one-minute rate")
+                        .withDescription("The completed receive requests, one-minute rate.")
                         .withFunction(SubscriberModel::getReceivedOneMinuteRate)
                         .metric("ReceiveCompletions")
                         .withMetricLabels("rate", "1-min")
@@ -643,7 +643,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE  =
                 SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFiveMinuteRate", SubscriberModel.class)
-                        .withDescription("The completed receive requests, five-minute rate")
+                        .withDescription("The completed receive requests, five-minute rate.")
                         .withFunction(SubscriberModel::getReceivedFiveMinuteRate)
                         .metric("ReceiveCompletions")
                         .withMetricLabels("rate", "5-min")
@@ -654,7 +654,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN  =
                 SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFifteenMinuteRate", SubscriberModel.class)
-                        .withDescription("The completed receive requests, fifteen-minute rate")
+                        .withDescription("The completed receive requests, fifteen-minute rate.")
                         .withFunction(SubscriberModel::getReceivedFifteenMinuteRate)
                         .metric("ReceiveCompletions")
                         .withMetricLabels("rate", "15-min")
@@ -665,7 +665,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_ERRORS  =
                 SimpleModelAttribute.longBuilder("ReceiveErrors", SubscriberModel.class)
-                        .withDescription("The number exceptionally completed receive requests")
+                        .withDescription("The number exceptionally completed receive requests.")
                         .withFunction(SubscriberModel::getErrorCount)
                         .metric(true)
                         .build();
@@ -675,7 +675,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_RECEIVE_EMPTY  =
                 SimpleModelAttribute.longBuilder("ReceiveEmpty", SubscriberModel.class)
-                        .withDescription("The number empty receive requests")
+                        .withDescription("The number empty receive requests.")
                         .withFunction(SubscriberModel::getReceivedEmptyCount)
                         .metric(true)
                         .build();
@@ -685,7 +685,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_WAITS  =
                 SimpleModelAttribute.longBuilder("Waits", SubscriberModel.class)
-                        .withDescription("The number of waits on an empty channel")
+                        .withDescription("The number of waits on an empty channel.")
                         .withFunction(SubscriberModel::getWaits)
                         .build();
 
@@ -694,7 +694,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_NOTIFICATIONS  =
                 SimpleModelAttribute.longBuilder("Notifications", SubscriberModel.class)
-                        .withDescription("The number of channel notifications received")
+                        .withDescription("The number of channel notifications received.")
                         .withFunction(SubscriberModel::getNotifications)
                         .build();
 
@@ -703,7 +703,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_STATE =
                 SimpleModelAttribute.longBuilder("State", SubscriberModel.class)
-                        .withDescription("The state of the subscriber")
+                        .withDescription("The state of the subscriber.")
                         .withFunction(SubscriberModel::getState)
                         .build();
 
@@ -712,7 +712,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_STATE_NAME =
                     SimpleModelAttribute.stringBuilder("StateName", SubscriberModel.class)
-                        .withDescription("The state of the subscriber as a string")
+                        .withDescription("The state of the subscriber as a string.")
                         .withFunction(SubscriberModel::getStateName)
                         .build();
 
@@ -721,7 +721,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_BACKLOG  =
                 SimpleModelAttribute.longBuilder("Backlog", SubscriberModel.class)
-                        .withDescription("The number of outstanding receive requests")
+                        .withDescription("The number of outstanding receive requests.")
                         .withFunction(SubscriberModel::getBacklog)
                         .metric(true)
                         .build();
@@ -731,7 +731,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_MAX_BACKLOG =
             SimpleModelAttribute.longBuilder("MaxBacklog", SubscriberModel.class)
-                        .withDescription("The maximum number of outstanding receive requests allowed before flow control blocks receive calls")
+                        .withDescription("The maximum number of outstanding receive requests allowed before flow control blocks receive calls.")
                         .withFunction(SubscriberModel::getMaxBacklog)
                         .build();
 
@@ -740,7 +740,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_DISCONNECTIONS  =
                 SimpleModelAttribute.longBuilder("Disconnections", SubscriberModel.class)
-                        .withDescription("The number of times this subscriber has disconnected")
+                        .withDescription("The number of times this subscriber has disconnected.")
                         .withFunction(SubscriberModel::getDisconnectCount)
                         .metric(true)
                         .build();
@@ -750,7 +750,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_FILTER =
                     SimpleModelAttribute.stringBuilder("Filter", SubscriberModel.class)
-                            .withDescription("The optional filter being used to filter messages")
+                            .withDescription("The optional filter being used to filter messages.")
                             .withFunction(SubscriberModel::getFilter)
                             .build();
 
@@ -759,7 +759,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_CONVERTER =
                     SimpleModelAttribute.stringBuilder("Converter", SubscriberModel.class)
-                            .withDescription("The optional converter being used to transform messages")
+                            .withDescription("The optional converter being used to transform messages.")
                             .withFunction(SubscriberModel::getConverter)
                             .build();
 
@@ -768,7 +768,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_SERIALIZER =
                     SimpleModelAttribute.stringBuilder("Serializer", SubscriberModel.class)
-                            .withDescription("The serializer used to deserialize messages")
+                            .withDescription("The serializer used to deserialize messages.")
                             .withFunction(SubscriberModel::getSerializer)
                             .build();
 
@@ -777,7 +777,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_COMPLETE_ON_EMPTY =
                     SimpleModelAttribute.booleanBuilder("CompleteOnEmpty", SubscriberModel.class)
-                            .withDescription("A flag indicating whether the subscriber completes receive requests with a null message when the topic is empty")
+                            .withDescription("A flag indicating whether the subscriber completes receive requests with a null message when the topic is empty.")
                             .withFunction(SubscriberModel::isCompleteOnEmpty)
                             .build();
 
@@ -786,7 +786,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_MEMBER =
                     SimpleModelAttribute.stringBuilder("Member", SubscriberModel.class)
-                            .withDescription("The cluster member owning this subscriber")
+                            .withDescription("The cluster member owning this subscriber.")
                             .withFunction(SubscriberModel::getMember)
                             .build();
 
@@ -795,7 +795,7 @@ public class SubscriberModel
      */
     protected static final ModelAttribute<SubscriberModel> ATTRIBUTE_IDENTIFYING_NAME =
                     SimpleModelAttribute.stringBuilder("IdentifyingName", SubscriberModel.class)
-                            .withDescription("An optional name to help identify this subscriber")
+                            .withDescription("An optional name to help identify this subscriber.")
                             .withFunction(SubscriberModel::getIdentifyingName)
                             .build();
 
