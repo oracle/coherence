@@ -55,7 +55,7 @@ public interface PublishedMetrics
      * The published message count attribute template.
      */
     SimpleModelAttribute<?> ATTRIBUTE_COUNT = SimpleModelAttribute.longBuilder("PublishedCount", Object.class)
-            .withDescription("The number of published messages")
+            .withDescription("The number of published messages.")
             .metric(true)
             .build();
 
@@ -63,7 +63,7 @@ public interface PublishedMetrics
      * The published message mean rate attribute template.
      */
     SimpleModelAttribute<?> ATTRIBUTE_MEAN_RATE = SimpleModelAttribute.doubleBuilder("PublishedMeanRate", Object.class)
-            .withDescription("The published messages mean rate")
+            .withDescription("The published messages mean rate.")
             .metric("PublishedRate")
             .withMetricLabels("rate", "mean")
             .build();
@@ -72,7 +72,7 @@ public interface PublishedMetrics
      * The published message one-minute rate attribute template.
      */
     SimpleModelAttribute<?> ATTRIBUTE_ONE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PublishedOneMinuteRate", Object.class)
-            .withDescription("The published messages one-minute rate")
+            .withDescription("The published messages one-minute rate.")
             .metric("PublishedRate")
             .withMetricLabels("rate", "1min")
             .build();
@@ -81,7 +81,7 @@ public interface PublishedMetrics
      * The published message five-minute rate attribute template.
      */
     SimpleModelAttribute<?> ATTRIBUTE_FIVE_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PublishedFiveMinuteRate", Object.class)
-            .withDescription("The published messages five-minute rate")
+            .withDescription("The published messages five-minute rate.")
             .metric("PublishedRate")
             .withMetricLabels("rate", "5min")
             .build();
@@ -90,7 +90,7 @@ public interface PublishedMetrics
      * The published message fifteen-minute rate attribute template.
      */
     SimpleModelAttribute<?> ATTRIBUTE_FIFTEEN_MINUTE_RATE = SimpleModelAttribute.doubleBuilder("PublishedFifteenMinuteRate", Object.class)
-            .withDescription("The published messages fifteen-minute rate")
+            .withDescription("The published messages fifteen-minute rate.")
             .metric("PublishedRate")
             .withMetricLabels("rate", "15min")
             .build();

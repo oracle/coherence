@@ -281,14 +281,14 @@ public class PagedTopicModel
     /**
      * The MBean's description.
      */
-    protected static final String MBEAN_DESCRIPTION = "A Coherence PagedTopic";
+    protected static final String MBEAN_DESCRIPTION = "A Coherence PagedTopic.";
 
     /**
      * The channel count attribute.
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_CHANNEL_COUNT =
             SimpleModelAttribute.intBuilder("ChannelCount", PagedTopicModel.class)
-                    .withDescription("The number of channels in the topic")
+                    .withDescription("The number of channels in the topic.")
                     .withFunction(PagedTopicModel::getChannelCount)
                     .metric(false)
                     .build();
@@ -298,7 +298,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_PAGE_CAPACITY =
             SimpleModelAttribute.intBuilder("PageCapacity", PagedTopicModel.class)
-                    .withDescription("The capacity of a page")
+                    .withDescription("The capacity of a page.")
                     .withFunction(PagedTopicModel::getPageCapacity)
                     .build();
 
@@ -307,7 +307,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RETAIN_CONSUMED =
             SimpleModelAttribute.intBuilder("RetainConsumed", PagedTopicModel.class)
-                    .withDescription("Retain consumed values")
+                    .withDescription("Retain consumed values.")
                     .withFunction(PagedTopicModel::isRetainConsumed)
                     .build();
 
@@ -316,7 +316,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_ALLOW_UNOWNED_COMMITS =
             SimpleModelAttribute.intBuilder("AllowUnownedCommits", PagedTopicModel.class)
-                    .withDescription("Allow Unowned Commits")
+                    .withDescription("Allow Unowned Commits.")
                     .withFunction(PagedTopicModel::isAllowUnownedCommits)
                     .build();
 
@@ -325,7 +325,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_SUBSCRIBER_TIMEOUT =
             SimpleModelAttribute.intBuilder("SubscriberTimeout", PagedTopicModel.class)
-                    .withDescription("Subscriber Timeout")
+                    .withDescription("Subscriber Timeout.")
                     .withFunction(PagedTopicModel::getSubscriberTimeout)
                     .build();
 
@@ -334,7 +334,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_ELEMENT_CALCULATOR =
             SimpleModelAttribute.intBuilder("ElementCalculator", PagedTopicModel.class)
-                    .withDescription("Element Calculator")
+                    .withDescription("Element Calculator.")
                     .withFunction(PagedTopicModel::getElementCalculator)
                     .build();
     /**
@@ -342,7 +342,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RECONNECT_WAIT =
             SimpleModelAttribute.intBuilder("ReconnectWait", PagedTopicModel.class)
-                    .withDescription("Reconnect Wait")
+                    .withDescription("Reconnect Wait.")
                     .withFunction(PagedTopicModel::getReconnectWait)
                     .build();
 
@@ -351,7 +351,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RECONNECT_TIMEOUT =
             SimpleModelAttribute.intBuilder("ReconnectTimeout", PagedTopicModel.class)
-                    .withDescription("Reconnect Timeout")
+                    .withDescription("Reconnect Timeout.")
                     .withFunction(PagedTopicModel::getReconnectTimeout)
                     .build();
 
@@ -360,7 +360,7 @@ public class PagedTopicModel
      */
     protected static final ModelAttribute<PagedTopicModel> ATTRIBUTE_RECONNECT_RETRY =
             SimpleModelAttribute.intBuilder("ReconnectRetry", PagedTopicModel.class)
-                    .withDescription("Reconnect Retry")
+                    .withDescription("Reconnect Retry.")
                     .withFunction(PagedTopicModel::getReconnectRetry)
                     .build();
 
