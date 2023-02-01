@@ -106,6 +106,9 @@
     <failsafe.modules.argline/>
     <failsafe.coverage.argline/>
 
+    <!-- When using Testcontainers, disable pulling the Ryuk image from Docker Hub as this is blocked by Oracle -->
+    <testcontainers.ryuk.disabled>true</testcontainers.ryuk.disabled>
+
     <!--
     These are extra args added to the jdeps command used by Moditect when running the code coverage build.
     We would ideally have had an empty property here, but Moditect blows up with an empty extraArgs parameter,
@@ -1327,6 +1330,9 @@
               <exclude>**/**PerformanceTests.java</exclude>
             </excludes>
             <argLine>${failsafe.argLine} ${failsafe.coverage.argline} ${failsafe.modules.argline}</argLine>
+            <environmentVariables>
+              <TESTCONTAINERS_RYUK_DISABLED>${testcontainers.ryuk.disabled}</TESTCONTAINERS_RYUK_DISABLED>
+            </environmentVariables>
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
@@ -1490,6 +1496,9 @@
               <exclude>**/Abstract*Test.java</exclude>
               <exclude>**/**PerformanceTest.java</exclude>
             </excludes>
+            <environmentVariables>
+              <TESTCONTAINERS_RYUK_DISABLED>${testcontainers.ryuk.disabled}</TESTCONTAINERS_RYUK_DISABLED>
+            </environmentVariables>
             <argLine>${surefire.argLine} ${surefire.coverage.argline}</argLine>
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
