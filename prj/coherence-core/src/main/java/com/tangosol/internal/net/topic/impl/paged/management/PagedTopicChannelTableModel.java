@@ -64,14 +64,14 @@ public class PagedTopicChannelTableModel
     /**
      * The description of this attribute.
      */
-    public static final String TABLE_DESCRIPTION = "Channel statistics";
+    public static final String TABLE_DESCRIPTION = "Channel statistics.";
 
     /**
      * The channel attribute.
      */
     protected static final ModelAttribute<PagedTopicChannelModel> ATTRIBUTE_CHANNEL =
             SimpleModelAttribute.intBuilder("Channel", PagedTopicChannelModel.class)
-                    .withDescription("The topic channel")
+                    .withDescription("The topic channel.")
                     .withFunction(PagedTopicChannelModel::getChannel)
                     .metricTag(true)
                     .build();
@@ -81,7 +81,7 @@ public class PagedTopicChannelTableModel
      */
     protected static final ModelAttribute<PagedTopicChannelModel> ATTRIBUTE_TAIL =
             SimpleModelAttribute.stringBuilder("Tail", PagedTopicChannelModel.class)
-                    .withDescription("The tail position in the channel")
+                    .withDescription("The tail position in the channel.")
                     .withFunction(PagedTopicChannelModel::getTail)
                     .build();
 

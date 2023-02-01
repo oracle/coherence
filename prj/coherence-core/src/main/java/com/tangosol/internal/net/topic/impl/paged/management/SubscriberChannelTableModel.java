@@ -25,7 +25,7 @@ public class SubscriberChannelTableModel
      */
     public SubscriberChannelTableModel()
         {
-        super("Channels", "The subscriber's channel details",
+        super("Channels", "The subscriber's channel details.",
               ATTRIBUTE_CHANNEL.getName(), getAttributes(),
               SubscriberModel::getChannelCount, SubscriberModel::getChannel);
         }
@@ -71,7 +71,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_CHANNEL =
             SimpleModelAttribute.intBuilder("Channel", Subscriber.Channel.class)
-                    .withDescription("The number of channels in the topic")
+                    .withDescription("The number of channels in the topic.")
                     .withFunction(Subscriber.Channel::getId)
                     .metricTag(true)
                     .build();
@@ -81,7 +81,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_EMPTY =
             SimpleModelAttribute.booleanBuilder("Empty", Subscriber.Channel.class)
-                    .withDescription("A flag indicating whether the channel is empty")
+                    .withDescription("A flag indicating whether the channel is empty.")
                     .withFunction(Subscriber.Channel::isEmpty)
                     .build();
 
@@ -90,7 +90,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_HEAD =
             SimpleModelAttribute.stringBuilder("Head", Subscriber.Channel.class)
-                    .withDescription("The position this subscriber knows as the head for the channel")
+                    .withDescription("The position this subscriber knows as the head for the channel.")
                     .withFunction(c -> String.valueOf(c.getHead()))
                     .build();
 
@@ -99,7 +99,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_RECEIVED =
             SimpleModelAttribute.stringBuilder("LastReceived", Subscriber.Channel.class)
-                    .withDescription("The last position received by this subscriber since it was last assigned ownership of this channel")
+                    .withDescription("The last position received by this subscriber since it was last assigned ownership of this channel.")
                     .withFunction(c -> String.valueOf(c.getLastReceived()))
                     .build();
 
@@ -108,7 +108,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COUNT =
             SimpleModelAttribute.longBuilder("ReceivedCount", Subscriber.Channel.class)
-                    .withDescription("The number of receive requests completed from this channel")
+                    .withDescription("The number of receive requests completed from this channel.")
                     .withFunction(Subscriber.Channel::getReceiveCount)
                     .metric(true)
                     .build();
@@ -118,7 +118,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_POLL_COUNT =
             SimpleModelAttribute.longBuilder("PolledCount", Subscriber.Channel.class)
-                    .withDescription("The number of elements in the channel polled by this subscriber")
+                    .withDescription("The number of elements in the channel polled by this subscriber.")
                     .withFunction(Subscriber.Channel::getPolls)
                     .metric(true)
                     .build();
@@ -128,7 +128,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_FIRST_POLLED =
             SimpleModelAttribute.stringBuilder("FirstPolled", Subscriber.Channel.class)
-                    .withDescription("The first position in the channel polled by this subscriber")
+                    .withDescription("The first position in the channel polled by this subscriber.")
                     .withFunction(c -> String.valueOf(c.getFirstPolled()))
                     .build();
 
@@ -137,7 +137,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_FIRST_POLLED_TIMESTAMP =
             SimpleModelAttribute.longBuilder("FirstPolledTimestamp", Subscriber.Channel.class)
-                    .withDescription("The first position in the channel polled by this subscriber")
+                    .withDescription("The first position in the channel polled by this subscriber.")
                     .withFunction(Subscriber.Channel::getFirstPolledTimestamp)
                     .build();
 
@@ -146,7 +146,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_POLLED =
             SimpleModelAttribute.stringBuilder("LastPolled", Subscriber.Channel.class)
-                    .withDescription("The last position polled by this subscriber since it was last assigned ownership of this channel")
+                    .withDescription("The last position polled by this subscriber since it was last assigned ownership of this channel.")
                     .withFunction(c -> String.valueOf(c.getLastPolled()))
                     .build();
 
@@ -155,7 +155,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_POLLED_TIMESTAMP =
             SimpleModelAttribute.longBuilder("LastPolledTimestamp", Subscriber.Channel.class)
-                    .withDescription("The timestamp of the first entry in the channel polled by this subscriber")
+                    .withDescription("The timestamp of the first entry in the channel polled by this subscriber.")
                     .withFunction(Subscriber.Channel::getLastPolledTimestamp)
                     .build();
 
@@ -164,7 +164,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_COMMIT_COUNT =
             SimpleModelAttribute.longBuilder("CommittedCount", Subscriber.Channel.class)
-                    .withDescription("The number of commit requests completed from this channel")
+                    .withDescription("The number of commit requests completed from this channel.")
                     .withFunction(Subscriber.Channel::getCommitCount)
                     .metric(true)
                     .build();
@@ -174,7 +174,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_LAST_COMMIT =
             SimpleModelAttribute.stringBuilder("LastCommit", Subscriber.Channel.class)
-                    .withDescription("The last position successfully committed by this subscriber since it was last assigned ownership of this channel")
+                    .withDescription("The last position successfully committed by this subscriber since it was last assigned ownership of this channel.")
                     .withFunction(c -> String.valueOf(c.getLastCommit()))
                     .build();
 
@@ -183,7 +183,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_OWNED =
             SimpleModelAttribute.booleanBuilder("Owned", Subscriber.Channel.class)
-                    .withDescription("A flag indicating whether the channel is owned by this subscriber")
+                    .withDescription("A flag indicating whether the channel is owned by this subscriber.")
                     .withFunction(Subscriber.Channel::isOwned)
                     .build();
 
@@ -192,7 +192,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_OWNED_CODE =
             SimpleModelAttribute.intBuilder("OwnedCode", Subscriber.Channel.class)
-                    .withDescription("An integer indicating whether the channel is owned by this subscriber (1 indicates true and 0 indicates false)")
+                    .withDescription("An integer indicating whether the channel is owned by this subscriber (1 indicates true and 0 indicates false).")
                     .withFunction(Subscriber.Channel::getOwnedCode)
                     .metric("OwnedCode")
                     .build();
@@ -202,7 +202,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS  =
                 SimpleModelAttribute.longBuilder("ReceiveCompletionsCount", Subscriber.Channel.class)
-                        .withDescription("The number completed receive requests")
+                        .withDescription("The number completed receive requests.")
                         .withFunction(Subscriber.Channel::getReceived)
                         .metric("ReceiveCompletionsCount")
                         .build();
@@ -212,7 +212,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_MEAN  =
             SimpleModelAttribute.doubleBuilder("ReceiveCompletionsMeanRate", Subscriber.Channel.class)
-                    .withDescription("The completed receive requests, mean rate")
+                    .withDescription("The completed receive requests, mean rate.")
                     .withFunction(Subscriber.Channel::getReceivedOneMinuteRate)
                     .metric("ReceiveCompletions")
                     .withMetricLabels("rate", RATE_MEAN)
@@ -223,7 +223,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_ONE  =
             SimpleModelAttribute.doubleBuilder("ReceiveCompletionsOneMinuteRate", Subscriber.Channel.class)
-                    .withDescription("The completed receive requests, one-minute rate")
+                    .withDescription("The completed receive requests, one-minute rate.")
                     .withFunction(Subscriber.Channel::getReceivedOneMinuteRate)
                     .metric("ReceiveCompletions")
                     .withMetricLabels("rate", RATE_1MIN)
@@ -234,7 +234,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIVE  =
                 SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFiveMinuteRate", Subscriber.Channel.class)
-                        .withDescription("The completed receive requests, five-minute rate")
+                        .withDescription("The completed receive requests, five-minute rate.")
                         .withFunction(Subscriber.Channel::getReceivedFiveMinuteRate)
                         .metric("ReceiveCompletions")
                         .withMetricLabels("rate", RATE_5MIN)
@@ -245,7 +245,7 @@ public class SubscriberChannelTableModel
      */
     protected static final ModelAttribute<Subscriber.Channel> ATTRIBUTE_RECEIVE_COMPLETIONS_FIFTEEN  =
                 SimpleModelAttribute.doubleBuilder("ReceiveCompletionsFifteenMinuteRate", Subscriber.Channel.class)
-                        .withDescription("The completed receive requests, fifteen-minute rate")
+                        .withDescription("The completed receive requests, fifteen-minute rate.")
                         .withFunction(Subscriber.Channel::getReceivedFifteenMinuteRate)
                         .metric("ReceiveCompletions")
                         .withMetricLabels("rate", RATE_15MIN)
