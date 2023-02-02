@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -58,4 +58,20 @@
       </dependency>
   </dependencies>
 
+  <build>
+    <plugins>
+      <!-- CreateKeyStore.java is used to create key stores for 
+           the security tests but can no longer be compiled due to
+           https://bugs.openjdk.org/browse/JDK-8242151. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <testExcludes>
+            <testExclude>**/CreateKeyStore.java</testExclude>
+          </testExcludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

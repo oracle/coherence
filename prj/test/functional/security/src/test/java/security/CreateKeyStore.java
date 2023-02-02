@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package security;
 
@@ -43,6 +43,10 @@ import java.util.Enumeration;
 
 /**
  * This class creates a set of keystores used by the Security tests.
+ *
+ * Note: This class no longer compiles due to
+ *       https://bugs.openjdk.org/browse/JDK-8242151
+ *       and is excluded in the <maven-compiler-plugin> configuration.
  *
  * @author lh 2018.1l.01
  */
