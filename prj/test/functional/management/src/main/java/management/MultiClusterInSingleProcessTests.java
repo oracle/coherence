@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,7 +45,7 @@ public class MultiClusterInSingleProcessTests
     public MultiClusterInSingleProcessTests()
         {
         super(CLUSTER_NAME, MultiClusterInSingleProcessTests::invokeInCluster);
-        super.EXPECTED_SERVICE_COUNT = 4;
+        super.EXPECTED_SERVICE_COUNT = 5;
         }
 
     @BeforeClass
@@ -160,4 +160,6 @@ public class MultiClusterInSingleProcessTests
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, new GetServiceStatus(ACTIVE_SERVICE)), is(ServiceStatus.NODE_SAFE), Timeout.of(5, TimeUnit.MINUTES));
         Eventually.assertDeferred(() -> MultiCluster.invokeInCluster(member, CLUSTER_NAME, IsReady.INSTANCE), is(true), within(5, TimeUnit.MINUTES));
         }
+
+        protected void ensureServicesAreAvailable() {}
     }

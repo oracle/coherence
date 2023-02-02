@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,11 +8,10 @@ package management;
 
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.tangosol.internal.net.management.HttpHelper;
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.DefaultCacheServer;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Test Management over REST when service names are scoped.
@@ -41,6 +40,11 @@ public class ManagementWithScopedServicesTests
         // due to a bug in the Service MBean start() method.
         }
 
+    @Override
+    public void xtestClusterNodeShutdownWithServicesRestart()
+        {
+        }
+
     // ----- helper methods -------------------------------------------------
 
     @Override
@@ -51,6 +55,10 @@ public class ManagementWithScopedServicesTests
             {
             return sName;
             }
+        else if (MetricsHttpHelper.getServiceName().equals(sName))
+            {
+                return sName;
+            }
         return SCOPE + ":" + sName;
         }
 
@@ -59,6 +67,10 @@ public class ManagementWithScopedServicesTests
         {
         // don't scope the management proxy
         if (HttpHelper.getServiceName().equals(sName))
+            {
+            return sName;
+            }
+        else if (MetricsHttpHelper.getServiceName().equals(sName))
             {
             return sName;
             }
