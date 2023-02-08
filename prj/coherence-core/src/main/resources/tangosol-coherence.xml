@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -111,16 +111,11 @@ to find specific notes on changes suggested for production use.
     </tcp-ring-listener>
 
     <shutdown-listener>
-      <!--
-      Note: For production use, the suggested value is "none" (or "false")
-      unless testing has verified that the behavior on external shutdown is
-      exactly what is desired.
-      -->
-      <enabled system-property="coherence.shutdownhook">force</enabled>
+      <enabled system-property="coherence.shutdownhook">graceful</enabled>
     </shutdown-listener>
 
     <service-guardian>
-      <service-failure-policy>exit-cluster</service-failure-policy>
+      <service-failure-policy system-property="coherence.service.failure.policy">exit-cluster</service-failure-policy>
 
       <!--
       Note: For production use, the recommended value is equal to or greater than
