@@ -149,9 +149,13 @@ class CoherenceConfigSourceIT
 
     @Test
     void testChangeNotification()
+            throws InterruptedException
         {
         Service proxyService = Coherence.getCluster().getService("Proxy");
         Eventually.assertDeferred(() -> proxyService.isRunning(), is(true));
+        Thread.sleep(3000);
+        Service sysProxyService = Coherence.getCluster().getService("$SYS:SystemProxy");
+        Eventually.assertDeferred(() -> sysProxyService.isRunning(), is(true));
 
         source.setValue("config.value", "one");
         MatcherAssert.assertThat(source.getValue("config.value"), is("one"));
