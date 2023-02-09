@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2013, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.generator;
 
@@ -84,6 +84,8 @@ import static com.oracle.coherence.common.schema.ClassFileSchemaSource.Filters.h
 import static com.oracle.coherence.common.schema.util.AsmUtils.addAnnotation;
 import static com.oracle.coherence.common.schema.util.AsmUtils.internalName;
 import static com.oracle.coherence.common.schema.util.AsmUtils.javaName;
+import static com.tangosol.dev.assembler.Constants.IFEQ;
+import static com.tangosol.dev.assembler.Constants.IF_ICMPEQ;
 import static org.objectweb.asm.Opcodes.ACC_ENUM;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -94,6 +96,7 @@ import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.F_SAME;
+import static org.objectweb.asm.Opcodes.F_SAME1;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.GOTO;
 import static org.objectweb.asm.Opcodes.ICONST_0;
@@ -360,11 +363,20 @@ public class PortableTypeGenerator
         mn.visitVarInsn(ILOAD, 1);
         mn.visitLdcInsn(m_type.getId());
         Label l1 = new Label();
-        mn.visitJumpInsn(IF_ICMPNE, l1);
+        mn.visitJumpInsn(IF_ICMPEQ, l1);
+        mn.visitVarInsn(ALOAD, 0);
+        mn.visitMethodInsn(INVOKEVIRTUAL, m_classNode.name, "getEvolvableHolder",
+                               "()Lcom/tangosol/io/pof/EvolvableHolder;", false);
+        mn.visitMethodInsn(INVOKEVIRTUAL, "com/tangosol/io/pof/EvolvableHolder", "isEmpty", "()Z", false);
+        Label label2 = new Label();
+        mn.visitJumpInsn(IFEQ, label2);
+        mn.visitLabel(l1);
+        mn.visitFrame(F_SAME, 0, null, 0, null);
         mn.visitVarInsn(ALOAD, 0);
         mn.visitFieldInsn(GETFIELD, m_classNode.name, evolvable.name, evolvable.desc);
-        mn.visitInsn(ARETURN);
-        mn.visitLabel(l1);
+        Label label3 = new Label();
+        mn.visitJumpInsn(GOTO, label3);
+        mn.visitLabel(label2);
         mn.visitFrame(F_SAME, 0, null, 0, null);
 
         if (fDelegateToSuper)
@@ -387,6 +399,8 @@ public class PortableTypeGenerator
                                "get",
                                "(Ljava/lang/Integer;)Lcom/tangosol/io/Evolvable;", false);
             }
+        mn.visitLabel(label3);
+        mn.visitFrame(F_SAME1, 0, null, 1, new Object[] {"com/tangosol/io/Evolvable"});
         mn.visitInsn(ARETURN);
         mn.visitMaxs(0, 0);
         mn.visitEnd();

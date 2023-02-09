@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2012, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.generator;
 
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import com.tangosol.io.pof.generator.data.Simple;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
@@ -246,6 +247,31 @@ public class PortableTypeGeneratorTest
 
         Object testClass = instrumentedClass.getDeclaredConstructor(String.class).newInstance("value");
 
+        Binary            binTestClass  = ExternalizableHelper.toBinary(testClass, ctx);
+        Object            result        = ExternalizableHelper.fromBinary(binTestClass, ctx);
+        MatcherAssert.assertThat(result.equals(testClass), is(true));
+        }
+
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void testBug35038656() throws Exception
+        {
+        String         sClassName   = Simple.class.getName();
+        URL            url          = getClass().getResource("/" + sClassName.replaceAll("\\.", "/") + ".class");
+        File           fileClass    = new File(url.toURI());
+        byte[]         abBytes      = Files.readAllBytes(fileClass.toPath());
+        Properties     properties   = new Properties();
+        Map<String, ?> env          = new HashMap<>();
+        byte[]         instrumented = PortableTypeGenerator.instrumentClass(fileClass, abBytes, 0, abBytes.length, properties, env);
+
+        SimplePofContext ctx = new SimplePofContext();
+
+        ByteArrayClassLoader loader = new ByteArrayClassLoader(Collections.singletonMap(sClassName, instrumented));
+        Class<?> instrumentedClass = loader.findClass(sClassName);
+
+        ctx.registerUserType(1, instrumentedClass, new PortableTypeSerializer(1, instrumentedClass));
+
+        Object testClass = instrumentedClass.getDeclaredConstructor(String.class, Integer.TYPE).newInstance("name", 10);
         Binary            binTestClass  = ExternalizableHelper.toBinary(testClass, ctx);
         Object            result        = ExternalizableHelper.fromBinary(binTestClass, ctx);
         MatcherAssert.assertThat(result.equals(testClass), is(true));
