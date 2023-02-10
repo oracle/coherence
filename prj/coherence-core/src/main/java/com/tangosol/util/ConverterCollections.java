@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -1753,7 +1754,46 @@ public abstract class ConverterCollections
             m_convValDown = convValDown;
             }
 
+        @SuppressWarnings({"unchecked", "deprecation"})
+        public Map<TK, TV> subMap(Set<TK> setKeys)
+            {
+            // we can only get here if the map is not empty, so it should never throw
+            FK fk = m_map.entrySet().stream().findFirst().get().getKey();
 
+            boolean fPassThrough = fk instanceof Binary;
+            boolean fDeco        = fPassThrough && ExternalizableHelper.isIntDecorated((Binary) fk);
+
+            Map<FK, FV> map = new HashMap<>(setKeys.size());
+            for (TK key : setKeys)
+                {
+                if (fPassThrough)
+                    {
+                    // pass-through, typically from Extend or gRPC proxy
+                    if (fDeco)
+                        {
+                        // the keys are already decorated, so we can use them directly
+                        map.put((FK) key, m_map.get((FK) key));
+                        }
+                    else
+                        {
+                        // otherwise, we have to remove the decoration in order to look up the value
+                        Binary binKey = (Binary) key;
+                        binKey = ExternalizableHelper.removeIntDecoration(binKey).toBinary();
+                        map.put((FK) binKey, m_map.get((FK) binKey));
+                        }
+                    }
+                else
+                    {
+                    // we are likely on the client or processing non-pass through Extend request,
+                    // so we need to convert the key to Java type in order to look up the value
+                    FK oKey = getConverterKeyDown().convert(key);
+                    map.put(oKey, m_map.get(oKey));
+                    }
+                }
+
+            return instantiateMap(map, m_convKeyUp, m_convKeyDown, m_convValUp, m_convValDown);
+            }
+        
         // ----- Map interface ----------------------------------------------
 
         /**

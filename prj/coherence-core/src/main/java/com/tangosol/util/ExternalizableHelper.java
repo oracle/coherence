@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -303,6 +303,32 @@ public abstract class ExternalizableHelper
         try
             {
             return serializeInternal(serializer, o, true).toBinary();
+            }
+        catch (IOException e)
+            {
+            throw ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Write an object into a Binary object using the specified Serializer.
+     *
+     * @param o           the object to write into a Binary object
+     * @param serializer  the Serializer to use
+     * @param buf         the reusable WriteBuffer to serialize into; this buffer
+     *                    is not safe to reuse until the returned Binary has been
+     *                    disposed of
+     *
+     * @return  a Binary object containing a serialized form of the passed
+     *          object
+     *
+     * @throws WrapperException  may contain an IOException
+     */
+    public static Binary toBinary(Object o, Serializer serializer, WriteBuffer buf)
+        {
+        try
+            {
+            return serializeInternal(serializer, o, true, buf).toBinary();
             }
         catch (IOException e)
             {
@@ -2929,6 +2955,26 @@ public abstract class ExternalizableHelper
     private static WriteBuffer serializeInternal(Serializer serializer, Object o, boolean fBinary)
             throws IOException
         {
+        return serializeInternal(serializer, o, fBinary, null);
+        }
+
+    /**
+     * Serialize the passed object into a specified buffer.
+     *
+     * @param serializer  the serializer to use
+     * @param o           the object to write
+     * @param fBinary     pass true to prefer a buffer type that is optimized for
+     *                    producing a Binary result
+     * @param buf         the reusable WriteBuffer to serialize into
+     *
+     * @return the reusable WriteBuffer that was passed as a {@code buf} argument
+     *         that the object was serialized into
+     *
+     * @throws IOException  if an I/O exception occurs
+     */
+    private static WriteBuffer serializeInternal(Serializer serializer, Object o, boolean fBinary, WriteBuffer buf)
+            throws IOException
+        {
         // estimate the size of the buffer
         boolean fDeco = false;
         int     nDeco = 0;
@@ -3027,12 +3073,15 @@ public abstract class ExternalizableHelper
                 throw azzert();
             }
 
-        // presize a write buffer as efficiently as possible
-        WriteBuffer buf = stats == null
-                ? fBinary
+        if (buf == null)
+            {
+            // presize a write buffer as efficiently as possible
+            buf = stats == null
+                      ? fBinary
                         ? new BinaryWriteBuffer(cb)
                         : new ByteArrayWriteBuffer(cb)
-                : stats.instantiateBuffer(fBinary);
+                      : stats.instantiateBuffer(fBinary);
+            }
 
         // write out the object
         BufferOutput out = buf.getBufferOutput();
@@ -3081,11 +3130,11 @@ public abstract class ExternalizableHelper
                 break;
 
             case FMT_INT:
-                out.writePackedInt(((Integer) o).intValue());
+                out.writePackedInt((Integer) o);
                 break;
 
             case FMT_LONG:
-                out.writePackedLong(((Long) o).longValue());
+                out.writePackedLong((Long) o);
                 break;
 
             case FMT_STRING:
@@ -3093,7 +3142,7 @@ public abstract class ExternalizableHelper
                 break;
 
             case FMT_DOUBLE:
-                out.writeDouble(((Double) o).doubleValue());
+                out.writeDouble((Double) o);
                 break;
 
             case FMT_INTEGER:
@@ -3177,19 +3226,19 @@ public abstract class ExternalizableHelper
                 break;
 
             case FMT_FLOAT:
-                out.writeFloat(((Float) o).floatValue());
+                out.writeFloat((Float) o);
                 break;
 
             case FMT_SHORT:
-                out.writeShort(((Short) o).shortValue());
+                out.writeShort((Short) o);
                 break;
 
             case FMT_BYTE:
-                out.writeByte(((Byte) o).byteValue());
+                out.writeByte((Byte) o);
                 break;
 
             case FMT_BOOLEAN:
-                out.writeBoolean(((Boolean) o).booleanValue());
+                out.writeBoolean((Boolean) o);
                 break;
 
             case FMT_UNKNOWN:

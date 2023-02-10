@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -597,42 +597,28 @@ public class NearCacheTests
             Map       mapBack  = cache.getBackMap();
             out("validating front(" + mapFront.size() +
                     ") against back(" + mapBack.size() + ")");
-            boolean fResult = mapBack.entrySet().containsAll(mapFront.entrySet());
-
-            if (!fResult)
+            boolean fValid = mapBack.keySet().containsAll(mapFront.keySet());
+            if (!fValid)
                 {
-                // find delta
-                Map mapCopy = new HashMap(mapFront);
-                mapCopy.entrySet().remove(mapBack.entrySet());
-                String sMsg = "front contains errors:";
-                boolean fError = false;
-                for (Iterator iter = mapCopy.entrySet().iterator(); iter.hasNext(); )
-                    {
-                    Map.Entry entry = (Map.Entry) iter.next();
-                    Object oKey = entry.getKey();
-                    Object oVal = entry.getValue();
-                    Object oBackVal = mapBack.get(oKey);
-
-                    if (!equals(oVal, oBackVal) || (oVal == null && mapFront.containsKey(oKey)))
-                        {
-                        sMsg += " key: " + oKey + " value: " + oVal;
-                        if (oVal == null)
-                            {
-                            sMsg += " in front " + mapFront.containsKey(oKey) + " " + mapFront.get(oKey);
-                            }
-
-                        sMsg += " back: " + oBackVal;
-                        fError |= true;
-                        }
-                    }
-
-                if (!fError)
-                    {
-                    err("validation is wrong");
-                    }
-                throw ensureRuntimeException(null, sMsg);
+                out("Back map doesn't contain all the keys present in the front map!");
                 }
-            return fResult;
+
+            Set setDiff = new HashSet();
+            for (Object oKey : mapFront.keySet())
+                {
+                if (!mapBack.get(oKey).equals(mapFront.get(oKey)))
+                    {
+                    setDiff.add(oKey);
+                    }
+                }
+
+            if (!setDiff.isEmpty())
+                {
+                fValid = false;
+                out("The following keys in the front and back map have different values: " + setDiff);
+                }
+
+            return fValid;
             }
 
         /**
