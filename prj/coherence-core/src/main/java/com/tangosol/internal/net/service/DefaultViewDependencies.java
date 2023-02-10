@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
+import com.tangosol.coherence.config.unit.Millis;
 import com.tangosol.config.annotation.Injectable;
 
 import com.tangosol.net.Service;
@@ -133,9 +134,9 @@ public class DefaultViewDependencies
      */
     @SuppressWarnings("unused")
     @Injectable("reconnect-interval")
-    public void setReconnectInterval(long cReconnectMillis)
+    public void setReconnectInterval(Millis cReconnectMillis)
         {
-        m_cReconnectMillis = cReconnectMillis;
+        m_cReconnectMillis = cReconnectMillis.get();
         }
 
     /**
