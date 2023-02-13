@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -42,6 +42,10 @@
     <cache-mapping>
       <cache-name>view-reconnect-interval</cache-name>
       <scheme-name>view-reconnect-interval</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>view-reconnect-interval2</cache-name>
+      <scheme-name>view-reconnect-interval2</scheme-name>
     </cache-mapping>
     <cache-mapping>
       <cache-name>view-with-listener</cache-name>
@@ -181,6 +185,17 @@
         </distributed-scheme>
       </back-scheme>
       <reconnect-interval>1000</reconnect-interval>
+    </view-scheme>
+
+    <view-scheme>
+      <scheme-name>view-reconnect-interval2</scheme-name>
+      <service-name>view-reconnect-interval2</service-name>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>distributed</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+      <reconnect-interval>2s</reconnect-interval>
     </view-scheme>
 
     <view-scheme>
