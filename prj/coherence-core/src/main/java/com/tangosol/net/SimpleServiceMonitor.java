@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.application.ContainerHelper;
 
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Base;
@@ -28,7 +29,7 @@ import java.util.Set;
  *
  * @author cf 2011.05.24
  * @author hr 2012.06.28
- *
+ * @author gh 2022.11.22
  * @since Coherence 12.1.2
  */
 public class SimpleServiceMonitor
@@ -222,7 +223,17 @@ public class SimpleServiceMonitor
                             {
                             // the reference to the safe service continues to
                             // exist and be valid
-                            ccf.ensureService(entry.getValue());
+
+                            String sServiceName = entry.getValue();
+                            if (MetricsHttpHelper.getServiceName().equals(sServiceName))
+                                {
+                                MetricsHttpHelper.ensureMetricsService(m_mapServices);
+                                }
+                            else
+                                {
+                                // Ensure the Scheme-based Service
+                                ccf.ensureService(sServiceName);
+                                }
                             }
                         }
                     }
