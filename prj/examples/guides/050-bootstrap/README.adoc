@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     http://oss.oracle.com/licenses/upl.
@@ -34,7 +34,7 @@ injected into application code without even needing to directly access the boots
 ** <<starting,Ensure Coherence is Started>> - Obtaining a fully running Coherence instance
 ** <<session,Coherence Sessions>> - Obtaining Coherence Session instances and other Coherence resources
 * <<app-init,Application Initialization>> - Initializing application code without needing a custom main class
-* <<bootstrap-code,Bootstrap Coherence>> - Starting Coherence from Application Code>>
+* <<bootstrap-code,Bootstrap Coherence>> - Starting Coherence from Application Code
 ** <<simple-cluster,Simple Cluster Member>> - Start a simple cluster member
 ** <<configure-cluster,Configured Cluster Member>> - Configure and start a simple cluster member
 
