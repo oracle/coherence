@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.BinaryStoreManager;
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.FileHelper;
 
 import com.tangosol.io.nio.BinaryMap;
 import com.tangosol.io.nio.BinaryMapStore;
@@ -25,6 +26,22 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.cache.OldCache;
 
+import com.tangosol.util.Base;
+import com.tangosol.util.Binary;
+import com.tangosol.util.ConcurrentMap;
+import com.tangosol.util.ConverterCollections;
+import com.tangosol.util.Daemon;
+import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.ListMap;
+import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapListener;
+import com.tangosol.util.MapListenerSupport;
+import com.tangosol.util.ObservableHashMap;
+import com.tangosol.util.ObservableMap;
+import com.tangosol.util.SafeHashMap;
+import com.tangosol.util.SafeLinkedList;
+import com.tangosol.util.SafeSortedMap;
+import com.tangosol.util.SimpleMapEntry;
 import org.junit.Ignore;
 
 import java.io.ByteArrayInputStream;
@@ -124,7 +141,21 @@ public class BaseMapTest
         assertIdenticalResult(oControl, oTest);
         assertIdenticalMaps(mapControl, mapTest);
 
+        // test SafeSortedMap null K, V support
+        if (mapTest instanceof SafeSortedMap)
+            {
+            mapTest.put(null, "somevalue");
+            mapTest.put("abc", null);
+            }
+
         testMisc(mapTest);
+
+        // test SafeSortedMap null K, V support
+        if (mapTest instanceof SafeSortedMap)
+            {
+            mapTest.remove(null);
+            mapTest.remove("abc");
+            }
 
         for (int iRepeat = 0; iRepeat < 2; ++iRepeat)
             {

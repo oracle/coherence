@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -16,6 +16,7 @@ import com.tangosol.net.cache.SimpleSerializationMap;
 import com.tangosol.net.cache.SerializationCache;
 import com.tangosol.net.cache.SerializationPagedCache;
 
+import java.io.Serializable;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -194,19 +195,8 @@ public class MapTest
     @Test
     public void testSafeSortedMap()
         {
-        Comparator comparator = new Comparator()
-            {
-            public int compare(Object o1, Object o2)
-                {
-                Class c1 = o1.getClass();
-                Class c2 = o2.getClass();
-                if (c1 != c2)
-                    {
-                    return c1.getName().compareTo(c2.getName());
-                    }
-                return ((Comparable) o1).compareTo(o2);
-                }
-            };
+        Comparator comparator = new MyComparator();
+
         System.out.println("testing SafeSortedMap ...");
         testMap(new SafeSortedMap(comparator));
         testMaps(new SafeSortedMap(comparator), new SafeSortedMap(comparator));
@@ -214,6 +204,22 @@ public class MapTest
         System.out.println("multi-threaded test of SafeSortedMap ...");
         testMultithreadedMap(new SafeSortedMap(comparator));
         }
+
+    // serializable comparator
+    static class MyComparator
+        implements Comparator, Serializable
+        {
+        public int compare(Object o1, Object o2)
+            {
+            Class c1 = o1.getClass();
+            Class c2 = o2.getClass();
+            if (c1 != c2)
+                {
+                return c1.getName().compareTo(c2.getName());
+                }
+            return ((Comparable) o1).compareTo(o2);
+            }
+        };
 
     /**
     * Test SegmentedConcurrentMap.
@@ -424,22 +430,6 @@ public class MapTest
     // ----- regression tests -----------------------------------------------
 
     /**
-    * Test for regression of COH-2515.
-    */
-    @Test
-    public void testCoh2515()
-        {
-        SafeSortedMap map = new SafeSortedMap();
-        for (int i = 1; i <= 101; i++)
-            {
-            map.put(Integer.valueOf(i), Integer.valueOf(i));
-            }
-
-        // this triggers COH-2515
-        map.split(Integer.valueOf(0)).isHeadHeavy();
-        }
-
-    /**
     * Test for regression of COH-3646
     */
     @Test
@@ -466,136 +456,6 @@ public class MapTest
             assertNotNull(iter.next());
             }
         }
-
-    /**
-    * Test for regression of COH-3755.
-    */
-    @Test
-    public void testCoh3755()
-        {
-        // Define a subclass of SafeSortedMap here to get access to the
-        // findNearest() method
-        class Coh3755SafeSortedMap
-                extends SafeSortedMap
-            {
-            public Object findLT(Object o)
-                {
-                EntryNode node = findNearest(getTopNode(), o, SEARCH_LT, true);
-                return node == null || node == getBaseNode() ? null : node.getValue();
-                }
-
-            public Object findLTEQ(Object o)
-                {
-                EntryNode node = findNearest(getTopNode(), o, SEARCH_LTEQ, true);
-                return node == null || node == getBaseNode() ? null : node.getValue();
-                }
-
-            public Object findEQ(Object o)
-                {
-                EntryNode node = findNearest(getTopNode(), o, SEARCH_EQ, true);
-                return node == null || node == getBaseNode() ? null : node.getValue();
-                }
-
-            public Object findGT(Object o)
-                {
-                EntryNode node = findNearest(getTopNode(), o, SEARCH_GT, true);
-                return node == null || node == getBaseNode() ? null : node.getValue();
-                }
-
-            public Object findGTEQ(Object o)
-                {
-                EntryNode node = findNearest(getTopNode(), o, SEARCH_GTEQ, true);
-                return node == null || node == getBaseNode() ? null : node.getValue();
-                }
-            }
-        Coh3755SafeSortedMap map = new Coh3755SafeSortedMap();
-
-        // test an empty map
-        assertEquals(null, map.findLT(Integer.valueOf(0)));
-        assertEquals(null, map.findLTEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findGT(Integer.valueOf(0)));
-
-        // test a map with 1 entry
-        map.put(Integer.valueOf(5), Integer.valueOf(5));
-
-        assertEquals(null, map.findLT(Integer.valueOf(4)));
-        assertEquals(null, map.findLT(Integer.valueOf(5)));
-        assertEquals(Integer.valueOf(5), map.findLT(Integer.valueOf(6)));
-
-        assertEquals(null, map.findLTEQ(Integer.valueOf(4)));
-        assertEquals(Integer.valueOf(5), map.findLTEQ(Integer.valueOf(5)));
-        assertEquals(Integer.valueOf(5), map.findLTEQ(Integer.valueOf(6)));
-
-        assertEquals(null, map.findEQ(Integer.valueOf(4)));
-        assertEquals(Integer.valueOf(5), map.findEQ(Integer.valueOf(5)));
-        assertEquals(null, map.findEQ(Integer.valueOf(6)));
-
-        assertEquals(Integer.valueOf(5), map.findGTEQ(Integer.valueOf(4)));
-        assertEquals(Integer.valueOf(5), map.findGTEQ(Integer.valueOf(5)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(6)));
-
-        assertEquals(Integer.valueOf(5), map.findGT(Integer.valueOf(4)));
-        assertEquals(null, map.findGT(Integer.valueOf(5)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(6)));
-
-        // test a map that has a bunch of data
-        map.clear();
-        int[] ai = new int[500];
-        for (int i = 0; i < 500; i++)
-            {
-            ai[i] = 2 * i;
-            }
-        ai = Base.randomize(ai);
-
-        for (int i = 0; i < 500; i++)
-            {
-            Integer IKey = Integer.valueOf(ai[i]);
-            map.put(IKey, IKey);
-            }
-
-        // test LT
-        assertEquals(Integer.valueOf(30), map.findLT(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(30), map.findLT(Integer.valueOf(31)));
-        assertEquals(null, map.findLT(Integer.valueOf(0)));
-        assertEquals(null, map.findLT(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(996), map.findLT(Integer.valueOf(998)));
-        assertEquals(Integer.valueOf(998), map.findLT(Integer.valueOf(1001)));
-
-        // test LTEQ
-        assertEquals(Integer.valueOf(32), map.findLTEQ(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(30), map.findLTEQ(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(0), map.findLTEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findLTEQ(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(998), map.findLTEQ(Integer.valueOf(998)));
-        assertEquals(Integer.valueOf(998), map.findLTEQ(Integer.valueOf(1001)));
-
-        // test EQ
-        assertEquals(Integer.valueOf(32), map.findEQ(Integer.valueOf(32)));
-        assertEquals(null, map.findEQ(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(0), map.findEQ(Integer.valueOf(0)));
-        assertEquals(null, map.findEQ(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(998), map.findEQ(Integer.valueOf(998)));
-        assertEquals(null, map.findEQ(Integer.valueOf(1001)));
-
-        // test GTEQ
-        assertEquals(Integer.valueOf(32), map.findGTEQ(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(32), map.findGTEQ(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(0), map.findGTEQ(Integer.valueOf(0)));
-        assertEquals(Integer.valueOf(0), map.findGTEQ(Integer.valueOf(-1)));
-        assertEquals(Integer.valueOf(998), map.findGTEQ(Integer.valueOf(998)));
-        assertEquals(null, map.findGTEQ(Integer.valueOf(1001)));
-
-        // test GT
-        assertEquals(Integer.valueOf(34), map.findGT(Integer.valueOf(32)));
-        assertEquals(Integer.valueOf(32), map.findGT(Integer.valueOf(31)));
-        assertEquals(Integer.valueOf(2), map.findGT(Integer.valueOf(0)));
-        assertEquals(Integer.valueOf(0), map.findGT(Integer.valueOf(-1)));
-        assertEquals(null, map.findGT(Integer.valueOf(998)));
-        assertEquals(null, map.findGT(Integer.valueOf(1001)));
-        }
-
 
     // ----- test helper methods  -------------------------------------------
     /**
