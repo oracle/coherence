@@ -8,22 +8,38 @@ package com.tangosol.util;
 
 import com.tangosol.util.comparator.SafeComparator;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import java.util.AbstractCollection;
+import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
 
 import java.util.SortedMap;
+import java.util.Spliterator;
+
+import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Implementation of a {@link java.util.SortedMap} extending {@link java.util.concurrent.ConcurrentSkipListMap}
- * to support null keys and null values.
+ * to support null keys and null values. Note that unlike its super class, this class is not serializable.
  *
  * @since 23.03
  * @author mg
@@ -93,21 +109,20 @@ public class SafeSortedMap<K, V>
     @Override
     public V get(Object oKey)
         {
-        V oValue = super.get(oKey == null ? NULL : oKey);
-
-        return oValue == NULL ? null : oValue;
+        return ensureReturnValue(super.get(oKey == null ? NULL : oKey));
         }
 
     @Override
     public V put(K oKey, V oValue)
         {
-        return super.put(oKey == null ? (K) NULL : oKey, oValue == null ? (V) NULL : oValue);
+        return ensureReturnValue(super.put(oKey == null ? (K) NULL : oKey,
+                                           oValue == null ? (V) NULL : oValue));
         }
 
     @Override
     public V remove(Object oKey)
         {
-        return super.remove(oKey == null ? (K) NULL : oKey);
+        return ensureReturnValue(super.remove(oKey == null ? NULL : oKey));
         }
 
     @Override
@@ -123,11 +138,8 @@ public class SafeSortedMap<K, V>
             return false;
             }
 
-        Iterator<Map.Entry<K, V>> it = ((Map<K, V>) oMap).entrySet().iterator();
-
-        while (it.hasNext())
+        for (Map.Entry<K, V> entry : ((Map<K, V>) oMap).entrySet())
             {
-            Map.Entry<K, V> entry  = it.next();
             Object          oKey   = entry.getKey();
             Object          oValue = entry.getValue();
             // support null values
@@ -143,16 +155,26 @@ public class SafeSortedMap<K, V>
     @Override
     public SafeSortedMap<K, V> clone()
         {
-        return new SafeSortedMap<K, V>(this);
+        return new SafeSortedMap<>(this);
+        }
+
+    @Override
+    public boolean containsKey(Object oKey)
+        {
+        return super.containsKey(oKey == null ? NULL : oKey);
+        }
+
+    @Override
+    public boolean containsValue(Object oValue)
+        {
+        return super.containsValue(oValue == null ? NULL : oValue);
         }
 
     @Override
     public Set<Entry<K, V>> entrySet()
         {
-        // optimization when the map does not contain any null value
-        return this.containsValue(NULL)
-                        ? new EntrySet(super.entrySet())
-                        : super.entrySet();
+        // too costly to check if any value is NULL as map size grows
+        return new EntrySet<>(super.entrySet());
         }
 
     @Override
@@ -160,9 +182,27 @@ public class SafeSortedMap<K, V>
         {
         // optimization when the map does not contain a null key which would
         // be the first key in the map, so weak consistency is respected
-        return this.containsKey(NULL)
-                      ? new KeySet(super.keySet())
-                      : super.keySet();
+        return super.containsKey(NULL)
+               ? new KeySet(super.keySet())
+               : super.keySet();
+        }
+
+    @Override
+    public Collection<V> values()
+        {
+        return new Values<>(super.values());
+        }
+
+    @Override
+    public ConcurrentNavigableMap<K,V> descendingMap()
+        {
+        return new SubMap<>(super.descendingMap());
+        }
+
+    @Override
+    public NavigableSet<K> descendingKeySet()
+        {
+        return new KeySet<>(super.descendingKeySet());
         }
 
     /**
@@ -177,24 +217,154 @@ public class SafeSortedMap<K, V>
      */
     public Entry<K, V> getEntry(K oKey)
         {
-        // call get??
+        oKey = oKey == null ? (K) NULL : oKey;
 
-        for (Entry<K, V> e : entrySet())
-            {
-            if ((e.getKey().equals(oKey == null ? NULL : oKey)))
-                {
-                if (e.getValue() == NULL)
-                    {
-                    return new NullableEntry<>(e);
-                    }
-                return e;
-                }
-            }
+        ConcurrentNavigableMap<K,V> mapSub = super.subMap(oKey, true, oKey, true);
 
-        return null;
+        return mapSub.isEmpty() ? null : ensureReturnEntry(mapSub.firstEntry());
         }
 
-   // ----- inner class: NullableEntry -----------------------------------
+    /* ------ SortedMap API methods ------ */
+
+    @Override
+    public K firstKey()
+        {
+        return ensureReturnKey(super.firstKey());
+        }
+
+    @Override
+    public K lastKey()
+        {
+        return ensureReturnKey(super.lastKey());
+        }
+
+    @Override
+    public ConcurrentNavigableMap<K,V> subMap(K oFromKey,
+                                              boolean fFromInclusive,
+                                              K oToKey,
+                                              boolean fToInclusive)
+        {
+        return new SubMap<>(super.subMap(oFromKey == null ? (K) NULL : oFromKey, fFromInclusive,
+                                         oToKey == null ? (K) NULL : oToKey, fToInclusive));
+        }
+
+   @Override
+    public ConcurrentNavigableMap<K,V> headMap(K oToKey, boolean fInclusive)
+        {
+        return new SubMap<>(super.headMap(oToKey == null ? (K) NULL : oToKey, fInclusive));
+        }
+
+    @Override
+    public ConcurrentNavigableMap<K,V> tailMap(K oFromKey, boolean fInclusive)
+        {
+        return new SubMap<>(super.tailMap(oFromKey == null ? (K) NULL : oFromKey, fInclusive));
+        }
+
+    @Override
+    public ConcurrentNavigableMap<K,V> subMap(K oFromKey, K oToKey)
+        {
+        return subMap(oFromKey, true, oToKey, false);
+        }
+
+    @Override
+    public ConcurrentNavigableMap<K,V> headMap(K oToKey)
+        {
+        return headMap(oToKey, false);
+        }
+
+    @Override
+    public ConcurrentNavigableMap<K,V> tailMap(K fromKey)
+        {
+        return tailMap(fromKey, true);
+        }
+
+    //----- ConcurrentMap methods ----------------------------------------
+
+    @Override
+    public V putIfAbsent(K oKey, V oValue)
+        {
+        return ensureReturnValue(super.putIfAbsent(oKey == null ? (K) NULL : oKey,
+                                                   oValue == null ? (V) NULL : oValue));
+        }
+
+    @Override
+    public V getOrDefault(Object oKey, V oDefaultValue)
+        {
+        return ensureReturnValue(super.getOrDefault(oKey == null ? NULL : oKey,
+                                                    oDefaultValue == null ? (V) NULL : oDefaultValue));
+        }
+
+    @Override
+    public void forEach(BiConsumer<? super K, ? super V> action)
+        {
+        super.forEach(action);
+        }
+
+    @Override
+    public boolean remove(Object oKey, Object oValue)
+        {
+        return super.remove(oKey == null ? NULL : oKey,
+                            oValue == null ? NULL : oValue);
+        }
+
+    @Override
+    public boolean replace(K oKey, V oOldValue, V oNewValue)
+        {
+        return super.replace(oKey == null ? (K) NULL : oKey,
+                             oOldValue == null ? (V) NULL : oOldValue,
+                             oNewValue == null ? (V) NULL : oNewValue);
+        }
+
+    @Override
+    public V replace(K oKey, V oValue)
+        {
+        return ensureReturnValue(super.replace(oKey == null ? (K) NULL : oKey,
+                                               oValue == null ? (V) NULL : oValue));
+        }
+
+    @Override
+    public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public V computeIfAbsent(K oKey, Function<? super K, ? extends V> mappingFunction)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public V computeIfPresent(K oKey, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public V compute(K oKey, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public V merge(K oKey, V oValue, BiFunction<? super V, ? super V, ? extends V> remappingFunction)
+        {
+        throw new UnsupportedOperationException();
+        }
+    
+    // ----- Java Serialization methods -----------------------------------
+
+    private void writeObject(ObjectOutputStream out) throws IOException
+        {
+        throw new NotSerializableException("SafeSortedMap is not serializable");
+        }
+
+    private void readObject(ObjectInputStream in) throws IOException
+        {
+        throw new NotSerializableException("SafeSortedMap is not serializable");
+        }
+
+    // ----- inner class: NullableEntry -----------------------------------
 
     /**
      * Map.Entry implementation that supports null key/value placeholders.
@@ -219,17 +389,17 @@ public class SafeSortedMap<K, V>
         @Override
         public K getKey()
             {
-            return m_entry == null ?
-                   null :
-                   m_entry.getKey() == NULL ? null : m_entry.getKey();
+            return m_entry == null
+                   ? null
+                   : ensureReturnKey(m_entry.getKey());
             }
 
         @Override
         public V getValue()
             {
-            return m_entry == null ?
-                   null :
-                   m_entry.getValue() == NULL ? null : m_entry.getValue();
+            return m_entry == null
+                   ? null
+                   : ensureReturnValue(m_entry.getValue());
             }
 
         @Override
@@ -240,7 +410,7 @@ public class SafeSortedMap<K, V>
                 throw new NullPointerException();
                 }
 
-            return m_entry.setValue(oValue);
+            return m_entry.setValue(oValue == null ? (V) NULL : oValue);
             }
 
         // ----- data member ---------------------------------------------
@@ -248,7 +418,7 @@ public class SafeSortedMap<K, V>
         /**
          * The delegated to entry.
          */
-        private final transient Entry<K, V> m_entry;
+        private final Entry<K, V> m_entry;
         }
 
     // ----- inner class: EntrySet ----------------------------------------
@@ -256,7 +426,7 @@ public class SafeSortedMap<K, V>
     /**
      * Entry set delegation of the super map implementation.
      */
-    protected class EntrySet
+    protected static class EntrySet<K,V>
             extends AbstractSet<Entry<K,V>>
         {
         // ----- constructor ----------------------------------------------
@@ -280,7 +450,7 @@ public class SafeSortedMap<K, V>
         @Override
         public Iterator<Entry<K, V>> iterator()
             {
-            return new EntryIterator(m_set.iterator());
+            return new EntryIterator<>(m_set.iterator());
             }
 
 
@@ -289,7 +459,7 @@ public class SafeSortedMap<K, V>
         /**
          * The delegated to set.
          */
-        private final transient Set<Entry<K, V>> m_set;
+        private final Set<Entry<K, V>> m_set;
         }
 
     // ----- inner class: KeySet ----------------------------------------
@@ -297,7 +467,7 @@ public class SafeSortedMap<K, V>
     /**
      * Key set delegation of the super map implementation.
      */
-    protected class KeySet
+    protected static class KeySet<K>
             extends AbstractSet<K>
             implements NavigableSet<K>
         {
@@ -322,85 +492,86 @@ public class SafeSortedMap<K, V>
         @Override
         public K lower(K e)
             {
-            return m_set.lower(e);
+            return ensureReturnKey(m_set.lower(e));
             }
 
         @Override
         public K floor(K e)
             {
-            return m_set.floor(e);
+            return ensureReturnKey(m_set.floor(e));
             }
 
         @Override
         public K ceiling(K e)
             {
-            return m_set.ceiling(e);
+            return ensureReturnKey(m_set.ceiling(e));
             }
 
         @Override
         public K higher(K e)
             {
-            return m_set.higher(e);
+            return ensureReturnKey(m_set.higher(e));
             }
 
         @Override
         public K pollFirst()
             {
-            return m_set.pollFirst();
+            return ensureReturnKey(m_set.pollFirst());
             }
 
         @Override
         public K pollLast()
             {
-            return m_set.pollLast();
+            return ensureReturnKey(m_set.pollLast());
             }
 
         @Override
         public NavigableSet<K> descendingSet()
             {
-            return m_set.descendingSet();
+            return new KeySet<>(m_set.descendingSet());
             }
 
         @Override
         public Iterator<K> descendingIterator()
             {
-            return m_set.descendingIterator();
+            return new SortedIterator<>(m_set.descendingIterator());
             }
 
         @Override
-        public NavigableSet<K> subSet(K fromElement, K toElement)
+        public NavigableSet<K> subSet(K oFromElement, K oToElement)
             {
-            return (NavigableSet<K>) m_set.subSet(fromElement, toElement);
+            return subSet(oFromElement, true, oToElement, false);
             }
 
         @Override
-        public NavigableSet<K> subSet(K fromElement, boolean fromInclusive, K toElement, boolean toInclusive)
+        public NavigableSet<K> subSet(K oFromElement, boolean fFromInclusive, K oToElement, boolean fToInclusive)
             {
-            return m_set.subSet(fromElement, fromInclusive, toElement, toInclusive);
+            return new KeySet<>(m_set.subSet(oFromElement == null ? (K) NULL : oFromElement, fFromInclusive,
+                                             oToElement == null ? (K) NULL : oToElement, fToInclusive));
             }
 
         @Override
-        public NavigableSet<K> headSet(K toElement, boolean inclusive)
+        public NavigableSet<K> headSet(K oToElement, boolean fInclusive)
             {
-            return m_set.headSet(toElement, inclusive);
+            return new KeySet<>(m_set.headSet(oToElement == null ? (K) NULL : oToElement, fInclusive));
             }
 
         @Override
-        public NavigableSet<K> headSet(K toElement)
+        public NavigableSet<K> headSet(K oToElement)
             {
-            return m_set.headSet(toElement, false);
+            return headSet(oToElement, false);
             }
 
         @Override
-        public NavigableSet<K> tailSet(K fromElement, boolean inclusive)
+        public NavigableSet<K> tailSet(K oFromElement, boolean fInclusive)
             {
-            return m_set.tailSet(fromElement, inclusive);
+            return new KeySet<>(m_set.tailSet(oFromElement == null ? (K) NULL : oFromElement, fInclusive));
             }
 
         @Override
-        public NavigableSet<K> tailSet(K fromElement)
+        public NavigableSet<K> tailSet(K oFromElement)
             {
-            return m_set.tailSet(fromElement, true);
+            return tailSet(oFromElement == null ? (K) NULL : oFromElement, true);
             }
 
         @Override
@@ -412,13 +583,13 @@ public class SafeSortedMap<K, V>
         @Override
         public K first()
             {
-            return m_set.first();
+            return ensureReturnKey(m_set.first());
             }
 
         @Override
         public K last()
             {
-            return m_set.last();
+            return ensureReturnKey(m_set.last());
             }
 
         @Override
@@ -432,8 +603,401 @@ public class SafeSortedMap<K, V>
         /**
          * The delegated to set.
          */
-        final transient NavigableSet<K> m_set;
+        final NavigableSet<K> m_set;
         }
+
+    // ----- inner class: Values -----------------------------------------
+
+    /**
+     * Values delegation of the super map implementation.
+     */
+    protected static class Values<V> extends AbstractCollection<V>
+        {
+        Values(Collection<V> colValues)
+            {
+            m_colValues = colValues;
+            }
+
+        @Override
+        public Iterator<V> iterator()
+            {
+            return new SortedIterator<>(m_colValues.iterator());
+            }
+
+        @Override
+        public boolean isEmpty()
+            {
+            return m_colValues.isEmpty();
+            }
+
+        @Override
+        public int size()
+            {
+            return m_colValues.size();
+            }
+
+        @Override
+        public boolean contains(Object o)
+            {
+            return m_colValues.contains(o == null ? NULL : o);
+            }
+
+        public void clear()
+            {
+            m_colValues.clear();
+            }
+
+        public Object[] toArray()
+            {
+            return toList().toArray();
+            }
+
+        private List<V> toList()
+            {
+            ArrayList<V> list = new ArrayList<>(m_colValues.size());
+            for (V v : m_colValues)
+                {
+                list.add(ensureReturnValue(v));
+                }
+            return list;
+            }
+
+        @SuppressWarnings("unchecked")
+        public Spliterator<V> spliterator()
+            {
+            return (Spliterator<V>)iterator();
+            }
+
+        private final Collection<V> m_colValues;
+        }
+
+    /**
+     * SubMap delegation to manage {@link #NULL} in entry key and/or value.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     */
+    protected static class SubMap<K, V>
+            extends AbstractMap<K, V>
+            implements ConcurrentNavigableMap<K, V>, Cloneable, Serializable
+        {
+        /**
+         * Create a submap wrapper
+         */
+        SubMap(ConcurrentNavigableMap<K, V> oMap)
+            {
+            m_map = oMap;
+            }
+
+        // ----- Clone methods -----------------------------------------------
+
+        @Override
+        public SubMap<K, V> clone()
+            {
+            return new SubMap<>(this);
+            }
+
+        // -----  Map methods ------------------------------------------------
+
+        @Override
+        public boolean containsKey(Object oKey)
+            {
+            return m_map.containsKey(oKey == null ? NULL : oKey);
+            }
+
+        @Override
+        public V get(Object oKey)
+            {
+            return ensureReturnValue(m_map.get(oKey == null ? NULL : oKey));
+            }
+
+        @Override
+        public V put(K oKey, V oValue)
+            {
+            return ensureReturnValue(m_map.put(oKey == null ? (K) NULL : oKey,
+                                               oValue == null ? (V) NULL : oValue));
+            }
+
+        @Override
+        public V remove(Object oKey)
+            {
+            return ensureReturnValue(m_map.remove(oKey == null ? NULL : oKey));
+            }
+
+        @Override
+        public int size()
+            {
+            return m_map.size();
+            }
+
+        @Override
+        public boolean isEmpty()
+            {
+            return m_map.isEmpty();
+            }
+
+        @Override
+        public boolean containsValue(Object oValue)
+            {
+            return m_map.containsValue(oValue == null ? NULL : oValue);
+            }
+
+        @Override
+        public void clear()
+            {
+            m_map.clear();
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> subMap(K oFromKey, boolean fFromInclusive,
+                                                   K oToKey, boolean fToInclusive)
+            {
+            return new SubMap<>(m_map.subMap(oFromKey == null ? (K) NULL : oFromKey, fFromInclusive,
+                                             oToKey == null ? (K) NULL : oToKey, fToInclusive));
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> headMap(K oToKey, boolean fInclusive)
+            {
+            return new SubMap<>(m_map.subMap((K) NULL, false,
+                                             oToKey == null ? (K) NULL : oToKey, fInclusive));
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> tailMap(K oFromKey, boolean fInclusive)
+            {
+            return new SubMap<>(m_map.tailMap(oFromKey == null ? (K) NULL : oFromKey, fInclusive));
+            }
+
+        @Override
+        public Comparator<? super K> comparator()
+            {
+            return m_map.comparator();
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> subMap(K oFromKey, K oToKey)
+            {
+            return subMap(oFromKey,true, oToKey, false);
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> headMap(K oToKey)
+            {
+            return headMap(oToKey, false);
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> tailMap(K oFromKey)
+            {
+            return tailMap(oFromKey, true);
+            }
+
+        @Override
+        public K firstKey()
+            {
+            return ensureReturnKey(m_map.firstKey());
+            }
+
+        @Override
+        public K lastKey()
+            {
+            return ensureReturnKey(m_map.lastKey());
+            }
+
+        @Override
+        public Entry<K, V> lowerEntry(K oKey)
+            {
+            return ensureReturnEntry(m_map.lowerEntry(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public K lowerKey(K oKey)
+            {
+            return ensureReturnKey(m_map.lowerKey(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public Entry<K, V> floorEntry(K oKey)
+            {
+            return ensureReturnEntry(m_map.floorEntry(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public K floorKey(K oKey)
+            {
+            return ensureReturnKey(m_map.floorKey(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public Entry<K, V> ceilingEntry(K oKey)
+            {
+            return ensureReturnEntry(m_map.ceilingEntry(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public K ceilingKey(K oKey)
+            {
+            return ensureReturnValue(m_map.ceilingKey(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public Entry<K, V> higherEntry(K oKey)
+            {
+            return ensureReturnEntry(m_map.higherEntry(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public K higherKey(K oKey)
+            {
+            return ensureReturnKey(m_map.higherKey(oKey == null ? (K) NULL : oKey));
+            }
+
+        @Override
+        public Entry<K, V> firstEntry()
+            {
+            return ensureReturnEntry(m_map.firstEntry());
+            }
+
+        @Override
+        public Entry<K, V> lastEntry()
+            {
+            return ensureReturnEntry(m_map.lastEntry());
+            }
+
+        @Override
+        public Entry<K, V> pollFirstEntry()
+            {
+            return ensureReturnEntry(m_map.pollFirstEntry());
+            }
+
+        @Override
+        public Entry<K, V> pollLastEntry()
+            {
+            return ensureReturnEntry(m_map.pollLastEntry());
+            }
+
+        @Override
+        public ConcurrentNavigableMap<K, V> descendingMap()
+            {
+            return new SubMap<>(m_map.descendingMap());
+            }
+
+       //----- Submap Views --------------------------------------------------
+
+        @Override
+        public NavigableSet<K> keySet()
+            {
+            return new KeySet<>(m_map.keySet());
+            }
+
+        @Override
+        public NavigableSet<K> navigableKeySet()
+            {
+            return keySet();
+            }
+
+        @Override
+        public Collection<V> values()
+            {
+            return new Values<>(m_map.values());
+            }
+
+        @Override
+        public Set<Map.Entry<K, V>> entrySet()
+            {
+            return new EntrySet<>(m_map.entrySet());
+            }
+
+        @Override
+        public NavigableSet<K> descendingKeySet()
+            {
+            return descendingMap().navigableKeySet();
+            }
+
+        //----- ConcurrentMap methods ----------------------------------------
+
+        @Override
+        public V putIfAbsent(K oKey, V oValue)
+            {
+            return ensureReturnValue(m_map.putIfAbsent(oKey == null ? (K) NULL : oKey,
+                                                       oValue == null ? (V) NULL : oValue));
+            }
+
+        @Override
+        public V getOrDefault(Object oKey, V oDefaultValue)
+            {
+            return ensureReturnValue(m_map.getOrDefault(oKey == null ? NULL : oKey,
+                                                        oDefaultValue == null ? (V) NULL : oDefaultValue));
+            }
+
+        @Override
+        public void forEach(BiConsumer<? super K, ? super V> action)
+            {
+            ConcurrentNavigableMap.super.forEach(action);
+            }
+
+        @Override
+        public boolean remove(Object oKey, Object oValue)
+            {
+            return m_map.remove(oKey == null ? NULL : oKey,
+                                oValue == null ? NULL : oValue);
+            }
+
+        @Override
+        public boolean replace(K oKey, V oOldValue, V oNewValue)
+            {
+            return m_map.replace(oKey == null ? (K) NULL : oKey,
+                                 oOldValue == null ? (V) NULL : oOldValue,
+                                 oNewValue == null ? (V) NULL : oNewValue);
+            }
+
+        @Override
+        public V replace(K oKey, V oValue)
+            {
+            return ensureReturnValue(m_map.replace(oKey == null ? (K) NULL : oKey,
+                                                   oValue == null ? (V) NULL : oValue));
+            }
+
+        @Override
+        public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public V computeIfAbsent(K oKey, Function<? super K, ? extends V> mappingFunction)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public V computeIfPresent(K oKey, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public V compute(K oKey, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        @Override
+        public V merge(K oKey, V oValue, BiFunction<? super V, ? super V, ? extends V> remappingFunction)
+            {
+            throw new UnsupportedOperationException();
+            }
+
+        // ----- data members ------------------------------------------------
+
+        /**
+         * Underlying map
+         */
+        private final ConcurrentNavigableMap<K, V> m_map;
+        }
+
+    // ----- inner class: SortedIterator -------------------------------------
 
     /**
      * Base iterator that supports null values.
@@ -466,13 +1030,15 @@ public class SafeSortedMap<K, V>
             m_iter.remove();
             }
 
-        protected final transient Iterator<T> m_iter;
+        protected final Iterator<T> m_iter;
         }
+
+    // ----- inner class: EntryIterator --------------------------------------
 
     /**
      * Entry iterator that supports null values.
      */
-    private class EntryIterator
+    private static class EntryIterator<K,V>
             extends SortedIterator<Entry<K, V>>
         {
         EntryIterator(Iterator<Entry<K, V>> iter)
@@ -487,19 +1053,56 @@ public class SafeSortedMap<K, V>
             }
         }
 
+    // ----- helpers --------------------------------------------------
+
+    /**
+     * Ensure that if entry has a {@link #NULL} key or value, return NullableEntry;
+     *
+     * @param e  an entry
+     * @return an entry that can contain a null key or null value
+     */
+    private static <K, V> Entry<K,V> ensureReturnEntry(Entry<K,V> e)
+        {
+        return e.getKey() == NULL || e.getValue() == NULL
+               ? new NullableEntry<>(e)
+               : e;
+        }
+
+    /**
+     * Ensure if {@code oKey} equals {@link #NULL}, return null;
+     * otherwise, return {@code oKey}.
+     *
+     * @param oKey  key
+     * @return Ensure if {@code oKey} equals {@link #NULL}, return null;
+     *         otherwise, return {@code oKey}.
+     * @param <K> key type
+     */
+    private static <K> K ensureReturnKey(K oKey)
+        {
+        return oKey == NULL ? null : oKey;
+        }
+
+    /**
+     * Ensure if {@code oValue} equals {@link #NULL}, return null;
+     * otherwise, return {@code oValue}.
+     *
+     * @param oValue  value
+     *
+     * @return Ensure if {@code oValue} equals {@link #NULL}, return null;
+     *         otherwise, return {@code oValue}.
+     * @param <V> value type
+     */
+    private static <V> V ensureReturnValue(V oValue)
+        {
+        return oValue == NULL ? null : oValue;
+        }
+
     // ----- constant -------------------------------------------------
 
     /**
      * Placeholder for a {@code null} key or value.
      */
-    protected static NullSerializable NULL = new NullSerializable();
+    public static final Object NULL = new Null();
 
-    static class NullSerializable
-            implements Serializable
-        {
-        protected Object readResolve()
-            {
-            return NULL;
-            }
-        }
+    public static class Null {}
     }
