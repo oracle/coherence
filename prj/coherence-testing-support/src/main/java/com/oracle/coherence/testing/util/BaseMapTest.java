@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -562,8 +562,14 @@ public class BaseMapTest
         {
         if (!(map instanceof OldLiteMap || map instanceof OldCache))
             {
-            testSerializable(map);
-            testExternalizableLite(map);
+            // disabled serialization for SafeSortedMap that extends ConcurrentSkipMap.
+            // ConcurrentSkipMap has custom Java serialization relying on package only access methods.
+            // SafeSortedMap supports null entry key or value and ConcurrentSkipMap does not.
+            if (!(map instanceof SafeSortedMap))
+                {
+                testSerializable(map);
+                testExternalizableLite(map);
+                }
             testCloneable(map);
             }
         }
