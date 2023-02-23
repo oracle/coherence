@@ -1,10 +1,8 @@
 <!--
-
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
-
 -->
 
 -----
@@ -421,6 +419,14 @@ Below is an overview of features supported in each Coherence edition for compari
 
 Please refer to <a href="https://docs.oracle.com/en/middleware/fusion-middleware/fmwlc/application-server-products-new-structure.html#GUID-00982997-3110-4AC8-8729-80F1D904E62B">Oracle Fusion Middleware Licensing Documentation</a> for official documentation of Oracle Coherence commercial editions and licensing details.
 
+## Examples
+
+Examples related to Coherence features are located under [examples](./prj/examples) directory of this repository.
+
 ## <a name="contrib"></a>Contribute
 
 Interested in contributing?  See our contribution [guidelines](CONTRIBUTING.md) for details.
+
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
