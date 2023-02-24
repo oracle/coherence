@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -268,11 +268,13 @@ public class ExtractorTests
 
             cache.put(1, 1);
 
+            int nExpected = CountingExtractor.f_counter.get();  // this will depend on how many indices the entry is added to (main, partitioned, etc.)
+
             List listResult = (List) cache.invoke(1, new ExtractorProcessor(
                     new MultiExtractor(new ValueExtractor[] {extractor})));
 
-            assertEquals(Integer.valueOf(1), listResult.get(0));
-            assertEquals(1, CountingExtractor.f_counter.get());
+            assertEquals(1, listResult.get(0));
+            assertEquals(nExpected, CountingExtractor.f_counter.get());
             }
         finally
             {

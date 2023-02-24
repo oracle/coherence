@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -224,7 +224,7 @@ public class NamedCacheServiceImpl
      *
      * @return {@link BinaryHelper#EMPTY}
      */
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected Empty addIndex(CacheRequestHolder<AddIndexRequest, Void> holder)
         {
         AddIndexRequest request    = holder.getRequest();
@@ -494,7 +494,7 @@ public class NamedCacheServiceImpl
                     deserializeComparator(request.getComparator(), serializer);
 
             holder.runAsync(holder.getAsyncCache().entrySet(filter, comparator))
-                    .handleAsync((h, err) -> this.handleSetOfEntries(h, err, observer, false), f_executor);
+                    .handleAsync((h, err) -> this.handleSetOfEntries(h, err, observer), f_executor);
             }
         catch (Throwable t)
             {
@@ -571,7 +571,7 @@ public class NamedCacheServiceImpl
         holder.runAsync(convertKeys(holder))
                 .thenComposeAsync(h -> h.runAsync(h.getAsyncCache().invokeAll(
                         h.getResult(), BinaryProcessors.get())), f_executor)
-                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer, true), f_executor);
+                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer), f_executor);
         return VOID;
         }
 
@@ -715,7 +715,7 @@ public class NamedCacheServiceImpl
                                                                                              holder.getSerializer());
 
         return holder.runAsync(holder.getAsyncCache().invokeAll(filter, processor))
-                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer, false), f_executor);
+                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer), f_executor);
         }
 
     /**
@@ -755,7 +755,7 @@ public class NamedCacheServiceImpl
                 = BinaryHelper.fromByteString(request.getProcessor(), holder.getSerializer());
 
         return holder.runAsync(holder.getAsyncCache().invokeAll(keys, processor))
-                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer, false), f_executor);
+                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer), f_executor);
         }
 
     // ----- isEmpty --------------------------------------------------------
@@ -1250,21 +1250,19 @@ public class NamedCacheServiceImpl
      * Handle the result of the asynchronous invoke all request sending the results, or any errors
      * to the {@link StreamObserver}.
      *
-     * @param holder        the {@link CacheRequestHolder} containing the request
-     * @param err          any error that occurred during execution of the get all request
-     * @param observer      the {@link StreamObserver} to receive the results
-     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
+     * @param holder    the {@link CacheRequestHolder} containing the request
+     * @param err       any error that occurred during execution of the get all request
+     * @param observer  the {@link StreamObserver} to receive the results
      *
      * @return always return {@link Void}
      */
     protected Void handleMapOfEntries(CacheRequestHolder<?, Map<Binary, Binary>> holder,
                                       Throwable err,
-                                      StreamObserver<Entry> observer,
-                                      boolean fDeserialize)
+                                      StreamObserver<Entry> observer)
         {
         if (err == null)
             {
-            handleStreamOfEntries(holder, holder.getResult().entrySet().stream(), observer, fDeserialize);
+            handleStreamOfEntries(holder, holder.getResult().entrySet().stream(), observer);
             }
         else
             {
@@ -1277,21 +1275,19 @@ public class NamedCacheServiceImpl
      * Handle the result of the asynchronous entry set request sending the results, or any errors
      * to the {@link StreamObserver}.
      *
-     * @param holder        the {@link CacheRequestHolder} containing the request
-     * @param err           any error that occurred during execution of the get all request
-     * @param observer      the {@link StreamObserver} to receive the results
-     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
+     * @param holder    the {@link CacheRequestHolder} containing the request
+     * @param err       any error that occurred during execution of the get all request
+     * @param observer  the {@link StreamObserver} to receive the results
      *
      * @return always return {@link Void}
      */
     protected Void handleSetOfEntries(CacheRequestHolder<?, Set<Map.Entry<Binary, Binary>>> holder,
                                       Throwable err,
-                                      StreamObserver<Entry> observer,
-                                      boolean fDeserialize)
+                                      StreamObserver<Entry> observer)
         {
         if (err == null)
             {
-            handleStreamOfEntries(holder, holder.getResult().stream(), observer, fDeserialize);
+            handleStreamOfEntries(holder, holder.getResult().stream(), observer);
             }
         else
             {
@@ -1304,30 +1300,17 @@ public class NamedCacheServiceImpl
      * Handle the result of the asynchronous invoke all request sending the results, or any errors
      * to the {@link StreamObserver}.
      *
-     * @param holder        the {@link CacheRequestHolder} containing the request
-     * @param entries       a {@link Stream} of entries
-     * @param observer      the {@link StreamObserver} to receive the results
-     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
+     * @param holder    the {@link CacheRequestHolder} containing the request
+     * @param entries   a {@link Stream} of entries
+     * @param observer  the {@link StreamObserver} to receive the results
      */
     protected void handleStreamOfEntries(CacheRequestHolder<?, ?> holder,
                                          Stream<Map.Entry<Binary, Binary>> entries,
-                                         StreamObserver<Entry> observer,
-                                         boolean fDeserialize)
+                                         StreamObserver<Entry> observer)
         {
         try
             {
-            entries.forEach(entry ->
-                {
-                Binary binValue = entry.getValue();
-                if (fDeserialize)
-                    {
-                    // The Binary value returned by the GetProcessor is actually a serialized Binary
-                    // so we need to fDeserialize it first
-                    binValue = holder.fromCacheBinary(entry.getValue());
-                    }
-                observer.onNext(holder.toEntry(entry.getKey(), binValue));
-                });
-
+            entries.forEach(entry -> observer.onNext(holder.toEntry(entry.getKey(), entry.getValue())));
             observer.onCompleted();
             }
         catch (Throwable thrown)
@@ -1498,6 +1481,7 @@ public class NamedCacheServiceImpl
      *
      * @throws io.grpc.StatusRuntimeException if the {@link ByteString} is null or empty
      */
+    @SuppressWarnings("ConstantConditions")
     public ValueExtractor<?, ?> ensureValueExtractor(ByteString bytes, Serializer serializer)
         {
         if (bytes == null || bytes.isEmpty())
