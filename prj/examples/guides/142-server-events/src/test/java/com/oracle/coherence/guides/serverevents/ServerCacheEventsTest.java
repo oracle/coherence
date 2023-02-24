@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -161,21 +161,20 @@ public class ServerCacheEventsTest
         
         cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
 
-        // 2 entry processor events and 3 updates
-        Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(5));
-        
         dumpAuditEvents("testEntryProcessorInterceptor-1");
+        // 3 entry processor events and 3 updates
+        Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(6));
+        
         auditEvents.clear();
 
         // invoke an entry processor across all customers to update credit limit to 100,000
         cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
-        
         cache.invoke(1, Processors.update(Customer::setCreditLimit, 100_000L));
 
-        // ensure all audit events are received
-        Eventually.assertDeferred(() -> auditEvents.values(equal(AuditEvent::getEventType, "EXECUTED")).size(), Matchers.is(3));
-        
         dumpAuditEvents("testEntryProcessorInterceptor-2");
+
+        // ensure all 4 audit events are received
+        Eventually.assertDeferred(() -> auditEvents.values(equal(AuditEvent::getEventType, "EXECUTED")).size(), Matchers.is(4));
     }
     // #end::test3[]
 

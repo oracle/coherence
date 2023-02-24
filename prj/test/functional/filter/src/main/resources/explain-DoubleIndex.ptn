@@ -3,9 +3,9 @@ Explain Plan
 Filter Name                                                         Index   Cost
 ======================================================================================
 AllFilter                                                         \| ----  \| 0
-  LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 2
+  LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 82
   AndFilter                                                       \| ----  \| 0
-    BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesti\.\.\. \(1\) \| 1     \| 2
+    BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesti\.\.\. \(1\) \| 1     \| 82
     EqualsFilter\(\.getFirstName\(\), Hector\)                         \| 2     \| 100000
   LessEqualsFilter\(\.getAge\(\), 98\)                                 \| 3     \| 100000
 

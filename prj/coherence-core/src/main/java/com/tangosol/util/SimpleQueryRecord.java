@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -103,23 +102,27 @@ public class SimpleQueryRecord
     protected void mergeResults(Collection colResults)
         {
         List<SimpleQueryRecord.PartialResult> listResults = m_listResults;
-        for (Iterator iter = colResults.iterator(); iter.hasNext();)
+        for (Object oResult : colResults)
             {
-            QueryRecord.PartialResult resultThat = (QueryRecord.PartialResult) iter.next();
-            for (SimpleQueryRecord.PartialResult resultThis : listResults)
-                {
-                if (resultThis.isMatching(resultThat))
-                    {
-                    resultThis.merge(resultThat);
-                    resultThat = null;
-                    break;
-                    }
-                }
+            QueryRecord.PartialResult resultThat = (QueryRecord.PartialResult) oResult;
 
-            if (resultThat != null)
+            if (!resultThat.getSteps().isEmpty())
                 {
-                // no matching partial result found; create a new one
-                listResults.add(new SimpleQueryRecord.PartialResult(resultThat));
+                for (PartialResult resultThis : listResults)
+                    {
+                    if (resultThis.isMatching(resultThat))
+                        {
+                        resultThis.merge(resultThat);
+                        resultThat = null;
+                        break;
+                        }
+                    }
+
+                if (resultThat != null)
+                    {
+                    // no matching partial result found; create a new one
+                    listResults.add(new PartialResult(resultThat));
+                    }
                 }
             }
         }
