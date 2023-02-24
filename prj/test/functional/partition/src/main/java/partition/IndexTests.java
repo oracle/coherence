@@ -1,21 +1,23 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package partition;
 
-
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
+
 import com.tangosol.io.ExternalizableLite;
+
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.SimpleMemoryCalculator;
 
+import com.tangosol.util.Base;
+import com.tangosol.util.Binary;
 import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
-
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
@@ -24,9 +26,11 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -38,6 +42,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 /**
  * @author coh 2010.09.15
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class IndexTests
         extends AbstractFunctionalTest
     {
@@ -112,7 +117,7 @@ public class IndexTests
             {
             for (int j = 1; j <= 100000; j++)
                 {
-                map.put(Integer.toString(i * 100000 + j), Integer.valueOf(random.nextInt(4)));
+                map.put(Integer.toString(i * 100000 + j), random.nextInt(4));
                 }
 
             cache.putAll(map);
@@ -135,12 +140,31 @@ public class IndexTests
         System.gc();
         long afterIndex = getMemoryUsage();
 
-        long overhead = afterIndex - beforeIndex;
+        long   overhead = afterIndex - beforeIndex;
+        double variance = Math.abs(overhead - index.getTotalUnits()) * 1.0 / overhead;
 
-        double variance = Math.abs(overhead - index.getUnits()) * 1.0 / overhead;
+        System.out.println("Overhead=" + Base.toMemorySizeString(overhead, false));
+        System.out.println(index.toString(true));
 
+        long keySizesMain = 0L;
+        long keySizesPart = 0L;
+
+        for (int k = 0; k < 4; k++)
+            {
+            keySizesMain += ((Set<Binary>) index.getIndexContents().get(k)).stream().mapToLong(Binary::length).sum();
+            for (int i = 0; i < 257; i++)
+                {
+                keySizesPart += ((Set<Binary>) getPartitionedIndexMap(cache, i).get(extractor).getIndexContents().get(k)).stream().mapToLong(Binary::length).sum();
+                }
+            }
+
+        System.out.printf("\n       Inverse index size (main): %s (%,d)", Base.toMemorySizeString(keySizesMain, false), keySizesMain);
+        System.out.printf("\nInverse index size (partitioned): %s (%,d)", Base.toMemorySizeString(keySizesPart, false), keySizesPart);
+        System.out.println();
+
+        Assert.assertEquals("Inverse index size does not match", keySizesMain, keySizesPart);
         Assert.assertTrue("The variance percentage is " + variance + ". Real memory Cost for index: " +
-                    overhead + "; but calculated memory cost: " + index.getUnits(), variance < 0.1);
+                    overhead + "; but calculated memory cost: " + index.getTotalUnits(), variance < 0.1);
         }
 
     //@Test
@@ -410,6 +434,16 @@ public class IndexTests
                 .getService(cache.getCacheService().getInfo().getServiceName());
         PartitionedCache distCache = (PartitionedCache) service.getService();
         return distCache.getStorage(cache.getCacheName()).getIndexMap();
+        }
+
+    private Map<ValueExtractor, SimpleMapIndex> getPartitionedIndexMap(
+            final NamedCache cache, int nPart)
+        {
+        SafeDistributedCacheService service = (SafeDistributedCacheService) cache
+                .getCacheService().getCluster()
+                .getService(cache.getCacheService().getInfo().getServiceName());
+        PartitionedCache distCache = (PartitionedCache) service.getService();
+        return distCache.getStorage(cache.getCacheName()).getPartitionIndexMap(nPart);
         }
 
     private static final SimpleMemoryCalculator s_calculator = new SimpleMemoryCalculator();

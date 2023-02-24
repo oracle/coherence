@@ -2,7 +2,7 @@
 Explain Plan
 Filter Name                                                         Index   Cost
 ======================================================================================
-LessEqualsFilter\(filter\.nestinglevel1\.nestinglevel2\.nestin\.\.\. \(0\) \| 0     \| 2
+LessEqualsFilter\(filter\.nestinglevel1\.nestinglevel2\.nestin\.\.\. \(0\) \| 0     \| 49
 
 
 Index Lookups

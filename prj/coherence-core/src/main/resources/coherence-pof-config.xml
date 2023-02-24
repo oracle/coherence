@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -1093,6 +1093,11 @@ descriptor: pof-config.xsd.
     </user-type>
 
     <user-type>
+      <type-id>486</type-id>  <!-- skipped below for some reason, so closing the gap -->
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$BinaryGet</class-name>
+    </user-type>
+
+    <user-type>
       <type-id>472</type-id>
       <class-name>com.tangosol.internal.util.processor.CacheProcessors$GetOrDefault</class-name>
     </user-type>
@@ -1138,40 +1143,40 @@ descriptor: pof-config.xsd.
     </user-type>
 
     <user-type>
-        <type-id>481</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryContainsValueProcessor</class-name>
+      <type-id>481</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryContainsValueProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>482</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryGetProcessor</class-name>
+      <type-id>482</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryGetProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>483</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutIfAbsentProcessor</class-name>
+      <type-id>483</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutIfAbsentProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>484</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutProcessor</class-name>
+      <type-id>484</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>485</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor</class-name>
+      <type-id>485</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>487</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryRemoveProcessor</class-name>
+      <type-id>487</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryRemoveProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>488</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceMappingProcessor</class-name>
+      <type-id>488</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceMappingProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>489</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceProcessor</class-name>
+      <type-id>489</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceProcessor</class-name>
     </user-type>
     <user-type>
-        <type-id>490</type-id>
-        <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllProcessor</class-name>
+      <type-id>490</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllProcessor</class-name>
     </user-type>
 
     <!-- com.tangosol.internal.util.aggregator package (990-999) -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,7 +121,7 @@ public class Coh12875Tests
 
         // assert that the
         Set setKeys = cache.keySet(new NotEqualsFilter(IdentityExtractor.INSTANCE, ""));
-        assertThat(setKeys.size(), is(1));
+        assertThat(setKeys.size(), is(2)); // one entry per partition processed
         }
 
     // ----- helpers --------------------------------------------------------
