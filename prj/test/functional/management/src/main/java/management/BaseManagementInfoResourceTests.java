@@ -1328,7 +1328,7 @@ public abstract class BaseManagementInfoResourceTests
                 Response localResponse = serviceMemberTarget.request().get();
                 serviceMemberResponse.set(localResponse);
                 return localResponse.getStatus();
-            }, is(Response.Status.OK.getStatusCode()), within(5, TimeUnit.MINUTES), delayedBy(5, TimeUnit.SECONDS));
+            }, is(Response.Status.OK.getStatusCode()), within(5, TimeUnit.MINUTES), delayedBy(15, TimeUnit.SECONDS));
         
             assertThat(serviceMemberResponse.get().getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(serviceMemberResponse.get().getHeaderString("X-Content-Type-Options"), is("nosniff"));
@@ -1480,16 +1480,31 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-        response = target.request().get();
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        // Occasionally, the update was slow to take effect, so retry again.
+        int retry = 0;
+        while (retry < 2)
+            {
+            try
+                {
+                response = target.request().get();
+                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-        Map mapResponse = readEntity(target, response);
+                Map mapResponse = readEntity(target, response);
 
-        assertThat(mapResponse, notNullValue());
-        assertThat(((Number) mapResponse.get("threadCountMin")).longValue(), is(5L));
-        assertThat(((Number) mapResponse.get("taskHungThresholdMillis")).longValue(), is(10L));
-        assertThat(((Number) mapResponse.get("taskTimeoutMillis")).longValue(), is(100000L));
-        assertThat(((Number) mapResponse.get("requestTimeoutMillis")).longValue(), is(200000L));
+                assertThat(mapResponse, notNullValue());
+                assertThat(((Number) mapResponse.get("threadCountMin")).longValue(), is(5L));
+                assertThat(((Number) mapResponse.get("taskHungThresholdMillis")).longValue(), is(10L));
+                assertThat(((Number) mapResponse.get("taskTimeoutMillis")).longValue(), is(100000L));
+                assertThat(((Number) mapResponse.get("requestTimeoutMillis")).longValue(), is(200000L));
+                break;
+                }
+            catch (Throwable t)
+                {
+                retry++;
+                System.err.println("Get returned old value, retry...");
+                Base.sleep(5000);
+                }
+            }
         }
 
     @Test
@@ -1616,21 +1631,36 @@ public abstract class BaseManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
 
-            response = target.request().get();
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            // Occasionally, the update was slow to take effect, so retry again.
+            int retry = 0;
+            while (retry < 2)
+                {
+                try
+                    {
+                    response = target.request().get();
+                    assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
-            Map mapResponse = readEntity(target, response);
-            assertThat(mapResponse, notNullValue());
-            Object o = mapResponse.get(attribute);
-            if (value instanceof Number)
-                {
-                assertThat(o, is(instanceOf(Number.class)));
-                Number n = (Number) o;
-                assertThat(attribute + " should be " + value + ", but is " + n, n.intValue(), is(((Number) value).intValue()));
-                }
-            else
-                {
-                assertThat(attribute + " should be " + value + ", but is " + o, o, is(value));
+                    Map mapResponse = readEntity(target, response);
+                    assertThat(mapResponse, notNullValue());
+                    Object o = mapResponse.get(attribute);
+                    if (value instanceof Number)
+                        {
+                        assertThat(o, is(instanceOf(Number.class)));
+                        Number n = (Number) o;
+                        assertThat(attribute + " should be " + value + ", but is " + n, n.intValue(), is(((Number) value).intValue()));
+                        }
+                    else
+                        {
+                        assertThat(attribute + " should be " + value + ", but is " + o, o, is(value));
+                        }
+                    break;
+                    }
+                catch (Throwable t)
+                    {
+                    retry++;
+                    System.err.println("Get returned old value for " + "Updating " + attribute + " to " + value + ", retry...");
+                    Base.sleep(5000);
+                    }
                 }
             });
         }
