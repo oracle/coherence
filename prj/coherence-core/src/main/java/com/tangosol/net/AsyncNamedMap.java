@@ -409,7 +409,7 @@ public interface AsyncNamedMap<K, V>
     default CompletableFuture<Collection<V>> values(Filter<?> filter)
         {
         return entrySet(filter)
-                .thenApply(entries -> entries.stream().map(Map.Entry::getValue).toList());
+                .thenApply(entries -> entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()));
         }
 
     /**
