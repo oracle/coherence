@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package aggregator;
-
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
@@ -162,7 +161,7 @@ public class PriorityAggregatorTests
             {
             if (!fFinal)
                 {
-                Base.sleep(10000L);
+                Base.sleep(1000L);
                 }
 
             return super.finalizeResult(fFinal);
