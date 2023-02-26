@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -30,7 +30,7 @@
                 </remote-addresses>
             </tcp-initiator>
           <outgoing-message-handler>
-            <request-timeout>5s</request-timeout>
+            <request-timeout>500ms</request-timeout>
           </outgoing-message-handler>
         </initiator-config>
     </remote-cache-scheme>
