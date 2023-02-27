@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package jmx;
-
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
@@ -16,11 +15,20 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.filter.AndFilter;
 import com.tangosol.util.filter.BetweenFilter;
 import com.tangosol.util.filter.EqualsFilter;
+import com.tangosol.util.filter.IndexAwareFilter;
 import com.tangosol.util.filter.OrFilter;
 
 import common.AbstractFunctionalTest;
 
 import data.persistence.Person;
+
+import java.io.Serializable;
+
+import java.util.Map;
+import java.util.Set;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -28,14 +36,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
-
-import java.io.Serializable;
-
-import java.util.Set;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
 
 /**
  * Tests related to StorageManager MBean
@@ -106,20 +106,20 @@ public class StorageManagerMBeanTests
 
         for (int i = 0; i < 100; i++ )
             {
-            cache.put(new Integer(i), new Integer(i+1));
-            cache.get(new Integer(i));
+            cache.put(i, i + 1);
+            cache.get(i);
             }
 
         ObjectName name = getQueryName(cache);
         Integer keyListenerCount = (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("expected ListenerKeyCount to be 100", new Integer(100), keyListenerCount);
+        assertEquals("expected ListenerKeyCount to be 100", Integer.valueOf(100), keyListenerCount);
         for (int i = 0; i < 100; i++ )
             {
-            cache.remove(new Integer(i));
+            cache.remove(i);
             }
 
         Integer afterRemoveKeyListenerCount =  (Integer) server.getAttribute(name, "ListenerKeyCount");
-        assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", new Integer(0), afterRemoveKeyListenerCount);
+        assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", Integer.valueOf(0), afterRemoveKeyListenerCount);
         }
 
     // ----- helpers --------------------------------------------------------
@@ -142,7 +142,7 @@ public class StorageManagerMBeanTests
 
             // --- load data and the filter  --------------------
 
-            for (int i = 1; i <= 2000; i++)
+            for (int i = 1; i <= 2_000; i++)
                 {
                 cache.put("p" + i, new Person(i, "p" + i));
                 }
@@ -157,9 +157,10 @@ public class StorageManagerMBeanTests
             Filter filterB = new OrFilter(filter3, filter4);
             Filter filter  = new OrFilter(filterA, filterB);
 
-            Set    entries = cache.entrySet(filter);
+            Set    entries = cache.entrySet(new SleepFilter(35L).and(filter));
 
             CacheFactory.log("Cache size after applying filter is " + entries.size());
+            assertEquals(102, entries.size());
 
             // --- check the size of attribute description --------------------
 
@@ -168,8 +169,10 @@ public class StorageManagerMBeanTests
 
             for (ObjectName name : setObjectNames)
                 {
+                long   lMaxQueryDuration     = (long)   server.getAttribute(name, "MaxQueryDurationMillis");
                 String sAttributeDescription = (String) server.getAttribute(name, "MaxQueryDescription");
 
+                CacheFactory.log("MaxQueryDurationMillis: " + lMaxQueryDuration);
                 CacheFactory.log("MaxQueryDescription: " + sAttributeDescription);
                 CacheFactory.log("For Attribute " + sAttribute + ", expected size is < " + cSize + " and actual is "
                                  + sAttributeDescription.length());
@@ -208,5 +211,55 @@ public class StorageManagerMBeanTests
             {
             throw Base.ensureRuntimeException(e);
             }
+        }
+
+    /**
+     * A simple Filter implementation that will introduce pause into query execution,
+     * in order to hit MaxQueryThresholdMillis (30ms by default).
+     */
+    public static class SleepFilter implements IndexAwareFilter, Serializable
+        {
+        public SleepFilter()
+            {
+            this(0);
+            }
+
+        public SleepFilter(long cMillis)
+            {
+            f_cMillis = cMillis;
+            }
+
+        @Override
+        public boolean evaluate(Object o)
+            {
+            return true;
+            }
+
+        @Override
+        public boolean evaluateEntry(Map.Entry entry)
+            {
+            return true;
+            }
+
+        @Override
+        public int calculateEffectiveness(Map mapIndexes, Set setKeys)
+            {
+            return 1;
+            }
+
+        @Override
+        public Filter applyIndex(Map mapIndexes, Set setKeys)
+            {
+            try
+                {
+                Thread.sleep(f_cMillis);
+                }
+            catch (InterruptedException ignore)
+                {
+                }
+            return null;
+            }
+
+        private final long f_cMillis;
         }
     }

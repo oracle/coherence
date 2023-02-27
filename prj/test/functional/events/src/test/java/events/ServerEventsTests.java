@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,10 +8,11 @@ package events;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.net.NamedCache;
+
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.Processors;
-
 import com.tangosol.util.processor.AbstractProcessor;
 
 import common.AbstractFunctionalTest;
@@ -21,7 +22,9 @@ import data.Person;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
 import org.hamcrest.Matchers;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -60,7 +63,7 @@ public class ServerEventsTests
         events.clear();
 
         // invoke an entry processor across all entries
-        cache.invokeAll(Processors.update(Person::setBirthYear, 1555));
+        cache.invokeAll(Processors.update(Person::setBirthYear, 1389));
 
         // ensure all entries invoked are accounted for
         Eventually.assertDeferred(() -> events.get("entryset-size"), Matchers.is(3));
