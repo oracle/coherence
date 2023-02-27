@@ -161,7 +161,7 @@ public class PriorityAggregatorTests
             {
             if (!fFinal)
                 {
-                Base.sleep(1000L);
+                Base.sleep(10000L);
                 }
 
             return super.finalizeResult(fFinal);
