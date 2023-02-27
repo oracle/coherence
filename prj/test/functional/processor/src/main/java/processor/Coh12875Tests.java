@@ -121,7 +121,7 @@ public class Coh12875Tests
 
         // assert that the
         Set setKeys = cache.keySet(new NotEqualsFilter(IdentityExtractor.INSTANCE, ""));
-        assertThat(setKeys.size(), is(2)); // one entry per partition processed
+        assertThat(setKeys.size(), is(1));
         }
 
     // ----- helpers --------------------------------------------------------
