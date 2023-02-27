@@ -139,10 +139,10 @@ class CdiInterceptorSupportIT
         assertThat(events.get(CacheLifecycleEvent.Type.DESTROYED), is(2));
         assertThat(events.get(CacheLifecycleEvent.Type.TRUNCATED), is(1));
         assertThat(events.get(TransferEvent.Type.ASSIGNED), is(257));
-        assertThat(events.get(TransactionEvent.Type.COMMITTING), is(11));
-        assertThat(events.get(TransactionEvent.Type.COMMITTED), is(11));
-        assertThat(events.get(EntryProcessorEvent.Type.EXECUTING), is(5));
-        assertThat(events.get(EntryProcessorEvent.Type.EXECUTED), is(5));
+        assertThat(events.get(TransactionEvent.Type.COMMITTING), is(7));
+        assertThat(events.get(TransactionEvent.Type.COMMITTED), is(7));
+        assertThat(events.get(EntryProcessorEvent.Type.EXECUTING), is(1));
+        assertThat(events.get(EntryProcessorEvent.Type.EXECUTED), is(1));
         assertThat(events.get(EntryEvent.Type.INSERTING), is(5));
         assertThat(events.get(EntryEvent.Type.INSERTED), is(10));
         assertThat(events.get(EntryEvent.Type.UPDATING), is(5));
@@ -266,14 +266,14 @@ class CdiInterceptorSupportIT
             {
             record(event);
             assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));
-            assertThat(event.getEntrySet().size(), is(1));
+            assertThat(event.getEntrySet().size(), is(5));
             }
 
         private void onExecuted(@Observes @Executed @CacheName("people") @Processor(Uppercase.class) EntryProcessorEvent event)
             {
             record(event);
             assertThat(event.getProcessor(), is(instanceOf(Uppercase.class)));
-            assertThat(event.getEntrySet().size(), is(1));
+            assertThat(event.getEntrySet().size(), is(5));
             }
         }
     }
