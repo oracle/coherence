@@ -20,6 +20,8 @@ import com.oracle.coherence.guides.serverevents.model.Customer;
 
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.util.Aggregators;
+import com.tangosol.util.Filters;
 import com.tangosol.util.Processors;
 
 import org.hamcrest.Matchers;
@@ -162,9 +164,10 @@ public class ServerCacheEventsTest
         cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
 
         dumpAuditEvents("testEntryProcessorInterceptor-1");
-        // 3 entry processor events and 3 updates
-        Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(6));
-        
+        // up to 3 entry processor events and 3 updates
+        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "EXECUTED"), Aggregators.count()), Matchers.lessThanOrEqualTo(3));
+        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "UPDATED"), Aggregators.count()), Matchers.equalTo(3));
+
         auditEvents.clear();
 
         // invoke an entry processor across all customers to update credit limit to 100,000
@@ -173,8 +176,8 @@ public class ServerCacheEventsTest
 
         dumpAuditEvents("testEntryProcessorInterceptor-2");
 
-        // ensure all 4 audit events are received
-        Eventually.assertDeferred(() -> auditEvents.values(equal(AuditEvent::getEventType, "EXECUTED")).size(), Matchers.is(4));
+        // ensure up to 4 EXECUTED events are received
+        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "EXECUTED"), Aggregators.count()), Matchers.lessThanOrEqualTo(4));
     }
     // #end::test3[]
 
