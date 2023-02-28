@@ -1317,8 +1317,17 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(listItemMaps.get(0).get("member"), is(SERVER_PREFIX + "-2"));
         assertThat(listItemMaps.get(0).get("running"), is(true));
 
-        response = getBaseTarget().path("members").path(SERVER_PREFIX + "-2").path("shutdown").request(MediaType.APPLICATION_JSON_TYPE).post(null);
-        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        try
+            {
+            response = getBaseTarget().path("members").path(SERVER_PREFIX + "-2").path("shutdown").request(MediaType.APPLICATION_JSON_TYPE).post(null);
+            MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            }
+        catch (Exception e)
+            {
+            // The server was shut down; sometimes, we may get exception.
+            System.err.println("xtestClusterNodeShutdownWithServicesRestart() got an exception: " + e);
+            Base.sleep(5000);
+            }
 
         AtomicReference<Response> serviceMemberResponse = new AtomicReference<>();
         WebTarget serviceMemberTarget = getBaseTarget().path(SERVICES).path(MetricsHttpHelper.getServiceName()).path("members");
@@ -1328,7 +1337,7 @@ public abstract class BaseManagementInfoResourceTests
                 Response localResponse = serviceMemberTarget.request().get();
                 serviceMemberResponse.set(localResponse);
                 return localResponse.getStatus();
-            }, is(Response.Status.OK.getStatusCode()), within(5, TimeUnit.MINUTES), delayedBy(15, TimeUnit.SECONDS));
+            }, is(Response.Status.OK.getStatusCode()), within(5, TimeUnit.MINUTES), delayedBy(5, TimeUnit.SECONDS));
         
             assertThat(serviceMemberResponse.get().getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(serviceMemberResponse.get().getHeaderString("X-Content-Type-Options"), is("nosniff"));
