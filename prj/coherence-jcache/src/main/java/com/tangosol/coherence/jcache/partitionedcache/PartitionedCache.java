@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache.partitionedcache;
 
@@ -102,6 +102,7 @@ import javax.cache.processor.EntryProcessorResult;
  * @author jf  2013.07.07
  * @since Coherence 12.1.3
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PartitionedCache<K, V>
         extends AbstractCoherenceBasedCache<K, V, PartitionedCacheConfiguration<K, V>>
     {
@@ -268,20 +269,7 @@ public class PartitionedCache<K, V>
 
         try
             {
-            Map<K, Binary> binMap = m_namedCache.invokeAll(setKey, new GetProcessor(m_cacheId));
-            Map<K, V>      map    = new HashMap<K, V>();
-
-            for (Map.Entry<K, Binary> entry : binMap.entrySet())
-                {
-                Binary binValue = entry.getValue();
-
-                if (binValue != null)
-                    {
-                    map.put(entry.getKey(), m_converterValue.fromInternal(binValue));
-                    }
-                }
-
-            return map;
+            return m_namedCache.invokeAll(setKey, new GetProcessor(m_cacheId));
             }
         catch (Exception e)
             {
