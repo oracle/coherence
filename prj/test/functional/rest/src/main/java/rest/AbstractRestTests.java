@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1282,23 +1282,15 @@ public abstract class AbstractRestTests
     @Test
     public void testNamedQueryPaging()
         {
-        WebTarget webTarget = getWebTarget("dist-test-named-query", "/age-37-query;start=0;count=1;p=name");
-
+        WebTarget webTarget = getWebTarget("dist-test-named-query", "/age-37-query;start=0;count=1;p=name;sort=name:desc");
         Response  response  = webTarget.request(MediaType.APPLICATION_JSON).get();
-        int       status    = response.getStatus();
-        assertEquals(200 /* OK */, status);
+        assertEquals(200 /* OK */, response.getStatus());
+        assertEquals("[{\"name\":\"Vaso\"}]", response.readEntity(String.class));
 
-        Collection col = new ArrayList();
-        col.add(response.readEntity(String.class));
-
-        webTarget = getWebTarget("dist-test-named-query", "/age-37-query;start=1;count=1;p=name");
+        webTarget = getWebTarget("dist-test-named-query", "/age-37-query;start=1;count=1;p=name;sort=name:desc");
         response  = webTarget.request(MediaType.APPLICATION_JSON).get();
-        status    = response.getStatus();
-        assertEquals(200 /* OK */, status);
-
-        col.add(response.readEntity(String.class));
-        assertTrue(col.contains("[{\"name\":\"Aleks\"}]"));
-        assertTrue(col.contains("[{\"name\":\"Vaso\"}]"));
+        assertEquals(200 /* OK */, response.getStatus());
+        assertEquals("[{\"name\":\"Aleks\"}]", response.readEntity(String.class));
         }
 
     @Test
