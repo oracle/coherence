@@ -1763,7 +1763,21 @@ public class PagedTopicSubscriber<V>
      */
     public String getStateName()
         {
-        return STATES[m_nState];
+        return getStateName(m_nState);
+        }
+
+    /**
+     * Returns the state of the subscriber.
+     *
+     * @return the state of the subscriber
+     */
+    public static String getStateName(int nState)
+        {
+        if (nState >= 0 && nState < STATES.length)
+            {
+            return STATES[nState];
+            }
+        return "Unknown";
         }
 
     /**
