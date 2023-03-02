@@ -230,12 +230,17 @@ public class PagedTopicSubscription
      * @param id  the identifier of the subscriber
      *
      * @return  the subscriber's connection timestamp
-     *          or zero if not connected
+     *          or {@link Long#MAX_VALUE} if not connected
      */
     public long getSubscriberTimestamp(SubscriberId id)
         {
-        Long lTimestamp = m_mapSubscriberTimestamp.get(id.getId());
-        return lTimestamp == null ? 0L : lTimestamp;
+        long nId = id.getId();
+        if (nId == 0L)
+            {
+            return 0L;
+            }
+        Long lTimestamp = m_mapSubscriberTimestamp.get(nId);
+        return lTimestamp == null ? Long.MAX_VALUE : lTimestamp;
         }
 
     /**

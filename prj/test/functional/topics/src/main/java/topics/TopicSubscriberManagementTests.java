@@ -22,7 +22,6 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
-import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
 import com.tangosol.net.Coherence;
@@ -125,9 +124,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
@@ -161,9 +160,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
@@ -256,9 +255,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
@@ -343,9 +342,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
@@ -426,9 +425,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         SubscriberStateListener stateListenerOne   = new SubscriberStateListener();
         SubscriberStateListener stateListenerTwo   = new SubscriberStateListener();
@@ -463,9 +462,24 @@ public class TopicSubscriberManagementTests
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Calling receive()");
 
             // receive - should not complete as topic is empty
-            CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive();
-            CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive();
-            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive();
+            CompletableFuture<Subscriber.Element<String>> futureOne = subscriberOne.receive()
+                    .handle((element, err) ->
+                            {
+                            Logger.info(">>>> In " + f_testName.getMethodName() + ": futureOne completed element=" + element + " error=" + err);
+                            return element;
+                            });
+            CompletableFuture<Subscriber.Element<String>> futureTwo = subscriberTwo.receive()
+                    .handle((element, err) ->
+                            {
+                            Logger.info(">>>> In " + f_testName.getMethodName() + ": futureTwo completed element=" + element + " error=" + err);
+                            return element;
+                            });
+            CompletableFuture<Subscriber.Element<String>> futureThree = subscriberThree.receive()
+                    .handle((element, err) ->
+                            {
+                            Logger.info(">>>> In " + f_testName.getMethodName() + ": futureThree completed element=" + element + " error=" + err);
+                            return element;
+                            });
 
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Waiting for notification insertions");
 
@@ -476,6 +490,10 @@ public class TopicSubscriberManagementTests
             CompletableFuture<Set<Integer>> futureLostOne   = listenerOne.awaitLost();
             CompletableFuture<Set<Integer>> futureLostTwo   = listenerTwo.awaitLost();
             CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber One: " + subscriberOne);
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber Two: " + subscriberTwo);
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber Three: " + subscriberThree);
 
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnecting subscribers");
 
@@ -493,6 +511,10 @@ public class TopicSubscriberManagementTests
             Eventually.assertDeferred(futureLostOne::isDone, is(true));
             Eventually.assertDeferred(futureLostTwo::isDone, is(true));
             Eventually.assertDeferred(futureLostThree::isDone, is(true));
+
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber One: " + subscriberOne);
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber Two: " + subscriberTwo);
+            Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber Three: " + subscriberThree);
 
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Disconnected subscribers - received channel lost events");
 
@@ -543,9 +565,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
@@ -614,9 +636,9 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service       = (PagedTopicService) topic.getService();
         String             sGroupOne     = "group-one";
         String             sGroupTwo     = "group-two";
-        OwnershipListener  listenerOne   = new OwnershipListener();
-        OwnershipListener  listenerTwo   = new OwnershipListener();
-        OwnershipListener  listenerThree = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
+        OwnershipListener  listenerThree = new OwnershipListener("three");
 
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
@@ -673,8 +695,8 @@ public class TopicSubscriberManagementTests
         PagedTopicService  service     = (PagedTopicService) topic.getService();
         String             sGroupOne   = "group-one";
         String             sGroupTwo   = "group-two";
-        OwnershipListener  listenerOne = new OwnershipListener();
-        OwnershipListener  listenerTwo = new OwnershipListener();
+        OwnershipListener  listenerOne   = new OwnershipListener("one");
+        OwnershipListener  listenerTwo   = new OwnershipListener("two");
         LocalPlatform      platform    = LocalPlatform.get();
 
         try (CoherenceClusterMember member    = platform.launch(CoherenceClusterMember.class,
@@ -805,21 +827,29 @@ public class TopicSubscriberManagementTests
     public static class OwnershipListener
             implements Subscriber.ChannelOwnershipListener
         {
+        public OwnershipListener(String sName)
+            {
+            f_sName = sName;
+            }
+
         @Override
         public synchronized void onChannelsAssigned(Set<Integer> setAssigned)
             {
+            Logger.info(">>>> OwnershipListener: onChannelsAssigned " + f_sName + " " + setAssigned);
             f_listOnAssigned.forEach(c -> c.accept(setAssigned));
             }
 
         @Override
         public synchronized void onChannelsRevoked(Set<Integer> setRevoked)
             {
+            Logger.info(">>>> OwnershipListener: onChannelsRevoked " + f_sName + " " + setRevoked);
             f_listOnRevoked.forEach(c -> c.accept(setRevoked));
             }
 
         @Override
         public synchronized void onChannelsLost(Set<Integer> setLost)
             {
+            Logger.info(">>>> OwnershipListener: onChannelsLost " + f_sName + " " + setLost);
             f_listOnLost.forEach(c -> c.accept(setLost));
             }
 
@@ -869,6 +899,8 @@ public class TopicSubscriberManagementTests
             f_listOnLost.clear();
             }
 
+        private final String f_sName;
+
         private final List<Consumer<Set<Integer>>> f_listOnAssigned = new ArrayList<>();
 
         private final List<Consumer<Set<Integer>>> f_listOnRevoked = new ArrayList<>();
@@ -887,7 +919,8 @@ public class TopicSubscriberManagementTests
             f_lock.lock();
             try
                 {
-                Logger.info("Subscriber state changed: from " + nPrevState + " to " + nNewState + " " + subscriber);
+                Logger.info("Subscriber state changed: from " + PagedTopicSubscriber.getStateName(nPrevState)
+                                    + " to " + PagedTopicSubscriber.getStateName(nNewState) + " " + subscriber);
                 m_listState.add(nNewState);
                 if (nNewState == PagedTopicSubscriber.STATE_CONNECTED)
                     {
