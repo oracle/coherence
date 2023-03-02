@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<!-- tag::config[] -->
+<cache-config
+    xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
+    xmlns:c="class://com.oracle.coherence.concurrent.config.NamespaceHandler"> <!--1-->
+  <c:fixed> <!--2-->
+    <c:name>fixed-5</c:name> <!--3-->
+    <c:thread-count>5</c:thread-count> <!--4-->
+  </c:fixed>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>dist-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>dist-scheme</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>
+<!-- end::config[] -->
