@@ -146,6 +146,13 @@ This guide walks you through how to secure Coherence using SSL/TLS.
 --
 
 [CARD]
+.Executor Service
+[link=examples/guides/906-partition-level-transactions/README.adoc]
+--
+This guide explains how to use the Coherence Executor Service.
+--
+
+[CARD]
 .Key Association
 [link=examples/guides/905-key-association/README.adoc]
 --
