@@ -23,7 +23,7 @@ import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
 import com.tangosol.config.expression.NullParameterResolver;
 
-import com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies;
+import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
 
 import com.tangosol.internal.net.service.extend.remote.DefaultRemoteNameServiceDependencies;
 import com.tangosol.internal.net.service.extend.remote.LegacyXmlRemoteNameServiceHelper;
@@ -129,11 +129,11 @@ public class GrpcChannelFactory
      *
      * @return a {@link Channel}
      */
-    public Channel getChannel(GrpcRemoteCacheService service)
+    public Channel getChannel(GrpcRemoteService<?> service)
         {
-        RemoteGrpcCacheServiceDependencies depsService = service.getDependencies();
-        GrpcChannelDependencies            depsChannel = depsService.getChannelDependencies();
-        ManagedChannelBuilder<?>           builder     = (ManagedChannelBuilder<?>) depsChannel.getChannelProvider()
+        RemoteGrpcServiceDependencies depsService = service.getDependencies();
+        GrpcChannelDependencies       depsChannel = depsService.getChannelDependencies();
+        ManagedChannelBuilder<?>      builder     = (ManagedChannelBuilder<?>) depsChannel.getChannelProvider()
                                                                 .orElse(createManagedChannelBuilder(service));
 
         return builder.build();
@@ -148,15 +148,15 @@ public class GrpcChannelFactory
      *
      * @return a {@link ManagedChannelBuilder} to build a channel
      */
-    private ManagedChannelBuilder<?> createManagedChannelBuilder(GrpcRemoteCacheService service)
+    private ManagedChannelBuilder<?> createManagedChannelBuilder(GrpcRemoteService<?> service)
         {
-        RemoteGrpcCacheServiceDependencies depsService    = service.getDependencies();
-        OperationalContext                 ctx            = (OperationalContext) service.getCluster();
-        String                             sService       = service.getServiceName();
-        String                             sKey           = GrpcServiceInfo.createKey(service);
-        String                             sRemoteService = depsService.getRemoteServiceName();
-        String                             sRemoteCluster = depsService.getRemoteClusterName();
-        GrpcChannelDependencies            depsChannel    = depsService.getChannelDependencies();
+        RemoteGrpcServiceDependencies depsService    = service.getDependencies();
+        OperationalContext            ctx            = (OperationalContext) service.getCluster();
+        String                        sService       = service.getServiceName();
+        String                        sKey           = GrpcServiceInfo.createKey(service);
+        String                        sRemoteService = depsService.getRemoteServiceName();
+        String                        sRemoteCluster = depsService.getRemoteClusterName();
+        GrpcChannelDependencies       depsChannel    = depsService.getChannelDependencies();
 
         m_mapServiceInfo.put(sKey, new GrpcServiceInfo(ctx, sService, sRemoteService, sRemoteCluster, depsChannel));
 
@@ -701,7 +701,7 @@ public class GrpcChannelFactory
             m_dependencies       = dependencies;
             }
 
-        public static String createKey(GrpcRemoteCacheService service)
+        public static String createKey(GrpcRemoteService<?> service)
             {
             String sService = service.getServiceName();
             String sScope   = service.getScopeName();
@@ -727,7 +727,7 @@ public class GrpcChannelFactory
             return sService + KEY_SEPARATOR + sScope;
             }
 
-        public static String createTargetURI(GrpcRemoteCacheService service)
+        public static String createTargetURI(GrpcRemoteService<?> service)
             {
             String sService = service.getServiceName();
             String sScope   = service.getScopeName();

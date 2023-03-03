@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -73,7 +73,7 @@ class KeySetIT
         String sConfigURI = "coherence-config.xml";
 
         s_ccf = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(sConfigURI, null);
-        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(ConfigurableCacheFactorySuppliers.fixed(s_ccf));
         // set the transfer threshold small so that all of the cache data does not fit into one page
         deps.setTransferThreshold(100L);

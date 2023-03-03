@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,35 +22,6 @@ import com.tangosol.net.grpc.GrpcChannelDependencies;
  * @since 22.06.2
  */
 public interface RemoteGrpcCacheServiceDependencies
-        extends RemoteCacheServiceDependencies
+        extends RemoteGrpcServiceDependencies
     {
-    /**
-     * Return the name of the scope on the remote to connect to on the cluster.
-     *
-     * @return the name of the scope on the remote to connect to on the cluster
-     */
-    String getRemoteScopeName();
-
-    /**
-     * Return the ChannelProvider builder.
-     *
-     * @return the ChannelProvider builder
-     */
-    GrpcChannelDependencies getChannelDependencies();
-
-    /**
-     * Return the {@link Expression} that will produce the flag to
-     * determine whether client tracing is enabled.
-     *
-     * @return the {@link Expression} that will produce the flag to
-     *         determine whether client tracing is enabled
-     */
-    Expression<Boolean> isTracingEnabled();
-
-    /**
-     * Return the {@link DaemonPoolDependencies}.
-     *
-     * @return the {@link DaemonPoolDependencies}
-     */
-    DaemonPoolDependencies getDaemonPoolDependencies();
     }

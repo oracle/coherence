@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
 
@@ -263,7 +263,7 @@ public class ScopedReferenceStore<R>
 
         Service service = f_supplierService.apply(reference);
 
-        if (ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
+        if (service != null && ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
             && Security.SUBJECT_SCOPED)
             {
             SubjectScopedReference scopedRef = (SubjectScopedReference) mapByLoader.get(loader);
@@ -315,7 +315,7 @@ public class ScopedReferenceStore<R>
 
         Service service = f_supplierService.apply(reference);
 
-        if (ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
+        if (service != null && ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
             && Security.SUBJECT_SCOPED)
             {
             SubjectScopedReference scopedRef = new SubjectScopedReference();

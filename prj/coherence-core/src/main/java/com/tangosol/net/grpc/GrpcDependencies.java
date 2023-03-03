@@ -6,6 +6,8 @@
  */
 package com.tangosol.net.grpc;
 
+import com.tangosol.net.Coherence;
+
 /**
  * Coherence gRPC dependencies.
  *
@@ -22,7 +24,7 @@ public interface GrpcDependencies
     /**
      * The default scope value.
      */
-    String DEFAULT_SCOPE = "";
+    String DEFAULT_SCOPE = Coherence.DEFAULT_SCOPE;
 
     /**
      * The cache configuration alias for the default scope name.
