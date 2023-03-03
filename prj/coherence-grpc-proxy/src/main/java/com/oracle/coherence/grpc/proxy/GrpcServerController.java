@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -186,7 +186,7 @@ public class GrpcServerController
     @Deprecated(since = "22.06.2")
     public List<BindableGrpcProxyService> createGrpcServices()
         {
-        return Collections.singletonList(new NamedCacheServiceGrpcImpl());
+        return DefaultGrpcAcceptorController.createGrpcServices();
         }
 
     /**

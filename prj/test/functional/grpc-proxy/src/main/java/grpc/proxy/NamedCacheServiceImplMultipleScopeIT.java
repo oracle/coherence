@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,7 +56,7 @@ public class NamedCacheServiceImplMultipleScopeIT
 
         s_serializer = new ConfigurablePofContext("test-pof-config.xml");
 
-        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(NamedCacheServiceImplMultipleScopeIT::ensureCCF);
 
         s_service = new NamedCacheServiceImpl(deps);

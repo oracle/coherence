@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,11 +10,9 @@ import com.oracle.coherence.client.GrpcRemoteCacheService;
 
 import com.tangosol.coherence.config.scheme.BaseGrpcCacheScheme;
 
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ClusterDependencies;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The {@link GrpcCacheScheme} is responsible for building a remote gRPC cache.
@@ -23,7 +21,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @since 22.06.2
  */
 public class GrpcCacheScheme
-        extends BaseGrpcCacheScheme
+        extends BaseGrpcCacheScheme<CacheService>
+        implements ClusterDependencies.ServiceProvider
     {
     // ----- constructors ---------------------------------------------------
 
@@ -39,28 +38,17 @@ public class GrpcCacheScheme
     @Override
     protected ClusterDependencies.ServiceProvider getServiceProvider()
         {
-        return this::createService;
+        return this;
         }
 
-    // ----- helper methods -------------------------------------------------
+    // ----- ClusterDependencies.ServiceProvider methods --------------------
 
-    private GrpcRemoteCacheService createService(String sName, Cluster cluster)
+    @Override
+    public GrpcRemoteCacheService createService(String sName, Cluster cluster)
         {
         GrpcRemoteCacheService service = new GrpcRemoteCacheService();
         service.setServiceName(sName);
         service.setCluster(cluster);
         return service;
         }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The service lock.
-     */
-    private final Lock f_lock = new ReentrantLock(true);
-
-    /**
-     * The service for this scheme.
-     */
-    private volatile GrpcRemoteCacheService m_service;
     }

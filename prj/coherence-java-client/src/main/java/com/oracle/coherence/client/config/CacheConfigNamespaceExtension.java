@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,7 +24,8 @@ public class CacheConfigNamespaceExtension
     public void extend(CacheConfigNamespaceHandler handler)
         {
         handler.registerProcessor("grpc-channel", new GrpcChannelProcessor());
-        handler.registerProcessor("remote-grpc-cache-scheme", new RemoteGrpcServiceBuilderProcessor());
+        handler.registerProcessor("remote-grpc-cache-scheme", new RemoteGrpcCacheServiceBuilderProcessor());
+//        handler.registerProcessor("remote-grpc-topic-scheme", new RemoteGrpcTopicServiceBuilderProcessor());
         handler.registerProcessor("configurer", new InstanceProcessor());
         }
     }

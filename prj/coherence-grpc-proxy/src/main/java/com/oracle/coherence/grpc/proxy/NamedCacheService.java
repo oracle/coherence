@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -444,4 +444,38 @@ public interface NamedCacheService
      * @return a deserialized {@link Filter} or {@code null} if no filter is set
      */
     <T> Filter<T> getFilter(ByteString bytes, Serializer serializer);
+
+    // ----- inner interface: Dependencies ----------------------------------
+
+    /**
+     * The dependencies to configure a {@link NamedCacheServiceImpl}.
+     */
+    interface Dependencies
+            extends BaseGrpcServiceImpl.Dependencies
+        {
+        }
+
+    // ----- inner class: DefaultDependencies -------------------------------
+
+    /**
+     * The default {@link NamedCacheService.Dependencies} implementation.
+     */
+    class DefaultDependencies
+            extends BaseGrpcServiceImpl.DefaultDependencies
+            implements NamedCacheService.Dependencies
+        {
+        public DefaultDependencies()
+            {
+            }
+
+        public DefaultDependencies(GrpcServiceDependencies deps)
+            {
+            super(deps);
+            }
+
+        public DefaultDependencies(NamedCacheService.Dependencies deps)
+            {
+            super(deps);
+            }
+        }
     }

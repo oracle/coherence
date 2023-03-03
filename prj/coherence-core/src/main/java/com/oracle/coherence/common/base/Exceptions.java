@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.base;
 
@@ -96,6 +96,27 @@ public abstract class Exceptions
                 {
                 return t;
                 }
+            }
+        }
+
+    /**
+     * Re-throw the specified exception if it is a fatal unrecoverable exception.
+     *
+     * @param t  the exception to check
+     */
+    public static void throwIfFatal(Throwable t)
+        {
+        if (t instanceof VirtualMachineError)
+            {
+            throw (VirtualMachineError)t;
+            }
+        else if (t instanceof ThreadDeath)
+            {
+            throw (ThreadDeath)t;
+            }
+        else if (t instanceof LinkageError)
+            {
+            throw (LinkageError)t;
             }
         }
     }
