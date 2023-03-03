@@ -44,20 +44,16 @@ import com.oracle.coherence.grpc.RemoveMappingRequest;
 import com.oracle.coherence.grpc.RemoveRequest;
 import com.oracle.coherence.grpc.ReplaceMappingRequest;
 import com.oracle.coherence.grpc.ReplaceRequest;
-import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.oracle.coherence.grpc.SizeRequest;
 import com.oracle.coherence.grpc.TruncateRequest;
 import com.oracle.coherence.grpc.ValuesRequest;
 
-import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 
-import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
@@ -65,8 +61,6 @@ import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.NearCache;
-
-import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Aggregators;
 import com.tangosol.util.Base;
@@ -89,17 +83,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryContainsValueProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryRemoveProcessor;
@@ -122,6 +110,7 @@ import static com.tangosol.internal.util.processor.BinaryProcessors.BinarySynthe
  * @since 20.06
  */
 public class NamedCacheServiceImpl
+        extends BaseGrpcServiceImpl
         implements NamedCacheService
     {
     // ----- constructors ---------------------------------------------------
@@ -129,23 +118,11 @@ public class NamedCacheServiceImpl
     /**
      * Create a {@link NamedCacheServiceImpl}.
      *
-     * @param dependencies the {@link Dependencies} touse to configure the service
+     * @param dependencies the {@link NamedCacheService.Dependencies} to use to configure the service
      */
-    public NamedCacheServiceImpl(Dependencies dependencies)
+    public NamedCacheServiceImpl(NamedCacheService.Dependencies dependencies)
         {
-        f_executor             = dependencies.getExecutor().orElseGet(NamedCacheServiceImpl::createDefaultExecutor);
-        f_cacheFactorySupplier = dependencies.getCacheFactorySupplier().orElse(ConfigurableCacheFactorySuppliers.DEFAULT);
-        f_serializerProducer   = dependencies.getNamedSerializerFactory().orElse(NamedSerializerFactory.DEFAULT);
-
-        dependencies.getTransferThreshold().ifPresent(this::setTransferThreshold);
-
-        DaemonPoolExecutor.DaemonPoolManagement management = f_executor instanceof DaemonPoolExecutor
-                ? ((DaemonPoolExecutor) f_executor).getManagement() : null;
-
-        Registry registry = dependencies.getRegistry().orElseGet(() -> CacheFactory.getCluster().getManagement());
-
-        f_metrics = new GrpcProxyMetrics(MBEAN_NAME, management);
-        f_metrics.registerMBean(registry);
+        super(dependencies, MBEAN_NAME, "GrpcNamedCacheProxy");
         }
 
     // ----- factory methods ------------------------------------------------
@@ -154,11 +131,11 @@ public class NamedCacheServiceImpl
      * Create an instance of {@link NamedCacheServiceImpl}
      * using the default dependencies configuration.
      *
-     * @param deps  the {@link Dependencies} to use to create the service
+     * @param deps  the {@link NamedCacheService.Dependencies} to use to create the service
      *
      * @return  an instance of {@link NamedCacheServiceImpl}
      */
-    public static NamedCacheServiceImpl newInstance(Dependencies deps)
+    public static NamedCacheServiceImpl newInstance(NamedCacheService.Dependencies deps)
         {
         return new NamedCacheServiceImpl(deps);
         }
@@ -171,39 +148,7 @@ public class NamedCacheServiceImpl
      */
     public static NamedCacheServiceImpl newInstance()
         {
-        return newInstance(new DefaultDependencies());
-        }
-
-    // ----- accessors ------------------------------------------------------
-
-    /**
-     * Obtain the gRPC metrics instance for this service.
-     *
-     * @return  the gRPC metrics instance for this service
-     */
-    public GrpcProxyMetrics getMetrics()
-        {
-        return f_metrics;
-        }
-
-    /**
-     * Return the transfer threshold.
-     *
-     * @return the {@link #transferThreshold}
-     */
-    long getTransferThreshold()
-        {
-        return transferThreshold;
-        }
-
-    /**
-     * Set the transfer threshold.
-     *
-     * @param lSize  the new transfer threshold
-     */
-    void setTransferThreshold(long lSize)
-        {
-        transferThreshold = lSize;
+        return newInstance(new NamedCacheService.DefaultDependencies());
         }
 
     // ----- NamedCacheClient implementation --------------------------------
@@ -286,7 +231,7 @@ public class NamedCacheServiceImpl
         {
         return createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::aggregateWithFilter, f_executor)
-                .handleAsync(this::handleError, f_executor);
+                .handleAsync(ResponseHandlers::handleError, f_executor);
         }
 
     /**
@@ -327,7 +272,7 @@ public class NamedCacheServiceImpl
         {
         return createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenComposeAsync(this::aggregateWithKeys, f_executor)
-                .handleAsync(this::handleError, f_executor);
+                .handleAsync(ResponseHandlers::handleError, f_executor);
         }
 
     /**
@@ -471,7 +416,7 @@ public class NamedCacheServiceImpl
         {
         createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> this.entrySet(h, observer), f_executor)
-                .handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+                .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
         }
 
     /**
@@ -493,8 +438,16 @@ public class NamedCacheServiceImpl
             Comparator<Map.Entry<Binary, Binary>> comparator =
                     deserializeComparator(request.getComparator(), serializer);
 
-            holder.runAsync(holder.getAsyncCache().entrySet(filter, comparator))
-                    .handleAsync((h, err) -> this.handleSetOfEntries(h, err, observer), f_executor);
+            if (comparator == null)
+                {
+                holder.runAsync(holder.getAsyncCache().entrySet(filter, holder.entryConsumer(observer)))
+                        .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
+                }
+            else
+                {
+                holder.runAsync(holder.getAsyncCache().entrySet(filter, comparator))
+                        .handleAsync((h, err) -> ResponseHandlers.handleSetOfEntries(h, err, observer), f_executor);
+                }
             }
         catch (Throwable t)
             {
@@ -554,7 +507,7 @@ public class NamedCacheServiceImpl
             {
             createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                     .thenApplyAsync(h -> this.getAll(h, observer), f_executor)
-                    .handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+                    .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
             }
         }
 
@@ -568,10 +521,10 @@ public class NamedCacheServiceImpl
      */
     protected Void getAll(CacheRequestHolder<GetAllRequest, Void> holder, StreamObserver<Entry> observer)
         {
+        Consumer<? super Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
         holder.runAsync(convertKeys(holder))
-                .thenComposeAsync(h -> h.runAsync(h.getAsyncCache().invokeAll(
-                        h.getResult(), BinaryProcessors.get())), f_executor)
-                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer), f_executor);
+                .thenComposeAsync(h -> h.runAsync(h.getAsyncCache().invokeAll(h.getResult(), BinaryProcessors.get(), callback)), f_executor)
+                .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
         return VOID;
         }
 
@@ -666,7 +619,7 @@ public class NamedCacheServiceImpl
                     future = invokeAllWithFilter(request, observer);
                     }
 
-                future.handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+                future.handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
                 }
             catch (Throwable t)
                 {
@@ -714,8 +667,10 @@ public class NamedCacheServiceImpl
         EntryProcessor<Binary, Binary, Binary> processor       = BinaryHelper.fromByteString(processorBytes,
                                                                                              holder.getSerializer());
 
-        return holder.runAsync(holder.getAsyncCache().invokeAll(filter, processor))
-                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer), f_executor);
+        Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
+
+        return holder.runAsync(holder.getAsyncCache().invokeAll(filter, processor, callback))
+                .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
         }
 
     /**
@@ -754,8 +709,10 @@ public class NamedCacheServiceImpl
         EntryProcessor<Binary, Binary, Binary> processor
                 = BinaryHelper.fromByteString(request.getProcessor(), holder.getSerializer());
 
-        return holder.runAsync(holder.getAsyncCache().invokeAll(keys, processor))
-                .handleAsync((h, err) -> handleMapOfEntries(h, err, observer), f_executor);
+        Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
+
+        return holder.runAsync(holder.getAsyncCache().invokeAll(keys, processor, callback))
+                .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
         }
 
     // ----- isEmpty --------------------------------------------------------
@@ -775,7 +732,7 @@ public class NamedCacheServiceImpl
         {
         createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> this.keySet(h, observer), f_executor)
-                .handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+                .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
         }
 
     /**
@@ -795,9 +752,10 @@ public class NamedCacheServiceImpl
             Serializer serializer = holder.getSerializer();
             Filter<Binary> filter = ensureFilter(request.getFilter(), serializer);
 
-            holder.runAsync(holder.getAsyncCache().keySet(filter))
-                    .handleAsync((h, err) -> this.handleStream(h, err, observer), f_executor)
-                    .handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+            Consumer<Binary> callback = holder.binaryConsumer(observer);
+
+            holder.runAsync(holder.getAsyncCache().keySet(filter, callback))
+                    .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
             }
         catch (Throwable t)
             {
@@ -813,8 +771,8 @@ public class NamedCacheServiceImpl
         {
         createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> PagedQueryHelper.keysPagedQuery(h, getTransferThreshold()), f_executor)
-                .handleAsync((stream, err) -> handleStream(stream, err, observer), f_executor)
-                .handleAsync((v, err) -> this.handleError(err, observer));
+                .handleAsync((stream, err) -> ResponseHandlers.handleStream(stream, err, observer), f_executor)
+                .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer));
         }
 
     @Override
@@ -822,8 +780,8 @@ public class NamedCacheServiceImpl
         {
         createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> PagedQueryHelper.entryPagedQuery(h, getTransferThreshold()), f_executor)
-                .handleAsync((stream, err) -> handleStream(stream, err, observer), f_executor)
-                .handleAsync((v, err) -> this.handleError(err, observer));
+                .handleAsync((stream, err) -> ResponseHandlers.handleStream(stream, err, observer), f_executor)
+                .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer));
         }
 
     // ----- put ------------------------------------------------------------
@@ -1009,7 +967,7 @@ public class NamedCacheServiceImpl
         Binary        key     = holder.convertKeyDown(request.getKey());
 
         return holder.getAsyncCache().invoke(key, BinaryRemoveProcessor.INSTANCE)
-                .thenApplyAsync(holder::fromCacheBinary, f_executor);
+                .thenApplyAsync(holder::fromBinary, f_executor);
         }
 
     // ----- removeIndex ----------------------------------------------------
@@ -1096,7 +1054,7 @@ public class NamedCacheServiceImpl
         Binary         value   = holder.convertDown(request.getValue());
 
         return holder.getAsyncCache().invoke(key, castProcessor(new BinaryReplaceProcessor(value)))
-                .thenApplyAsync(holder::fromCacheBinary, f_executor);
+                .thenApplyAsync(holder::fromBinary, f_executor);
         }
 
     // ----- replace mapping ------------------------------------------------
@@ -1162,7 +1120,7 @@ public class NamedCacheServiceImpl
         {
         createHolderAsync(request, request.getScope(), request.getCache(), request.getFormat())
                 .thenApplyAsync(h -> this.values(h, observer), f_executor)
-                .handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+                .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
         }
 
     /**
@@ -1184,8 +1142,8 @@ public class NamedCacheServiceImpl
             Comparator<Binary> comparator = deserializeComparator(request.getComparator(), serializer);
 
             holder.runAsync(holder.getAsyncCache().values(filter, comparator))
-                    .handleAsync((h, err) -> this.handleStream(h, err, observer), f_executor)
-                    .handleAsync((v, err) -> this.handleError(err, observer), f_executor);
+                    .handleAsync((h, err) -> ResponseHandlers.handleStream(h, err, observer), f_executor)
+                    .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
             }
         catch (Throwable t)
             {
@@ -1244,218 +1202,6 @@ public class NamedCacheServiceImpl
             {
             throw ErrorsHelper.ensureStatusRuntimeException(t);
             }
-        }
-
-    /**
-     * Handle the result of the asynchronous invoke all request sending the results, or any errors
-     * to the {@link StreamObserver}.
-     *
-     * @param holder    the {@link CacheRequestHolder} containing the request
-     * @param err       any error that occurred during execution of the get all request
-     * @param observer  the {@link StreamObserver} to receive the results
-     *
-     * @return always return {@link Void}
-     */
-    protected Void handleMapOfEntries(CacheRequestHolder<?, Map<Binary, Binary>> holder,
-                                      Throwable err,
-                                      StreamObserver<Entry> observer)
-        {
-        if (err == null)
-            {
-            handleStreamOfEntries(holder, holder.getResult().entrySet().stream(), observer);
-            }
-        else
-            {
-            observer.onError(ErrorsHelper.ensureStatusRuntimeException(err));
-            }
-        return VOID;
-        }
-
-    /**
-     * Handle the result of the asynchronous entry set request sending the results, or any errors
-     * to the {@link StreamObserver}.
-     *
-     * @param holder    the {@link CacheRequestHolder} containing the request
-     * @param err       any error that occurred during execution of the get all request
-     * @param observer  the {@link StreamObserver} to receive the results
-     *
-     * @return always return {@link Void}
-     */
-    protected Void handleSetOfEntries(CacheRequestHolder<?, Set<Map.Entry<Binary, Binary>>> holder,
-                                      Throwable err,
-                                      StreamObserver<Entry> observer)
-        {
-        if (err == null)
-            {
-            handleStreamOfEntries(holder, holder.getResult().stream(), observer);
-            }
-        else
-            {
-            observer.onError(ErrorsHelper.ensureStatusRuntimeException(err));
-            }
-        return VOID;
-        }
-
-    /**
-     * Handle the result of the asynchronous invoke all request sending the results, or any errors
-     * to the {@link StreamObserver}.
-     *
-     * @param holder    the {@link CacheRequestHolder} containing the request
-     * @param entries   a {@link Stream} of entries
-     * @param observer  the {@link StreamObserver} to receive the results
-     */
-    protected void handleStreamOfEntries(CacheRequestHolder<?, ?> holder,
-                                         Stream<Map.Entry<Binary, Binary>> entries,
-                                         StreamObserver<Entry> observer)
-        {
-        try
-            {
-            entries.forEach(entry -> observer.onNext(holder.toEntry(entry.getKey(), entry.getValue())));
-            observer.onCompleted();
-            }
-        catch (Throwable thrown)
-            {
-            observer.onError(ErrorsHelper.ensureStatusRuntimeException(thrown));
-            }
-        }
-
-    /**
-     * Send an {@link Iterable} of {@link Binary} instances to a {@link StreamObserver},
-     * converting the {@link Binary} instances to a {@link BytesValue}.
-     *
-     * @param holder    the {@link CacheRequestHolder} containing the request and
-     *                  {@link Iterable} or {@link Binary} instances to stream
-     * @param err       the error the pass to {@link StreamObserver#onError(Throwable)}
-     * @param observer  the {@link StreamObserver} to receive the results
-     *
-     * @return always return {@link Void}
-     */
-    protected Void handleStream(CacheRequestHolder<?, ? extends Iterable<Binary>> holder,
-                                Throwable err,
-                                StreamObserver<BytesValue> observer)
-        {
-        if (err == null)
-            {
-            try
-                {
-                Iterable<Binary>   iterable = holder.getResult();
-                Stream<BytesValue> stream   = StreamSupport.stream(iterable.spliterator(), false)
-                        .map(bin -> BinaryHelper.toBytesValue(holder.convertUp(bin)));
-                stream(observer, stream);
-                }
-            catch (Throwable t)
-                {
-                observer.onError(ErrorsHelper.ensureStatusRuntimeException(t));
-                }
-            }
-        else
-            {
-            observer.onError(ErrorsHelper.ensureStatusRuntimeException(err));
-            }
-        return VOID;
-        }
-
-    <T> void stream(StreamObserver<T> observer, Stream<? extends T> stream) {
-        stream(observer, () -> stream);
-    }
-
-    <T> void stream(StreamObserver<T> observer, Supplier<Stream<? extends T>> supplier)
-        {
-        StreamObserver<T> safe = SafeStreamObserver.ensureSafeObserver(observer);
-        Throwable thrown = null;
-
-        try
-            {
-            supplier.get().forEach(safe::onNext);
-            }
-        catch (Throwable t)
-            {
-            thrown = t;
-            }
-
-        if (thrown == null)
-            {
-            safe.onCompleted();
-            }
-        else
-            {
-            safe.onError(thrown);
-            }
-        }
-
-    /**
-     * A handler method that streams results to a {@link StreamObserver}
-     * and completes the {@link StreamObserver} or if an error is
-     * provided calls {@link StreamObserver#onError(Throwable)}.
-     * <p>
-     * Note: this method will complete by calling either {@link StreamObserver#onCompleted()}
-     * or {@link StreamObserver#onError(Throwable)}.
-     *
-     * @param stream    the elements to stream to the {@link StreamObserver}
-     * @param err       the error the pass to {@link StreamObserver#onError(Throwable)}
-     * @param observer  the {@link StreamObserver}
-     * @param <Resp>    the type of the element to stream to the {@link StreamObserver}
-     *
-     * @return always returns {@link Void}
-     */
-    protected <Resp> Void handleStream(Stream<Resp> stream, Throwable err, StreamObserver<Resp> observer)
-        {
-        if (err == null)
-            {
-            try
-                {
-                stream(observer, stream);
-                }
-            catch (Throwable t)
-                {
-                observer.onError(ErrorsHelper.ensureStatusRuntimeException(t));
-                }
-            }
-        else
-            {
-            observer.onError(ErrorsHelper.ensureStatusRuntimeException(err));
-            }
-        return VOID;
-        }
-
-    /**
-     * A handler method that will call {@link StreamObserver#onError(Throwable)} if the
-     * error parameter is not {@code null}.
-     * <p>
-     * NOTE: this method will not complete the {@link StreamObserver} if there is no error.
-     *
-     * @param err       the error the pass to {@link StreamObserver#onError(Throwable)}
-     * @param observer  the {@link StreamObserver}
-     * @param <Resp>    the type of the element to stream to the {@link StreamObserver}
-     *
-     * @return always returns {@link Void}
-     */
-    protected <Resp> Void handleError(Throwable err, StreamObserver<Resp> observer)
-        {
-        if (err != null)
-            {
-            observer.onError(ErrorsHelper.ensureStatusRuntimeException(err));
-            }
-        return VOID;
-        }
-
-    /**
-     * A handler method that will return the response if there is no error or if there
-     * is an error then ensure that it is a {@link io.grpc.StatusRuntimeException}.
-     *
-     * @param response  the response to return if there is no error
-     * @param err       the error to check
-     * @param <Resp>    the type of the response
-     *
-     * @return always returns the passed in response
-     */
-    protected <Resp> Resp handleError(Resp response, Throwable err)
-        {
-        if (err != null)
-            {
-            throw ErrorsHelper.ensureStatusRuntimeException(err);
-            }
-        return response;
         }
 
     /**
@@ -1696,156 +1442,20 @@ public class NamedCacheServiceImpl
                     .asRuntimeException();
             }
 
-        NamedCache<Binary, Binary>      c               = getCache(sScope, sCacheName, true);
-        NamedCache<Binary, Binary>      nonPassThrough  = getCache(sScope, sCacheName, false);
-        AsyncNamedCache<Binary, Binary> cache           = c.async();
-        CacheService                    cacheService    = cache.getNamedCache().getCacheService();
-        String                          cacheFormat     = CacheRequestHolder.getCacheFormat(cacheService);
+        NamedCache<Binary, Binary>      c              = getCache(sScope, sCacheName, true);
+        NamedCache<Binary, Binary>      nonPassThrough = getCache(sScope, sCacheName, false);
+        AsyncNamedCache<Binary, Binary> cache          = c.async();
+        CacheService                    cacheService   = cache.getNamedCache().getCacheService();
+        String                          cacheFormat    = CacheRequestHolder.getCacheFormat(cacheService);
+        Serializer                      serializer     = getSerializer(format, cacheFormat, cacheService::getSerializer, cacheService::getContextClassLoader);
 
-        Serializer serializerRequest;
-        if (format == null || format.trim().isEmpty() || format.equals(cacheFormat))
-            {
-            serializerRequest = cacheService.getSerializer();
-            }
-        else
-            {
-            ClassLoader loader = cacheService.getContextClassLoader();
-            serializerRequest  = f_serializerProducer.getNamedSerializer(format, loader);
-            }
-
-        if (serializerRequest == null)
-            {
-            throw Status.INVALID_ARGUMENT
-                    .withDescription("invalid request format, cannot find serializer with name '" + format + "'")
-                    .asRuntimeException();
-            }
-
-        return new CacheRequestHolder<>(request,
-                                        cache,
-                                        () -> nonPassThrough,
-                                        format,
-                                        serializerRequest, f_executor);
-        }
-
-    static Executor createDefaultExecutor()
-        {
-        DefaultDaemonPoolDependencies deps = new DefaultDaemonPoolDependencies();
-        deps.setName("GrpcNamedCacheProxy");
-        deps.setThreadCountMin(1);
-        deps.setThreadCount(1);
-        deps.setThreadCountMax(Integer.MAX_VALUE);
-        DaemonPoolExecutor executor = DaemonPoolExecutor.newInstance(deps);
-        executor.start();
-        return executor;
-        }
-
-    // ----- inner interface: Dependencies ----------------------------------
-
-    /**
-     * The dependencies to configure a {@link NamedCacheServiceImpl}.
-     */
-    public interface Dependencies
-            extends GrpcServiceDependencies
-        {
-        /**
-         * Return the function to use to obtain named {@link ConfigurableCacheFactory} instances.
-         *
-         * @return the function to use to obtain named {@link ConfigurableCacheFactory} instances
-         */
-        Optional<Function<String, ConfigurableCacheFactory>> getCacheFactorySupplier();
-        }
-
-    // ----- inner class: DefaultDependencies -------------------------------
-
-    /**
-     * The default {@link Dependencies} implementation.
-     */
-    public static class DefaultDependencies
-            extends GrpcServiceDependencies.DefaultDependencies
-            implements Dependencies
-        {
-        public DefaultDependencies()
-            {
-            }
-
-        public DefaultDependencies(GrpcServiceDependencies deps)
-            {
-            super(deps);
-            }
-
-        public DefaultDependencies(Dependencies deps)
-            {
-            super(deps);
-            if (deps != null)
-                {
-                m_ccfSupplier = deps.getCacheFactorySupplier().orElse(null);
-                }
-            }
-
-        @Override
-        public Optional<Function<String, ConfigurableCacheFactory>> getCacheFactorySupplier()
-            {
-            return Optional.ofNullable(m_ccfSupplier);
-            }
-
-        /**
-         * Set the function to use to obtain named {@link ConfigurableCacheFactory} instances.
-         *
-         * @param ccfSupplier the function to use to obtain named {@link ConfigurableCacheFactory} instances
-         */
-        public void setConfigurableCacheFactorySupplier(Function<String, ConfigurableCacheFactory> ccfSupplier)
-            {
-            m_ccfSupplier = ccfSupplier;
-            }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * The supplier of the {@link ConfigurableCacheFactory} to use.
-         */
-        private Function<String, ConfigurableCacheFactory> m_ccfSupplier;
+        return new CacheRequestHolder<>(request, cache, () -> nonPassThrough, format, serializer, f_executor);
         }
 
     // ----- constants --------------------------------------------------
 
     /**
-     * A {@link Void} value to make it obvious the return value in Void methods.
-     */
-    protected static final Void VOID = null;
-
-    /**
-     * The default transfer threshold.
-     */
-    public static final long DEFAULT_TRANSFER_THRESHOLD = 524288L;
-
-    /**
      * The name to use for the management MBean.
      */
     public static final String MBEAN_NAME = "type=GrpcNamedCacheProxy";
-
-    // ----- data members -----------------------------------------------
-
-    /**
-     * The function used to obtain ConfigurableCacheFactory instances for a
-     * given scope name.
-     */
-    protected final Function<String, ConfigurableCacheFactory> f_cacheFactorySupplier;
-
-    /**
-     * The factory to use to lookup named {@link Serializer} instances.
-     */
-    protected final NamedSerializerFactory f_serializerProducer;
-
-    /**
-     * The {@link Executor} to use to hand off asynchronous tasks.
-     */
-    protected final Executor f_executor;
-
-
-    protected final GrpcProxyMetrics f_metrics;
-
-    /**
-     * The transfer threshold used for paged requests.
-     */
-    protected long transferThreshold = DEFAULT_TRANSFER_THRESHOLD;
     }
