@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -189,6 +189,19 @@ public class JmxTests
             }
         }
 
+    @Test
+    public void testStatusHABC2()
+        {
+        try
+            {
+            testStatusHAHelper("PAS-cache", "ENDANGERED", "NODE-SAFE", "MACHINE-SAFE", "RACK-SAFE", "SITE-SAFE", 2);
+            }
+        finally
+            {
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
     /**
     * Test statusHA display under simple partition strategy, COH-10345
     */
@@ -198,7 +211,7 @@ public class JmxTests
         {
         try
             {
-            testStatusHAHelper("PAS-cache", "ENDANGERED", "NODE-SAFE", "MACHINE-SAFE", "RACK-SAFE", "SITE-SAFE");
+            testStatusHAHelper("PAS-cache", "ENDANGERED", "NODE-SAFE", "MACHINE-SAFE", "RACK-SAFE", "SITE-SAFE", 1);
             }
         finally
             {
@@ -209,7 +222,7 @@ public class JmxTests
     /**
     * Helper function for testStatusHAPAS()
     */
-    public void testStatusHAHelper(String sStrategy, String sEndangered, String sNode, String sMachine, String sRack, String sSite)
+    public void testStatusHAHelper(String sStrategy, String sEndangered, String sNode, String sMachine, String sRack, String sSite, int cBackup)
         {
         System.setProperty("coherence.log.level", "3");
         System.setProperty("coherence.management", "all");
@@ -217,6 +230,7 @@ public class JmxTests
         System.setProperty("coherence.rack", "rack-test");
         System.setProperty("coherence.site", "site-test");
         System.setProperty("coherence.machine", "machine-test");
+        System.setProperty("coherence.distributed.backupcount", String.valueOf(cBackup));
 
         AbstractFunctionalTest._startup();
 
