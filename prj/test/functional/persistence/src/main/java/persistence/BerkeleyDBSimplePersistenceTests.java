@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -126,7 +126,6 @@ public class BerkeleyDBSimplePersistenceTests
             throws IOException, MBeanException
         {
         testBackupPersistence3("active-backup");
-        //testBackupPersistence3("active");
         }
 
     /**
@@ -144,7 +143,7 @@ public class BerkeleyDBSimplePersistenceTests
      * Test 4 server storage, 1 server restart with backup persistence and
      * backup count at 2, and after rolling restarts.
      */
-    //@Test
+    @Test
     public void testBackupPersistence4Rolling()
             throws IOException, MBeanException
         {
@@ -397,7 +396,7 @@ public class BerkeleyDBSimplePersistenceTests
      * Test N server restart with backup persistence.
      */
     public void testBackupPersistence(String sMode, int nServers, String sCacheName, boolean fRolling)
-            throws IOException, MBeanException
+            throws IOException
         {
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
@@ -415,6 +414,7 @@ public class BerkeleyDBSimplePersistenceTests
             props[i].setProperty("test.persistence.mode", sMode);
             props[i].setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
             props[i].setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+            props[i].setProperty("coherence.distributed.partitions", "257");
             props[i].setProperty("test.threads", "5");
             if (nServers == 4)
                 {
@@ -428,21 +428,15 @@ public class BerkeleyDBSimplePersistenceTests
 
         if (nServers == 4)
             {
-            // 0 and 2 point to the same location
-            props[2].setProperty("test.persistence.active.dir", props[0].getProperty("test.persistence.active.dir"));
-            props[2].setProperty("test.persistence.backup.dir", fileBackup[0].getAbsolutePath());
-
-            // most times distribution among 2 servers is complete; in rare cases it may still leave some partitions
-            // with other members, use extra backup of member 1 to be sure
-            props[1].setProperty("test.persistence.backup.dir", fileBackup[0].getAbsolutePath());
-
             System.setProperty("coherence.distributed.backupcount", "2");
-
-            // reset so service senior picks up BC count
-            AbstractFunctionalTest.stopAllApplications();
-
-            AbstractFunctionalTest._startup();
             }
+
+        System.setProperty("coherence.distributed.partitions", "257");
+
+        // reset so service senior picks up BC count/partition count
+        AbstractFunctionalTest.stopAllApplications();
+
+        AbstractFunctionalTest._startup();
 
         ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
                 .getConfigurableCacheFactory("client-cache-config.xml", null);
@@ -555,6 +549,13 @@ public class BerkeleyDBSimplePersistenceTests
             catch (Throwable t)
                 {
                 CacheFactory.log("got Exception: " + t);
+                }
+
+            if (nServers == 4)
+                {
+                // provide enough partitions saved
+                FileHelper.copyDir(fileActive[2], fileActive[0]);
+                FileHelper.copyDir(fileBackup[2], fileBackup[0]);
                 }
 
             // re-start recovering from half the original stores
