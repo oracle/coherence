@@ -54,6 +54,10 @@
       <url>https://github.com/thegridman</url>
     </developer>
     <developer>
+      <name>Joe Fialli</name>
+      <url>https://github.com/jfialli</url>
+    </developer>
+    <developer>
       <name>Patrick Fry</name>
       <url>https://github.com/fryp</url>
     </developer>
@@ -62,16 +66,16 @@
       <url>https://github.com/mgamanho</url>
     </developer>
     <developer>
-      <name>Ryan Lubke</name>
-      <url>https://github.com/rlubke</url>
+      <name>Gunnar Hillert</name>
+      <url>https://github.com/ghillert</url>
     </developer>
     <developer>
       <name>Luk Ho</name>
       <url>https://github.com/lsho</url>
     </developer>
     <developer>
-      <name>Joe Fialli</name>
-      <url>https://github.com/jfialli</url>
+      <name>Ryan Lubke</name>
+      <url>https://github.com/rlubke</url>
     </developer>
     <developer>
       <name>Tim Middleton</name>
