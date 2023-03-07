@@ -93,7 +93,6 @@ import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryContai
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryRemoveProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceMappingProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceProcessor;
-import static com.tangosol.internal.util.processor.BinaryProcessors.BinarySyntheticRemoveBlindProcessor;
 
 /**
  * A gRPC NamedCache service.
@@ -304,10 +303,7 @@ public class NamedCacheServiceImpl
     public CompletionStage<Empty> clear(ClearRequest request)
         {
         return getAsyncCache(request.getScope(), request.getCache())
-                .thenComposeAsync(cache -> cache.invokeAll(AlwaysFilter.INSTANCE(),
-                                                           BinarySyntheticRemoveBlindProcessor.INSTANCE),
-                                  f_executor)
-                .thenApplyAsync(this::empty, f_executor);
+                .thenApplyAsync(cache -> this.execute(() -> cache.getNamedCache().clear()), f_executor);
         }
 
     // ----- containsEntry --------------------------------------------------
