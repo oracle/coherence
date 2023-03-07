@@ -13,18 +13,16 @@ import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
@@ -32,7 +30,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -82,7 +79,8 @@ public class SafeSortedMapTest
     @Test
     public void testEmptyMap()
         {
-        SafeSortedMap map = new SafeSortedMap();
+        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
+
         assertTrue(map.keySet().isEmpty());
         assertTrue(map.values().isEmpty());
         assertTrue(map.entrySet().isEmpty());
@@ -93,17 +91,17 @@ public class SafeSortedMapTest
     @Test
     public void testSimplePutWithNonNulls()
         {
-        Map map = new SafeSortedMap();
+        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             map.put(wrapper, wrapper);
             }
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             assertTrue(equals(wrapper, map.get(wrapper)));
             }
         }
@@ -111,11 +109,11 @@ public class SafeSortedMapTest
     @Test
     public void testSimplePutWithNullValues()
         {
-        Map<Integer, Integer> map = new SafeHashMap();
+        Map<Integer, Integer> map = new SafeSortedMap<>();
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             map.put(wrapper, null);
             }
 
@@ -123,9 +121,9 @@ public class SafeSortedMapTest
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
-            Integer wrapper = new Integer(i);
+            Integer wrapper = i;
             assertTrue(map.containsKey(wrapper));
-            assertTrue(map.get(wrapper) == null);
+            assertNull(map.get(wrapper));
             }
 
         for (Map.Entry<Integer, Integer> e : map.entrySet())
@@ -137,7 +135,7 @@ public class SafeSortedMapTest
     @Test
     public void testSimplePutWithNullKey()
         {
-        Map<Integer, Integer> map = new SafeHashMap();
+        Map<Integer, Integer> map = new SafeSortedMap<>();
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
@@ -156,7 +154,7 @@ public class SafeSortedMapTest
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
             Integer wrapper = i;
-            Integer value   = i+ 1;
+            Integer value   = i + 1;
             assertTrue(map.containsKey(i == 0 ? null : wrapper));
             assertThat("assert key for " + i + " is " + i + 1, map.get(i == 0 ? null : wrapper), is(value));
             }
@@ -185,7 +183,7 @@ public class SafeSortedMapTest
     @Test
     public void testGetEntryMissingKey()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap();
+        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
 
         Integer value = 1;
         map.put(null, value);
@@ -196,9 +194,9 @@ public class SafeSortedMapTest
     @Test
     public void testGetEntryWithNullKey()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap();
+        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
 
-        Integer value = new Integer(1);
+        Integer value = 1;
         map.put(null, value);
 
         Map.Entry<Integer,Integer> entry = map.getEntry(null);
@@ -209,7 +207,7 @@ public class SafeSortedMapTest
     @Test
     public void testGetEntryWithNullValue()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap();
+        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
 
         Integer key = 1;
         map.put(key, null);
@@ -231,11 +229,11 @@ public class SafeSortedMapTest
         Integer oValue2 = 11;
 
         // begin test
-        SafeSortedMap<String, Integer>      mapIndex   = new SafeSortedMap();
-        SafeSortedMap<Integer, Set<String>> mapInverse = new SafeSortedMap();
+        SafeSortedMap<String, Integer>      mapIndex   = new SafeSortedMap<>();
+        SafeSortedMap<Integer, Set<String>> mapInverse = new SafeSortedMap<>();
 
         mapIndex.put(oKey, oValue);
-        Set set1 = new InflatableSet();
+        Set<String> set1 = new InflatableSet();
         set1.add(oKey);
         mapInverse.put(oValue, set1);
 
@@ -245,7 +243,7 @@ public class SafeSortedMapTest
 
         assertNotNull(entry1);
 
-        Set set2 = entry1.getValue();
+        Set<String> set2 = entry1.getValue();
 
         assertThat(set2.size(), is(1));
         assertEquals(set1, set2);
@@ -267,7 +265,7 @@ public class SafeSortedMapTest
                 oValue2, oIndexValue2);
 
         // get the entry from the inverse map keyed by the extracted value
-        Map.Entry inverseEntry = mapInverse.getEntry(oValue);
+        Map.Entry<Integer, Set<String>> inverseEntry = mapInverse.getEntry(oValue);
 
         assert inverseEntry != null;
 
@@ -276,10 +274,10 @@ public class SafeSortedMapTest
         assertSame(oIndexValue, inverseEntry.getKey());
 
         // get the entry from the inverse map keyed by the extracted value
-        Map.Entry inverseEntry2 = mapInverse.getEntry(oValue2);
+        Map.Entry<Integer, Set<String>> inverseEntry2 = mapInverse.getEntry(oValue2);
 
         assert inverseEntry2 != null;
-        Map.Entry inverseEntry1 = mapInverse.getEntry(oValue);
+        Map.Entry<Integer, Set<String>> inverseEntry1 = mapInverse.getEntry(oValue);
         assertSame(inverseEntry1.getKey(), inverseEntry2.getKey());
         assertSame(inverseEntry1.getValue(), inverseEntry2.getValue());
 
@@ -289,7 +287,7 @@ public class SafeSortedMapTest
 
         // get the set of keys from the inverse map keyed by the extracted
         // value for key
-        Set set = (Set) mapInverse.get(oIndexValue);
+        Set<String> set = mapInverse.get(oIndexValue);
 
         // verify that the set of keys contains key
         assertTrue(
@@ -298,7 +296,7 @@ public class SafeSortedMapTest
 
         // get the set of keys from the inverse map keyed by the extracted
         // value for key2
-        set = (Set) mapInverse.get(oIndexValue2);
+        set = mapInverse.get(oIndexValue2);
 
         // verify that the set of keys contains key2
         assertTrue(
@@ -454,7 +452,7 @@ public class SafeSortedMapTest
             assertTrue("validate key " + key, setKeys.contains(key));
             if (map instanceof SafeSortedMap)
                 {
-                SafeSortedMap mapSafe = (SafeSortedMap) map;
+                SafeSortedMap<Integer, Integer> mapSafe = (SafeSortedMap) map;
                 assertThat(mapSafe.getEntry(key).getValue(), is(mapSafe.get(key)));
                 }
             }
