@@ -1245,18 +1245,6 @@
   </profiles>
 
   <repositories>
-    <!-- required for Berkeley DB -->
-    <repository>
-      <id>oracleReleases</id>
-      <name>Oracle Released Java Packages</name>
-      <url>https://download.oracle.com/maven</url>
-      <layout>default</layout>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots/>
-    </repository>
-
     <repository>
       <id>ossrh-staging</id>
       <name>OSS Sonatype Staging</name>
@@ -1268,7 +1256,7 @@
         <enabled>true</enabled>
       </releases>
     </repository>
-    
+
     <repository>
       <id>snapshots-repo</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -1277,6 +1265,31 @@
       </releases>
       <snapshots>
         <enabled>true</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <!-- required for Berkeley DB -->
+    <repository>
+      <id>oracleReleases</id>
+      <name>Oracle Released Java Packages</name>
+      <url>https://download.oracle.com/maven</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
   </repositories>
