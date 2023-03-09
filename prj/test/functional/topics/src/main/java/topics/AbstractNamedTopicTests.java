@@ -14,6 +14,7 @@ import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
@@ -97,6 +98,7 @@ import org.junit.Assume;
 import org.junit.AssumptionViolatedException;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -4962,6 +4964,9 @@ public abstract class AbstractNamedTopicTests
     static public final String CUSTOMIZED_CACHE_CONFIG        = "topic-cache-config.xml";
 
     // ----- data members ---------------------------------------------------
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(30, TimeUnit.MINUTES);
 
     @Rule
     public Watcher m_testName = new Watcher();

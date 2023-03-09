@@ -19,6 +19,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
@@ -977,6 +978,9 @@ public class TopicSubscriberManagementTests
         }
 
     // ----- data members ---------------------------------------------------
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(30, TimeUnit.MINUTES);
 
     @Rule
     public final TestName f_testName = new TestName();
