@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,13 +32,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -202,12 +202,21 @@ public class DefaultCacheServerServiceMonitorTests
         DefaultConfigurableCacheFactory factory = createDCCF(elements);
 
         Service service1 = mock(Service.class);
-        Service service3 = mock(Service.class);
+        Service service2 = mock(Service.class);
+
+        AtomicInteger cRunning1 = new AtomicInteger();
+        AtomicInteger cRunning2 = new AtomicInteger();
 
         when(factory.ensureService(elements.get(0))).thenReturn(service1);
-        when(factory.ensureService(elements.get(2))).thenReturn(service3);
-        when(service1.isRunning()).thenReturn(true);
-        when(service3.isRunning()).thenReturn(true);
+        when(factory.ensureService(elements.get(2))).thenReturn(service2);
+        when(service1.isRunning()).then(a -> {
+            cRunning1.incrementAndGet();
+            return true;
+        }).thenReturn(true);
+        when(service2.isRunning()).then(a -> {
+            cRunning2.incrementAndGet();
+            return true;
+        }).thenReturn(true);
 
         final DefaultCacheServer server = new DefaultCacheServer(factory);
         Thread t = Base.makeThread(null, new Runnable()
@@ -221,15 +230,18 @@ public class DefaultCacheServerServiceMonitorTests
 
         Blocking.sleep(cHeartbeatMillis * cIterations + cHeartbeatMillis);
 
-        assertTrue(server.isMonitoringServices());
+        Eventually.assertDeferred(() -> cRunning1.get(), greaterThanOrEqualTo(1));
+        Eventually.assertDeferred(() -> cRunning2.get(), greaterThanOrEqualTo(1));
+
+        Eventually.assertDeferred(() -> server.isMonitoringServices(), is(true));
         stopDCS(server);
-        assertFalse(server.isMonitoringServices());
+        Eventually.assertDeferred(() -> server.isMonitoringServices(), is(false));
 
         t.interrupt();
         verify(service1, atLeast(cIterations)).isRunning();
         verify(service1, atMost(cIterations + 1)).isRunning();
-        verify(service3, atLeast(cIterations)).isRunning();
-        verify(service3, atMost(cIterations + 1)).isRunning();
+        verify(service2, atLeast(cIterations)).isRunning();
+        verify(service2, atMost(cIterations + 1)).isRunning();
         }
 
 
