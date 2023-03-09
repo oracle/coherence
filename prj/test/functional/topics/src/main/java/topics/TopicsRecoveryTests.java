@@ -24,6 +24,7 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
@@ -55,6 +56,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -831,6 +833,9 @@ public class TopicsRecoveryTests
     private static final AtomicInteger s_count = new AtomicInteger();
 
     // ----- data members ---------------------------------------------------
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(30, TimeUnit.MINUTES);
 
     @Rule
     public final TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
