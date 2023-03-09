@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
@@ -192,6 +193,9 @@ public class TopicRollingRestartTests
         }
 
     private static ExtensibleConfigurableCacheFactory s_eccf;
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(30, TimeUnit.MINUTES);
 
     @ClassRule
     public static CoherenceClusterResource s_cluster = new CoherenceClusterResource()

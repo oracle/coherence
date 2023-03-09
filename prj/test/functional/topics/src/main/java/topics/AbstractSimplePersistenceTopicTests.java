@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.dslquery.internal.PersistenceToolsHelper;
@@ -40,6 +41,7 @@ import com.oracle.coherence.testing.AbstractRollingRestartTest;
 import com.oracle.coherence.testing.SlowTests;
 
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.junit.experimental.categories.Category;
@@ -852,6 +854,9 @@ System.err.println();
             throws IOException;
 
     // ----- accessors ------------------------------------------------------
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(30, TimeUnit.MINUTES);
 
     /**
      * Return a name for the PersistenceManager being used by the tests.
