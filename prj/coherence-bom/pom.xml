@@ -46,10 +46,6 @@
 
   <developers>
     <developer>
-      <name>Harvey Raja</name>
-      <url>https://github.com/harveyraja</url>
-    </developer>
-    <developer>
       <name>Aleks Seovic</name>
       <url>https://github.com/aseovic</url>
     </developer>
@@ -66,8 +62,8 @@
       <url>https://github.com/fryp</url>
     </developer>
     <developer>
-      <name>Bin Chen</name>
-      <url>https://github.com/bbcadela</url>
+      <name>Maurice Gamanho</name>
+      <url>https://github.com/mgamanho</url>
     </developer>
     <developer>
       <name>Gunnar Hillert</name>
@@ -88,6 +84,10 @@
     <developer>
       <name>Chinmay Patel</name>
       <url>https://github.com/chpatel3</url>
+    </developer>
+    <developer>
+      <name>Vaso Putica</name>
+      <url>https://github.com/vasac</url>
     </developer>
   </developers>
 
