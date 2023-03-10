@@ -239,7 +239,8 @@ public abstract class AbstractTestInfrastructure
             LocalPlatform.get().getLoopbackAddress().getHostAddress());
 
         // assume that this process should be storage disabled
-        if (Config.getProperty("tangosol.coherence.distributed.localstorage") == null)
+        if (com.tangosol.coherence.config.Config.getProperty(
+                "tangosol.coherence.distributed.localstorage") == null)
             {
             props.setProperty("tangosol.coherence.distributed.localstorage", "false");
             }

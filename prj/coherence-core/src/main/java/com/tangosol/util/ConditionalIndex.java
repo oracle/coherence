@@ -50,7 +50,7 @@ public class ConditionalIndex
         {
         super(extractor, fOrdered, comparator, false, ctx);
 
-        f_filter = filter;
+        m_filter   = filter;
         m_fPartial = false;
 
         initialize(fForwardIndex);
@@ -120,7 +120,7 @@ public class ConditionalIndex
     */
     public Filter getFilter()
         {
-        return f_filter;
+        return m_filter;
         }
 
     /**
@@ -136,7 +136,7 @@ public class ConditionalIndex
         {
         try
             {
-            if (InvocableMapHelper.evaluateEntry(f_filter, entry))
+            if (InvocableMapHelper.evaluateEntry(m_filter, entry))
                 {
                 return true;
                 }
@@ -244,12 +244,12 @@ public class ConditionalIndex
     * An entry's extracted value is only added to the index if this filter
     * evaluates to true.
     */
-    private final Filter<?> f_filter;
+    private Filter m_filter;
 
     /**
     * Specifies whether or not this ConditionalIndex is a partial index.
     * The index is regarded as partial if any entry in the indexed map has
     * been excluded from this index.
     */
-    private volatile boolean m_fPartial;
+    private boolean m_fPartial;
     }

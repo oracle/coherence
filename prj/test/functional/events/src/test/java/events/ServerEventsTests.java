@@ -8,11 +8,10 @@ package events;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-
 import com.tangosol.net.NamedCache;
-
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.Processors;
+
 import com.tangosol.util.processor.AbstractProcessor;
 
 import common.AbstractFunctionalTest;
@@ -22,9 +21,7 @@ import data.Person;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-
 import org.hamcrest.Matchers;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -63,7 +60,7 @@ public class ServerEventsTests
         events.clear();
 
         // invoke an entry processor across all entries
-        cache.invokeAll(Processors.update(Person::setBirthYear, 1389));
+        cache.invokeAll(Processors.update(Person::setBirthYear, 1555));
 
         // ensure all entries invoked are accounted for
         Eventually.assertDeferred(() -> events.get("entryset-size"), Matchers.is(3));

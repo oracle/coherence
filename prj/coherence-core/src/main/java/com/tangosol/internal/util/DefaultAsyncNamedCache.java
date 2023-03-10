@@ -8,31 +8,27 @@ package com.tangosol.internal.util;
 
 import com.oracle.coherence.common.util.Options;
 
-import com.tangosol.internal.util.processor.CacheProcessors;
-
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
-import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.Filter;
-import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMap;
+
+import com.tangosol.internal.util.processor.CacheProcessors;
 import com.tangosol.util.InvocableMap.StreamingAggregator;
+
 import com.tangosol.util.aggregator.AsynchronousAggregator;
-import com.tangosol.util.filter.PartitionedFilter;
+
 import com.tangosol.util.processor.AsynchronousProcessor;
 import com.tangosol.util.processor.SingleEntryAsynchronousProcessor;
 import com.tangosol.util.processor.StreamingAsynchronousProcessor;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -80,81 +76,6 @@ public class DefaultAsyncNamedCache<K, V>
         return m_cache;
         }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter<?> filter)
-        {
-        // optimized implementation that runs query against individual partitions
-        // in parallel and aggregates the results
-
-        if (m_cache.getCacheService() instanceof PartitionedService && !(filter instanceof PartitionedFilter))
-            {
-            int          cParts = ((PartitionedService) m_cache.getCacheService()).getPartitionCount();
-            PartitionSet parts  = new PartitionSet(cParts);
-
-            List<CompletableFuture<Void>> futures     = new ArrayList<>(cParts);
-            List<Map.Entry<K, V>>         listEntries = new ArrayList<>();
-
-            for (int i = 0; i < cParts; i++)
-                {
-                parts.add(i);
-                futures.add(invokeAll(new PartitionedFilter<>(filter, parts), new AsynchronousProcessor<>(CacheProcessors.binaryGet(), i))
-                                    .thenAccept(results -> listEntries.addAll(results.entrySet())));
-                parts.remove(i);
-                }
-
-            CompletableFuture<Set<Map.Entry<K, V>>> result = new CompletableFuture<>();
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                    .whenComplete((v, err) ->
-                        {
-                        if (err != null)
-                            {
-                            result.completeExceptionally(err);
-                            }
-                        else
-                            {
-                            result.complete(new ImmutableArrayList(listEntries).getSet());
-                            }
-                    });
-
-            return result;
-            }
-        else
-            {
-            return AsyncNamedCache.super.entrySet(filter);
-            }
-        }
-
-    @Override
-    public CompletableFuture<Void> entrySet(Filter<?> filter, Consumer<? super Map.Entry<? extends K, ? extends V>> callback)
-        {
-        // optimized implementation that runs query against individual partitions
-        // in parallel and aggregates the results
-
-        if (m_cache.getCacheService() instanceof PartitionedService && !(filter instanceof PartitionedFilter))
-            {
-            int          cParts  = ((PartitionedService) m_cache.getCacheService()).getPartitionCount();
-            PartitionSet parts   = new PartitionSet(cParts);
-
-            List<CompletableFuture<Void>> futures = new ArrayList<>(cParts);
-
-            for (int i = 0; i < cParts; i++)
-                {
-                parts.add(i);
-                futures.add(invokeAll(new PartitionedFilter<>(filter, parts),
-                                      new StreamingAsynchronousProcessor<>(CacheProcessors.binaryGet(), i, callback),
-                                      callback)); // needed to ensure the streaming invokeAll is called!
-                parts.remove(i);
-                }
-
-            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
-            }
-        else
-            {
-            return AsyncNamedCache.super.entrySet(filter, callback);
-            }
-        }
-
     @Override
     public <R> CompletableFuture<R> invoke(K key,
                                 InvocableMap.EntryProcessor<K, V, R> processor)
@@ -180,7 +101,7 @@ public class DefaultAsyncNamedCache<K, V>
         }
 
     @Override
-    public <R> CompletableFuture<Map<K, R>> invokeAll(Filter<?> filter,
+    public <R> CompletableFuture<Map<K, R>> invokeAll(Filter filter,
                                            InvocableMap.EntryProcessor<K, V, R> processor)
         {
         AsynchronousProcessor<K, V, R> asyncProcessor =
@@ -205,7 +126,7 @@ public class DefaultAsyncNamedCache<K, V>
         }
 
     @Override
-    public <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
+    public <R> CompletableFuture<Void> invokeAll(Filter filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  Consumer<? super Map.Entry<? extends K, ? extends R>> callback)
         {
@@ -231,7 +152,7 @@ public class DefaultAsyncNamedCache<K, V>
 
     @Override
     public <R> CompletableFuture<R> aggregate(
-            Filter<?> filter, InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator)
+            Filter filter, InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator)
         {
         AsynchronousAggregator<? super K, ? super V, ?, R> asyncAggregator =
                 instantiateAsyncAggregator(aggregator);
