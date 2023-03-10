@@ -73,7 +73,7 @@ class KeySetIT
         String sConfigURI = "coherence-config.xml";
 
         s_ccf = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(sConfigURI, null);
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(ConfigurableCacheFactorySuppliers.fixed(s_ccf));
         // set the transfer threshold small so that all of the cache data does not fit into one page
         deps.setTransferThreshold(100L);

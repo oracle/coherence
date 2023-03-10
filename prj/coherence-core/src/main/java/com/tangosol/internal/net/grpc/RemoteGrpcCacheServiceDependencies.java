@@ -22,6 +22,35 @@ import com.tangosol.net.grpc.GrpcChannelDependencies;
  * @since 22.06.2
  */
 public interface RemoteGrpcCacheServiceDependencies
-        extends RemoteGrpcServiceDependencies
+        extends RemoteCacheServiceDependencies
     {
+    /**
+     * Return the name of the scope on the remote to connect to on the cluster.
+     *
+     * @return the name of the scope on the remote to connect to on the cluster
+     */
+    String getRemoteScopeName();
+
+    /**
+     * Return the ChannelProvider builder.
+     *
+     * @return the ChannelProvider builder
+     */
+    GrpcChannelDependencies getChannelDependencies();
+
+    /**
+     * Return the {@link Expression} that will produce the flag to
+     * determine whether client tracing is enabled.
+     *
+     * @return the {@link Expression} that will produce the flag to
+     *         determine whether client tracing is enabled
+     */
+    Expression<Boolean> isTracingEnabled();
+
+    /**
+     * Return the {@link DaemonPoolDependencies}.
+     *
+     * @return the {@link DaemonPoolDependencies}
+     */
+    DaemonPoolDependencies getDaemonPoolDependencies();
     }

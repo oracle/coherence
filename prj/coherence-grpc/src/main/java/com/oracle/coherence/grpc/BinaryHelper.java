@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,6 @@ package com.oracle.coherence.grpc;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
-import com.google.protobuf.StringValue;
 import com.google.protobuf.UnsafeByteOperations;
 
 import com.tangosol.io.MultiBufferReadBuffer;
@@ -26,10 +25,7 @@ import com.tangosol.util.ExternalizableHelper;
 import java.util.List;
 import java.util.Map;
 
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * A helper class of methods to convert between {@link Binary}
@@ -173,13 +169,14 @@ public final class BinaryHelper
      * @return the deserialized {@link Binary} value or {@code null}
      * if the {@link Binary} is {@code null}
      */
+    @SuppressWarnings("unchecked")
     public static <T> T fromBinary(Binary binary, Serializer serializer)
         {
         if (binary == null)
             {
             return null;
             }
-        return ExternalizableHelper.fromBinary(binary, serializer);
+        return (T) ExternalizableHelper.fromBinary(binary, serializer);
         }
 
     /**
@@ -332,7 +329,7 @@ public final class BinaryHelper
     /**
      * Create an {@link Entry} containing the specified key and value.
      *
-     * @param key    the entry's key
+     * @param key    the entfinal ry's key
      * @param value  the entry's value
      *
      * @return an {@link Entry} containing the specified key and value
@@ -343,27 +340,6 @@ public final class BinaryHelper
                 .setKey(key)
                 .setValue(value)
                 .build();
-        }
-
-    /**
-     * Return the specified {@link Iterable} as a {@link Stream}
-     * of {@link StringValue} instances.
-     *
-     * @param iterable  the {@link Iterable} to convert
-     *
-     * @return the contents of the {@link Iterable} as a
-     * {@link Stream} of {@link StringValue} instances
-     */
-    public static Stream<StringValue> toStringValueStream(Iterable<?> iterable)
-        {
-        if (iterable == null)
-            {
-            return Stream.empty();
-            }
-        return StreamSupport.stream(iterable.spliterator(), false)
-                .filter(Objects::nonNull)
-                .map(String::valueOf)
-                .map(StringValue::of);
         }
 
     // ----- constants ------------------------------------------------------

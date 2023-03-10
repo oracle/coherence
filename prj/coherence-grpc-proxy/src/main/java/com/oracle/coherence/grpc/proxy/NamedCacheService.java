@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -444,38 +444,4 @@ public interface NamedCacheService
      * @return a deserialized {@link Filter} or {@code null} if no filter is set
      */
     <T> Filter<T> getFilter(ByteString bytes, Serializer serializer);
-
-    // ----- inner interface: Dependencies ----------------------------------
-
-    /**
-     * The dependencies to configure a {@link NamedCacheServiceImpl}.
-     */
-    interface Dependencies
-            extends BaseGrpcServiceImpl.Dependencies
-        {
-        }
-
-    // ----- inner class: DefaultDependencies -------------------------------
-
-    /**
-     * The default {@link NamedCacheService.Dependencies} implementation.
-     */
-    class DefaultDependencies
-            extends BaseGrpcServiceImpl.DefaultDependencies
-            implements NamedCacheService.Dependencies
-        {
-        public DefaultDependencies()
-            {
-            }
-
-        public DefaultDependencies(GrpcServiceDependencies deps)
-            {
-            super(deps);
-            }
-
-        public DefaultDependencies(NamedCacheService.Dependencies deps)
-            {
-            super(deps);
-            }
-        }
     }

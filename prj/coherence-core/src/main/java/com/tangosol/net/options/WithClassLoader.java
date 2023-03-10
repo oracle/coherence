@@ -6,7 +6,6 @@
  */
 package com.tangosol.net.options;
 
-import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.util.Options;
 
 import com.tangosol.net.NamedCollection;
@@ -46,7 +45,7 @@ public interface WithClassLoader
     @Options.Default
     static WithClassLoader autoDetect()
         {
-        return () -> Classes.ensureClassLoader(null);
+        return () -> Base.ensureClassLoader(null);
         }
 
     /**

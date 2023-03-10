@@ -20,7 +20,6 @@ import com.oracle.coherence.grpc.Requests;
 
 import com.oracle.coherence.grpc.proxy.ConfigurableCacheFactorySuppliers;
 import com.oracle.coherence.grpc.proxy.MapListenerProxy;
-import com.oracle.coherence.grpc.proxy.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.NamedCacheServiceImpl;
 
 import com.tangosol.io.DefaultSerializer;
@@ -142,7 +141,7 @@ class MapListenerProxyTest
     @Test
     public void shouldNotAddMapListenerIfRequestHasNoCacheName()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -168,7 +167,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -199,7 +198,7 @@ class MapListenerProxyTest
     @Test
     public void shouldNotAddMapListenerForDifferentCache()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -236,7 +235,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForKeyAndLiteEvents()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -267,7 +266,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -306,7 +305,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddPrimingMapListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -339,7 +338,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddSecondPrimingMapListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -393,7 +392,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemovePrimingMapListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -435,7 +434,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapTriggerListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -471,7 +470,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapTriggerListenerForKey()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -516,7 +515,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -548,7 +547,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapListenerForFilterAndLiteEvents()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -579,7 +578,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -619,7 +618,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddPrimingMapListenerForFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -652,7 +651,7 @@ class MapListenerProxyTest
     @Test
     public void shouldNotAddPrimingMapListenerForNonInKeySetFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -680,7 +679,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemovePrimingMapListenerForFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -722,7 +721,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddMapTriggerListenerForFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -758,7 +757,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapTriggerListenerForFilter()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -803,7 +802,7 @@ class MapListenerProxyTest
     @Test
     public void shouldAddDeactivationListenerOnInit()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -823,7 +822,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveDeactivationListenerOnCompleted()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -847,7 +846,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForKeyOnCompleted()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -879,7 +878,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForFilterOnCompleted()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -911,7 +910,7 @@ class MapListenerProxyTest
     @Test
     public void shouldNotRemoveMapListenerForKeyOnCompletedIfCacheInactive()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -939,7 +938,7 @@ class MapListenerProxyTest
     @Test
     public void shouldNotRemoveMapListenerForFilterOnCompletedIfCacheInactive()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -966,7 +965,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForKeyOnError()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -997,7 +996,7 @@ class MapListenerProxyTest
     @Test
     public void shouldRemoveMapListenerForFilterOnError()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -1029,7 +1028,7 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishInsertEvent()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -1069,7 +1068,7 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishUpdateEvent()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -1109,7 +1108,7 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishDeleteEvent()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -1149,7 +1148,7 @@ class MapListenerProxyTest
     @Test
     public void shouldPublishCacheEvent()
         {
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
 
@@ -1335,7 +1334,7 @@ class MapListenerProxyTest
     // ----- data members ---------------------------------------------------
 
     protected static NamedSerializerFactory s_serializerProducer;
-    
+
     protected static Function<String, ConfigurableCacheFactory> m_ccfSupplier;
 
     protected static Binary s_binary1;

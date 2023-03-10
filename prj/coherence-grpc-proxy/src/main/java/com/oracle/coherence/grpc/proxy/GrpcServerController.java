@@ -186,7 +186,7 @@ public class GrpcServerController
     @Deprecated(since = "22.06.2")
     public List<BindableGrpcProxyService> createGrpcServices()
         {
-        return DefaultGrpcAcceptorController.createGrpcServices();
+        return Collections.singletonList(new NamedCacheServiceGrpcImpl());
         }
 
     /**

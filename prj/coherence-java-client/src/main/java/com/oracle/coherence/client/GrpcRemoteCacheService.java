@@ -6,26 +6,66 @@
  */
 package com.oracle.coherence.client;
 
+import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
+
+import com.tangosol.config.expression.SystemPropertyParameterResolver;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies;
 
+import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
+
+import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializerFactory;
+
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Cluster;
+import com.tangosol.net.Member;
+import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.RequestTimeoutException;
+import com.tangosol.net.ServiceDependencies;
+import com.tangosol.net.ServiceInfo;
 
 import com.tangosol.net.events.EventDispatcherRegistry;
 
+import com.tangosol.net.grpc.GrpcChannelDependencies;
+
+import com.tangosol.run.xml.XmlElement;
+
 import com.tangosol.util.AbstractMapListener;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.IteratorEnumerator;
+import com.tangosol.util.Listeners;
 import com.tangosol.util.MapEvent;
+import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ResourceRegistry;
+import com.tangosol.util.ServiceListener;
+import com.tangosol.util.SimpleResourceRegistry;
 
 import io.grpc.Channel;
+
+import io.grpc.ClientInterceptor;
 import io.grpc.ClientInterceptors;
+
+import io.opentracing.Tracer;
+
+import io.opentracing.contrib.grpc.TracingClientInterceptor;
+
+import io.opentracing.util.GlobalTracer;
 
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import java.util.concurrent.Executor;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import java.util.stream.Collectors;
 
 /**
  * A remote cache service that accesses caches via a remote gRPC proxy.
@@ -35,12 +75,95 @@ import java.util.Enumeration;
  */
 @SuppressWarnings("rawtypes")
 public class GrpcRemoteCacheService
-        extends GrpcRemoteService<RemoteGrpcCacheServiceDependencies>
-        implements CacheService
+        implements CacheService, ServiceInfo
     {
-    public GrpcRemoteCacheService()
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Set the {@link Cluster}.
+     * @param cluster the {@link Cluster}
+     */
+    public void setCluster(Cluster cluster)
         {
-        super(CacheService.TYPE_REMOTE_GRPC);
+        m_cluster = cluster;
+        }
+
+    /**
+     * Set the service name.
+     *
+     * @param sName  the service name
+     */
+    public void setServiceName(String sName)
+        {
+        m_sServiceName = sName;
+        }
+
+    /**
+     * Returns the {@link Channel} to use to connect to the server.
+     *
+     * @return the {@link Channel} to use to connect to the server
+     */
+    public Channel getChannel()
+        {
+        return m_channel;
+        }
+
+    /**
+     * Set the {@link Channel} to use to connect to the server.
+     *
+     * @param channel  the {@link Channel} to use to connect to the server
+     */
+    public void setChannel(Channel channel)
+        {
+        m_channel = channel;
+        }
+
+    public void setTracingInterceptor(ClientInterceptor tracingInterceptor)
+        {
+        m_tracingInterceptor = tracingInterceptor;
+        }
+
+    public SimpleDaemonPoolExecutor getExecutor()
+        {
+        return m_executor;
+        }
+
+    public void setExecutor(SimpleDaemonPoolExecutor executor)
+        {
+        m_executor = executor;
+        }
+
+    public String getScopeName()
+        {
+        return m_sScopeName;
+        }
+
+    public void setScopeName(String sScopeName)
+        {
+        m_sScopeName = sScopeName;
+        }
+
+    // ----- CacheService methods -------------------------------------------
+
+    @Override
+    public ClassLoader getContextClassLoader()
+        {
+        return m_classLoader;
+        }
+
+    @Override
+    public void setContextClassLoader(ClassLoader loader)
+        {
+        if (getContextClassLoader() != loader)
+            {
+            m_classLoader = loader;
+
+            if (getSerializer() != null)
+                {
+                // re-initialize the service Serializer
+                setSerializer(instantiateSerializer(loader));
+                }
+            }
         }
 
     @Override
@@ -130,32 +253,192 @@ public class GrpcRemoteCacheService
         m_scopedCacheStore.release(cache.getAsyncClient());
         }
 
-    // ----- helper methods -------------------------------------------------
+    @Override
+    public Cluster getCluster()
+        {
+        return m_cluster;
+        }
+
+    @Override
+    public ServiceInfo getInfo()
+        {
+        return this;
+        }
+
+    @Override
+    public void addMemberListener(MemberListener listener)
+        {
+        f_memberListeners.add(listener);
+        }
+
+    @Override
+    public void removeMemberListener(MemberListener listener)
+        {
+        f_memberListeners.remove(listener);
+        }
+
+    @Override
+    public Object getUserContext()
+        {
+        return m_oUserContext;
+        }
+
+    @Override
+    public void setUserContext(Object oCtx)
+        {
+        m_oUserContext = oCtx;
+        }
+
+    @Override
+    public Serializer getSerializer()
+        {
+        return m_serializer;
+        }
+
+    protected void setSerializer(Serializer serializer)
+        {
+        m_serializer = serializer;
+        }
+
+    @Override
+    public void setDependencies(ServiceDependencies deps)
+        {
+        m_dependencies = (RemoteGrpcCacheServiceDependencies) deps;
+        }
+
+    @Override
+    public RemoteGrpcCacheServiceDependencies getDependencies()
+        {
+        return m_dependencies;
+        }
+
+    @Override
+    public ResourceRegistry getResourceRegistry()
+        {
+        return f_resourceRegistry;
+        }
+
+    @Override
+    public boolean isSuspended()
+        {
+        return false;
+        }
+
+    @Override
+    public void configure(XmlElement xml)
+        {
+        }
+
+    @Override
+    public synchronized void start()
+        {
+        setChannel(instantiateChannel());
+        setSerializer(instantiateSerializer(m_classLoader));
+        setTracingInterceptor(instantiateTracingInterceptor());
+
+        SimpleDaemonPoolExecutor executor = instantiateExecutor();
+        setExecutor(executor);
+        executor.start();
+
+        m_fRunning = true;
+        }
+
+    @Override
+    public boolean isRunning()
+        {
+        return m_fRunning;
+        }
+
+    @Override
+    public void shutdown()
+        {
+        stop();
+        }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void stopInternal()
+    public void stop()
         {
-        for (AsyncNamedCacheClient<?, ?> cache : m_scopedCacheStore.getAll())
+        if (m_fRunning)
             {
-            cache.removeDeactivationListener(f_deactivationListener);
-            try
+            synchronized (this)
                 {
-                cache.release();
-                }
-            catch (Throwable e)
-                {
-                e.printStackTrace();
+                if (m_fRunning)
+                    {
+                    for (AsyncNamedCacheClient<?, ?> cache : m_scopedCacheStore.getAll())
+                        {
+                        cache.removeDeactivationListener(f_deactivationListener);
+                        try
+                            {
+                            cache.release();
+                            }
+                        catch (Throwable e)
+                            {
+                            e.printStackTrace();
+                            }
+                        }
+                    m_scopedCacheStore.clear();
+
+                    SimpleDaemonPoolExecutor executor = getExecutor();
+                    executor.stop();
+
+                    m_fRunning = false;
+                    }
                 }
             }
         }
 
     @Override
-    protected EventDispatcherRegistry getDefaultEventDispatcherRegistry()
+    public void addServiceListener(ServiceListener listener)
         {
-        ResourceRegistry registry = getBackingMapManager().getCacheFactory().getResourceRegistry();
-        return registry.getResource(EventDispatcherRegistry.class);
+        f_serviceListeners.add(listener);
         }
+
+    @Override
+    public void removeServiceListener(ServiceListener listener)
+        {
+        f_serviceListeners.remove(listener);
+        }
+
+    // ----- ServiceInfo methods --------------------------------------------
+
+    @Override
+    public String getServiceName()
+        {
+        return m_sServiceName;
+        }
+
+    @Override
+    public String getServiceType()
+        {
+        return CacheService.TYPE_REMOTE_GRPC;
+        }
+
+    @Override
+    public Set getServiceMembers()
+        {
+        return NullImplementation.getSet();
+        }
+
+    @Override
+    public String getServiceVersion(Member member)
+        {
+        return "1";
+        }
+
+    @Override
+    public Member getOldestMember()
+        {
+        return null;
+        }
+
+    @Override
+    public Member getServiceMember(int nId)
+        {
+        return null;
+        }
+
+    // ----- helper methods -------------------------------------------------
 
     /**
      * Creates a {@link AsyncNamedCacheClient} based on the provided arguments.
@@ -201,6 +484,76 @@ public class GrpcRemoteCacheService
         m_executor.execute(() -> dispatcher.dispatchCacheCreated(client.getNamedCache()));
 
         return (AsyncNamedCacheClient<K, V>) client;
+        }
+
+    protected EventDispatcherRegistry getEventDispatcherRegistry() {
+        EventDispatcherRegistry reg = m_EventDispatcherRegistry;
+        if (reg == null)
+            {
+            ResourceRegistry registry = getBackingMapManager().getCacheFactory().getResourceRegistry();
+            setEventDispatcherRegistry(reg = registry.getResource(EventDispatcherRegistry.class));
+            }
+        return reg;
+    }
+
+    protected void setEventDispatcherRegistry(EventDispatcherRegistry registryInterceptor) {
+        m_EventDispatcherRegistry = registryInterceptor;
+    }
+
+    /**
+     * Return the {@link ClientInterceptor} to use for tracing.
+     *
+     * @return the {@link ClientInterceptor} to use for tracing
+     */
+    private ClientInterceptor createTracingInterceptor()
+        {
+        Tracer tracer = GlobalTracer.get();
+        return TracingClientInterceptor.newBuilder()
+                .withTracer(tracer)
+                .build();
+        }
+
+    /**
+     * Instantiate a Serializer and optionally configure it with the specified
+     * ClassLoader.
+     *
+     * @return the serializer
+     */
+    protected Serializer instantiateSerializer(ClassLoader loader)
+        {
+        SerializerFactory factory = m_dependencies.getSerializerFactory();
+        return factory == null
+                ? ExternalizableHelper.ensureSerializer(loader)
+                : factory.createSerializer(loader);
+        }
+
+    protected Channel instantiateChannel()
+        {
+        RemoteGrpcCacheServiceDependencies deps        = getDependencies();
+        GrpcChannelDependencies            depsChannel = deps.getChannelDependencies();
+        Optional<ChannelProvider>          optional    = depsChannel.getChannelProvider();
+
+        return optional.flatMap(p -> p.getChannel(m_sServiceName))
+                .orElse(GrpcChannelFactory.singleton().getChannel(this));
+        }
+
+    protected ClientInterceptor instantiateTracingInterceptor()
+        {
+        boolean fTracing = m_dependencies.isTracingEnabled()
+                .evaluate(new SystemPropertyParameterResolver());
+
+        return fTracing ? createTracingInterceptor() : null;
+        }
+
+    protected SimpleDaemonPoolExecutor instantiateExecutor()
+        {
+        String                        sPoolName    = getServiceName() + "-pool-" + f_cPool.getAndIncrement();
+        DefaultDaemonPoolDependencies dependencies = new DefaultDaemonPoolDependencies(m_dependencies.getDaemonPoolDependencies());
+
+        dependencies.setName(sPoolName);
+        dependencies.setThreadCount(Math.max(1, dependencies.getThreadCount()));
+
+        return new SimpleDaemonPoolExecutor(dependencies);
         }
 
     // ----- inner class: ClientDeactivationListener ------------------------
@@ -261,7 +614,20 @@ public class GrpcRemoteCacheService
             }
         }
 
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * A counter to use for the daemon pool name suffix.
+     */
+    private static final AtomicInteger f_cPool = new AtomicInteger();
+
     // ----- data members ---------------------------------------------------
+
+    private final Listeners f_memberListeners = new Listeners();
+
+    private final Listeners f_serviceListeners = new Listeners();
+
+    private final ResourceRegistry f_resourceRegistry = new SimpleResourceRegistry();
 
     /**
      * The {@link DeactivationListener} that will clean up client instances that
@@ -276,7 +642,51 @@ public class GrpcRemoteCacheService
      */
     private final TruncateListener f_truncateListener = new TruncateListener();
 
+//    /**
+//     * The {@link AsyncNamedCacheClient} instances managed by this session.
+//     */
+//    private final Map<String, AsyncNamedCacheClient<?, ?>> f_mapCaches = new ConcurrentHashMap<>();
+
+    private Cluster m_cluster;
+
+    private ClassLoader m_classLoader;
+
+    private Object m_oUserContext;
+
+    private String m_sServiceName;
+
     private BackingMapManager m_backingMapManager;
+
+    private volatile boolean m_fRunning;
+
+    private RemoteGrpcCacheServiceDependencies m_dependencies;
+
+    private String m_sScopeName;
+
+    /**
+     * The gRPC {@link Channel} used by this session.
+     */
+    private Channel m_channel;
+
+    /**
+     * The {@link Serializer} used by this session.
+     */
+    private Serializer m_serializer;
+
+    /**
+     * The optional client tracer to use.
+     */
+    private ClientInterceptor m_tracingInterceptor;
+
+    /**
+     * The {@link Executor} to use to dispatch events.
+     */
+    private SimpleDaemonPoolExecutor m_executor;
+
+    /**
+     * The {@link EventDispatcherRegistry}.
+     */
+    private EventDispatcherRegistry m_EventDispatcherRegistry;
 
     /**
      * The store of cache references, optionally scoped by Subject.

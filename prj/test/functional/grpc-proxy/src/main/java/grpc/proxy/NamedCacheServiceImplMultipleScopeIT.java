@@ -56,7 +56,7 @@ public class NamedCacheServiceImplMultipleScopeIT
 
         s_serializer = new ConfigurablePofContext("test-pof-config.xml");
 
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(NamedCacheServiceImplMultipleScopeIT::ensureCCF);
 
         s_service = new NamedCacheServiceImpl(deps);

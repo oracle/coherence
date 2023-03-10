@@ -6,7 +6,6 @@
  */
 package com.oracle.coherence.grpc.proxy;
 
-import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.management.Registry;
@@ -35,13 +34,6 @@ public interface GrpcServiceDependencies
      * @return the {@link Executor}
      */
     Optional<Executor> getExecutor();
-
-    /**
-     * Return the {@link DaemonPool}.
-     *
-     * @return the {@link DaemonPool}
-     */
-    Optional<DaemonPool> getDaemonPool();
 
     /**
      * Return the transfer threshold.
@@ -115,22 +107,6 @@ public interface GrpcServiceDependencies
             }
 
         @Override
-        public Optional<DaemonPool> getDaemonPool()
-            {
-            return Optional.ofNullable(m_pool);
-            }
-
-        /**
-         * Set the {@link DaemonPool}.
-         *
-         * @param pool the {@link DaemonPool}
-         */
-        public void setDaemonPool(DaemonPool pool)
-            {
-            m_pool = pool;
-            }
-
-        @Override
         public Optional<Long> getTransferThreshold()
             {
             return Optional.ofNullable(m_transferThreshold);
@@ -174,11 +150,6 @@ public interface GrpcServiceDependencies
          * The {@link Executor} to use for async operations.
          */
         private Executor m_executor;
-
-        /**
-         * The {@link DaemonPool} to use for async operations.
-         */
-        private DaemonPool m_pool;
 
         /**
          * The transfer threshold to use for paged requests.

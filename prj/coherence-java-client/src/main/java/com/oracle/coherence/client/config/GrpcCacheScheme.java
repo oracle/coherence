@@ -10,9 +10,11 @@ import com.oracle.coherence.client.GrpcRemoteCacheService;
 
 import com.tangosol.coherence.config.scheme.BaseGrpcCacheScheme;
 
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ClusterDependencies;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The {@link GrpcCacheScheme} is responsible for building a remote gRPC cache.
@@ -21,8 +23,7 @@ import com.tangosol.net.ClusterDependencies;
  * @since 22.06.2
  */
 public class GrpcCacheScheme
-        extends BaseGrpcCacheScheme<CacheService>
-        implements ClusterDependencies.ServiceProvider
+        extends BaseGrpcCacheScheme
     {
     // ----- constructors ---------------------------------------------------
 
@@ -38,17 +39,28 @@ public class GrpcCacheScheme
     @Override
     protected ClusterDependencies.ServiceProvider getServiceProvider()
         {
-        return this;
+        return this::createService;
         }
 
-    // ----- ClusterDependencies.ServiceProvider methods --------------------
+    // ----- helper methods -------------------------------------------------
 
-    @Override
-    public GrpcRemoteCacheService createService(String sName, Cluster cluster)
+    private GrpcRemoteCacheService createService(String sName, Cluster cluster)
         {
         GrpcRemoteCacheService service = new GrpcRemoteCacheService();
         service.setServiceName(sName);
         service.setCluster(cluster);
         return service;
         }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The service lock.
+     */
+    private final Lock f_lock = new ReentrantLock(true);
+
+    /**
+     * The service for this scheme.
+     */
+    private volatile GrpcRemoteCacheService m_service;
     }

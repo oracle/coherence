@@ -127,7 +127,7 @@ import static org.mockito.Mockito.mock;
  * @author Jonathan Knight  2019.11.01
  * @since 20.06
  */
-@SuppressWarnings({"rawtypes", "resource"})
+@SuppressWarnings("rawtypes")
 public class NamedCacheServiceImplIT
     {
     // ----- test lifecycle -------------------------------------------------
@@ -136,7 +136,6 @@ public class NamedCacheServiceImplIT
     protected static void setup()
         {
         System.setProperty("coherence.ttl",        "0");
-        System.setProperty("coherence.wka",        "127.0.0.1");
         System.setProperty("coherence.cluster",    "NamedCacheServiceImplIT");
         System.setProperty("coherence.cacheconfig", "coherence-config.xml");
         System.setProperty("coherence.pof.config", "test-pof-config.xml");
@@ -145,7 +144,7 @@ public class NamedCacheServiceImplIT
         s_ccfDefault = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(null);
         DefaultCacheServer.startServerDaemon(s_ccfDefault).waitForServiceStart();
 
-        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(NamedCacheServiceImplIT::ensureCCF);
         s_service = new NamedCacheServiceImpl(deps);
         }
@@ -190,7 +189,7 @@ public class NamedCacheServiceImplIT
         ByteString     binExtractor = toByteString(extractor, serializer);
 
         NamedCacheService service  = createService();
-        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName, 
+        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName,
                                                                              binExtractor, true));
 
         assertThat(response, is(notNullValue()));
@@ -216,7 +215,7 @@ public class NamedCacheServiceImplIT
         ByteString     binComparator = toByteString(comparator, serializer);
 
         NamedCacheService service  = createService();
-        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName, 
+        CompletionStage<Empty> response = service.addIndex(Requests.addIndex(sScope, sCacheName, serializerName,
                                                                              binExtractor, true, binComparator));
 
         assertThat(response, is(notNullValue()));
@@ -271,7 +270,7 @@ public class NamedCacheServiceImplIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallAggregateWithFilterMatchingNoEntriesExpectingSingleResult(String     serializerName, 
+    public void shouldCallAggregateWithFilterMatchingNoEntriesExpectingSingleResult(String     serializerName,
                                                                                     Serializer serializer,
                                                                                     String     sScope)
             throws Exception
@@ -437,7 +436,7 @@ public class NamedCacheServiceImplIT
 
         ValueExtractor<Person, String> extractor = Extractors.extract("getFirstName()");
 
-        InvocableMap.EntryAggregator<String, Person, Map<String, String>> aggregator = 
+        InvocableMap.EntryAggregator<String, Person, Map<String, String>> aggregator =
                 new ReducerAggregator<>(extractor);
 
         Filter<Person>      filter      = Filters.equal("age", 25);
@@ -1023,7 +1022,7 @@ public class NamedCacheServiceImplIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReceiveDeactivationEvent(String serializerName, Serializer ignored, String sScope) throws Exception
+    public void shouldReceiveDeactivationEvent(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-destroy";
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
@@ -1072,7 +1071,7 @@ public class NamedCacheServiceImplIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldReceiveTruncateEvent(String serializerName, Serializer ignored, String sScope)
+    public void shouldReceiveTruncateEvent(String serializerName, Serializer serializer, String sScope)
         {
         String                     sCacheName = "test-events-" + System.currentTimeMillis();
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
@@ -2135,7 +2134,7 @@ public class NamedCacheServiceImplIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
-    public void shouldCallInvokeAllWithMissingProcessor(String serializerName, Serializer ignored, String sScope) throws Exception
+    public void shouldCallInvokeAllWithMissingProcessor(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String sCacheName = "people";
 
