@@ -500,9 +500,8 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleClearError()
         {
-        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
-        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
-        doThrow(ERROR).when(cache).clear();
+        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
+                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenThrow(ERROR);
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
@@ -512,16 +511,16 @@ class NamedCacheServiceImplTest
         assertThat(cause, is(sameInstance(ERROR)));
         }
 
-
     @Test
-    public void shouldHandleTruncateError()
+    public void shouldHandleClearAsyncError()
         {
-        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
-        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
-        doThrow(ERROR).when(cache).truncate();
+        CompletableFuture<Map<Binary, Void>> failed = failedFuture(ERROR);
+
+        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
+                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenReturn(failed);
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.truncate(Requests.truncate(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
