@@ -167,7 +167,7 @@ class NamedCacheServiceImplTest
         m_dependencies.setSerializerFactory(s_serializerProducer);
         m_dependencies.setRegistry(registry);
         m_dependencies.setExecutor(ForkJoinPool.commonPool());
-        m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier); 
+        m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         }
 
     // ----- test methods ---------------------------------------------------
@@ -177,7 +177,7 @@ class NamedCacheServiceImplTest
         {
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
-        CompletionStage<CacheRequestHolder<String, Void>> stage = 
+        CompletionStage<CacheRequestHolder<String, Void>> stage =
                 service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
@@ -819,12 +819,13 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldExecuteGetAllWithResults() throws Exception
         {
+        // The values returned from an invoke all on a pass-thru cache are double serialized
         Map<Binary, Binary> mapResults = new HashMap<>();
-        mapResults.put(serialize("one"),   serialize("value-1"));
-        mapResults.put(serialize("two"),   serialize("value-2"));
-        mapResults.put(serialize("three"), serialize("value-3"));
-        mapResults.put(serialize("four"),  serialize("value-4"));
-        mapResults.put(serialize("five"),  serialize("value-5"));
+        mapResults.put(serialize("one"),   doubleSerialize("value-1"));
+        mapResults.put(serialize("two"),   doubleSerialize("value-2"));
+        mapResults.put(serialize("three"), doubleSerialize("value-3"));
+        mapResults.put(serialize("four"),  doubleSerialize("value-4"));
+        mapResults.put(serialize("five"),  doubleSerialize("value-5"));
 
         CompletableFuture<Map<Binary, Binary>> future = CompletableFuture.completedFuture(mapResults);
         when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(future);
@@ -1621,7 +1622,7 @@ class NamedCacheServiceImplTest
     private static NamedSerializerFactory s_serializerProducer;
 
     private Function<String, ConfigurableCacheFactory> m_ccfSupplier;
-    
+
     private NamedCacheServiceImpl.DefaultDependencies m_dependencies;
 
     private static ByteString s_bytes1;

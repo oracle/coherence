@@ -7,6 +7,7 @@
 
 package com.tangosol.util;
 
+
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.BackingMapContext;
@@ -31,6 +32,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
 * SimpleMapIndex is a MapIndex implementation used to correlate property values
 * extracted from resource map entries with corresponding keys using what is
@@ -39,7 +41,6 @@ import java.util.Set;
 * @author tb 2009.03.19
 * @since Coherence 3.5
 */
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class SimpleMapIndex
         extends    Base
         implements MapIndex
@@ -225,45 +226,11 @@ public class SimpleMapIndex
     * Retrieve the size of this index in units (as defined by the
     * {@link #getCalculator() UnitCalculator}).
     *
-    * @return the main, non-partitioned index size
+    * @return the index size
     */
     public long getUnits()
         {
         return m_cUnits;
-        }
-
-    /**
-     * Retrieve the size of the partitioned index for this index in units
-     * (as defined by the {@link #getCalculator() UnitCalculator}).
-     *
-     * @return the partitioned index size
-     */
-    public long getPartitionedUnits()
-        {
-        long cUnits = 0;
-
-        Map<Integer, Map<ValueExtractor, MapIndex>> partitionedIndexMap = m_ctx.getPartitionedIndexMap();
-        for (Map<ValueExtractor, MapIndex> indexMap : partitionedIndexMap.values())
-            {
-            MapIndex index = indexMap.get(getValueExtractor());
-            if (index instanceof SimpleMapIndex)
-                {
-                cUnits += ((SimpleMapIndex) index).getUnits();
-                }
-            }
-        
-        return cUnits;
-        }
-
-    /**
-     * Retrieve the total size of this index in units, which includes both the
-     * main and the partitioned index size.
-     *
-     * @return the total index size
-     */
-    public long getTotalUnits()
-        {
-        return getUnits() + getPartitionedUnits();
         }
 
     /**
@@ -1107,9 +1074,7 @@ public class SimpleMapIndex
         return ClassHelper.getSimpleName(getClass())
                 + ": Extractor=" + getValueExtractor()
                 + ", Ordered=" + isOrdered()
-                + ", Footprint=" + Base.toMemorySizeString(getTotalUnits(), false)
-                    + " (main=" + Base.toMemorySizeString(getUnits(), false)
-                    + ", partitioned=" + Base.toMemorySizeString(getPartitionedUnits(), false) + ")"
+                + ", Footprint="+ Base.toMemorySizeString(getUnits(), false)
                 + ", Content="
                 + (fVerbose ? getIndexContents().keySet() : getIndexContents().size());
         }

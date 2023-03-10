@@ -20,8 +20,6 @@ import com.oracle.coherence.guides.serverevents.model.Customer;
 
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.util.Aggregators;
-import com.tangosol.util.Filters;
 import com.tangosol.util.Processors;
 
 import org.hamcrest.Matchers;
@@ -41,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class ServerCacheEventsTest
         extends AbstractEventsTest {
-    
+
     @BeforeAll
     public static void startup() {
         _startup("cache-events");
@@ -124,7 +122,7 @@ public class ServerCacheEventsTest
     public void testTruncate() {
         System.out.println("testTruncate");
         auditEvents.clear();
-        
+
         NamedCache<Integer, String> cache1 = getMember1().getCache("test-cache");
         cache1.truncate();
 
@@ -160,24 +158,24 @@ public class ServerCacheEventsTest
         Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(3));
 
         auditEvents.clear();
-        
+
         cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
 
-        dumpAuditEvents("testEntryProcessorInterceptor-1");
-        // up to 3 entry processor events and 3 updates
-        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "EXECUTED"), Aggregators.count()), Matchers.lessThanOrEqualTo(3));
-        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "UPDATED"), Aggregators.count()), Matchers.equalTo(3));
+        // 2 entry processor events and 3 updates
+        Eventually.assertDeferred(() -> auditEvents.size(), Matchers.is(5));
 
+        dumpAuditEvents("testEntryProcessorInterceptor-1");
         auditEvents.clear();
 
         // invoke an entry processor across all customers to update credit limit to 100,000
         cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
+
         cache.invoke(1, Processors.update(Customer::setCreditLimit, 100_000L));
 
-        dumpAuditEvents("testEntryProcessorInterceptor-2");
+        // ensure all audit events are received
+        Eventually.assertDeferred(() -> auditEvents.values(equal(AuditEvent::getEventType, "EXECUTED")).size(), Matchers.is(3));
 
-        // ensure up to 4 EXECUTED events are received
-        Eventually.assertDeferred(() -> auditEvents.aggregate(Filters.equal(AuditEvent::getEventType, "EXECUTED"), Aggregators.count()), Matchers.lessThanOrEqualTo(4));
+        dumpAuditEvents("testEntryProcessorInterceptor-2");
     }
     // #end::test3[]
 

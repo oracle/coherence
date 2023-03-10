@@ -110,6 +110,12 @@ grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.j
   permission javax.security.auth.AuthPermission "*";
   permission javax.security.auth.PrivateCredentialPermission "* * \"*\"", "read";
 
+  // To run with Coherence POF annotations with access to non-public fields
+  // or methods when using a security manager, please uncomment the following
+  // lines:
+
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+
   // The following permissions are needed if running in Oracle Exa* environments.
   // If you are running in a Oracle Exa* environment, uncomment the following:
 
@@ -804,9 +810,6 @@ grant codeBase "file:${test.project.dir}/target/-" {
   permission java.lang.RuntimePermission "getClassLoader";
   permission javax.security.auth.AuthPermission "getSubject";
   permission javax.security.auth.AuthPermission "doAs";
-
-  // required to support serialization of lambdas
-  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
 
   // required by com.oracle.tools.runtime.network.AvailablePortIterator#isPortAvailable
   permission java.net.SocketPermission "localhost:30000-", "listen,resolve";

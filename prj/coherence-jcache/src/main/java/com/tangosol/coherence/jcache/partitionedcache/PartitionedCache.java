@@ -102,7 +102,6 @@ import javax.cache.processor.EntryProcessorResult;
  * @author jf  2013.07.07
  * @since Coherence 12.1.3
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class PartitionedCache<K, V>
         extends AbstractCoherenceBasedCache<K, V, PartitionedCacheConfiguration<K, V>>
     {
@@ -269,7 +268,20 @@ public class PartitionedCache<K, V>
 
         try
             {
-            return m_namedCache.invokeAll(setKey, new GetProcessor(m_cacheId));
+            Map<K, Binary> binMap = m_namedCache.invokeAll(setKey, new GetProcessor(m_cacheId));
+            Map<K, V>      map    = new HashMap<K, V>();
+
+            for (Map.Entry<K, Binary> entry : binMap.entrySet())
+                {
+                Binary binValue = entry.getValue();
+
+                if (binValue != null)
+                    {
+                    map.put(entry.getKey(), m_converterValue.fromInternal(binValue));
+                    }
+                }
+
+            return map;
             }
         catch (Exception e)
             {
