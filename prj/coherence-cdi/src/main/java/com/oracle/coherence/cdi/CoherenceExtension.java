@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,6 @@ import com.oracle.coherence.cdi.events.AnnotatedMapListener;
 import com.oracle.coherence.cdi.events.EventObserverSupport;
 
 import com.tangosol.net.Coherence;
-
 import com.tangosol.net.SessionProvider;
 
 import com.tangosol.net.events.CoherenceLifecycleEvent;
@@ -24,6 +23,7 @@ import com.tangosol.util.MapEvent;
 import jakarta.annotation.Priority;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.context.Initialized;
 
 import jakarta.enterprise.event.Observes;
@@ -32,18 +32,28 @@ import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Instance;
 
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.Annotated;
+import jakarta.enterprise.inject.spi.AnnotatedMethod;
 import jakarta.enterprise.inject.spi.AnnotatedType;
 import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeforeBeanDiscovery;
 import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.Extension;
 import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
 import jakarta.enterprise.inject.spi.ProcessObserverMethod;
 import jakarta.enterprise.inject.spi.WithAnnotations;
+import jakarta.enterprise.inject.spi.configurator.AnnotatedMethodConfigurator;
+import jakarta.enterprise.inject.spi.configurator.AnnotatedTypeConfigurator;
+
+import java.lang.reflect.Method;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * A Coherence CDI {@link Extension} that is used on both cluster members and
@@ -168,6 +178,213 @@ public class CoherenceExtension
                 .filter(a -> a.annotationType().isAnnotationPresent(MapEventTransformerBinding.class))
                 .map(AnnotationInstance::create)
                 .forEach(a -> m_mapMapEventTransformerSupplier.put(a, type.getJavaClass()));
+        }
+
+    /**
+     * Process beans annotated with caching annotations.
+     *
+     * @param event  the event to process
+     * @param <T>    the declared type of the injection point
+     */
+    <T> void processCacheAnnotatedTypes(@Observes @WithAnnotations({CacheGet.class, CacheAdd.class, CachePut.class, CacheRemove.class})
+                                        ProcessAnnotatedType<T> event)
+        {
+        AnnotatedTypeConfigurator<T>                annotatedTypeConfigurator = event.configureAnnotatedType();
+        AnnotatedType<T>                            annotatedType             = annotatedTypeConfigurator.getAnnotated();
+        Set<AnnotatedMethodConfigurator<? super T>> methods                   = annotatedTypeConfigurator.methods();
+
+        for (AnnotatedMethodConfigurator<? super T> methodConfigurator : methods)
+            {
+            AnnotatedMethod<? super T> method = methodConfigurator.getAnnotated();
+            if (method.getAnnotation(CacheGet.class) != null)
+                {
+                String interceptorKey = makeInterceptorKey(method);
+                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method));
+                }
+            if (method.getAnnotation(CacheAdd.class) != null)
+                {
+                String interceptorKey = makeInterceptorKey(method);
+                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method));
+                }
+            if (method.getAnnotation(CachePut.class) != null)
+                {
+                String interceptorKey      = makeInterceptorKey(method);
+                MethodInterceptorInfo info = createInterceptorInfo(annotatedType, method);
+                if (info.getValueParameterIndex() == null)
+                    {
+                    throw new IllegalStateException("@CacheValue annotation is missing on a parameter on @CachePut method " + interceptorKey);
+                    }
+                m_mapInterceptorCache.put(interceptorKey, info);
+                }
+            if (method.getAnnotation(CacheRemove.class) != null)
+                {
+                String interceptorKey = makeInterceptorKey(method);
+                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method));
+                }
+            }
+        }
+
+    /**
+     * Create unique key based on the target method.
+     *
+     * @param method  target method
+     *
+     * @return  unique key
+     *
+     * @throws IllegalStateException if the same key already exists in interceptor cache
+     */
+    private String makeInterceptorKey(AnnotatedMethod<?> method)
+        {
+        String interceptorKey = methodCacheKey(method.getJavaMember());
+        if (m_mapInterceptorCache.containsKey(interceptorKey))
+            {
+            throw new IllegalStateException("Multiple cache annotation are not allowed on a method " + interceptorKey);
+            }
+        return interceptorKey;
+        }
+
+    /**
+     * Capture all cache related metadata from the target type and method.
+     *
+     * @param annotatedType  target type
+     * @param method         target method
+     *
+     * @return the captured metadata
+     */
+    private MethodInterceptorInfo createInterceptorInfo(Annotated annotatedType, AnnotatedMethod<?> method)
+        {
+        String                     cacheNameDef        = CdiHelpers.cacheName(annotatedType, method);
+        String                     sessionNameDef      = CdiHelpers.sessionName(annotatedType, method);
+        Function<Object[], Object> cacheKeyFunction    = CdiHelpers.cacheKeyFunction(method);
+        Integer                    valueParameterIndex = CdiHelpers.annotatedParameterIndex(method.getParameters(), CacheValue.class);
+        return new MethodInterceptorInfo(cacheNameDef, sessionNameDef, cacheKeyFunction, valueParameterIndex);
+        }
+
+    /**
+     * A class that stores necessary method related data for caching interceptors.
+     */
+    static class MethodInterceptorInfo
+        {
+
+        /**
+         * Constructs {@link MethodInterceptorInfo}.
+         *
+         * @param cacheName            the cache name
+         * @param sessionName          the session name
+         * @param cacheKeyFunction     the cache key function
+         * @param valueParameterIndex  the parameter index of the cache value
+         */
+        MethodInterceptorInfo(String cacheName, String sessionName, Function<Object[], Object> cacheKeyFunction, Integer valueParameterIndex)
+            {
+            m_cacheName           = cacheName;
+            m_cacheKeyFunction    = cacheKeyFunction;
+            m_sessionName         = sessionName;
+            m_valueParameterIndex = valueParameterIndex;
+            }
+
+        /**
+         * Returns the cache name.
+         *
+         * @return  the cache name
+         */
+        String cacheName()
+            {
+            return m_cacheName;
+            }
+
+        /**
+         * Return the session name.
+         *
+         * @return  session name
+         */
+        String sessionName()
+            {
+            return m_sessionName;
+            }
+
+        /**
+         * Return the cache key function.
+         *
+         * @return  cache key function
+         */
+        Function<Object[], Object> cacheKeyFunction()
+            {
+            return m_cacheKeyFunction;
+            }
+
+        /**
+         * Return the parameter index of the cache value.
+         *
+         * @return  the parameter index of the cache value
+         */
+        public Integer getValueParameterIndex()
+            {
+            return m_valueParameterIndex;
+            }
+
+        /**
+         * The name of the cache.
+         */
+        private final String m_cacheName;
+
+        /**
+         * The name of the session.
+         */
+        private final String m_sessionName;
+
+        /**
+         * The cache key function.
+         */
+        private final Function<Object[], Object> m_cacheKeyFunction;
+
+        /**
+         * The parameter index of the cache value.
+         */
+        private final Integer m_valueParameterIndex;
+        }
+
+    /**
+     * Return {@link MethodInterceptorInfo} for specified method.
+     *
+     * @param method  the target method
+     *
+     * @return interceptor info
+     */
+    MethodInterceptorInfo interceptorInfo(Method method)
+        {
+        return m_mapInterceptorCache.get(methodCacheKey(method));
+        }
+
+    private String methodCacheKey(Method method)
+        {
+        return method.getDeclaringClass().getName()
+               + "." + method.getName()
+               + "(" + Arrays.toString(method.getParameterTypes()) + ")";
+        }
+
+    /**
+     * Register caching annotations as interceptor binding types.
+     *
+     * @param event  the event to use for annotation registration
+     */
+    void registerInterceptorBindings(@Observes BeforeBeanDiscovery event)
+        {
+        event.addInterceptorBinding(CacheGet.class);
+        event.addAnnotatedType(CacheGetInterceptor.class, CacheGetInterceptor.class.getName())
+                .add(CacheGet.Literal.INSTANCE)
+                .add(Dependent.Literal.INSTANCE);
+        event.addInterceptorBinding(CacheAdd.class);
+        event.addAnnotatedType(CacheAddInterceptor.class, CacheAddInterceptor.class.getName())
+                .add(CacheAdd.Literal.INSTANCE)
+                .add(Dependent.Literal.INSTANCE);
+        event.addInterceptorBinding(CachePut.class);
+        event.addAnnotatedType(CachePutInterceptor.class, CachePutInterceptor.class.getName())
+                .add(CachePut.Literal.INSTANCE)
+                .add(Dependent.Literal.INSTANCE);
+        event.addInterceptorBinding(CacheRemove.class);
+        event.addAnnotatedType(CacheRemoveInterceptor.class, CacheRemoveInterceptor.class.getName())
+                .add(CacheRemove.Literal.INSTANCE)
+                .add(Dependent.Literal.INSTANCE);
         }
 
     /**
@@ -338,4 +555,10 @@ public class CoherenceExtension
      * A list of discovered map listeners.
      */
     private final List<AnnotatedMapListener<?, ?>> m_listListener = new ArrayList<>();
+
+    /**
+     * A map of {@link MethodInterceptorInfo} defined for each cache annotated
+     * method.
+     */
+    private final Map<String, MethodInterceptorInfo> m_mapInterceptorCache = new HashMap<>();
     }

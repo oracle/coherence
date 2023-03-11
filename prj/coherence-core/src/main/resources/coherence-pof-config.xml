@@ -1784,6 +1784,16 @@ descriptor: pof-config.xsd.
     </user-type>
 
     <!-- external (atomics):  java.util.concurrent.atomic (960 - 969) -->
+
+    <!-- external: locks, latches, and semaphores (970 - 980) -->
+
+    <!-- coherence-cdi types (980) -->
+
+    <user-type>
+      <type-id>980</type-id>
+      <class-name>com.tangosol.internal.cdi.MethodKey</class-name>
+    </user-type>
+
     <!-- external (executor): internal types              (270 - 299, 821-829, 870-899) -->
 
   </user-type-list>
