@@ -253,7 +253,6 @@ NOTE: This report is not included in report-group.xml but is available by runnin
 |PolledFiveMinuteRate	|Double	|The polled messages five-minute rate
 |PolledOneMinuteRate	|Double	|The polled messages one-minute rate
 |PolledMeanRate	|Double	|The polled messages mean rate
-
 !===
 
 [#rest]
