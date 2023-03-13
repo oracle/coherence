@@ -1,0 +1,294 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Topics Management
+:description: Coherence Core Improvements
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Topics Management
+
+This version of Coherence introduces additional features and functionality to help you manage and monitor
+topics within a Coherence cluster.  New Topics MBeans are at the core with three new
+reports allowing for analysis of these MBeans overtime as well as additional Management over REST endpoints to interact with the MBeans.
+
+The Coherence CLI and VisualVM plugin now support viewing and managing Topics and new Grafana Dashboards are available to view
+Topics metrics over time.
+
+* <<mbeans,Topics MBeans>>
+* <<reports,Topics Reports>>
+* <<rest,Management over REST>>
+* <<mgmt,Topics Management via CLI and VisualVM>>
+* <<grafana,Topics Grafana Dashboards>>
+
+[#mbeans]
+=== Topics MBeans
+
+Three new Topics MBeans are now available, `PagedTopic`, `PagedTopicSubscriber` and `PagedTopicSubscriberGroup` MBean.
+These are described in more detail below:
+
+==== PagedTopic MBean
+
+The `PagedTopic` MBean provides statistics for Topic services running in a cluster. A cluster contains zero or more instances of this MBean,
+each instance representing an instance of a Topic on a member.
+
+The object name of the MBean is:
+
+   type=PagedTopic,service=ServiceName,name=TopicName,nodeId=node
+
+**Attributes**
+
+.PagedTopic MBean attributes
+[options="header"]
+!===
+|Attribute	| Type	|Access	|Description
+|AllowUnownedCommits |	Boolean	|read-only |	Allow Unowned Commits.
+|ChannelCount|	Integer	|read-only|	The number of channels in the topic.
+|Channels|	TabularData	|read-only|	Channel statistics.
+|ElementCalculator|	String	|read-only| Element Calculator.
+|PageCapacity|	Integer	|read-only|The capacity of a page.
+|PublishedCount|	Long|	read-only|	The number of published messages.
+|PublishedFifteenMinuteRate|	Double	|read-only|	The published messages fifteen-minute rate.
+|PublishedFiveMinuteRate|	Double	|read-only|	The published messages five-minute rate.
+|PublishedMeanRate|	Double	read-only|	The published messages mean rate.
+|PublishedOneMinuteRate|	Double	|read-only|	The published messages one-minute rate.
+|ReconnectRetry|	Integer|	read-only	|Reconnect Retry.
+|ReconnectTimeout|	Integer	|read-only	|Reconnect Timeout.
+|ReconnectWait|	Integer	|read-only	|Reconnect Wait.
+|RetainConsumed|	Boolean	|read-only	|Retain consumed values.
+|SubscriberTimeout|	Integer	|read-only	|Subscriber Timeout.
+!===
+
+**Operations**
+
+.PagedTopic MBean operations
+[options="header"]
+!===
+|Operation|Parameters	|Return Type	|Description
+| disconnectAll|	Not applicable	|Void	|Force this topic to disconnect all subscribers.
+!===
+
+==== PagedTopicSubscriber MBean
+
+The `PagedTopicSubscriber` MBean provides statistics for Topic Subscribers running in a cluster. A cluster contains zero or more instances of this MBean, each instance representing an instance of a Topic Subscriber on a member.
+
+The object name of the MBean is:
+
+    type=PagedTopicSubscriber,service=ServiceName,topic=TopicName,subtype=SubType,group=SubscriberGroup,id=SubscriberId,nodeId=node
+
+.PagedTopicSubscriber MBean attributes
+[options="header"]
+!===
+|Attribute	| Type	|Access	|Description
+|Backlog|	Integer	|read-only|	The number of outstanding receive requests.
+|ChannelAllocations|	String|	read-only	|The subscriber's allocated channels.
+|ChannelCount	|Integer	|read-only	|The number of channels in the topic.
+|Channels	|TabularData|	read-only	|Channel statistics.
+|CompleteOnEmpty|	Boolean|	read-only|	A flag indicating whether the subscriber completes receive requests with a null message when the topic is empty.
+|Converter|	String	|read-only	|The optional converter being used to transform messages.
+|Disconnections|	Long	|read-only	|The number of times this subscriber has disconnected.
+|Filter|	String	|read-only	|The optional filter being used to filter messages.
+|Id	|Long	|read-only|	The subscriber's identifier.
+|IdentifyingName|	String	|read-only|	An optional name to help identify this subscriber.
+|MaxBacklog	|Long|	read-only	|The maximum number of outstanding receive requests allowed before flow control blocks receive calls.
+|Member	|String|	read-only|	The cluster member owning this subscriber.
+|NotificationId|	Long|	read-only	|The subscriber's notification identifier.
+|Notifications	|Long	|read-only|	The number of channel notifications received.
+|Polls|	Long	|read-only|	The total number of polls for messages.
+|ReceiveCompletionsCount|	Long	|read-only	|The number completed receive requests.
+|ReceiveCompletionsFifteenMinuteRate|	Double	|read-only	|The completed receive requests, fifteen-minute rate.
+|ReceiveCompletionsFiveMinuteRate|	Double	|read-only	|The completed receive requests, five-minute rate.
+|ReceiveCompletionsMeanRate	|Double|	read-only|	The completed receive requests, mean rate.
+|ReceiveCompletionsOneMinuteRate|	Double	|read-only	|The completed receive requests, one-minute rate.
+|ReceiveEmpty|	Long|	read-only|	The number empty receive requests.
+|ReceiveErrors|	Long|	read-only|	The number exceptionally completed receive requests.
+|ReceivedCount|	Long|	read-only|	The number of elements received.
+|Serializer|	String	|read-only|	The serializer used to deserialize messages.
+|State|	Integer|	read-only	|The state of the subscriber. Valid values are: 0 – Initial, 1 – Connected, 2 – Disconnected, 3 – Closing, 4 - Closed
+|StateName	|String|	read-only|	The state of the subscriber as a string.
+|SubTypeCode|	Integer	|read-only|	Indicates if the subscriber is Durable (1) or Anonymous (0).
+|SubscriberGroup|	String|	read-only	|The subscriber group the subscriber belongs to.
+|Type|	String|	read-only	|The type of this subscriber.
+|Waits	|Long	|read-only	|The number of waits on an empty channel.
+!===
+
+**Operations**
+
+.PagedTopicSubscriber MBean operations
+[options="header"]
+!===
+|Operation|Parameters	|Return Type	|Description
+|connect|	Not applicable	|Void|Ensure this subscriber is connected.
+|disconnect	|Not applicable|	Void|	Force this subscriber to disconnect and reset itself.
+|heads	|Not applicable|	TabularData	|Retrieve the current head positions for each channel.
+|notifyPopulated|	Integer nChannel|	Void|	Send a channel populated notification to this subscriber.
+|remainingMessages|Not applicable	|TabularData	|Retrieve the count of remaining messages for each channel.
+!===
+
+==== PagedTopicSubscriberGroup MBean
+
+The `PagedTopicSubscriberGroup` MBean provides statistics for Topic Subscriber Groups running in a cluster. A cluster contains zero or more instances of this MBean, each instance representing an instance of a Topic Subscriber Group on a member.
+
+The object name of the MBean is:
+
+    type=PagedTopicSubscriberGroup,service=ServiceName,topic=TopicName,subtype=SubType,name=SubscriberGroup,nodeId=node
+
+.PagedTopicSubscriberGroup MBean attributes
+[options="header"]
+!===
+|Attribute	| Type	|Access	|Description
+|ChannelCount|	Integer|	read-only|	The number of channels in the topic.
+|Channels|	TabularData|	read-only	|Channel statistics.
+|Filter	|String	|read-only|	The filter.
+|PolledCount|	Long	|read-only	|The number of polled messages.
+|PolledFifteenMinuteRate|	Double	|read-only|	The polled messages fifteen-minute rate.
+|PolledFiveMinuteRate|	Double|	read-only|	The polled messages five-minute rate.
+|PolledMeanRate|	Double|	read-only	|The polled messages mean rate.
+|PolledOneMinuteRate|	Double|	read-only	|The polled messages one-minute rate.
+|Transformer|	String	|read-only|	The transformer.
+!===
+
+**Operations**
+
+.PagedPagedTopicSubscriberGroupTopic MBean operations
+[options="header"]
+!===
+|Operation|Parameters	|Return Type	|Description
+|disconnectAll |Not applicable	|Void|Force this subscriber group to disconnect all subscribers.
+!===
+
+[#reports]
+=== Topics Reports
+
+The following reports have been added in this release.
+
+**Topic Report**
+
+The topic report provides detailed metrics for topics defined within a cluster.
+The name of the topic report is `timestamp-topic.txt` where the timestamp is in `YYYYMMDDHH` format.
+For example, a file named `2009013101-topics.txt` represents a topics report for January 31, 2009 at 1:00 a.m.
+
+NOTE: This report is not included in `report-group.xml` but is available by running `report-all.xml`.
+
+.Topic Report
+[options="header"]
+!===
+|Attribute	| Type	|Description
+|Batch Counter |Long|	A sequential counter to help integrate information between related files. This value resets when the reporter restarts and is not consistent across members. However, it is helpful when trying to integrate files.
+|Report Date|	Date|	A timestamp for each report refresh.
+|Service|String|	The service name.
+|Name	|String	|The topic name.
+|NodeId	|String	|The numeric member identifier.
+|ChannelCount|Integer	|The number of channels in the topic.
+|PublishedCount|	Long	|The number of published messages since the last report refresh.
+|PublishedFifteenMinuteRate	|Double|	The published messages fifteen-minute rate.
+|PublishedFiveMinuteRate|	Double	|The published messages five-minute rate.
+|PublishedMeanRate|	Double	|The published messages mean rate.
+|PublishedOneMinuteRate|	Double|	The published messages one-minute rate.
+!===
+
+**Topic Subscribers Report**
+
+The topic subscriber report provides detailed metrics for topic subscribers defined within a cluster.
+The name of the topic subscribers report is `timestamp-topic-subscribers.txt` where the timestamp is in
+`YYYYMMDDHH` format. For example, a file named `2009013101-topic-subscribers.txt` represents a topic subscriber report for January 31, 2009 at 1:00 a.m.
+
+NOTE: This report is not included in `report-group.xml` but is available by running `report-all.xml`.
+
+.Topic Subscribers Report
+[options="header"]
+!===
+|Attribute	| Type	|Description
+|Batch Counter | Long	|A sequential counter to help integrate information between related files. This value resets when the reporter restarts and is not consistent across members. However, it is helpful when trying to integrate files.
+|Report Date|	Date	|A timestamp for each report refresh.
+|Service	|String	|The service name.
+|Name|	String	|The topic name.
+|SubscriberGroup|	String	|The subscriber group the subscriber belongs to.
+|Id|	Long	|The Id of the subscriber.
+|NodeId|	String	|The numeric member identifier.
+|Backlog|	Long	|The number of outstanding receive requests.
+|ChannelAllocations|	String|	The subscriber's allocated channels.
+|ChannelCount	|Integer	|The number of channels in the topic.
+|Disconnections|	Long	|The number of times this subscriber has disconnected since the last report refresh.
+|Notifications|	Long	|The number of channel notifications received since the last report refresh.
+|Polls|	Long	|The total number of polls for messages since the last report refresh.
+|ReceiveCompletionsCount|	Long	|The number completed receive requests since the last report refresh .
+|ReceiveCompletionsFifteenMinuteRate|	Double	|The completed receive requests, fifteen-minute rate.
+|ReceiveCompletionsFiveMinuteRate|	Double|	The completed receive requests, five-minute rate.
+|ReceiveCompletionsMeanRate|	Double|	The completed receive requests, mean rate.
+|ReceiveCompletionsOneMinuteRate|	Double	|The completed receive requests, one-minute rate.
+|ReceiveEmpty	|Long	|The number empty receive requests since the last report refresh.
+|ReceiveErrors	|Long	|The number exceptionally completed receive requests since the last report refresh.
+|ReceivedCount	|Long	|The number of elements received since the last report refresh.
+|State	|Integer	|The state of the subscriber. Valid values are: 0 – Initial, 1 – Connected, 2 – Disconnected, 3 – Closing, 4 - Closed.
+|StateName	|String	|The state of the subscriber as a string.
+|Waits	|Long|	The number of elements received since the last report refresh.
+!===
+
+**Topic Subscriber Groups Report**
+
+The topic subscriber groups report provides detailed metrics for topic subscriber groups defined within
+a cluster. The name of the topic subscriber groups report is `timestamp-topic-subscriber-groups.txt`
+where the timestamp is in `YYYYMMDDHH` format. For example, a file named `2009013101-topic-subscriber-groups.txt` represents a topic subscriber report for January 31, 2009 at 1:00 a.m.
+
+NOTE: This report is not included in report-group.xml but is available by running report-all.xml.
+
+.Topic Subscriber Groups Report
+[options="header"]
+!===
+|Attribute	| Type	|Description
+|Batch Counter |Long	|A sequential counter to help integrate information between related files. This value resets when the reporter restarts and is not consistent across members. However, it is helpful when trying to integrate files.
+|Report Date|	Date	|A timestamp for each report refresh.
+|Service	|String|	The service name.
+|Topic	|String	|The topic name.
+|Name|	String	|The subscriber group the subscriber belongs to.
+|NodeId	|String	|The numeric member identifier.
+|ChannelCount|	Integer	|The number of channels in the topic.
+|PolledCount	|Long|	The total number of polls for messages since the last report refresh.
+|PolledFifteenMinuteRate |Double |	The polled messages fifteen-minute rate
+|PolledFiveMinuteRate	|Double	|The polled messages five-minute rate
+|PolledOneMinuteRate	|Double	|The polled messages one-minute rate
+|PolledMeanRate	|Double	|The polled messages mean rate
+!===
+
+[#rest]
+=== Management over REST
+
+You are now able to view and manage Topics, Subscribers and Subscriber Groups using Management over REST API.
+
+For example, to retrieve the topics for a service you can use the following `curl` command replacing `serviceName` with your Topics service name.
+
+[source,bash,indent=0]
+----
+curl http://host:port/management/coherence/cluster/services/serviceName/topics
+----
+
+See {commercial-docs-base-url}/rest-reference/index.html[REST API for Managing Oracle Coherence] for full details of the available REST end points.
+
+[#mgmt]
+=== Topics Management via CLI and VisualVM
+
+The Coherence VisualVM Plugin and Coherence CLI have been updated to provide management and monitoring of Topics within a Coherence cluster.
+See the following links for more information on each of the tools.
+
+* Coherence CLI - See https://github.com/oracle/coherence-cli[Coherence CLI] on GitHub and https://oracle.github.io/coherence-cli/docs/latest/#/docs/reference/01_overview[CLI Command Reference].
+
+* Coherence VisualVM Plugin - See https://github.com/oracle/coherence-visualvm[Coherence VisualVM] on GitHub
+
+[#grafana]
+=== Topics Grafana Dashboards
+
+There are four new Grafana Dashboards available to show Topics related information:
+
+* Topics Summary
+* Topic Details
+* Topic Subscriber Details
+* Topic Subscriber Group Details
+
+The above dashboards are available from the https://github.com/oracle/coherence-operator/tree/main/dashboards/grafana[Coherence Operator] GitHub repository.
+
+See the Oracle {commercial-docs-base-url}/manage/using-coherence-metrics.html[Metrics Documentation] for more information on configuring metrics.

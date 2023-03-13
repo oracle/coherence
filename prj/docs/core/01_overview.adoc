@@ -1,0 +1,40 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Overview
+:description: Coherence Core Improvements
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Overview
+
+Learn about the features, enhancements, and changes made in Oracle Coherence  CE {version-coherence}.
+
+[PILLARS]
+====
+[CARD]
+.Topics Management Improvements
+[icon=fa-rocket,link=docs/core/02_topics.adoc]
+--
+Explore various Topics management improvements.
+--
+
+[CARD]
+.Microprofile Health
+[icon=fa-stethoscope,link=docs/core/03_microprofile_health.adoc]
+--
+Integrate Eclipse MicroProfile Health in Coherence.
+--
+
+[CARD]
+.Gradle POF Plugin
+[icon=fa-cogs,link=docs/core/04_gradle.adoc]
+--
+Instrument Portable Types using Gradle.
+--
+
+====
