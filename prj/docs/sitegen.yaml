@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
 
@@ -70,6 +70,14 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
+            - title: "Core Improvements"
+              pathprefix: "/core"
+              glyph:
+                type: "icon"
+                value: "fa-cubes"
+              items:
+                - includes:
+                    - "docs/core/*.adoc"
             - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:
