@@ -257,19 +257,22 @@ public abstract class AbstractRollingPersistenceTests
             DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
 
             Eventually.assertThat(
-                invoking(service).getOwnershipEnabledMembers().size(),
-                is(cServers));
-
-            waitForBalanced(service);
-
-            // the following sleep should be removed once COH-19735 is done
-            sleep(4000); // when COH-14809 is done, replace with an event check
+                    invoking(service).getOwnershipEnabledMembers().size(),
+                    is(cServers));
 
             HashMap map = new HashMap();
             for (int i = 0; i < 5000; i++)
                 {
                 map.put(i, Base.getRandomBinary(100, 1024));
                 }
+
+            // partition stabilization could take over a minute which should not be
+            // a failure condition; wait after sleep
+            waitForBalanced(service, 90);
+
+            // the following sleep should be removed once COH-19735 is done
+            sleep(4000); // when COH-14809 is done, replace with an event check
+
             cache.putAll(map);
 
             // stop all servers at once (kinda)
