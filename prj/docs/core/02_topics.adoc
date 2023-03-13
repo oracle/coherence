@@ -244,27 +244,16 @@ NOTE: This report is not included in report-group.xml but is available by runnin
 |Batch Counter |Long	|A sequential counter to help integrate information between related files. This value resets when the reporter restarts and is not consistent across members. However, it is helpful when trying to integrate files.
 |Report Date|	Date	|A timestamp for each report refresh.
 |Service	|String|	The service name.
-|Name	|String	|The topic name.
-|SubscriberGroup|	String	|The subscriber group the subscriber belongs to.
-|Id	|Long	|The Id of the subscriber.
+|Topic	|String	|The topic name.
+|Name|	String	|The subscriber group the subscriber belongs to.
 |NodeId	|String	|The numeric member identifier.
-|Backlog|	Long	|The number of outstanding receive requests.
-|ChannelAllocations	|String	|The subscriber's allocated channels.
 |ChannelCount|	Integer	|The number of channels in the topic.
-|Disconnections	|Long	|The number of times this subscriber has disconnected since the last report refresh.
-|Notifications	|Long	|The number of channel notifications received since the last report refresh.
-|Polls	|Long|	The total number of polls for messages since the last report refresh.
-|ReceiveCompletionsCount|	Long|	The number completed receive requests since the last report refresh
-|ReceiveCompletionsFifteenMinuteRate|	Double	|The completed receive requests, fifteen-minute rate.
-|ReceiveCompletionsFiveMinuteRate|	Double	|The completed receive requests, five-minute rate.
-|ReceiveCompletionsMeanRate|	Double|	The completed receive requests, mean rate.
-|ReceiveCompletionsOneMinuteRate	|Double	|The completed receive requests, one-minute rate.
-|ReceiveEmpty|	Long	|The number empty receive requests since the last report refresh.
-|ReceiveErrors|	Long	|The number exceptionally completed receive requests since the last report refresh.
-|ReceivedCount|	Long	|The number of elements received since the last report refresh.
-|State|	Integer	|The state of the subscriber. Valid values are: 0 – Initial, 1 – Connected, 2 – Disconnected, 3 – Closing, 4 - Closed.
-|StateName	|String	|The state of the subscriber as a string.
-|Waits	|Long	|The number of elements received since the last report refresh.
+|PolledCount	|Long|	The total number of polls for messages since the last report refresh.
+|PolledFifteenMinuteRate |Double |	The polled messages fifteen-minute rate
+|PolledFiveMinuteRate	|Double	|The polled messages five-minute rate
+|PolledOneMinuteRate	|Double	|The polled messages one-minute rate
+|PolledMeanRate	|Double	|The polled messages mean rate
+
 !===
 
 [#rest]
