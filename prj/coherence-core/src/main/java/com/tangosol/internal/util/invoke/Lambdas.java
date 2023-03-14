@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
 
@@ -66,7 +66,30 @@ public abstract class Lambdas
      */
     public static boolean isLambdaClass(Class<?> clz)
         {
-        return clz != null && clz.getName().contains("$$Lambda$");
+        if (clz == null)
+            {
+            return false;
+            }
+
+        String sName = clz.getName();
+        int    nIdx  = sName.indexOf(LAMBDA_CLASS_MARKER);
+        if (nIdx != -1)
+            {
+            int nOffset = nIdx + LAMBDA_CLASS_END_MARKER;
+            if (nOffset > sName.length())
+                {
+                return false;
+                }
+
+            char c = sName.charAt(nOffset);
+
+            // '$' character will be seen in releases between Java {8,20}
+            // '/' is used in Java 21
+            // See bug 35177243
+            return c == '$' || c == '/';
+            }
+
+        return false;
         }
 
     /**
@@ -420,6 +443,17 @@ public abstract class Lambdas
     private static volatile SerializationMode LAMBDAS_SERIALIZATION_MODE = null;
 
     private static final Set<String> EXTRACTOR_INTERFACES;
+
+    /**
+     * Token indicating a class is or is not a lambda.
+     */
+    private static final String LAMBDA_CLASS_MARKER = "$$Lambda";
+
+    /**
+     * The offset from {@link #LAMBDA_CLASS_MARKER} where the end marker
+     * is found.
+     */
+    private static final int LAMBDA_CLASS_END_MARKER = LAMBDA_CLASS_MARKER.length();
 
     static
         {
