@@ -29,34 +29,15 @@ import com.tangosol.net.grpc.GrpcDependencies;
  * @author Jonathan Knight  2022.08.25
  * @since 22.06.2
  */
-public class BaseGrpcCacheScheme
-        extends AbstractCachingScheme<DefaultRemoteGrpcCacheServiceDependencies>
+public class BaseGrpcCacheScheme<S extends Service>
+        extends BaseGrpcScheme<DefaultRemoteGrpcCacheServiceDependencies, S>
     {
-    // ----- constructors ---------------------------------------------------
-
     /**
      * Constructs a {@link BaseGrpcCacheScheme}.
      */
     public BaseGrpcCacheScheme()
         {
-        m_serviceDependencies = new DefaultRemoteGrpcCacheServiceDependencies();
-        }
-
-    // ----- BaseGrpcCacheScheme interface  ---------------------------------------
-
-    /**
-     * Set the scope name to use to access resources on the remote cluster.
-     *
-     * @param sName the scope name to use to access resources on the remote cluster
-     */
-    @Injectable
-    public void setRemoteScopeName(String sName)
-        {
-        if (GrpcDependencies.DEFAULT_SCOPE_ALIAS.equals(sName))
-            {
-            sName = GrpcDependencies.DEFAULT_SCOPE;
-            }
-        super.setScopeName(sName);
+        super(new DefaultRemoteGrpcCacheServiceDependencies());
         }
 
     // ----- ServiceScheme interface  ---------------------------------------
@@ -70,13 +51,8 @@ public class BaseGrpcCacheScheme
     // ----- ServiceBuilder interface ---------------------------------------
 
     @Override
-    public boolean isRunningClusterNeeded()
-        {
-        return false;
-        }
-
-    @Override
-    protected Service ensureService(String sService, Cluster cluster)
+    @SuppressWarnings("unchecked")
+    protected S ensureService(String sService, Cluster cluster)
         {
         ClusterDependencies.ServiceProvider provider = getServiceProvider();
         if (provider == null)
@@ -86,20 +62,6 @@ public class BaseGrpcCacheScheme
             throw new UnsupportedOperationException("The Coherence gRPC client is not available");
             }
         cluster.getDependencies().addLocalServiceProvider(CacheService.TYPE_REMOTE_GRPC, provider);
-        return super.ensureService(sService, cluster);
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Returns the {@link ClusterDependencies.ServiceProvider} instance
-     * to use to create new instances of the service.
-     *
-     * @return the {@link ClusterDependencies.ServiceProvider} instance
-     *         to use to create new instances of the service
-     */
-    protected ClusterDependencies.ServiceProvider getServiceProvider()
-        {
-        return ClusterDependencies.ServiceProvider.NULL_IMPLEMENTATION;
+        return (S) super.ensureService(sService, cluster);
         }
     }

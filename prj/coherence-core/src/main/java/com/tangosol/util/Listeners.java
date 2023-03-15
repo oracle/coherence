@@ -322,7 +322,7 @@ public class Listeners
     *
     * @return a comma separated list of the listener class names
     */
-    protected String getListenerClassNames()
+    public String getListenerClassNames()
         {
         String sNames = m_sListenerNames;
         if (sNames == null)

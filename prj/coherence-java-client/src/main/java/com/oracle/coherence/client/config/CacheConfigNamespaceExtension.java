@@ -24,7 +24,8 @@ public class CacheConfigNamespaceExtension
     public void extend(CacheConfigNamespaceHandler handler)
         {
         handler.registerProcessor("grpc-channel", new GrpcChannelProcessor());
-        handler.registerProcessor("remote-grpc-cache-scheme", new RemoteGrpcServiceBuilderProcessor());
+        handler.registerProcessor("remote-grpc-cache-scheme", new RemoteGrpcCacheServiceBuilderProcessor());
+//        handler.registerProcessor("remote-grpc-topic-scheme", new RemoteGrpcTopicServiceBuilderProcessor());
         handler.registerProcessor("configurer", new InstanceProcessor());
         }
     }

@@ -263,7 +263,7 @@ public class ScopedReferenceStore<R>
 
         Service service = f_supplierService.apply(reference);
 
-        if (ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
+        if (service != null && ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
             && Security.SUBJECT_SCOPED)
             {
             SubjectScopedReference scopedRef = (SubjectScopedReference) mapByLoader.get(loader);
@@ -315,7 +315,7 @@ public class ScopedReferenceStore<R>
 
         Service service = f_supplierService.apply(reference);
 
-        if (ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
+        if (service != null && ScopedServiceReferenceStore.isRemoteServiceType(service.getInfo().getServiceType())
             && Security.SUBJECT_SCOPED)
             {
             SubjectScopedReference scopedRef = new SubjectScopedReference();

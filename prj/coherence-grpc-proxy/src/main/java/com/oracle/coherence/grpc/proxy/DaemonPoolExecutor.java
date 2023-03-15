@@ -15,10 +15,6 @@ import com.tangosol.internal.util.DaemonPool;
 
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
-import com.tangosol.net.CacheFactory;
-
-import com.tangosol.net.management.AnnotatedStandardMBean;
-import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Controllable;
 
@@ -35,7 +31,7 @@ import io.opentracing.Span;
  * thread.
  * <p>
  * If a tracing {@link Span} is available when tasks are added to this executor then
- * the span will be re-activated when the tasks is run.
+ * the span will be re-activated when the tasks are run.
  *
  * @author Jonathan Knight  2019.11.19
  * @since 20.06
@@ -53,7 +49,7 @@ public class DaemonPoolExecutor
      */
     public DaemonPoolExecutor(DaemonPool pool)
         {
-        super(new TracingDaemonPool(pool));
+        super(TracingDaemonPool.ensureTracingDaemonPool(pool));
         }
 
     // ----- factory method -------------------------------------------------
@@ -77,7 +73,7 @@ public class DaemonPoolExecutor
      *
      * @return a {@link DaemonPoolManagement} to manage this executor
      */
-    DaemonPoolManagement getManagement()
+    public DaemonPoolManagement getManagement()
         {
         return new DaemonPoolManagement(((TracingDaemonPool) f_pool).getDelegate());
         }

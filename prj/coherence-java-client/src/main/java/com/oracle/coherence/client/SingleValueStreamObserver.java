@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,7 +26,7 @@ import java.util.concurrent.CompletionStage;
  * @author Jonathan Knight  2020.09.21
  * @since 20.06
  */
-class SingleValueStreamObserver<T>
+public class SingleValueStreamObserver<T>
         implements StreamObserver<T>
     {
     // ----- constructors ---------------------------------------------------
@@ -34,7 +34,7 @@ class SingleValueStreamObserver<T>
     /**
      * Create a SingleValueStreamObserver.
      */
-    SingleValueStreamObserver()
+    public SingleValueStreamObserver()
         {
         }
 

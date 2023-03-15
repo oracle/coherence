@@ -48,7 +48,7 @@ import com.oracle.coherence.grpc.ValuesRequest;
 
 import io.grpc.stub.StreamObserver;
 
-import java.util.concurrent.CompletionStage;
+import static com.oracle.coherence.grpc.proxy.ResponseHandlers.handleUnary;
 
 /**
  * A plain gRPC implementation of NamedCache service.
@@ -67,16 +67,16 @@ public class NamedCacheServiceGrpcImpl
      */
     public NamedCacheServiceGrpcImpl()
         {
-        this(new NamedCacheServiceImpl.DefaultDependencies());
+        this(new NamedCacheService.DefaultDependencies());
         }
 
     /**
      * Create a {@link NamedCacheServiceGrpcImpl} that wraps a default
      * implementation of {@link NamedCacheService}.
      *
-     * @param deps  the {@link NamedCacheServiceImpl.Dependencies} to use
+     * @param deps  the {@link NamedCacheService.Dependencies} to use
      */
-    public NamedCacheServiceGrpcImpl(NamedCacheServiceImpl.Dependencies deps)
+    public NamedCacheServiceGrpcImpl(NamedCacheService.Dependencies deps)
         {
         this(NamedCacheServiceImpl.newInstance(deps));
         }
@@ -118,8 +118,7 @@ public class NamedCacheServiceGrpcImpl
     @Override
     public void clear(ClearRequest request, StreamObserver<Empty> observer)
         {
-        CompletionStage<Empty> stage = m_service.clear(request);
-        stage
+        m_service.clear(request)
                 .handle((result, err) -> handleUnary(result, err, SafeStreamObserver.ensureSafeObserver(observer)));
         }
 
@@ -288,22 +287,6 @@ public class NamedCacheServiceGrpcImpl
     public void values(ValuesRequest request, StreamObserver<BytesValue> observer)
         {
         m_service.values(request, SafeStreamObserver.ensureSafeObserver(observer));
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    <R> Void handleUnary(R result, Throwable err, StreamObserver<R> observer)
-        {
-        if (err != null)
-            {
-            observer.onError(err);
-            }
-        else
-            {
-            observer.onNext(result);
-            observer.onCompleted();
-            }
-        return null;
         }
 
     // ----- data members ---------------------------------------------------

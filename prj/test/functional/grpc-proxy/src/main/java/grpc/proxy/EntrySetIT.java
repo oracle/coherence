@@ -70,14 +70,14 @@ class EntrySetIT
         s_ccf     = CacheFactory.getCacheFactoryBuilder()
                                 .getConfigurableCacheFactory("coherence-config.xml", null);
 
-        NamedCacheServiceImpl.DefaultDependencies deps = new NamedCacheServiceImpl.DefaultDependencies();
+        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
         deps.setConfigurableCacheFactorySupplier(ConfigurableCacheFactorySuppliers.fixed(s_ccf));
         // set the transfer threshold small so that all of the cache data does not fit into one page
         deps.setTransferThreshold(100L);
 
         s_service = new NamedCacheServiceImpl(deps);
         }
-
+    
     // ----- test methods ---------------------------------------------------
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -220,7 +220,7 @@ class EntrySetIT
 
         return args.stream();
         }
-
+    
     // ----- data members ---------------------------------------------------
 
     private static ConfigurableCacheFactory s_ccf;

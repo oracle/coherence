@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * @author Jonathan Knight  2020.01.10
  * @since 20.06
  */
-class TracingDaemonPool
+public class TracingDaemonPool
         implements DaemonPool
     {
     // ----- constructors ---------------------------------------------------
@@ -40,7 +40,7 @@ class TracingDaemonPool
      *
      * @param delegate the {@link DaemonPool} to delegate to
      */
-    TracingDaemonPool(DaemonPool delegate)
+    public TracingDaemonPool(DaemonPool delegate)
         {
         this(delegate, null);
         }
@@ -188,6 +188,22 @@ class TracingDaemonPool
     protected DaemonPool getDelegate()
         {
         return f_delegate;
+        }
+
+    /**
+     * Returns a {@link TracingDaemonPool} wrapping the specified pool.
+     *
+     * @param pool  the pool to wrap or return
+     *
+     * @return a {@link TracingDaemonPool}
+     */
+    public static TracingDaemonPool ensureTracingDaemonPool(DaemonPool pool)
+        {
+        if (pool instanceof TracingDaemonPool)
+            {
+            return (TracingDaemonPool) pool;
+            }
+        return new TracingDaemonPool(pool);
         }
 
     // ----- inner class: TracingRunnable -----------------------------------

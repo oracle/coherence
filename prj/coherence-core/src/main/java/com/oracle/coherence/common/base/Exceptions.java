@@ -98,4 +98,25 @@ public abstract class Exceptions
                 }
             }
         }
+
+    /**
+     * Re-throw the specified exception if it is a fatal unrecoverable exception.
+     *
+     * @param t  the exception to check
+     */
+    public static void throwIfFatal(Throwable t)
+        {
+        if (t instanceof VirtualMachineError)
+            {
+            throw (VirtualMachineError)t;
+            }
+        else if (t instanceof ThreadDeath)
+            {
+            throw (ThreadDeath)t;
+            }
+        else if (t instanceof LinkageError)
+            {
+            throw (LinkageError)t;
+            }
+        }
     }

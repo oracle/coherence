@@ -7,6 +7,7 @@
 package com.tangosol.net.topic;
 
 
+import com.tangosol.coherence.config.unit.Seconds;
 import com.tangosol.net.NamedCollection;
 
 import com.tangosol.net.TopicService;
@@ -119,14 +120,14 @@ public interface NamedTopic<V>
     /**
      * Ensure that the specified subscriber group exists for this topic.
      *
-     * @param sName      the name of the subscriber group
+     * @param sGroup     the name of the subscriber group
      * @param filter     the {@link Filter} used to filter messages to be received by subscribers in the group
      * @param extractor  the {@link ValueExtractor} used to convert messages to be received by subscribers in the group
      *
      * @throws IllegalStateException if the subscriber group already exists with a different filter
      *                               or converter extractor
      */
-    void ensureSubscriberGroup(String sName, Filter<?> filter, ValueExtractor<?, ?> extractor);
+    void ensureSubscriberGroup(String sGroup, Filter<?> filter, ValueExtractor<?, ?> extractor);
 
     /**
      * Destroy the {@link Subscriber.Name named} subscriber group for the associated topic.
@@ -134,7 +135,7 @@ public interface NamedTopic<V>
      * Releases storage and stops accumulating topic values for destroyed subscriber group.
      * This operation will impact all {@link Subscriber members} of the subscriber group.
      */
-    void destroySubscriberGroup(String sGroupName);
+    void destroySubscriberGroup(String sGroup);
 
     /**
      * Return the set of {@link Subscriber.Name named} subscriber group(s) and statically configured subscriber-group(s).
@@ -254,4 +255,36 @@ public interface NamedTopic<V>
             return ClassHelper.getSimpleName(getClass());
             }
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The topic should have the default number of channels.
+     */
+    int DEFAULT_CHANNEL_COUNT = 0;
+
+    /**
+     * The default capacity of pages when using the default binary calculator (1MB).
+     */
+    long DEFAULT_PAGE_CAPACITY_BYTES = 1024*1024;
+
+    /**
+     * The default subscriber timeout.
+     */
+    Seconds DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS = new Seconds(300);
+
+    /**
+     * The default reconnect timeout.
+     */
+    Seconds DEFAULT_RECONNECT_TIMEOUT_SECONDS = new Seconds(300);
+
+    /**
+     * The default reconnect retry.
+     */
+    Seconds DEFAULT_RECONNECT_RETRY_SECONDS = new Seconds(5);
+
+    /**
+     * The default reconnect wait.
+     */
+    Seconds DEFAULT_RECONNECT_WAIT_SECONDS = new Seconds(10);
     }

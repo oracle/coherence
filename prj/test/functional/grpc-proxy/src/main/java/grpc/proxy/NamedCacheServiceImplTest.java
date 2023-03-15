@@ -36,6 +36,7 @@ import com.oracle.coherence.grpc.Requests;
 import com.oracle.coherence.grpc.ValuesRequest;
 
 import com.oracle.coherence.grpc.proxy.ConfigurableCacheFactorySuppliers;
+import com.oracle.coherence.grpc.proxy.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.NamedCacheServiceImpl;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.io.DefaultSerializer;
@@ -66,6 +67,7 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.aggregator.Count;
 
+import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.extractor.UniversalExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
@@ -90,12 +92,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -163,7 +168,7 @@ class NamedCacheServiceImplTest
         Registry registry = mock(Registry.class);
         when(registry.ensureGlobalName(anyString())).thenReturn("foo");
 
-        m_dependencies = new NamedCacheServiceImpl.DefaultDependencies();
+        m_dependencies = new NamedCacheService.DefaultDependencies();
         m_dependencies.setSerializerFactory(s_serializerProducer);
         m_dependencies.setRegistry(registry);
         m_dependencies.setExecutor(ForkJoinPool.commonPool());
@@ -495,8 +500,9 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleClearError()
         {
-        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
-                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenThrow(ERROR);
+        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
+        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
+        doThrow(ERROR).when(cache).clear();
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
@@ -506,16 +512,16 @@ class NamedCacheServiceImplTest
         assertThat(cause, is(sameInstance(ERROR)));
         }
 
-    @Test
-    public void shouldHandleClearAsyncError()
-        {
-        CompletableFuture<Map<Binary, Void>> failed = failedFuture(ERROR);
 
-        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
-                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenReturn(failed);
+    @Test
+    public void shouldHandleTruncateError()
+        {
+        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
+        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
+        doThrow(ERROR).when(cache).truncate();
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.truncate(Requests.truncate(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -716,9 +722,9 @@ class NamedCacheServiceImplTest
         }
 
     @Test
-    public void shouldHandleEntrySetError() throws Exception
+    public void shouldHandleEntrySetErrorWithoutComparator() throws Exception
         {
-        when(m_testAsyncCache.entrySet(any(Filter.class), nullable(Comparator.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.entrySet(any(Filter.class), any(Consumer.class))).thenThrow(ERROR);
 
         Filter<Binary>            filter      = new EqualsFilter<>("foo", "bar");
         ByteString                filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
@@ -736,10 +742,33 @@ class NamedCacheServiceImplTest
         }
 
     @Test
-    public void shouldHandleEntrySetAsyncError() throws Exception
+    public void shouldHandleEntrySetErrorWithComparator() throws Exception
+        {
+        when(m_testAsyncCache.entrySet(any(Filter.class), nullable(Comparator.class))).thenThrow(ERROR);
+
+        Filter<Binary>            filter          = new EqualsFilter<>("foo", "bar");
+        ByteString                filterBytes     = BinaryHelper.toByteString(filter, SERIALIZER);
+        Comparator<?>             comparator      = new ReflectionExtractor<>("foo");
+        ByteString                comparatorBytes = BinaryHelper.toByteString(comparator, SERIALIZER);
+        NamedCacheServiceImpl     service         = new NamedCacheServiceImpl(m_dependencies);
+        TestStreamObserver<Entry> observer        = new TestStreamObserver<>();
+
+        service.entrySet(Requests.entrySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes, comparatorBytes), observer);
+
+        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        observer.assertNoValues()
+                .assertError(StatusRuntimeException.class);
+
+        Throwable cause = rootCause(observer.getError());
+        assertThat(cause, is(sameInstance(ERROR)));
+        }
+
+    @Test
+    public void shouldHandleEntrySetAsyncErrorWithoutComparator() throws Exception
         {
         CompletableFuture<Set<Map.Entry<Binary, Binary>>> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.entrySet(any(Filter.class), nullable(Comparator.class))).thenReturn(failed);
+
+        when(m_testAsyncCache.entrySet(any(Filter.class), any(Consumer.class))).thenReturn(failed);
 
         Filter                    filter      = new EqualsFilter("foo", "bar");
         ByteString                filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
@@ -747,6 +776,29 @@ class NamedCacheServiceImplTest
         TestStreamObserver<Entry> observer    = new TestStreamObserver<>();
 
         service.entrySet(Requests.entrySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+
+        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        observer.assertNoValues()
+                .assertError(StatusRuntimeException.class);
+
+        Throwable cause = rootCause(observer.getError());
+        assertThat(cause, is(sameInstance(ERROR)));
+        }
+
+    @Test
+    public void shouldHandleEntrySetAsyncErrorWithComparator() throws Exception
+        {
+        CompletableFuture<Set<Map.Entry<Binary, Binary>>> failed = failedFuture(ERROR);
+        when(m_testAsyncCache.entrySet(any(Filter.class), any(Comparator.class))).thenReturn(failed);
+
+        Filter                    filter          = new EqualsFilter("foo", "bar");
+        ByteString                filterBytes     = BinaryHelper.toByteString(filter, SERIALIZER);
+        Comparator<?>             comparator      = new ReflectionExtractor<>("foo");
+        ByteString                comparatorBytes = BinaryHelper.toByteString(comparator, SERIALIZER);
+        NamedCacheServiceImpl     service         = new NamedCacheServiceImpl(m_dependencies);
+        TestStreamObserver<Entry> observer        = new TestStreamObserver<>();
+
+        service.entrySet(Requests.entrySet(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes, comparatorBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()
@@ -819,7 +871,6 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldExecuteGetAllWithResults() throws Exception
         {
-        // The values returned from an invoke all on a pass-thru cache are double serialized
         Map<Binary, Binary> mapResults = new HashMap<>();
         mapResults.put(serialize("one"),   doubleSerialize("value-1"));
         mapResults.put(serialize("two"),   doubleSerialize("value-2"));
@@ -827,8 +878,15 @@ class NamedCacheServiceImplTest
         mapResults.put(serialize("four"),  doubleSerialize("value-4"));
         mapResults.put(serialize("five"),  doubleSerialize("value-5"));
 
-        CompletableFuture<Map<Binary, Binary>> future = CompletableFuture.completedFuture(mapResults);
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(future);
+        CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class), any(Consumer.class)))
+                .thenAnswer((Answer<CompletableFuture<Void>>) invocation ->
+                    {
+                    Consumer<Map.Entry<Binary, Binary>> consumer = invocation.getArgument(2, Consumer.class);
+                    mapResults.entrySet().forEach(consumer);
+                    return future;
+                    });
 
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
@@ -872,7 +930,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleGetAllError() throws Exception
         {
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class), any(Consumer.class))).thenThrow(ERROR);
 
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
@@ -891,7 +949,7 @@ class NamedCacheServiceImplTest
     public void shouldHandleGetAllAsyncError() throws Exception
         {
         CompletableFuture<Map<Binary, Binary>> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class))).thenReturn(failed);
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(BinaryProcessors.BinaryGetProcessor.class), any(Consumer.class))).thenReturn(failed);
 
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         NamedCacheServiceImpl     service  = new NamedCacheServiceImpl(m_dependencies);
@@ -1035,7 +1093,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleInvokeAllWithFilterError() throws Exception
         {
-        when(m_testAsyncCache.invokeAll(any(Filter.class), any(ExtractorProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invokeAll(any(Filter.class), any(ExtractorProcessor.class), any(Consumer.class))).thenThrow(ERROR);
 
         TestStreamObserver<Entry>   observer            = new TestStreamObserver<>();
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
@@ -1057,8 +1115,9 @@ class NamedCacheServiceImplTest
     public void shouldHandleInvokeWithFilterAllAsyncError() throws Exception
         {
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
-        CompletableFuture<Map>    failed   = failedFuture(ERROR);
-        when(m_testAsyncCache.invokeAll(any(Filter.class), any(ExtractorProcessor.class))).thenReturn(failed);
+        CompletableFuture<Void>   failed   = failedFuture(ERROR);
+
+        when(m_testAsyncCache.invokeAll(any(Filter.class), any(ExtractorProcessor.class), any(Consumer.class))).thenReturn(failed);
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
@@ -1078,7 +1137,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleInvokeAllWithKeysError() throws Exception
         {
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(ExtractorProcessor.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(ExtractorProcessor.class), any(Consumer.class))).thenThrow(ERROR);
 
         TestStreamObserver<Entry>   observer            = new TestStreamObserver<>();
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
@@ -1101,7 +1160,8 @@ class NamedCacheServiceImplTest
         {
         TestStreamObserver<Entry> observer = new TestStreamObserver<>();
         CompletableFuture<Map>    failed   = failedFuture(ERROR);
-        when(m_testAsyncCache.invokeAll(any(Collection.class), any(ExtractorProcessor.class))).thenReturn(failed);
+
+        when(m_testAsyncCache.invokeAll(any(Collection.class), any(ExtractorProcessor.class), any(Consumer.class))).thenReturn(failed);
 
         InvocableMap.EntryProcessor processor           = new ExtractorProcessor("length()");
         ByteString                  serializedProcessor = BinaryHelper.toByteString(processor, SERIALIZER);
@@ -1185,7 +1245,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleKeySetError() throws Exception
         {
-        when(m_testAsyncCache.keySet(any(Filter.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.keySet(any(Filter.class), any(Consumer.class))).thenThrow(ERROR);
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
@@ -1206,7 +1266,7 @@ class NamedCacheServiceImplTest
     public void shouldHandleKeySetAsyncError() throws Exception
         {
         CompletableFuture<Set<Binary>> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.keySet(any(Filter.class))).thenReturn(failed);
+        when(m_testAsyncCache.keySet(any(Filter.class), any(Consumer.class))).thenReturn(failed);
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
@@ -1623,7 +1683,7 @@ class NamedCacheServiceImplTest
 
     private Function<String, ConfigurableCacheFactory> m_ccfSupplier;
 
-    private NamedCacheServiceImpl.DefaultDependencies m_dependencies;
+    private NamedCacheService.DefaultDependencies m_dependencies;
 
     private static ByteString s_bytes1;
 

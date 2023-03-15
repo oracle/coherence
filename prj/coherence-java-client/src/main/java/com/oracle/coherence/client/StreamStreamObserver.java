@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,13 +23,13 @@ import java.util.concurrent.CompletableFuture;
  * @author Jonathan Knight  2020.09.21
  * @since 20.06
  */
-class StreamStreamObserver<T>
+public class StreamStreamObserver<T>
         implements StreamObserver<T>
     {
 
     // ----- accessors ------------------------------------------------------
 
-    CompletableFuture<List<T>> future()
+    public CompletableFuture<List<T>> future()
         {
         return f_future;
         }

@@ -453,7 +453,7 @@ public class GrpcProxyMetrics
     /**
      * Registers an MBean for this {@code GrpcProxyMetrics}.
      */
-    void registerMBean(Registry registry)
+    public void registerMBean(Registry registry)
         {
         try
             {

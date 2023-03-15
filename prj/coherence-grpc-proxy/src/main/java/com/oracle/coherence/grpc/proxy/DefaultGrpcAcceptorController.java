@@ -27,7 +27,7 @@ import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
@@ -190,9 +190,12 @@ public class DefaultGrpcAcceptorController
     public static List<BindableGrpcProxyService> createGrpcServices(GrpcServiceDependencies deps)
         {
         BindableGrpcProxyService cacheService
-                = new NamedCacheServiceGrpcImpl(new NamedCacheServiceImpl.DefaultDependencies(deps));
-
-        return Collections.singletonList(cacheService);
+                = new NamedCacheServiceGrpcImpl(new NamedCacheService.DefaultDependencies(deps));
+//        BindableGrpcProxyService topicService
+//                = new RemoteTopicServiceGrpcImpl(new RemoteTopicService.DefaultDependencies(deps));
+//
+//        return Arrays.asList(cacheService, topicService);
+        return Arrays.asList(cacheService);
         }
 
     protected void configure(ServerBuilder<?> serverBuilder, InProcessServerBuilder inProcessServerBuilder)

@@ -11,13 +11,10 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
-import com.google.protobuf.UnsafeByteOperations;
 
-import com.oracle.coherence.common.base.Classes;
+import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ContainsEntryRequest;
-import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 import com.oracle.coherence.grpc.Entry;
 import com.oracle.coherence.grpc.EntryResult;
 import com.oracle.coherence.grpc.InvokeAllRequest;
@@ -27,14 +24,9 @@ import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
-import com.oracle.coherence.grpc.OptionalValue;
 import com.oracle.coherence.grpc.Requests;
 
-import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
-
-import com.tangosol.io.NamedSerializerFactory;
-import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheFactory;
@@ -47,9 +39,7 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.CacheMap;
 
-import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.Base;
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.Listeners;
@@ -87,18 +77,12 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -114,6 +98,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("DuplicatedCode")
 public class AsyncNamedCacheClient<K, V>
+        extends BaseGrpcClient<V>
         implements AsyncNamedCache<K, V>
     {
     // ----- constructors ---------------------------------------------------
@@ -127,17 +112,9 @@ public class AsyncNamedCacheClient<K, V>
      */
     public AsyncNamedCacheClient(Dependencies dependencies)
         {
-        f_sCacheName                = dependencies.getCacheName();
-        f_dispatcher                = dependencies.getEventDispatcher();
-        f_sScopeName                = dependencies.getScopeName().orElse(GrpcDependencies.DEFAULT_SCOPE);
+        super(dependencies);
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
-        f_executor                  = dependencies.getExecutor().orElseGet(AsyncNamedCacheClient::createDefaultExecutor);
-        f_sFormat                   = dependencies.getSerializerFormat()
-                                                  .orElseGet(() -> dependencies.getSerializer()
-                                                       .map(Serializer::getName)
-                                                       .orElseGet(AsyncNamedCacheClient::getDefaultSerializerFormat));
-        f_serializer                = dependencies.getSerializer().orElseGet(() -> createSerializer(f_sFormat));
         f_service                   = dependencies.getClient()
                                                   .orElseGet(() -> new NamedCacheGrpcClient(dependencies.getChannel()));
         initEvents();
@@ -150,7 +127,7 @@ public class AsyncNamedCacheClient<K, V>
         {
         return "AsyncNamedCacheClient{"
                + "scope: \"" + f_sScopeName + '"'
-               + "name: \"" + f_sCacheName + '"'
+               + "name: \"" + f_sName + '"'
                + " format: \"" + f_sFormat + '"'
                + '}';
         }
@@ -183,7 +160,7 @@ public class AsyncNamedCacheClient<K, V>
                 List<ByteString> keys = colKeys.stream()
                         .map(this::toByteString)
                         .collect(Collectors.toList());
-                return f_service.aggregate(Requests.aggregate(f_sScopeName, f_sCacheName, f_sFormat, keys,
+                return f_service.aggregate(Requests.aggregate(f_sScopeName, f_sName, f_sFormat, keys,
                                                               toByteString(entryAggregator)))
                         .thenApplyAsync(this::fromBytesValue)
                         .thenApply(r -> (R) r)
@@ -206,7 +183,7 @@ public class AsyncNamedCacheClient<K, V>
             try
                 {
                 return f_service
-                        .aggregate(Requests.aggregate(f_sScopeName, f_sCacheName, f_sFormat, toByteString(filter),
+                        .aggregate(Requests.aggregate(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
                                                       toByteString(entryAggregator)))
                         .thenApplyAsync(this::fromBytesValue)
                         .thenApply(r -> (R) r)
@@ -227,7 +204,7 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                return f_service.invoke(Requests.invoke(f_sScopeName, f_sCacheName, f_sFormat, toByteString(k),
+                return f_service.invoke(Requests.invoke(f_sScopeName, f_sName, f_sFormat, toByteString(k),
                                                         toByteString(entryProcessor)))
                         .thenApplyAsync(this::valueFromBytesValue)
                         .thenApply(r -> (R) r)
@@ -268,7 +245,7 @@ public class AsyncNamedCacheClient<K, V>
                 Collection<ByteString>                 serializedKeys = colKeys.stream()
                         .map(this::toByteString)
                         .collect(Collectors.toList());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, serializedKeys, toByteString(processor)),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, serializedKeys, toByteString(processor)),
                                   observer);
                 return future;
                 }
@@ -303,7 +280,7 @@ public class AsyncNamedCacheClient<K, V>
                     };
                 FutureStreamObserver<Entry, Map<K, R>> observer = new FutureStreamObserver<>(future, new HashMap<>(),
                                                                                              function);
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, toByteString(filter),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
                                                      toByteString(processor)), observer);
                 return future;
                 }
@@ -342,7 +319,7 @@ public class AsyncNamedCacheClient<K, V>
                 Collection<ByteString>            serializedKeys = colKeys.stream()
                         .map(this::toByteString)
                         .collect(Collectors.toList());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, serializedKeys, toByteString(processor)),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, serializedKeys, toByteString(processor)),
                                   observer);
                 return future;
                 }
@@ -379,7 +356,7 @@ public class AsyncNamedCacheClient<K, V>
                     return null;
                     };
                 FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, toByteString(filter),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
                                                      toByteString(processor)), observer);
                 return future;
                 }
@@ -399,7 +376,7 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                return f_service.clear(Requests.clear(f_sScopeName, f_sCacheName)).thenApply(e -> VOID).toCompletableFuture();
+                return f_service.clear(Requests.clear(f_sScopeName, f_sName)).thenApply(e -> VOID).toCompletableFuture();
                 }
             catch (Throwable t)
                 {
@@ -460,7 +437,7 @@ public class AsyncNamedCacheClient<K, V>
                 FutureStreamObserver<Entry, Map<K, R>> observer = new FutureStreamObserver<>(future, new HashMap<>(),
                                                                                              function);
                 ByteString                             filter   = toByteString(AlwaysFilter.INSTANCE());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, filter, toByteString(processor)),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, filter, toByteString(processor)),
                                   observer);
                 return future;
                 }
@@ -496,7 +473,7 @@ public class AsyncNamedCacheClient<K, V>
                     };
                 FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
                 ByteString                        filter   = toByteString(AlwaysFilter.INSTANCE());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, filter, toByteString(processor)),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, filter, toByteString(processor)),
                                   observer);
                 return future;
                 }
@@ -530,7 +507,7 @@ public class AsyncNamedCacheClient<K, V>
                     };
                 FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
                 ByteString                        filter   = toByteString(AlwaysFilter.INSTANCE());
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, filter, toByteString(processor)),
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, filter, toByteString(processor)),
                                   observer);
                 return future;
                 }
@@ -568,7 +545,7 @@ public class AsyncNamedCacheClient<K, V>
                         .map(this::toByteString)
                         .collect(Collectors.toList());
 
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, keys, toByteString(processor)), observer);
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, keys, toByteString(processor)), observer);
                 return future;
                 }
             catch (Throwable t)
@@ -602,7 +579,7 @@ public class AsyncNamedCacheClient<K, V>
                     return VOID;
                     };
                 FutureStreamObserver<Entry, Void> observer = new FutureStreamObserver<>(future, VOID, function);
-                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sCacheName, f_sFormat, toByteString(filter), toByteString(processor)), observer);
+                invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, toByteString(filter), toByteString(processor)), observer);
                 return future;
                 }
             catch (Throwable t)
@@ -615,7 +592,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<Boolean> isEmpty()
         {
-        return executeIfActive(() -> f_service.isEmpty(Requests.isEmpty(f_sScopeName, f_sCacheName))
+        return executeIfActive(() -> f_service.isEmpty(Requests.isEmpty(f_sScopeName, f_sName))
                 .thenApply(BoolValue::getValue)
                 .toCompletableFuture());
         }
@@ -641,7 +618,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<V> putIfAbsent(K key, V value)
         {
-        return executeIfActive(() -> f_service.putIfAbsent(Requests.putIfAbsent(f_sScopeName, f_sCacheName, f_sFormat,
+        return executeIfActive(() -> f_service.putIfAbsent(Requests.putIfAbsent(f_sScopeName, f_sName, f_sFormat,
                                                                                 toByteString(key), toByteString(value)))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
@@ -668,7 +645,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<V> replace(K key, V value)
         {
-        return executeIfActive(() -> f_service.replace(Requests.replace(f_sScopeName, f_sCacheName, f_sFormat,
+        return executeIfActive(() -> f_service.replace(Requests.replace(f_sScopeName, f_sName, f_sFormat,
                                                                         toByteString(key), toByteString(value)))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
@@ -678,7 +655,7 @@ public class AsyncNamedCacheClient<K, V>
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue)
         {
         return executeIfActive(() -> f_service.replaceMapping(
-                Requests.replace(f_sScopeName, f_sCacheName, f_sFormat, toByteString(key),
+                Requests.replace(f_sScopeName, f_sName, f_sFormat, toByteString(key),
                                  toByteString(oldValue), toByteString(newValue)))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
@@ -687,7 +664,7 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<Integer> size()
         {
-        return executeIfActive(() -> f_service.size(Requests.size(f_sScopeName, f_sCacheName))
+        return executeIfActive(() -> f_service.size(Requests.size(f_sScopeName, f_sName))
                 .thenApply(Int32Value::getValue)
                 .toCompletableFuture());
         }
@@ -727,7 +704,7 @@ public class AsyncNamedCacheClient<K, V>
             List<ByteString> keys = colKeys.stream()
                     .map(this::toByteString)
                     .collect(Collectors.toList());
-            return f_service.getAll(Requests.getAll(f_sScopeName, f_sCacheName, f_sFormat, keys));
+            return f_service.getAll(Requests.getAll(f_sScopeName, f_sName, f_sFormat, keys));
             }
         }
 
@@ -765,7 +742,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected String getCacheName()
         {
-        return f_sCacheName;
+        return f_sName;
         }
 
     /**
@@ -798,7 +775,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<V> getInternal(Object key, V defaultValue)
         {
-        return executeIfActive(() -> f_service.get(Requests.get(f_sScopeName, f_sCacheName, f_sFormat, toByteString(key)))
+        return executeIfActive(() -> f_service.get(Requests.get(f_sScopeName, f_sName, f_sFormat, toByteString(key)))
                 .thenApplyAsync(optional -> this.valueFromOptionalValue(optional, defaultValue))
                 .toCompletableFuture());
         }
@@ -837,36 +814,6 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
-     * Return {@code true} if the cache has been released.
-     *
-     * @return {@code true} if the cache has been released
-     */
-    protected boolean isReleased()
-        {
-        return m_fReleased;
-        }
-
-    /**
-     * Return {@code true} if the cache has been destroyed.
-     *
-     * @return {@code true} if the cache has been destroyed
-     */
-    protected boolean isDestroyed()
-        {
-        return m_fDestroyed;
-        }
-
-    /**
-     * Helper method for cache active checks.
-     *
-     * @return {@code true} if the cache is still active
-     */
-    public boolean isActiveInternal()
-        {
-        return !m_fReleased && !m_fDestroyed;
-        }
-
-    /**
      * Helper method for storing a key/value pair within the cache.
      *
      * @param key    the key
@@ -878,7 +825,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<V> putInternal(K key, V value, long cTtl)
         {
-        return executeIfActive(() -> f_service.put(Requests.put(f_sScopeName, f_sCacheName, f_sFormat,
+        return executeIfActive(() -> f_service.put(Requests.put(f_sScopeName, f_sName, f_sFormat,
                                                                 toByteString(key), toByteString(value), cTtl))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
@@ -904,7 +851,7 @@ public class AsyncNamedCacheClient<K, V>
                                         .setKey(toByteString(entry.getKey()))
                                         .setValue(toByteString(entry.getValue())).build());
                     }
-                return f_service.putAll(Requests.putAll(f_sScopeName, f_sCacheName, f_sFormat, entries)).toCompletableFuture();
+                return f_service.putAll(Requests.putAll(f_sScopeName, f_sName, f_sFormat, entries)).toCompletableFuture();
                 }
             catch (Throwable t)
                 {
@@ -925,7 +872,7 @@ public class AsyncNamedCacheClient<K, V>
 
      protected <T, E> CompletableFuture<Void> removeIndex(ValueExtractor<? super T, ? extends E> valueExtractor)
         {
-        return f_service.removeIndex(Requests.removeIndex(f_sScopeName, f_sCacheName, f_sFormat, toByteString(valueExtractor)))
+        return f_service.removeIndex(Requests.removeIndex(f_sScopeName, f_sName, f_sFormat, toByteString(valueExtractor)))
                 .thenApply(e -> VOID).toCompletableFuture();
         }
 
@@ -938,7 +885,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<V> removeInternal(Object key)
         {
-        return executeIfActive(() -> f_service.remove(Requests.remove(f_sScopeName, f_sCacheName, f_sFormat, toByteString(key)))
+        return executeIfActive(() -> f_service.remove(Requests.remove(f_sScopeName, f_sName, f_sFormat, toByteString(key)))
                 .thenApplyAsync(this::valueFromBytesValue)
                 .toCompletableFuture());
         }
@@ -955,7 +902,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<Boolean> removeInternal(Object key, Object value)
         {
-        return executeIfActive(() -> f_service.removeMapping(Requests.remove(f_sScopeName, f_sCacheName, f_sFormat,
+        return executeIfActive(() -> f_service.removeMapping(Requests.remove(f_sScopeName, f_sName, f_sFormat,
                                                                              toByteString(key), toByteString(value)))
                                                .thenApplyAsync(BoolValue::getValue)
                                                .toCompletableFuture());
@@ -1000,7 +947,7 @@ public class AsyncNamedCacheClient<K, V>
                     String uid = "";
                     try
                         {
-                        MapListenerRequest request = Requests.removeKeyMapListener(f_sScopeName, f_sCacheName,
+                        MapListenerRequest request = Requests.removeKeyMapListener(f_sScopeName, f_sName,
                                 f_sFormat, toByteString(key), fPriming, ByteString.EMPTY);
 
                         uid = request.getUid();
@@ -1087,7 +1034,7 @@ public class AsyncNamedCacheClient<K, V>
         try
             {
             MapListenerRequest request = Requests
-                    .removeFilterMapListener(f_sScopeName, f_sCacheName, f_sFormat, filterBytes, nFilterId,
+                    .removeFilterMapListener(f_sScopeName, f_sName, f_sFormat, filterBytes, nFilterId,
                                              false, false, triggerBytes);
             uid = request.getUid();
             f_mapFuture.put(uid, future);
@@ -1143,7 +1090,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<Void> truncate()
         {
-        return executeIfActive(() -> f_service.truncate(Requests.truncate(f_sScopeName, f_sCacheName))
+        return executeIfActive(() -> f_service.truncate(Requests.truncate(f_sScopeName, f_sName))
                 .thenApply(e -> VOID).toCompletableFuture());
         }
 
@@ -1175,7 +1122,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<Boolean> containsKeyInternal(Object oKey)
         {
-        return executeIfActive(() -> f_service.containsKey(Requests.containsKey(f_sScopeName, f_sCacheName, f_sFormat,
+        return executeIfActive(() -> f_service.containsKey(Requests.containsKey(f_sScopeName, f_sName, f_sFormat,
                                                                                 toByteString(oKey)))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
@@ -1190,7 +1137,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected CompletableFuture<Boolean> containsValue(Object oValue)
         {
-        return executeIfActive(() -> f_service.containsValue(Requests.containsValue(f_sScopeName, f_sCacheName, f_sFormat,
+        return executeIfActive(() -> f_service.containsValue(Requests.containsValue(f_sScopeName, f_sName, f_sFormat,
                                                                                     toByteString(oValue)))
                 .thenApplyAsync(BoolValue::getValue)
                 .toCompletableFuture());
@@ -1223,7 +1170,7 @@ public class AsyncNamedCacheClient<K, V>
         {
         MapListenerRequest request = MapListenerRequest.newBuilder()
                 .setScope(f_sScopeName)
-                .setCache(f_sCacheName)
+                .setCache(f_sName)
                 .setUid(UUID.randomUUID().toString())
                 .setSubscribe(true)
                 .setFormat(f_sFormat)
@@ -1276,7 +1223,7 @@ public class AsyncNamedCacheClient<K, V>
         {
         assertActive();
         ByteString s = cookie == null ? null : cookie.getValue();
-        return f_service.nextKeySetPage(Requests.page(f_sScopeName, f_sCacheName, f_sFormat, s));
+        return f_service.nextKeySetPage(Requests.page(f_sScopeName, f_sName, f_sFormat, s));
         }
 
     /**
@@ -1289,7 +1236,7 @@ public class AsyncNamedCacheClient<K, V>
     protected Stream<EntryResult> getEntriesPage(ByteString cookie)
         {
         assertActive();
-        return f_service.nextEntrySetPage(Requests.page(f_sScopeName, f_sCacheName, f_sFormat, cookie));
+        return f_service.nextEntrySetPage(Requests.page(f_sScopeName, f_sName, f_sFormat, cookie));
         }
 
     /**
@@ -1305,7 +1252,7 @@ public class AsyncNamedCacheClient<K, V>
         assertActive();
         try
             {
-            ContainsEntryRequest       request   = Requests.containsEntry(f_sScopeName, f_sCacheName, f_sFormat, toByteString(key),
+            ContainsEntryRequest       request   = Requests.containsEntry(f_sScopeName, f_sName, f_sFormat, toByteString(key),
                                                                           toByteString(value));
             CompletionStage<BoolValue> stage     = f_service.containsEntry(request);
             BoolValue                  boolValue = stage.toCompletableFuture().get();
@@ -1319,94 +1266,6 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
-     * A utility method to serialize an Object to {@link BytesValue}.
-     *
-     * @param obj  the object to convert to {@link BytesValue}.
-     *
-     * @return the {@link BytesValue} for the specified object
-     */
-    protected BytesValue toBytesValue(Object obj)
-        {
-        return BytesValue.of(toByteString(obj));
-        }
-
-    /**
-     * A utility method to serialize an Object to {@link ByteString}.
-     *
-     * @param obj  the object to convert to {@link ByteString}.
-     *
-     * @return the {@link ByteString} for the specified object
-     */
-    protected ByteString toByteString(Object obj)
-        {
-        return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.toBinary(obj, f_serializer).toByteBuffer());
-        }
-
-    /**
-     * A utility method to deserialize an {@link OptionalValue} to an Object.
-     * <p>
-     * If no value is present in the {@link OptionalValue} then the default
-     * value is returned.
-     *
-     * @param optional      the {@link OptionalValue} to deserialize an Object.
-     * @param defaultValue  the value to return if the {link @OptionalValue} does
-     *                      not contain a value
-     *
-     * @return an object from the specified {@link BytesValue}
-     */
-    protected V valueFromOptionalValue(OptionalValue optional, V defaultValue)
-        {
-        if (optional.getPresent())
-            {
-            return fromByteString(optional.getValue());
-            }
-        return defaultValue;
-        }
-
-    /**
-     * A utility method to deserialize a {@link BytesValue} to an Object.
-     *
-     * @param bv  the {@link BytesValue} to deserialize an Object.
-     *
-     * @return an object from the specified {@link BytesValue}
-     */
-    protected V valueFromBytesValue(BytesValue bv)
-        {
-        return fromBytesValue(bv);
-        }
-
-    /**
-     * A utility method to deserialize a {@link BytesValue} to an Object.
-     *
-     * @param bytes  the {@link BytesValue} to deserialize an Object.
-     *
-     * @return an object from the specified {@link BytesValue}
-     */
-    protected <T> T fromBytesValue(BytesValue bytes)
-        {
-        return BinaryHelper.fromBytesValue(bytes, f_serializer);
-        }
-
-    /**
-     * A utility method to deserialize a {@link ByteString} to an Object.
-     *
-     * @param bytes  the {@link ByteString} to deserialize an Object.
-     *
-     * @return an object from the specified {@link ByteString}
-     */
-    protected <T> T fromByteString(ByteString bytes)
-        {
-        return BinaryHelper.fromByteString(bytes, f_serializer);
-        }
-
-    protected  <T> CompletableFuture<T> failedFuture(Throwable t)
-        {
-        CompletableFuture<T> future = new CompletableFuture<>();
-        future.completeExceptionally(t);
-        return future;
-        }
-
-    /**
      * Assert that this {@link AsyncNamedCacheClient} is active.
      *
      * @throws IllegalStateException if this {@link AsyncNamedCacheClient}
@@ -1417,7 +1276,7 @@ public class AsyncNamedCacheClient<K, V>
         if (m_fReleased || m_fDestroyed)
             {
             String reason = m_fDestroyed ? "destroyed" : "released";
-            throw new IllegalStateException("remote cache '" + f_sCacheName + "' has been " + reason);
+            throw new IllegalStateException("remote cache '" + f_sName + "' has been " + reason);
             }
         }
 
@@ -1441,7 +1300,7 @@ public class AsyncNamedCacheClient<K, V>
         else
             {
             String reason = m_fDestroyed ? "destroyed" : "released";
-            return failedFuture(new IllegalStateException("remote cache '" + f_sCacheName + "' has been " + reason));
+            return failedFuture(new IllegalStateException("remote cache '" + f_sName + "' has been " + reason));
             }
         }
 
@@ -1471,7 +1330,7 @@ public class AsyncNamedCacheClient<K, V>
             if (destroy)
                 {
                 m_fDestroyed = true;
-                future = f_service.destroy(Requests.destroy(f_sScopeName, f_sCacheName)).thenApply(e -> VOID).toCompletableFuture();
+                future = f_service.destroy(Requests.destroy(f_sScopeName, f_sName)).thenApply(e -> VOID).toCompletableFuture();
                 }
             else
                 {
@@ -1617,12 +1476,12 @@ public class AsyncNamedCacheClient<K, V>
                                ByteString serializedExtractor = toByteString(extractor);
                                if (comparator == null)
                                    {
-                                   return f_service.addIndex(Requests.addIndex(f_sScopeName, f_sCacheName, f_sFormat, serializedExtractor, fOrdered))
+                                   return f_service.addIndex(Requests.addIndex(f_sScopeName, f_sName, f_sFormat, serializedExtractor, fOrdered))
                                            .thenApply(e -> VOID).toCompletableFuture();
                                    }
                                else
                                    {
-                                   return f_service.addIndex(Requests.addIndex(f_sScopeName, f_sCacheName, f_sFormat, serializedExtractor,
+                                   return f_service.addIndex(Requests.addIndex(f_sScopeName, f_sName, f_sFormat, serializedExtractor,
                                                                                fOrdered, toByteString(comparator)))
                                            .thenApply(e -> VOID).toCompletableFuture();
                                    }
@@ -1748,7 +1607,7 @@ public class AsyncNamedCacheClient<K, V>
             try
                 {
                 MapListenerRequest request = Requests
-                        .addKeyMapListener(f_sScopeName, f_sCacheName, f_sFormat, toByteString(key),
+                        .addKeyMapListener(f_sScopeName, f_sName, f_sFormat, toByteString(key),
                                            fLite, priming, ByteString.EMPTY);
                 uid = request.getUid();
                 f_mapFuture.put(uid, future);
@@ -1873,7 +1732,7 @@ public class AsyncNamedCacheClient<K, V>
         try
             {
             MapListenerRequest request = Requests
-                    .addFilterMapListener(f_sScopeName, f_sCacheName, f_sFormat, filterBytes, nFilterId, fLite, false, triggerBytes);
+                    .addFilterMapListener(f_sScopeName, f_sName, f_sFormat, filterBytes, nFilterId, fLite, false, triggerBytes);
             uid = request.getUid();
             f_mapFuture.put(uid, future);
             m_evtRequestObserver.onNext(request);
@@ -2044,47 +1903,13 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     /**
-     * Obtain the default {@link Executor} to be used by the cache.
-     *
-     * @return  the default {@link Executor} to be used by the cache
-     */
-    protected static Executor createDefaultExecutor()
-        {
-        return Executors.newSingleThreadExecutor();
-        }
-
-    /**
-     * Obtain the default {@link Serializer} to be used by the cache.
-     *
-     * @return  the default {@link Serializer} to be used by the cache
-     */
-    protected static Serializer createSerializer(String sFormat)
-        {
-        return NamedSerializerFactory.DEFAULT.getNamedSerializer(sFormat, Classes.getContextClassLoader());
-        }
-
-    /**
-     * Return the default serialization format.
-     * <p>
-     * The default format will be Java serialization unless
-     * the {@code coherence.pof.enabled} property is set
-     * when it will be POF.
-     *
-     * @return the default serialization format
-     */
-    protected static String getDefaultSerializerFormat()
-        {
-        return Config.getBoolean("coherence.pof.enabled") ? "pof" : "java";
-        }
-
-    /**
      * Returns the event dispatcher for this cache.
      *
      * @return the event dispatcher for this cache
      */
     protected GrpcCacheLifecycleEventDispatcher getEventDispatcher()
         {
-        return f_dispatcher;
+        return (GrpcCacheLifecycleEventDispatcher) f_dispatcher;
         }
 
     // ----- inner class: EventTask -----------------------------------------
@@ -2271,7 +2096,7 @@ public class AsyncNamedCacheClient<K, V>
                         }
                     break;
                 case DESTROYED:
-                    if (response.getDestroyed().getCache().equals(f_sCacheName))
+                    if (response.getDestroyed().getCache().equals(f_sName))
                         {
                         synchronized (this)
                             {
@@ -2285,7 +2110,7 @@ public class AsyncNamedCacheClient<K, V>
                         }
                     break;
                 case TRUNCATED:
-                    if (response.getTruncated().getCache().equals(f_sCacheName))
+                    if (response.getTruncated().getCache().equals(f_sName))
                         {
                         CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/ false);
                         for (NamedCacheDeactivationListener listener : f_listCacheDeactivationListeners)
@@ -2303,17 +2128,17 @@ public class AsyncNamedCacheClient<K, V>
                         }
                     break;
                 case RESPONSETYPE_NOT_SET:
-                    LOGGER.log(Level.INFO, "Received unexpected event without response type! ");
+                    Logger.info("Received unexpected event without a response type!");
                     break;
                 default:
-                    LOGGER.log(Level.INFO, "Received unexpected event " + response.getEvent());
+                    Logger.info("Received unexpected event " + response.getEvent());
                 }
             }
 
         @Override
         public void onError(Throwable t)
             {
-            LOGGER.log(Level.SEVERE, t, () -> "Caught exception handling onError");
+            Logger.err(() -> "Caught exception handling onError", t);
             if (!f_future.isDone())
                 {
                 f_future.completeExceptionally(t);
@@ -2393,73 +2218,14 @@ public class AsyncNamedCacheClient<K, V>
      * The dependencies used to create an {@link AsyncNamedCacheClient}.
      */
     public interface Dependencies
+            extends BaseGrpcClient.Dependencies
         {
-        /**
-         * Returns the name of the underlying cache that this
-         * AsyncNamedCacheClient represents.
-         * <p>
-         * This method must not return {@code null}.
-         *
-         * @return the name of the underlying cache that this
-         *         AsyncNamedCacheClient represents
-         */
-        String getCacheName();
-
-        /**
-         * Returns the gRPC {@link Channel}.
-         * <p>
-         * This method must not return {@code null}.
-         *
-         * @return the gRPC {@link Channel}
-         */
-        Channel getChannel();
-
-        /**
-         * Returns the scope named used to link requests
-         * to a specific server side scope.
-         *
-         * @return the scope named used to for requests
-         */
-        Optional<String> getScopeName();
-
-        /**
-         * Return the {@link Serializer} to use to
-         * serialize request and response payloads.
-         *
-         * @return the {@link Serializer} to use for
-         *         request and response payloads
-         */
-        Optional<Serializer> getSerializer();
-
-        /**
-         * Return the name of the serialization format to be used
-         * for requests and responses.
-         *
-         * @return the name of the serialization format to be used
-         *         for requests and responses
-         */
-        Optional<String> getSerializerFormat();
-
         /**
          * Return the optional {@link NamedCacheGrpcClient} to use.
          *
          * @return the optional {@link NamedCacheGrpcClient} to use
          */
         Optional<NamedCacheGrpcClient> getClient();
-
-        /**
-         * Return the optional {@link Executor} to use.
-         *
-         * @return the optional {@link Executor} to use
-         */
-        Optional<Executor> getExecutor();
-
-        /**
-         * Returns the event dispatcher for the cache.
-         *
-         * @return the event dispatcher for the cache
-         */
-        GrpcCacheLifecycleEventDispatcher getEventDispatcher();
         }
         // ----- DefaultDependencies ----------------------------------------
 
@@ -2467,6 +2233,7 @@ public class AsyncNamedCacheClient<K, V>
      * The dependencies used to create an {@link AsyncNamedCacheClient}.
      */
     public static class DefaultDependencies
+            extends BaseGrpcClient.DefaultDependencies
             implements Dependencies
         {
         // ----- constructors -----------------------------------------------
@@ -2481,43 +2248,10 @@ public class AsyncNamedCacheClient<K, V>
          */
         public DefaultDependencies(String sCacheName, Channel channel, GrpcCacheLifecycleEventDispatcher dispatcher)
             {
-            f_sCacheName = sCacheName;
-            f_channel = channel;
-            m_sScopeName = GrpcDependencies.DEFAULT_SCOPE;
-            f_dispatcher = dispatcher;
+            super(sCacheName, channel, dispatcher);
             }
 
         // ----- Dependencies methods ---------------------------------------
-
-        @Override
-        public String getCacheName()
-            {
-            return f_sCacheName;
-            }
-
-        @Override
-        public Channel getChannel()
-            {
-            return f_channel;
-            }
-
-        @Override
-        public Optional<String> getScopeName()
-            {
-            return Optional.ofNullable(m_sScopeName);
-            }
-
-        @Override
-        public Optional<Serializer> getSerializer()
-            {
-            return Optional.ofNullable(m_serializer);
-            }
-
-        @Override
-        public Optional<String> getSerializerFormat()
-            {
-            return Optional.ofNullable(m_serializerFormat);
-            }
 
         @Override
         public Optional<NamedCacheGrpcClient> getClient()
@@ -2525,30 +2259,7 @@ public class AsyncNamedCacheClient<K, V>
             return Optional.ofNullable(m_client);
             }
 
-        @Override
-        public Optional<Executor> getExecutor()
-            {
-            return Optional.ofNullable(m_executor);
-            }
-
-        @Override
-        public GrpcCacheLifecycleEventDispatcher getEventDispatcher()
-            {
-            return f_dispatcher;
-            }
-
         // ----- setters ----------------------------------------------------
-
-        /**
-         * Set the scope name.
-         *
-         * @param sScopeName  the scope name
-         */
-        public void setScope(String sScopeName)
-            {
-            m_sScopeName = GrpcDependencies.DEFAULT_SCOPE_ALIAS.equals(sScopeName)
-                    ? GrpcDependencies.DEFAULT_SCOPE : sScopeName;
-            }
 
         /**
          * Set the optional {@link NamedCacheGrpcClient}.
@@ -2560,117 +2271,15 @@ public class AsyncNamedCacheClient<K, V>
             m_client = client;
             }
 
-        /**
-         * Set the optional {@link Executor} to use instead
-         * of a {@link SimpleDaemonPoolExecutor}.
-         *
-         * @param executor the optional {@link Executor} to use
-         */
-        public void setExecutor(Executor executor)
-            {
-            m_executor = executor;
-            }
-
-        /**
-         * Set the serialization format to use for requests and
-         * responses.
-         * <p>
-         * Calling this method will remove any {@link Serializer} set by calling
-         * {@link #setSerializer(Serializer)} or {@link #setSerializer(Serializer, String)}.
-         * <p>
-         * A {@link Serializer} configuration with the specified name must  exist in the
-         * Coherence Operational Configuration.
-         *
-         * @param sFormat  the serialization format and reference to a {@link Serializer}
-         *                 configuration in the Coherence Operational Configuration
-         */
-        @SuppressWarnings("unused")
-        public void setSerializerFormat(String sFormat)
-            {
-            m_serializerFormat = sFormat;
-            m_serializer       = null;
-            }
-
-        /**
-         * Set the {@link Serializer} to use for requests and response payloads.
-         * <p>
-         * The serialization format used will be obtained by calling the
-         * {@link Serializer#getName()} method on the serializer.
-         *
-         * @param serializer  the {@link Serializer} to use to serialize request
-         *                    and response payloads
-         */
-        public void setSerializer(Serializer serializer)
-            {
-            String sFormat = serializer == null ? null : serializer.getName();
-            setSerializer(serializer, sFormat);
-            }
-
-        /**
-         * Set the {@link Serializer} and serialization format name to use for
-         * requests and response payloads.
-         * <p>
-         *
-         * @param serializer  the {@link Serializer} to use to serialize request
-         *                    and response payloads
-         * @param sFormat     the serialization format name
-         */
-        public void setSerializer(Serializer serializer, String sFormat)
-            {
-            m_serializer       = serializer;
-            m_serializerFormat = sFormat;
-            }
-
         // ----- data members -----------------------------------------------
-
-        /**
-         * The underlying cache name that the {@link AsyncNamedCacheClient}
-         * will represent.
-         */
-        private final String f_sCacheName;
-
-        /**
-         * The gRPC {@link Channel} to use to connect to the server.
-         */
-        private final Channel f_channel;
-
-        /**
-         * The event dispatcher for the cache.
-         */
-        private final GrpcCacheLifecycleEventDispatcher f_dispatcher;
-
-        /**
-         * The server side scope name to use in requests.
-         */
-        private String m_sScopeName;
 
         /**
          * An optional {@link NamedCacheGrpcClient} to use
          */
         private NamedCacheGrpcClient m_client;
-
-        /**
-         * An optional {@link Executor} to use.
-         */
-        private Executor m_executor;
-
-        /**
-         * The {@link Serializer} to use for request and response payloads.
-         */
-        private Serializer m_serializer;
-
-        /**
-         * The name of the serialization format.
-         */
-        private String m_serializerFormat;
         }
 
     // ----- constants ------------------------------------------------------
-
-    /**
-     * Java logging.
-     */
-    protected static final Logger LOGGER = Logger.getLogger(AsyncNamedCacheClient.class.getName());
 
     /**
      * A constant value to use for {@link Void} values.
@@ -2680,44 +2289,14 @@ public class AsyncNamedCacheClient<K, V>
     // ----- data members ---------------------------------------------------
 
     /**
-     * The scope name to use for requests.
-     */
-    protected final String f_sScopeName;
-
-    /**
-     * The cache name.
-     */
-    protected final String f_sCacheName;
-
-    /**
      * The {@link NamedCacheGrpcClient} to delegate calls.
      */
     protected final NamedCacheGrpcClient f_service;
 
     /**
-     * The {@link Serializer} to use.
-     */
-    protected final Serializer f_serializer;
-
-    /**
-     * The serialization format.
-     */
-    protected final String f_sFormat;
-
-    /**
      * The synchronous version of this client.
      */
     protected final NamedCacheClient<K, V> f_synchronousCache;
-
-    /**
-     * A flag indicating whether this {@link AsyncNamedCacheClient} has been released.
-     */
-    protected boolean m_fReleased;
-
-    /**
-     * A flag indicating whether this {@link AsyncNamedCacheClient} has been destroyed.
-     */
-    protected boolean m_fDestroyed;
 
     /**
      * The list of {@link DeactivationListener} to be notified when this {@link AsyncNamedCacheClient}
@@ -2729,11 +2308,6 @@ public class AsyncNamedCacheClient<K, V>
      * The list of {@link NamedCacheDeactivationListener} instances added to this client.
      */
     protected final List<NamedCacheDeactivationListener> f_listCacheDeactivationListeners = new ArrayList<>();
-
-    /**
-     * The {@link Executor} to use to dispatch events.
-     */
-    protected final Executor f_executor;
 
     /**
      * The client channel for events observer.
@@ -2759,11 +2333,6 @@ public class AsyncNamedCacheClient<K, V>
      * The map of future keyed by request id.
      */
     protected final Map<String, CompletableFuture<Void>> f_mapFuture = new ConcurrentHashMap<>();
-
-    /**
-     * The event dispatcher for this cache.
-     */
-    protected final GrpcCacheLifecycleEventDispatcher f_dispatcher;
 
     /**
      * The count of successfully registered {@link MapListener map listeners}
