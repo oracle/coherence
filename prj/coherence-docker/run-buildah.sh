@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -59,7 +59,7 @@ else
   fi
 fi
 
-chmod +x ${SCRIPT_NAME}
+chmod +x "${SCRIPT_NAME}"
 
 BUILDAH=$(which buildah || true)
 if [ "${BUILDAH}" != "" ]
@@ -120,6 +120,6 @@ else
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \
-      quay.io/buildah/stable:v1.23.3 ${SCRIPT_NAME}
+      quay.io/buildah/stable:v1.29.0 "${SCRIPT_NAME}"
 fi
 
