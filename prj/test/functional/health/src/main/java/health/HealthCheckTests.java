@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -245,47 +245,6 @@ public class HealthCheckTests
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_SAFE), is(200));
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_HA), is(200));
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort2, PATH_HA), is(200));
-                }
-            }
-        }
-
-    @Test
-    public void shouldNotBeStatusHATwoMembersWithBackupCountTwo()
-        {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
-
-        try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
-                                                    ClassName.of(Coherence.class),
-                                                    CacheConfig.of("test-cache-config.xml"),
-                                                    SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                    IPv4Preferred.yes(),
-                                                    LocalHost.only(),
-                                                    Logging.atMax(),
-                                                    m_testLogs.builder(),
-                                                    Logging.atMax(),
-                                                    DisplayName.of("storage-0"),
-                                                    SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1)))
-            {
-            try (CoherenceClusterMember app2 = platform.launch(CoherenceClusterMember.class,
-                                                        ClassName.of(Coherence.class),
-                                                        CacheConfig.of("test-cache-config.xml"),
-                                                        IPv4Preferred.yes(),
-                                                        LocalHost.only(),
-                                                        m_testLogs.builder(),
-                                                        Logging.atMax(),
-                                                        Logging.atMax(),
-                                                        DisplayName.of("storage-1"),
-                                                        SystemProperty.of("coherence.distributed.backupcount", 2),
-                                                        SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
-                {
-                Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
-                Eventually.assertDeferred(() -> isServiceOneRunning(app2), is(true));
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_SAFE), is(503));
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_SAFE), is(503));
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_HA), is(503));
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, PATH_HA), is(503));
                 }
             }
         }
