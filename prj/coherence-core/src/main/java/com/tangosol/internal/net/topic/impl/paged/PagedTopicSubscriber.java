@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.base.TimeHelper;
 import com.oracle.coherence.common.util.Options;
+import com.oracle.coherence.common.util.SafeClock;
 import com.oracle.coherence.common.util.Sentry;
 
 import com.tangosol.coherence.config.Config;
@@ -1030,6 +1031,14 @@ public class PagedTopicSubscriber<V>
                     {
                     m_connectionTimestamp = subscription.getSubscriberTimestamp(f_id);
                     }
+                else
+                    {
+                    // the subscription may be null during rolling upgrade where the senior is an older version
+                    m_connectionTimestamp = SafeClock.INSTANCE.getSafeTimeMillis();
+                    }
+
+                // heartbeat immediately to update the subscriber's timestamp in the Subscriber cache
+                heartbeat(false);
                 }
 
             boolean fDisconnected = m_nState == STATE_DISCONNECTED;
@@ -2128,6 +2137,16 @@ public class PagedTopicSubscriber<V>
      */
     public void heartbeat()
         {
+        heartbeat(true);
+        }
+
+    /**
+     * If this is not an anonymous subscriber send a heartbeat to the server.
+     *
+     * @param fAsync  {@code true} to invoke the heartbeat processor asynchronously
+     */
+    private void heartbeat(boolean fAsync)
+        {
         if (!f_fAnonymous)
             {
             // we're not anonymous so send a poll heartbeat
@@ -2135,7 +2154,14 @@ public class PagedTopicSubscriber<V>
             f_heartbeatProcessor.setUuid(uuid);
             f_heartbeatProcessor.setSubscription(m_subscriptionId);
             f_heartbeatProcessor.setlConnectionTimestamp(m_connectionTimestamp);
-            m_caches.Subscribers.async().invoke(f_key, f_heartbeatProcessor);
+            if (fAsync)
+                {
+                m_caches.Subscribers.async().invoke(f_key, f_heartbeatProcessor);
+                }
+            else
+                {
+                m_caches.Subscribers.invoke(f_key, f_heartbeatProcessor);
+                }
             }
         }
 

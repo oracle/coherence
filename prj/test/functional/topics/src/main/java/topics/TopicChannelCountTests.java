@@ -38,6 +38,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.management.SubscriberModel;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.topic.NamedTopic;
@@ -93,7 +94,9 @@ public class TopicChannelCountTests
     @After
     public void cleanup()
         {
+        Cluster cluster = CacheFactory.getCluster();
         CacheFactory.shutdown();
+        Eventually.assertDeferred(cluster::isRunning, is(false));
         }
 
     @Test
