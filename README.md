@@ -64,7 +64,7 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06</version>
+        <version>22.06.3</version>
     </dependency>
 </dependencies>
 ```
@@ -171,7 +171,16 @@ You will then access data using the CohQL and Coherence consoles.
 
 #### <a name="install"></a> Install the Coherence CLI
 
-Install the Coherence CLI by following the instructions for your selected platform [here](https://oracle.github.io/coherence-cli/docs/latest/#/docs/installation/01_installation). Once you have installed the CLI, continue below.
+For **macOS or Linux** platforms, use the following to install the latest version of the CLI:
+
+```bash
+curl -sL https://raw.githubusercontent.com/oracle/coherence-cli/main/scripts/install.sh | bash
+```
+
+> When you install the CLI, administrative privileges are required as the `cohctl` executable is moved to the /usr/local/bin directory.
+
+For **Windows**, see [here](https://oracle.github.io/coherence-cli/docs/latest/#/docs/installation/01_installation) for installation guide.
+
 
 #### <a name="create"></a>Create and start a Cluster
 
@@ -313,7 +322,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06</version>
+        <version>22.06.3</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:
