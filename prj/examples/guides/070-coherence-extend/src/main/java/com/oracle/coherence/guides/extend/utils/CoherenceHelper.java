@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -48,9 +48,9 @@ public abstract class CoherenceHelper {
 
         // Start Coherence
         try {
-            coherence.start().get(5000, TimeUnit.MILLISECONDS);
+            coherence.start().get(60, TimeUnit.SECONDS);
         } catch (TimeoutException | InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Coherence did not start up within 5s.", e);
+            throw new RuntimeException("Coherence did not start up within 60s.", e);
         }
     }
     // # end::bootstrap[]
