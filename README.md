@@ -171,7 +171,7 @@ You will then access data using the CohQL and Coherence consoles.
 
 #### <a name="install"></a> Install the Coherence CLI
 
-For macOS and Linux platforms, use the following to install the latest version of the CLI:
+For **macOS or Linux** platforms, use the following to install the latest version of the CLI:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/oracle/coherence-cli/main/scripts/install.sh | bash
@@ -179,15 +179,8 @@ curl -sL https://raw.githubusercontent.com/oracle/coherence-cli/main/scripts/ins
 
 > When you install the CLI, administrative privileges are required as the `cohctl` executable is moved to the /usr/local/bin directory.
 
-For Windows, use the curl command below, then copy `cohctl.exe` to a directory in your PATH:
+For **Windows**, see [here](https://oracle.github.io/coherence-cli/docs/latest/#/docs/installation/01_installation) for installation guide.
 
-```cmd
-curl -sLo cohctl.exe "https://github.com/oracle/coherence-cli/releases/download/1.4.2/cohctl-1.4.2-windows-amd64.exe"
-```
-
-> Note: Change the **amd64** to **arm** for ARM based processor in the URL above.
-
-For more details on installing the CLI see the [Install Guide.](https://oracle.github.io/coherence-cli/docs/latest/#/docs/installation/01_installation)
 
 #### <a name="create"></a>Create and start a Cluster
 
