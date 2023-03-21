@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.partition;
 
@@ -194,6 +194,7 @@ public interface SimpleStrategyMBean
      */
     @Description("The number of partition transfers that remain to be completed " +
                  "before the service achieves the goals set by this strategy.")
+    @MetricsValue
     public int getRemainingDistributionCount();
 
     /**
@@ -202,6 +203,7 @@ public interface SimpleStrategyMBean
      * @return the average partition storage size in kilobytes
      */
     @Description("The average partition storage size in kilobytes.")
+    @MetricsValue
     public long getAveragePartitionSizeKB();
 
     /**
@@ -210,6 +212,7 @@ public interface SimpleStrategyMBean
      * @return the maximum partition storage size in kilobytes
      */
     @Description("The maximum partition storage size in kilobytes.")
+    @MetricsValue
     public long getMaxPartitionSizeKB();
 
     /**
@@ -218,6 +221,7 @@ public interface SimpleStrategyMBean
      * @return the average node storage size in kilobytes
      */
     @Description("The average node storage size in kilobytes.")
+    @MetricsValue
     public long getAverageStorageSizeKB();
 
     /**
@@ -226,6 +230,7 @@ public interface SimpleStrategyMBean
      * @return the maximum node storage size in kilobytes
      */
     @Description("The maximum node storage size in kilobytes.")
+    @MetricsValue
     public long getMaxStorageSizeKB();
 
     /**
@@ -234,8 +239,8 @@ public interface SimpleStrategyMBean
      * @return the node id with the maximum storage size
      */
     @Description("The node ID with the maximum node storage size.")
+    @MetricsValue
     public int getMaxLoadNodeId();
-
 
     // ----- operations -----------------------------------------------------
 
