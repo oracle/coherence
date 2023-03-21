@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 plugins {
 	id 'java'
+	id 'com.oracle.coherence' version "${coherenceVersion}"
+	id 'com.github.vlsi.jandex' version "${jandexPluginVersion}"
 }
 
 group = 'com.oracle.coherence.guides'
@@ -27,7 +29,7 @@ dependencies {
 	testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
 	testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
 test {

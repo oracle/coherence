@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2023 Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+repositories {
+    maven { url 'target/dependencies' }
+    mavenLocal()
+    mavenCentral()
+}
+
+publishing {
+    repositories {
+        mavenLocal()
+    }
+}
+
+dependencies {
+    implementation "${group}:coherence:${version}"
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    testImplementation "org.hamcrest:hamcrest-core:${hamcrestVersion}"
+}
+
+gradlePlugin {
+    plugins {
+        coherencePof {
+            id = 'com.oracle.coherence.ce'
+            implementationClass = 'com.oracle.coherence.gradle.CoherencePlugin'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+tasks.register('javadocJar', Jar) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+    dependsOn javadoc
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    dependsOn classes
+}
+
+tasks.register('processVersionFile', WriteProperties) {
+    it.outputFile("$buildDir/resources/main/coherence-gradle-plugin.properties")
+    property 'coherence-version', project.version
+    property 'coherence-group-id', project.group
+    property 'local-dependency-repo', project.projectDir.absolutePath + "/target/dependencies"
+}
+
+tasks.classes.dependsOn('processVersionFile')
+
+assemble.dependsOn javadocJar
+assemble.dependsOn sourcesJar
