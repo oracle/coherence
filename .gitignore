@@ -20,6 +20,7 @@
 target
 dist
 _package
+build/
 
 #ignore these specific files
 dependency-reduced-pom.xml
@@ -30,5 +31,3 @@ dependency-reduced-pom.xml
 !.gitignore
 !prj/.mvn
 !prj/.mvn/**
-
-
