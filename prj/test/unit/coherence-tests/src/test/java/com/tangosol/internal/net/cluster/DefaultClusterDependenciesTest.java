@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.cluster;
 
@@ -348,6 +348,7 @@ public class DefaultClusterDependenciesTest
         assertEquals(deps1.isTcpRingEnabled(),                     deps2.isTcpRingEnabled());
         assertEquals(deps1.getTcpRingSocketOptions(),              deps2.getTcpRingSocketOptions());
         assertEquals(deps1.getWellKnownAddresses(),                deps2.getWellKnownAddresses());
+        assertEquals(deps1.getLambdasSerializationMode(),          deps2.getLambdasSerializationMode());
         }
 
     /**
@@ -365,6 +366,9 @@ public class DefaultClusterDependenciesTest
 
         // Remove this when COH-5431 is fixed
         deps.setMemberIdentity(new DefaultMemberIdentity());
+
+        // Defaults to no value being set, verify that a set value is preserved by clone().
+        deps.setLambdasSerializationMode("static");
 
         return deps;
         }
