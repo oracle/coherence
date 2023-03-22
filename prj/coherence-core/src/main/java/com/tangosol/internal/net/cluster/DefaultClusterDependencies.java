@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -163,6 +163,7 @@ public class DefaultClusterDependencies
             m_localAddress                   = deps.getLocalAddress();
             m_builderRegistry                = new SimpleParameterizedBuilderRegistry(deps.getBuilderRegistry());
             m_builderUnicastSocketProvider   = deps.getUnicastSocketProviderBuilder();
+            m_sLambdasSerializationMode      = deps.getLambdasSerializationMode();
 
             m_customResources = new SimpleResourceRegistry();
             deps.registerResources(m_customResources);
@@ -2020,6 +2021,25 @@ public class DefaultClusterDependencies
         return m_mapLocalServiceProvider.getOrDefault(sType, ServiceProvider.NULL_IMPLEMENTATION);
         }
 
+    @Override
+    public String getLambdasSerializationMode()
+        {
+        return m_sLambdasSerializationMode;
+        }
+
+    /**
+     * Set lambdas serialization mode.
+     *
+     * @param sMode  either "static", "dynamic" or ""
+     *
+     * @return this object
+     */
+    public DefaultClusterDependencies setLambdasSerializationMode(String sMode)
+        {
+        m_sLambdasSerializationMode = sMode;
+        return this;
+        }
+
     // ----- DefaultClusterDependencies methods -----------------------------
 
     /**
@@ -2145,6 +2165,7 @@ public class DefaultClusterDependencies
             + "\n\tReceiverNackEnabled           = " + isReceiverNackEnabled()
             + "\n\tTcmpEnabled                   = " + isTcmpEnabled()
             + "\n\tTcpRingEnabled                = " + isTcpRingEnabled()
+            + "\n\tLambdasSerialization          = " + getLambdasSerializationMode()
             + "}";
         }
 
@@ -2732,4 +2753,9 @@ public class DefaultClusterDependencies
      * A map of local (non-clustered) {@link ServiceProvider} instances.
      */
     private Map<String, ServiceProvider> m_mapLocalServiceProvider = new ConcurrentHashMap<>();
+
+    /**
+     * Lambdas serialization mode. Either "static", "dynamic" or "", indicating not set.
+     */
+    private String m_sLambdasSerializationMode = "";
     }

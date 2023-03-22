@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="tangosol-coherence-override.xml">
+
+  <cluster-config>
+    <!-- validate able to override dev mode default of dynamic -->
+    <lambdas-serialization>static</lambdas-serialization>
+  </cluster-config>
+  <license-config>
+    <license-mode>dev</license-mode>
+  </license-config>
+</coherence>
