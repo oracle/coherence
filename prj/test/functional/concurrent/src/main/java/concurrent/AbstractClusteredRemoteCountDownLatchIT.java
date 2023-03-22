@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,8 @@ import com.oracle.coherence.common.base.Randoms;
 
 import com.oracle.coherence.concurrent.Latches;
 import com.oracle.coherence.concurrent.RemoteCountDownLatch;
+import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.tangosol.util.Base;
 
 import org.junit.jupiter.api.AfterEach;
@@ -244,7 +246,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         listener1.awaitAcquired(Duration.ofSeconds(20));
 
         AbstractClusteredRemoteCountDownLatchIT.CountDown countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
-        CompletableFuture<Void>                                futureCountDown = member1.submit(countDown);
+        CompletableFuture<Void>                           futureCountDown = member1.submit(countDown);
 
         listener1.awaitCountedDown(Duration.ofSeconds(20));
         assertThat(futureCountDown.get(), nullValue());
@@ -254,6 +256,22 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
 
         m_coherenceResource.getCluster().filter(member -> member.getLocalMemberUID().equals(member1.getLocalMemberUID())).relaunch();
         CoherenceClusterMember newMember1 = m_coherenceResource.getCluster().get("storage-1");
+
+        // wait for the session to be started.
+        int i = 0;
+        while (i < 5)
+            {
+            try
+                {
+                newMember1.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
+                break;
+                }
+            catch (IllegalArgumentException e)
+                {
+                i++;
+                Base.sleep(1000);
+                }
+            }
 
         futureAcquire = newMember1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
         listener1.awaitAcquired(Duration.ofSeconds(10));
