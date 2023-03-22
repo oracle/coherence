@@ -27,6 +27,9 @@
     <gradle.proxy.arg3/>
     <gradle.skip.test>true</gradle.skip.test>
     <gradle.https.proxyPort/>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
