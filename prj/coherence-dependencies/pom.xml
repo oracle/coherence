@@ -219,7 +219,7 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <jersey.version>2.35</jersey.version>
-    <jettison.version>1.5.3</jettison.version>
+    <jettison.version>1.5.4</jettison.version>
     <jline.version>3.20.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
     <micrometer.version>1.6.6</micrometer.version>
