@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -112,5 +112,13 @@
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
+
+    <invocation-scheme>
+      <scheme-name>invocation-service</scheme-name>
+      <service-name>InvocationService</service-name>
+      <thread-count-max>2</thread-count-max>
+      <thread-count-min>2</thread-count-min>
+      <autostart>true</autostart>
+    </invocation-scheme>
   </caching-schemes>
 </cache-config>
