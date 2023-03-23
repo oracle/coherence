@@ -1,0 +1,135 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= CDI Response Caching
+:description: Coherence Core Improvements
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== CDI Response Caching
+
+CDI Response Caching allows you to apply caching to Java methods transparently. CDI Response Caching will be enabled once coherence-cdi dependency is added.
+
+=== Usage
+
+To use CDI Response Caching, you should first declare a coherence-cdi as a dependency in the project's pom.xml file.
+
+[source,xml]
+.pom.xml
+----
+<dependency>
+    <groupId>${coherence.groupId}</groupId>
+    <artifactId>coherence-cdi</artifactId>
+    <version>${coherence.version}</version>
+</dependency>
+----
+
+
+=== Response Caching Annotations
+
+The following response caching annotations are supported:
+
+<<CacheAdd,@CacheAdd>>:: Always call the target method and then cache the result
+
+<<CacheGet,@CacheGet>>:: Get the value from the cache if present; invoke the target method and cache the result otherwise
+
+<<CachePut,@CachePut>>:: Put the value annotated with @CacheValue into cache and call the target method
+
+<<CacheRemove,@CacheRemove>>:: Remove the key from the cache and call the target method
+
+<<CacheKey,@CacheKey>>:: Annotated parameters will be considered as a part of the key
+
+<<CacheValue,@CacheValue>>:: Marks a parameter as the cache value
+
+The specific cache to be used for response caching can be declared by the @CacheName and @SessionName annotations on a class or method.
+
+'''
+
+[#CacheAdd]
+==== @CacheAdd
+Method marked with @CacheAdd is *always* invoked, and its execution result stored in the cache. Key is made of the values of all parameters (in this case just the string parameter `name`).
+[source,java]
+----
+    @Path("{name}")
+    @POST
+    @CacheAdd
+    @CacheName("messages")
+    public Message addMessage(@PathParam("name") String name)
+        {
+        return new Message("Hello " + name);
+        }
+----
+
+[#CacheGet]
+==== @CacheGet
+If the return value is present in the cache, it is fetched and returned. Otherwise, the target method is invoked, and the invocation result is stored in the cache and returned to the caller.
+[source,java]
+----
+    @Path("{name}")
+    @GET
+    @CacheGet
+    @CacheName("messages")
+    public Message getMessage(@PathParam("name") String name)
+        {
+        return new Message("Hello " + name);
+        }
+----
+
+[#CachePut]
+==== @CachePut
+[#CacheValue]
+The value of the @CacheValue annotated parameter is stored in the cache, the target method is invoked, and the invocation result is returned to the caller.
+
+In this example, the passed message will be stored in the cache for the key whose value was passed as the `name` parameter.
+[source,java]
+----
+    @Path("{name}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @CachePut
+    @CacheName("messages")
+    public Response putMessage(@CacheKey @PathParam("name") String name,
+                               @CacheValue Message message)
+        {
+        return Response.status(Response.Status.CREATED).build();
+        }
+----
+
+[#CacheRemove]
+==== @CacheRemove
+Removes the key from the cache and returns the result of the method invocation.
+
+In this example, the key whose value was passed as the `name` parameter will be removed from the cache.
+[source,java]
+----
+    @Path("{name}")
+    @DELETE
+    @CacheRemove
+    public Response removeMessage(@PathParam("name") String name)
+        {
+        return Response.ok().build();
+        }
+----
+
+[#CacheKey]
+==== @CacheKey
+The cache key is assembled from the values of all parameters not explicitly annotated with the @CacheValue annotation. If one or more parameters are annotated with the @CacheKey annotation, only those parameters will be used to create the key.
+
+In this example, only the values of the `lastName` and `firstName` parameters will be used to create the cache key.
+[source,java]
+----
+    @Path("{lastName}/{firstName}")
+    @GET
+    @CacheGet
+    public Message getMessage(@PathParam("lastName") @CacheKey String lastName,
+                              @PathParam("firstName") @CacheKey String firstName,
+                              @HeaderParam("Accept-Language") String acceptLanguage)
+        {
+        return new Message("Hello " + firstName + " " + lastName);
+        }
+----
+
