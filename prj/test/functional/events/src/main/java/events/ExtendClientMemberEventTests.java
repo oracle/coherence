@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,18 +16,22 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceSession;
 import com.tangosol.net.Member;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.SessionConfiguration;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.UUID;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import java.io.Serializable;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.CoreMatchers;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -78,22 +83,41 @@ public class ExtendClientMemberEventTests
 
         // test client does not join cluster for now
         Properties props = new Properties();
-        props.setProperty("coherence.messaging.debug", "true");
-        for (int i = 0; i < CLUSTER_SIZE; i++)
+        props.setProperty("test.proxy.enabled", "false");
+        for (int i = 0; i < NUM_SERVER; i++)
             {
             props.setProperty("coherence.member", "ExtendClientMemberLeftServer-" + i);
-            System.setProperty("coherence.role",  "ExtendClientMemberLeftServer-" + i);
+            props.setProperty("coherence.role",  "ExtendClientMemberLeftServer-" + i);
 
             CoherenceClusterMember member = startCacheServer("ExtendClientMemberLeftServer-" + i, "cache", SERVER_CACHE_CONFIG, props);
-            s_lstMembers.add(member);
+            s_lstServer.add(member);
             }
 
-        for (CoherenceClusterMember member : s_lstMembers)
+        props.setProperty("test.proxy.enabled", "true");
+        props.setProperty("coherence.messaging.debug", "true");
+        props.setProperty("coherence.distributed.localstorage", "false");
+        for (int i = 0; i < NUM_PROXY; i++)
             {
-            Eventually.assertThat(invoking(member).isServiceRunning("DistributedCacheJava"), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
-            Eventually.assertThat(invoking(member).isServiceRunning("ExtendTcpProxyService"), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
-            Eventually.assertThat(invoking(member).isOperational(), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
+            props.setProperty("coherence.member", "ExtendClientMemberLeftProxyServer-" + i);
+
+            CoherenceClusterMember member = startCacheServer("ExtendClientMemberLeftProxyServer-" + i, "cache", SERVER_CACHE_CONFIG, props);
+            s_lstProxy.add(member);
             }
+
+        for (CoherenceClusterMember server : s_lstServer)
+            {
+            Eventually.assertThat(invoking(server).isServiceRunning("DistributedCacheJava"), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
+            Eventually.assertThat(invoking(server).isOperational(), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
+            }
+
+        for (CoherenceClusterMember proxy : s_lstProxy)
+            {
+            Eventually.assertThat(invoking(proxy).isServiceRunning("DistributedCacheJava"), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
+            Eventually.assertThat(invoking(proxy).isServiceRunning("ExtendTcpProxyService"), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
+            }
+
+        s_lstMembers.addAll(s_lstServer);
+        s_lstMembers.addAll(s_lstProxy);
         }
 
     @AfterClass
@@ -180,6 +204,125 @@ public class ExtendClientMemberEventTests
         }
 
     @Test
+    public void testExtendMemberEventsRestartProxy() throws InterruptedException
+        {
+        String PREFIX = "TestExtendClientMemberRunUntil_";
+
+        Properties props = new Properties();
+        props.setProperty("coherence.member", PREFIX + "1");
+        props.setProperty("coherence.messaging.debug", "true");
+
+        List<String>                 lstExtendClientMember = new LinkedList<>();
+        List<CoherenceClusterMember> lstExtendClient       = new LinkedList<>();
+        int          expectedResult        = 0;
+        for (int i=0; i < NUM_CLIENTS; i++)
+            {
+            String sMemberName = PREFIX + i;
+
+            props.setProperty("coherence.member", sMemberName);
+
+            CoherenceClusterMember member = startCacheApplication(sMemberName,
+                                                                  "events.ExtendClientMemberEventTests$RunUntilExtendClient",
+                                                                  "events", CLIENT_CACHE_CONFIG, props);
+            lstExtendClientMember.add(sMemberName);
+            lstExtendClient.add(member);
+            }
+
+        // Rolling restart of proxy servers
+        Properties propsProxy = new Properties();
+        propsProxy.setProperty("test.proxy.enabled", "true");
+        propsProxy.setProperty("coherence.messaging.debug", "true");
+        propsProxy.setProperty("coherence.distributed.localstorage", "false");
+
+        CoherenceClusterMember[] arProxy = s_lstProxy.toArray(new CoherenceClusterMember[s_lstProxy.size()]);
+        s_lstProxy.clear();
+
+        final Cluster cluster = CacheFactory.getCluster();
+        int cSizeCluster = cluster.getMemberSet().size();
+        for (int i = 0; i < NUM_PROXY; i++)
+            {
+            final CoherenceClusterMember memberProxy = arProxy[i];
+
+            String sMemberName = arProxy[i].getMemberName();
+            propsProxy.setProperty("coherence.member", sMemberName);
+
+            stopCacheServer(sMemberName, false);
+
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(cSizeCluster - 1));
+
+            CoherenceClusterMember member =  startCacheServer(sMemberName, "cache", SERVER_CACHE_CONFIG, propsProxy);
+            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(cSizeCluster));
+
+            s_lstProxy.add(member);
+            }
+
+
+        for (CoherenceClusterMember proxy : s_lstProxy)
+            {
+            Eventually.assertThat(invoking(proxy).isServiceRunning("ExtendTcpProxyService"), CoreMatchers.is(true), within(2, TimeUnit.MINUTES));
+            }
+        // End rolling restart of proxy servers
+
+        s_lstMembers.clear();
+        s_lstMembers.addAll(s_lstServer);
+        s_lstMembers.addAll(s_lstProxy);
+
+        Logger.info("Events after Rolling restart of proxy and before client are stopped");
+        // join as a test framework client and validate memberevents recorded in resultmap
+        NamedCache<UUID, List> mapResults = CacheFactory.getConfigurableCacheFactory().
+                ensureTypedCache("ExtendClientMemberListenerResultMap",
+                                 null,
+                                 withTypes(UUID.class, List.class));
+
+        // ensure no extend client left despite all extend clients having to rejoin proxy due to rolling restart of proxy
+        for (Map.Entry<UUID, List> entry : mapResults.entrySet())
+            {
+            UUID uuid = entry.getKey();
+            List<MemberEventResult> lstEvent = entry.getValue();
+            for (MemberEventResult result : lstEvent)
+                {
+                assertThat("verifying client " + uuid + " has not left ", result.getEvent().getId(), Matchers.not(MemberEvent.MEMBER_LEFT));
+                }
+            }
+
+        // give extend clients time to rejoin restarted proxy servers
+
+        // stop clients now by placing special key in data cache of RunUntilExtendClient
+        NamedCache<String, String> mapDataCache = CacheFactory.getConfigurableCacheFactory().
+                ensureTypedCache("dist-extend-direct-java",
+                                 null,
+                                 withTypes(String.class, String.class));
+        mapDataCache.put("terminateKey", "terminateValue");
+
+        // wait for all extend client processes to complete
+        for (CoherenceClusterMember extendClient : lstExtendClient)
+            {
+            extendClient.waitFor();
+            }
+
+        assertThat(mapResults.size(), is(NUM_CLIENTS));
+        Logger.info("Events after clients are stopped");
+
+        // ensure extend client left
+        for (Map.Entry<UUID, List> entry : mapResults.entrySet())
+            {
+            UUID uuid = entry.getKey();
+            List<MemberEventResult> lstEvent = entry.getValue();
+
+            boolean fLeft = false;
+            for (MemberEventResult result : lstEvent)
+                {
+                if (result.getEvent().getId() == MemberEvent.MEMBER_LEFT)
+                    {
+                    fLeft = true;
+                    break;
+                    }
+                }
+            assertThat("ensure extend client " + uuid + " left", fLeft, is(true));
+            }
+        }
+
+    @Test
     public void testMemberEvents() throws InterruptedException
         {
         Properties props = new Properties();
@@ -215,6 +358,51 @@ public class ExtendClientMemberEventTests
                 nc.truncate();
                 nc.put("key1", "string1");
                 nc.get("key1");
+                }
+            catch (Throwable t)
+                {
+                System.out.println("Unexpected exception " + t.getMessage());
+                Runtime.getRuntime().exit(1);
+                }
+
+            if (nTerminationValue != 0)
+                {
+                System.err.println("non-graceful termination");
+                Runtime.getRuntime().halt(nTerminationValue);
+                }
+            }
+        }
+
+    // ----- inner class: ExtendClient ---------------------------------------
+
+    public static class RunUntilExtendClient
+            implements java.io.Serializable
+        {
+        public static void main(String[] args)
+            {
+            int nTerminationValue = Integer.getInteger("test.termination.value", 0);
+
+            try (CoherenceSession session = new CoherenceSession(SessionConfiguration.defaultSession(), Coherence.Mode.Client, Collections.emptyList()))
+                {
+                while (true)
+                    {
+                    NamedCache nc = null;
+
+                    try
+                        {
+                        nc = session.getCache("dist-extend-direct-java");
+
+                        if (nc != null)
+                            {
+                            if (nc.get("terminateKey") != null)
+                                {
+                                Logger.info("terminating " + System.getProperty("coherence.member"));
+                                return;
+                                }
+                            }
+                        }
+                    catch (Throwable ignore){}
+                    }
                 }
             catch (Throwable t)
                 {
@@ -343,11 +531,11 @@ public class ExtendClientMemberEventTests
 
         assertThat("extend client member " + sExtendClientName +
                   " assert number of MemberEvents(JOIN & LEFT) per extend client per service members",
-                  lst.size(), is(2 * CLUSTER_SIZE));
+                  lst.size(), is(2 * s_lstMembers.size()));
         assertThat("validate extend client MemberJoin for " + sExtendClientName,
-                   lst.stream().filter(r -> r.m_event.getId() == MemberEvent.MEMBER_JOINED).count(), greaterThanOrEqualTo((long) CLUSTER_SIZE));
+                   lst.stream().filter(r -> r.m_event.getId() == MemberEvent.MEMBER_JOINED).count(), greaterThanOrEqualTo((long) s_lstMembers.size()));
         assertThat("validate extend client MemberLeft for " + sExtendClientName,
-                   lst.stream().filter(r -> r.m_event.getId() == MemberEvent.MEMBER_LEFT).count(), greaterThanOrEqualTo((long) CLUSTER_SIZE));
+                   lst.stream().filter(r -> r.m_event.getId() == MemberEvent.MEMBER_LEFT).count(), greaterThanOrEqualTo((long) s_lstMembers.size()));
         for (CoherenceClusterMember member : s_lstMembers)
             {
             // Bedrock CoherenceClusterMember does not expose getMemberName but it sets MemberName and RoleName the same, so use getRoleName
@@ -383,7 +571,6 @@ public class ExtendClientMemberEventTests
                 {
                 list = new LinkedList<>();
                 }
-
             list.add(m_result);
             entry.setValue(list);
             return true;
@@ -457,13 +644,20 @@ public class ExtendClientMemberEventTests
 
     private static final AtomicInteger s_count = new AtomicInteger();
 
-    private static final int CLUSTER_SIZE = 3;
+    private static final int NUM_PROXY = 2;
+
+    private static final int NUM_SERVER = 3;
 
     private static final int NUM_CLIENTS = 4;
 
     // ----- data members ---------------------------------------------------
 
     private static List<CoherenceClusterMember> s_lstMembers = new LinkedList<>();
+
+    private static List<CoherenceClusterMember> s_lstProxy = new LinkedList<>();
+
+    private static List<CoherenceClusterMember> s_lstServer = new LinkedList<>();
+
 
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(ExtendClientMemberEventTests.class);
