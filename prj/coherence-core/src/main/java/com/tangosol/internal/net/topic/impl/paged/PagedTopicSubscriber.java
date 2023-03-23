@@ -717,8 +717,6 @@ public class PagedTopicSubscriber<V>
         String sChannelsPolled = f_setPolledChannels.toString();
         int    cChannelsHit    = f_setHitChannels.cardinality();
         String sChannelsHit    = f_setHitChannels.toString();
-        f_setPolledChannels.clear();
-        f_setHitChannels.clear();
 
         String sState;
         switch (m_nState)
@@ -752,12 +750,18 @@ public class PagedTopicSubscriber<V>
             ", state=" + sState +
             ", prefetched=" + m_queueValuesPrefetched.size() +
             ", backlog=" + f_backlog +
+            ", subscriptions=" + m_cSubscribe.getCount() +
+            ", disconnections=" + m_cDisconnect.getCount() +
+            ", received=" + m_cReceived.getCount() +
+            ", receivedEmpty=" + m_cReceivedEmpty.getCount() +
+            ", receivedError=" + m_cReceivedError.getCount() +
             ", channelAllocation=" + (f_fAnonymous ? "[ALL]" : Arrays.toString(m_aChannelOwned)) +
-            ", channelsPolled=" + sChannelsPolled + cChannelsPolled +
+            ", totalChannelsPolled=" + cPollsNow +
+            ", channelsPolledSinceReallocation=" + sChannelsPolled + cChannelsPolled +
             ", channelsHit=" + sChannelsHit + cChannelsHit + "/" + cChannelsPolled  +
             ", batchSize=" + (cValues / (Math.max(1, cPoll - cMisses))) +
-            ", hitRate=" + ((cPoll - cMisses) * 100 / Math.max(1, cPoll)) + "%" +
-            ", colRate=" + (cColl * 100 / Math.max(1, cPoll)) + "%" +
+            ", values=" + cValuesNow +
+            ", notifications=" + cNotifyNow +
             ", waitNotifyRate=" + (cWait * 100 / Math.max(1, cPoll)) + "/" + (cNotify * 100 / Math.max(1, cPoll)) + "%" +
             ')';
         }
@@ -1107,11 +1111,12 @@ public class PagedTopicSubscriber<V>
                 updateChannelOwnership(setChannel, false);
                 }
 
-            switchChannel();
             heartbeat();
             registerNotificationListener();
-
             setState(STATE_CONNECTED);
+            switchChannel();
+
+            m_cSubscribe.mark();
             }
         }
 
@@ -2288,6 +2293,8 @@ public class PagedTopicSubscriber<V>
                     }
 
                 onChannelPopulatedNotification(m_aChannelOwned);
+                f_setPolledChannels.clear();
+                f_setHitChannels.clear();
                 }
             }
         }
@@ -4624,6 +4631,11 @@ public class PagedTopicSubscriber<V>
      * The number of exceptionally completed receive requests.
      */
     private final Meter m_cReceivedError = new Meter();
+
+    /**
+     * The number of subscribe attempts.
+     */
+    private final Meter m_cSubscribe = new Meter();
 
     /**
      * The number of disconnections.
