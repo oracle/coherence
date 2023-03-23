@@ -37,4 +37,11 @@ Integrate Eclipse MicroProfile Health in Coherence.
 Instrument Portable Types using Gradle.
 --
 
+[CARD]
+.CDI Response Caching
+[icon=fa-cogs,link=docs/core/05_response_caching.adoc]
+--
+Use caching annotations for response caching.
+--
+
 ====
