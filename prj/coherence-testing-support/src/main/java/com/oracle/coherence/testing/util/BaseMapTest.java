@@ -25,7 +25,7 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheMap;
-import com.tangosol.net.cache.OldCache;
+import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -560,7 +560,7 @@ public class BaseMapTest
     */
     public static void testMisc(Map map)
         {
-        if (!(map instanceof OldLiteMap || map instanceof OldCache))
+        if (!(map instanceof OldLiteMap || map instanceof LocalCache))
             {
             // disabled serialization for SafeSortedMap that extends ConcurrentSkipMap.
             // ConcurrentSkipMap has custom Java serialization relying on package only access methods.

@@ -2876,13 +2876,13 @@ public class OldCache
     /**
     * The UnitCalculator object that counts each entry as one unit.
     */
-    public static final UnitCalculator INSTANCE_FIXED  = InternalUnitCalculator.INSTANCE;
+    public static final ConfigurableCacheMap.UnitCalculator INSTANCE_FIXED  = InternalUnitCalculator.INSTANCE;
 
     /**
     * The UnitCalculator object that measures the bytes used by entries. This
     * is intended for caches that manage binary data.
     */
-    public static final UnitCalculator INSTANCE_BINARY = BinaryMemoryCalculator.INSTANCE;
+    public static final ConfigurableCacheMap.UnitCalculator INSTANCE_BINARY = BinaryMemoryCalculator.INSTANCE;
 
 
     // ----- data members ---------------------------------------------------

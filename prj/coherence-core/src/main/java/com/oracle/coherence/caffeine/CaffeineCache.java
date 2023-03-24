@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,7 +19,7 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.CacheStatistics;
 import com.tangosol.net.cache.ConfigurableCacheMap;
-import com.tangosol.net.cache.OldCache;
+import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.SimpleCacheStatistics;
 
 import com.tangosol.util.Base;
@@ -64,7 +64,7 @@ import static java.util.Objects.requireNonNull;
  * size or expiration until set.
  * <p>
  * Like {@code ConcurrentHashMap} but unlike {@code HashMap} and {@code
- * OldCache}, this cache does not support {@code null} keys or values.
+ * LocalCache}, this cache does not support {@code null} keys or values.
  *
  * @see <a href="https://github.com/ben-manes/caffeine">Caffeine Project</a>
  * @see <a href="https://highscalability.com/blog/2016/1/25/design-of-a-modern-cache.html">Design of a Modern Cache</a>
@@ -97,7 +97,7 @@ public class CaffeineCache
         f_eviction               = f_cache.policy().eviction().orElseThrow();
         f_listeners              = new MapListenerSupport();
         f_stats                  = new SimpleCacheStatistics();
-        m_unitCalculator         = OldCache.INSTANCE_FIXED;
+        m_unitCalculator         = LocalCache.INSTANCE_FIXED;
         m_cExpireAfterWriteNanos = Long.MAX_VALUE;
         m_nUnitFactor            = 1;
         }
@@ -268,7 +268,7 @@ public class CaffeineCache
     public void setUnitCalculator(UnitCalculator calculator)
         {
         m_unitCalculator = calculator == null
-                           ? OldCache.INSTANCE_FIXED
+                           ? LocalCache.INSTANCE_FIXED
                            : calculator;
 
         for (Object oKey : f_cache.asMap().keySet())

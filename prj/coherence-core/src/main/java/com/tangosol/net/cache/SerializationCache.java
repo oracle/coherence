@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -251,7 +251,7 @@ public class SerializationCache
             return super.size();
             }
 
-        return OldCache.toExternalUnits(m_cCurUnits, getUnitFactor());
+        return LocalCache.toExternalUnits(m_cCurUnits, getUnitFactor());
         }
 
     /**
@@ -259,7 +259,7 @@ public class SerializationCache
     */
     public int getHighUnits()
         {
-        return OldCache.toExternalUnits(m_cMaxUnits, getUnitFactor());
+        return LocalCache.toExternalUnits(m_cMaxUnits, getUnitFactor());
         }
 
     /**
@@ -267,10 +267,10 @@ public class SerializationCache
     */
     public void setHighUnits(int cMax)
         {
-        long cUnits = OldCache.toInternalUnits(cMax, getUnitFactor());
+        long cUnits = LocalCache.toInternalUnits(cMax, getUnitFactor());
 
         m_cMaxUnits   = cUnits;
-        m_cPruneUnits = cUnits == Long.MAX_VALUE ? cUnits : (long) (OldCache.DEFAULT_PRUNE * cUnits);
+        m_cPruneUnits = cUnits == Long.MAX_VALUE ? cUnits : (long) (LocalCache.DEFAULT_PRUNE * cUnits);
 
         checkSize();
         }
@@ -280,7 +280,7 @@ public class SerializationCache
     */
     public int getLowUnits()
         {
-        return OldCache.toExternalUnits(m_cPruneUnits, getUnitFactor());
+        return LocalCache.toExternalUnits(m_cPruneUnits, getUnitFactor());
         }
 
     /**
@@ -288,7 +288,7 @@ public class SerializationCache
     */
     public void setLowUnits(int cUnits)
         {
-        m_cPruneUnits = OldCache.toInternalUnits(cUnits, getUnitFactor());
+        m_cPruneUnits = LocalCache.toInternalUnits(cUnits, getUnitFactor());
         }
 
     /**
@@ -452,7 +452,7 @@ public class SerializationCache
     public UnitCalculator getUnitCalculator()
         {
         UnitCalculator calculator = m_calculator;
-        return calculator == null ? OldCache.InternalUnitCalculator.INSTANCE : calculator;
+        return calculator == null ? LocalCache.InternalUnitCalculator.INSTANCE : calculator;
         }
 
     /**
@@ -460,7 +460,7 @@ public class SerializationCache
     */
     public synchronized void setUnitCalculator(UnitCalculator calculator)
         {
-        if (calculator == OldCache.InternalUnitCalculator.INSTANCE)
+        if (calculator == LocalCache.InternalUnitCalculator.INSTANCE)
             {
             calculator = null;
             }
