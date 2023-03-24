@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,7 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.ConfigurableCacheMap.UnitCalculator;
-import com.tangosol.net.cache.OldCache;
+import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.MapEvent;
@@ -117,7 +117,7 @@ public final class CaffeineCacheTest
         {
         var stats = (cache instanceof CaffeineCache)
                     ? ((CaffeineCache) cache).getCacheStatistics()
-                    : ((OldCache) cache).getCacheStatistics();
+                    : ((LocalCache) cache).getCacheStatistics();
         assertThat(stats.getCacheMisses(), is(0L));
         assertThat(stats.getTotalPuts(), is(0L));
         assertThat(stats.getCacheHits(), is(0L));
@@ -207,7 +207,7 @@ public final class CaffeineCacheTest
 
         verify(listener).entryDeleted(expired.capture());
         checkMapEvent(expired.getValue(), new CacheEvent<>(cache, ENTRY_DELETED,
-                                                           1, 2, null, true, TransformationState.TRANSFORMABLE, false, true));
+                                                           1, 2, null, true, TransformationState.TRANSFORMABLE, false, cache instanceof CaffeineCache));
         }
 
     @ParameterizedTest
@@ -249,7 +249,7 @@ public final class CaffeineCacheTest
     public static List<Arguments> caches()
         {
         return List.of(
-                arguments(named("OldCache", new OldCache())),
+                arguments(named("LocalCache", new LocalCache())),
                 arguments(named("Caffeine", new CaffeineCache())));
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,7 +28,7 @@ import com.tangosol.config.injection.SimpleInjector;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.cache.ConfigurableCacheMap.UnitCalculator;
-import com.tangosol.net.cache.OldCache;
+import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
@@ -130,7 +130,7 @@ public class CaffeineScheme
         // if this is a partitioned cache backing map then default to BINARY if the user
         // explicitly used a memory size in the high-units setting (e.g. 10M).
         UnitCalculator defaultCalculator = highUnits.isMemorySize() && dependencies.isBinary()
-                                           ? OldCache.INSTANCE_BINARY : null;
+                                           ? LocalCache.INSTANCE_BINARY : null;
         UnitCalculatorBuilder bldrUnitCalculator = getUnitCalculatorBuilder();
 
         cache.setUnitFactor(nUnitFactor);

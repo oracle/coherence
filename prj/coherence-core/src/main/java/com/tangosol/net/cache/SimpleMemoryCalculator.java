@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -14,11 +14,9 @@ import com.tangosol.util.ClassHelper;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.RuntimeMXBean;
 
 import java.lang.reflect.Array;
@@ -58,7 +56,7 @@ import java.lang.reflect.Modifier;
 */
 public class SimpleMemoryCalculator
         extends Base
-        implements OldCache.UnitCalculator
+        implements ConfigurableCacheMap.UnitCalculator
     {
     // ----- UnitCalculator interface ---------------------------------------
 

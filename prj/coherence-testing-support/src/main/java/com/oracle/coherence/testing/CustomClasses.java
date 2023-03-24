@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,7 +21,6 @@ import com.tangosol.net.cache.BinaryEntryStore;
 import com.tangosol.net.cache.CacheLoader;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.NearCache;
-import com.tangosol.net.cache.OldCache;
 import com.tangosol.net.cache.OverflowMap;
 import com.tangosol.net.cache.ReadWriteBackingMap;
 import com.tangosol.net.cache.SerializationCache;
