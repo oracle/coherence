@@ -13,8 +13,8 @@ AllFilter                                                         \| ----  \| 0
 Index Lookups
 Index Description                             Extractor                        Ordered
 ======================================================================================
-0   \| Simple: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=50\s+\| filter\.nestinglevel1\.nes\.\.\. \(2\) \| true
-1   \| Simple: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(3\) \| true
+0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=50\s+\| filter\.nestinglevel1\.nes\.\.\. \(2\) \| true
+1   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(3\) \| true
 2   \| No index found                        \| \.getFirstName\(\)                 \| false
 3   \| No index found                        \| \.getAge\(\)                       \| false
 

@@ -44,7 +44,7 @@ public class SafeSortedMapTest
     @BeforeClass
     public static void startup()
         {
-        m_map = new SafeSortedMap<>();
+        m_map = new SafeSortedMap();
         for (int i = 0; i < MEDIUM_NUMBER; i++)
             {
             Integer key   = i == 5 ? null : i;
@@ -79,7 +79,7 @@ public class SafeSortedMapTest
     @Test
     public void testEmptyMap()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
 
         assertTrue(map.keySet().isEmpty());
         assertTrue(map.values().isEmpty());
@@ -91,7 +91,7 @@ public class SafeSortedMapTest
     @Test
     public void testSimplePutWithNonNulls()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
@@ -109,7 +109,7 @@ public class SafeSortedMapTest
     @Test
     public void testSimplePutWithNullValues()
         {
-        Map<Integer, Integer> map = new SafeSortedMap<>();
+        Map map = new SafeSortedMap();
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
@@ -126,7 +126,7 @@ public class SafeSortedMapTest
             assertNull(map.get(wrapper));
             }
 
-        for (Map.Entry<Integer, Integer> e : map.entrySet())
+        for (Map.Entry e : ((Map<?, ?>) map).entrySet())
             {
             assertThat(e.getValue(), nullValue());
             }
@@ -135,7 +135,7 @@ public class SafeSortedMapTest
     @Test
     public void testSimplePutWithNullKey()
         {
-        Map<Integer, Integer> map = new SafeSortedMap<>();
+        Map map = new SafeSortedMap();
 
         for (int i = 0; i < LARGE_NUMBER; i++)
             {
@@ -160,7 +160,7 @@ public class SafeSortedMapTest
             }
 
         int i = 0;
-        for (Map.Entry<Integer, Integer> e : map.entrySet())
+        for (Map.Entry e : ((Map<?, ?>) map).entrySet())
             {
 
             Integer keyExpected   = i;
@@ -183,7 +183,7 @@ public class SafeSortedMapTest
     @Test
     public void testGetEntryMissingKey()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
 
         Integer value = 1;
         map.put(null, value);
@@ -194,12 +194,12 @@ public class SafeSortedMapTest
     @Test
     public void testGetEntryWithNullKey()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
 
         Integer value = 1;
         map.put(null, value);
 
-        Map.Entry<Integer,Integer> entry = map.getEntry(null);
+        Map.Entry entry = map.getEntry(null);
         assertThat(entry.getKey(), nullValue());
         assertThat(entry.getValue(), is(value));
         }
@@ -207,12 +207,12 @@ public class SafeSortedMapTest
     @Test
     public void testGetEntryWithNullValue()
         {
-        SafeSortedMap<Integer,Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
 
         Integer key = 1;
         map.put(key, null);
 
-        Map.Entry<Integer,Integer> entry = map.getEntry(key);
+        Map.Entry entry = map.getEntry(key);
         assertThat(entry.getKey(), is(key));
         assertThat(entry.getValue(), nullValue());
         }
@@ -229,8 +229,8 @@ public class SafeSortedMapTest
         Integer oValue2 = 11;
 
         // begin test
-        SafeSortedMap<String, Integer>      mapIndex   = new SafeSortedMap<>();
-        SafeSortedMap<Integer, Set<String>> mapInverse = new SafeSortedMap<>();
+        SafeSortedMap mapIndex   = new SafeSortedMap();
+        SafeSortedMap mapInverse = new SafeSortedMap();
 
         mapIndex.put(oKey, oValue);
         Set<String> set1 = new InflatableSet();
@@ -287,7 +287,7 @@ public class SafeSortedMapTest
 
         // get the set of keys from the inverse map keyed by the extracted
         // value for key
-        Set<String> set = mapInverse.get(oIndexValue);
+        Set set = (Set) mapInverse.get(oIndexValue);
 
         // verify that the set of keys contains key
         assertTrue(
@@ -296,7 +296,7 @@ public class SafeSortedMapTest
 
         // get the set of keys from the inverse map keyed by the extracted
         // value for key2
-        set = mapInverse.get(oIndexValue2);
+        set = (Set) mapInverse.get(oIndexValue2);
 
         // verify that the set of keys contains key2
         assertTrue(
@@ -367,8 +367,8 @@ public class SafeSortedMapTest
     @Test
     public void testConcurrentMapPart1()
         {
-        SafeSortedMap<String, String> map = new SafeSortedMap<>();
-        String valuePrev = map.putIfAbsent("key", "value");
+        SafeSortedMap map = new SafeSortedMap();
+        Object valuePrev = map.putIfAbsent("key", "value");
         assertThat(valuePrev, nullValue());
         assertThat(map.get("key"), is("value"));
 
@@ -393,7 +393,7 @@ public class SafeSortedMapTest
         final List<Integer>             listKey    = new LinkedList<>();
         final List<Object>              listValues = new LinkedList<>();
         BiConsumer<Integer, Object>     fnBuild    = (k,v) -> { listKey.add(k); listValues.add(v);};
-        SafeSortedMap<Integer, Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
 
         for (int i=0; i < 10; i++)
             {
@@ -420,7 +420,7 @@ public class SafeSortedMapTest
     @Test
     public void testReplace()
         {
-        SafeSortedMap<Integer, Integer> map = new SafeSortedMap<>();
+        SafeSortedMap map = new SafeSortedMap();
         for (int i=0; i < 10; i++)
             {
             map.put(i, i == 5 ? null : i+1);
@@ -436,37 +436,37 @@ public class SafeSortedMapTest
 
     // ----- helpers ---------------------------------------------------------
 
-    public void validate(ConcurrentNavigableMap<Integer, Integer> map, Set<Integer> setKeys, List<Integer> listValues)
+    public void validate(ConcurrentNavigableMap map, Set setKeys, List listValues)
         {
-        for (Map.Entry<Integer, Integer> e : map.entrySet())
+        for (Map.Entry e : ((Map<?, ?>) map).entrySet())
             {
             assertTrue("validate key " + e.getKey(), setKeys.contains(e.getKey()));
             assertTrue("validate value " + e.getValue(),  listValues.contains(e.getValue()));
             }
-        for (Integer value : map.values())
+        for (Object value : map.values())
             {
             assertTrue("validate value " + value, listValues.contains(value));
             }
-        for (Integer key : map.keySet())
+        for (Object key : map.keySet())
             {
             assertTrue("validate key " + key, setKeys.contains(key));
             if (map instanceof SafeSortedMap)
                 {
-                SafeSortedMap<Integer, Integer> mapSafe = (SafeSortedMap) map;
+                SafeSortedMap mapSafe = (SafeSortedMap) map;
                 assertThat(mapSafe.getEntry(key).getValue(), is(mapSafe.get(key)));
                 }
             }
-        for (Integer key : map.descendingKeySet())
+        for (Object key : map.descendingKeySet())
             {
             assertTrue("validate key " + key, setKeys.contains(key));
             }
 
-        for (Integer key : map.keySet())
+        for (Object key : map.keySet())
             {
             assertThat(map.firstKey(), is(key));
             break;
             }
-        for (Integer key : map.descendingKeySet())
+        for (Object key : map.descendingKeySet())
             {
             assertThat(map.lastKey(), is(key));
             break;
@@ -492,13 +492,13 @@ public class SafeSortedMapTest
 
     // ----- data members ----------------------------------------------------
 
-    static public SafeSortedMap<Integer, Integer>          m_map;
+    static public SafeSortedMap m_map;
 
-    static public ConcurrentNavigableMap<Integer,Integer>  m_mapSub;
+    static public ConcurrentNavigableMap  m_mapSub;
 
-    static public ConcurrentNavigableMap<Integer, Integer> m_mapHead;
+    static public ConcurrentNavigableMap m_mapHead;
 
-    static public ConcurrentNavigableMap<Integer, Integer> m_mapTail;
+    static public ConcurrentNavigableMap m_mapTail;
 
     static Set m_setMapExpectedKeys;
     static List m_listMapExpectedValues;

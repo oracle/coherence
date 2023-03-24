@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -27,6 +27,7 @@ import java.util.HashSet;
 *
 * @author cp/gg 2002.10.27
 */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class NotEqualsFilter<T, E>
         extends    ComparisonFilter<T, E, E>
         implements IndexAwareFilter<Object, T>
@@ -103,10 +104,9 @@ public class NotEqualsFilter<T, E>
             if (index.isPartial())
                 {
                 Set setNE = new HashSet();
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
+                for (Object o : mapContents.entrySet())
                     {
-                    Map.Entry entry = (Map.Entry) iter.next();
+                    Map.Entry entry = (Map.Entry) o;
                     if (!entry.getKey().equals(oValue))
                         {
                         setNE.addAll(ensureSafeSet((Set) entry.getValue()));
