@@ -604,6 +604,7 @@ public class SimpleMemoryCalculator
         map = new HashMap(map);
 
         map.put(Object.class,               Integer.valueOf(SIZE_OBJECT));
+        map.put(Enum.class,                 Integer.valueOf(SIZE_OBJECT + SIZE_INTEGER));
         map.put(Boolean.class,              Integer.valueOf(SIZE_BOOLEAN));
         map.put(Byte.class,                 Integer.valueOf(SIZE_BYTE));
         map.put(Short.class,                Integer.valueOf(SIZE_SHORT));

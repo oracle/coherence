@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -31,6 +31,8 @@ import com.tangosol.util.filter.EqualsFilter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +78,7 @@ public class NotificationExtractor
         BinaryEntry binaryEntry = (BinaryEntry) entry;
         BackingMapContext ctx = binaryEntry.getContext()
                 .getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
-        Map<ValueExtractor, MapIndex> indexMap = ctx.getIndexMap();
+        Map<ValueExtractor, MapIndex> indexMap = ctx.getIndexMap(binaryEntry.getKeyPartition());
 
         MapIndex<Binary, Notification, String> index = indexMap
                 .get(ValueExtractor.of(NotificationId::getCustomerId).fromKey());
@@ -91,6 +93,9 @@ public class NotificationExtractor
 
         if (region != null && !region.isBlank())
             {
+            // copy the keys, so we don't modify the underlying index
+            keys = new HashSet<>(keys);
+
             ValueExtractor<NotificationId, String> extractor = ValueExtractor.of(NotificationId::getRegion).fromKey();
             EqualsFilter<NotificationId, String> filter = new EqualsFilter<>(extractor, region);
             filter.applyIndex(indexMap, keys);
