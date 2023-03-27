@@ -156,7 +156,7 @@
 
     <!-- library dependency versions -->
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
-    <asm.version>9.4</asm.version>
+    <asm.version>9.5</asm.version>
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>5.2.0</bnd.version>
     <caffeine.version>3.1.1</caffeine.version>
