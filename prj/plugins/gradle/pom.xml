@@ -25,7 +25,6 @@
     <gradle.proxy.arg1/>
     <gradle.proxy.arg2/>
     <gradle.proxy.arg3/>
-    <gradle.skip.test>true</gradle.skip.test>
     <gradle.https.proxyPort/>
 
     <!--  this module should be published -->
@@ -222,6 +221,13 @@
             </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -263,15 +269,6 @@
       </activation>
       <properties>
         <gradle.skip.test>false</gradle.skip.test>
-      </properties>
-    </profile>
-    <profile>
-      <id>skipMavenJavaDoc</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
       </properties>
     </profile>
     <profile>
