@@ -258,12 +258,21 @@
       <id>skipGradleTests</id>
       <activation>
         <property>
-            <name>skipTests</name>
-          </property>
-        </activation>
-        <properties>
-          <gradle.skip.test>false</gradle.skip.test>
-        </properties>
+          <name>skipTests</name>
+        </property>
+      </activation>
+      <properties>
+        <gradle.skip.test>false</gradle.skip.test>
+      </properties>
+    </profile>
+    <profile>
+      <id>skipMavenJavaDoc</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+      </properties>
     </profile>
     <profile>
       <id>gradleProxy</id>
