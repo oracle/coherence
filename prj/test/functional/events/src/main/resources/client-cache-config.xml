@@ -147,15 +147,16 @@
 
     <remote-cache-scheme>
       <scheme-name>extend-direct</scheme-name>
-      <service-name>ExtendTcpCacheService</service-name>
+      <service-name>ExtendTcpProxyService</service-name>
       <initiator-config>
         <tcp-initiator>
-          <remote-addresses>
+          <!-- use the NameService for connecting to cluster -->
+          <name-service-addresses>
             <socket-address>
-            <address system-property="test.extend.address.remote">127.0.0.1</address>
-            <port    system-property="test.extend.port">9999</port>
+              <address system-property="coherence.address">127.0.0.1</address>
+              <port system-property="coherence.clusterport">30001</port>
             </socket-address>
-          </remote-addresses>
+          </name-service-addresses>
         </tcp-initiator>
         <outgoing-message-handler>
           <heartbeat-interval>5s</heartbeat-interval>
