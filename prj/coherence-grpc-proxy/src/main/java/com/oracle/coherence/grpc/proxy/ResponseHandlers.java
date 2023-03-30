@@ -64,16 +64,33 @@ public class ResponseHandlers
      * to the {@link StreamObserver}.
      *
      * @param holder        the {@link RequestHolder} containing the request
-     * @param err          any error that occurred during execution of the get all request
+     * @param err           any error that occurred during execution of the get all request
      * @param observer      the {@link StreamObserver} to receive the results
      * @return always return {@link Void}
      */
     public static Void handleMapOfEntries(RequestHolder<?, Map<Binary, Binary>> holder, Throwable err,
-            StreamObserver<Entry> observer)
+                                          StreamObserver<Entry> observer)
+        {
+        handleMapOfEntries(holder, err, observer, false);
+        return VOID;
+        }
+
+    /**
+     * Handle the result of the asynchronous invoke all request sending the results, or any errors
+     * to the {@link StreamObserver}.
+     *
+     * @param holder        the {@link RequestHolder} containing the request
+     * @param err           any error that occurred during execution of the get all request
+     * @param observer      the {@link StreamObserver} to receive the results
+     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
+     * @return always return {@link Void}
+     */
+    public static Void handleMapOfEntries(RequestHolder<?, Map<Binary, Binary>> holder, Throwable err,
+            StreamObserver<Entry> observer, boolean fDeserialize)
         {
         if (err == null)
             {
-            handleStreamOfEntries(holder, holder.getResult().entrySet().stream(), observer);
+            handleStreamOfEntries(holder, holder.getResult().entrySet().stream(), observer, fDeserialize);
             }
         else
             {
@@ -89,14 +106,32 @@ public class ResponseHandlers
      * @param holder        the {@link RequestHolder} containing the request
      * @param err           any error that occurred during execution of the get all request
      * @param observer      the {@link StreamObserver} to receive the results
+     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
      * @return always return {@link Void}
      */
     public static Void handleSetOfEntries(RequestHolder<?, Set<Map.Entry<Binary, Binary>>> holder, Throwable err,
-            StreamObserver<Entry> observer)
+                                          StreamObserver<Entry> observer)
+        {
+        handleSetOfEntries(holder, err, observer, false);
+        return VOID;
+        }
+
+    /**
+     * Handle the result of the asynchronous entry set request sending the results, or any errors
+     * to the {@link StreamObserver}.
+     *
+     * @param holder        the {@link RequestHolder} containing the request
+     * @param err           any error that occurred during execution of the get all request
+     * @param observer      the {@link StreamObserver} to receive the results
+     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
+     * @return always return {@link Void}
+     */
+    public static Void handleSetOfEntries(RequestHolder<?, Set<Map.Entry<Binary, Binary>>> holder, Throwable err,
+            StreamObserver<Entry> observer, boolean fDeserialize)
         {
         if (err == null)
             {
-            handleStreamOfEntries(holder, holder.getResult().stream(), observer);
+            handleStreamOfEntries(holder, holder.getResult().stream(), observer, fDeserialize);
             }
         else
             {
@@ -114,11 +149,38 @@ public class ResponseHandlers
      * @param observer      the {@link StreamObserver} to receive the results
      */
     public static void handleStreamOfEntries(RequestHolder<?, ?> holder, Stream<Map.Entry<Binary, Binary>> entries,
-            StreamObserver<Entry> observer)
+                                             StreamObserver<Entry> observer)
+        {
+        handleStreamOfEntries(holder, entries, observer, false);
+        }
+
+    /**
+     * Handle the result of the asynchronous invoke all request sending the results, or any errors
+     * to the {@link StreamObserver}.
+     *
+     * @param holder        the {@link RequestHolder} containing the request
+     * @param entries       a {@link Stream} of entries
+     * @param observer      the {@link StreamObserver} to receive the results
+     * @param fDeserialize  a flag indicating whether the {@link Binary} values should be deserialized
+     */
+    public static void handleStreamOfEntries(RequestHolder<?, ?> holder, Stream<Map.Entry<Binary, Binary>> entries,
+            StreamObserver<Entry> observer, boolean fDeserialize)
         {
         try
             {
             entries.forEach(entry -> observer.onNext(holder.toEntry(entry.getKey(), entry.getValue())));
+            //entries.forEach(entry ->
+            //                {
+            //                Binary binValue = entry.getValue();
+            //                if (fDeserialize)
+            //                    {
+            //                    // The Binary value returned by the GetProcessor is actually a serialized Binary
+            //                    // so we need to fDeserialize it first
+            //                    binValue = holder.fromCacheBinary(entry.getValue());
+            //                    }
+            //                observer.onNext(holder.toEntry(entry.getKey(), binValue));
+            //                });
+
             observer.onCompleted();
             }
         catch (Throwable thrown)

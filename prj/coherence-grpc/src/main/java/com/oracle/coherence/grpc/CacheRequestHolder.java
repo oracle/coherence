@@ -18,7 +18,6 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
-import com.tangosol.util.ExternalizableHelper;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
@@ -150,19 +149,6 @@ public class CacheRequestHolder<Req, Res>
         }
 
     /**
-     * Obtain the value deserialized from the specified {@link Binary} using the cache's serializer.
-     *
-     * @param binary  the {@link Binary} of the serialized object
-     * @param <T>     the deserialized type
-     *
-     * @return the deserialized value
-     */
-    public <T> T fromCacheBinary(Binary binary)
-        {
-        return ExternalizableHelper.fromBinary(binary, getCacheSerializer());
-        }
-
-    /**
      * Obtain the {@link Converter} used to convert between the request format keys
      * and the cache format keys; creating the {@link Converter} if required.
      *
@@ -233,19 +219,9 @@ public class CacheRequestHolder<Req, Res>
      * @return a {@link Consumer} of binary {@link Map.Entry} instances that sends
      *         the entries to the {@link StreamObserver}
      */
-    public Consumer<Map.Entry<? extends Binary, ? extends Binary>> entryConsumer(StreamObserver<Entry> observer, boolean fDeserialize)
+    public Consumer<Map.Entry<? extends Binary, ? extends Binary>> entryConsumer(StreamObserver<Entry> observer)
         {
-        return entry ->
-            {
-            Binary binValue = entry.getValue();
-            if (fDeserialize)
-                {
-                // The Binary value returned by the GetProcessor is actually a serialized Binary,
-                // so we need to fDeserialize it first
-                binValue = fromCacheBinary(entry.getValue());
-                }
-            observer.onNext(toEntry(entry.getKey(), binValue));
-            };
+        return entry -> observer.onNext(toEntry(entry.getKey(), entry.getValue()));
         }
 
 

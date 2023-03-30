@@ -172,7 +172,7 @@ class NamedCacheServiceImplTest
         m_dependencies.setSerializerFactory(s_serializerProducer);
         m_dependencies.setRegistry(registry);
         m_dependencies.setExecutor(ForkJoinPool.commonPool());
-        m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier); 
         }
 
     // ----- test methods ---------------------------------------------------
@@ -182,7 +182,7 @@ class NamedCacheServiceImplTest
         {
         NamedCacheServiceImpl service = new NamedCacheServiceImpl(m_dependencies);
 
-        CompletionStage<CacheRequestHolder<String, Void>> stage =
+        CompletionStage<CacheRequestHolder<String, Void>> stage = 
                 service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
@@ -500,9 +500,8 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleClearError()
         {
-        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
-        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
-        doThrow(ERROR).when(cache).clear();
+        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
+                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenThrow(ERROR);
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
@@ -512,16 +511,16 @@ class NamedCacheServiceImplTest
         assertThat(cause, is(sameInstance(ERROR)));
         }
 
-
     @Test
-    public void shouldHandleTruncateError()
+    public void shouldHandleClearAsyncError()
         {
-        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
-        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
-        doThrow(ERROR).when(cache).truncate();
+        CompletableFuture<Map<Binary, Void>> failed = failedFuture(ERROR);
+
+        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
+                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenReturn(failed);
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.truncate(Requests.truncate(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -1682,7 +1681,7 @@ class NamedCacheServiceImplTest
     private static NamedSerializerFactory s_serializerProducer;
 
     private Function<String, ConfigurableCacheFactory> m_ccfSupplier;
-
+    
     private NamedCacheService.DefaultDependencies m_dependencies;
 
     private static ByteString s_bytes1;

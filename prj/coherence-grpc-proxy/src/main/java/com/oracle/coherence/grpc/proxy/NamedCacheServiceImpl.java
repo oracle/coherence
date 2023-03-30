@@ -93,6 +93,7 @@ import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryContai
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryRemoveProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceMappingProcessor;
 import static com.tangosol.internal.util.processor.BinaryProcessors.BinaryReplaceProcessor;
+import static com.tangosol.internal.util.processor.BinaryProcessors.BinarySyntheticRemoveBlindProcessor;
 
 /**
  * A gRPC NamedCache service.
@@ -303,7 +304,10 @@ public class NamedCacheServiceImpl
     public CompletionStage<Empty> clear(ClearRequest request)
         {
         return getAsyncCache(request.getScope(), request.getCache())
-                .thenApplyAsync(cache -> this.execute(() -> cache.getNamedCache().clear()), f_executor);
+                .thenComposeAsync(cache -> cache.invokeAll(AlwaysFilter.INSTANCE(),
+                                                           BinarySyntheticRemoveBlindProcessor.INSTANCE),
+                                  f_executor)
+                .thenApplyAsync(this::empty, f_executor);
         }
 
     // ----- containsEntry --------------------------------------------------
@@ -436,7 +440,7 @@ public class NamedCacheServiceImpl
 
             if (comparator == null)
                 {
-                holder.runAsync(holder.getAsyncCache().entrySet(filter, holder.entryConsumer(observer, false)))
+                holder.runAsync(holder.getAsyncCache().entrySet(filter, holder.entryConsumer(observer)))
                         .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
                 }
             else
@@ -517,7 +521,7 @@ public class NamedCacheServiceImpl
      */
     protected Void getAll(CacheRequestHolder<GetAllRequest, Void> holder, StreamObserver<Entry> observer)
         {
-        Consumer<? super Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer, true);
+        Consumer<? super Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
         holder.runAsync(convertKeys(holder))
                 .thenComposeAsync(h -> h.runAsync(h.getAsyncCache().invokeAll(h.getResult(), BinaryProcessors.get(), callback)), f_executor)
                 .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
@@ -663,7 +667,7 @@ public class NamedCacheServiceImpl
         EntryProcessor<Binary, Binary, Binary> processor       = BinaryHelper.fromByteString(processorBytes,
                                                                                              holder.getSerializer());
 
-        Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer, false);
+        Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
 
         return holder.runAsync(holder.getAsyncCache().invokeAll(filter, processor, callback))
                 .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
@@ -705,7 +709,7 @@ public class NamedCacheServiceImpl
         EntryProcessor<Binary, Binary, Binary> processor
                 = BinaryHelper.fromByteString(request.getProcessor(), holder.getSerializer());
 
-        Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer, false);
+        Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
 
         return holder.runAsync(holder.getAsyncCache().invokeAll(keys, processor, callback))
                 .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
