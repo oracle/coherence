@@ -175,7 +175,7 @@ public class AsyncNamedCacheClient<K, V>
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R> CompletableFuture<R> aggregate(Filter filter,
+    public <R> CompletableFuture<R> aggregate(Filter<?> filter,
                                               InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
         {
         return executeIfActive(() ->
@@ -258,7 +258,7 @@ public class AsyncNamedCacheClient<K, V>
 
     @Override
     @SuppressWarnings({"rawtypes"})
-    public <R> CompletableFuture<Map<K, R>> invokeAll(Filter filter, InvocableMap.EntryProcessor<K, V, R> processor)
+    public <R> CompletableFuture<Map<K, R>> invokeAll(Filter<?> filter, InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return executeIfActive(() ->
             {
@@ -332,7 +332,7 @@ public class AsyncNamedCacheClient<K, V>
 
     @Override
     @SuppressWarnings({"rawtypes"})
-    public <R> CompletableFuture<Void> invokeAll(Filter filter,
+    public <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  Consumer<? super Map.Entry<? extends K, ? extends R>> callback)
         {
@@ -557,7 +557,7 @@ public class AsyncNamedCacheClient<K, V>
 
     @Override
     @SuppressWarnings({"rawtypes"})
-    public <R> CompletableFuture<Void> invokeAll(Filter filter,
+    public <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  BiConsumer<? super K, ? super R> callback)
         {
@@ -677,7 +677,7 @@ public class AsyncNamedCacheClient<K, V>
 
     @Override
     @SuppressWarnings({"rawtypes"})
-    public CompletableFuture<Collection<V>> values(Filter filter, Comparator<? super V> comparator)
+    public CompletableFuture<Collection<V>> values(Filter<?> filter, Comparator<? super V> comparator)
         {
         return executeIfActive(() -> valuesInternal(filter, comparator));
         }
@@ -1103,7 +1103,7 @@ public class AsyncNamedCacheClient<K, V>
      * @return a {@link Collection} of values based on the provided {@link Filter} and {@link Comparator}
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected CompletableFuture<Collection<V>> valuesInternal(Filter filter, Comparator comparator)
+    protected CompletableFuture<Collection<V>> valuesInternal(Filter<?> filter, Comparator comparator)
         {
         return this.values(filter).thenApply((colValues) ->
             {

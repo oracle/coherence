@@ -18,6 +18,7 @@ import com.tangosol.net.Guardian;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
@@ -57,6 +58,11 @@ public class CacheProcessors
     public static <K, V> InvocableMap.EntryProcessor<K, V, V> get()
         {
         return new Get<>();
+        }
+
+    public static <K, V> InvocableMap.EntryProcessor<K, V, V> binaryGet()
+        {
+        return new BinaryGet<>();
         }
 
     public static <K, V> InvocableMap.EntryProcessor<K, V, Optional<V>> getOrDefault()
@@ -379,6 +385,28 @@ public class CacheProcessors
                     }
                 }
             return mapResults;
+            }
+        }
+
+    /**
+     * Get entry processor that avoids value deserialization by returning
+     * Binary value directly, assuming it will be converted on the client
+     * via {@link ConverterCollections.ConverterEntry} or similar.
+     *
+     * @param <K>  the type of the Map entry key
+     * @param <V>  the type of the Map entry value
+     */
+    public static class BinaryGet<K, V>
+            extends Get<K, V>
+        {
+        @SuppressWarnings("unchecked")
+        @Override
+        public V process(InvocableMap.Entry<K, V> entry)
+            {
+            // cast below is a hack to make compiler happy,
+            // and only works because of type erasure, as both
+            // V and Binary erase into Object
+            return (V) entry.asBinaryEntry().getBinaryValue();
             }
         }
 

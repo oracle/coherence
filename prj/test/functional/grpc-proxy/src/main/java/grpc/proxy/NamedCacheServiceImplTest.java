@@ -872,11 +872,11 @@ class NamedCacheServiceImplTest
     public void shouldExecuteGetAllWithResults() throws Exception
         {
         Map<Binary, Binary> mapResults = new HashMap<>();
-        mapResults.put(serialize("one"),   doubleSerialize("value-1"));
-        mapResults.put(serialize("two"),   doubleSerialize("value-2"));
-        mapResults.put(serialize("three"), doubleSerialize("value-3"));
-        mapResults.put(serialize("four"),  doubleSerialize("value-4"));
-        mapResults.put(serialize("five"),  doubleSerialize("value-5"));
+        mapResults.put(serialize("one"),   serialize("value-1"));
+        mapResults.put(serialize("two"),   serialize("value-2"));
+        mapResults.put(serialize("three"), serialize("value-3"));
+        mapResults.put(serialize("four"),  serialize("value-4"));
+        mapResults.put(serialize("five"),  serialize("value-5"));
 
         CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
 
