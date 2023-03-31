@@ -7,7 +7,6 @@
 
 package com.tangosol.util;
 
-
 import com.tangosol.io.AbstractByteArrayReadBuffer;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.ReadBuffer;
@@ -913,22 +912,6 @@ public final class Binary
         }
 
 
-    // ----- HashEncoded methods ------------------------------------------
-
-    /**
-    * {@inheritDoc}
-    */
-    public int getEncodedHash()
-        {
-        int nHash = m_nHash;
-        if (nHash == HashEncoded.UNENCODED)
-            {
-            m_nHash = nHash = super.getEncodedHash();
-            }
-
-        return nHash;
-        }
-
     // ----- AbstractByteArrayReadBuffer methods ----------------------------
 
     /**
@@ -991,28 +974,17 @@ public final class Binary
         {
         int nHash = m_nHash;
 
-        if (nHash == HashEncoded.UNENCODED)
+        if (nHash == 0)
             {
-            try
+            // cache the CRC32 result
+            nHash = toCrc(m_ab, m_of, m_cb);
+            if (nHash == 0)
                 {
-                nHash = super.getEncodedHash();
+                // to allow for caching of the hashcode
+                nHash = 17;
                 }
-            catch (RuntimeException e)
-                {
-                }
-
-            if (nHash == HashEncoded.UNENCODED)
-                {
-                // cache the CRC32 result
-                nHash = toCrc(m_ab, m_of, m_cb);
-                if (nHash == HashEncoded.UNENCODED)
-                    {
-                    // to allow for caching of the hashcode
-                    nHash = 17;
-                    }
-                }
-            m_nHash = nHash;
             }
+        m_nHash = nHash;
 
         return nHash;
         }
@@ -1050,9 +1022,7 @@ public final class Binary
                 // compare hash-code (another quick way to disprove equality)
                 int nThisHash = this.m_nHash;
                 int nThatHash = that.m_nHash;
-                if (nThisHash == HashEncoded.UNENCODED ||
-                    nThatHash == HashEncoded.UNENCODED ||
-                    nThisHash == nThatHash)
+                if (nThisHash == 0 || nThatHash == 0 || nThisHash == nThatHash)
                     {
                     // COH-2279 - Use Arrays.equals if the entire buffers should
                     // be equal. Intentionally only using cbThis since the equality
@@ -1900,5 +1870,5 @@ public final class Binary
     /**
     * Cached hash code.
     */
-    private transient int m_nHash = HashEncoded.UNENCODED;
+    private transient int m_nHash;
     }

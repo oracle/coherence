@@ -568,6 +568,12 @@ public class MetricsSupportTests
                                     "Coherence.PartitionAssignment.ServiceMachineCount",
                                     "Coherence.PartitionAssignment.ServiceRackCount",
                                     "Coherence.PartitionAssignment.ServiceSiteCount",
+                                    "Coherence.PartitionAssignment.AveragePartitionSizeKB",
+                                    "Coherence.PartitionAssignment.MaxStorageSizeKB",
+                                    "Coherence.PartitionAssignment.MaxLoadNodeId",
+                                    "Coherence.PartitionAssignment.AverageStorageSizeKB",
+                                    "Coherence.PartitionAssignment.MaxPartitionSizeKB",
+                                    "Coherence.PartitionAssignment.RemainingDistributionCount",
                                     "Coherence.PartitionAssignment.HAStatusCode");
         }
 
