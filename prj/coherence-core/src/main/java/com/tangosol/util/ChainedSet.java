@@ -1,90 +1,96 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
+
 package com.tangosol.util;
 
-import java.util.AbstractCollection;
+import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
+import java.util.Set;
 import java.util.function.IntFunction;
 
 /**
- * An unmodifiable Collection that provides access to many collections in the
+ * An unmodifiable Set that provides access to many sets in the
  * given order.
+ * <p/>
+ * Note that this implementation does not ensure that the elements are
+ * unique across all chained sets. It is up to the user to provide that
+ * guarantee.
  *
- * @author hr  2014.02.19
- * @since Coherence 12.1.2
+ * @param <E>  the type of Set elements
+ *
+ * @author as  2023.03.03
+ * @since Coherence 23.03
  */
-public class ChainedCollection<E>
-        extends AbstractCollection<E>
+@SuppressWarnings("unchecked")
+public class ChainedSet<E>
+        extends AbstractSet<E>
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Construct a ChainedCollection with the provided Collection of Collection
+     * Construct a ChainedSet with the provided Collection of Set
      * objects.
      *
-     * @param col  a Collection of Collection objects
+     * @param col  a Collection of Set objects
      */
-    public ChainedCollection(Collection<Collection<E>> col)
+    public ChainedSet(Collection<Set<E>> col)
         {
-        this(col.toArray(new Collection[col.size()]));
+        this(col.toArray(Set[]::new));
         }
 
     /**
-     * Construct a ChainedCollection from the existing ChainedCollection and
-     * an additional Collection object.
-     *
-     * @param original  the original ChainedCollection
-     * @param col       a Collection object to append
-     */
-    public ChainedCollection(ChainedCollection<E> original, Collection<E> col)
-        {
-        f_aCol = Arrays.copyOf(original.f_aCol, original.f_aCol.length + 1);
-        f_aCol[original.f_aCol.length] = col;
-        }
-
-    /**
-     * Construct a ChainedCollection from the existing ChainedCollection and
-     * an array of Collection objects.
+     * Construct a ChainedSet from the existing ChainedSet and an additional Set
+     * object.
      *
      * @param original  the original ChainedSet
-     * @param aCol      an array of Collection objects
+     * @param set       a Set object to append
      */
-    @SafeVarargs
-    public ChainedCollection(ChainedCollection<E> original, Collection<E>... aCol)
+    public ChainedSet(ChainedSet<E> original, Set<E> set)
         {
-        f_aCol = Arrays.copyOf(original.f_aCol, original.f_aCol.length + aCol.length);
-        System.arraycopy(aCol, 0, f_aCol, original.f_aCol.length, aCol.length);
+        f_aSets = Arrays.copyOf(original.f_aSets, original.f_aSets.length + 1);
+        f_aSets[original.f_aSets.length] = set;
         }
 
     /**
-     * Construct a ChainedCollection with the provided array of Collection
+     * Construct a ChainedSet from the existing ChainedSet and an array of Set
      * objects.
      *
-     * @param aCol  an array of Collection objects
+     * @param original  the original ChainedSet
+     * @param aSets     an array of Set objects
      */
-    @SafeVarargs
-    public ChainedCollection(Collection<E>... aCol)
+    public ChainedSet(ChainedSet<E> original, Set<E>... aSets)
         {
-        f_aCol = aCol;
+        f_aSets = Arrays.copyOf(original.f_aSets, original.f_aSets.length + aSets.length);
+        System.arraycopy(aSets, 0, f_aSets, original.f_aSets.length, aSets.length);
         }
 
-    // ----- Collection interface -------------------------------------------
+    /**
+     * Construct a ChainedSet with the provided array of Set
+     * objects.
+     *
+     * @param aSets  an array of Set objects
+     */
+    public ChainedSet(Set<E>... aSets)
+        {
+        f_aSets = aSets;
+        }
+
+    // ----- Set interface --------------------------------------------------
 
     @Override
     public int size()
         {
         int cSize = 0;
-        for (Collection<E> col : f_aCol)
+        for (Set<E> set : f_aSets)
             {
-            cSize += col.size();
+            cSize += set.size();
             }
         return cSize;
         }
@@ -92,9 +98,9 @@ public class ChainedCollection<E>
     @Override
     public boolean isEmpty()
         {
-        for (Collection<E> col : f_aCol)
+        for (Set<E> set : f_aSets)
             {
-            if (!col.isEmpty())
+            if (!set.isEmpty())
                 {
                 return false;
                 }
@@ -105,9 +111,9 @@ public class ChainedCollection<E>
     @Override
     public boolean contains(Object o)
         {
-        for (Collection<E> col : f_aCol)
+        for (Set<E> set : f_aSets)
             {
-            if (col.contains(o))
+            if (set.contains(o))
                 {
                 return true;
                 }
@@ -131,22 +137,22 @@ public class ChainedCollection<E>
     @Override
     public Iterator<E> iterator()
         {
-        return new Iterator<E>()
+        return new Iterator<>()
             {
             @Override
             public boolean hasNext()
                 {
                 Iterator<E> iter = m_iter;
-                int         iCol = m_iCol;
-                int         cCol = f_aCol.length;
+                int         iSet = m_iSet;
+                int         cSet = f_aSets.length;
 
-                while ((iter == null || !iter.hasNext()) && ++iCol < cCol)
+                while ((iter == null || !iter.hasNext()) && ++iSet < cSet)
                     {
-                    iter   = m_iter = f_aCol[iCol].iterator();
-                    m_iCol = iCol;
+                    iter   = m_iter = f_aSets[iSet].iterator();
+                    m_iSet = iSet;
                     }
 
-                if (iCol >= cCol)
+                if (iSet >= cSet)
                     {
                     m_iter = null;
                     return false;
@@ -175,7 +181,7 @@ public class ChainedCollection<E>
                 }
 
             Iterator<E> m_iter;
-            int         m_iCol = -1;
+            int m_iSet = -1;
             };
         }
 
@@ -200,9 +206,9 @@ public class ChainedCollection<E>
             a = (T[]) new Object[cSize];
             }
 
-        for (int i = 0, of = 0, cArray = f_aCol.length; i < cArray; ++i)
+        for (int i = 0, of = 0, cArray = f_aSets.length; i < cArray; ++i)
             {
-            Object[] aoCol = f_aCol[i].toArray();
+            Object[] aoCol = f_aSets[i].toArray();
             System.arraycopy(aoCol, 0, a, of, aoCol.length);
             of += aoCol.length;
             }
@@ -251,7 +257,7 @@ public class ChainedCollection<E>
     // ----- data members ---------------------------------------------------
 
     /**
-     * An array of Collections to enumerate.
+     * An array of Sets to enumerate.
      */
-    protected final Collection<E>[] f_aCol;
+    protected final Set<E>[] f_aSets;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,6 +32,7 @@ import java.util.SortedMap;
 *
 * @author cp/gg 2002.10.29
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class LessFilter<T, E extends Comparable<? super E>>
         extends    ComparisonFilter<T, E, E>
         implements IndexAwareFilter<Object, T>
@@ -120,25 +121,22 @@ public class LessFilter<T, E extends Comparable<? super E>>
             SortedMap mapGE       = mapContents.tailMap(oValue);
             boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
 
+            setKeys.removeAll(ensureSafeSet(setNULL));
+
             if (fHeadHeavy && !index.isPartial())
                 {
-                for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext();)
+                for (Object o : mapGE.values())
                     {
-                    setKeys.removeAll(ensureSafeSet((Set) iterGE.next()));
+                    setKeys.removeAll(ensureSafeSet((Set) o));
                     }
-
-                setKeys.removeAll(ensureSafeSet(setNULL));
                 }
             else
                 {
                 Set setLT = new HashSet();
-                for (Iterator iterLT = mapLT.values().iterator(); iterLT.hasNext();)
+                for (Object o : mapLT.values())
                     {
-                    Set set = (Set) iterLT.next();
-                    if (set != setNULL)
-                        {
-                        setLT.addAll(ensureSafeSet(set));
-                        }
+                    Set set = (Set) o;
+                    setLT.addAll(ensureSafeSet(set));
                     }
                 setKeys.retainAll(setLT);
                 }
@@ -150,10 +148,9 @@ public class LessFilter<T, E extends Comparable<? super E>>
             if (index.isPartial())
                 {
                 Set setLT = new HashSet();
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
+                for (Object o : mapContents.entrySet())
                     {
-                    Map.Entry  entry = (Map.Entry) iter.next();
+                    Map.Entry  entry = (Map.Entry) o;
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest != null && oTest.compareTo(oValue) < 0)
                         {
@@ -164,10 +161,9 @@ public class LessFilter<T, E extends Comparable<? super E>>
                 }
             else
                 {
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
+                for (Object o : mapContents.entrySet())
                     {
-                    Map.Entry  entry = (Map.Entry) iter.next();
+                    Map.Entry  entry = (Map.Entry) o;
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest == null || oTest.compareTo(oValue) >= 0)
                         {

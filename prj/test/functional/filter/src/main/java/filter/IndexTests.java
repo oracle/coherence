@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -178,21 +178,26 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        // sorted or non sorted doesn't make any difference - test
-        // still fails
-        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
-
-        // Insert/Update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
-
-        for (int i = 0; i < s_cIterations; i++)
+        try
             {
-            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-            }
+            cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
-        stopUpdateThreads(updateThreads);
+            // Insert/Update
+            UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+            for (int i = 0; i < s_cIterations; i++)
+                {
+                testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+                testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+                testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+                }
+
+            stopUpdateThreads(updateThreads);
+            }
+        finally
+            {
+            cache.removeIndex(IdentityExtractor.INSTANCE);
+            }
         }
 
     @Test
