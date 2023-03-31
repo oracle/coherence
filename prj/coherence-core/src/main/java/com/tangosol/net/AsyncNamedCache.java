@@ -32,12 +32,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 
 import java.util.concurrent.CompletableFuture;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
+
+import java.util.stream.Collectors;
 
 /**
  * Asynchronous {@link NamedCache}.
@@ -103,7 +106,7 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} for a Map of keys to values for the
      *         specified filter
      */
-    public default CompletableFuture<Map<K, V>> getAll(Filter filter)
+    public default CompletableFuture<Map<K, V>> getAll(Filter<?> filter)
         {
         return invokeAll(filter, CacheProcessors.get());
         }
@@ -231,7 +234,7 @@ public interface AsyncNamedCache<K, V>
      *
      * @return a {@link CompletableFuture}
      */
-    public default CompletableFuture<Void> removeAll(Filter filter)
+    public default CompletableFuture<Void> removeAll(Filter<?> filter)
         {
         return invokeAll(filter, CacheProcessors.removeBlind()).thenAccept(ANY);
         }
@@ -257,7 +260,7 @@ public interface AsyncNamedCache<K, V>
      *
      * @return a set of keys for entries that satisfy the specified criteria
      */
-    public default CompletableFuture<Set<K>> keySet(Filter filter)
+    public default CompletableFuture<Set<K>> keySet(Filter<?> filter)
         {
         return invokeAll(filter, CacheProcessors.nop())
                 .thenApply(Map::keySet);
@@ -288,7 +291,7 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to determine whether
      *         the operation completed
      */
-    public default CompletableFuture<Void> keySet(Filter filter,
+    public default CompletableFuture<Void> keySet(Filter<?> filter,
                                                   Consumer<? super K> callback)
         {
         return invokeAll(filter, CacheProcessors.nop(),
@@ -316,9 +319,9 @@ public interface AsyncNamedCache<K, V>
      *
      * @return a set of entries that satisfy the specified criteria
      */
-    public default CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter filter)
+    public default CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter<?> filter)
         {
-        return invokeAll(filter, CacheProcessors.get())
+        return invokeAll(filter, CacheProcessors.binaryGet())
                 .thenApply(Map::entrySet);
         }
 
@@ -338,13 +341,14 @@ public interface AsyncNamedCache<K, V>
      *
      * @return a set of entries that satisfy the specified criteria
      */
-    public default CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter filter, Comparator comparator)
+    @SuppressWarnings("unchecked")
+    default CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter<?> filter, Comparator<?> comparator)
         {
-        return invokeAll(filter, CacheProcessors.get())
-                .thenApply(mapResult ->
+        return entrySet(filter)
+                .thenApply(setResult ->
                     {
-                    int         cEntries = mapResult.size();
-                    Map.Entry[] aEntries = mapResult.entrySet().toArray(new Map.Entry[cEntries]);
+                    int               cEntries = setResult.size();
+                    Map.Entry<K, V>[] aEntries = setResult.toArray(new Map.Entry[cEntries]);
 
                     Arrays.sort(aEntries, new EntryComparator(
                             comparator == null ? SafeComparator.INSTANCE : comparator));
@@ -389,10 +393,9 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to determine whether
      *         the operation completed
      */
-    public default CompletableFuture<Void> entrySet(Filter filter, BiConsumer<? super K, ? super V> callback)
+    public default CompletableFuture<Void> entrySet(Filter<?> filter, BiConsumer<? super K, ? super V> callback)
         {
-        return invokeAll(filter, CacheProcessors.get(),
-                entry -> callback.accept(entry.getKey(), entry.getValue()));
+        return entrySet(filter, entry -> callback.accept(entry.getKey(), entry.getValue()));
         }
 
     /**
@@ -406,10 +409,10 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to determine whether
      *         the operation completed
      */
-    public default CompletableFuture<Void> entrySet(Filter filter,
+    public default CompletableFuture<Void> entrySet(Filter<?> filter,
                                                     Consumer<? super Map.Entry<? extends K, ? extends V>> callback)
         {
-        return invokeAll(filter, CacheProcessors.get(), callback);
+        return invokeAll(filter, CacheProcessors.binaryGet(), callback);
         }
 
     /**
@@ -432,10 +435,10 @@ public interface AsyncNamedCache<K, V>
      * @return a collection of values for entries that satisfy the specified
      *         criteria
      */
-    public default CompletableFuture<Collection<V>> values(Filter filter)
+    public default CompletableFuture<Collection<V>> values(Filter<?> filter)
         {
-        return invokeAll(filter, CacheProcessors.get())
-                .thenApply(Map::values);
+        return entrySet(filter)
+                .thenApply(entries -> entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()));
         }
 
     /**
@@ -451,15 +454,10 @@ public interface AsyncNamedCache<K, V>
      * @return a collection of values for entries that satisfy the specified
      *         criteria
      */
-    public default CompletableFuture<Collection<V>> values(Filter filter, Comparator<? super V> comparator)
+    public default CompletableFuture<Collection<V>> values(Filter<?> filter, Comparator<? super V> comparator)
         {
-        return values(filter)
-                .thenApply(colValues ->
-                    {
-                    List<V> values = new ArrayList<>(colValues);
-                    values.sort(comparator);
-                    return values;
-                    });
+        return entrySet(filter)
+                .thenApply(entries -> entries.stream().map(Map.Entry::getValue).collect(Collectors.toCollection(() -> new TreeSet<>(comparator))));
         }
 
     /**
@@ -487,10 +485,9 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to determine whether
      *         the operation completed
      */
-    public default CompletableFuture<Void> values(Filter filter, Consumer<? super V> callback)
+    public default CompletableFuture<Void> values(Filter<?> filter, Consumer<? super V> callback)
         {
-        return invokeAll(filter, CacheProcessors.get(),
-                entry -> callback.accept(entry.getValue()));
+        return entrySet(filter, entry -> callback.accept(entry.getValue()));
         }
 
     // ---- Asynchronous InvocableMap methods -------------------------------
@@ -556,7 +553,7 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to obtain the result
      *         of the invocation for each entry
      */
-    public <R> CompletableFuture<Map<K, R>> invokeAll(Filter filter,
+    public <R> CompletableFuture<Map<K, R>> invokeAll(Filter<?> filter,
             InvocableMap.EntryProcessor<K, V, R> processor);
 
     /**
@@ -675,7 +672,7 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to determine if the
      *         operation completed successfully
      */
-    public <R> CompletableFuture<Void> invokeAll(Filter filter,
+    public <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
             InvocableMap.EntryProcessor<K, V, R> processor,
             Consumer<? super Map.Entry<? extends K,? extends R>> callback);
 
@@ -699,7 +696,7 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to determine if the
      *         operation completed successfully
      */
-    public default <R> CompletableFuture<Void> invokeAll(Filter filter,
+    public default <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
             InvocableMap.EntryProcessor<K, V, R> processor, BiConsumer<? super K,? super R> callback)
         {
         return invokeAll(filter, processor,
@@ -750,7 +747,7 @@ public interface AsyncNamedCache<K, V>
      * @return a {@link CompletableFuture} that can be used to obtain the result
      *         of the aggregation
      */
-    public <R> CompletableFuture<R> aggregate(Filter filter,
+    public <R> CompletableFuture<R> aggregate(Filter<?> filter,
         InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator);
 
     // ---- Asynchronous Map methods ----------------------------------------
@@ -1050,7 +1047,7 @@ public interface AsyncNamedCache<K, V>
      * @param filter   the filter that should be used to select entries
      * @param function the function to apply to each entry
      */
-    public default CompletableFuture<Map<K, Void>> replaceAll(Filter filter,
+    public default CompletableFuture<Map<K, Void>> replaceAll(Filter<?> filter,
             Remote.BiFunction<? super K, ? super V, ? extends V> function)
         {
         return invokeAll(filter, CacheProcessors.replace(function));

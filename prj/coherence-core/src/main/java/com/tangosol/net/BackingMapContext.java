@@ -17,7 +17,6 @@ import com.tangosol.util.extractor.IndexAwareExtractor;
 
 import java.util.Map;
 
-
 /**
 * The BackingMapContext provides an execution context to server side agents such
 * as {@link com.tangosol.util.InvocableMap.EntryProcessor EntryProcessors} and
@@ -29,6 +28,7 @@ import java.util.Map;
 * @since Coherence 3.7
 * @author coh 2010.12.04
 */
+@SuppressWarnings({"rawtypes", "UnnecessaryModifier"})
 public interface BackingMapContext
     {
     /**
@@ -70,6 +70,20 @@ public interface BackingMapContext
      * @return  the map of indexes defined on the cache
      */
     public Map<ValueExtractor, MapIndex> getIndexMap();
+
+    /**
+     * Return a map of partitioned indexes defined for the {@link NamedCache cache}
+     * that this BackingMapContext is associated with. The returned map must be
+     * treated in the read-only manner.
+     *
+     * @return the map of partitioned indexes defined on the cache
+     *
+     * @since 23.03
+     */
+    public default Map<Integer, Map<ValueExtractor, MapIndex>> getPartitionedIndexMap()
+        {
+        return null;
+        }
 
     /**
      * Return an InvocableMap.Entry for the specified key (in its internal

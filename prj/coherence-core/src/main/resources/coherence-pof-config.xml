@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 
 <!--
 Note: This XML document is an example Coherence POF Configuration deployment
@@ -1070,6 +1070,11 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>471</type-id>
       <class-name>com.tangosol.internal.util.processor.CacheProcessors$Get</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>486</type-id>  <!-- skipped below for some reason, so closing the gap -->
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$BinaryGet</class-name>
     </user-type>
 
     <user-type>
