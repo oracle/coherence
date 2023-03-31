@@ -16,6 +16,7 @@ import com.tangosol.net.cache.SimpleMemoryCalculator;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.MapIndex;
 import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
@@ -91,9 +92,9 @@ public class IndexTests
 
         Assert.assertEquals(500, cache.keySet(AlwaysFilter.INSTANCE).size());
 
-        Map<ValueExtractor, SimpleMapIndex> indexMap = getIndexMap(cache);
+        Map<ValueExtractor, MapIndex> indexMap = getIndexMap(cache);
         Assert.assertEquals(1, indexMap.size());
-        SimpleMapIndex index = getIndex(extractor, indexMap);
+        MapIndex index = getIndex(extractor, indexMap);
         Assert.assertNotNull(index);
         Assert.assertEquals(cKeys, index.getIndexContents().size());
 
@@ -132,39 +133,35 @@ public class IndexTests
 
         cache.addIndex(extractor, false, null);
 
-        Map<ValueExtractor, SimpleMapIndex> indexMap = getIndexMap(cache);
+        Map<ValueExtractor, MapIndex> indexMap = getIndexMap(cache);
         Assert.assertEquals(1, indexMap.size());
-        SimpleMapIndex index = getIndex(extractor, indexMap);
+        MapIndex index = getIndex(extractor, indexMap);
         Assert.assertNotNull(index);
 
         System.gc();
         long afterIndex = getMemoryUsage();
 
         long   overhead = afterIndex - beforeIndex;
-        double variance = Math.abs(overhead - index.getTotalUnits()) * 1.0 / overhead;
+        double variance = Math.abs(overhead - index.getUnits()) * 1.0 / overhead;
 
         System.out.println("Overhead=" + Base.toMemorySizeString(overhead, false));
-        System.out.println(index.toString(true));
+        System.out.println(index);
 
-        long keySizesMain = 0L;
-        long keySizesPart = 0L;
+        long keySizes = 0L;
 
         for (int k = 0; k < 4; k++)
             {
-            keySizesMain += ((Set<Binary>) index.getIndexContents().get(k)).stream().mapToLong(Binary::length).sum();
             for (int i = 0; i < 257; i++)
                 {
-                keySizesPart += ((Set<Binary>) getPartitionedIndexMap(cache, i).get(extractor).getIndexContents().get(k)).stream().mapToLong(Binary::length).sum();
+                keySizes += ((Set<Binary>) getPartitionedIndexMap(cache, i).get(extractor).getIndexContents().get(k)).stream().mapToLong(Binary::length).sum();
                 }
             }
 
-        System.out.printf("\n       Inverse index size (main): %s (%,d)", Base.toMemorySizeString(keySizesMain, false), keySizesMain);
-        System.out.printf("\nInverse index size (partitioned): %s (%,d)", Base.toMemorySizeString(keySizesPart, false), keySizesPart);
+        System.out.printf("\nInverse index keys: %s (%,d)", Base.toMemorySizeString(keySizes, false), keySizes);
         System.out.println();
 
-        Assert.assertEquals("Inverse index size does not match", keySizesMain, keySizesPart);
         Assert.assertTrue("The variance percentage is " + variance + ". Real memory Cost for index: " +
-                    overhead + "; but calculated memory cost: " + index.getTotalUnits(), variance < 0.1);
+                    overhead + "; but calculated memory cost: " + index.getUnits(), variance < 0.1);
         }
 
     //@Test
@@ -176,9 +173,9 @@ public class IndexTests
         ReflectionExtractor extractor = new ReflectionExtractor("intValue");
         cache.addIndex(extractor, true, null);
 
-        Map<ValueExtractor, SimpleMapIndex> indexMap = getIndexMap(cache);
+        Map<ValueExtractor, MapIndex> indexMap = getIndexMap(cache);
         Assert.assertEquals(1, indexMap.size());
-        SimpleMapIndex index = getIndex(extractor, indexMap);
+        MapIndex index = getIndex(extractor, indexMap);
         Assert.assertNotNull(index);
 
         int valueSize = s_calculator.sizeOf(10);
@@ -260,7 +257,7 @@ public class IndexTests
      * @param index
      * @param expectedSize
      */
-    private void checkSize(SimpleMapIndex index, int expectedSize)
+    private void checkSize(MapIndex index, int expectedSize)
         {
         Assert.assertEquals(expectedSize, index.getUnits());
         }
@@ -273,9 +270,9 @@ public class IndexTests
         ValueExtractor extractor = new ReflectionExtractor("toString");
         cache.addIndex(extractor, true, null);
 
-        Map<ValueExtractor, SimpleMapIndex> indexMap = getIndexMap(cache);
+        Map<ValueExtractor, MapIndex> indexMap = getIndexMap(cache);
         Assert.assertEquals(1, indexMap.size());
-        SimpleMapIndex index = getIndex(extractor, indexMap);
+        MapIndex index = getIndex(extractor, indexMap);
         Assert.assertNotNull(index);
 
         int expectedSize = 0;
@@ -339,13 +336,13 @@ public class IndexTests
         ValueExtractor extractor = new ReflectionExtractor("getValue");
         cache.addIndex(extractor, true, null);
 
-        Map<ValueExtractor, SimpleMapIndex> indexMap = getIndexMap(cache);
-        SimpleMapIndex index = getIndex(extractor, indexMap);
+        Map<ValueExtractor, MapIndex> indexMap = getIndexMap(cache);
+        MapIndex index = getIndex(extractor, indexMap);
 
         checkSize(index, 0);
         Type bar = new Type("bar", 1);
         cache.put("Foo", bar);
-        checkSize(index, index.getCalculator().calculateUnits(null, bar.getValue()));
+        //checkSize(index, index.getCalculator().calculateUnits(null, bar.getValue()));
         }
 
     public static class Type implements ExternalizableLite
@@ -416,8 +413,8 @@ public class IndexTests
      * @param indexMap
      * @return
      */
-    private SimpleMapIndex getIndex(ValueExtractor extractor,
-            Map<ValueExtractor, SimpleMapIndex> indexMap)
+    private MapIndex getIndex(ValueExtractor extractor,
+                              Map<ValueExtractor, MapIndex> indexMap)
         {
         return indexMap.get(extractor);
         }
@@ -426,7 +423,7 @@ public class IndexTests
      * @param cache
      * @return
      */
-    private Map<ValueExtractor, SimpleMapIndex> getIndexMap(
+    private Map<ValueExtractor, MapIndex> getIndexMap(
             final NamedCache cache)
         {
         SafeDistributedCacheService service = (SafeDistributedCacheService) cache
@@ -436,7 +433,7 @@ public class IndexTests
         return distCache.getStorage(cache.getCacheName()).getIndexMap();
         }
 
-    private Map<ValueExtractor, SimpleMapIndex> getPartitionedIndexMap(
+    private Map<ValueExtractor, MapIndex> getPartitionedIndexMap(
             final NamedCache cache, int nPart)
         {
         SafeDistributedCacheService service = (SafeDistributedCacheService) cache

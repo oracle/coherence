@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package filter;
@@ -106,8 +106,8 @@ public class IndexTests
     public static void _startup()
         {
         // this test requires local storage to be enabled
-        System.setProperty("tangosol.coherence.distributed.localstorage", "true");
-        System.setProperty("tangosol.coherence.distributed.threads", "4");
+        System.setProperty("coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.distributed.threads", "4");
 
         s_cIterations = Integer.getInteger("test.iterations", 1);
         s_cThreads = Integer.getInteger("test.threads", 1);
@@ -178,21 +178,26 @@ public class IndexTests
         {
         final NamedCache cache = getNamedCache();
 
-        // sorted or non sorted doesn't make any difference - test
-        // still fails
-        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
-
-        // Insert/Update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
-
-        for (int i = 0; i < s_cIterations; i++)
+        try
             {
-            testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-            testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-            testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
-            }
+            cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
-        stopUpdateThreads(updateThreads);
+            // Insert/Update
+            UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+
+            for (int i = 0; i < s_cIterations; i++)
+                {
+                testFilter(cache, new GreaterEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+                testFilter(cache, new EqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+                testFilter(cache, new LessEqualsFilter(IdentityExtractor.INSTANCE, QUERY_VALUE));
+                }
+
+            stopUpdateThreads(updateThreads);
+            }
+        finally
+            {
+            cache.removeIndex(IdentityExtractor.INSTANCE);
+            }
         }
 
     @Test
@@ -842,7 +847,7 @@ public class IndexTests
                 {
                 return null;
                 }
-            return new Integer(((String) oTarget));
+            return Integer.parseInt(((String) oTarget));
             }
 
         public String toString()

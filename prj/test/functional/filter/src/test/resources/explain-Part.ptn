@@ -8,7 +8,7 @@ LessEqualsFilter\(filter\.nestinglevel1\.nestinglevel2\.nestin\.\.\. \(0\) \| 0 
 Index Lookups
 Index Description                             Extractor                        Ordered
 ======================================================================================
-0   \| Simple: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(1\) \| true
+0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(1\) \| true
 
 
 Complete filter and index descriptions

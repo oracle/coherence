@@ -7,6 +7,7 @@
 
 package com.tangosol.util;
 
+import com.tangosol.internal.util.PartitionedIndexMap;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -932,7 +933,17 @@ public class SimpleQueryRecord
                             sIndex = "Simple: ";
                             }
 
-                        m_cBytes          = ((SimpleMapIndex) index).getUnits();
+                        m_cBytes          = index.getUnits();
+                        m_cDistinctValues = index.getIndexContents().size();
+                        m_sIndexDef       = sIndex;
+
+                        sIndex = buildIndexDescription();
+                        }
+                    else if (index instanceof PartitionedIndexMap.PartitionedIndex)
+                        {
+                        sIndex = "Partitioned: ";
+
+                        m_cBytes          = index.getUnits();
                         m_cDistinctValues = index.getIndexContents().size();
                         m_sIndexDef       = sIndex;
 

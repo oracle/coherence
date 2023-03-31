@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package processor;
@@ -724,7 +724,7 @@ public class IndexIntegrityTests
                                         }
                                     };
                                 mapIndex.put(this, index);
-                                return null;
+                                return index;
                                 }
 
                             public MapIndex destroyIndex(Map mapIndex)
@@ -758,6 +758,7 @@ public class IndexIntegrityTests
     /**
     * EntryProcessor to validate the user and partitioned indices.
     */
+    @SuppressWarnings("rawtypes")
     public static class IndexVerifierProcessor
             extends AbstractProcessor
         {
@@ -773,7 +774,7 @@ public class IndexIntegrityTests
             Map                      mapBM    = binEntry.getBackingMap();
             Converter                convUp   = ctx.getValueFromInternalConverter();
             Converter                convDown = ctx.getValueToInternalConverter();
-            SimpleMapIndex           index    = findIndex(ctx, m_sCacheName);
+            MapIndex                 index    = findIndex(ctx, m_sCacheName);
             Map                      keyIndex = findKeyIndex(ctx, m_sCacheName);
             StringBuilder            sb       = new StringBuilder();
 
@@ -988,11 +989,11 @@ public class IndexIntegrityTests
     // ----- test helpers -------------------------------------------------
 
     /**
-    * Return the SimpleMapIndex on the specified cache.
+    * Return the MapIndex on the specified cache.
     *
-    * @return the SimpleMapIndex on the specified cache
+    * @return the MapIndex on the specified cache
     */
-    public static SimpleMapIndex findIndex(
+    public static MapIndex findIndex(
             BackingMapManagerContext context, String sCacheName)
         {
         try
@@ -1012,7 +1013,7 @@ public class IndexIntegrityTests
             Map    mapIndex = (Map) ClassHelper.invoke(
                 oStorage, "getIndexMap", ClassHelper.VOID);
 
-            return (SimpleMapIndex) mapIndex.values().iterator().next();
+            return (MapIndex) mapIndex.values().iterator().next();
             }
         catch (Exception e)
             {

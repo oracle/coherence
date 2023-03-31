@@ -232,40 +232,6 @@ public class SimpleMapIndex
         }
 
     /**
-     * Retrieve the size of the partitioned index for this index in units
-     * (as defined by the {@link #getCalculator() UnitCalculator}).
-     *
-     * @return the partitioned index size
-     */
-    public long getPartitionedUnits()
-        {
-        long cUnits = 0;
-
-        Map<Integer, Map<ValueExtractor, MapIndex>> partitionedIndexMap = m_ctx.getPartitionedIndexMap();
-        for (Map<ValueExtractor, MapIndex> indexMap : partitionedIndexMap.values())
-            {
-            MapIndex index = indexMap.get(getValueExtractor());
-            if (index instanceof SimpleMapIndex)
-                {
-                cUnits += ((SimpleMapIndex) index).getUnits();
-                }
-            }
-        
-        return cUnits;
-        }
-
-    /**
-     * Retrieve the total size of this index in units, which includes both the
-     * main and the partitioned index size.
-     *
-     * @return the total index size
-     */
-    public long getTotalUnits()
-        {
-        return getUnits() + getPartitionedUnits();
-        }
-
-    /**
     * Set the size of this index in units (as defined by the
     * {@link #getCalculator() UnitCalculator}).
     *
@@ -1108,9 +1074,7 @@ public class SimpleMapIndex
         return ClassHelper.getSimpleName(getClass())
                 + ": Extractor=" + getValueExtractor()
                 + ", Ordered=" + isOrdered()
-                + ", Footprint=" + Base.toMemorySizeString(getTotalUnits(), false)
-                    + " (main=" + Base.toMemorySizeString(getUnits(), false)
-                    + ", partitioned=" + Base.toMemorySizeString(getPartitionedUnits(), false) + ")"
+                + ", Footprint=" + Base.toMemorySizeString(getUnits(), false)
                 + ", Content="
                 + (fVerbose ? getIndexContents().keySet() : getIndexContents().size());
         }
@@ -1217,7 +1181,7 @@ public class SimpleMapIndex
         */
         protected CalculatorState getCalculatorState(Class clz)
             {
-            if (MAP_FIXED_SIZES.containsKey(clz))
+            if (MAP_FIXED_SIZES.containsKey(clz) || clz.isEnum())
                 {
                 return CalculatorState.FIXED;
                 }

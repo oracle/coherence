@@ -32,6 +32,7 @@ import java.util.SortedMap;
 *
 * @author cp/gg 2002.10.29
 */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class GreaterFilter<T, E extends Comparable<? super E>>
         extends    ComparisonFilter<T, E, E>
         implements IndexAwareFilter<Object, T>
@@ -120,30 +121,29 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             SortedMap mapGE       = mapContents.tailMap(oValue);
             boolean   fHeadHeavy  = mapLT.size() > mapContents.size() / 2;
 
+            if (setEQ != null)
+                {
+                setKeys.removeAll(setEQ);
+                }
+
             if (fHeadHeavy || index.isPartial())
                 {
                 Set setGT = new HashSet();
-                for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext();)
+                for (Object o : mapGE.values())
                     {
-                    Set set = (Set) iterGE.next();
-                    if (set != setEQ)
-                        {
-                        setGT.addAll(ensureSafeSet(set));
-                        }
+                    Set set = (Set) o;
+                    setGT.addAll(ensureSafeSet(set));
                     }
                 setKeys.retainAll(setGT);
                 }
             else
                 {
-                for (Iterator iterLT = mapLT.values().iterator(); iterLT.hasNext();)
+                for (Object o : mapLT.values())
                     {
-                    setKeys.removeAll(ensureSafeSet((Set) iterLT.next()));
-                    }
-                if (setEQ != null)
-                    {
-                    setKeys.removeAll(setEQ);
+                    setKeys.removeAll(ensureSafeSet((Set) o));
                     }
                 }
+
             // Note: the NULL set doesn't get in
             }
         else
@@ -153,10 +153,9 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             if (index.isPartial())
                 {
                 Set setGT = new HashSet();
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
+                for (Object o : mapContents.entrySet())
                     {
-                    Map.Entry  entry = (Map.Entry) iter.next();
+                    Map.Entry  entry = (Map.Entry) o;
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest != null && oTest.compareTo(oValue) > 0)
                         {
@@ -167,10 +166,9 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
                 }
             else
                 {
-                for (Iterator iter = mapContents.entrySet().iterator();
-                     iter.hasNext();)
+                for (Object o : mapContents.entrySet())
                     {
-                    Map.Entry  entry = (Map.Entry) iter.next();
+                    Map.Entry  entry = (Map.Entry) o;
                     Comparable oTest = (Comparable) entry.getKey();
                     if (oTest == null || oTest.compareTo(oValue) <= 0)
                         {
