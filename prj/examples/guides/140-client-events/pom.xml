@@ -17,7 +17,7 @@
   <name>Coherence Guides - Client Events</name>
 
   <properties>
-    <revision>23.03</revision>
+    <revision>23.03.1-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
