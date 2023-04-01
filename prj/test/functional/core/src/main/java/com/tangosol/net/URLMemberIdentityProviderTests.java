@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.oracle.coherence.testing.AbstractTestInfrastructure;
+
 import com.tangosol.coherence.http.JavaHttpServer;
+
 import com.tangosol.internal.http.BaseHttpHandler;
 import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
 import com.tangosol.internal.http.SimpleHttpHandler;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,7 +22,9 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
+
 import java.nio.charset.StandardCharsets;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -97,8 +103,8 @@ public class URLMemberIdentityProviderTests
     public void shouldLoadMachineFromURLWhenNotListening()
         {
         String sExpected = "test-machine";
+        int    port      = AbstractTestInfrastructure.getAvailablePorts().next(); // known free port
 
-        int port = s_server.getListenPort() + 1;
         System.setProperty(URLMemberIdentityProvider.PROP_MACHINE, "http://127.0.0.1:" + port + "/machine");
         s_machineResponse = Response.ok(asStream(sExpected)).build();
         URLMemberIdentityProvider provider = new URLMemberIdentityProvider();
