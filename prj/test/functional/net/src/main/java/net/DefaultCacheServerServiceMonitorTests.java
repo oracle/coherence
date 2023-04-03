@@ -193,7 +193,7 @@ public class DefaultCacheServerServiceMonitorTests
             throws InterruptedException
         {
         final long cHeartbeatMillis = 1000L;
-              int  cIterations      = 3;
+        final int  cIterations      = 3;
 
         List<XmlElement> elements = Arrays.asList(
                 createServiceXml(true), createServiceXml(false),
@@ -207,16 +207,18 @@ public class DefaultCacheServerServiceMonitorTests
         AtomicInteger cRunning1 = new AtomicInteger();
         AtomicInteger cRunning2 = new AtomicInteger();
 
+        when(service1.isRunning()).thenAnswer(a -> {
+            cRunning1.getAndSet(cIterations);
+            return true;
+        }).thenReturn(true);
+
+        when(service2.isRunning()).thenAnswer(a -> {
+            cRunning2.getAndSet(cIterations);
+            return true;
+        }).thenReturn(true);
+
         when(factory.ensureService(elements.get(0))).thenReturn(service1);
         when(factory.ensureService(elements.get(2))).thenReturn(service2);
-        when(service1.isRunning()).then(a -> {
-            cRunning1.incrementAndGet();
-            return true;
-        }).thenReturn(true);
-        when(service2.isRunning()).then(a -> {
-            cRunning2.incrementAndGet();
-            return true;
-        }).thenReturn(true);
 
         final DefaultCacheServer server = new DefaultCacheServer(factory);
         Thread t = Base.makeThread(null, new Runnable()
@@ -230,10 +232,12 @@ public class DefaultCacheServerServiceMonitorTests
 
         Blocking.sleep(cHeartbeatMillis * cIterations + cHeartbeatMillis);
 
-        Eventually.assertDeferred(() -> cRunning1.get(), greaterThanOrEqualTo(1));
-        Eventually.assertDeferred(() -> cRunning2.get(), greaterThanOrEqualTo(1));
-
+        server.waitForServiceStart();
         Eventually.assertDeferred(() -> server.isMonitoringServices(), is(true));
+
+        Eventually.assertDeferred(() -> cRunning1.get(), greaterThanOrEqualTo(cIterations));
+        Eventually.assertDeferred(() -> cRunning2.get(), greaterThanOrEqualTo(cIterations));
+
         stopDCS(server);
         Eventually.assertDeferred(() -> server.isMonitoringServices(), is(false));
 

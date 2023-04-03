@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1128,17 +1128,18 @@ public abstract class AbstractEntryAggregatorTests
         Trade.fillRandom(cache, 1000);
         Eventually.assertDeferred(() -> cache.size(), is(1000));
 
-        Map mapResult, mapTest;
-
-        for (int i = 0, c = aAgent.length; i < c; i++)
-            {
-            mapResult = (Map) cache.aggregate(NullImplementation.getSet(), aAgent[i]);
-            assertTrue("Result=" + mapResult, mapResult.isEmpty());
-            }
-
         NamedCache cacheTest = new WrapperNamedCache(new LocalCache(), "test");
         cacheTest.putAll(cache);
         Eventually.assertDeferred(() -> cacheTest.size(), is(1000));
+
+        for (int i = 0, c = aAgent.length; i < c; i++)
+            {
+            GroupAggregator groupAggregator = aAgent[i];
+            Eventually.assertDeferred(() -> ((Map) cache.aggregate(NullImplementation.getSet(), groupAggregator)).isEmpty(),
+                    is(true));
+            }
+
+        Map mapResult, mapTest;
 
         for (int i = 0; i < aAgent.length; i++)
             {

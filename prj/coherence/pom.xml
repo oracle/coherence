@@ -215,8 +215,8 @@
     <dependency>
       <groupId>com.sun.activation</groupId>
       <artifactId>jakarta.activation</artifactId>
-      <optional>true</optional>
       <version>${jakarta.activation.version}</version>
+      <optional>true</optional>
     </dependency>
 
     <!-- jakarta.annotation-api -->
