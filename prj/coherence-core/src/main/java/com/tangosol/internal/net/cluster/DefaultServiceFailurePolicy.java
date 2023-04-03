@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,9 @@
 package com.tangosol.internal.net.cluster;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.util.Duration;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.Cluster;
 import com.tangosol.net.GuardSupport;
@@ -17,6 +20,9 @@ import com.tangosol.net.ServiceFailurePolicy;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
 * DefaultServiceFailurePolicy is the default implementation of ServiceFailurePolicy.
@@ -143,9 +149,9 @@ public class DefaultServiceFailurePolicy
 
             case POLICY_EXIT_PROCESS:
                 System.err.println(getTimestamp() + sHeader +
-                    "Halting JVM due to unrecoverable service failure");
+                    "Exiting JVM due to unrecoverable service failure");
                 System.err.flush();
-                Runtime.getRuntime().halt(-1);
+                ensureExit(cluster, -1, getShutdownTimeout(cluster));
                 break;
             }
         }
@@ -165,7 +171,7 @@ public class DefaultServiceFailurePolicy
     /**
      * Return timestamp to use in System.err messages.
      *
-     * @since Coherence 12.2.1.4.16
+     * @since Coherence 12.2.1.4.18
      */
     protected static String getTimestamp()
         {
@@ -177,6 +183,85 @@ public class DefaultServiceFailurePolicy
             {
             // ensure if exiting cluster due to OOM, that this does not prevent printing out log message
             return "";
+            }
+        }
+
+    /**
+    * Ensure this process exits the JVM, initially gracefully, with a timeout that triggers halting the process abruptly.
+    * This method prevent a hung shutdown hook from preventing exiting the process.
+    *
+    * @param cluster   the cluster
+    * @param status    the exit status, zero for OK, non-zero for error
+    * @param cTimeout  in millis, if positive value, ensure exit process within this amount of time
+    */
+    private static void ensureExit(Cluster cluster, int status, long cTimeout)
+        {
+        String sHeader = " Oracle Coherence <Error>: ";
+
+        try
+            {
+            if (cTimeout >= 0)
+                {
+                System.err.println(getTimestamp() + sHeader + "Schedule timer task to halt process in " +
+                                   cTimeout + " millis");
+                System.err.flush();
+
+                Timer timer = new Timer();
+
+                // ensure if graceful exit does not complete in cTimeout, abrupt halt of JVM
+                timer.schedule(new TimerTask()
+                    {
+                    @Override
+                    public void run()
+                        {
+                        System.err.println(getTimestamp() + sHeader + " Failed to exit gracefully after " +
+                                           cTimeout + " millis, halting process");
+                        System.err.flush();
+                        Runtime.getRuntime().halt(status);
+                        }
+                    }, cTimeout);
+                }
+            System.err.println(getTimestamp() + sHeader + "Begin graceful exit from JVM ...");
+            System.err.flush();
+            System.exit(status);
+            }
+        catch (Throwable ex)
+            {
+            String sCause = ex.getCause() == null ? "" : " Cause: " + ex.getCause();
+            System.err.println("Handled unexpected exception " + ex.getClass().getName() + ex.getMessage() + sCause);
+            System.err.flush();
+            Runtime.getRuntime().halt(status);
+            }
+        finally
+            {
+            // could get here if security exception thrown
+            Runtime.getRuntime().halt(status);
+            }
+        }
+
+    /**
+     * Return the cluster shutdown timeout in millis.
+     *
+     * @param cluster  the cluster
+     *
+     * @returns the cluster shutdown timeout in millis
+     *
+     * @since 12.2.1.4.18
+     */
+    protected static long getShutdownTimeout(Cluster cluster)
+        {
+        try
+            {
+            Object oCluster           = ClassHelper.invoke(cluster, "getCluster", ClassHelper.VOID);
+            Long   ldtShutdownTimeout = (Long) ClassHelper.invoke(oCluster, "getShutdownTimeout", ClassHelper.VOID);
+
+            return ldtShutdownTimeout.longValue();
+            }
+        catch (Throwable ignore)
+            {
+            // unable to get shutdown timeout from Cluster so get it from same system property that Cluster uses
+            return Config.getDuration("coherence.shutdown.timeout",
+                                      new Duration(2, Duration.Magnitude.MINUTE)).as(Duration.Magnitude.MILLI);
             }
         }
 
@@ -219,7 +304,10 @@ public class DefaultServiceFailurePolicy
     public static final int POLICY_EXIT_CLUSTER = 1;
 
     /**
-    * This policy will cause the JVM to terminate if this service fails.
+    * This policy will allow the JVM to terminate gracefully if this service fails.
+    * If {@link #getShutdownTimeout(Cluster) configured shutdown timeout} is exceeded, the JVM is then halted.
+    *
+    * See {@link #ensureExit(Cluster, int, long)}.
     */
     public static final int POLICY_EXIT_PROCESS = 2;
 
