@@ -77,10 +77,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
 
 import static org.hamcrest.CoreMatchers.is;
 
@@ -1130,16 +1128,16 @@ public abstract class AbstractEntryAggregatorTests
         Trade.fillRandom(cache, 1000);
         Eventually.assertDeferred(() -> cache.size(), is(1000));
 
+        NamedCache cacheTest = new WrapperNamedCache(new LocalCache(), "test");
+        cacheTest.putAll(cache);
+        Eventually.assertDeferred(() -> cacheTest.size(), is(1000));
+
         for (int i = 0, c = aAgent.length; i < c; i++)
             {
             GroupAggregator groupAggregator = aAgent[i];
             Eventually.assertDeferred(() -> ((Map) cache.aggregate(NullImplementation.getSet(), groupAggregator)).isEmpty(),
                     is(true));
             }
-
-        NamedCache cacheTest = new WrapperNamedCache(new LocalCache(), "test");
-        cacheTest.putAll(cache);
-        Eventually.assertDeferred(() -> cacheTest.size(), is(1000), within(2, TimeUnit.MINUTES));
 
         Map mapResult, mapTest;
 
