@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,9 +47,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
+import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
 import static org.hamcrest.Matchers.is;
 
 import static org.junit.Assert.*;
@@ -123,7 +123,21 @@ public class RecoverEventTests
             int                cParts       = service.getPartitionCount();
             Member             memberLocal  = service.getCluster().getLocalMember();
 
-            Eventually.assertThat(invoking(new EventTestHelper()).remoteFail(sIdentifier, ccf, Collections.singleton(memberLocal)), is(cParts));
+            long ldtStartTime = System.currentTimeMillis();
+            Logger.info("Start testRecoverEvents first assertDeferred");
+            Eventually.assertDeferred(() ->
+                           {
+                           try
+                               {
+                               return new EventTestHelper().remoteFail(sIdentifier, ccf, Collections.singleton(memberLocal));
+                               }
+                           catch (Throwable t)
+                               {
+                               return 0;
+                               }
+                           },
+                           is(cParts), within(3, TimeUnit.MINUTES));
+            Logger.info("Completed testRecoverEvents first assertDeferred in " + (System.currentTimeMillis() - ldtStartTime) + " ms");
 
             // assert that the persistence root was created
             File dir = new File(fileActive, FileHelper.toFilename(cluster.getClusterName()));
@@ -158,7 +172,21 @@ public class RecoverEventTests
             assertEquals(10, cache.size());
             assertEquals(0, cache1.size());
 
-            Eventually.assertThat(invoking(new EventTestHelper()).remoteFail(sIdentifier, ccf, Collections.singleton(memberLocal)), is(cParts));
+            ldtStartTime = System.currentTimeMillis();
+            Logger.info("Start testRecoverEvents second assertDeferred");
+            Eventually.assertDeferred(() ->
+                           {
+                           try
+                               {
+                               return new EventTestHelper().remoteFail(sIdentifier, ccf, Collections.singleton(memberLocal));
+                               }
+                           catch (Throwable t)
+                               {
+                               return 0;
+                               }
+                           },
+                           is(cParts));
+            Logger.info("Completed testRecoverEvents second assertDeferred in " + (System.currentTimeMillis() - ldtStartTime) + " ms");
             }
         finally
             {
@@ -268,7 +296,20 @@ public class RecoverEventTests
             // TODO: this use of invoking and remoteFail is questionable as a
             //       a failure (AssertionError) is not raised until after the
             //       wait interval used by invoking, i.e. 60s
-            Eventually.assertThat(invoking(new EventTestHelper()).remoteFail(sIdentifier, ccf, Collections.singleton(memberLocal)), is(cParts));
+            long ldtStartTime = System.currentTimeMillis();
+            Eventually.assertDeferred(() ->
+                                      {
+                                      try
+                                          {
+                                          return new EventTestHelper().remoteFail(sIdentifier, ccf, Collections.singleton(memberLocal));
+                                          }
+                                      catch (Throwable t)
+                                          {
+                                          return 0;
+                                          }
+                                      },
+                                      is(cParts), within(3, TimeUnit.MINUTES));
+            Logger.info("Completed testRecoverFromSnapshotEvent assertDeferred in " + (System.currentTimeMillis() - ldtStartTime) + " ms");
             }
         finally
             {
@@ -311,7 +352,7 @@ public class RecoverEventTests
 
         try
             {
-            Eventually.assertThat(invoking(proxy).isMBeanRegistered(sPersistenceMBean), is(true));
+            Eventually.assertDeferred(() -> proxy.isMBeanRegistered(sPersistenceMBean), is(true));
             }
         catch (AssertionError | RuntimeException t)
             {
