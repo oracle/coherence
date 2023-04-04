@@ -18,7 +18,7 @@ import java.util.function.IntFunction;
 /**
  * An unmodifiable Set that provides access to many sets in the
  * given order.
- * <p/>
+ * <p>
  * Note that this implementation does not ensure that the elements are
  * unique across all chained sets. It is up to the user to provide that
  * guarantee.
