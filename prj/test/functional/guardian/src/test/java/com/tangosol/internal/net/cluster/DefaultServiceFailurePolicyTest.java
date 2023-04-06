@@ -10,6 +10,8 @@ package com.tangosol.internal.net.cluster;
 import com.oracle.coherence.common.util.Duration;
 
 import com.tangosol.net.CacheFactory;
+import common.SystemPropertyIsolation;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import common.SystemPropertyResource;
@@ -39,4 +41,11 @@ public class DefaultServiceFailurePolicyTest
             assertThat(DefaultServiceFailurePolicy.getShutdownTimeout(CacheFactory.ensureCluster()), is(ldtShutdownTimeout));
             }
         }
+
+    /**
+     * A {@link ClassRule} to isolate system properties set between test class
+     * execution (not individual test method executions).
+     */
+    @ClassRule
+    public static SystemPropertyIsolation s_systemPropertyIsolation = new SystemPropertyIsolation();
     }

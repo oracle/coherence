@@ -478,7 +478,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven.surefire.plugin.version}</version>
         <configuration>
-          <reuseForks>false</reuseForks>
+          <reuseForks>true</reuseForks>
           <excludes>
             <!-- Excluded Cache Tests -->
             <exclude>com/tangosol/net/cache/LocalCacheTest.*</exclude>
