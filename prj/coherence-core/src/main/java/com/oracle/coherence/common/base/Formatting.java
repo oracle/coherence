@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.base;
 
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.zip.CRC32;
 
 import static com.tangosol.util.Base.*;
 
@@ -2211,7 +2212,7 @@ public abstract class Formatting
      */
     public static int toCrc(byte[] ab, int of, int cb)
         {
-        return toCrc(ab, of, cb, 0xFFFFFFFF);
+        return toCrc(ab, of, cb, 0);
         }
 
     /**
@@ -2226,12 +2227,18 @@ public abstract class Formatting
      */
     public static int toCrc(byte[] ab, int of, int cb, int nCrc)
         {
-        while (cb > 0)
+        CRC32 crc32 = new CRC32();
+        if (nCrc != 0)
             {
-            nCrc = (nCrc >>> 8) ^ CRC32_TABLE[(nCrc ^ ab[of++]) & 0xFF];
-            --cb;
+            crc32.update(nCrc);
             }
-        return nCrc;
+        crc32.update(ab, of, cb);
+
+        // negation and subtraction below are needed to match the result
+        // returned by the original implementation, in order to keep hash
+        // stable across releases, as this method is used by Binary to
+        // calculate hash code
+        return (int) -crc32.getValue() - 1;
         }
 
     /**
@@ -2243,7 +2250,7 @@ public abstract class Formatting
      */
     public static int toCrc(ByteSequence seq)
         {
-        return toCrc(seq, 0, seq.length(), 0xFFFFFFFF);
+        return toCrc(seq, 0, seq.length(), 0);
         }
 
     /**
@@ -2258,12 +2265,8 @@ public abstract class Formatting
      */
     public static int toCrc(ByteSequence seq, int of, int cb, int nCrc)
         {
-        while (cb > 0)
-            {
-            nCrc = (nCrc >>> 8) ^ CRC32_TABLE[(nCrc ^ seq.byteAt(of++)) & 0xFF];
-            --cb;
-            }
-        return nCrc;
+        byte[] ab = seq.subSequence(of, cb).toBinary().toByteArray();
+        return toCrc(ab, 0, ab.length, nCrc);
         }
 
 
@@ -2280,31 +2283,6 @@ public abstract class Formatting
     private static final int      KB         = 1 << 10;
     private static final int      KB_MASK    = KB - 1;
     private static final String[] MEM_SUFFIX = {"", "KB", "MB", "GB", "TB"};
-
-    /**
-     * CRC32 constants.
-     */
-    private static final int   CRC32_BASE  = 0xEDB88320;
-    public static final int[] CRC32_TABLE = new int[256];
-    static
-        {
-        for (int i = 0, c = CRC32_TABLE.length; i < c; ++i)
-            {
-            int nCrc = i;
-            for (int n = 0; n < 8; ++n)
-                {
-                if ((nCrc & 1) == 1)
-                    {
-                    nCrc = (nCrc >>> 1) ^ CRC32_BASE;
-                    }
-                else
-                    {
-                    nCrc >>>= 1;
-                    }
-                }
-            CRC32_TABLE[i] = nCrc;
-            }
-        }
 
     /**
      * Integer constant representing an exponent of zero.
