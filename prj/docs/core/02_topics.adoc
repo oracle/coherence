@@ -54,7 +54,7 @@ The object name of the MBean is:
 |PublishedCount|	Long|	read-only|	The number of published messages.
 |PublishedFifteenMinuteRate|	Double	|read-only|	The published messages fifteen-minute rate.
 |PublishedFiveMinuteRate|	Double	|read-only|	The published messages five-minute rate.
-|PublishedMeanRate|	Double	read-only|	The published messages mean rate.
+|PublishedMeanRate|	Double | read-only|	The published messages mean rate.
 |PublishedOneMinuteRate|	Double	|read-only|	The published messages one-minute rate.
 |ReconnectRetry|	Integer|	read-only	|Reconnect Retry.
 |ReconnectTimeout|	Integer	|read-only	|Reconnect Timeout.
