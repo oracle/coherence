@@ -2800,7 +2800,7 @@ public class DaemonPool
     * interrupting them could be accomplished by setting the thread count to
     * zero.
      */
-    public synchronized void stop()
+    public void stop()
         {
         // import com.oracle.coherence.common.base.Disposable;
         // import java.util.Iterator;
@@ -2808,35 +2808,47 @@ public class DaemonPool
         
         if (isStarted())
             {
-            setStarted(false);
-        
+            // We must cancel the ResizeTask before syncronizing on
+            // this DaemonPool because the task may be running and
+            // already be synchronized on itself and be about to
+            // synchronize on this DaemonPool, which can cause a
+            // deadlock as the cancel method is synchronized
             DaemonPool.ResizeTask task = getResizeTask();
-            if (task != null)
+            if (task != null && task.getDaemonPool() != null)
                 {
                 task.cancel();
+                setResizeTask(null);
                 }
         
-            DaemonPool.Daemon[] aDaemon = getDaemons();
-            for (int i = 0, c = aDaemon.length; i < c; i++)
+            synchronized (this)
                 {
-                aDaemon[i].stop();
-                }
-        
-            // ensure any scheduled tasks are cancelled so that the Timer thread doesn't retain
-            // references to the pool or the scheduled tasks
-            Set setScheduled = getScheduledTasks();
-            synchronized (setScheduled)
-                {
-                for (Iterator iter = getScheduledTasks().iterator(); iter.hasNext(); )
+                if (isStarted())
                     {
-                    Disposable disposable = (Disposable) iter.next();
-                    iter.remove(); // calling dispose will also remove the object; we do it first to avoid
-                                   // invalidating our iterator
-                    disposable.dispose();
+                    setStarted(false);
+        
+                    DaemonPool.Daemon[] aDaemon = getDaemons();
+                    for (int i = 0, c = aDaemon.length; i < c; i++)
+                        {
+                        aDaemon[i].stop();
+                        }
+        
+                    // ensure any scheduled tasks are cancelled so that the Timer thread doesn't retain
+                    // references to the pool or the scheduled tasks
+                    Set setScheduled = getScheduledTasks();
+                    synchronized (setScheduled)
+                        {
+                        for (Iterator iter = getScheduledTasks().iterator(); iter.hasNext(); )
+                            {
+                            Disposable disposable = (Disposable) iter.next();
+                            iter.remove(); // calling dispose will also remove the object; we do it first to avoid
+                                           // invalidating our iterator
+                            disposable.dispose();
+                            }
+                        }
+        
+                    setInTransition(false);
                     }
                 }
-        
-            setInTransition(false);
             }
         }
     
@@ -4429,7 +4441,12 @@ public class DaemonPool
             // the best we can do is to drop the parent reference
             // and leave a trivial shell to be discarded when it runs
             
-            get_Parent()._unlinkChild(this);
+            // the daemon pool will be null if this task is already cancelled
+            DaemonPool pool = getDaemonPool();
+            if (pool != null)
+                {
+                get_Parent()._unlinkChild(this);
+                }
             }
         
         private static String format2f(double dfl)
