@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,8 +55,8 @@ public class NearMultiEntryAggregatorTests
     @AfterClass
     public static void shutdown()
         {
-        stopCacheServer("NearMultiEntryAggregatorTests-1");
-        stopCacheServer("NearMultiEntryAggregatorTests-2");
+        stopCacheServer("NearMultiEntryAggregatorTests-1", true);
+        stopCacheServer("NearMultiEntryAggregatorTests-2", true);
         }
 
 

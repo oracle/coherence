@@ -1126,6 +1126,13 @@ public abstract class AbstractEntryAggregatorTests
             }
 
         Trade.fillRandom(cache, 1000);
+
+        Eventually.assertDeferred(() -> cache.getCacheService().isRunning(), is(true));
+        if (getCacheServerCount() > 1)
+            {
+            waitForBalanced(cache.getCacheService());
+            }
+
         Eventually.assertDeferred(() -> cache.size(), is(1000));
 
         NamedCache cacheTest = new WrapperNamedCache(new LocalCache(), "test");
