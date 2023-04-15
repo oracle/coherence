@@ -12,7 +12,6 @@ test\functional\grpc-proxy\src\main\proto\route_guide.proto
 tools\ant-contrib\
 tools\internal\
 tools\maven\
-tools\tde\
 tools\tlt-antutils\
 tools\wls\
 dependency-reduced-pom.xml
