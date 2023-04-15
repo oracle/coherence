@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 ARGS            =
-NO_TDE          = -Dtde.compile.not.required=true
 CURRENT_VERSION = $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
 
 # ======================================================================================================================
@@ -33,26 +32,15 @@ help: ## Display this help.
 ##@ Build
 
 .PHONY: all
-all: coherence modules-no-tde ## A full build of Coherence with all modules
-
-.PHONY: all-no-tde
-all-no-tde: coherence-no-tde modules-no-tde ## A full build of Coherence with all modules (without compiling TDE)
+all: coherence modules ## A full build of Coherence with all modules
 
 .PHONY: coherence
 coherence: ## Build coherence.jar
 	$(call mvn_build_coherence)
 
-.PHONY: coherence-no-tde
-coherence-no-tde: ## Build coherence.jar (without compiling TDE)
-	$(call mvn_build_coherence,$(NO_TDE))
-
 .PHONY: modules
 modules: ## Build Coherence modules
 	$(call mvn_build_modules)
-
-.PHONY: modules-no-tde
-modules-no-tde: ## Build Coherence modules (without compiling TDE)
-	$(call mvn_build_modules,$(NO_TDE))
 
 .PHONY: docker
 docker: ## Build the Coherence image (does not rebuild Coherence jars)

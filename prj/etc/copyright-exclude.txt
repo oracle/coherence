@@ -11,7 +11,6 @@ test/functional/logging/src/test/java/org/slf4j/
 tools/ant-contrib/
 tools/internal/
 tools/maven/
-tools/tde/
 tools/tlt-antutils/
 tools/wls/
 dependency-reduced-pom.xml

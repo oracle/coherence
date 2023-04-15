@@ -195,13 +195,6 @@
     <!-- the path to the "test" directory -->
     <tests.path>${projects.path}/test</tests.path>
 
-    <!-- tde/tcmd project paths -->
-    <tde.classpath>./../../tools/tde/lib/tde.jar</tde.classpath>
-    <tde.projects.path>${root.path}/tde</tde.projects.path>
-    <tde.projects.dependencies.path>${tde.projects.path}/core/1.3/ext</tde.projects.dependencies.path>
-
-    <tde.projects.file.url>file:./../../tde</tde.projects.file.url>
-
     <copyright.exclude.files>${projects.path}/etc/copyright-exclude.txt</copyright.exclude.files>
 
     <!-- ================================================================== -->
@@ -465,12 +458,11 @@
         It is specifically designed to exclude artifacts and modules containing
         build instructions typically unsupported or unrecognizable by IDEs.
 
-        For example: compiling, building and assembling native libraries and
-        TDE-based/CDB-based artifacts is not supported by IntelliJ.
+        For example: compiling, building and assembling native libraries
+        is not supported by IntelliJ.
 
         Consequently, this profile MAY ONLY be used once a local 'coherence'
-        build has occurred or after the native/TDE/CDB-based artifacts have
-        been built or made available (via Maven).
+        build has occurred.
       -->
     <profile>
       <id>IntelliJ</id>
@@ -534,23 +526,6 @@
 
       <modules>
         <module>examples</module>
-      </modules>
-    </profile>
-
-    <!-- this is purely to allow the versions plugin to pick up the tde module
-         and therefore bump the version during the release process -->
-    <profile>
-      <id>_tde</id>
-
-      <activation>
-        <property>
-          <name>_tde</name>
-        </property>
-      </activation>
-
-      <!-- the following additional modules are buildable by this profile -->
-      <modules>
-        <module>tde</module>
       </modules>
     </profile>
 
