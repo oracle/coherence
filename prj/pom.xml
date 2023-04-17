@@ -1083,8 +1083,8 @@
     <profile>
       <id>test-jdk16</id>
       <properties>
-        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
-        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
+        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED</surefire.argLine>
+        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED</failsafe.argLine>
       </properties>
       <build>
         <pluginManagement>
@@ -1119,8 +1119,8 @@
     <profile>
       <id>test-jdk17</id>
       <properties>
-        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</surefire.argLine>
-        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</failsafe.argLine>
+        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED</surefire.argLine>
+        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-exports java.management/sun.management=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED</failsafe.argLine>
       </properties>
       <build>
         <pluginManagement>
