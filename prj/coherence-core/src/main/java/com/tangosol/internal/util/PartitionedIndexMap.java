@@ -4,10 +4,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
+
 package com.tangosol.internal.util;
 
 import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.cache.SimpleMemoryCalculator;
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.AbstractKeyBasedMap;
@@ -16,26 +16,23 @@ import com.tangosol.util.ChainedSet;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.SafeSortedMap;
-import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.comparator.SafeComparator;
 
+import java.util.AbstractCollection;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * A composite view over partition indices for the specified partition set.
@@ -44,7 +41,8 @@ import java.util.stream.Collectors;
  * @param <V>  the type of cache values
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtractor<V, ?>, MapIndex<K, V, ?>>
+public class PartitionedIndexMap<K, V>
+        extends AbstractKeyBasedMap<ValueExtractor<V, ?>, MapIndex<K, V, ?>>
     {
     // ---- constructors ----------------------------------------------------
 
@@ -76,22 +74,18 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
      */
     public <E> MapIndex<K, V, E> get(ValueExtractor<V, E> extractor)
         {
-        PartitionSet partitions = f_partitions;
+        int nPart = f_partitions == null
+                    ? f_mapPartitioned.keySet().stream().findFirst().orElse(-1)
+                    : f_partitions.rnd();
 
-        if (hasIndex(extractor))
+        MapIndex<K, V, E> mapIndex = getMapIndex(nPart, extractor);
+        if (mapIndex != null)
             {
-            return partitions != null && partitions.cardinality() == 1
-                   // optimize for single partition
-                   ? (MapIndex<K, V, E>) f_mapPartitioned.get(partitions.next(0)).get(extractor)
-                   : new PartitionedIndex<>(extractor);
+            return f_partitions != null && f_partitions.cardinality() == 1
+                   ? mapIndex   // optimize for single partition
+                   : new PartitionedIndex(extractor, mapIndex.isOrdered(), mapIndex.getComparator());
             }
-
         return null;
-        }
-
-    private <E> boolean hasIndex(ValueExtractor<V, E> extractor)
-        {
-        return f_mapPartitioned.values().stream().anyMatch(indexMap -> indexMap.containsKey(extractor));
         }
 
     /**
@@ -99,17 +93,42 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
      *
      * @return the set of partitions this index view is for
      */
-    public PartitionSet getPartitions()
+    public Iterable<Integer> getPartitions()
         {
-        return f_partitions;
+        return f_partitions == null ? f_mapPartitioned.keySet() : f_partitions;
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Return {@link MapIndex} for the specified partition and extractor.
+     *
+     * @param nPart      the partition to get the index for
+     * @param extractor  the extractor to get the index for
+     *
+     * @return a {@link MapIndex} for the specified partition and extractor, or
+     *         {@code null} if this view does nopt contain specified partition
+     *         or an index for the specified extractor
+     */
+    protected <E> MapIndex<K, V, E> getMapIndex(int nPart, ValueExtractor<V, E> extractor)
+        {
+        if (nPart >= 0 && (f_partitions == null ? f_mapPartitioned.containsKey(nPart) : f_partitions.contains(nPart)))
+            {
+            Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>> mapPart = f_mapPartitioned.get(nPart);
+            if (mapPart != null)
+                {
+                return (MapIndex<K, V, E>) mapPart.get(extractor);
+                }
+            }
+        return null;
         }
 
     // ---- AbstractKeyBasedMap interface -----------------------------------
 
     @Override
-    public MapIndex<K, V, Object> get(Object oKey)
+    public MapIndex<K, V, ?> get(Object oKey)
         {
-        return get((ValueExtractor) oKey);
+        return get((ValueExtractor<V, ?>) oKey);
         }
 
     @Override
@@ -121,7 +140,7 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
                 .iterator();
         }
 
-    // ---- data members ----------------------------------------------------
+    // ---- inner class: PartitionedIndex -----------------------------------
 
     /**
      * Provides unified view over multiple partition-level MapIndex instances
@@ -138,29 +157,15 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
          * Construct {@link PartitionedIndex} instance.
          *
          * @param extractor  the {@code ValueExtractor} for this index
+         *
          */
-        PartitionedIndex(ValueExtractor<V, E> extractor)
+        PartitionedIndex(ValueExtractor<V, E> extractor, boolean fOrdered, Comparator<E> comparator)
             {
-            f_extractor = extractor;
-            f_mapIndex  = new ConcurrentHashMap<>();
-
-            
-            // create a stable "snapshot" of indices for the specified partition set,
-            // to avoid returning null from the index map if the partition transfers out
-            for (Map.Entry<Integer, Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>>> entry : f_mapPartitioned.entrySet())
-                {
-                int nPart = entry.getKey();
-                if (f_partitions == null || f_partitions.contains(nPart))
-                    {
-                    Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>> indexMap = entry.getValue();
-                    MapIndex<K, V, E>                            mapIndex = (MapIndex<K, V, E>) indexMap.get(extractor);
-
-                    if (mapIndex != null)
-                        {
-                        f_mapIndex.put(nPart, mapIndex);
-                        }
-                    }
-                }
+            f_extractor  = extractor;
+            f_fOrdered   = fOrdered;
+            f_comparator = fOrdered && comparator == null
+                           ? SafeComparator.INSTANCE()
+                           : comparator;
             }
 
         // ---- MapIndex interface ------------------------------------------
@@ -174,37 +179,43 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
         @Override
         public boolean isOrdered()
             {
-            return f_mapIndex.values().stream().anyMatch(MapIndex::isOrdered);
+            return f_fOrdered;
             }
 
         @Override
         public boolean isPartial()
             {
-            return f_mapIndex.values().stream().anyMatch(MapIndex::isPartial);
+            for (Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>> mapPart : f_mapPartitioned.values())
+                {
+                if (mapPart.get(f_extractor).isPartial())
+                    {
+                    return true;
+                    }
+                }
+            return false;
             }
 
         @Override
         public Map<E, Set<K>> getIndexContents()
             {
             return isOrdered()
-                   ? new SortedIndexContents(f_mapIndex.values().stream().map(map -> (SortedMap<E, Set<K>>) map.getIndexContents()).collect(Collectors.toList()), getComparator())
-                   : new IndexContents(f_mapIndex.values().stream().map(MapIndex::getIndexContents).collect(Collectors.toList()));
+                   ? new SortedIndexContents()
+                   : new IndexContents();
             }
 
         @Override
         public Object get(K key)
             {
-            int               nPart    = f_ctx.getManagerContext().getKeyPartition(key);
-            MapIndex<K, V, E> mapIndex = f_mapIndex.get(nPart);
+            int nPart = f_ctx.getManagerContext().getKeyPartition(key);
 
+            MapIndex<K, V, E> mapIndex = getMapIndex(nPart, f_extractor);
             return mapIndex == null ? NO_VALUE : mapIndex.get(key);
             }
 
         @Override
         public Comparator<E> getComparator()
             {
-            Optional<MapIndex<K, V, E>> mapIndex = f_mapIndex.values().stream().findAny();
-            return mapIndex.map(MapIndex::getComparator).orElse(null);
+            return f_comparator;
             }
 
         @Override
@@ -228,8 +239,15 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
         @Override
         public long getUnits()
             {
-            return Math.round(new UnitCalculator().calculateIndexOverhead() +
-                              f_mapIndex.values().stream().mapToLong(MapIndex::getUnits).sum() * 1.1);  // we seem to be under-reporting by 10% or so
+            long cUnits = 0;
+
+            for (int nPart : getPartitions())
+                {
+                MapIndex<K, V, E> mapIndex = getMapIndex(nPart, f_extractor);
+                cUnits += (mapIndex != null ? mapIndex.getUnits() : 0);
+                }
+
+            return Math.round(cUnits * 1.1);
             }
 
         // ---- Object methods ----------------------------------------------
@@ -241,15 +259,15 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
             }
 
         /**
-        * Returns a string representation of this PartitionedIndex.  If called in
-        * verbose mode, include the contents of the index (the inverse
-        * index). Otherwise, just print the number of entries in the index.
-        *
-        * @param fVerbose  if true then print the content of the index otherwise
-        *                  print the number of entries
-        *
-        * @return a String representation of this SimpleMapIndex
-        */
+         * Returns a string representation of this PartitionedIndex.  If called in
+         * verbose mode, include the contents of the index (the inverse
+         * index). Otherwise, just print the number of entries in the index.
+         *
+         * @param fVerbose  if true then print the content of the index otherwise
+         *                  print the number of entries
+         *
+         * @return a String representation of this PartitionedIndex
+         */
         public String toString(boolean fVerbose)
             {
             return ClassHelper.getSimpleName(getClass())
@@ -260,92 +278,71 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
                    + (fVerbose ? getIndexContents().keySet() : getIndexContents().size());
             }
 
-        // ---- inner class: IndexCalculator --------------------------------
-
-        private class UnitCalculator
-                extends SimpleMapIndex.IndexCalculator
-            {
-            /**
-             * Construct an IndexCalculator which allows for conversion of items into a
-             * serialized format. The calculator may use the size of the serialized value
-             * representation to approximate the size of indexed values.
-             */
-            public UnitCalculator()
-                {
-                super(f_ctx, null);
-                }
-
-            public long calculateIndexOverhead()
-                {
-                int cPart  = f_mapIndex.size();
-                return calculateShallowSize(ConcurrentHashMap.class)
-                       + (long) (ENTRY_OVERHEAD + calculateShallowSize(ValueExtractor.class) + MAP_OVERHEAD + ENTRY_OVERHEAD) * cPart;
-                }
-            }
-
         // ---- inner class: IndexContents ----------------------------------
 
         /**
          * Provides composite view over the contents/inverse maps of unordered
          * partitioned indices.
-         *
-         * @param <T>  the type of inverse index Map
          */
-        private class IndexContents<T extends Map<E, Set<K>>>
+        private class IndexContents
                 implements Map<E, Set<K>>
             {
-            // ---- constructors --------------------------------------------
-
-            /**
-             * Construct an instance of {@code IndexContents}.
-             *
-             * @param colContents  a collection of partition indices covered by
-             *                     this view
-             */
-            IndexContents(Collection<T> colContents)
-                {
-                f_colContents = colContents;
-                f_mapContents = new HashMap<>();
-                }
-
             // ---- Map interface -------------------------------------------
 
             @Override
             public int size()
                 {
-                return (int) f_colContents.stream().flatMap(map -> map.keySet().stream()).distinct().count();
+                return keySet().size();
                 }
 
             @Override
             public boolean isEmpty()
                 {
-                return f_colContents.stream().allMatch(Map::isEmpty);
+                for (int nPart : getPartitions())
+                    {
+                    if (!getIndexContents(nPart).isEmpty())
+                        {
+                        return false;
+                        }
+                    }
+                return true;
                 }
 
             @Override
             public boolean containsKey(Object oKey)
                 {
-                return !f_colContents.isEmpty() && f_colContents.stream().anyMatch(map -> map.containsKey(oKey));
+                for (int nPart : getPartitions())
+                    {
+                    if (getIndexContents(nPart).containsKey(oKey))
+                        {
+                        return true;
+                        }
+                    }
+                return false;
                 }
 
             @Override
             public boolean containsValue(Object oValue)
                 {
-                return values().stream().anyMatch(set -> set.equals(oValue));
+                return values().contains(oValue);
                 }
 
             @Override
             public Set<K> get(Object oKey)
                 {
-                return f_mapContents.computeIfAbsent((E) oKey, k ->
+                int          cCapacity   = f_partitions == null
+                                           ? f_mapPartitioned.size()
+                                           : f_partitions.cardinality();
+                List<Set<K>> listKeySets = new ArrayList(cCapacity);
+                for (int nPart : getPartitions())
                     {
-                    Set[] sets = f_colContents.stream()
-                            .map(map -> map.get(k))
-                            .filter(Objects::nonNull)
-                            .toArray(Set[]::new);
-                    
-                    return new ChainedSet<K>(sets);
-                    });
+                    Set setKeys = getIndexContents(nPart).get(oKey);
+                    if (setKeys != null && !setKeys.isEmpty())
+                        {
+                        listKeySets.add(setKeys);
+                        }
+                    }
+                return new ChainedSet<>(listKeySets);
                 }
 
             @Override
@@ -376,27 +373,103 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
             @Override
             public Set<E> keySet()
                 {
-                Set<E> setKeys = m_setKeys;
-                if (setKeys == null)
+                Set<E> setKeys = instantiateKeySet();
+                for (int nPart : getPartitions())
                     {
-                    setKeys = m_setKeys = f_colContents.stream().flatMap(map -> map.keySet().stream()).collect(Collectors.toSet());
+                    setKeys.addAll(getIndexContents(nPart).keySet());
                     }
                 return setKeys;
                 }
 
             @Override
-            @SuppressWarnings("SimplifyStreamApiCallChains")
             public Collection<Set<K>> values()
                 {
-                return entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toSet());
+                Set<E> setKeys = keySet();
+
+                return new AbstractCollection<>()
+                    {
+                    public Iterator<Set<K>> iterator()
+                        {
+                        Iterator<E> itKeys = setKeys.iterator();
+
+                        return new Iterator<>()
+                            {
+                            public boolean hasNext()
+                                {
+                                return itKeys.hasNext();
+                                }
+
+                            public Set<K> next()
+                                {
+                                return get(itKeys.next());
+                                }
+                            };
+                        }
+
+                    public int size()
+                        {
+                        return setKeys.size();
+                        }
+                    };
                 }
 
             @Override
             public Set<Map.Entry<E, Set<K>>> entrySet()
                 {
-                return keySet().stream()
-                        .map(Entry::new)
-                        .collect(Collectors.toSet());
+                Set<E> setKeys = keySet();
+
+                return new AbstractSet<>()
+                    {
+                    public Iterator<Map.Entry<E, Set<K>>> iterator()
+                        {
+                        Iterator<E> itKeys = setKeys.iterator();
+
+                        return new Iterator<>()
+                            {
+                            public boolean hasNext()
+                                {
+                                return itKeys.hasNext();
+                                }
+
+                            public Map.Entry<E, Set<K>> next()
+                                {
+                                return new Entry(itKeys.next());
+                                }
+                            };
+                        }
+
+                    public int size()
+                        {
+                        return setKeys.size();
+                        }
+                    };
+                }
+
+            // ---- helpers -------------------------------------------------
+
+            /**
+             * Instantiate a set to collect the keys into.
+             *
+             * @return the set to collect the keys into
+             */
+            protected Set<E> instantiateKeySet()
+                {
+                return new HashSet<>();
+                }
+
+            /**
+             * Return the index contents for the specified partition.
+             *
+             * @param nPart  the partition to get index contents for
+             *
+             * @return the index contents for the specified partition
+             */
+            protected Map<E, Set<K>> getIndexContents(int nPart)
+                {
+                MapIndex<K, V, E> mapIndex = getMapIndex(nPart, f_extractor);
+                return mapIndex != null
+                       ? mapIndex.getIndexContents()
+                       : Collections.emptyMap();
                 }
 
             // ---- inner class: Entry --------------------------------------
@@ -441,24 +514,6 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
                  */
                 private final E f_key;
                 }
-
-            // ---- data members --------------------------------------------
-
-            /**
-             * The collection of partition-level inverse indices covered by
-             * this view.
-             */
-            protected final Collection<T> f_colContents;
-
-            /**
-             * Cached key set.
-             */
-            protected Set<E> m_setKeys;
-
-            /**
-             * Cached index contents.
-             */
-            private final Map<E, Set<K>> f_mapContents;
             }
 
         // ---- inner class: SortedIndexContents ----------------------------
@@ -467,28 +522,10 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
          * Provides composite view over the contents/inverse maps of ordered
          * partitioned indices.
          */
-        @SuppressWarnings("Convert2MethodRef")
         class SortedIndexContents
-                extends IndexContents<SortedMap<E, Set<K>>>
+                extends IndexContents
                 implements SortedMap<E, Set<K>>
             {
-            // ---- constructors --------------------------------------------
-
-            /**
-             * Construct an instance of {@code SortedIndexContents}.
-             *
-             * @param colContents  the collection of partition indices covered by
-             *                     this view
-             * @param comparator   the Comparator to use for sorting, or
-             *                     {@code null} if natural ordering should be used
-             */
-            SortedIndexContents(Collection<SortedMap<E, Set<K>>> colContents, Comparator<E> comparator)
-                {
-                super(colContents);
-
-                f_comparator = comparator;
-                }
-
             // ---- SortedMap interface -------------------------------------
 
             @Override
@@ -500,62 +537,76 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
             @Override
             public SortedMap<E, Set<K>> subMap(E fromKey, E toKey)
                 {
-                return (SortedMap<E, Set<K>>) f_colContents.stream()
-                        .flatMap(map -> map.subMap(fromKey, toKey).entrySet().stream())
-                        .collect(Collectors.toMap((Map.Entry<E, Set<K>> e) -> e.getKey(),
-                                                  (Map.Entry<E, Set<K>> e) -> e.getValue(),
-                                                  this::chainSets,
-                                                  () -> new SafeSortedMap(f_comparator)));
+                SafeSortedMap mapSorted = new SafeSortedMap(f_comparator);
+
+                for (int nPart : getPartitions())
+                    {
+                    Map<E, Set<K>> subMap = getIndexContents(nPart).subMap(fromKey, toKey);
+                    subMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
+                    }
+
+                return mapSorted;
                 }
 
             @Override
             public SortedMap<E, Set<K>> headMap(E toKey)
                 {
-                return (SortedMap<E, Set<K>>) f_colContents.stream()
-                        .flatMap(map -> map.headMap(toKey).entrySet().stream())
-                        .collect(Collectors.toMap((Map.Entry<E, Set<K>> e) -> e.getKey(),
-                                                  (Map.Entry<E, Set<K>> e) -> e.getValue(),
-                                                  this::chainSets,
-                                                  () -> new SafeSortedMap(f_comparator)));
+                SafeSortedMap mapSorted = new SafeSortedMap(f_comparator);
+
+                for (int nPart : getPartitions())
+                    {
+                    Map<E, Set<K>> headMap = getIndexContents(nPart).headMap(toKey);
+                    headMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
+                    }
+
+                return mapSorted;
                 }
 
             @Override
             public SortedMap<E, Set<K>> tailMap(E fromKey)
                 {
-                return (SortedMap<E, Set<K>>) f_colContents.stream()
-                        .flatMap(map -> map.tailMap(fromKey).entrySet().stream())
-                        .collect(Collectors.toMap((Map.Entry<E, Set<K>> e) -> e.getKey(),
-                                                  (Map.Entry<E, Set<K>> e) -> e.getValue(),
-                                                  this::chainSets,
-                                                  () -> new SafeSortedMap(f_comparator)));
+                SafeSortedMap mapSorted = new SafeSortedMap(f_comparator);
+
+                for (int nPart : getPartitions())
+                    {
+                    Map<E, Set<K>> tailMap = getIndexContents(nPart).tailMap(fromKey);
+                    tailMap.forEach((k, v) -> mapSorted.merge(k, v, (v1, v2) -> chainSets((Set<K>) v1, (Set<K>) v2)));
+                    }
+
+                return mapSorted;
                 }
 
             @Override
-            public Set<E> keySet()
+            public SortedSet<E> keySet()
                 {
-                Set<E> setKeys = m_setKeys;
-                if (setKeys == null)
-                    {
-                    setKeys = m_setKeys = f_colContents.stream()
-                            .flatMap(map -> map.keySet().stream())
-                            .collect(Collectors.toCollection(() -> new TreeSet<>(f_comparator)));
-                    }
-                return setKeys;
+                return (SortedSet<E>) super.keySet();
                 }
 
             @Override
             public E firstKey()
                 {
-                return ((SortedSet<E>) keySet()).first();
+                return keySet().first();
                 }
 
             @Override
             public E lastKey()
                 {
-                return ((SortedSet<E>) keySet()).last();
+                return keySet().last();
                 }
 
             // ---- helpers -------------------------------------------------
+
+            @Override
+            protected SortedSet<E> instantiateKeySet()
+                {
+                return new TreeSet<>(f_comparator);
+                }
+
+            @Override
+            protected SortedMap<E, Set<K>> getIndexContents(int nPart)
+                {
+                return (SortedMap<E, Set<K>>) super.getIndexContents(nPart);
+                }
 
             /**
              * Create {@link ChainedSet} from two {@code Set}s or an existing
@@ -572,14 +623,6 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
                        ? new ChainedSet<>((ChainedSet<K>) setFirst, setSecond)
                        : new ChainedSet<>(setFirst, setSecond);
                 }
-
-            // ---- data members --------------------------------------------
-
-            /**
-             * The Comparator to use for sorting, or  {@code null} if natural
-             * ordering should be used.
-             */
-            private final Comparator<E> f_comparator;
             }
 
         // ---- data members ------------------------------------------------
@@ -590,9 +633,15 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
         private final ValueExtractor<V, E> f_extractor;
 
         /**
-         * The stable view of a subset of partition indices, keyed by partition number.
+         * Flag specifying whether this index is ordered.
          */
-        private final Map<Integer, MapIndex<K, V, E>> f_mapIndex;
+        private final boolean f_fOrdered;
+
+        /**
+         * The Comparator to use for sorting, or  {@code null} if natural
+         * ordering should be used.
+         */
+        private final Comparator<E> f_comparator;
         }
 
     // ---- data members ----------------------------------------------------
@@ -608,7 +657,9 @@ public class PartitionedIndexMap<K, V> extends AbstractKeyBasedMap<ValueExtracto
     protected final Map<Integer, Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>>> f_mapPartitioned;
 
     /**
-     * The set of partitions to return an index map for.
+     * The set of partitions to create an index map for. Could be {@code null},
+     * in which case all partitions owned by the local member should be included
+     * into this index map.
      */
     protected final PartitionSet f_partitions;
     }

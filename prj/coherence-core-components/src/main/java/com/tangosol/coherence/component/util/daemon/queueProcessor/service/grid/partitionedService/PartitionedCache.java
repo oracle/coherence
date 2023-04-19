@@ -23,6 +23,7 @@ import com.tangosol.coherence.component.net.message.RequestMessage;
 import com.tangosol.coherence.component.net.message.requestMessage.DistributedCacheKeyRequest;
 import com.tangosol.coherence.component.net.message.requestMessage.chainedRequest.BackupRequest;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.KeySetRequest;
+import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.StorageRequest;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.partialRequest.FilterRequest;
 import com.tangosol.coherence.component.net.requestContext.AsyncContext;
@@ -130,7 +131,6 @@ import com.tangosol.util.EntrySetMap;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.FilterEnumerator;
-import com.tangosol.util.ForwardOnlyMapIndex;
 import com.tangosol.util.HashHelper;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.ImmutableMultiList;
@@ -17966,13 +17966,19 @@ public class PartitionedCache
             msg.setOrderId(lOrderId | (((long) service.getThisMember().getId()) << 32));
             
             context.setPartitionSet(partitions);
-            
-            if (coordinator.submitPartialRequest(msg, partitions, /*fRepeat*/false))
+
+            boolean fByPartition = asyncAggr != null && (asyncAggr.getAggregator().characteristics() & StreamingAggregator.PARALLEL)
+                                                        == StreamingAggregator.PARALLEL;
+
+            boolean fSubmitted = fByPartition
+                    ? coordinator.submitPartialRequestByPartition(msg, partitions, /*fRepeat*/false)
+                    : coordinator.submitPartialRequest(msg, partitions, /*fRepeat*/false);
+            if (fSubmitted)
                 {
                 if (!NonBlocking.isNonBlockingCaller())
                     {
                     service.flush();
-            
+
                     try
                         {
                         coordinator.drainBacklog(partitions, msg.checkTimeoutRemaining());
@@ -43765,7 +43771,91 @@ public class PartitionedCache
                 }
             return true;
             }
-        
+
+        /**
+         * Submit the specified partial (filter-based) asynchronous request to
+         * all the storage enabled service members that own any of the specified
+         * keys. The messages sent are grouped by partition.
+         *
+         * @param msgRequest  request message
+         * @param partitions  partitions to submit the request(s) for
+         * @param fRepeat     whether this request is being repeated
+         * @return true when all requests have been scheduled
+         */
+        public boolean submitPartialRequestByPartition(PartialRequest msgRequest, PartitionSet partitions, boolean fRepeat)
+            {
+            PartitionedCache service           = getService();
+            AsyncContext     context           = (AsyncContext) msgRequest.getRequestContext();
+            Map<Integer, PartialRequest> mapMsgByPartition = new HashMap<>();
+            try
+                {
+                service.checkQuorum(msgRequest, msgRequest.isReadOnly());
+
+                boolean fClone = false;
+                for (int iPart = partitions.next(0); iPart >= 0; iPart = partitions.next(iPart + 1))
+                    {
+                    PartitionSet partMember  = new PartitionSet(partitions.getPartitionCount());
+                    partMember.add(iPart);
+
+                    if (fClone)
+                        {
+                        msgRequest = (PartialRequest) msgRequest.cloneMessage();
+                        }
+                    else
+                        {
+                        // allow the very first message to use the original message instance
+                        fClone = true;
+                        }
+
+                    msgRequest.setRequestMask(partMember);
+                    msgRequest.setPartitions(partitions);
+
+                    com.tangosol.coherence.component.net.Member member = prepareSubmit(msgRequest, iPart, mapMsgByPartition);
+                    if (member == null)
+                        {
+                        // the message for this partition has been deferred;
+                        // it will be submitted later (non-bundled with any other partition)
+                        }
+                    else
+                        {
+                        msgRequest.setToMemberSet(SingleMemberSet.instantiate(member));
+
+                        mapMsgByPartition.put(iPart, msgRequest);
+                        }
+                    }
+                }
+            catch (Throwable e)
+                {
+                context.processException(e);
+                return false;
+                }
+
+            if (!mapMsgByPartition.isEmpty())
+                {
+                if (fRepeat)
+                    {
+                    PartitionedCache.BinaryMap.reportRepeat(msgRequest.get_Name(), 0, 0, partitions);
+                    }
+
+                for (Map.Entry entry : mapMsgByPartition.entrySet())
+                    {
+                    PartialRequest msg   = (PartialRequest) entry.getValue();
+
+                    // copy the timeout value onto the Poll (see Grid$PollArray#checkPolls)
+                    msg.ensureRequestPoll().setExpiryTimeMillis(msg.getRequestTimeout());
+                    try
+                        {
+                        getService().post(msg); // the caller is responsible for flushing
+                        }
+                    catch (Throwable e)
+                        {
+                        // RequestMessage.post() closed the poll passing this exception.
+                        }
+                    }
+                }
+            return true;
+            }
+
         /**
          * Submit the specified partial (filter-based) asynchronous request to
         * all the storage enabled service members that own any of the specified
@@ -47355,8 +47445,8 @@ public class PartitionedCache
          * The map of partition indexes maintained by this storage. The keys of
          * the Map are partition IDs, and for each key, the corresponding value
          * stored in the Map is a map of indices for that partition, with
-         * ValueExtarctor objects as keys and MapIndex objects as values.
-         * 
+         * ValueExtractor objects as keys and MapIndex objects as values.
+         *
          * @see com.tangosol.util.ValueExtractor
          * @see com.tangosol.util.MapIndex
          * 
@@ -64614,7 +64704,7 @@ public class PartitionedCache
                     PartitionedCache.Storage storage = (PartitionedCache.Storage) it.next();
                     if (storage.isIndexed())
                         {
-                        storage.getPartitionedIndexMap().remove(Integer.valueOf(iPartition));
+                        storage.getPartitionedIndexMap().remove(iPartition);
                         }
                     }
             
