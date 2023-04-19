@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,8 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 
@@ -50,7 +52,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 */
 public class PartitionSet
         extends Base
-        implements ExternalizableLite, PortableObject
+        implements ExternalizableLite, PortableObject, Iterable<Integer>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -74,6 +76,32 @@ public class PartitionSet
         m_alBits      = new long[(cPartitions + 63) >>> 6];
         m_lTailMask   = -1L >>> (64 - (cPartitions & 63));
         m_cMarked     = 0;
+        }
+
+    /**
+     * Construct a partition set with a given partition count and the specified
+     * partitions set.
+     *
+     * @param cPartitions    the partition count
+     * @param colPartitions  the partitions to set
+     */
+    public PartitionSet(int cPartitions, Collection<? extends Integer> colPartitions)
+        {
+        this(cPartitions);
+        colPartitions.forEach(this::add);
+        }
+
+    /**
+     * Construct a partition set with a given partition count and the specified
+     * partitions set.
+     *
+     * @param cPartitions   the partition count
+     * @param aiPartitions  the partitions to set
+     */
+    public PartitionSet(int cPartitions, int... aiPartitions)
+        {
+        this(cPartitions);
+        Arrays.stream(aiPartitions).forEach(this::add);
         }
 
     /**
@@ -486,6 +514,18 @@ public class PartitionSet
         }
 
     /**
+     * Return an index of the first marked partition. If no marked partitions
+     * exists then -1 is returned.
+     *
+     * @return  the first marked partition, or -1 if no marked partitions
+     *          exists in the set
+     */
+    public int first()
+        {
+        return next(0);
+        }
+
+    /**
     * Return an index of the first marked partition that is greater than or
     * equal to the specified partition. If no such partition exists then -1 is
     * returned.
@@ -657,6 +697,30 @@ public class PartitionSet
         return partsA;
         }
 
+    // ----- Iterable interface ---------------------------------------------
+
+    @Override
+    public Iterator<Integer> iterator()
+        {
+        return new Iterator()
+            {
+            @Override
+            public boolean hasNext()
+                {
+                return PartitionSet.this.next(m_current + 1) != -1;
+                }
+
+            @Override
+            public Integer next()
+                {
+                return m_current = m_current == -1
+                                   ? first()
+                                   : PartitionSet.this.next(m_current + 1);
+                }
+
+            private volatile int m_current = -1;
+            };
+        }
 
     // ----- ExternalizableLite interface -----------------------------------
 
@@ -994,7 +1058,6 @@ public class PartitionSet
         {
         return m_cPartitions;
         }
-
 
     // ----- constants ------------------------------------------------------
 

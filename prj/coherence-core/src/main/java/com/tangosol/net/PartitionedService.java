@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -154,6 +154,23 @@ public interface PartitionedService
     *         backup count} for this partitioned service
     */
     public Member getBackupOwner(int nPartition, int nBackup);
+
+    /**
+    * Determine the PartitionSet that is currently owned by the local cluster Member.
+    * If the local member does not run this clustered service, null is
+    * returned.
+    * <p>
+    * <b>Note:</b> the returned PartitionSet represents a "snapshot" of the
+    * ownership information at a time of the call and may change at any moment.
+    *
+    * @return the PartitionSet that the local cluster Member currently owns
+    *
+    * @since 23.09
+    */
+    public default PartitionSet getOwnedPartitions()
+        {
+        return getOwnedPartitions(getCluster().getLocalMember());
+        }
 
     /**
     * Determine the PartitionSet that is currently owned by a cluster Member.
