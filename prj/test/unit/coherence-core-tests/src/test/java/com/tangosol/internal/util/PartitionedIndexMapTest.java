@@ -10,11 +10,13 @@ import com.tangosol.internal.util.PartitionedIndexMap.PartitionedIndex;
 
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.comparator.SafeComparator;
 
 import com.tangosol.util.filter.BetweenFilter;
 import com.tangosol.util.filter.EqualsFilter;
@@ -32,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import java.util.stream.Collectors;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -60,7 +61,11 @@ public class PartitionedIndexMapTest
         Person nole   = new Person().name("Novak"     ).age(15).gender(Gender.MALE);
         Person kiki   = new Person().name("Kristina"  ).age(10).gender(Gender.FEMALE);
 
+        DistributedCacheService service = Mockito.mock(DistributedCacheService.class);
+        Mockito.when(service.getPartitionCount()).thenReturn(3);
+
         BackingMapManagerContext bmmc = Mockito.mock(BackingMapManagerContext.class);
+        Mockito.when(bmmc.getCacheService()).thenReturn(service);
         Mockito.when(bmmc.getKeyPartition("aleks" )).thenReturn(0);
         Mockito.when(bmmc.getKeyPartition("ana"   )).thenReturn(0);
         Mockito.when(bmmc.getKeyPartition("tal"   )).thenReturn(1);
@@ -108,7 +113,7 @@ public class PartitionedIndexMapTest
         assertThat(pim.get(AGE).getValueExtractor(), is(AGE));
         assertThat(pim.get(AGE).isOrdered(), is(true));
         assertThat(pim.get(AGE).isPartial(), is(false));
-        assertThat(pim.get(AGE).getComparator(), is(nullValue()));
+        assertThat(pim.get(AGE).getComparator(), is(SafeComparator.INSTANCE()));
         assertThat(pim.get(GENDER).getValueExtractor(), is(GENDER));
         assertThat(pim.get(GENDER).isOrdered(), is(false));
         assertThat(pim.get(GENDER).isPartial(), is(false));
@@ -143,6 +148,7 @@ public class PartitionedIndexMapTest
         assertThat(pim.get(GENDER).getIndexContents().size(), is(2));
         assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("marija")), is(true));
         assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("nole", "tal")), is(true));
+        assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("unknown")), is(false));
         assertThat(pim.get(ADULT).getIndexContents().keySet(), containsInAnyOrder(true, false));
         assertThat(pim.get(ADULT).getIndexContents().size(), is(2));
         assertThat(pim.get(ADULT).getIndexContents().containsValue(Set.of("marija", "tal")), is(true));
@@ -198,6 +204,7 @@ public class PartitionedIndexMapTest
         assertThat(pim.get(GENDER).getIndexContents().size(), is(2));
         assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("aleks")), is(true));
         assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("kiki", "ana")), is(true));
+        assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("unknown")), is(false));
         assertThat(pim.get(ADULT).getIndexContents().keySet(), containsInAnyOrder(true, false));
         assertThat(pim.get(ADULT).getIndexContents().size(), is(2));
         assertThat(pim.get(ADULT).getIndexContents().containsValue(Set.of("aleks", "ana")), is(true));
@@ -253,6 +260,7 @@ public class PartitionedIndexMapTest
         assertThat(pim.get(GENDER).getIndexContents().size(), is(2));
         assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("aleks", "nole", "tal")), is(true));
         assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("kiki", "ana", "marija")), is(true));
+        assertThat(pim.get(GENDER).getIndexContents().containsValue(Set.of("unknown")), is(false));
         assertThat(pim.get(ADULT).getIndexContents().keySet(), containsInAnyOrder(true, false));
         assertThat(pim.get(ADULT).getIndexContents().size(), is(2));
         assertThat(pim.get(ADULT).getIndexContents().containsValue(Set.of("aleks", "ana", "marija", "tal")), is(true));
@@ -296,17 +304,9 @@ public class PartitionedIndexMapTest
 
         // only add candidate keys for partitions covered by the PartitionedIndexMap view
         Set<String>  setCandidateKeys = new HashSet<>();
-        PartitionSet partitions       = pim.getPartitions();
-        if (partitions == null)
+        for (int nPart : pim.getPartitions())
             {
-            setCandidateKeys.addAll(mapKeysByPartition.values().stream().flatMap(Set::stream).collect(Collectors.toSet()));
-            }
-        else
-            {
-            for (int nPart = partitions.next(0); nPart >= 0; nPart = partitions.next(nPart + 1))
-                {
-                setCandidateKeys.addAll(mapKeysByPartition.get(nPart));
-                }
+            setCandidateKeys.addAll(mapKeysByPartition.get(nPart));
             }
 
         assertThat(filter.applyIndex(pim, setCandidateKeys), nullValue());
