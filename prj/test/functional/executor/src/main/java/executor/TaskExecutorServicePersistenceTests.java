@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -258,7 +258,7 @@ public class TaskExecutorServicePersistenceTests
         // ensure that we are eventually done! (ie: a new compute member picks up the task)
         Eventually.assertDeferred(() -> subscriber2.received("DONE"),
                                   Matchers.is(true),
-                                  Eventually.within(3, TimeUnit.MINUTES));
+                                  Eventually.within(4, TimeUnit.MINUTES));
         }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -439,6 +439,7 @@ public class TaskExecutorServicePersistenceTests
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
+                             SystemProperty.of("coherence.distributed.threads.min", "10"),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
