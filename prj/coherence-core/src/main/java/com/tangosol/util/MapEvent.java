@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,8 @@ import java.util.EventObject;
 import java.util.Map;
 
 import jakarta.json.bind.annotation.JsonbProperty;
+
+import static com.tangosol.net.cache.ReadWriteBackingMap.BIN_ERASE_PENDING;
 
 
 /**
@@ -71,7 +73,17 @@ public class MapEvent<K, V>
         {
         super(map);
 
-        m_nId      = nId;
+        // write-behind remove entries have the fixed value BIN_ERASE_PENDING
+        // until the erase call is successful
+        if (nId == MapEvent.ENTRY_UPDATED && BIN_ERASE_PENDING.equals(valueNew))
+            {
+            m_nId = MapEvent.ENTRY_DELETED;
+            }
+        else
+            {
+            m_nId = nId;
+            }
+
         m_key      = key;
         m_valueOld = valueOld;
         m_valueNew = valueNew;
