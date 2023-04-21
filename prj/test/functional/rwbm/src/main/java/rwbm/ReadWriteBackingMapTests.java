@@ -1486,6 +1486,7 @@ public class ReadWriteBackingMapTests
         cache.clear();
         store.getStorageMap().clear();
         store.resetStats();
+        store.setVerbose(true);
 
         Map<Integer,Integer> map = mapOfIntegers(10);
 
