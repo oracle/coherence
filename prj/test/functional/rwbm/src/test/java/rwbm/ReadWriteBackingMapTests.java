@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,15 +9,23 @@ package rwbm;
 
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.coherence.config.CustomClasses;
+import com.tangosol.coherence.memcached.processor.GetProcessor;
+
 import com.tangosol.internal.util.processor.CacheProcessors;
+
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.NamedCache;
-
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.ConfigurableCacheMap;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.cache.ReadWriteBackingMap;
+
+import com.tangosol.net.events.EventDispatcher;
+import com.tangosol.net.events.EventDispatcherAwareInterceptor;
+import com.tangosol.net.events.InterceptorRegistry;
+import com.tangosol.net.events.partition.cache.EntryEvent;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
@@ -38,13 +46,16 @@ import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MultiplexingMapListener;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ObservableMap;
+import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.SafeHashSet;
 
 import com.tangosol.util.aggregator.Count;
 
+import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.PofUpdater;
 
 import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.filter.LessEqualsFilter;
 import com.tangosol.util.filter.PresentFilter;
 
 import com.tangosol.util.processor.AbstractProcessor;
@@ -66,6 +77,7 @@ import data.Person;
 
 import org.hamcrest.Matchers;
 
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -83,8 +95,8 @@ import java.util.Random;
 import java.util.Set;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.CoreMatchers.both;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -311,6 +323,8 @@ public class ReadWriteBackingMapTests
         {
         writeBehindWithLongStore("dist-rwbm-wb");
         writeBehindWithLongStore("dist-rwbm-wb-bin");
+        writeBehindWithLongStore("dist-rwbm-wb-remove");
+        writeBehindWithLongStore("dist-rwbm-wb-bin-remove");
         }
 
     private void writeBehindWithLongStore(String sCacheName)
@@ -353,7 +367,16 @@ public class ReadWriteBackingMapTests
             // write a large batch
             store.setDurationStore(0L);
             cache.clear();
-            assertEquals("Failed to clear", 0, map.size());
+            if (sCacheName.contains("remove"))
+                {
+                assertEquals("Failed to clear", 1, map.size());
+                }
+            else
+                {
+                assertEquals("Failed to clear", 0, map.size());
+                }
+
+            Eventually.assertThat(invoking(map).size(), is(0));
 
             int cEntries = rwbm.getWriteMaxBatchSize()*3;
             Map mapTemp  = new HashMap();
@@ -362,8 +385,7 @@ public class ReadWriteBackingMapTests
                 mapTemp.put(i, i);
                 }
             cache.putAll(mapTemp);
-            definiteSleep(1500);
-            assertEquals("Failed to store all entries", cEntries, map.size());
+            Eventually.assertThat(invoking(map).size(), is(cEntries));
             }
         finally
             {
@@ -694,7 +716,7 @@ public class ReadWriteBackingMapTests
         BackingMapManagerContext ctxNull = NullImplementation.getBackingMapManagerContext();
 
         final ReadWriteBackingMap rwbm = new ReadWriteBackingMap(
-            ctxNull, new LocalCache(10), null, new TestCacheStore(), false, 0, 0.0);
+            ctxNull, new LocalCache(10), null, new TestCacheStore(), false, 0, 0.0, false);
 
         final long ldtStop = getSafeTimeMillis() + TEST_DURATION;
 
@@ -799,10 +821,17 @@ public class ReadWriteBackingMapTests
     @Test
     public void testInternalMapEviction()
         {
-        NamedCache            cache       = getNamedCache("dist-rwbm-wb-expiry");
+        internalMapEviction("dist-rwbm-wb-expiry");
+        internalMapEviction("dist-rwbm-wb-expiry-remove");
+        }
+
+    protected void internalMapEviction(String sCacheName)
+        {
+        NamedCache            cache       = getNamedCache(sCacheName);
         ReadWriteBackingMap   rwbm        = getReadWriteBackingMap(cache);
         ConfigurableCacheMap  mapInternal = (ConfigurableCacheMap) rwbm.getInternalCache();
         Map<Integer, Integer> map         = new HashMap<>();
+        TestCacheStore        store       = (TestCacheStore) getStore(cache);
 
         for (int i = 0; i < 1000; i++)
             {
@@ -810,6 +839,10 @@ public class ReadWriteBackingMapTests
             }
 
         cache.putAll(map);
+        assertEquals("testInternalMapEviction", map.size(), mapInternal.size());
+        assertEquals("testInternalMapEviction", 0, store.getStorageMap().size());
+
+        Eventually.assertThat(invoking(store.getStorageMap()).size(), is(1000));
 
         Eventually.assertThat(invoking(mapInternal).keySet().size(), is(0));
         }
@@ -823,6 +856,8 @@ public class ReadWriteBackingMapTests
         {
         testWriteBehindFlush("dist-rwbm-wb");
         testWriteBehindFlush("dist-rwbm-wb-bin");
+        testWriteBehindFlush("dist-rwbm-wb-remove");
+        testWriteBehindFlush("dist-rwbm-wb-bin-remove");
         }
 
     private void testWriteBehindFlush(String sCacheName)
@@ -1206,6 +1241,7 @@ public class ReadWriteBackingMapTests
     public void testCacheStoreRemoveOnWriteBehindPut()
         {
         testCacheStoreRemove("dist-rwbm-wb-bin", false);
+        testCacheStoreRemove("dist-rwbm-wb-bin-remove", false);
         }
 
     /**
@@ -1215,6 +1251,7 @@ public class ReadWriteBackingMapTests
     public void testCacheStoreRemoveOnWriteBehindPutAll()
         {
         testCacheStoreRemove("dist-rwbm-wb-bin", true);
+        testCacheStoreRemove("dist-rwbm-wb-bin-remove", true);
         }
 
     private void testCacheStoreRemove(String sCacheName, boolean fUsePutAll)
@@ -1298,6 +1335,7 @@ public class ReadWriteBackingMapTests
     public void testCacheStoreRevertOnPutWithWriteBehind()
         {
         testCacheStoreRevert("dist-rwbm-wb-bin", false);
+        testCacheStoreRevert("dist-rwbm-wb-bin-remove", false);
         }
 
     /**
@@ -1307,6 +1345,7 @@ public class ReadWriteBackingMapTests
     public void testCacheStoreRevertOnPutAllWithWriteBehind()
         {
         testCacheStoreRevert("dist-rwbm-wb-bin", true);
+        testCacheStoreRevert("dist-rwbm-wb-bin-remove", true);
         }
 
     private void testCacheStoreRevert(String sCacheName, boolean fUsePutAll)
@@ -1579,6 +1618,7 @@ public class ReadWriteBackingMapTests
     public void testCacheStoreExpireOnPutWithWriteBehind()
         {
         testCacheStoreExpire("dist-rwbm-wb-bin", 1000, false);
+        testCacheStoreExpire("dist-rwbm-wb-bin-remove", 1000, false);
         }
 
     /**
@@ -1588,6 +1628,7 @@ public class ReadWriteBackingMapTests
     public void testCacheStoreExpireOnPutAllWithWriteBehind()
         {
         testCacheStoreExpire("dist-rwbm-wb-bin", 1000, true);
+        testCacheStoreExpire("dist-rwbm-wb-bin-remove", 1000, true);
         }
 
     private void testCacheStoreExpire(String sCacheName, long cExpiryMillis, boolean fUsePutAll)
@@ -1642,7 +1683,13 @@ public class ReadWriteBackingMapTests
     @Test
     public void testNoneDefaultExpiry()
         {
-        NamedCache           cache         = getNamedCache("dist-rwbm-wb-bin");
+        noneDefaultExpiry("dist-rwbm-wb-bin");
+        noneDefaultExpiry("dist-rwbm-wb-bin-remove");
+        }
+
+    protected void noneDefaultExpiry(String sCacheName)
+        {
+        NamedCache           cache         = getNamedCache(sCacheName);
         TestBinaryCacheStore store         = (TestBinaryCacheStore) getStore(cache);
         ReadWriteBackingMap  rwbm          = getReadWriteBackingMap(cache);
         LocalCache           mapInternal   = (LocalCache) rwbm.getInternalCache();
@@ -1791,7 +1838,13 @@ public class ReadWriteBackingMapTests
     @Test
     public void testOutOfBandUpdates()
         {
-        NamedCache           cache = getNamedCache("dist-rwbm-wb");
+        outOfBandUpdates("dist-rwbm-wb");
+        outOfBandUpdates("dist-rwbm-wb-remove");
+        }
+
+    protected void outOfBandUpdates(String sCacheName)
+        {
+        NamedCache           cache = getNamedCache(sCacheName);
         TestCacheStore       store = (TestCacheStore) getStore(cache);
         ReadWriteBackingMap  rwbm  = getReadWriteBackingMap(cache);
 
@@ -1952,9 +2005,15 @@ public class ReadWriteBackingMapTests
     * value is delayed (COH-6033).
     */
     @Test
-    public void removeAfterDelayedPut()
+    public void testRemoveAfterDelayedPut()
         {
-        NamedCache cache = getNamedCache("dist-rwbm-wb");
+        removeAfterDelayedPut("dist-rwbm-wb");
+        removeAfterDelayedPut("dist-rwbm-wb-remove");
+        }
+
+    protected void removeAfterDelayedPut(String sCacheName)
+        {
+        NamedCache cache = getNamedCache(sCacheName);
         TestCacheStore store = (TestCacheStore) getStore(cache);
         ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
 
@@ -1973,8 +2032,14 @@ public class ReadWriteBackingMapTests
         cache.remove("removeAfterDelayedPut-key");
         definiteSleep(2000l);
         Object result = cache.get("removeAfterDelayedPut-key");
-        assertNull(result);
-
+        if (sCacheName.contains("remove"))
+            {
+            assertEquals(null, result);
+            }
+        else
+            {
+            assertNull(result);
+            }
         cache.destroy();
         }
 
@@ -2048,6 +2113,7 @@ public class ReadWriteBackingMapTests
             assertTrue(rwbm.getRefreshAheadFactor() == 0);
             assertEquals(rwbm.getCacheStoreTimeoutMillis(), 0);
             assertTrue(rwbm.isRethrowExceptions());
+            assertFalse(rwbm.isWriteBehindRemove());
             }
         finally
             {
@@ -2114,6 +2180,22 @@ public class ReadWriteBackingMapTests
             assertTrue(rwbm.getRefreshAheadFactor() == .5);
             assertEquals(rwbm.getCacheStoreTimeoutMillis(), 20 * 1000);
             assertFalse(rwbm.isRethrowExceptions());
+            assertFalse(rwbm.isWriteBehindRemove());
+            }
+        finally
+            {
+            cache.destroy();
+            }
+        }
+
+    @Test
+    public void testConfigWbRemove()
+        {
+        NamedCache cache = getNamedCache("dist-rwbm-wb-expiry-remove");
+        try
+            {
+            ReadWriteBackingMap rwbm = getReadWriteBackingMap(cache);
+            assertTrue(rwbm.isWriteBehindRemove());
             }
         finally
             {
@@ -2603,6 +2685,268 @@ public class ReadWriteBackingMapTests
             }
         }
 
+    @Test
+    public void testCacheStoreRemoveOnWriteBehind()
+        {
+        cacheStoreRemoveOnWriteBehind("dist-rwbm-wb-bin");
+        cacheStoreRemoveOnWriteBehind("dist-rwbm-wb-bin-remove");
+        }
+
+    protected void cacheStoreRemoveOnWriteBehind(String sCacheName)
+        {
+        final String         testName    = "testCacheStoreRemove-" + sCacheName;
+        final String         WB_REMOVE   = "remove";
+        NamedCache           cache       = getNamedCache(sCacheName);
+        TestBinaryCacheStore store       = (TestBinaryCacheStore) getStore(cache);
+        ObservableMap        storeMap    = store.getStorageMap();
+        ReadWriteBackingMap  rwbm        = getReadWriteBackingMap(cache);
+        long                 cDelay      = rwbm.getWriteBehindMillis() + 100;
+        LocalCache           mapInternal = (LocalCache) rwbm.getInternalCache();
+
+        cache.clear();
+        storeMap.clear();
+        store.resetStats();
+
+        try
+            {
+
+            cache.put(Integer.valueOf(0), Integer.valueOf(0));
+            assertEquals(testName, 0, storeMap.size());
+            assertEquals(testName, 1, mapInternal.size());
+
+            Eventually.assertThat(invoking(storeMap).size(), is(1));
+
+            cache.remove(Integer.valueOf(0));
+            assertEquals(testName, false, cache.containsKey(Integer.valueOf(0)));
+            assertEquals(testName, false, cache.keySet().contains(Integer.valueOf(0)));
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                assertEquals(testName, 1, mapInternal.size());
+                }
+            else
+                {
+                assertEquals(testName, 0, mapInternal.size());
+                }
+            assertEquals(cache.get(Integer.valueOf(0)), null);
+            assertEquals(cache.size(), 0);
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                assertEquals(testName, 1, storeMap.size());
+                Eventually.assertThat(invoking(storeMap).size(), is(0));
+                }
+            else
+                {
+                assertEquals(testName, 0, storeMap.size());
+                }
+
+            Map<Integer,Integer> mapData = mapOfIntegers(10);
+
+            updateCache(cache, mapData, false);
+            assertEquals(testName, 0, storeMap.size());
+            assertEquals(testName, mapData.size(), mapInternal.size());
+            Eventually.assertThat(invoking(cache).size(), is(mapData.size()));
+            Eventually.assertThat(invoking(storeMap).size(), is(mapData.size()));
+
+            cache.clear();
+            assertEquals(testName, 0, cache.aggregate(AlwaysFilter.INSTANCE, new Count()));
+            assertEquals(0, (cache.invokeAll(AlwaysFilter.INSTANCE, new GetProcessor())).size());
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                assertEquals(testName, 10, storeMap.size());
+                assertEquals(testName, 10, mapInternal.size());
+                }
+            else
+                {
+                assertEquals(testName, 0, storeMap.size());
+                assertEquals(testName, 0, mapInternal.size());
+                }
+            assertEquals(testName, 0, cache.size());
+            Eventually.assertThat(invoking(storeMap).size(), is(0));
+
+            // test with index
+
+            Map mapBatch = new HashMap();
+            for (int i = 0; i < 10; i++)
+                {
+                mapBatch.put("key" + i, + i);
+                }
+
+            cache.addIndex(IdentityExtractor.INSTANCE(), true, null);
+            cache.putAll(mapBatch);
+            Eventually.assertThat(invoking(storeMap).size(), is(10));
+            cache.remove("key1");
+
+            assertEquals(cache.aggregate(new LessEqualsFilter(IdentityExtractor.INSTANCE, 5), new Count<>()), 5);
+
+            int nSize = (Integer) cache.aggregate(AlwaysFilter.INSTANCE, new Count<>());
+            assertEquals(cache.size(), nSize);
+
+            cache.removeIndex(IdentityExtractor.INSTANCE());
+            cache.clear();
+            mapBatch.clear();
+            Eventually.assertThat(invoking(storeMap).size(), is(0));
+
+            // Test exception handling
+
+            String sKey   = "Key0";
+            String sValue = "Value0";
+            cache.put(sKey, sValue);
+            Eventually.assertThat(invoking(storeMap).size(), is(1));
+
+            store.setFailureKeyErase(sKey);
+            try
+                {
+                cache.remove(sKey);
+                if (!sCacheName.contains(WB_REMOVE))
+                    {
+                    fail("Didn't get Exception on remove!");
+                    }
+                }
+            catch (Exception e)
+                {
+                if (sCacheName.contains(WB_REMOVE))
+                    {
+                    fail("Should not get Exception on remove!");
+                    }
+                }
+
+            definiteSleep(cDelay);
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                assertFalse("remove should succeed", cache.containsKey(sKey));
+                }
+            else
+                {
+                assertTrue("remove did not fail as expected", cache.containsKey(sKey));
+                }
+            assertTrue("remove did not fail as expected", 1 == storeMap.size());
+
+            store.setFailureKeyErase(null);
+            if (!sCacheName.contains(WB_REMOVE))
+                {
+                cache.remove(sKey);
+                assertEquals(testName, 0, cache.size());
+                assertEquals(testName, 0, storeMap.size());
+                }
+            else
+                {
+                assertEquals(testName, 0, cache.size());
+                Eventually.assertThat(invoking(storeMap).size(), is(0));
+                }
+
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                store.setFailureKeyEraseAll(sKey);
+                }
+            else
+                {
+                store.setFailureKeyErase(sKey);
+                }
+
+            for (int i = 0; i < 10; i++)
+                {
+                mapBatch.put("Key" + i, "Value" + i);
+                }
+            cache.putAll(mapBatch);
+            definiteSleep(cDelay);
+
+            if (cDelay > 0)
+                {
+                definiteSleep(cDelay + 100);
+                }
+            assertEquals(testName, mapBatch.size(), storeMap.size());
+
+            try
+                {
+                cache.clear();
+                if (!sCacheName.contains(WB_REMOVE))
+                    {
+                    fail("Didn't get Exception on clear!");
+                    }
+                }
+            catch (Exception e)
+                {
+                if (sCacheName.contains(WB_REMOVE))
+                    {
+                    fail("Should not get Exception on clear!");
+                    }
+                }
+
+            definiteSleep(cDelay + 100);
+            assertTrue("eraseAll did not fail as expected!", storeMap.size() > 0 && storeMap.size() <= 10);
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                assertEquals("eraseAll failed!", 0, cache.size());
+                }
+            else
+                {
+                assertTrue("eraseAll did not fail as expected!", cache.size() > 0 && cache.size() <= 10);
+                }
+
+            if (sCacheName.contains(WB_REMOVE))
+                {
+                store.setFailureKeyEraseAll(null);
+                Eventually.assertThat(invoking(storeMap).size(), is(0));
+                }
+            else
+                {
+                store.setFailureKeyErase(null);
+                cache.clear();
+                assertEquals(testName, 0, storeMap.size());
+                }
+
+            definiteSleep(cDelay + 100);
+
+            // test with interceptor
+
+            EventDispatcherAwareInterceptor incptrEntry = new EventDispatcherAwareInterceptor<EntryEvent<?, ?>>()
+                {
+                public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
+                    {
+                    dispatcher.addEventInterceptor(sIdentifier, this, new ImmutableArrayList(EntryEvent.Type.values()).getSet(), false);
+                    }
+
+                public void onEvent(EntryEvent event)
+                    {
+                    System.out.println("Received event: " + event);
+                    if (event.getType() == EntryEvent.Type.REMOVING)
+                        {
+                        m_nRemovingCounter++;
+                        }
+                    else if (event.getType() == EntryEvent.Type.REMOVED)
+                        {
+                        m_nRemovedCounter++;
+                        }
+                    }
+                };
+
+            m_nRemovingCounter = 0;
+            m_nRemovedCounter  = 0;
+            InterceptorRegistry registry = cache.getCacheService().getBackingMapManager()
+                    .getCacheFactory().getInterceptorRegistry();
+            final String RB_REMOVE_TEST = "RBRemoveTest";
+            registry.registerEventInterceptor(RB_REMOVE_TEST, incptrEntry, RegistrationBehavior.FAIL);
+
+            try
+                {
+                cache.put(1, 1);
+                Eventually.assertThat(invoking(storeMap).size(), is(1));
+                cache.remove(1);
+                Eventually.assertThat(invoking(storeMap).size(), is(0));
+
+                assertEquals(1, m_nRemovingCounter);
+                Assert.assertThat(m_nRemovedCounter, is(greaterThan(0)));
+                }
+            finally
+                {
+                registry.unregisterEventInterceptor(RB_REMOVE_TEST);
+                }
+            }
+        finally
+            {
+            cache.destroy();
+            }
+        }
 
     // ----- helper methods -------------------------------------------------
 
@@ -2694,6 +3038,10 @@ public class ReadWriteBackingMapTests
         return thread.isAlive();
         }
 
+    protected int getRemovedCount()
+        {
+        return m_nRemovedCounter;
+        }
 
     // ----- inner classes ---------------------------------------------------
 
@@ -3159,4 +3507,20 @@ public class ReadWriteBackingMapTests
     * The file name of the default cache configuration file used by this test.
     */
     public static String FILE_CFG_CACHE = "rwbm-cache-config.xml";
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * A EntryEvent.Type.REMOVING counter for interceptor test.
+     *
+     * @since 12.2.1.4.18
+     */
+    private static volatile int m_nRemovingCounter;
+
+    /**
+     * A EntryEvent.Type.REMOVED counter for interceptor test.
+     *
+     * @since 12.2.1.4.18
+     */
+    private static volatile int m_nRemovedCounter;
     }
