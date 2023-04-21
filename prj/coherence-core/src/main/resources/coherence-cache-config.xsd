@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -823,6 +823,7 @@
                 <xsd:element ref="rollback-cachestore-failures"
                     minOccurs="0" />
                 <xsd:element ref="listener" minOccurs="0" />
+                <xsd:element ref="write-behind-remove" minOccurs="0" />
                 <xsd:any namespace="##other" processContents="lax"
                     minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
@@ -4006,6 +4007,31 @@
             Used in: view-scheme
 
             Since: 12.2.1.4.11
+      </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="write-behind-remove" type="coherence-boolean-type">
+    <xsd:annotation>
+      <xsd:documentation>
+            The write-behind-remove element specifies whether remove
+            operations should be added to the write-behind queue. If
+            true and the cachestore is write-behind enabled, cache
+            remove operations will be added to the write-behind queue
+            and the cachestore remove operations will take place
+            asynchronously.
+
+            If false (default), the write-behind delay does not apply to
+            remove operations and remove operations will be synchronous
+            (i.e. write-through).
+
+            Valid values are "true" or "false".
+
+            Default value is false.
+
+            Used in: read-write-backing-map-scheme
+
+            Since: 12.2.1.4.18
       </xsd:documentation>
     </xsd:annotation>
   </xsd:element>
