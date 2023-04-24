@@ -51,11 +51,11 @@ docker-test: ## Build the Coherence image (does not rebuild Coherence image)
 	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu
 
 define mvn_build_coherence
-	mvn clean install -T 1.5C -U -DskipTests $(1) $(ARGS)
+	mvn clean install -T 1.5C -U -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
 
 define mvn_build_modules
-	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -DskipTests $(1) $(ARGS)
+	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
 
 # ======================================================================================================================
