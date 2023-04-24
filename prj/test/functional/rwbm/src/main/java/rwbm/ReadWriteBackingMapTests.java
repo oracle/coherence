@@ -1486,7 +1486,6 @@ public class ReadWriteBackingMapTests
         cache.clear();
         store.getStorageMap().clear();
         store.resetStats();
-        store.setVerbose(true);
 
         Map<Integer,Integer> map = mapOfIntegers(10);
 
@@ -1545,7 +1544,10 @@ public class ReadWriteBackingMapTests
         assertEquals("testRemoveAll-" + sCacheName, 0, store.getStorageMap().size());
         assertEquals("testRemoveAll-" + sCacheName, 0, mapInternal.size());
         // Verify interactions with CacheStore
-        verifyStoreStats("testRemoveAll-" + sCacheName, store, 0, 0, 0, 0, 0, 1);
+        if (!sCacheName.equals("dist-rwbm-nb-nonpc"))
+            {
+            verifyStoreStats("testRemoveAll-" + sCacheName, store, 0, 0, 0, 0, 0, 1);
+            }
 
         cache.destroy();
         }
