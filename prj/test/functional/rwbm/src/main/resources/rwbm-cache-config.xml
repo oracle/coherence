@@ -49,24 +49,6 @@
       </init-params>
     </cache-mapping>
     <cache-mapping>
-      <cache-name>dist-rwbm-wb-expiry-remove</cache-name>
-      <scheme-name>distributed-rwbm-wb-remove</scheme-name>
-      <init-params>
-        <init-param>
-          <param-name>internal-cache-expiry</param-name>
-          <param-value>2</param-value>
-        </init-param>
-        <init-param>
-          <param-name>write-delay-seconds</param-name>
-          <param-value>2</param-value>
-        </init-param>
-      </init-params>
-    </cache-mapping>
-    <cache-mapping>
-      <cache-name>dist-rwbm-wb-remove</cache-name>
-      <scheme-name>distributed-rwbm-wb-remove</scheme-name>
-    </cache-mapping>
-    <cache-mapping>
       <cache-name>dist-rwbm-wb-sliding-expiry</cache-name>
       <scheme-name>distributed-rwbm-wb-sliding-expiry</scheme-name>
     </cache-mapping>
@@ -77,26 +59,6 @@
         <init-param>
           <param-name>store</param-name>
           <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
-        </init-param>
-      </init-params>
-    </cache-mapping>
-    <cache-mapping>
-      <cache-name>dist-rwbm-wb-bin-remove</cache-name>
-      <scheme-name>distributed-rwbm-wb-remove</scheme-name>
-      <init-params>
-        <init-param>
-          <param-name>store</param-name>
-          <param-value>com.oracle.coherence.testing.TestBinaryCacheStore</param-value>
-        </init-param>
-      </init-params>
-    </cache-mapping>
-    <cache-mapping>
-      <cache-name>dist-rwbm-wb-remove-false</cache-name>
-      <scheme-name>distributed-rwbm-wb-remove</scheme-name>
-      <init-params>
-        <init-param>
-          <param-name>write-behind-remove</param-name>
-          <param-value>false</param-value>
         </init-param>
       </init-params>
     </cache-mapping>
@@ -297,32 +259,6 @@
           <write-delay-seconds>{write-delay-seconds 4}</write-delay-seconds>
           <write-batch-factor>{write-batch-factor 0.0}</write-batch-factor>
           <write-requeue-threshold>1</write-requeue-threshold>
-        </read-write-backing-map-scheme>
-      </backing-map-scheme>
-    </distributed-scheme>
-
-    <distributed-scheme>
-      <scheme-name>distributed-rwbm-wb-remove</scheme-name>
-      <thread-count-max>1</thread-count-max>
-      <thread-count-min>1</thread-count-min>
-
-      <backing-map-scheme>
-        <read-write-backing-map-scheme>
-          <internal-cache-scheme>
-            <local-scheme>
-              <expiry-delay>{internal-cache-expiry 0}</expiry-delay>
-            </local-scheme>
-          </internal-cache-scheme>
-
-          <cachestore-scheme>
-            <class-scheme>
-              <class-name>{store com.oracle.coherence.testing.TestCacheStore}</class-name>
-            </class-scheme>
-          </cachestore-scheme>
-          <write-delay-seconds>{write-delay-seconds 4}</write-delay-seconds>
-          <write-batch-factor>{write-batch-factor 0.0}</write-batch-factor>
-          <write-requeue-threshold>1</write-requeue-threshold>
-          <write-behind-remove>{write-behind-remove true}</write-behind-remove>
         </read-write-backing-map-scheme>
       </backing-map-scheme>
     </distributed-scheme>
