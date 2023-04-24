@@ -84,7 +84,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: test-output
+        name: test-output-${{ matrix.stage }}
         path: prj/**/target/test-output/**/*
         if-no-files-found: ignore
 
@@ -92,6 +92,22 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: failsafe-surefire-test-reports
+        name: failsafe-surefire-test-reports-${{ matrix.stage }}
         path: prj/**/target/*-reports/**/*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts core dumps
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: core-dumps-${{ matrix.stage }}
+        path: prj/**/core.*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts compiler replays
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: compiler-replay-logs-${{ matrix.stage }}
+        path: prj/**/replay_pid*.log
         if-no-files-found: ignore
