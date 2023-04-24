@@ -81,3 +81,19 @@ jobs:
         name: failsafe-surefire-test-reports
         path: prj/examples/**/target/*-reports/**/*
         if-no-files-found: ignore
+
+    - name: Build Artifacts core dumps
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: core-dumps
+        path: prj/examples/**/core.*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts compiler replays
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: compiler-replay-logs
+        path: prj/examples/**/replay_pid*.log
+        if-no-files-found: ignore
