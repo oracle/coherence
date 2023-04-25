@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -51,7 +51,7 @@ else
   docker pull "${ARM_BASE_IMAGE}"
 fi
 
-chmod +x ${SCRIPT_NAME}
+chmod +x "${SCRIPT_NAME}"
 
 which buildah
 if [ "$?" == "0" ]
@@ -68,9 +68,22 @@ else
   then
     NO_DAEMON=false
   fi
+
   docker rm -f buildah || true
+
+  if [ "${BUILDAH_VOLUME}" == "" ]
+  then
+    export BUILDAH_VOLUME=buildah-containers-volume
+  fi
+
+  if ! docker volume inspect "${BUILDAH_VOLUME}";
+  then
+    docker volume create "${BUILDAH_VOLUME}"
+  fi
+
   docker run --rm ${ARGS} -v "${BASEDIR}:${BASEDIR}" \
-      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v /var/run/docker.sock:/var/run/docker.sock  \
+      -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
       -e IMAGE_NAME="${IMAGE_NAME}" \
       -e IMAGE_ARCH="${IMAGE_ARCH}" \
@@ -97,6 +110,6 @@ else
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \
-      quay.io/buildah/stable:v1.23.3 ${SCRIPT_NAME}
+      quay.io/buildah/stable:v1.29.0 "${SCRIPT_NAME}"
 fi
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -116,7 +116,18 @@ common_image(){
   buildah rmi "coherence:${1}" || true
 
   # Create the container from the base image, setting the architecture and O/S
-  buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}"
+  # The "buildah from" command will pull the base image if not present, this will
+  # be retried a maximum of five times as there are occasional timeouts for large
+  # base images such as Graal
+  exitCode=0
+  for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "container-${1}" "${3}" \
+    && exitCode=0 && break || exitCode=$? \
+    && echo "The command 'buildah from...' failed. Attempt ${i} of 5" \
+    && sleep 10; done;
+
+  if [ ${exitCode} != 0 ]; then
+    exit 1
+  fi
 
   # Add the configuration, entrypoint, ports, env-vars etc...
   buildah config --arch "${1}" --os "${2}" \
@@ -166,6 +177,12 @@ if [ "${OCR_DOCKER_USERNAME}" != "" ] && [ "${OCR_DOCKER_USERNAME}" != "" ]
 then
   buildah login -u "${OCR_DOCKER_USERNAME}" -p "${OCR_DOCKER_PASSWORD}" "${OCR_DOCKER_SERVER}"
 fi
+
+if [ "${GHCR_USERNAME}" != "" ] && [ "${GHCR_PASSWORD}" != "" ]
+then
+  buildah login -u "${GHCR_USERNAME}" -p "${GHCR_PASSWORD}" ghcr.io
+fi
+
 # pull in all the base images
 buildah pull "docker-daemon:${AMD_BASE_IMAGE}" || true
 buildah pull "docker-daemon:${ARM_BASE_IMAGE}" || true

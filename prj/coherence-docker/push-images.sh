@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -35,6 +35,7 @@ LOCAL_NAME="localhost/${IMAGE_SUFFIX}"
 buildah images
 
 # Create distroless based images
+buildah manifest rm "${IMAGE_NAME}" || true
 buildah manifest create "${IMAGE_NAME}"
 buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-amd64"
 buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}" "${IMAGE_NAME}-arm64"
