@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -1046,7 +1046,7 @@ public class PersistenceToolsHelper
     /**
      * Sleep time between checking operation completion.
      */
-    private static final long SLEEP_TIME = 500L;
+    private static final long SLEEP_TIME = 2000L;
 
     /**
      * Cluster Tools registry key.
