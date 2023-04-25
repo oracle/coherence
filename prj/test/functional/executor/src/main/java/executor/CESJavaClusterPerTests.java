@@ -103,7 +103,7 @@ public class CESJavaClusterPerTests
                              LogOutput.to(getLabel(), "CacheServer"),
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.distributed.threads.min", "10"),
+                             SystemProperty.of("coherence.distributed.threads", "10"),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,

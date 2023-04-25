@@ -439,7 +439,7 @@ public class TaskExecutorServicePersistenceTests
                              LogOutput.to(TaskExecutorServicePersistenceTests.class.getSimpleName(), "CacheServer"),
                              RoleName.of("storage"),
                              LocalStorage.enabled(),
-                             SystemProperty.of("coherence.distributed.threads.min", "10"),
+                             SystemProperty.of("coherence.distributed.threads", "10"),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
