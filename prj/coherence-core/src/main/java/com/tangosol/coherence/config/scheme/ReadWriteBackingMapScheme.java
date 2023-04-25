@@ -39,8 +39,6 @@ import com.tangosol.util.ObservableMap;
 
 import java.util.Map;
 
-import static com.tangosol.net.cache.ReadWriteBackingMap.RWBM_WB_REMOVE_DEFAULT;
-
 /**
  * The {@link RemoteCacheScheme} is responsible for creating a fully
  * configured ReadWriteBackingMap.  The  setters are annotated so that CODI
@@ -74,7 +72,6 @@ public class ReadWriteBackingMapScheme
         ParameterizedBuilder<ReadWriteBackingMap> bldrCustom      = getCustomBuilder();
         boolean                                   fReadOnly       = isReadOnly(resolver);
         boolean                                   fSplitting      = mapInternal instanceof PartitionAwareBackingMap;
-        boolean                                   fWBRemove       = isWriteBehindRemove(resolver);
 
         // create the internal map if it hasn't been set already.  For example,
         // for partitioned backing maps, the BackingMapManager will set the
@@ -138,9 +135,9 @@ public class ReadWriteBackingMapScheme
 
                 rwbm = fSplitting
                        ? instantiateReadWriteSplittingBackingMap(contextBmm, (PartitionAwareBackingMap) mapInternal,
-                             mapMisses, storeObject, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor, fWBRemove)
+                             mapMisses, storeObject, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor)
                        : instantiateReadWriteBackingMap(contextBmm, mapInternal, mapMisses, storeObject, fReadOnly,
-                             cWriteBehindSec, dflRefreshAheadFactor, fWBRemove);
+                             cWriteBehindSec, dflRefreshAheadFactor);
                 }
             else if (storeNonBlockingBinary != null)
                 {
@@ -152,17 +149,17 @@ public class ReadWriteBackingMapScheme
 
                 rwbm = fSplitting
                         ? instantiateReadWriteSplittingBackingMap(contextBmm, (PartitionAwareBackingMap) mapInternal,
-                             mapMisses, storeNonBlockingBinary, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor, fWBRemove)
+                             mapMisses, storeNonBlockingBinary, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor)
                         : instantiateReadWriteBackingMap(contextBmm, mapInternal, mapMisses, storeNonBlockingBinary, fReadOnly,
-                             cWriteBehindSec, dflRefreshAheadFactor, fWBRemove);
-               }
+                             cWriteBehindSec, dflRefreshAheadFactor);
+                }
             else
                 {
                 rwbm = fSplitting
                        ? instantiateReadWriteSplittingBackingMap(contextBmm, (PartitionAwareBackingMap) mapInternal,
-                             mapMisses, storeBinary, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor, fWBRemove)
+                             mapMisses, storeBinary, fReadOnly, cWriteBehindSec, dflRefreshAheadFactor)
                        : instantiateReadWriteBackingMap(contextBmm, mapInternal, mapMisses, storeBinary, fReadOnly,
-                             cWriteBehindSec, dflRefreshAheadFactor, fWBRemove);
+                             cWriteBehindSec, dflRefreshAheadFactor);
                 }
             }
         else
@@ -176,10 +173,6 @@ public class ReadWriteBackingMapScheme
             listArgs.add(new Parameter("readOnly", Boolean.valueOf(fReadOnly)));
             listArgs.add(new Parameter("writeBehindSec", Integer.valueOf(cWriteBehindSec)));
             listArgs.add(new Parameter("refreshAheadFactory", Double.valueOf(dflRefreshAheadFactor)));
-            if (fWBRemove)
-                {
-                listArgs.add(new Parameter("writeBehindRemove", Boolean.valueOf(fWBRemove)));
-                }
             rwbm = bldrCustom.realize(resolver, loader, listArgs);
             }
 
@@ -565,33 +558,6 @@ public class ReadWriteBackingMapScheme
         m_exprWriteRequeueThreshold = expr;
         }
 
-    /**
-     * Returns true if the write-behind applies to remove.
-     *
-     * @param resolver  the ParameterResolver
-     *
-     * @return true if the write-behind applies to remove.
-     *
-     * @since 12.2.1.4.18
-     */
-    public boolean isWriteBehindRemove(ParameterResolver resolver)
-        {
-        return m_exprWriteBehindRemove.evaluate(resolver);
-        }
-
-    /**
-     * Set the write-behind-remove flag.
-     *
-     * @param expr  true if the write-behind applies to remove.
-     *
-     * @since 12.2.1.4.18
-     */
-    @Injectable
-    public void setWriteBehindRemove(Expression<Boolean> expr)
-        {
-        m_exprWriteBehindRemove = expr;
-        }
-
     // ----- internal -------------------------------------------------------
 
     /**
@@ -599,7 +565,7 @@ public class ReadWriteBackingMapScheme
      * <p>
      * This method exposes a corresponding ReadWriteBackingMap
      * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext,
-     * ObservableMap, Map, CacheLoader, boolean, int, double, boolean) constructor}
+     * ObservableMap, Map, CacheLoader, boolean, int, double) constructor}
      * and is provided for the express purpose of allowing its override.
      *
      * @param context               the context provided by the CacheService
@@ -626,17 +592,15 @@ public class ReadWriteBackingMapScheme
      *                              refresh-ahead; only applicable when
      *                              the <tt>mapInternal</tt> parameter is an
      *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
-     * @param fWriteBehindRemove    pass true if the specified loader is in fact a
-     *                              CacheStore that needs to apply write-behind to remove
      *
      * @return the instantiated {@link ReadWriteBackingMap}
      */
     protected ReadWriteBackingMap instantiateReadWriteBackingMap(BackingMapManagerContext context,
         ObservableMap mapInternal, Map mapMisses, CacheLoader store, boolean fReadOnly, int cWriteBehindSeconds,
-        double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        double dflRefreshAheadFactor)
         {
         return new ReadWriteBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds,
-                                       dflRefreshAheadFactor, fWriteBehindRemove);
+                                       dflRefreshAheadFactor);
         }
 
     /**
@@ -644,7 +608,7 @@ public class ReadWriteBackingMapScheme
      * <p>
      * This method exposes a corresponding ReadWriteBackingMap
      * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext,
-     * ObservableMap, Map, BinaryEntryStore, boolean, int, double, boolean) constructor}
+     * ObservableMap, Map, BinaryEntryStore, boolean, int, double) constructor}
      * and is provided for the express purpose of allowing its override.
      *
      * @param context               the context provided by the CacheService
@@ -671,17 +635,15 @@ public class ReadWriteBackingMapScheme
      *                              refresh-ahead; only applicable when
      *                              the <tt>mapInternal</tt> parameter is an
      *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
-     * @param fWriteBehindRemove    pass true if the specified loader is in fact a
-     *                              CacheStore that needs to apply write-behind to remove
      *
      * @return the instantiated {@link ReadWriteBackingMap}
      */
     protected ReadWriteBackingMap instantiateReadWriteBackingMap(BackingMapManagerContext context,
         ObservableMap mapInternal, Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly,
-        int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
         return new ReadWriteBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds,
-                                       dflRefreshAheadFactor, fWriteBehindRemove);
+                                       dflRefreshAheadFactor);
         }
 
     /**
@@ -689,7 +651,7 @@ public class ReadWriteBackingMapScheme
      * <p>
      * This method exposes a corresponding ReadWriteBackingMap
      * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext,
-     * ObservableMap, Map, BinaryEntryStore, boolean, int, double, boolean) constructor}
+     * ObservableMap, Map, BinaryEntryStore, boolean, int, double) constructor}
      * and is provided for the express purpose of allowing its override.
      *
      * @param context               the context provided by the CacheService
@@ -716,25 +678,23 @@ public class ReadWriteBackingMapScheme
      *                              refresh-ahead; only applicable when
      *                              the <tt>mapInternal</tt> parameter is an
      *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
-     * @param fWriteBehindRemove    pass true if the specified loader is in fact a
-     *                              CacheStore that needs to apply write-behind to remove
      *
      * @return the instantiated {@link ReadWriteBackingMap}
      */
     protected ReadWriteBackingMap instantiateReadWriteBackingMap(BackingMapManagerContext context,
         ObservableMap mapInternal, Map mapMisses, NonBlockingEntryStore storeBinary, boolean fReadOnly,
-        int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
         return new ReadWriteBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds,
-                dflRefreshAheadFactor, fWriteBehindRemove);
+                dflRefreshAheadFactor);
         }
 
-    /**
+        /**
      * Construct a ReadWriteSplittingBackingMap using the specified parameters.
      * <p>
      * This method exposes a corresponding ReadWriteSplittingBackingMap
      * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext,
-     * PartitionAwareBackingMap, Map, CacheLoader, boolean, int, double, boolean) constructor}
+     * PartitionAwareBackingMap, Map, CacheLoader, boolean, int, double) constructor}
      * and is provided for the express purpose of allowing its override.
      *
      * @param context               the context provided by the CacheService
@@ -761,17 +721,15 @@ public class ReadWriteBackingMapScheme
      *                              refresh-ahead; only applicable when
      *                              the <tt>mapInternal</tt> parameter is an
      *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
-     * @param fWriteBehindRemove    pass true if the specified loader is in fact a
-     *                              CacheStore that needs to apply write-behind to remove
      *
      * @return the instantiated {@link ReadWriteSplittingBackingMap}
      */
     protected ReadWriteSplittingBackingMap instantiateReadWriteSplittingBackingMap(BackingMapManagerContext context,
         PartitionAwareBackingMap mapInternal, Map mapMisses, CacheLoader store, boolean fReadOnly,
-        int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
         return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds,
-            dflRefreshAheadFactor, fWriteBehindRemove);
+            dflRefreshAheadFactor);
         }
 
     /**
@@ -779,7 +737,7 @@ public class ReadWriteBackingMapScheme
      * <p>
      * This method exposes a corresponding ReadWriteSplittingBackingMap
      * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext,
-     * PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double, boolean) constructor}
+     * PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double) constructor}
      * and is provided for the express purpose of allowing its override.
      *
      * @param context               the context provided by the CacheService
@@ -806,17 +764,15 @@ public class ReadWriteBackingMapScheme
      *                              refresh-ahead; only applicable when
      *                              the <tt>mapInternal</tt> parameter is an
      *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
-     * @param fWriteBehindRemove    pass true if the specified loader is in fact a
-     *                              CacheStore that needs to apply write-behind to remove
      *
      * @return the instantiated {@link ReadWriteSplittingBackingMap}
      */
     protected ReadWriteSplittingBackingMap instantiateReadWriteSplittingBackingMap(BackingMapManagerContext context,
         PartitionAwareBackingMap mapInternal, Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly,
-        int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
         return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly,
-            cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+            cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
     /**
@@ -824,7 +780,7 @@ public class ReadWriteBackingMapScheme
      * <p>
      * This method exposes a corresponding ReadWriteSplittingBackingMap
      * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext,
-     * PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double, boolean) constructor}
+     * PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double) constructor}
      * and is provided for the express purpose of allowing its override.
      *
      * @param context               the context provided by the CacheService
@@ -851,20 +807,18 @@ public class ReadWriteBackingMapScheme
      *                              refresh-ahead; only applicable when
      *                              the <tt>mapInternal</tt> parameter is an
      *                              instance of {@link com.tangosol.net.cache.ConfigurableCacheMap}
-     * @param fWriteBehindRemove    pass true if the specified loader is in fact a
-     *                              CacheStore that needs to apply write-behind to remove
      *
      * @return the instantiated {@link ReadWriteSplittingBackingMap}
      */
     protected ReadWriteSplittingBackingMap instantiateReadWriteSplittingBackingMap(BackingMapManagerContext context,
         PartitionAwareBackingMap mapInternal, Map mapMisses, NonBlockingEntryStore storeBinary, boolean fReadOnly,
-        int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
         return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly,
-                cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+                cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
-    /**
+        /**
      * {@inheritDoc}
      */
     @Override
@@ -936,13 +890,6 @@ public class ReadWriteBackingMapScheme
      * The write re-queue threshold.
      */
     private Expression<Integer> m_exprWriteRequeueThreshold = new LiteralExpression<Integer>(Integer.valueOf(0));
-
-    /**
-     * The flag that specifies if the write-behind applies to remove.
-     *
-     * @since 12.2.1.4.18
-     */
-    private Expression<Boolean> m_exprWriteBehindRemove = new LiteralExpression<>(RWBM_WB_REMOVE_DEFAULT);
 
     /**
      * The internal map.
