@@ -65,7 +65,6 @@ import com.tangosol.net.topic.TopicException;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
-import com.tangosol.util.CircularArrayList;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
@@ -124,6 +123,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 
 import java.util.stream.Collectors;
@@ -695,21 +695,18 @@ public class PagedTopicSubscriber<V>
         long cPollsNow  = m_cPolls;
         long cValuesNow = m_cValues;
         long cMissesNow = m_cMisses;
-        long cCollNow   = m_cMissCollisions;
         long cWaitNow   = m_cWait;
         long cNotifyNow = m_cNotify;
 
         long cPoll   = cPollsNow  - m_cPollsLast;
         long cValues = cValuesNow - m_cValuesLast;
         long cMisses = cMissesNow - m_cMissesLast;
-        long cColl   = cCollNow   - m_cMissCollisionsLast;
         long cWait   = cWaitNow   - m_cWaitsLast;
         long cNotify = cNotifyNow - m_cNotifyLast;
 
         m_cPollsLast          = cPollsNow;
         m_cValuesLast         = cValuesNow;
         m_cMissesLast         = cMissesNow;
-        m_cMissCollisionsLast = cCollNow;
         m_cWaitsLast          = cWaitNow;
         m_cNotifyLast         = cNotifyNow;
 
@@ -1158,7 +1155,7 @@ public class PagedTopicSubscriber<V>
                 {
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
                 PagedTopicChannel channel  = m_aChannel[nChannel];
-                long              lVersion = channel.m_lVersion;
+                long              lVersion = channel.m_lVersion.get();
                 long              lHead    = channel.m_lHead == PagedTopicChannel.HEAD_UNKNOWN
                                                     ? getSubscriptionHead(channel) : channel.m_lHead;
 
@@ -1558,7 +1555,7 @@ public class PagedTopicSubscriber<V>
 
         List<Integer> listUnallocated = mapPosition.keySet().stream()
                 .filter(c -> !isOwner(c))
-                .collect(Collectors.toList());
+                .toList();
 
         if (listUnallocated.size() > 0)
             {
@@ -1667,7 +1664,7 @@ public class PagedTopicSubscriber<V>
             List<Integer> listUnallocated = Arrays.stream(anChannel)
                     .filter(c -> !isOwner(c))
                     .boxed()
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (listUnallocated.size() != 0)
                 {
@@ -1846,6 +1843,41 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
+     * Reconnect this subscriber if not connected and there are pending receive requests.
+     */
+    protected void reconnectInternal()
+        {
+        if (getState() == PagedTopicSubscriber.STATE_CONNECTED || !isActive())
+            {
+            // nothing to do, either the subscriber is connected, or it is closed
+            return;
+            }
+
+        try {
+            if (m_caches.getService().isSuspended())
+                {
+                Logger.finest("Skipping reconnect task, service is suspended for subscriber " + this);
+                }
+            else
+                {
+                if (f_queueReceiveOrders.size() > 0)
+                    {
+                    Logger.finest("Running reconnect task, reconnecting " + this);
+                    ensureConnected();
+                    }
+                else
+                    {
+                    Logger.finest("Skipping reconnect task, no pending receives for subscriber " + this);
+                    }
+                }
+            }
+        catch (Throwable t)
+            {
+            Logger.finest("Failed to reconnect subscriber " + this, t);
+            }
+        }
+
+    /**
      * Ensure that the subscriber is connected.
      */
     protected void ensureConnected()
@@ -1942,23 +1974,37 @@ public class PagedTopicSubscriber<V>
      */
     public void disconnect()
         {
+        long nTimestamp = m_connectionTimestamp;
         if (isActive() && m_nState != STATE_DISCONNECTED)
             {
-            setState(STATE_DISCONNECTED);
-            m_cDisconnect.mark();
-            if (!f_fAnonymous)
+            // we disconnect under a lock
+            try (Sentry<?> ignored = f_gate.close())
                 {
-                // reset the channel allocation for non-anonymous subscribers, channels
-                // will be reallocated when (or if) reconnection occurs
-                m_listenerChannelAllocation.reset();
-                }
-            // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
-            m_queueValuesPrefetched.clear();
+                if (m_connectionTimestamp != nTimestamp)
+                    {
+                    // reconnected since this disconnect was originally called, so just return
+                    return;
+                    }
 
-            PagedTopicDependencies  dependencies = m_caches.getDependencies();
-            long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
-            Logger.finest("Disconnected Subscriber " + this);
-            f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
+                if (isActive() && m_nState != STATE_DISCONNECTED)
+                    {
+                    setState(STATE_DISCONNECTED);
+                    m_cDisconnect.mark();
+                    if (!f_fAnonymous)
+                        {
+                        // reset the channel allocation for non-anonymous subscribers, channels
+                        // will be reallocated when (or if) reconnection occurs
+                        m_listenerChannelAllocation.reset();
+                        }
+                    // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
+                    m_queueValuesPrefetched.clear();
+
+                    PagedTopicDependencies  dependencies = m_caches.getDependencies();
+                    long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
+                    Logger.finest("Disconnected Subscriber " + this);
+                    f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
+                    }
+                }
             }
         }
 
@@ -2117,10 +2163,7 @@ public class PagedTopicSubscriber<V>
                         if (!channel.m_fContended)
                             {
                             channel.m_fContended = true;
-                            f_listChannelsContended.add(channel);
                             }
-
-                        m_cHitsSinceLastCollision = 0;
                         }
                     // else; we knew we were contended, don't doubly backoff
 
@@ -2255,41 +2298,37 @@ public class PagedTopicSubscriber<V>
                     m_queueValuesPrefetched.poll();
                     }
 
-                if (m_aChannelOwnershipListener.length > 0)
+                for (ChannelOwnershipListener listener : m_aChannelOwnershipListener)
                     {
-                    for (ChannelOwnershipListener listener : m_aChannelOwnershipListener)
+                    if (!setRevoked.isEmpty())
                         {
-                        if (!setRevoked.isEmpty())
+                        try
                             {
-                            try
+                            if (fLost)
                                 {
-                                if (fLost)
-                                    {
-                                    listener.onChannelsLost(setRevoked);
-                                    }
-                                else
-                                    {
-                                    listener.onChannelsRevoked(setRevoked);
-                                    }
+                                listener.onChannelsLost(setRevoked);
                                 }
-                            catch (Throwable t)
+                            else
                                 {
-                                Logger.err(t);
+                                listener.onChannelsRevoked(setRevoked);
                                 }
                             }
-                        if (!setAdded.isEmpty())
+                        catch (Throwable t)
                             {
-                            try
-                                {
-                                listener.onChannelsAssigned(setAdded);
-                                }
-                            catch (Throwable t)
-                                {
-                                Logger.err(t);
-                                }
+                            Logger.err(t);
                             }
                         }
-
+                    if (!setAdded.isEmpty())
+                        {
+                        try
+                            {
+                            listener.onChannelsAssigned(setAdded);
+                            }
+                        catch (Throwable t)
+                            {
+                            Logger.err(t);
+                            }
+                        }
                     }
 
                 onChannelPopulatedNotification(m_aChannelOwned);
@@ -2437,21 +2476,10 @@ public class PagedTopicSubscriber<V>
             if (cReceived == 0)
                 {
                 ++m_cMisses;
-
-                if (channel.m_nNext != nNext && channel.m_nNext != -1) // collision
-                    {
-                    ++m_cMissCollisions;
-                    m_cHitsSinceLastCollision = 0;
-                    // don't backoff here, as it is possible all subscribers could end up backing off and
-                    // the channel would be temporarily abandoned.  We only backoff as part of trying to increment the
-                    // page as that is a CAS and for someone to fail, someone else must have succeeded.
-                    }
-                // else; spurious notify
                 }
             else if (!queueValues.isEmpty())
                 {
                 f_setHitChannels.set(nChannel);
-                ++m_cHitsSinceLastCollision;
                 m_cValues += cReceived;
                 channel.adjustPolls(cReceived);
 
@@ -3392,17 +3420,13 @@ public class PagedTopicSubscriber<V>
          * Set this channel as empty only if the channel version matches the specified version.
          *
          * @param lVersion  the channel version to use as a CAS
-         *
-         * @return {@code true} if the version matched and the channel was marked as empty
          */
-        protected boolean setEmpty(long lVersion)
+        protected void setEmpty(long lVersion)
             {
-            if (m_lVersion == lVersion)
+            if (m_lVersion.get() == lVersion)
                 {
                 m_fEmpty = true;
-                return true;
                 }
-            return false;
             }
 
         protected void setOwned()
@@ -3420,7 +3444,7 @@ public class PagedTopicSubscriber<V>
          */
         protected void onChannelPopulatedNotification()
             {
-            m_cNotify++;
+            m_cNotify.incrementAndGet();
             setPopulated();
             }
 
@@ -3429,7 +3453,7 @@ public class PagedTopicSubscriber<V>
          */
         protected void setPopulated()
             {
-            m_lVersion++;
+            m_lVersion.incrementAndGet();
             m_fEmpty = false;
             }
 
@@ -3440,7 +3464,7 @@ public class PagedTopicSubscriber<V>
          */
         public long getNotify()
             {
-            return m_cNotify;
+            return m_cNotify.get();
             }
 
         /**
@@ -3510,12 +3534,12 @@ public class PagedTopicSubscriber<V>
          * <p>
          * This is used for CAS operations on the empty flag.
          */
-        volatile long m_lVersion;
+        AtomicLong m_lVersion = new AtomicLong();
 
         /**
          * The number of channel populated notifications received.
          */
-        volatile long m_cNotify;
+        AtomicLong m_cNotify = new AtomicLong();
 
         /**
          * The index of the next item in the page, or -1 for unknown
@@ -4257,34 +4281,7 @@ public class PagedTopicSubscriber<V>
         @Override
         public void run()
             {
-            if (m_subscriber.getState() == PagedTopicSubscriber.STATE_CONNECTED || !m_subscriber.isActive())
-                {
-                // nothing to do, either the subscriber is connected, or it is closed
-                return;
-                }
-            try
-                {
-                if (m_subscriber.m_caches.getService().isSuspended())
-                    {
-                    Logger.finest("Skipping reconnect task, service is suspended for subscriber " + m_subscriber);
-                    }
-                else
-                    {
-                    if (m_subscriber.f_queueReceiveOrders.size() > 0)
-                        {
-                        Logger.finest("Running reconnect task, reconnecting " + m_subscriber);
-                        m_subscriber.ensureConnected();
-                        }
-                    else
-                        {
-                        Logger.finest("Skipping reconnect task, no pending receives for subscriber " + m_subscriber);
-                        }
-                    }
-                }
-            catch (Throwable t)
-                {
-                Logger.finest("Failed to reconnect subscriber " + m_subscriber, t);
-                }
+            m_subscriber.reconnectInternal();
             f_cExecution.incrementAndGet();
             }
 
@@ -4433,7 +4430,7 @@ public class PagedTopicSubscriber<V>
     /**
      * The subscriber's connection timestamp.
      */
-    protected long m_connectionTimestamp;
+    protected volatile long m_connectionTimestamp;
 
     /**
      * This subscriber's notification id.
@@ -4557,16 +4554,6 @@ public class PagedTopicSubscriber<V>
     protected long m_cMissesLast;
 
     /**
-     * The number of times a miss was attributable to a collision
-     */
-    protected long m_cMissCollisions;
-
-    /**
-     * The last value of m_cMissCollisions used within {@link #toString} stats.
-     */
-    protected long m_cMissCollisionsLast;
-
-    /**
      * The number of times this subscriber has been notified.
      */
     protected long m_cNotify;
@@ -4575,17 +4562,6 @@ public class PagedTopicSubscriber<V>
      * The last value of m_cNotify used within {@link #toString} stats.
      */
     protected long m_cNotifyLast;
-
-    /**
-     * The number of hits since our last miss.
-     */
-    protected int m_cHitsSinceLastCollision;
-
-    /**
-     * List of contended channels, ordered such that those checked longest ago are at the front of the list
-     */
-    @SuppressWarnings("unchecked")
-    protected final List<PagedTopicChannel> f_listChannelsContended = new CircularArrayList();
 
     /**
      * BitSet of polled channels since last toString call.
