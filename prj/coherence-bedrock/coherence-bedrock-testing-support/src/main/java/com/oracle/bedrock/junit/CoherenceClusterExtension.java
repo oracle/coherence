@@ -52,7 +52,6 @@ public class CoherenceClusterExtension
         // establish default java process options
         commonOptionsByType.add(Headless.enabled());
         commonOptionsByType.add(HotSpot.Mode.SERVER);
-        commonOptionsByType.add(HeapSize.of(256, HeapSize.Units.MB, 1024, HeapSize.Units.MB));
 
         // establish default bedrock options
         commonOptionsByType.add(Console.system());
