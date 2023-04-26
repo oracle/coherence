@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
@@ -107,6 +108,7 @@ public abstract class BaseTopicsTests
                           Logging.atFinest(),
                           LocalHost.only(),
                           IPv4Preferred.yes(),
+                          HeapSize.of(64, HeapSize.Units.MB, 64, HeapSize.Units.MB, true),
                           m_testLogs)
                     .include(cMember, CoherenceClusterMember.class);
 
