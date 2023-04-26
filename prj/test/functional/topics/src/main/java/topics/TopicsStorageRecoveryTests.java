@@ -97,6 +97,7 @@ public class TopicsStorageRecoveryTests
         {
         String sMethodName = m_testName.getMethodName();
         System.err.println(">>>> Entering setupTest() " + sMethodName);
+        shutdown();
 
         System.setProperty(ClusterName.PROPERTY, sMethodName);
         System.setProperty(LocalStorage.PROPERTY, "false");
@@ -163,9 +164,14 @@ public class TopicsStorageRecoveryTests
             s_coherence.close();
             s_coherence = null;
             }
+        shutdown();
+        System.err.println(">>>> Exiting cleanupTest() " + sMethodName);
+        }
+
+    private void shutdown()
+        {
         Coherence.closeAll();
         CacheFactory.shutdown();
-        System.err.println(">>>> Exiting cleanupTest() " + sMethodName);
         }
 
     @Test
