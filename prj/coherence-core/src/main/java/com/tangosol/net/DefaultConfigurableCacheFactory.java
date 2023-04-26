@@ -11,7 +11,6 @@ import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.base.Lockable;
 
 import com.tangosol.coherence.config.CacheConfig;
-import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.SchemeMappingRegistry;
 
@@ -108,8 +107,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.tangosol.net.cache.ReadWriteBackingMap.PROP_WB_REMOVE_DEFAULT;
-import static com.tangosol.net.cache.ReadWriteBackingMap.RWBM_WB_REMOVE_DEFAULT;
 
 /**
 * <strong>This class has now been deprecated.
@@ -1863,7 +1860,6 @@ public class DefaultConfigurableCacheFactory
         long        cStoreTimeout   = parseTime(xmlRWBM.getSafeElement("cachestore-timeout").getString("0"));
         boolean     fRethrow        = xmlRWBM.getSafeElement("rollback-cachestore-failures").getBoolean(true);
         int         cBatchSize      = convertInt(xmlRWBM.getSafeElement("write-max-batch-size"), 128);
-        boolean     fWBRemove       = xmlRWBM.getSafeElement("write-behind-remove").getBoolean(RWBM_WB_REMOVE_DEFAULT);
 
         if (!fRethrow)
             {
@@ -1931,17 +1927,17 @@ public class DefaultConfigurableCacheFactory
                 CacheLoader storeObject = (CacheLoader) store;
                 rwbm = fSplitting ?
                     instantiateReadWriteSplittingBackingMap(context, (PartitionAwareBackingMap) mapInternal,
-                        mapMisses, storeObject, fReadOnly, cWriteBehindSec, dflRefreshAhead, fWBRemove) :
+                        mapMisses, storeObject, fReadOnly, cWriteBehindSec, dflRefreshAhead) :
                     instantiateReadWriteBackingMap(context, mapInternal, mapMisses, storeObject, fReadOnly,
-                        cWriteBehindSec, dflRefreshAhead, fWBRemove);
+                        cWriteBehindSec, dflRefreshAhead);
                 }
             else
                 {
                 rwbm = fSplitting ?
                     instantiateReadWriteSplittingBackingMap(context, (PartitionAwareBackingMap) mapInternal,
-                        mapMisses, storeBinary, fReadOnly, cWriteBehindSec, dflRefreshAhead, fWBRemove) :
+                        mapMisses, storeBinary, fReadOnly, cWriteBehindSec, dflRefreshAhead) :
                     instantiateReadWriteBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly,
-                        cWriteBehindSec, dflRefreshAhead, fWBRemove);
+                        cWriteBehindSec, dflRefreshAhead);
                 }
             }
         else
@@ -2012,56 +2008,56 @@ public class DefaultConfigurableCacheFactory
     * Construct a ReadWriteBackingMap using the specified parameters.
     * <p>
     * This method exposes a corresponding ReadWriteBackingMap
-    * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext, ObservableMap, Map, CacheLoader, boolean, int, double, boolean) constructor}
+    * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext, ObservableMap, Map, CacheLoader, boolean, int, double) constructor}
     * and is provided for the express purpose of allowing its override.
     */
     protected ReadWriteBackingMap instantiateReadWriteBackingMap(BackingMapManagerContext context,
             ObservableMap mapInternal, Map mapMisses, CacheLoader store, boolean fReadOnly,
-            int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+            int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
-        return new ReadWriteBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+        return new ReadWriteBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
     /**
     * Construct a ReadWriteBackingMap using the specified parameters.
     * <p>
     * This method exposes a corresponding ReadWriteBackingMap
-    * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext, ObservableMap, Map, BinaryEntryStore, boolean, int, double, boolean) constructor}
+    * {@link ReadWriteBackingMap#ReadWriteBackingMap(BackingMapManagerContext, ObservableMap, Map, BinaryEntryStore, boolean, int, double) constructor}
     * and is provided for the express purpose of allowing its override.
     */
     protected ReadWriteBackingMap instantiateReadWriteBackingMap(BackingMapManagerContext context,
             ObservableMap mapInternal, Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly,
-            int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+            int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
-        return new ReadWriteBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+        return new ReadWriteBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
     /**
     * Construct a ReadWriteSplittingBackingMap using the specified parameters.
     * <p>
     * This method exposes a corresponding ReadWriteSplittingBackingMap
-    * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext, PartitionAwareBackingMap, Map, CacheLoader, boolean, int, double, boolean) constructor}
+    * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext, PartitionAwareBackingMap, Map, CacheLoader, boolean, int, double) constructor}
     * and is provided for the express purpose of allowing its override.
     */
     protected ReadWriteSplittingBackingMap instantiateReadWriteSplittingBackingMap(BackingMapManagerContext context,
             PartitionAwareBackingMap mapInternal, Map mapMisses, CacheLoader store, boolean fReadOnly,
-            int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+            int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
-        return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+        return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
     /**
     * Construct a ReadWriteSplittingBackingMap using the specified parameters.
     * <p>
     * This method exposes a corresponding ReadWriteSplittingBackingMap
-    * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext, PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double, boolean) constructor}
+    * {@link ReadWriteSplittingBackingMap#ReadWriteSplittingBackingMap(BackingMapManagerContext, PartitionAwareBackingMap, Map, BinaryEntryStore, boolean, int, double) constructor}
     * and is provided for the express purpose of allowing its override.
     */
     protected ReadWriteSplittingBackingMap instantiateReadWriteSplittingBackingMap(BackingMapManagerContext context,
             PartitionAwareBackingMap mapInternal, Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly,
-            int cWriteBehindSeconds, double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+            int cWriteBehindSeconds, double dflRefreshAheadFactor)
         {
-        return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+        return new ReadWriteSplittingBackingMap(context, mapInternal, mapMisses, storeBinary, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
         }
 
     /**
@@ -2118,9 +2114,6 @@ public class DefaultConfigurableCacheFactory
         NamedCache  cacheTrans      = xmlTrans == null ? null :
                                           ensureCache(info.getSyntheticInfo(sTransSuffix), xmlTrans, loader);
         boolean     fManageTrans    = xmlVBM.getSafeElement("manage-transient").getBoolean();
-        boolean     fWBRemove       = xmlVBM.getSafeElement("write-behind-remove").getBoolean();
-
-        fWBRemove = Config.getBoolean(PROP_WB_REMOVE_DEFAULT, fWBRemove);
 
         if (!fRethrow)
             {
@@ -2164,7 +2157,7 @@ public class DefaultConfigurableCacheFactory
             {
             vbm = store instanceof CacheStore ?
                 instantiateVersionedBackingMap(context, mapInternal, mapMisses, (CacheStore) store, fReadOnly, cWriteBehindSec,
-                    dflRefreshAhead, cacheTrans, cachePersist, fManageTrans, fWBRemove) :
+                    dflRefreshAhead, cacheTrans, cachePersist, fManageTrans) :
                 instantiateVersionedBackingMap(context, mapInternal, mapMisses, store,
                     cacheTrans, cachePersist, fManageTrans);
             }
@@ -2195,16 +2188,16 @@ public class DefaultConfigurableCacheFactory
     * <p>
     * This method exposes a corresponding VersionedBackingMap
     * {@link VersionedBackingMap#VersionedBackingMap(BackingMapManagerContext, ObservableMap, Map,
-    * CacheStore, boolean, int, double, NamedCache, NamedCache, boolean, boolean) constructor}
+    * CacheStore, boolean, int, double, NamedCache, NamedCache, boolean) constructor}
     * and is provided for the express purpose of allowing its override.
     */
     protected VersionedBackingMap instantiateVersionedBackingMap(BackingMapManagerContext context,
             ObservableMap mapInternal, Map mapMisses, CacheStore store, boolean fReadOnly,
             int cWriteBehindSeconds, double dflRefreshAheadFactor, NamedCache mapVersionTransient,
-            NamedCache mapVersionPersist, boolean fManageTransient, boolean fWriteBehindRemove)
+            NamedCache mapVersionPersist, boolean fManageTransient)
         {
         return new VersionedBackingMap(context, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds,
-            dflRefreshAheadFactor, mapVersionTransient, mapVersionPersist, fManageTransient, fWriteBehindRemove);
+            dflRefreshAheadFactor, mapVersionTransient, mapVersionPersist, fManageTransient);
         }
 
     /**

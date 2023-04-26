@@ -247,7 +247,6 @@ Elements" page on the Coherence Wiki (http://wiki.tangosol.com).
 
       <read-only system-property="tangosol.coherence.readonly">true</read-only>
       <write-delay system-property="tangosol.coherence.writedelays">0s</write-delay>
-      <write-behind-remove system-property="coherence.writebehind.remove">true</write-behind-remove>
     </read-write-backing-map-scheme>
 
     <!--
