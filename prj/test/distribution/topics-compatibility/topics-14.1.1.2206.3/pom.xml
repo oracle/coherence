@@ -18,8 +18,8 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>topics-22.06.3</artifactId>
-  <name>Coherence Topics 22.06.3 Tests</name>
+  <artifactId>topics-14.1.1.2206.3</artifactId>
+  <name>Coherence Topics 14.1.1.2206.3 Tests</name>
 
   <properties>
     <coherence.compatibility.version>22.06.3</coherence.compatibility.version>

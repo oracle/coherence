@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -58,9 +58,8 @@ public class CoherenceClusterExtension
         this.sessions = new HashMap<>();
 
         // establish default java process options
-        this.commonOptionsByType.add(Headless.enabled());
-        this.commonOptionsByType.add(HotSpot.Mode.SERVER);
-        this.commonOptionsByType.add(HeapSize.of(256, HeapSize.Units.MB, 1024, HeapSize.Units.MB));
+        commonOptionsByType.add(Headless.enabled());
+        commonOptionsByType.add(HotSpot.Mode.SERVER);
 
         // establish default bedrock options
         this.commonOptionsByType.add(Console.system());

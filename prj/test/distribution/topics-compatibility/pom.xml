@@ -23,7 +23,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>topics-22.06.3</module>
+    <module>topics-14.1.1.2206.3</module>
   </modules>
 
   <properties>
