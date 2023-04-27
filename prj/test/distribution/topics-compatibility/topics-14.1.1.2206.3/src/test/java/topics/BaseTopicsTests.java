@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
+import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.coherence.common.base.Exceptions;
@@ -108,7 +109,8 @@ public abstract class BaseTopicsTests
                           Logging.atFinest(),
                           LocalHost.only(),
                           IPv4Preferred.yes(),
-                          HeapSize.of(64, HeapSize.Units.MB, 64, HeapSize.Units.MB, true),
+                          HeapSize.of(128, HeapSize.Units.MB, 128, HeapSize.Units.MB, true),
+                          JvmOptions.include("-XX:+ExitOnOutOfMemoryError"),
                           m_testLogs)
                     .include(cMember, CoherenceClusterMember.class);
 
