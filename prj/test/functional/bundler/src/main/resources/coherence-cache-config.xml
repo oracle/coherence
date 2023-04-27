@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -100,7 +100,7 @@ Cache Configuration used for the bundler test suite.
         <bundle-config>
           <operation-name>all</operation-name>
           <preferred-size>10</preferred-size>
-          <thread-threshold>5</thread-threshold>
+          <thread-threshold>15</thread-threshold>
         </bundle-config>
       </operation-bundling>
 
@@ -132,7 +132,7 @@ Cache Configuration used for the bundler test suite.
               <bundle-config>
                 <operation-name>all</operation-name>
                 <preferred-size>10</preferred-size>
-                <thread-threshold>5</thread-threshold>
+                <thread-threshold>15</thread-threshold>
               </bundle-config>
             </operation-bundling>
           </cachestore-scheme>
@@ -178,7 +178,7 @@ Cache Configuration used for the bundler test suite.
           <operation-name>all</operation-name>
           <preferred-size>10</preferred-size>
           <delay-millis>100</delay-millis>
-          <thread-threshold>5</thread-threshold>
+          <thread-threshold>15</thread-threshold>
           <auto-adjust>true</auto-adjust>
         </bundle-config>
       </operation-bundling>
@@ -197,7 +197,7 @@ Cache Configuration used for the bundler test suite.
             <operation-name>get</operation-name>
             <preferred-size>10</preferred-size>
             <delay-millis>100</delay-millis>
-            <thread-threshold>5</thread-threshold>
+            <thread-threshold>15</thread-threshold>
             <auto-adjust>true</auto-adjust>
           </bundle-config>
           <bundle-config>
@@ -276,7 +276,7 @@ Cache Configuration used for the bundler test suite.
                   <operation-name>all</operation-name>
                   <preferred-size>10</preferred-size>
                   <delay-millis>100</delay-millis>
-                  <thread-threshold>5</thread-threshold>
+                  <thread-threshold>15</thread-threshold>
                   <auto-adjust>true</auto-adjust>
                 </bundle-config>
               </operation-bundling>
@@ -303,7 +303,7 @@ Cache Configuration used for the bundler test suite.
                   <operation-name>load</operation-name>
                   <preferred-size>10</preferred-size>
                   <delay-millis>100</delay-millis>
-                  <thread-threshold>5</thread-threshold>
+                  <thread-threshold>15</thread-threshold>
                   <auto-adjust>true</auto-adjust>
                 </bundle-config>
                 <bundle-config>
