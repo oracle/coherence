@@ -444,20 +444,11 @@ public class PagedTopicCaches
      */
     public Map<Integer, Position> getLastCommitted(SubscriberGroupId subscriberGroupId)
         {
-        ValueExtractor<Subscription.Key, Integer>           extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
-        ValueExtractor<Subscription.Key, SubscriberGroupId> extractorGroup   = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
-        Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
-        Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
-
         InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPos
                 = Aggregators.comparableMax(Subscription::getCommittedPosition);
 
         // Aggregate the subscription commits and remove any null values from the returned map
-        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPos, filterPosition))
-                .entrySet()
-                .stream()
-                .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return getPositions(subscriberGroupId, aggregatorPos);
         }
 
     /**
@@ -468,18 +459,25 @@ public class PagedTopicCaches
      *
      * @return a {@link Map} of the {@link Position} of the head for each channel for a subscriber group
      */
+    @SuppressWarnings("unused")
     public Map<Integer, Position> getHeads(SubscriberGroupId subscriberGroupId, long nSubscriberId)
+        {
+        InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregatorPos
+                = Aggregators.comparableMin(new Subscription.HeadExtractor(nSubscriberId));
+
+        // Aggregate the subscription commits and remove any null values from the returned map
+        return getPositions(subscriberGroupId, aggregatorPos);
+        }
+
+    private Map<Integer, Position> getPositions(SubscriberGroupId subscriberGroupId, InvocableMap.EntryAggregator<Subscription.Key, Subscription, Position> aggregator)
         {
         ValueExtractor<Subscription.Key, Integer>           extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], EntryExtractor.KEY);
         ValueExtractor<Subscription.Key, SubscriberGroupId> extractorGroup   = new ReflectionExtractor<>("getGroupId", new Object[0], EntryExtractor.KEY);
         Filter<Subscription.Key>                            filter           = Filters.equal(extractorGroup, subscriberGroupId);
         Filter<PagedPosition>                               filterPosition   = Filters.not(Filters.equal(PagedPosition::getPage, Page.NULL_PAGE));
 
-        InvocableMap.EntryAggregator<Subscription.Key, Subscription, PagedPosition> aggregatorPos
-                = Aggregators.comparableMin(new Subscription.HeadExtractor(nSubscriberId));
-
         // Aggregate the subscription commits and remove any null values from the returned map
-        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregatorPos, filterPosition))
+        return Subscriptions.aggregate(filter, GroupAggregator.createInstance(extractorChannel, aggregator, filterPosition))
                 .entrySet()
                 .stream()
                 .filter(e -> e.getKey() != Page.EMPTY && e.getValue() != null)
@@ -1067,6 +1065,11 @@ public class PagedTopicCaches
             Pages.removeMapListener(listener);
             }
         f_topicService.removeMemberListener(listener);
+        }
+
+    public DeactivationListener getDeactivationListener()
+        {
+        return m_deactivationListener;
         }
 
     /**
