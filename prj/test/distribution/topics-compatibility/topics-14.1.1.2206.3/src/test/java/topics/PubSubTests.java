@@ -8,7 +8,6 @@ package topics;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import org.junit.jupiter.api.Test;
 
@@ -96,7 +95,7 @@ public class PubSubTests
         try (ClosableCluster clusterSenior = createRunningCluster(createClusterName(), Version.Current);
              ClosableCluster clusterOther  = createRunningCluster(createClusterName(), Version.Previous))
             {
-            shouldPubWithMultipleSubs(Version.Current, Version.Previous);
+            shouldPubWithMultipleSubs(clusterSenior, Version.Current, Version.Previous);
             }
         }
 
@@ -106,7 +105,7 @@ public class PubSubTests
         try (ClosableCluster clusterSenior = createRunningCluster(createClusterName(), Version.Previous);
              ClosableCluster clusterOther  = createRunningCluster(createClusterName(), Version.Current))
             {
-            shouldPubWithMultipleSubs(Version.Current, Version.Previous);
+            shouldPubWithMultipleSubs(clusterSenior, Version.Current, Version.Previous);
             }
         }
 

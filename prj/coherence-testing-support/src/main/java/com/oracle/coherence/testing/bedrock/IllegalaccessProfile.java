@@ -68,6 +68,11 @@ public class IllegalaccessProfile
                 jvmOptions = jvmOptions.with(new Freeform("--illegal-access=" + m_sValue));
                 }
 
+            Freeforms freeforms = optionsByType.get(Freeforms.class);
+            for (Freeform freeform : freeforms)
+                {
+                jvmOptions = jvmOptions.with(freeform);
+                }
             optionsByType.add(jvmOptions);
             }
 
