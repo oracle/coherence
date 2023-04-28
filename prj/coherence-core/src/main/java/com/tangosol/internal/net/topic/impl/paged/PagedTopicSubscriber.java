@@ -165,6 +165,7 @@ public class PagedTopicSubscriber<V>
         f_serializer                 = m_caches.getSerializer();
         f_listenerNotification       = new SimpleMapListener<>().addDeleteHandler(this::onChannelPopulatedNotification);
         f_gate                       = new ThreadGateLite<>();
+        f_gateState                  = new ThreadGateLite<>();
 
         ChannelOwnershipListeners<T> listeners = optionsMap.get(ChannelOwnershipListeners.class, ChannelOwnershipListeners.none());
         m_aChannelOwnershipListener = listeners.getListeners().toArray(new ChannelOwnershipListener[0]);
@@ -999,119 +1000,126 @@ public class PagedTopicSubscriber<V>
             {
             boolean fReconnect = m_nState == STATE_DISCONNECTED;
 
-            if (fReconnect)
+            while(m_nState != STATE_CONNECTED)
                 {
-                Logger.finest("Reconnecting subscriber " + this);
-                }
+                setState(STATE_CONNECTING);
 
-            m_caches.ensureConnected();
-
-            if (!f_fAnonymous)
-                {
-                PagedTopicService service = m_caches.getService();
-                if (m_subscriptionId == 0)
+                if (fReconnect)
                     {
-                    // this is the first time, so we get the unique id of the subscriber group
-                    m_subscriptionId = service.ensureSubscription(f_topic.getName(), f_subscriberGroupId, f_id,
-                                                                  f_filter, f_extractor);
+                    Logger.finest("Reconnecting subscriber " + this);
                     }
-                else
+
+                m_caches.ensureConnected();
+
+                if (!f_fAnonymous)
                     {
-                    // this is a reconnect request, ensure the group still exists
-                    // ensure this subscriber is subscribed
-                    service.ensureSubscription(f_topic.getName(), m_subscriptionId, f_id);
-                    if (service.isSubscriptionDestroyed(m_subscriptionId))
+                    PagedTopicService service = m_caches.getService();
+                    if (m_subscriptionId == 0)
                         {
-                        close();
-                        throw new IllegalStateException("The subscriber group \"" + f_subscriberGroupId + "\" (id="
-                                + m_subscriptionId + ") this subscriber was previously subscribed to has been destroyed");
+                        // this is the first time, so we get the unique id of the subscriber group
+                        m_subscriptionId = service.ensureSubscription(f_topic.getName(), f_subscriberGroupId, f_id,
+                                                                      f_filter, f_extractor);
                         }
-                    }
-                PagedTopicSubscription subscription = service.getSubscription(m_subscriptionId);
-                if (subscription != null)
-                    {
-                    m_connectionTimestamp = subscription.getSubscriberTimestamp(f_id);
-                    }
-                else
-                    {
-                    // the subscription may be null during rolling upgrade where the senior is an older version
-                    m_connectionTimestamp = SafeClock.INSTANCE.getSafeTimeMillis();
-                    }
-
-                // heartbeat immediately to update the subscriber's timestamp in the Subscriber cache
-                heartbeat(false);
-                }
-
-            boolean fDisconnected = m_nState == STATE_DISCONNECTED;
-            long[]  alHead        = m_caches.initializeSubscription(f_subscriberGroupId, f_id, m_subscriptionId,
-                                            f_filter, f_extractor, fReconnect, false, fDisconnected);
-            int     cChannel      = alHead.length;
-
-            if (cChannel > m_aChannel.length)
-                {
-                // this subscriber has fewer channels than the server so needs to be resized
-                PagedTopicChannel[] aChannel = m_aChannel;
-                m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId, aChannel);
-                }
-
-            for (int nChannel = 0; nChannel < cChannel; ++nChannel)
-                {
-                PagedTopicChannel channel = m_aChannel[nChannel];
-                channel.m_lHead  = alHead[nChannel];
-                channel.m_nNext  = PagedPosition.NULL_OFFSET; // unknown page position to start
-                channel.setPopulated(); // even if we could infer emptiness here it is unsafe unless we've registered for events
-                }
-
-            if (f_fAnonymous)
-                {
-                // anonymous so we own all channels
-                SortedSet<Integer> listChannel = new TreeSet<>();
-                for (int i = 0; i < cChannel; i++)
-                    {
-                    listChannel.add(i);
-                    }
-                updateChannelOwnership(listChannel, false);
-                }
-            else
-                {
-                PagedTopicSubscription pagedTopicSubscription = m_caches.getService().getSubscription(m_subscriptionId);
-                SortedSet<Integer>     setChannel;
-                if (pagedTopicSubscription != null)
-                    {
-                    // we have a PagedTopicSubscription so get the channels from it
-                    setChannel = pagedTopicSubscription.getOwnedChannels(f_id);
-                    }
-                else
-                    {
-                    CompletableFuture<Subscription> future = m_caches.Subscriptions.async().get(m_aChannel[0].subscriberPartitionSync);
-                    try
+                    else
                         {
-                        // we use a timout here because a never ending get can cause a deadlock during fail-over scenarios
-                        Subscription subscription = future.get(INIT_TIMEOUT_SECS, TimeUnit.SECONDS);
-                        setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel)).boxed().collect(Collectors.toCollection(TreeSet::new));
-                        }
-                    catch (TimeoutException e)
-                        {
-                        future.cancel(true);
-                        if (future.isDone() && !future.isCompletedExceptionally())
+                        // this is a reconnect request, ensure the group still exists
+                        // ensure this subscriber is subscribed
+                        service.ensureSubscription(f_topic.getName(), m_subscriptionId, f_id);
+                        if (service.isSubscriptionDestroyed(m_subscriptionId))
                             {
-                            // the future must have completed between the get timeout and the cancel call
+                            close();
+                            throw new IllegalStateException("The subscriber group \"" + f_subscriberGroupId + "\" (id="
+                                                                    + m_subscriptionId + ") this subscriber was previously subscribed to has been destroyed");
+                            }
+                        }
+                    PagedTopicSubscription subscription = service.getSubscription(m_subscriptionId);
+                    if (subscription != null)
+                        {
+                        m_connectionTimestamp = subscription.getSubscriberTimestamp(f_id);
+                        }
+                    else
+                        {
+                        // the subscription may be null during rolling upgrade where the senior is an older version
+                        m_connectionTimestamp = SafeClock.INSTANCE.getSafeTimeMillis();
+                        }
+
+                    // heartbeat immediately to update the subscriber's timestamp in the Subscriber cache
+                    heartbeat(false);
+                    }
+
+                boolean fDisconnected = m_nState == STATE_DISCONNECTED;
+                long[]  alHead        = m_caches.initializeSubscription(f_subscriberGroupId, f_id, m_subscriptionId,
+                                                                        f_filter, f_extractor, fReconnect, false, fDisconnected);
+                int     cChannel      = alHead.length;
+
+                if (cChannel > m_aChannel.length)
+                    {
+                    // this subscriber has fewer channels than the server so needs to be resized
+                    PagedTopicChannel[] aChannel = m_aChannel;
+                    m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId, aChannel);
+                    }
+
+                for (int nChannel = 0; nChannel < cChannel; ++nChannel)
+                    {
+                    PagedTopicChannel channel = m_aChannel[nChannel];
+                    channel.m_lHead  = alHead[nChannel];
+                    channel.m_nNext  = PagedPosition.NULL_OFFSET; // unknown page position to start
+                    channel.setPopulated(); // even if we could infer emptiness here it is unsafe unless we've registered for events
+                    }
+
+                if (f_fAnonymous)
+                    {
+                    // anonymous so we own all channels
+                    SortedSet<Integer> listChannel = new TreeSet<>();
+                    for (int i = 0; i < cChannel; i++)
+                        {
+                        listChannel.add(i);
+                        }
+                    updateChannelOwnership(listChannel, false);
+                    }
+                else
+                    {
+                    PagedTopicSubscription pagedTopicSubscription = m_caches.getService().getSubscription(m_subscriptionId);
+                    SortedSet<Integer>     setChannel;
+                    if (pagedTopicSubscription != null)
+                        {
+                        // we have a PagedTopicSubscription so get the channels from it
+                        setChannel = pagedTopicSubscription.getOwnedChannels(f_id);
+                        }
+                    else
+                        {
+                        CompletableFuture<Subscription> future = m_caches.Subscriptions.async().get(m_aChannel[0].subscriberPartitionSync);
+                        try
+                            {
+                            // we use a timout here because a never ending get can cause a deadlock during fail-over scenarios
                             Subscription subscription = future.get(INIT_TIMEOUT_SECS, TimeUnit.SECONDS);
                             setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel)).boxed().collect(Collectors.toCollection(TreeSet::new));
                             }
-                        else
+                        catch (TimeoutException e)
                             {
-                            throw e;
+                            future.cancel(true);
+                            if (future.isDone() && !future.isCompletedExceptionally())
+                                {
+                                // the future must have completed between the get timeout and the cancel call
+                                Subscription subscription = future.get(INIT_TIMEOUT_SECS, TimeUnit.SECONDS);
+                                setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel)).boxed().collect(Collectors.toCollection(TreeSet::new));
+                                }
+                            else
+                                {
+                                throw e;
+                                }
                             }
                         }
+                    updateChannelOwnership(setChannel, false);
                     }
-                updateChannelOwnership(setChannel, false);
-                }
 
-            heartbeat();
-            registerNotificationListener();
-            setState(STATE_CONNECTED);
-            switchChannel();
+                heartbeat();
+                registerNotificationListener();
+                if (casState(STATE_CONNECTING, STATE_CONNECTED))
+                    {
+                    switchChannel();
+                    }
+                }
 
             m_cSubscribe.mark();
             }
@@ -1379,12 +1387,6 @@ public class PagedTopicSubscriber<V>
                 onReceiveComplete(e);
                 }
             }
-        }
-
-    private void onPolled(Element<?> element)
-        {
-        int c = element.getChannel();
-        m_aChannel[c].m_lastPolled = (PagedPosition) element.getPosition();
         }
 
     private void onReceiveComplete(Element<?> element)
@@ -1798,13 +1800,47 @@ public class PagedTopicSubscriber<V>
      */
     protected void setState(int nState)
         {
-        int nPrevState = m_nState;
-        m_nState = nState;
+        try (Sentry<?> ignored = f_gateState.close())
+            {
+            int nPrevState = m_nState;
+            m_nState = nState;
+            notifyStateChange(nState, nPrevState);
+            }
+        }
+
+    /**
+     * CAS the state of the subscriber.
+     *
+     * @param nPrevState  the expected previous state of the subscriber
+     * @param nState      the state of the subscriber
+     *
+     * @return {@code true} if the state was changed
+     */
+    @SuppressWarnings("SameParameterValue")
+    protected boolean casState(int nPrevState, int nState)
+        {
+        if (m_nState == nPrevState)
+            {
+            try (Sentry<?> ignored = f_gateState.close())
+                {
+                if (m_nState == nPrevState)
+                    {
+                    m_nState = nState;
+                    notifyStateChange(nState, nPrevState);
+                    return true;
+                    }
+                }
+            }
+        return false;
+        }
+
+    private void notifyStateChange(int nState, int nPrevState)
+        {
         for (EventListener listener : f_stateListeners.listeners())
             {
             try
                 {
-                ((StateListener) listener).onStateChange(this, m_nState, nPrevState);
+                ((StateListener) listener).onStateChange(this, nState, nPrevState);
                 }
             catch (Throwable t)
                 {
@@ -1828,6 +1864,7 @@ public class PagedTopicSubscriber<V>
      *
      * @param listener  the {@link StateListener listener} to remove
      */
+    @SuppressWarnings("unused")
     public void removeStateListener(StateListener listener)
         {
         f_stateListeners.remove(listener);
@@ -1975,34 +2012,49 @@ public class PagedTopicSubscriber<V>
     public void disconnect()
         {
         long nTimestamp = m_connectionTimestamp;
-        if (isActive() && m_nState != STATE_DISCONNECTED)
+        if (isActive())
             {
-            // we disconnect under a lock
-            try (Sentry<?> ignored = f_gate.close())
+            // We will loop around until we successfully set the state to be disconnected
+            // This is because other threads may change the state
+            while (true)
                 {
-                if (m_connectionTimestamp != nTimestamp)
+                int nState = m_nState;
+                if (nState == STATE_CONNECTED)
                     {
-                    // reconnected since this disconnect was originally called, so just return
-                    return;
-                    }
-
-                if (isActive() && m_nState != STATE_DISCONNECTED)
-                    {
-                    setState(STATE_DISCONNECTED);
-                    m_cDisconnect.mark();
-                    if (!f_fAnonymous)
+                    // we disconnect under a lock
+                    try (Sentry<?> ignored = f_gate.close())
                         {
-                        // reset the channel allocation for non-anonymous subscribers, channels
-                        // will be reallocated when (or if) reconnection occurs
-                        m_listenerChannelAllocation.reset();
-                        }
-                    // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
-                    m_queueValuesPrefetched.clear();
+                        if (m_connectionTimestamp != nTimestamp)
+                            {
+                            // reconnected since this disconnect was originally called, so just return
+                            return;
+                            }
 
-                    PagedTopicDependencies  dependencies = m_caches.getDependencies();
-                    long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
-                    Logger.finest("Disconnected Subscriber " + this);
-                    f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
+                        if (isActive() && casState(nState, STATE_DISCONNECTED))
+                            {
+                            m_cDisconnect.mark();
+                            if (!f_fAnonymous)
+                                {
+                                // reset the channel allocation for non-anonymous subscribers, channels
+                                // will be reallocated when (or if) reconnection occurs
+                                m_listenerChannelAllocation.reset();
+                                }
+                            // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
+                            m_queueValuesPrefetched.clear();
+
+                            PagedTopicDependencies  dependencies = m_caches.getDependencies();
+                            long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
+                            Logger.finest("Disconnected Subscriber " + this);
+                            f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
+                            }
+                        }
+                    }
+                else
+                    {
+                    if (casState(nState, STATE_DISCONNECTED))
+                        {
+                        break;
+                        }
                     }
                 }
             }
@@ -4335,29 +4387,34 @@ public class PagedTopicSubscriber<V>
     public static final int STATE_INITIAL = 0;
 
     /**
+     * Value of the subscriber state when connecting.
+     */
+    public static final int STATE_CONNECTING = 1;
+
+    /**
      * Value of the subscriber state when connected.
      */
-    public static final int STATE_CONNECTED = 1;
+    public static final int STATE_CONNECTED = 2;
 
     /**
      * Value of the subscriber state when disconnected.
      */
-    public static final int STATE_DISCONNECTED = 2;
+    public static final int STATE_DISCONNECTED = 3;
 
     /**
      * Value of the subscriber state when closing.
      */
-    public static final int STATE_CLOSING = 3;
+    public static final int STATE_CLOSING = 4;
 
     /**
      * Value of the subscriber state when closed.
      */
-    public static final int STATE_CLOSED = 4;
+    public static final int STATE_CLOSED = 5;
 
     /**
      * An array of state names. The indexes match the values of the state constants.
      */
-    public static final String[] STATES = {"Initial", "Connected", "Disconnected", "CLosing", "Closed"};
+    public static final String[] STATES = {"Initial", "Connecting", "Connected", "Disconnected", "CLosing", "Closed"};
 
     /**
      * Subscriber close timeout on first flush attempt. After this time is exceeded, all outstanding asynchronous operations will be completed exceptionally.
@@ -4451,6 +4508,11 @@ public class PagedTopicSubscriber<V>
      * The {@link Gate} controlling access to the channel operations.
      */
     private final Gate<?> f_gate;
+
+    /**
+     * The {@link Gate} controlling access to the subscriber state.
+     */
+    private final Gate<?> f_gateState;
 
     /**
      * The state of the subscriber.
