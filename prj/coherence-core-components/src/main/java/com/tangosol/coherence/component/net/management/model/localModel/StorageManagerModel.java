@@ -14,7 +14,6 @@ import com.tangosol.net.events.internal.StorageDispatcher;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.MapIndex;
-import com.tangosol.util.SimpleMapIndex;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -305,7 +304,7 @@ public class StorageManagerModel
         long     cUnits   = 0L;
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage  storage  = get_Storage();
         Map      mapIndex = storage == null ? null : storage.getIndexMap();
-        
+
         if (mapIndex != null && !mapIndex.isEmpty())
             {  
             for (int cAttempts = 4; cAttempts > 0; --cAttempts)
@@ -315,10 +314,10 @@ public class StorageManagerModel
                     for (Iterator iter = mapIndex.values().iterator(); iter.hasNext();)
                         {
                         MapIndex index = (MapIndex) iter.next();
-        
-                        if (index != null && index instanceof SimpleMapIndex)
+
+                        if (index != null)
                             {
-                            cUnits += ((SimpleMapIndex) index).getUnits();
+                            cUnits += index.getUnits();
                             }
                         }
                     break;

@@ -17703,7 +17703,7 @@ public class PartitionedCache
                 msg.setExtractor(extractor);
                 msg.setOrdered(fOrdered);
                 msg.setComparator(comparator);
-            
+
                 sendStorageRequest(msg);
                 }
             finally
@@ -21300,7 +21300,7 @@ public class PartitionedCache
         public static void reportRepeat(String sRequest, int cItems, int cTotal, com.tangosol.net.partition.PartitionSet partitions)
             {
             StringBuilder sb = new StringBuilder();
-            
+
             sb.append("Repeating ")
               .append(sRequest);
               
@@ -21919,7 +21919,7 @@ public class PartitionedCache
             
             PartitionedCache      service = getService();
             PartitionSet parts   = msgRequest.getRequestPartitions(); // not null for ListenerRequest
-            
+
             if (parts == null)
                 {
                 parts = makePartitionSet();
@@ -26310,8 +26310,14 @@ public class PartitionedCache
             {
             // import com.tangosol.io.WriteBuffer;
             // import com.tangosol.util.ExternalizableHelper;
-            
-            return ExternalizableHelper.toBinary(o, getSerializer(), (WriteBuffer) getWriteBuffer().get());
+
+            WriteBuffer buf = (WriteBuffer) getWriteBuffer().get();
+            if (buf != null)
+                {
+                // reset buffer to avoid generating bigger binaries if leftover size is larger
+                buf.retain(0, 0);
+                }
+            return ExternalizableHelper.toBinary(o, getSerializer(), buf);
             }
         
         // Accessor for the property "WriteBuffer"
