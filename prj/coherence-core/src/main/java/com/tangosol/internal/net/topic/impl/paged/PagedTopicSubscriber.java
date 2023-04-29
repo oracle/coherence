@@ -523,20 +523,20 @@ public class PagedTopicSubscriber<V>
             gate.enter(-1);
             try
                 {
-                return Arrays.stream(m_aChannel)
-                        .filter(PagedTopicChannel::isOwned)
-                        .map(c -> c.subscriberPartitionSync.getChannelId())
-                        .collect(Collectors.toSet());
+                if (m_nState == STATE_CONNECTED)
+                    {
+                    return Arrays.stream(m_aChannel)
+                            .filter(PagedTopicChannel::isOwned)
+                            .map(c -> c.subscriberPartitionSync.getChannelId())
+                            .collect(Collectors.toSet());
+                    }
                 }
             finally
                 {
                 gate.exit();
                 }
             }
-        else
-            {
-            return Collections.emptySet();
-            }
+        return Collections.emptySet();
         }
 
     @Override
@@ -1995,6 +1995,16 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
+     * Returns {@code true} if this subscriber is connected to the topic.
+     *
+     * @return {@code true} if this subscriber is connected to the topic
+     */
+    public boolean isConnected()
+        {
+        return m_nState == STATE_CONNECTED;
+        }
+
+    /**
      * Returns {@code true} if this subscriber is initialising.
      *
      * @return {@code true} if this subscriber is initialising
@@ -2148,30 +2158,28 @@ public class PagedTopicSubscriber<V>
      */
     private void onChannelEmpty(int nChannel, long lVersion)
         {
-        if (isDisconnected())
+        // ensure we're connected, otherwise nothing to do.
+        if (isConnected())
             {
-            // we're disconnected, nothing to do.
-            return;
-            }
-
-        // Channel operations are done under a lock
-        Gate<?> gate = f_gate;
-        // Wait to enter the gate
-        gate.enter(-1);
-        try
-            {
-            if (m_aChannel == null || !isActive() || isDisconnected())
+            // Channel operations are done under a lock
+            Gate<?> gate = f_gate;
+            // Wait to enter the gate
+            gate.enter(-1);
+            try
                 {
-                // not initialised yet or no longer active
-                return;
-                }
+                if (m_aChannel == null || !isActive() || !isConnected())
+                    {
+                    // not initialised yet or no longer active
+                    return;
+                    }
 
-            m_aChannel[nChannel].setEmpty(lVersion);
-            }
-        finally
-            {
-            // and finally exit from the gate
-            gate.exit();
+                m_aChannel[nChannel].setEmpty(lVersion);
+                }
+            finally
+                {
+                // and finally exit from the gate
+                gate.exit();
+                }
             }
         }
 
