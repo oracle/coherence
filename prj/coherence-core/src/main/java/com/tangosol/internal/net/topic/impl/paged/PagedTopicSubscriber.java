@@ -1002,7 +1002,7 @@ public class PagedTopicSubscriber<V>
 
             while(m_nState != STATE_CONNECTED)
                 {
-                setState(STATE_CONNECTING);
+                int nPrevState = setState(STATE_CONNECTING);
 
                 if (fReconnect)
                     {
@@ -1047,7 +1047,7 @@ public class PagedTopicSubscriber<V>
                     heartbeat(false);
                     }
 
-                boolean fDisconnected = m_nState == STATE_DISCONNECTED;
+                boolean fDisconnected = nPrevState == STATE_DISCONNECTED;
                 long[]  alHead        = m_caches.initializeSubscription(f_subscriberGroupId, f_id, m_subscriptionId,
                                                                         f_filter, f_extractor, fReconnect, false, fDisconnected);
                 int     cChannel      = alHead.length;
@@ -1797,14 +1797,17 @@ public class PagedTopicSubscriber<V>
      * Set the state of the subscriber.
      *
      * @param nState  the state of the subscriber
+     *
+     * @return the previous state
      */
-    protected void setState(int nState)
+    protected int setState(int nState)
         {
         try (Sentry<?> ignored = f_gateState.close())
             {
             int nPrevState = m_nState;
             m_nState = nState;
             notifyStateChange(nState, nPrevState);
+            return nPrevState;
             }
         }
 
@@ -2421,7 +2424,7 @@ public class PagedTopicSubscriber<V>
      */
     protected boolean switchChannel()
         {
-        if (m_aChannel == null || !isActive() || isDisconnected())
+        if (m_aChannel == null || !isActive() || !isConnected())
             {
             // disconnected or no longer active
             return false;
@@ -2434,6 +2437,11 @@ public class PagedTopicSubscriber<V>
         gate.enter(-1);
         try
             {
+            if (m_aChannel == null || !isActive() || !isConnected())
+                {
+                // disconnected or no longer active
+                return false;
+                }
 
             if (m_aChannelOwned.length == 0)
                 {
@@ -4199,7 +4207,7 @@ public class PagedTopicSubscriber<V>
                     updateChannelOwnership(setChannel, false);
                     m_latch.countDown();
                     }
-                else if (isActive() && !f_fAnonymous && !isDisconnected() && !isInitialising())
+                else if (isActive() && !f_fAnonymous && isConnected())
                     {
                     Logger.finest("Disconnecting Subscriber " + PagedTopicSubscriber.this);
                     updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
