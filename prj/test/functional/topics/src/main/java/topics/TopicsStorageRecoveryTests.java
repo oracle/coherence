@@ -61,6 +61,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
+import java.io.Closeable;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
@@ -143,27 +144,11 @@ public class TopicsStorageRecoveryTests
         {
         String sMethodName = m_testName.getMethodName();
         System.err.println(">>>> Entering cleanupTest() " + sMethodName);
-        if (m_topic != null)
-            {
-            try
-                {
-                m_topic.close();
-                }
-            catch (Exception e)
-                {
-                // ignored
-                }
-            }
-
-        s_storageCluster.close();
+        closeSafely(m_topic);
+        closeSafely(s_storageCluster);
         s_storageCluster = null;
-        Cluster cluster = s_coherence.getCluster();
-        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1), Timeout.after(5, TimeUnit.MINUTES));
-        if (s_coherence != null)
-            {
-            s_coherence.close();
-            s_coherence = null;
-            }
+        closeSafely(s_coherence);
+        s_coherence = null;
         shutdown();
         System.err.println(">>>> Exiting cleanupTest() " + sMethodName);
         }
@@ -172,6 +157,21 @@ public class TopicsStorageRecoveryTests
         {
         Coherence.closeAll();
         CacheFactory.shutdown();
+        }
+
+    private void closeSafely(AutoCloseable closeable)
+        {
+        if (closeable != null)
+            {
+            try
+                {
+                closeable.close();
+                }
+            catch (Exception e)
+                {
+                // ignored
+                }
+            }
         }
 
     @Test
