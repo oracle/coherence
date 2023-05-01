@@ -17,10 +17,13 @@ import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.coherence.common.base.Exceptions;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.io.File;
 
 /**
  * A base class for topics compatibility tests.
@@ -99,18 +102,20 @@ public abstract class BaseTopicsTests
 
         ClosableCluster closableCluster = new ClosableCluster();
 
+        File file = MavenProjectFileUtils.ensureTestOutputBaseFolder(BaseTopicsTests.class);
+
         closableCluster.getExtension()
                     .with(CacheConfig.of("coherence-cache-config.xml"),
                           version.getClassPath(),
                           WellKnownAddress.loopback(),
                           ClusterName.of(sClusterName),
-                          DisplayName.of("storage"),
+                          DisplayName.of("storage-" + version.name()),
                           RoleName.of("storage"),
                           Logging.atFinest(),
                           LocalHost.only(),
                           IPv4Preferred.yes(),
-                          HeapSize.of(128, HeapSize.Units.MB, 128, HeapSize.Units.MB, true),
-                          JvmOptions.include("-XX:+ExitOnOutOfMemoryError"),
+                          JvmOptions.include("-XX:+ExitOnOutOfMemoryError", "-XX:HeapDumpPath=" + file.getAbsolutePath()),
+                          HeapSize.of(64, HeapSize.Units.MB, 512, HeapSize.Units.MB, true),
                           m_testLogs)
                     .include(cMember, CoherenceClusterMember.class);
 
