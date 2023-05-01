@@ -380,6 +380,22 @@ public abstract class Lambdas
                         sMsg = "System property \"coherence.lambdas\" or ExternalizableHelper.xml config element \"lambdas-serialization\"" +
                                " is set to invalid value of \"" + sLambda + "\"; valid values are: \"static\" or \"dynamic\". ";
                         }
+                    if (mode == null)
+                        {
+                        String sLambdaSerializationMode = CacheFactory.getClusterConfig().getSafeElement("lambdas-serialization").getString();
+                        try
+                            {
+                            if (!sLambdaSerializationMode.isEmpty())
+                                {
+                                mode = SerializationMode.valueOf(sLambdaSerializationMode.toUpperCase());
+                                }
+                            }
+                        catch (IllegalArgumentException e)
+                            {
+                            sMsg = "Operational config element cluster-config's child element \"lambdas-serialization\"" +
+                                   " is set to invalid value of \"" + sLambdaSerializationMode + "\"; valid values are: \"static\" or \"dynamic\". ";
+                            }
+                        }
 
                     if (mode == null)
                         {

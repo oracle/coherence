@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -672,6 +672,17 @@ public interface ClusterDependencies
      *         of a given service type
      */
     public ServiceProvider getLocalServiceProvider(String sType);
+
+    /**
+     * Obtain the lambdas serialization mode, i.e. static, dynamic or
+     * empty string, if not set.
+     *
+     * @return the lambdas serialization mode or empty string if not set.
+     *
+     * @since 23.09
+     */
+    public String getLambdasSerializationMode();
+
 
     // ----- inner interface: ServiceProvider -------------------------------
 
