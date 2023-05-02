@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,8 @@ import com.tangosol.util.filter.EqualsFilter;
 
 import io.grpc.Channel;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.io.DataInput;
@@ -107,6 +109,45 @@ class AsyncNamedCacheClientTest
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    public void shouldHandleUnsupportedStreamMethods()
+        {
+        AsyncNamedCacheClient<String, String> realClient = createClient();
+        AsyncNamedCacheClient<String, String> client     = Mockito.spy(realClient);
+
+        doNothing().when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
+
+        List<String>                                        keys      = Arrays.asList("key-1", "key-2", "key-3");
+        InvocableMap.EntryProcessor<String, String, String> processor = new ProcessorStub<>();
+        TestBiConsumer<String, String>                      consumer  = new TestBiConsumer<>();
+        CompletableFuture<Void>                             future    = client.invokeAll(keys, processor, consumer);
+
+        assertThat(future, is(notNullValue()));
+        assertThat(future.isDone(), is(false));
+
+        ArgumentCaptor<InvokeAllRequest> reqCaptor = ArgumentCaptor.forClass(InvokeAllRequest.class);
+        ArgumentCaptor<StreamObserver>   obsCaptor = ArgumentCaptor.forClass(StreamObserver.class);
+        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture());
+
+        InvokeAllRequest request  = reqCaptor.getValue();
+        StreamObserver   observer = obsCaptor.getValue();
+
+        assertThat(BinaryHelper.fromByteString(request.getFilter(), SERIALIZER), is(nullValue()));
+        assertThat(request.getKeysCount(), is(keys.size()));
+        assertThat(BinaryHelper.fromByteString(request.getKeys(0), SERIALIZER), is("key-1"));
+        assertThat(BinaryHelper.fromByteString(request.getKeys(1), SERIALIZER), is("key-2"));
+        assertThat(BinaryHelper.fromByteString(request.getKeys(2), SERIALIZER), is("key-3"));
+        assertThat(BinaryHelper.fromByteString(request.getProcessor(), SERIALIZER), is(processor));
+
+        Throwable error = new StatusRuntimeException(Status.UNIMPLEMENTED);
+        observer.onError(error);
+
+        assertFutureErrorType(future, UnsupportedOperationException.class);
+
+        Map<String, String> map = consumer.getResults();
+        assertThat(map.size(), is(0));
+        }
 
     @Test
     public void shouldHandleInitFailure()
@@ -1621,6 +1662,28 @@ class AsyncNamedCacheClientTest
             assertThat(rootCause(e), is(sameInstance(expected)));
             }
         }
+
+    /**
+     * Assert that a {@link CompletableFuture} completed exceptionally.
+     *
+     * @param future  the {@link CompletableFuture} to test
+     * @param clazz   the expected throwable type
+     */
+    protected void assertFutureErrorType(CompletableFuture<?> future, Class<? extends Throwable> clazz)
+    {
+        assertThat(future.isDone(), is(true));
+        assertThat(future.isCompletedExceptionally(), is(true));
+
+        try
+            {
+            future.get();
+            fail("Expected exception of type" + clazz.getName());
+            }
+        catch (InterruptedException | ExecutionException e)
+            {
+            assertThat(rootCause(e).getClass(), is(clazz));
+            }
+    }
 
     protected Throwable rootCause(Throwable t)
         {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,6 +28,7 @@ import com.oracle.coherence.grpc.GetRequest;
 import com.oracle.coherence.grpc.InvokeAllRequest;
 import com.oracle.coherence.grpc.InvokeRequest;
 import com.oracle.coherence.grpc.IsEmptyRequest;
+import com.oracle.coherence.grpc.IsReadyRequest;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
@@ -155,6 +156,24 @@ public class NamedCacheGrpcClient
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
         f_stub.isEmpty(request, observer);
+        return observer.completionStage();
+        }
+
+    /**
+     * Determine the cache's ready status.
+     *
+     * @param request  the {@link IsReadyRequest} to execute
+     *
+     * @return a {@link CompletionStage} that will complete with the result
+     *         of the ready request.
+     *
+     * @see com.tangosol.net.NamedCache#size()
+     * @since 14.1.1.2206.5
+     */
+    CompletionStage<BoolValue> isReady(IsReadyRequest request)
+        {
+        SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
+        f_stub.isReady(request, observer);
         return observer.completionStage();
         }
 

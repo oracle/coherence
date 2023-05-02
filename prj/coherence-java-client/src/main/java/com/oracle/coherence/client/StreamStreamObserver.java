@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 20.06
  */
 public class StreamStreamObserver<T>
-        implements StreamObserver<T>
+        extends BaseFutureStreamObserver<T>
     {
 
     // ----- accessors ------------------------------------------------------
@@ -40,12 +40,6 @@ public class StreamStreamObserver<T>
     public void onNext(T value)
         {
         list.add(value);
-        }
-
-    @Override
-    public void onError(Throwable t)
-        {
-        f_future.completeExceptionally(t);
         }
 
     @Override

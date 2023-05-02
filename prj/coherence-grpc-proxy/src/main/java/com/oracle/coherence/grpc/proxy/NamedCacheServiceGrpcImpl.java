@@ -27,6 +27,7 @@ import com.oracle.coherence.grpc.GetRequest;
 import com.oracle.coherence.grpc.InvokeAllRequest;
 import com.oracle.coherence.grpc.InvokeRequest;
 import com.oracle.coherence.grpc.IsEmptyRequest;
+import com.oracle.coherence.grpc.IsReadyRequest;
 import com.oracle.coherence.grpc.KeySetRequest;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
@@ -196,6 +197,13 @@ public class NamedCacheServiceGrpcImpl
         }
 
     @Override
+    public void isReady(IsReadyRequest request, StreamObserver<BoolValue> observer)
+        {
+        m_service.isReady(request)
+                .handleAsync((result, err) -> handleUnary(result, err, SafeStreamObserver.ensureSafeObserver(observer)));
+        }
+
+        @Override
     public void keySet(KeySetRequest request, StreamObserver<BytesValue> observer)
         {
         m_service.keySet(request, SafeStreamObserver.ensureSafeObserver(observer));

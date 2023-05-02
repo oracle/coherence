@@ -2968,6 +2968,12 @@ public abstract class ConverterCollections
             return getNamedCache().isActive();
             }
 
+        @Override
+        public boolean isReady()
+            {
+            return getNamedCache().isReady();
+            }
+
         /**
         * {@inheritDoc}
         */

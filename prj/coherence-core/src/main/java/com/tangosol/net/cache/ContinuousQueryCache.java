@@ -1271,6 +1271,13 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         }
 
     @Override
+    public boolean isReady()
+        {
+        NamedCache cache = m_cache;
+        return cache != null && cache.isReady();
+        }
+
+    @Override
     public void release()
         {
         // shut down the event queue

@@ -31,6 +31,7 @@ import com.oracle.coherence.grpc.GetRequest;
 import com.oracle.coherence.grpc.InvokeAllRequest;
 import com.oracle.coherence.grpc.InvokeRequest;
 import com.oracle.coherence.grpc.IsEmptyRequest;
+import com.oracle.coherence.grpc.IsReadyRequest;
 import com.oracle.coherence.grpc.KeySetRequest;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
@@ -721,7 +722,17 @@ public class NamedCacheServiceImpl
     public CompletionStage<BoolValue> isEmpty(IsEmptyRequest request)
         {
         return getAsyncCache(request.getScope(), request.getCache())
-                .thenComposeAsync(AsyncNamedCache::isEmpty, f_executor)
+                .thenCompose(AsyncNamedCache::isEmpty)
+                .thenApplyAsync(BoolValue::of, f_executor);
+        }
+
+    // ----- isReady --------------------------------------------------------
+
+    @Override
+    public CompletionStage<BoolValue> isReady(IsReadyRequest request)
+        {
+        return getAsyncCache(request.getScope(), request.getCache())
+                .thenComposeAsync(c -> CompletableFuture.supplyAsync(() -> c.getNamedMap().isReady()), f_executor)
                 .thenApplyAsync(BoolValue::of, f_executor);
         }
 

@@ -19680,7 +19680,15 @@ public class PartitionedCache
             {
             return getService().getBinaryMapArray().exists(getCacheId());
             }
-        
+
+        @Override
+        public boolean isReady()
+            {
+            return isActive() &&
+                   getService().getPartitionOwner(0) != null &&
+                   getService().getOwnershipSenior() != null;
+            }
+
         // Accessor for the property "AuthorizationEnabled"
         /**
          * Getter for property AuthorizationEnabled.<p>
@@ -67932,7 +67940,20 @@ public class PartitionedCache
             // regarding a default interface method with same name.
             return __m_Destroyed;
             }
-        
+
+        public boolean isReady()
+            {
+            if (isActive())
+                {
+                BinaryMap mapBinary = getBinaryMap();
+                if (mapBinary != null)
+                    {
+                    return mapBinary.isReady();
+                    }
+                }
+            return false;
+            }
+
         // From interface: com.tangosol.net.NamedCache
         public boolean isEmpty()
             {

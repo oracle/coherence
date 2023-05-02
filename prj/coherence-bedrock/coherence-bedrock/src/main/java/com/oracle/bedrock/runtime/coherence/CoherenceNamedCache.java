@@ -1,24 +1,31 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.runtime.Assembly;
+
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
+
 import com.oracle.bedrock.runtime.concurrent.callable.RemoteCallableStaticMethod;
 import com.oracle.bedrock.runtime.concurrent.callable.RemoteMethodInvocation;
+
 import com.oracle.bedrock.util.ReflectionHelper;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
+
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 
 import java.io.Serializable;
+
 import java.lang.reflect.Method;
+
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +36,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
 import java.util.concurrent.CompletableFuture;
 
 public class CoherenceNamedCache<K, V>
@@ -240,6 +248,13 @@ public class CoherenceNamedCache<K, V>
     public boolean isActive()
         {
         return remotelyInvoke("isActive");
+        }
+
+
+    @Override
+    public boolean isReady()
+        {
+        return remotelyInvoke("isReady");
         }
 
 
