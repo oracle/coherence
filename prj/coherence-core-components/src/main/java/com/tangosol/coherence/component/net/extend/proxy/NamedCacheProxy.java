@@ -353,6 +353,11 @@ public class NamedCacheProxy
         {
         return getNamedCache().isActive();
         }
+    @Override
+    public boolean isReady()
+        {
+        return getNamedCache().isReady();
+        }
     public boolean isEmpty()
         {
         return getNamedCache().isEmpty();

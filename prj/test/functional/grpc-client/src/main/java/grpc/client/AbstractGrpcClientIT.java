@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,10 +15,9 @@ import com.oracle.coherence.client.DeactivationListener;
 import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.tangosol.coherence.component.util.SafeAsyncNamedCache;
-import com.tangosol.coherence.component.util.SafeNamedCache;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
-import com.tangosol.internal.net.SessionNamedCache;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
@@ -147,6 +146,17 @@ abstract class AbstractGrpcClientIT
         grpcClient.clear();
 
         assertThat(cache.isEmpty(), is(true));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldBeReady(String sSerializerName, Serializer serializer)
+        {
+        String                     cacheName  = "test-cache";
+        NamedCache                 cache      = ensureCache(cacheName);
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        assertThat(grpcClient.isReady(), is(cache.isReady()));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")

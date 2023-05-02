@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -128,7 +128,7 @@ public interface NamedMap<K, V>
      *
      * @since 12.2.1
      */
-    public default void forEach(Collection<? extends K> collKeys, BiConsumer<? super K, ? super V> action)
+    default void forEach(Collection<? extends K> collKeys, BiConsumer<? super K, ? super V> action)
         {
         Objects.requireNonNull(action);
         getAll(collKeys).forEach(action);
@@ -141,7 +141,7 @@ public interface NamedMap<K, V>
      * the returned AsyncNamedMap will be preserved by ensuring that all
      * operations invoked from the same client thread are executed on the server
      * sequentially, using the same {@link AsynchronousAgent#getUnitOfOrderId
-     * unit-of-order}. This tends to provide best performance for fast,
+     * unit-of-order}. This tends to provide the best performance for fast,
      * non-blocking operations.
      * <p>
      * However, when invoking CPU-intensive or blocking operations, such as
@@ -173,10 +173,36 @@ public interface NamedMap<K, V>
      *
      * @since 12.2.1.4
      */
-    public default <V_FRONT> MapViewBuilder<K, V, V_FRONT> view()
+    default <V_FRONT> MapViewBuilder<K, V, V_FRONT> view()
         {
         return new MapViewBuilder<>(this);
         }
+
+    /**
+     * Returns whether this {@code NamedMap} is ready to be used.
+     * </p>
+     * An example of when this method would return {@code false} would
+     * be where a partitioned cache service that owns this cache has no
+     * store-enabled members.
+     *
+     * @return return {@code true} if the {@code NamedMap} may be used
+     *         otherwise returns {@code false}.
+     *
+     * @since 14.1.1.2206.5
+     */
+    default boolean isReady()
+        {
+        return isActive();
+        }
+
+    /**
+     * Returns {@code true} if this map is not released or destroyed.
+     * In other words, calling {@code isActive()} is equivalent to calling
+     * {@code !cache.isReleased() && !cache.isDestroyed()}.
+     *
+     * @return {@code true} if the cache is active, otherwise {@code false}
+     */
+    boolean isActive();
 
     // ----- NamedMap.Option interface --------------------------------------
 

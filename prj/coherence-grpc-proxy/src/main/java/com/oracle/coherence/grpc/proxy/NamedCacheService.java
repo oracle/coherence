@@ -29,6 +29,7 @@ import com.oracle.coherence.grpc.GetRequest;
 import com.oracle.coherence.grpc.InvokeAllRequest;
 import com.oracle.coherence.grpc.InvokeRequest;
 import com.oracle.coherence.grpc.IsEmptyRequest;
+import com.oracle.coherence.grpc.IsReadyRequest;
 import com.oracle.coherence.grpc.KeySetRequest;
 import com.oracle.coherence.grpc.MapListenerRequest;
 import com.oracle.coherence.grpc.MapListenerResponse;
@@ -227,6 +228,19 @@ public interface NamedCacheService
      * @see com.tangosol.net.NamedCache#isEmpty()
      */
     CompletionStage<BoolValue> isEmpty(IsEmptyRequest request);
+
+    /**
+     * Determine whether a cache is Ready.
+     *
+     * @param request  the {@link IsReadyRequest} to execute
+     *
+     * @return a {@link java.util.concurrent.CompletionStage} that will complete with the result
+     *         of the {@link com.tangosol.net.NamedCache#isReady()}
+     *
+     * @see com.tangosol.net.NamedCache#isReady()
+     * @since 14.1.1.2206.5
+     */
+    CompletionStage<BoolValue> isReady(IsReadyRequest request);
 
     /**
      * Stream a set of cache keys to a {@link StreamObserver}.

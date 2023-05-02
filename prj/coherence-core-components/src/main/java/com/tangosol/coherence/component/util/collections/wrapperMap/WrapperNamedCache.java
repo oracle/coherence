@@ -201,6 +201,11 @@ public class WrapperNamedCache
         {
         return ((com.tangosol.net.NamedCache) getMap()).isActive();
         }
+    @Override
+    public boolean isReady()
+        {
+        return ((com.tangosol.net.NamedCache) getMap()).isReady();
+        }
     public java.util.Set keySet(com.tangosol.util.Filter filter)
         {
         return ((com.tangosol.net.NamedCache) getMap()).keySet(filter);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -165,6 +165,19 @@ public class NearCache<K, V>
         try
             {
             return getFrontMap() != null && getBackCache().isActive();
+            }
+        catch (IllegalStateException e)
+            {
+            return false;
+            }
+        }
+
+    @Override
+    public boolean isReady()
+        {
+        try
+            {
+            return getFrontMap() != null && getBackCache().isReady();
             }
         catch (IllegalStateException e)
             {

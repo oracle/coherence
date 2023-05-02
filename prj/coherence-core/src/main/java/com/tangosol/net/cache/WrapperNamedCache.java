@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -10,6 +10,7 @@ package com.tangosol.net.cache;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.NamedMap;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
@@ -122,6 +123,13 @@ public class WrapperNamedCache<K, V>
         {
         Map map = getMap();
         return !(map instanceof NamedCache) || ((NamedCache) map).isActive();
+        }
+
+    @Override
+    public boolean isReady()
+        {
+        Map map = getMap();
+        return !(map instanceof NamedMap) || ((NamedMap) map).isActive();
         }
 
     /**
