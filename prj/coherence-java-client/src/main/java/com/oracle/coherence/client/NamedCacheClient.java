@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -82,196 +83,98 @@ public class NamedCacheClient<K, V>
                                 boolean sorted, Comparator<? super E> comparator)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.addIndex(valueExtractor, sorted, comparator).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.addIndex(valueExtractor, sorted, comparator));
         }
 
     @Override
     public void addMapListener(MapListener<? super K, ? super V> mapListener)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.addMapListener(mapListener).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.addMapListener(mapListener));
         }
 
     @Override
     public void addMapListener(MapListener<? super K, ? super V> mapListener, K key, boolean lite)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.addMapListener(mapListener, key, lite).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.addMapListener(mapListener, key, lite));
         }
 
     @Override
     public void addMapListener(MapListener<? super K, ? super V> mapListener, Filter filter, boolean lite)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.addMapListener(mapListener, filter, lite).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.addMapListener(mapListener, filter, lite));
         }
 
     @Override
     public <R> R aggregate(Collection<? extends K> keys, EntryAggregator<? super K, ? super V, R> aggregator)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.aggregate(keys, aggregator).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.aggregate(keys, aggregator));
         }
 
     @Override
     public <R> R aggregate(Filter filter, EntryAggregator<? super K, ? super V, R> aggregator)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.aggregate(filter, aggregator).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.aggregate(filter, aggregator));
         }
 
     @Override
     public void clear()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.clear().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.clear());
         }
 
     @Override
     public boolean containsKey(Object key)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.containsKeyInternal(key).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.containsKeyInternal(key));
         }
 
     @Override
     public boolean containsValue(Object value)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.containsValue(value).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.containsValue(value));
         }
 
     @Override
     public void destroy()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.destroy().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.destroy());
         }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet(Filter filter)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.entrySet(filter).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.entrySet(filter));
         }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet(Filter filter, Comparator comparator)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.entrySet(filter, comparator).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.entrySet(filter, comparator));
         }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.entrySet().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.entrySet());
         }
 
     @Override
     public V get(Object key)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.getInternal(key, null).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.getInternal(key, null));
         }
 
     @Override
@@ -297,97 +200,54 @@ public class NamedCacheClient<K, V>
     public <R> R invoke(K k, EntryProcessor<K, V, R> entryProcessor)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.invoke(k, entryProcessor).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.invoke(k, entryProcessor));
         }
 
     @Override
     public <R> Map<K, R> invokeAll(Collection<? extends K> keys, EntryProcessor<K, V, R> entryProcessor)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.invokeAll(keys, entryProcessor).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.invokeAll(keys, entryProcessor));
         }
 
     @Override
     public <R> Map<K, R> invokeAll(Filter filter, EntryProcessor<K, V, R> entryProcessor)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.invokeAll(filter, entryProcessor).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.invokeAll(filter, entryProcessor));
         }
 
     @Override
     public boolean isActive()
         {
-        try
-            {
-            return f_asyncClient.isActive().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.isActive());
+        }
+
+    @Override
+    public boolean isReady()
+        {
+        return handleCompletableFuture(f_asyncClient.isReady());
         }
 
     @Override
     public boolean isEmpty()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.isEmpty().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.isEmpty());
         }
 
     @Override
     public Set<K> keySet(Filter filter)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.keySet(filter).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.keySet(filter));
         }
 
     @Override
     public Set<K> keySet()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.keySet().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.keySet());
         }
 
     @Override
@@ -412,126 +272,63 @@ public class NamedCacheClient<K, V>
     public V put(K key, V value, long ttl)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.putInternal(key, value, ttl).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.putInternal(key, value, ttl));
         }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.putAll(m).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.putAll(m));
         }
 
     @Override
     public void release()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.release().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.release());
         }
 
     @Override
     public V remove(Object key)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.removeInternal(key).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.removeInternal(key));
         }
 
     @Override
     public <T, E> void removeIndex(ValueExtractor<? super T, ? extends E> valueExtractor)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.removeIndex(valueExtractor).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.removeIndex(valueExtractor));
         }
 
     @Override
     public void removeMapListener(MapListener<? super K, ? super V> mapListener)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.removeMapListener(mapListener).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.removeMapListener(mapListener));
         }
 
     @Override
     public void removeMapListener(MapListener<? super K, ? super V> mapListener, K key)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.removeMapListener(mapListener, key).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.removeMapListener(mapListener, key));
         }
 
     @Override
     public void removeMapListener(MapListener<? super K, ? super V> mapListener, Filter filter)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.removeMapListener(mapListener, filter).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.removeMapListener(mapListener, filter));
         }
 
     @Override
     public int size()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.size().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.size());
         }
 
     @Override
@@ -544,14 +341,7 @@ public class NamedCacheClient<K, V>
     public Collection<V> values()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.values().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.values());
         }
 
     // ----- NamedCache methods ---------------------------------------------
@@ -560,14 +350,7 @@ public class NamedCacheClient<K, V>
     public <R> R aggregate(EntryAggregator<? super K, ? super V, R> aggregator)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.aggregate(aggregator).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.aggregate(aggregator));
         }
 
     @Override
@@ -586,14 +369,7 @@ public class NamedCacheClient<K, V>
     public V getOrDefault(Object key, V defaultValue)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.getInternal(key, defaultValue).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.getInternal(key, defaultValue));
         }
 
     @Override
@@ -612,81 +388,62 @@ public class NamedCacheClient<K, V>
     public V putIfAbsent(K key, V value)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.putIfAbsent(key, value).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.putIfAbsent(key, value));
         }
 
     @Override
     public boolean remove(Object key, Object value)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.removeInternal(key, value).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.removeInternal(key, value));
         }
 
     @Override
     public boolean replace(K key, V oldValue, V newValue)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.replace(key, oldValue, newValue).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.replace(key, oldValue, newValue));
         }
 
     @Override
     public void truncate()
         {
         f_asyncClient.assertActive();
-        try
-            {
-            f_asyncClient.truncate().get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        handleCompletableFuture(f_asyncClient.truncate());
         }
 
     @Override
     public Collection<V> values(Filter filter)
         {
         f_asyncClient.assertActive();
-        try
-            {
-            return f_asyncClient.values(filter).get();
-            }
-        catch (InterruptedException | ExecutionException e)
-            {
-            throw new RequestIncompleteException(e);
-            }
+        return handleCompletableFuture(f_asyncClient.values(filter));
         }
 
     @Override
     public Collection<V> values(Filter filter, Comparator comparator)
         {
         f_asyncClient.assertActive();
+        return handleCompletableFuture(f_asyncClient.valuesInternal(filter, comparator));
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    protected <T> T handleCompletableFuture(CompletableFuture<T> future)
+        {
         try
             {
-            return f_asyncClient.valuesInternal(filter, comparator).get();
+            return future.get();
             }
-        catch (InterruptedException | ExecutionException e)
+        catch (ExecutionException e)
+            {
+            Throwable cause = e.getCause();
+            if (cause instanceof UnsupportedOperationException)
+                {
+                throw (UnsupportedOperationException) cause;
+                }
+            throw new RequestIncompleteException(e);
+            }
+        catch (InterruptedException e)
             {
             throw new RequestIncompleteException(e);
             }

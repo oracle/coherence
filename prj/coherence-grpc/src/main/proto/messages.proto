@@ -84,6 +84,15 @@ message IsEmptyRequest {
     string cache = 2;
 }
 
+// A request to check the ready status of a cache.
+// @since 14.1.1.2206.5
+message IsReadyRequest {
+    // The scope name to use to obtain the cache.
+    string scope = 1;
+    // The name of the cache.
+    string cache = 2;
+}
+
 // A request to determine the number of entries in a cache.
 message SizeRequest {
     // The scope name to use to obtain the cache.

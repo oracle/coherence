@@ -67,7 +67,7 @@ public class NamedCacheProtocol
         // state initialization: public and protected properties
         try
             {
-            setVersionCurrent(10);
+            setVersionCurrent(11);
             setVersionSupported(2);
             }
         catch (java.lang.Exception e)

@@ -1237,6 +1237,23 @@ public class SafeNamedCache
             return false;
             }
         }
+
+    // From interface: com.tangosol.net.NamedCache
+    public boolean isReady()
+        {
+        try
+            {
+            return getInternalNamedCache().isReady();
+            }
+        catch (UnsupportedOperationException uoe)
+            {
+            throw uoe;
+            }
+        catch (RuntimeException e)
+            {
+            return false;
+            }
+        }
     
     // From interface: com.tangosol.net.NamedCache
     // Accessor for the property "Destroyed"

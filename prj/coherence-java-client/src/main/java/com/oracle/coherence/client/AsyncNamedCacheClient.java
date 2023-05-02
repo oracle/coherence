@@ -58,6 +58,9 @@ import com.tangosol.util.filter.AlwaysFilter;
 
 import io.grpc.Channel;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+
 import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
@@ -174,7 +177,7 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     public <R> CompletableFuture<R> aggregate(Filter<?> filter,
                                               InvocableMap.EntryAggregator<? super K, ? super V, R> entryAggregator)
         {
@@ -257,7 +260,6 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings({"rawtypes"})
     public <R> CompletableFuture<Map<K, R>> invokeAll(Filter<?> filter, InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return executeIfActive(() ->
@@ -331,7 +333,6 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings({"rawtypes"})
     public <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  Consumer<? super Map.Entry<? extends K, ? extends R>> callback)
@@ -556,7 +557,6 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings({"rawtypes"})
     public <R> CompletableFuture<Void> invokeAll(Filter<?> filter,
                                                  InvocableMap.EntryProcessor<K, V, R> processor,
                                                  BiConsumer<? super K, ? super R> callback)
@@ -676,7 +676,6 @@ public class AsyncNamedCacheClient<K, V>
         }
 
     @Override
-    @SuppressWarnings({"rawtypes"})
     public CompletableFuture<Collection<V>> values(Filter<?> filter, Comparator<? super V> comparator)
         {
         return executeIfActive(() -> valuesInternal(filter, comparator));
@@ -811,6 +810,27 @@ public class AsyncNamedCacheClient<K, V>
     protected CompletableFuture<Boolean> isActive()
         {
         return CompletableFuture.completedFuture(isActiveInternal());
+        }
+
+    /**
+     * Returns whether this cache is ready to be used.
+     * </p>
+     * An example of when this method would return {@code false} would
+     * be where a partitioned cache service that owns this cache has no
+     * store-enabled members.
+     *
+     * @return {@code true} if the cache is ready
+     *
+     * @since 14.1.1.2206.5
+     */
+    protected CompletableFuture<Boolean> isReady()
+        {
+        if (isActiveInternal())
+            {
+            return executeIfActive(() -> f_service.isReady(Requests.ready(f_sScopeName, f_sName))
+                .thenApply(BoolValue::getValue).toCompletableFuture());
+            }
+        return CompletableFuture.completedFuture(false);
         }
 
     /**
@@ -1290,7 +1310,7 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
-                return supplier.get();
+                return supplier.get().handle(AsyncNamedCacheClient::handleException);
                 }
             catch (Throwable t)
                 {
@@ -2278,6 +2298,47 @@ public class AsyncNamedCacheClient<K, V>
          */
         private NamedCacheGrpcClient m_client;
         }
+
+    // ----- helper methods ---------------------------------------------
+
+   /**
+    * Returns the arguments unmodified unless the error is a {@link StatusRuntimeException}
+    * with a status of {@link Status#UNIMPLEMENTED}, then an UnsupportedOperationException
+    * will be raised instead.
+    *
+    * @param result  the result - ignored
+    * @param t       the error, if any
+    * @return        the result unmodified, or if the error is {@link Status#UNIMPLEMENTED}
+    *                an {@link UnsupportedOperationException} will be thrown
+    *
+    * @param <T> the result type
+    *
+    * @since 14.1.1.2206.5
+    */
+   protected static <T> T handleException(T result, Throwable t)
+       {
+       if (t != null)
+           {
+           Throwable cause = t.getCause();
+           if (cause instanceof StatusRuntimeException)
+               {
+               StatusRuntimeException sre = (StatusRuntimeException) cause;
+               if (sre.getStatus().getCode() == Status.Code.UNIMPLEMENTED.toStatus().getCode())
+                   {
+                   throw new UnsupportedOperationException("This operation"
+                           + " is not supported by the current gRPC proxy. "
+                           + "Either upgrade the version of Coherence on the "
+                           + "gRPC proxy or connect to a gRPC proxy "
+                           + "that supports the operation.", sre);
+                   }
+               }
+           else
+               {
+               throw Base.ensureRuntimeException(t);
+               }
+           }
+       return result;
+       }
 
     // ----- constants ------------------------------------------------------
 

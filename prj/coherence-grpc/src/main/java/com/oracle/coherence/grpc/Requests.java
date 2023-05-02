@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -743,6 +743,25 @@ public final class Requests
                 .setFormat(format)
                 .setKey(key)
                 .setValue(value).build();
+        }
+
+    /**
+     * Create a {@link ClearRequest}.
+     *
+     * @param scope      the scope name to use to obtain the cache from.
+     * @param cacheName  the name of the cache to clear
+     *
+     * @return a {@link ClearRequest}
+     *
+     * @since 14.1.1.2206.5
+     */
+    public static IsReadyRequest ready(String scope, String cacheName)
+        {
+        validateRequest(cacheName);
+        return IsReadyRequest.newBuilder()
+                .setScope(ensureScope(scope))
+                .setCache(cacheName)
+                .build();
         }
 
     /**

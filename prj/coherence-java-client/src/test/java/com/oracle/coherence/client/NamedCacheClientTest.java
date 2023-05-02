@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.client;
-
-import com.oracle.coherence.client.NamedCacheClient;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
@@ -784,6 +782,48 @@ class NamedCacheClientTest
         }
 
     @Test
+    void shouldCallIsReady()
+        {
+        AsyncNamedCacheClient<String, String> async = mock(AsyncNamedCacheClient.class);
+
+        when(async.isReady()).thenReturn(TRUE_FUTURE);
+
+        NamedCacheClient<String, String> client = new NamedCacheClient<>(async);
+        boolean result = client.isReady();
+
+        verify(async).isReady();
+        assertThat(result, is(true));
+        }
+
+    @Test
+    void shouldCallIsReadyHandlingError()
+        {
+        AsyncNamedCacheClient<String, String> async = mock(AsyncNamedCacheClient.class);
+
+        when(async.isReady()).thenReturn(failedFuture());
+
+        NamedCacheClient<String, String> client = new NamedCacheClient<>(async);
+
+        RequestIncompleteException ex = assertThrows(RequestIncompleteException.class, client::isReady);
+
+        assertThat(rootCause(ex), is(sameInstance(ERROR)));
+        }
+
+    @Test
+    void shouldHandleUnsupportedError()
+        {
+        AsyncNamedCacheClient<String, String> async = mock(AsyncNamedCacheClient.class);
+
+        when(async.isReady()).thenReturn(failedFuture(NOT_IMPLEMENTED_ERROR));
+
+        NamedCacheClient<String, String> client = new NamedCacheClient<>(async);
+
+        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class, client::isReady);
+
+        assertThat(rootCause(ex), is(sameInstance(NOT_IMPLEMENTED_ERROR)));
+        }
+
+    @Test
     void shouldCallKeySet()
         {
         AsyncNamedCacheClient<String, String> async  = mock(AsyncNamedCacheClient.class);
@@ -1414,6 +1454,8 @@ class NamedCacheClientTest
     protected static final CompletableFuture<Boolean> TRUE_FUTURE = CompletableFuture.completedFuture(true);
 
     protected static final Throwable ERROR = new RuntimeException("Computer says No!");
+
+    protected static final Throwable NOT_IMPLEMENTED_ERROR = new UnsupportedOperationException();
 
     protected static final Filter<String> FILTER = new EqualsFilter();
 
