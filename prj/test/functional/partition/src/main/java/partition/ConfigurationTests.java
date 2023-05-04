@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -75,7 +75,7 @@ public class ConfigurationTests
     @Test
     public void testCompressorDefault()
         {
-        PartitionedCache cache      = getPartitionedCache(CacheFactory.getCache("dist-d"));
+        PartitionedCache cache      = getPartitionedCache(CacheFactory.getCache("compressor-default"));
         DeltaCompressor  compressor = cache.getBackupDeltaCompressor();
 
         assertEquals(DecorationOnlyDeltaCompressor.class, compressor.getClass());
@@ -252,7 +252,7 @@ public class ConfigurationTests
             AbstractFunctionalTest._shutdown();
 
             Properties props = new Properties();
-            props.put("coherence.distributed.backupcount", "0");
+            props.put("test.distributed.backupcount", "0");
             props.put("coherence.distribution.2server", "true");
 
             System.getProperties().putAll(props);
@@ -312,7 +312,7 @@ public class ConfigurationTests
             stopCacheServer("testTwoServerSEOneBC0-3");
 
             AbstractFunctionalTest._shutdown();
-            System.setProperty("coherence.distributed.backupcount", "1");
+            System.setProperty("test.distributed.backupcount", "1");
             System.clearProperty("coherence.distribution.2server");
             }
         }
