@@ -111,6 +111,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries associated with the specified keys to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param colKeys   a collection of keys that may be in the named map
      * @param callback  a consumer of results as they become available
@@ -128,6 +132,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries associated with the specified keys to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param colKeys   a collection of keys that may be in the named map
      * @param callback  a consumer of results as they become available
@@ -240,6 +248,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the keys of all the entries contained in this map to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -254,6 +266,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the keys for the entries that satisfy the specified filter to the
      * provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -329,6 +345,10 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Stream all the entries contained in this map to the provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -342,6 +362,10 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Stream all the entries contained in this map to the provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -356,6 +380,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries that satisfy the specified filter to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -372,6 +400,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the entries that satisfy the specified filter to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -434,6 +466,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the values of all the entries contained in this map to the provided
      * callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param callback  a consumer of results as they become available
      *
@@ -448,6 +484,10 @@ public interface AsyncNamedMap<K, V>
     /**
      * Stream the values for the entries that satisfy the specified filter to the
      * provided callback.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param filter    the Filter object representing the criteria that the
      *                  entries of this map should satisfy
@@ -534,6 +574,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param processor  the EntryProcessor to use to process the specified keys
@@ -557,6 +601,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param processor  the EntryProcessor to use to process the specified keys
@@ -581,6 +629,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param collKeys   the keys to process; these keys are not required to
@@ -604,6 +656,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param collKeys   the keys to process; these keys are not required to
@@ -631,6 +687,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param filter     a Filter that results in the set of keys to be
@@ -655,6 +715,10 @@ public interface AsyncNamedMap<K, V>
      * Instead of collecting and returning the complete result, this method
      * will stream partial results of the processor execution to the specified
      * partial result callback, which allows for a much lower memory overhead.
+     * <p/>
+     * Note: the callback implementation must be thread-safe as it may be called
+     * by multiple worker threads in cases where Coherence splits the operation
+     * over multiple partitions.
      *
      * @param <R>        the type of value returned by the EntryProcessor
      * @param filter     a Filter that results in the set of keys to be
