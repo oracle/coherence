@@ -19,7 +19,6 @@ import com.tangosol.net.PartitionedService;
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.Filter;
-import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.InvocableMap.StreamingAggregator;
 import com.tangosol.util.aggregator.AsynchronousAggregator;
@@ -31,6 +30,7 @@ import com.tangosol.util.processor.StreamingAsynchronousProcessor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +89,6 @@ public class DefaultAsyncNamedCache<K, V>
         return m_cache;
         }
 
-    @SuppressWarnings("unchecked")
     @Override
     public CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter<?> filter)
         {
@@ -101,14 +100,13 @@ public class DefaultAsyncNamedCache<K, V>
             int          cParts = ((PartitionedService) m_cache.getCacheService()).getPartitionCount();
             PartitionSet parts  = new PartitionSet(cParts);
 
-            List<CompletableFuture<Void>> futures     = new ArrayList<>(cParts);
-            List<Map.Entry<K, V>>         listEntries = new ArrayList<>();
+            List<CompletableFuture<Set<Map.Entry<K, V>>>> futures = new ArrayList<>(cParts);
 
             for (int i = 0; i < cParts; i++)
                 {
                 parts.add(i);
                 futures.add(invokeAll(new PartitionedFilter<>(filter, parts), new AsynchronousProcessor<>(CacheProcessors.binaryGet(), i))
-                                    .thenAccept(results -> listEntries.addAll(results.entrySet())));
+                        .thenApply(Map::entrySet));
                 parts.remove(i);
                 }
 
@@ -122,7 +120,9 @@ public class DefaultAsyncNamedCache<K, V>
                             }
                         else
                             {
-                            result.complete(new ImmutableArrayList(listEntries).getSet());
+                            Set<Map.Entry<K, V>> set = new HashSet<>();
+                            futures.forEach(f -> f.thenAccept(set::addAll));
+                            result.complete(set);
                             }
                     });
 
