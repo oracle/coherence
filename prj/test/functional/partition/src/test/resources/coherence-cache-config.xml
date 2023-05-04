@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -31,21 +31,26 @@
             <scheme-name>compressor-standard</scheme-name>
         </cache-mapping>
 
-        <cache-mapping>
-            <cache-name>compressor-standard-pof</cache-name>
-            <scheme-name>compressor-standard-pof</scheme-name>
-        </cache-mapping>
+    <cache-mapping>
+      <cache-name>compressor-default</cache-name>
+      <scheme-name>compressor-default</scheme-name>
+    </cache-mapping>
 
-        <cache-mapping>
-            <cache-name>Coh3974</cache-name>
-            <scheme-name>Coh3974-distributed</scheme-name>
-            <init-params>
-                <init-param>
-                    <param-name>back-size-limit</param-name>
-                    <param-value>8MB</param-value>
-                </init-param>
-            </init-params>
-        </cache-mapping>
+    <cache-mapping>
+      <cache-name>compressor-standard-pof</cache-name>
+      <scheme-name>compressor-standard-pof</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>Coh3974</cache-name>
+      <scheme-name>Coh3974-distributed</scheme-name>
+      <init-params>
+        <init-param>
+          <param-name>back-size-limit</param-name>
+          <param-value>8MB</param-value>
+        </init-param>
+      </init-params>
+     </cache-mapping>
 
         <cache-mapping>
             <cache-name>dist-*</cache-name>
@@ -156,6 +161,7 @@
             <scheme-name>example-distributed</scheme-name>
             <service-name>DistributedCache</service-name>
             <thread-count-min system-property="tangosol.coherence.distributed.threads.min">3</thread-count-min>
+            <backup-count system-property="test.distributed.backupcount">1</backup-count>
             <backing-map-scheme>
                 <local-scheme>
                     <scheme-ref>example-binary-backing-map</scheme-ref>
@@ -236,6 +242,11 @@
             <autostart>true</autostart>
         </distributed-scheme>
 
+        <distributed-scheme>
+            <scheme-name>compressor-default</scheme-name>
+            <service-name>distributed-compressor-default</service-name>
+        </distributed-scheme>
+        
         <distributed-scheme>
             <scheme-name>compressor-standard</scheme-name>
             <service-name>distributed-compressor-standard</service-name>
