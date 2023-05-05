@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
-
 
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.InvocableMap;
@@ -18,7 +17,6 @@ import com.tangosol.util.ValueExtractor;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -103,7 +101,7 @@ public class DistinctValues<K, V, T, E>
                         Map mapContents = index.getIndexContents();
                         if (mapContents != null && !mapContents.isEmpty())
                             {
-                            m_set = new HashSet<>(mapContents.keySet());
+                            m_set = Collections.unmodifiableSet(mapContents.keySet());
                             return false;
                             }
                         }

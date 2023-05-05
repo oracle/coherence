@@ -9,7 +9,7 @@ AllFilter                                 \| ----  \| 100\|0\(100%\)          \|
 Index Lookups
 Index Description                             Extractor                        Ordered
 ======================================================================================
-0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\\|M]*B, Size=50 \| filter\.nestinglevel1\.nes\.\.\. \(1\) \| true
+0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B,\.\.\. \(1\)\s+\| filter\.nestinglevel1\.nes\.\.\. \(2\) \| true
 
 
 Complete filter and index descriptions
@@ -18,6 +18,8 @@ N     Full Name
 0   \| LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPers
     \| onKeyExtractor\( Person\.Key \), 9\&%\)
 
-1   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPersonKeyExtrac
+1   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=50
+
+2   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPersonKeyExtrac
     \| tor\( Person\.Key \)
 
