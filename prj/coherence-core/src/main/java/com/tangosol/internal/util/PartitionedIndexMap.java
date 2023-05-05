@@ -448,6 +448,16 @@ public class PartitionedIndexMap<K, V>
             // ---- helpers -------------------------------------------------
 
             /**
+             * Returns an empty map (immutable).
+             *
+             * @return the empty map
+             */
+            protected Map<E, Set<K>> emptyMap()
+                {
+                return Collections.emptyMap();
+                }
+
+            /**
              * Instantiate a set to collect the keys into.
              *
              * @return the set to collect the keys into
@@ -469,7 +479,7 @@ public class PartitionedIndexMap<K, V>
                 MapIndex<K, V, E> mapIndex = getMapIndex(nPart, f_extractor);
                 return mapIndex != null
                        ? mapIndex.getIndexContents()
-                       : Collections.emptyMap();
+                       : emptyMap();
                 }
 
             // ---- inner class: Entry --------------------------------------
@@ -595,6 +605,12 @@ public class PartitionedIndexMap<K, V>
                 }
 
             // ---- helpers -------------------------------------------------
+
+            @Override
+            protected Map<E, Set<K>> emptyMap()
+                {
+                return Collections.emptySortedMap();
+                }
 
             @Override
             protected SortedSet<E> instantiateKeySet()
