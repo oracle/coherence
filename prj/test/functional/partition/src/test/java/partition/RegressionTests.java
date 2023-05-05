@@ -1,28 +1,42 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package partition;
 
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.cache.BackingMapBinaryEntry;
+import com.tangosol.net.management.MBeanHelper;
+import com.tangosol.util.Binary;
+import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.filter.GreaterEqualsFilter;
 import com.tangosol.util.filter.LessEqualsFilter;
 import com.tangosol.util.filter.EqualsFilter;
 import common.AbstractFunctionalTest;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 
 public class RegressionTests
     extends AbstractFunctionalTest
@@ -49,6 +63,78 @@ public class RegressionTests
 
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    public void testPutAllMemory()
+            throws Exception
+        {
+        // test regression for COH-27680
+
+        // force this node to be client to the entire putAll
+        AbstractFunctionalTest._shutdown();
+        System.setProperty("tangosol.coherence.distributed.localstorage", "false");
+        AbstractFunctionalTest._startup();
+
+        Properties props = new Properties();
+        props.setProperty("tangosol.coherence.management", "all");
+        props.setProperty("tangosol.coherence.management.remote", "true");
+        String sServerName = "storage1";
+        CoherenceClusterMember clusterMember1 = startCacheServer(sServerName, "testPutAllMemory", "coherence-cache-config.xml", props);
+        waitForServer(clusterMember1);
+
+        NamedCache cache = CacheFactory.getCache("dist-cache");
+        waitForBalanced(cache.getCacheService());
+        cache.clear();
+        cache.addIndex(IdentityExtractor.INSTANCE, true, null);
+
+        Random r = new Random();
+
+        Map<String,String> mapData = new HashMap<>();
+        for (int i = 0 ; i < 500; i++)
+            {
+            // one large value to verify we don't re-use the resulting larger
+            // buffer
+            mapData.put("Key" + i, i == 0 ? "Value12345678901234567890" : ("Value" + i));
+            }
+
+        cache.putAll(mapData);
+
+        cache.invokeAll(entry ->
+                        {
+                        Binary binKey = ExternalizableHelper.toBinary(entry.getKey());
+                        Binary binVal = ExternalizableHelper.toBinary(entry.getValue());
+
+                        BackingMapBinaryEntry b =
+                                new BackingMapBinaryEntry(binKey, binVal, binVal, null);
+
+                        // backing map entry value size should match original
+                        assertEquals(b.getBinaryValue().length(), ((BinaryEntry) entry).getBinaryValue().length());
+
+                        return entry;
+                        });
+
+        MBeanServer server = MBeanHelper.findMBeanServer();
+        String sName = "Coherence:type=StorageManager,service=" + cache.getCacheService().getInfo().getServiceName()
+                       + ",cache=" + cache.getCacheName() + ",nodeId=2";
+        final ObjectName name = new ObjectName(sName);
+
+        //CacheFactory.log("IndexTotalUnits: " + indexTotalUnits);
+        Eventually.assertDeferred(() ->
+                                  {
+                                  Long indexTotalUnits = 0L;
+                                  try
+                                      {
+                                      indexTotalUnits = (Long) server.getAttribute(name, "IndexTotalUnits");
+                                      }
+                                  catch (Exception e)
+                                      {
+                                      }
+                                  return indexTotalUnits;
+                                  },    not(0));
+
+        cache.removeIndex(IdentityExtractor.INSTANCE);
+        cache.clear();
+        }
 
     @Test
     public void testCoh5575()
