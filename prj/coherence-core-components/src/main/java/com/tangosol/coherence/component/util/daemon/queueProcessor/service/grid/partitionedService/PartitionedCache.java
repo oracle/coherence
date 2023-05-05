@@ -48568,22 +48568,22 @@ public class PartitionedCache
                 {
                 synchronized (mapPrime)
                     {
+                    return getVersion().getSubmittedVersion();
                     }
                 }
             else
                 {
-                for (int iPart = partMask.next(0); iPart >= 0; iPart = partMask.next(iPart+1))
+                Map map = pabm.getPartitionMap(partMask.first());
+                if (map != null)
                     {
-                    Map map = pabm.getPartitionMap(iPart);
-                    if (map != null)
+                    synchronized (map)
                         {
-                        synchronized (map)
-                            {
-                            }
+                        return getVersion().getSubmittedVersion();
                         }
                     }
                 }
-            
+
+            // should not happen
             return getVersion().getSubmittedVersion();
             }
         
@@ -55053,7 +55053,7 @@ public class PartitionedCache
                     // we need to flush those events to update potential indexes
                     service.processChanges();
             
-                    version.waitForPendingCommit();
+                    version.waitForPendingCommit(partMask.first());
                     continue;
                     }
             
@@ -55062,7 +55062,7 @@ public class PartitionedCache
                 try
                     {
                     filter = filterOrig instanceof IndexAwareFilter
-                               ? ((IndexAwareFilter) filterOrig).applyIndex(getIndexMap(), setKeys)
+                               ? ((IndexAwareFilter) filterOrig).applyIndex(getIndexMap(partMask.first()), setKeys)
                                : filterOrig;
                     }
                 catch (ConcurrentModificationException e)
@@ -57061,7 +57061,7 @@ public class PartitionedCache
             // import com.tangosol.util.ValueExtractor;
             // import java.util.Iterator;
             // import java.util.List;
-            
+
             int nPart = getService().getKeyPartition(binEntry.getBinaryKey());
             if (mapIndex == null)
                 {
@@ -67224,7 +67224,7 @@ public class PartitionedCache
                 {
                 return entrySet();
                 }
-            
+
             PartitionSet partitions = null;
             Filter       filterOrig = filter;
             if (filter instanceof KeyAssociatedFilter)
@@ -67256,7 +67256,7 @@ public class PartitionedCache
                 }
             
             prepareParallelQuery(filter);
-            
+
             try
                 {
                 if (partitions == null)
