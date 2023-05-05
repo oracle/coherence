@@ -72,7 +72,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -107,7 +106,7 @@ public class ReadWriteBackingMap
     public ReadWriteBackingMap(BackingMapManagerContext ctxService,
             ObservableMap mapInternal, Map mapMisses, CacheLoader loader)
         {
-        init(ctxService, mapInternal, mapMisses, loader, null, null, true, 0, 0.0);
+        init(ctxService, mapInternal, mapMisses, loader, null, null, true, 0, 0.0, RWBM_WB_REMOVE_DEFAULT);
         }
 
     /**
@@ -143,7 +142,47 @@ public class ReadWriteBackingMap
             double dflRefreshAheadFactor)
         {
         init(ctxService, mapInternal, mapMisses, loader, null, null, fReadOnly,
-             cWriteBehindSeconds, dflRefreshAheadFactor);
+             cWriteBehindSeconds, dflRefreshAheadFactor, RWBM_WB_REMOVE_DEFAULT);
+        }
+
+    /**
+     * Construct a ReadWriteBackingMap based on a CacheLoader (CacheStore).
+     *
+     * @param ctxService             the context provided by the CacheService
+     *                               which is using this backing map
+     * @param mapInternal            the ObservableMap used to store the data
+     *                               internally in this backing map
+     * @param mapMisses              the Map used to cache CacheStore misses
+     *                               (optional)
+     * @param loader                 the CacheLoader responsible for the
+     *                               persistence of the cached data (optional)
+     * @param fReadOnly              pass true is the specified loader is in fact
+     *                               a CacheStore that needs to be used only for
+     *                               read operations; changes to the cache will
+     *                               not be persisted
+     * @param cWriteBehindSeconds    number of seconds to write if there is a
+     *                               CacheStore; zero disables write-behind
+     *                               caching, which (combined with !fReadOnly)
+     *                               implies write-through
+     * @param dflRefreshAheadFactor  the interval before an entry expiration time
+     *                               (expressed as a percentage of the internal
+     *                               cache expiration interval) during which an
+     *                               asynchronous load request for the
+     *                               entry will be scheduled; zero disables
+     *                               refresh-ahead; only applicable when
+     *                               the <tt>mapInternal</tt> parameter is an
+     *                               instance of {@link ConfigurableCacheMap}
+     * @param fWriteBehindRemove     pass true if the specified loader is in fact a
+     *                               CacheStore that needs to apply write-behind to remove
+     *
+     * @since 12.2.1.4.18
+     */
+    public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
+                               Map mapMisses, CacheLoader loader, boolean fReadOnly, int cWriteBehindSeconds,
+                               double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        {
+        init(ctxService, mapInternal, mapMisses, loader, null, null, fReadOnly,
+                cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
         }
 
     /**
@@ -176,11 +215,51 @@ public class ReadWriteBackingMap
     * @since Coherence 3.6
     */
     public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
+                               Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly, int cWriteBehindSeconds,
+                               double dflRefreshAheadFactor)
+        {
+        this(ctxService, mapInternal, mapMisses, storeBinary, fReadOnly,
+             cWriteBehindSeconds, dflRefreshAheadFactor, RWBM_WB_REMOVE_DEFAULT);
+        }
+
+    /**
+    * Construct a ReadWriteBackingMap based on a BinaryEntryStore.
+    *
+    * @param ctxService             the context provided by the CacheService
+    *                               which is using this backing map
+    * @param mapInternal            the ObservableMap used to store the data
+    *                               internally in this backing map
+    * @param mapMisses              the Map used to cache CacheStore misses
+    *                               (optional)
+    * @param storeBinary            the BinaryEntryStore responsible for the
+    *                               persistence of the cached data (optional)
+    * @param fReadOnly              pass true is the specified loader is in fact
+    *                               a CacheStore that needs to be used only for
+    *                               read operations; changes to the cache will
+    *                               not be persisted
+    * @param cWriteBehindSeconds    number of seconds to write if there is a
+    *                               CacheStore; zero disables write-behind
+    *                               caching, which (combined with !fReadOnly)
+    *                               implies write-through
+    * @param dflRefreshAheadFactor  the interval before an entry expiration time
+    *                               (expressed as a percentage of the internal
+    *                               cache expiration interval) during which an
+    *                               asynchronous load request for the
+    *                               entry will be scheduled; zero disables
+    *                               refresh-ahead; only applicable when
+    *                               the <tt>mapInternal</tt> parameter is an
+    *                               instance of {@link ConfigurableCacheMap}
+    * @param fWriteBehindRemove     pass true if the specified loader is in fact
+    *                               a CacheStore that needs to apply write-behind to remove
+    *
+    * @since 12.2.1.4.18
+    */
+    public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
             Map mapMisses, BinaryEntryStore storeBinary, boolean fReadOnly, int cWriteBehindSeconds,
-            double dflRefreshAheadFactor)
+            double dflRefreshAheadFactor, boolean fWriteBehindRemove)
         {
         init(ctxService, mapInternal, mapMisses, null, storeBinary, null, fReadOnly,
-             cWriteBehindSeconds, dflRefreshAheadFactor);
+             cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
         }
 
     /**
@@ -217,52 +296,97 @@ public class ReadWriteBackingMap
            double dflRefreshAheadFactor)
         {
         init(ctxService, mapInternal, mapMisses, null, null, storeBinary, fReadOnly,
-                cWriteBehindSeconds, dflRefreshAheadFactor);
+             cWriteBehindSeconds, dflRefreshAheadFactor, RWBM_WB_REMOVE_DEFAULT);
         }
 
     /**
-    * Initialize the ReadWriteBackingMap.
+    * Construct a ReadWriteBackingMap based on a NonBlockingEntryStore.
     *
-    * @param ctxServic              the context provided by the CacheService
+    * @param ctxService             the context provided by the CacheService
     *                               which is using this backing map
     * @param mapInternal            the ObservableMap used to store the data
     *                               internally in this backing map
     * @param mapMisses              the Map used to cache CacheStore misses
     *                               (optional)
-    * @param loader                 the object responsible for the
+    * @param storeBinary            the NonBlockingEntryStore responsible for the
     *                               persistence of the cached data (optional)
-    * @param storeBinary            the BinaryEntryStore to wrap (mutually
-    *                               exclusive with storeNonBlocking)
-    * @param storeNonBlocking       the NonBlockingEntryStore to wrap
-    *                               (mutually exclusive with storeBinary)
-    * @param fReadOnly              pass true is the specified loader is in
-    *                               fact a CacheStore that needs to be used
-    *                               only for read operations; changes to the
-    *                               cache will not be persisted
+    * @param fReadOnly              pass true is the specified loader is in fact
+    *                               a CacheStore that needs to be used only for
+    *                               read operations; changes to the cache will
+    *                               not be persisted
     * @param cWriteBehindSeconds    number of seconds to write if there is a
     *                               CacheStore; zero disables write-behind
     *                               caching, which (combined with !fReadOnly)
     *                               implies write-through
-    * @param dflRefreshAheadFactor  the interval before an entry expiration
-    *                               time (expressed as a percentage of the
-    *                               internal cache expiration interval)
-    *                               during which an asynchronous load request
-    *                               for the entry will be scheduled; zero
-    *                               disables refresh-ahead; only applicable
-    *                               when the <tt>mapInternal</tt> parameter
-    *                               is an instance of
-    *                               {@link ConfigurableCacheMap}
+    * @param dflRefreshAheadFactor  the interval before an entry expiration time
+    *                               (expressed as a percentage of the internal
+    *                               cache expiration interval) during which an
+    *                               asynchronous load request for the
+    *                               entry will be scheduled; zero disables
+    *                               refresh-ahead; only applicable when
+    *                               the <tt>mapInternal</tt> parameter is an
+    *                               instance of {@link ConfigurableCacheMap}
+    * @param fWriteBehindRemove     pass true if the specified loader is in fact
+    *                               a CacheStore that needs to apply write-behind to remove
+    *
+    * @since 12.2.1.4.18
+    */
+    public ReadWriteBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
+           Map mapMisses, NonBlockingEntryStore storeBinary, boolean fReadOnly, int cWriteBehindSeconds,
+           double dflRefreshAheadFactor, boolean fWriteBehindRemove)
+        {
+        init(ctxService, mapInternal, mapMisses, null, null, storeBinary, fReadOnly,
+                cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+        }
+
+    /**
+    * Initialize the ReadWriteBackingMap.
+    *
+    * @param ctxService            the context provided by the CacheService
+    *                              which is using this backing map
+    * @param mapInternal           the ObservableMap used to store the data
+    *                              internally in this backing map
+    * @param mapMisses             the Map used to cache CacheStore misses
+    *                              (optional)
+    * @param loader                the object responsible for the persistence
+    *                              of the cached data (optional)
+    * @param storeBinary           the BinaryEntryStore to wrap
+    *                              exclusive with storeNonBlocking)
+    * @param storeNonBlocking      the NonBlockingEntryStore to wrap
+    *                              (mutually exclusive with storeBinary)
+    * @param fReadOnly             pass true is the specified loader is in fact
+    *                              a CacheStore that needs to be used only for
+    *                              read operations; changes to the cache will
+    *                              not be persisted
+    * @param cWriteBehindSeconds   number of seconds to write if there is a
+    *                              CacheStore; zero disables write-behind
+    *                              caching, which (combined with !fReadOnly)
+    *                              implies write-through
+    * @param dflRefreshAheadFactor the interval before an entry expiration time
+    *                              (expressed as a percentage of the internal
+    *                              cache expiration interval) during which an
+    *                              asynchronous load request for the
+    *                              entry will be scheduled; zero disables
+    *                              refresh-ahead; only applicable when
+    *                              the <tt>mapInternal</tt> parameter is an
+    *                              instance of {@link ConfigurableCacheMap}
+    * @param fWriteBehindRemove    pass true if the specified loader is in fact
+    *                              a CacheStore that needs to apply write-behind to remove*
     */
     private void init(BackingMapManagerContext ctxService, ObservableMap mapInternal,
             Map mapMisses, CacheLoader loader, BinaryEntryStore storeBinary, NonBlockingEntryStore storeNonBlocking,
-            boolean fReadOnly, int cWriteBehindSeconds, double dflRefreshAheadFactor)
+            boolean fReadOnly, int cWriteBehindSeconds, double dflRefreshAheadFactor,
+            boolean fWriteBehindRemove)
         {
         m_ctxService = ctxService;
+        m_setPendingRemoves = null;
 
         configureInternalCache(mapInternal);
 
         if (loader != null || storeBinary != null || storeNonBlocking != null)
             {
+            boolean fWBRemove = cWriteBehindSeconds > 0 ? fWriteBehindRemove : false;
+
             // the misses map is only applicable when there is a valid store
             m_mapMisses = mapMisses;
 
@@ -271,18 +395,18 @@ public class ReadWriteBackingMap
                 configureCacheStore(storeBinary == null
                         ? instantiateCacheStoreWrapper(storeNonBlocking)
                         : instantiateCacheStoreWrapper(storeBinary),
-                    fReadOnly);
+                    fReadOnly, fWBRemove);
                 }
             else if (loader instanceof CacheStore)
                 {
                 configureCacheStore(
-                    instantiateCacheStoreWrapper((CacheStore) loader), fReadOnly);
+                    instantiateCacheStoreWrapper((CacheStore) loader), fReadOnly, fWBRemove);
                 }
             else
                 {
                 configureCacheStore(
                     instantiateCacheStoreWrapper(
-                        instantiateCacheLoaderCacheStore(loader)), true);
+                        instantiateCacheLoaderCacheStore(loader)), true, RWBM_WB_REMOVE_DEFAULT);
                 }
 
             // configure the optional write-behind queue and daemon
@@ -737,6 +861,20 @@ public class ReadWriteBackingMap
         return -1;
         }
 
+    /**
+    * Determine if the backing map should apply write-behind delay to
+    * remove from CacheStore.
+    *
+    * @return true to delay the remove from CacheStore (a read-write cache),
+    *         or false to remove from CacheStore immediately
+    *
+    * @since 12.2.1.4.18
+    */
+    public boolean isWriteBehindRemove()
+        {
+        return m_fWBRemove;
+        }
+
     // ----- Map interface --------------------------------------------------
 
     /**
@@ -762,6 +900,11 @@ public class ReadWriteBackingMap
     */
     public boolean containsKey(Object oKey)
         {
+        if (isWriteBehindRemove() && getPendingRemoves().contains(oKey))
+            {
+            return false;
+            }
+
         return getInternalCache().containsKey(oKey);
         }
 
@@ -797,6 +940,12 @@ public class ReadWriteBackingMap
             {
             // check the misses cache
             if (mapMisses != null && mapMisses.containsKey(oKey))
+                {
+                return null;
+                }
+
+            // check the pending removes key set
+            if (isWriteBehindRemove() && getPendingRemoves().contains(oKey))
                 {
                 return null;
                 }
@@ -908,6 +1057,11 @@ public class ReadWriteBackingMap
                     mapMisses.remove(oKey);
                     }
 
+                if (isWriteBehindRemove())
+                    {
+                    getPendingRemoves().remove(oKey);
+                    }
+
                 cancelOutstandingReads(oKey);
 
                 // if key is owned this is a regular put as opposed to a put due to fail-over
@@ -1007,8 +1161,9 @@ public class ReadWriteBackingMap
     */
     protected Object removeInternal(Object oKey, boolean fBlind)
         {
-        ConcurrentMap mapControl = getControlMap();
-        Map           mapMisses  = getMissesCache();
+        ConcurrentMap mapControl  = getControlMap();
+        Map           mapMisses   = getMissesCache();
+        Map           mapInternal = getInternalCache();
 
         mapControl.lock(oKey, -1L);
         try
@@ -1024,15 +1179,18 @@ public class ReadWriteBackingMap
             // similar to put(), but removes cannot be queued, so there are only
             // two possibilities:
             // (1) read-only: remove in memory only; no CacheStore ops
-            // (2) write-through or write-behind: immediate erase through
-            //     CacheStore
+            // (2) write-through: immediate erase through CacheStore
+            // (3) write-behind: queued remove to CacheStore or failover
 
             // the remove is a potential CacheStore operation even if there is
             // no entry in the internal cache except if it's caused by the
             // CacheService transferring the entry from this backing map;
             // make sure it is owned by this node before delegating to the store
-            Object       oValue = getCachedOrPending(oKey);
-            StoreWrapper store  = getCacheStore();
+            Object       oValue  = getCachedOrPending(oKey);
+            WriteQueue   queue   = getWriteQueue();
+            StoreWrapper store   = getCacheStore();
+            boolean      fUpdate = false;
+
             if (store != null)
                 {
                 boolean fOwned = getContext().isKeyOwned(oKey);
@@ -1056,13 +1214,32 @@ public class ReadWriteBackingMap
                     removeFromWriteQueue(oKey);
                     if (fOwned)
                         {
-                        store.erase(instantiateEntry(oKey, null, oValue));
+                        if (isWriteBehindRemove() && queue != null)
+                            {
+                            // set the value to BIN_ERASE_PENDING
+                            oValue = BIN_ERASE_PENDING;
+                            queue.add(instantiateEntry(oKey, oValue, mapInternal.get(oKey), 0L), 0L);
+                            fUpdate = true;
+                            }
+                        else
+                            {
+                            store.erase(instantiateEntry(oKey, null, oValue));
+                            }
                         }
                     }
                 }
 
-            // the remove from the internal cache comes last
-            getInternalCache().remove(oKey);
+            if (fUpdate)
+                {
+                // write-behind, update the internal cache with decorated value
+                getInternalCache().put(oKey, oValue);
+                getPendingRemoves().add(oKey);
+                }
+            else
+                {
+                // the remove from the internal cache comes last
+                getInternalCache().remove(oKey);
+                }
 
             return oValue;
             }
@@ -1081,7 +1258,8 @@ public class ReadWriteBackingMap
     */
     public int size()
         {
-        return getInternalCache().size();
+        int cPendingRemoves = isWriteBehindRemove() ? getPendingRemoves().size() : 0;
+        return getInternalCache().size() - cPendingRemoves;
         }
 
     /**
@@ -1196,6 +1374,12 @@ public class ReadWriteBackingMap
                 if (mapMisses != null && mapMisses.containsKey(oKey))
                     {
                     // known to be missing; skip
+                    continue;
+                    }
+
+                if (isWriteBehindRemove() && getPendingRemoves().contains(oKey))
+                    {
+                    // known to be pending remove; skip
                     continue;
                     }
 
@@ -1579,6 +1763,7 @@ public class ReadWriteBackingMap
         ConcurrentMap mapControl  = getControlMap();
         Map           mapMisses   = getMissesCache();
         Map           mapInternal = getInternalCache();
+        Set           setRemoves  = getPendingRemoves();
 
         mapControl.lock(oKey, -1L);
         try
@@ -1587,6 +1772,11 @@ public class ReadWriteBackingMap
             if (mapMisses != null)
                 {
                 mapMisses.remove(oKey);
+                }
+
+            if (isWriteBehindRemove() && !setRemoves.isEmpty())
+                {
+                setRemoves.remove(oKey);
                 }
 
             cancelOutstandingReads(oKey);
@@ -1661,6 +1851,11 @@ public class ReadWriteBackingMap
                             // if we ever need to add statistics regarding a
                             // number of items that were re-queued due to a
                             // failover redistribution
+                            // if it is a remove, add it to the m_setPendingRemoves
+                            if (ExternalizableHelper.fromBinary((Binary) oValue) == null && isWriteBehindRemove())
+                                {
+                                setRemoves.add(oKey);
+                                }
                             }
                         }
                     }
@@ -1832,7 +2027,8 @@ public class ReadWriteBackingMap
         */
         public int size()
             {
-            return ReadWriteBackingMap.this.size();
+            int cPendingRemoves = getPendingRemoves() == null ? 0 : getPendingRemoves().size();
+            return ReadWriteBackingMap.this.size() - cPendingRemoves;
             }
 
         /**
@@ -2058,7 +2254,8 @@ public class ReadWriteBackingMap
         */
         public int size()
             {
-            return ReadWriteBackingMap.this.getInternalCache().keySet().size();
+            int cPendinRemoves = isWriteBehindRemove() ? getPendingRemoves().size() : 0;
+            return ReadWriteBackingMap.this.getInternalCache().keySet().size() - cPendinRemoves;
             }
 
         /**
@@ -2213,7 +2410,8 @@ public class ReadWriteBackingMap
         */
         public int size()
             {
-            return ReadWriteBackingMap.this.size();
+            int cPendinRemoves = isWriteBehindRemove() ? getPendingRemoves().size() : 0;
+            return ReadWriteBackingMap.this.size() - cPendinRemoves;
             }
 
         /**
@@ -2447,6 +2645,19 @@ public class ReadWriteBackingMap
     public Map getMissesCache()
         {
         return m_mapMisses;
+        }
+
+    /**
+     * Get the pending removes key set for the CacheStore used by this
+     * backing map.
+     *
+     * @return the key set of pending removes for the CacheStore
+     *
+     * @since 12.2.1.4.18
+     */
+    public Set getPendingRemoves()
+        {
+        return m_setPendingRemoves;
         }
 
     /**
@@ -4562,6 +4773,11 @@ public class ReadWriteBackingMap
             m_daemonWrite = instantiateWriteThread();
             m_daemonWrite.start();
 
+            if (isWriteBehindRemove())
+                {
+                m_setPendingRemoves = new SafeHashSet();
+                }
+
             setWriteBehindSeconds(cWriteBehindSeconds);
 
             ConfigurableCacheMap mapInternal = getInternalConfigurableCache();
@@ -4700,13 +4916,28 @@ public class ReadWriteBackingMap
                         if (store.isStoreAllSupported())
                             {
                             // populate a set of ripe and soft-ripe entries
-                            Entry entryFirst  = null;
-                            Set setEntries  = null;
-                            int cEntries    = 0;
-                            int cMaxEntries = getWriteMaxBatchSize();
+                            Entry   entryFirst  = null;
+                            Entry   entryLast   = null;
+                            Set     setEntries  = null;
+                            int     cEntries    = 0;
+                            int     cMaxEntries = getWriteMaxBatchSize();
+                            boolean fIsRemove   = false;
 
                             while (entry != null)
                                 {
+                                boolean fEntryRemove = false;
+
+                                if (entry.getValue() == null)
+                                    {
+                                    fEntryRemove = equals(entry.getBinaryValue(), BIN_ERASE_PENDING);
+                                    }
+
+                                if (cEntries > 0 && (fIsRemove != fEntryRemove))
+                                    {
+                                    entryLast = entry;
+                                    break;
+                                    }
+
                                 // optimization: only create and populate
                                 // the entry map if there is more than
                                 // one ripe and/or soft-ripe entry in the
@@ -4715,6 +4946,10 @@ public class ReadWriteBackingMap
                                     {
                                     case 0:
                                         entryFirst = entry;
+                                        if (fEntryRemove)
+                                            {
+                                            fIsRemove = true;
+                                            }
                                         break;
 
                                     case 1:
@@ -4742,19 +4977,52 @@ public class ReadWriteBackingMap
 
                                 case 1:
                                     // a single entry
-                                    store.store(entryFirst, true);
+                                    if (fIsRemove)
+                                        {
+                                        store.erase(entryFirst);
+                                        }
+                                    else
+                                        {
+                                        store.store(entryFirst, true);
+                                        }
                                     break;
 
                                 default:
                                     // multiple entries
-                                    store.storeAll(setEntries);
+                                    if (fIsRemove)
+                                        {
+                                        store.eraseAll(setEntries);
+                                        }
+                                    else
+                                        {
+                                        store.storeAll(setEntries);
+                                        }
                                     break;
+                                }
+
+                            if (entryLast != null)
+                                {
+                                if (fIsRemove)
+                                    {
+                                    store.store(entryLast, true);
+                                    }
+                                else
+                                    {
+                                    store.erase(entryLast);
+                                    }
                                 }
                             }
                         else
                             {
-                            // issue the CacheStore Store operation
-                            store.store(entry, true);
+                            if (equals(entry.getBinaryValue(), BIN_ERASE_PENDING))
+                                {
+                                store.erase(entry);
+                                }
+                            else
+                                {
+                                // issue the CacheStore Store operation
+                                store.store(entry, true);
+                                }
                             }
                         }
                     catch (Throwable e)
@@ -4846,12 +5114,14 @@ public class ReadWriteBackingMap
     *                   delegate persistence responsibilities to
     * @param fReadOnly  pass true to prevent the usage of the cache store
     *                   write operations
+    * @param fWBRemove  pass true to apply write-behind to remove
     */
-    protected void configureCacheStore(StoreWrapper store, boolean fReadOnly)
+    protected void configureCacheStore(StoreWrapper store, boolean fReadOnly, boolean fWBRemove)
         {
         Base.azzert(store != null && m_store == null);
         m_fReadOnly = fReadOnly;
         m_store     = store;
+        m_fWBRemove = fWBRemove;
         }
 
 
@@ -5501,11 +5771,18 @@ public class ReadWriteBackingMap
             try
                 {
                 eraseInternal(binEntry);
+
+                if (isWriteBehindRemove())
+                    {
+                    Binary binKey = binEntry.getBinaryKey();
+                    getInternalCache().remove(binKey);
+                    getPendingRemoves().remove(binKey);
+                    }
                 }
             catch (RuntimeException e)
                 {
                 ++m_cEraseFailures;
-                onEraseFailure(binEntry.getKey(), e);
+                onEraseFailure(binEntry, e);
                 }
             finally
                 {
@@ -5532,6 +5809,14 @@ public class ReadWriteBackingMap
             try
                 {
                 eraseAllInternal(setBinEntries);
+                if (isWriteBehindRemove())
+                    {
+                    for (ReadWriteBackingMap.Entry entry : (Set<ReadWriteBackingMap.Entry>) setBinEntries)
+                        {
+                        getInternalCache().remove(entry.getBinaryKey());
+                        getPendingRemoves().remove(entry.getBinaryKey());
+                        }
+                    }
                 }
             catch (RuntimeException e)
                 {
@@ -5929,9 +6214,60 @@ public class ReadWriteBackingMap
         * overwritten if a particular store can fail and the backing
         * map must take action based on it.
         *
-        * @param oKeyReal  the key
-        * @param e         the exception
+        * @param entry  the entry
+        * @param e      the exception
         */
+        protected void onEraseFailure(Entry entry, Exception e)
+            {
+            // allow the store to avoid erasing
+            if (e instanceof UnsupportedOperationException)
+                {
+                if (isEraseSupported())
+                    {
+                    setEraseSupported(false);
+                    reportUnsupported("erase");
+                    }
+                }
+            else
+                {
+                String sMsg = "Failed to erase key=\"" + entry.getKey() + "\"";
+                if (isWriteBehindRemove())
+                    {
+                    WriteQueue  queue      = getWriteQueue();
+                    int         cThreshold = getWriteRequeueThreshold();
+
+                    // this is a write-behind map; log and requeue, if necessary
+                    err(sMsg);
+                    err(e);
+
+                    if (queue != null && cThreshold != 0)
+                        {
+                        requeue(queue, cThreshold, entry);
+                        }
+                    }
+                else
+                    {
+                    if (isRethrowExceptions())
+                        {
+                        throw ensureRuntimeException(e, sMsg);
+                        }
+                    else
+                        {
+                        err(sMsg);
+                        err(e);
+                        }
+                    }
+                }
+            }
+
+        /**
+         * Logs a store erase() failure. This method is intended to be
+         * overwritten if a particular store can fail and the backing
+         * map must take action based on it.
+         *
+         * @param oKeyReal  the key
+         * @param e         the exception
+         */
         protected void onEraseFailure(Object oKeyReal, Exception e)
             {
             // allow the store to avoid erasing
@@ -5979,15 +6315,35 @@ public class ReadWriteBackingMap
                 }
             else
                 {
-                String sMsg = formatKeys(setBinEntries, "Failed to erase");
-                if (isRethrowExceptions())
+                String sMsg = formatKeys(setBinEntries, "Failed to eraseAll");
+                if (isWriteBehindRemove())
                     {
-                    throw ensureRuntimeException(e, sMsg);
+                    WriteQueue  queue      = getWriteQueue();
+                    int         cThreshold = getWriteRequeueThreshold();
+
+                    // this is a write-behind map; log and requeue, if necessary
+                    err(sMsg);
+                    err(e);
+
+                    if (queue != null && cThreshold != 0)
+                        {
+                        for (Object o : setBinEntries)
+                            {
+                            requeue(queue, cThreshold, (Entry) o);
+                            }
+                        }
                     }
                 else
                     {
-                    err(sMsg);
-                    err(e);
+                    if (isRethrowExceptions())
+                        {
+                        throw ensureRuntimeException(e, sMsg);
+                        }
+                    else
+                        {
+                        err(sMsg);
+                        err(e);
+                        }
                     }
                 }
             }
@@ -7172,7 +7528,7 @@ public class ReadWriteBackingMap
             /**
             * Sets the exception to return to the caller.
             *
-            * @param throwable  exception being set
+            * @param error  exception being set
             */
             private void setThrowable(Throwable error)
                 {
@@ -7846,6 +8202,33 @@ public class ReadWriteBackingMap
     */
     public static final long MIN_REQUEUE_DELAY = Config.getLong("coherence.rwbm.requeue.delay", 60000L);
 
+    /**
+     * Binary representation of a decorated null for write-behind remove.
+     *
+     * @since 12.2.1.4.18
+     */
+    public static final Binary BIN_ERASE_PENDING = ExternalizableHelper.decorate(ExternalizableHelper.toBinary(null),
+            BackingMapManagerContext.DECO_STORE, BIN_STORE_PENDING);
+
+    /**
+     * A Boolean system property to control whether write behind remove is enabled.
+     *
+     * @since 12.1.4.18
+     */
+    public static final String PROP_WB_REMOVE_DEFAULT = "coherence.rwbm.writebehind.remove.default";
+
+    /**
+     * The default write behind remove behavior.  This behavior will be used
+     * if write behind remove has not been specified in the cache configuration
+     * for a RWBM instance.  The default value is false and can be overridden
+     * by the system property:
+     * <pre>
+     * coherence.rwbm.writebehind.remove
+     * </pre>
+     *
+     * @since 12.2.1.4.18
+     */
+    public static final boolean RWBM_WB_REMOVE_DEFAULT = Config.getBoolean(PROP_WB_REMOVE_DEFAULT, false);
 
     // ----- data fields ----------------------------------------------------
 
@@ -7883,6 +8266,13 @@ public class ReadWriteBackingMap
     private Map              m_mapMisses;
 
     /**
+     * The Set used to keep track of CacheStore pending removes.
+     *
+     * @since 12.2.1.4.18
+     */
+    private Set              m_setPendingRemoves;
+
+    /**
     * The concurrency control map for this backing map.
     */
     private ConcurrentMap    m_mapControl;
@@ -7903,7 +8293,7 @@ public class ReadWriteBackingMap
     * The optional representative of the "persistent" storage for this
     * backing map.
     */
-    private StoreWrapper m_store;
+    private StoreWrapper     m_store;
 
     /**
     * Specifies a read-write cache if false, which will send changes to the
@@ -7993,4 +8383,12 @@ public class ReadWriteBackingMap
     * Controls the maximum size of a storeAll batch.
     */
     private int              m_cWriteMaxBatchSize = 128;
+
+    /**
+     * Specifies whether the CacheStore will perform write-behind remove
+     * operations. This property only applies to write-behind CacheStores.
+     *
+     * @since 12.2.1.4.18
+     */
+    private boolean          m_fWBRemove;
     }

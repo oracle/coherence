@@ -90,6 +90,7 @@ import com.tangosol.net.events.EventDispatcherRegistry;
 import com.tangosol.net.events.internal.InterceptorManager;
 import com.tangosol.net.events.internal.ServiceDispatcher;
 import com.tangosol.net.events.internal.StorageDispatcher;
+import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.internal.CopyOnWriteLongList;
 import com.tangosol.net.internal.EntryInfo;
 import com.tangosol.net.internal.MemberInfo;
@@ -27532,6 +27533,7 @@ public class PartitionedCache
          */
         public void onEntryChanged(com.tangosol.net.internal.EntryInfo entryInfo, com.oracle.coherence.common.base.Continuation continuation)
             {
+            // import com.tangosol.net.cache.ReadWriteBackingMap;
             // import com.tangosol.net.events.partition.cache.EntryEvent$Type as com.tangosol.net.events.partition.cache.EntryEvent.Type;
             // import com.tangosol.net.events.internal.StorageDispatcher as com.tangosol.net.events.internal.StorageDispatcher;
             // import com.tangosol.util.BinaryEntry;
@@ -27542,6 +27544,14 @@ public class PartitionedCache
             PartitionedCache.Storage    storage    = service.getStorage(binEntry.getBackingMapContext().getCacheName());
             com.tangosol.net.events.partition.cache.EntryEvent.Type   eventType  = entryInfo.getEventType();
             com.tangosol.net.events.internal.StorageDispatcher  dispatcher = getStorageDispatcher(storage);
+            boolean     fDispatch  = storage.hasInterceptors() && dispatcher != null;
+
+            if (fDispatch && eventType == EntryEvent.Type.UPDATED &&
+                    ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue()))
+                {
+                eventType = EntryEvent.Type.REMOVED;
+                }
+
             if (storage.hasInterceptors() && dispatcher != null && dispatcher.isSubscribed(eventType))
                 {
                 // prepare a continuation to raise the entry event, and wrap it as a task to
