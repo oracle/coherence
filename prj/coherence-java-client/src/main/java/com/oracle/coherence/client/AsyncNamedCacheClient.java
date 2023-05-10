@@ -2332,10 +2332,7 @@ public class AsyncNamedCacheClient<K, V>
                            + "that supports the operation.", sre);
                    }
                }
-           else
-               {
-               throw Base.ensureRuntimeException(t);
-               }
+           throw Base.ensureRuntimeException(t);
            }
        return result;
        }
