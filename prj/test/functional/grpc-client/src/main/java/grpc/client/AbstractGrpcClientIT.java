@@ -27,6 +27,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.OperationalContext;
 
+import com.tangosol.net.RequestIncompleteException;
 import com.tangosol.net.grpc.GrpcDependencies;
 
 import com.tangosol.util.AbstractMapListener;
@@ -53,6 +54,8 @@ import com.tangosol.util.filter.MapEventFilter;
 
 import com.tangosol.util.processor.ExtractorProcessor;
 
+import io.grpc.StatusRuntimeException;
+import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -81,6 +84,7 @@ import java.util.concurrent.TimeUnit;
 
 import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -89,6 +93,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -132,6 +137,28 @@ abstract class AbstractGrpcClientIT
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldThrowException(String sSerializerName, Serializer serializer)
+        {
+        String     cacheName = "test-cache";
+        NamedCache cache     = ensureCache(cacheName);
+
+        cache.clear();
+
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+        try
+            {
+            grpcClient.aggregate(new UnusableAggregator());
+            fail("No exception thrown");
+            }
+        catch (RequestIncompleteException rie)
+            {
+            assertThat(rie.getCause(), instanceOf(ExecutionException.class));
+            assertThat(rie.getCause().getCause(), instanceOf(StatusRuntimeException.class));
+            }
+        }
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
