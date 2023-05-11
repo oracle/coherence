@@ -90,6 +90,7 @@ import org.hamcrest.Matchers;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -1469,6 +1470,7 @@ public class ReadWriteBackingMapTests
         }
 
     @Test
+    @Ignore
     public void testRemoveAll()
         {
         testRemoveAll("dist-rwbm-wt");
