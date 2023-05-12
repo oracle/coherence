@@ -185,7 +185,8 @@ public final class MultiBufferWriteBuffer
     */
     public int length()
         {
-        return m_ofLastBuffer + (m_bufLast == null ? 0 : m_bufLast.length());
+        WriteBuffer bufLast = m_bufLast;
+        return m_ofLastBuffer + (bufLast == null ? 0 : bufLast.length());
         }
 
     /**
