@@ -21,9 +21,9 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
-import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 
@@ -85,7 +85,7 @@ import static org.junit.Assert.fail;
 public class TopicsRecoveryTests
     {
     @BeforeClass
-    public static void setup()
+    public static void setup() throws Exception
         {
         System.setProperty(Logging.PROPERTY_LEVEL, "8");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
@@ -99,7 +99,7 @@ public class TopicsRecoveryTests
                 .build();
 
         s_coherence = Coherence.clusterMember(config);
-        s_coherence.start().join();
+        s_coherence.start().get(5, TimeUnit.MINUTES);
         s_session = s_coherence.getSession();
         }
 
@@ -138,66 +138,75 @@ public class TopicsRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldPublishAfterServiceRestart() throws Exception
         {
-        NamedTopic<Message>         topic        = ensureTopic("binary-test");
-        LocalPlatform               platform     = LocalPlatform.get();
-        DistributedCacheService     service      = (DistributedCacheService) topic.getService();
-        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
-        PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
-        int                         cbPage       = dependencies.getPageCapacity();
-        int                         cMsgPerPage  = 10;
-        int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
-        int                         cbMessage    = cbPage / cMsgPerPage;
-        String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
-
-
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                             WellKnownAddress.loopback(),
-                                                             LocalHost.only(),
-                                                             LocalStorage.enabled(),
-                                                             CacheConfig.of(CACHE_CONFIG),
-                                                             s_testLogs.builder(),
-                                                             DisplayName.of(m_testName.getMethodName())))
+        try
             {
-            Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
-            Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
+            NamedTopic<Message>         topic        = ensureTopic("binary-test");
+            LocalPlatform               platform     = LocalPlatform.get();
+            DistributedCacheService     service      = (DistributedCacheService) topic.getService();
+            PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+            PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
+            int                         cbPage       = dependencies.getPageCapacity();
+            int                         cMsgPerPage  = 10;
+            int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
+            int                         cbMessage    = cbPage / cMsgPerPage;
+            String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
-            // ensure messages are retained by creating a subscriber group
-            topic.ensureSubscriberGroup("test");
 
-            try (Publisher<Message> publisher = topic.createPublisher())
+            try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.loopback(),
+                                                                 LocalHost.only(),
+                                                                 LocalStorage.enabled(),
+                                                                 CacheConfig.of(CACHE_CONFIG),
+                                                                 s_testLogs.builder(),
+                                                                 DisplayName.of(m_testName.getMethodName())))
                 {
-                int i = 0;
-                System.err.println("Publishing " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
-                for (; i < cMsgTotal / 2; i++)
-                    {
-                    publisher.publish(new Message(i, sMsg)).get(30, TimeUnit.SECONDS);
-                    }
-                System.err.println("Flushing Publisher");
-                publisher.flush().get(5, TimeUnit.MINUTES);
+                Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
+                Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                restartService(topic);
+                // ensure messages are retained by creating a subscriber group
+                topic.ensureSubscriberGroup("test");
 
-                System.err.println("Publishing remaining " + (cMsgTotal - i) + " messages of " + cbMessage + " bytes");
-                for (; i < cMsgTotal; i++)
+                try (Publisher<Message> publisher = topic.createPublisher())
                     {
-                    publisher.publish(new Message(i, sMsg)).get(30, TimeUnit.SECONDS);
-                    }
-                System.err.println("Flushing Publisher");
-                publisher.flush().get(5, TimeUnit.MINUTES);
-
-                // assert that all the expected messages exist in the topic
-                try (Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test")))
-                    {
-                    for (int m = 0; m < cMsgTotal; m++)
+                    int i = 0;
+                    System.err.println("Publishing " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
+                    for (; i < cMsgTotal / 2; i++)
                         {
-                        Subscriber.Element<Message> element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                        assertThat(element, is(notNullValue()));
-                        Message message = element.getValue();
-                        assertThat(message, is(notNullValue()));
-                        assertThat(message.m_id, is(m));
+                        publisher.publish(new Message(i, sMsg)).get(30, TimeUnit.SECONDS);
+                        }
+                    System.err.println("Flushing Publisher");
+                    publisher.flush().get(5, TimeUnit.MINUTES);
+
+                    restartService(topic);
+
+                    System.err.println("Publishing remaining " + (cMsgTotal - i) + " messages of " + cbMessage + " bytes");
+                    for (; i < cMsgTotal; i++)
+                        {
+                        publisher.publish(new Message(i, sMsg)).get(30, TimeUnit.SECONDS);
+                        }
+                    System.err.println("Flushing Publisher");
+                    publisher.flush().get(5, TimeUnit.MINUTES);
+
+                    // assert that all the expected messages exist in the topic
+                    try (Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test")))
+                        {
+                        for (int m = 0; m < cMsgTotal; m++)
+                            {
+                            Subscriber.Element<Message> element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                            assertThat(element, is(notNullValue()));
+                            Message message = element.getValue();
+                            assertThat(message, is(notNullValue()));
+                            assertThat(message.m_id, is(m));
+                            }
                         }
                     }
                 }
+            }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
             }
         }
 
@@ -205,63 +214,66 @@ public class TopicsRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldPublishAfterServiceRestartWhenThrottled() throws Exception
         {
-        NamedTopic<Message> topic        = ensureTopic("limited-binary-test");
-        LocalPlatform       platform     = LocalPlatform.get();
-        String              sMsg         = "foo";
-
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                             WellKnownAddress.loopback(),
-                                                             LocalHost.only(),
-                                                             LocalStorage.enabled(),
-                                                             CacheConfig.of(CACHE_CONFIG),
-                                                             s_testLogs.builder(),
-                                                             DisplayName.of(m_testName.getMethodName())))
+        try
             {
-            Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
-            Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
+            NamedTopic<Message> topic        = ensureTopic("limited-binary-test");
+            LocalPlatform       platform     = LocalPlatform.get();
+            String              sMsg         = "foo";
 
-            // ensure messages are retained by creating a subscriber group
-            topic.ensureSubscriberGroup("test");
-
-            try (Publisher<Message> publisher = topic.createPublisher())
+            try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.loopback(),
+                                                                 LocalHost.only(),
+                                                                 LocalStorage.enabled(),
+                                                                 CacheConfig.of(CACHE_CONFIG),
+                                                                 s_testLogs.builder(),
+                                                                 DisplayName.of(m_testName.getMethodName())))
                 {
-                // We need to use a non-blocking try block here otherwise the publish call
-                // would block forever when we're backlogged.
-                try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
-                    {
-                    // Publish 75 messages - we'll be backlogged very quickly well before 75
-                    // Once backlogged the service will be restarted, then we'll read the messages
-                    // so becoming un-backlogged and be able to publish more.
-                    int cBlocked = 0;
-                    for (int i = 0; i < 75 && cBlocked < 2; i++)
-                        {
-                        publisher.publish(new Message(i, sMsg));
-                        try
-                            {
-                            publisher.flush().get(5, TimeUnit.SECONDS);
-                            }
-                        catch (TimeoutException _ignored)
-                            {
-                            cBlocked++;
-                            // we're throttled so bounce the cache service...
-                            restartService(topic);
+                Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
+                Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                            try (Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()))
+                // ensure messages are retained by creating a subscriber group
+                topic.ensureSubscriberGroup("test");
+
+                try (Publisher<Message> publisher = topic.createPublisher())
+                    {
+                    // We need to use a non-blocking try block here otherwise the publish call
+                    // would block forever when we're backlogged.
+                    try (@SuppressWarnings("unused") NonBlocking nb = new NonBlocking())
+                        {
+                        // Publish 75 messages - we'll be backlogged very quickly well before 75
+                        // Once backlogged the service will be restarted, then we'll read the messages
+                        // so becoming un-backlogged and be able to publish more.
+                        int cBlocked = 0;
+                        for (int i = 0; i < 75 && cBlocked < 2; i++)
+                            {
+                            publisher.publish(new Message(i, sMsg));
+                            try
                                 {
-                                // read everything
-                                Subscriber.Element<Message> element  = subscriber.receive().get(1, TimeUnit.MINUTES);
-                                if (element != null)
+                                publisher.flush().get(5, TimeUnit.SECONDS);
+                                }
+                            catch (TimeoutException _ignored)
+                                {
+                                cBlocked++;
+                                // we're throttled so bounce the cache service...
+                                restartService(topic);
+
+                                try (Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test"), Subscriber.CompleteOnEmpty.enabled()))
                                     {
-                                    int      nChannel = element.getChannel();
-                                    Position position = null;
-                                    while(element != null)
+                                    // read everything
+                                    Subscriber.Element<Message> element  = subscriber.receive().get(1, TimeUnit.MINUTES);
+                                    if (element != null)
                                         {
-                                        position = element.getPosition();
-                                        element  = subscriber.receive().get(1, TimeUnit.MINUTES);
-                                        }
-                                    if (nChannel >= 0)
-                                        {
-                                        subscriber.commit(nChannel, position);
+                                        int      nChannel = element.getChannel();
+                                        Position position = null;
+                                        while(element != null)
+                                            {
+                                            position = element.getPosition();
+                                            element  = subscriber.receive().get(1, TimeUnit.MINUTES);
+                                            }
+                                        if (nChannel >= 0)
+                                            {
+                                            subscriber.commit(nChannel, position);
+                                            }
                                         }
                                     }
                                 }
@@ -270,82 +282,97 @@ public class TopicsRecoveryTests
                     }
                 }
             }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
+            }
         }
 
     @Test
     public void shouldSubscribeWithAnonymousSubscriberAfterServiceRestart() throws Exception
         {
-        NamedTopic<Message>         topic        = ensureTopic("binary-test");
-        LocalPlatform               platform     = LocalPlatform.get();
-        DistributedCacheService     service      = (DistributedCacheService) topic.getService();
-        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
-        PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
-        int                         cbPage       = dependencies.getPageCapacity();
-        int                         cMsgPerPage  = 10;
-        int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
-        int                         cbMessage    = cbPage / cMsgPerPage;
-        String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
-
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                             WellKnownAddress.loopback(),
-                                                             LocalHost.only(),
-                                                             LocalStorage.enabled(),
-                                                             CacheConfig.of(CACHE_CONFIG),
-                                                             s_testLogs.builder(),
-                                                             LaunchLogging.disabled(),
-                                                             DisplayName.of(m_testName.getMethodName())))
+        try
             {
-            Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
-            Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
+            NamedTopic<Message>         topic        = ensureTopic("binary-test");
+            LocalPlatform               platform     = LocalPlatform.get();
+            DistributedCacheService     service      = (DistributedCacheService) topic.getService();
+            PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+            PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
+            int                         cbPage       = dependencies.getPageCapacity();
+            int                         cMsgPerPage  = 10;
+            int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
+            int                         cbMessage    = cbPage / cMsgPerPage;
+            String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
-            try (Publisher<Message> publisher = topic.createPublisher();
-                 Subscriber<Message> subscriber = topic.createSubscriber())
+            try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.loopback(),
+                                                                 LocalHost.only(),
+                                                                 LocalStorage.enabled(),
+                                                                 CacheConfig.of(CACHE_CONFIG),
+                                                                 s_testLogs.builder(),
+                                                                 LaunchLogging.disabled(),
+                                                                 DisplayName.of(m_testName.getMethodName())))
                 {
-                System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
-                for (int i = 0; i < cMsgTotal; i++)
-                    {
-                    publisher.publish(new Message(i, sMsg));
-                    }
-                System.err.println("Flushing Publisher");
-                publisher.flush().get(5, TimeUnit.MINUTES);
+                Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
+                Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                System.err.println("Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
-                Subscriber.Element<Message> element = null;
-                int m = 0;
-                for ( ; m < cMsgTotal / 2; m++)
+                try (Publisher<Message> publisher = topic.createPublisher();
+                     Subscriber<Message> subscriber = topic.createSubscriber())
                     {
-                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                    System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
+                    for (int i = 0; i < cMsgTotal; i++)
+                        {
+                        publisher.publish(new Message(i, sMsg));
+                        }
+                    System.err.println("Flushing Publisher");
+                    publisher.flush().get(5, TimeUnit.MINUTES);
+
+                    System.err.println("Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
+                    Subscriber.Element<Message> element = null;
+                    int m = 0;
+                    for ( ; m < cMsgTotal / 2; m++)
+                        {
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        assertThat(element, is(notNullValue()));
+                        Message message = element.getValue();
+                        assertThat(message, is(notNullValue()));
+                        assertThat(message.m_id, is(m));
+                        }
                     assertThat(element, is(notNullValue()));
-                    Message message = element.getValue();
-                    assertThat(message, is(notNullValue()));
-                    assertThat(message.m_id, is(m));
-                    }
-                assertThat(element, is(notNullValue()));
-                System.err.println("Subscriber committing element at " + element.getPosition());
-                assertThat(element.commit().isSuccess(), is(true));
+                    System.err.println("Subscriber committing element at " + element.getPosition());
+                    assertThat(element.commit().isSuccess(), is(true));
 
-                // read some more and do not commit - restart should be from the commit
-                System.err.println("Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
-                for (int i = 0; i < cMsgTotal / 10; i++)
-                    {
-                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                    assertThat(element, is(notNullValue()));
-                    }
+                    // read some more and do not commit - restart should be from the commit
+                    System.err.println("Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
+                    for (int i = 0; i < cMsgTotal / 10; i++)
+                        {
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        assertThat(element, is(notNullValue()));
+                        }
 
-                restartService(topic);
+                    restartService(topic);
 
-                assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
+                    assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
 
-                System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
-                for ( ; m < cMsgTotal; m++)
-                    {
-                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                    assertThat(element, is(notNullValue()));
-                    Message message = element.getValue();
-                    assertThat(message, is(notNullValue()));
-                    assertThat(message.m_id, is(m));
+                    System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
+                    for ( ; m < cMsgTotal; m++)
+                        {
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        assertThat(element, is(notNullValue()));
+                        Message message = element.getValue();
+                        assertThat(message, is(notNullValue()));
+                        assertThat(message.m_id, is(m));
+                        }
                     }
                 }
+            }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
             }
         }
 
@@ -353,126 +380,140 @@ public class TopicsRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldSubscribeWithGroupSubscriberAfterServiceRestart() throws Exception
         {
-        NamedTopic<Message>         topic        = ensureTopic("binary-test");
-        LocalPlatform               platform     = LocalPlatform.get();
-        DistributedCacheService     service      = (DistributedCacheService) topic.getService();
-        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
-        PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
-        int                         cbPage       = dependencies.getPageCapacity();
-        int                         cMsgPerPage  = 10;
-        int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
-        int                         cbMessage    = cbPage / cMsgPerPage;
-        String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
-
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                             WellKnownAddress.loopback(),
-                                                             LocalHost.only(),
-                                                             LocalStorage.enabled(),
-                                                             CacheConfig.of(CACHE_CONFIG),
-                                                             s_testLogs.builder(),
-                                                             LaunchLogging.disabled(),
-                                                             DisplayName.of(m_testName.getMethodName())))
+        try
             {
-            Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
-            Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
+            NamedTopic<Message>         topic        = ensureTopic("binary-test");
+            LocalPlatform               platform     = LocalPlatform.get();
+            DistributedCacheService     service      = (DistributedCacheService) topic.getService();
+            PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+            PagedTopicDependencies      dependencies = mgr.getTopicDependencies(topic.getName());
+            int                         cbPage       = dependencies.getPageCapacity();
+            int                         cMsgPerPage  = 10;
+            int                         cMsgTotal    = cMsgPerPage * service.getPartitionCount() * 3; // lots of pages over all partitions
+            int                         cbMessage    = cbPage / cMsgPerPage;
+            String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
-            try (Publisher<Message>  publisher  = topic.createPublisher();
-                 Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test")))
+            try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.loopback(),
+                                                                 LocalHost.only(),
+                                                                 LocalStorage.enabled(),
+                                                                 CacheConfig.of(CACHE_CONFIG),
+                                                                 s_testLogs.builder(),
+                                                                 LaunchLogging.disabled(),
+                                                                 DisplayName.of(m_testName.getMethodName())))
                 {
-                System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
-                for (int i = 0; i < cMsgTotal; i++)
-                    {
-                    publisher.publish(new Message(i, sMsg));
-                    }
-                System.err.println("Flushing Publisher");
-                publisher.flush().get(5, TimeUnit.MINUTES);
+                Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
+                Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                System.err.println("Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
-                Subscriber.Element<Message> element = null;
-                int m = 0;
-                for ( ; m < cMsgTotal / 2; m++)
+                try (Publisher<Message>  publisher  = topic.createPublisher();
+                     Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test")))
                     {
-                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                    System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
+                    for (int i = 0; i < cMsgTotal; i++)
+                        {
+                        publisher.publish(new Message(i, sMsg));
+                        }
+                    System.err.println("Flushing Publisher");
+                    publisher.flush().get(5, TimeUnit.MINUTES);
+
+                    System.err.println("Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
+                    Subscriber.Element<Message> element = null;
+                    int m = 0;
+                    for ( ; m < cMsgTotal / 2; m++)
+                        {
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        assertThat(element, is(notNullValue()));
+                        Message message = element.getValue();
+                        assertThat(message, is(notNullValue()));
+                        assertThat(message.m_id, is(m));
+                        }
                     assertThat(element, is(notNullValue()));
-                    Message message = element.getValue();
-                    assertThat(message, is(notNullValue()));
-                    assertThat(message.m_id, is(m));
-                    }
-                assertThat(element, is(notNullValue()));
-                System.err.println("Subscriber committing element at " + element.getPosition() + " value=" + element.getValue());
-                assertThat(element.commit().isSuccess(), is(true));
+                    System.err.println("Subscriber committing element at " + element.getPosition() + " value=" + element.getValue());
+                    assertThat(element.commit().isSuccess(), is(true));
 
-                // read some more and do not commit - restart should be from the commit
-                System.err.println("Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
-                for (int i = 0; i < cMsgTotal / 10; i++)
-                    {
-                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                    assertThat(element, is(notNullValue()));
-                    }
+                    // read some more and do not commit - restart should be from the commit
+                    System.err.println("Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
+                    for (int i = 0; i < cMsgTotal / 10; i++)
+                        {
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        assertThat(element, is(notNullValue()));
+                        }
 
-                restartService(topic);
+                    restartService(topic);
 
-                assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
+                    assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
 
-                System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
-                for ( ; m < cMsgTotal; m++)
-                    {
-                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                    assertThat(element, is(notNullValue()));
-                    Message message = element.getValue();
-                    assertThat(message, is(notNullValue()));
-                    assertThat(message.m_id, is(m));
+                    System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
+                    for ( ; m < cMsgTotal; m++)
+                        {
+                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                        assertThat(element, is(notNullValue()));
+                        Message message = element.getValue();
+                        assertThat(message, is(notNullValue()));
+                        assertThat(message.m_id, is(m));
+                        }
                     }
                 }
+            }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
             }
         }
 
     @Test
+    @SuppressWarnings("unchecked")
     @Ignore("Intermittent due to async EP seeming to get result from a different invocation!")
-    public void shouldRecoverFromServiceRestartDuringSubscription()
+    public void shouldRecoverFromServiceRestartDuringSubscription() throws Exception
         {
-        NamedTopic<Message> topic    = ensureTopic("binary-test");
-        LocalPlatform       platform = LocalPlatform.get();
-        TaskDaemon          daemon   = new TaskDaemon("test-daemon");
-
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                             WellKnownAddress.loopback(),
-                                                             LocalHost.only(),
-                                                             LocalStorage.enabled(),
-                                                             CacheConfig.of(CACHE_CONFIG),
-                                                             LaunchLogging.disabled(),
-                                                             s_testLogs.builder(),
-                                                             DisplayName.of(m_testName.getMethodName())))
+        try
             {
-            Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
-            Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
+            NamedTopic<Message> topic    = ensureTopic("binary-test");
+            LocalPlatform       platform = LocalPlatform.get();
+            TaskDaemon          daemon   = new TaskDaemon("test-daemon");
 
-            try (Subscriber<Message> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
+            try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.loopback(),
+                                                                 LocalHost.only(),
+                                                                 LocalStorage.enabled(),
+                                                                 CacheConfig.of(CACHE_CONFIG),
+                                                                 LaunchLogging.disabled(),
+                                                                 s_testLogs.builder(),
+                                                                 DisplayName.of(m_testName.getMethodName())))
                 {
-                int cMessage;
+                Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
+                Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                try (Publisher<Message> publisher = topic.createPublisher())
+                try (Subscriber<Message> subscriber = topic.createSubscriber(Subscriber.CompleteOnEmpty.enabled()))
                     {
-                    PublishTask task = new PublishTask(publisher, 3);
+                    int cMessage;
+
+                    try (Publisher<Message> publisher = topic.createPublisher())
+                        {
+                        PublishTask task = new PublishTask(publisher, 3);
+                        daemon.executeTask(task);
+                        cMessage = task.onCompletion().get(5, TimeUnit.MINUTES);
+                        }
+
+                    SubscribeTask task = new SubscribeTask(subscriber, cMessage);
                     daemon.executeTask(task);
-                    cMessage = task.onCompletion().get(5, TimeUnit.MINUTES);
+                    // wait until the subscriber in receiving...
+                    Eventually.assertDeferred(task::getDistinctReceived, is(greaterThan(100)));
+
+                    restartService(topic);
+
+                    Integer cReceived = task.onCompletion().get(2, TimeUnit.MINUTES);
+                    assertThat(cReceived, is(cMessage));
                     }
-
-                SubscribeTask task = new SubscribeTask(subscriber, cMessage);
-                daemon.executeTask(task);
-                // wait until the subscriber in receiving...
-                Eventually.assertDeferred(task::getDistinctReceived, is(greaterThan(100)));
-
-                restartService(topic);
-
-                Integer cReceived = task.onCompletion().get(2, TimeUnit.MINUTES);
-                assertThat(cReceived, is(cMessage));
                 }
-            catch (Throwable t)
-                {
-                t.printStackTrace();
-                throw Exceptions.ensureRuntimeException(t);
-                }
+            }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
             }
         }
 
@@ -480,77 +521,85 @@ public class TopicsRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldRecoverFromServiceRestartDuringPublishing() throws Exception
         {
-        NamedTopic<Message> topic      = ensureTopic("binary-test");
-        LocalPlatform       platform   = LocalPlatform.get();
-        TaskDaemon          daemon     = new TaskDaemon("test-daemon");
-
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                             WellKnownAddress.loopback(),
-                                                             LocalHost.only(),
-                                                             LocalStorage.enabled(),
-                                                             CacheConfig.of(CACHE_CONFIG),
-                                                             LaunchLogging.disabled(),
-                                                             s_testLogs.builder(),
-                                                             DisplayName.of(m_testName.getMethodName())))
+        try
             {
-            Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
-            Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
+            NamedTopic<Message> topic      = ensureTopic("binary-test");
+            LocalPlatform       platform   = LocalPlatform.get();
+            TaskDaemon          daemon     = new TaskDaemon("test-daemon");
 
-            // create a subscriber group to retain messages
-            topic.ensureSubscriberGroup("test");
-
-            System.err.println("Starting test");
-            try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.id(0), Publisher.OnFailure.Continue))
+            try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 WellKnownAddress.loopback(),
+                                                                 LocalHost.only(),
+                                                                 LocalStorage.enabled(),
+                                                                 CacheConfig.of(CACHE_CONFIG),
+                                                                 LaunchLogging.disabled(),
+                                                                 s_testLogs.builder(),
+                                                                 DisplayName.of(m_testName.getMethodName())))
                 {
-                PublishTask task = new PublishTask(publisher, 5);
-                daemon.executeTask(task);
-                // wait until the publisher is publishing...
-                Eventually.assertDeferred(task::getPublishedCount, is(greaterThan(1000)));
+                Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
+                Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                restartService(topic);
+                // create a subscriber group to retain messages
+                topic.ensureSubscriberGroup("test");
 
-                // Wait for the publisher task to complete, ignoring errors.
-                // Most of the time we see a CancellationException as a request was in-flight
-                // when the service stopped, but occasionally there is no in-flight request,
-                // and we see the publisher complete successfully
-                task.onCompletion()
-                        .handle((count, err) -> null)
-                        .get(5, TimeUnit.MINUTES);
+                System.err.println("Starting test");
+                try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.id(0), Publisher.OnFailure.Continue))
+                    {
+                    PublishTask task = new PublishTask(publisher, 5);
+                    daemon.executeTask(task);
+                    // wait until the publisher is publishing...
+                    Eventually.assertDeferred(task::getPublishedCount, is(greaterThan(1000)));
 
-                assertThat(publisher.isActive(), is(true));
+                    restartService(topic);
 
-                System.err.println("Publishing task published " + task.getPublishedCount() + " messages");
-                System.err.println("Publishing final message");
+                    // Wait for the publisher task to complete, ignoring errors.
+                    // Most of the time we see a CancellationException as a request was in-flight
+                    // when the service stopped, but occasionally there is no in-flight request,
+                    // and we see the publisher complete successfully
+                    task.onCompletion()
+                            .handle((count, err) -> null)
+                            .get(5, TimeUnit.MINUTES);
 
-                Boolean fSuccess = publisher.publish(new Message(9999, "foo"))
-                        .handle((s, err) ->
-                                {
-                                if (err != null)
+                    assertThat(publisher.isActive(), is(true));
+
+                    System.err.println("Publishing task published " + task.getPublishedCount() + " messages");
+                    System.err.println("Publishing final message");
+
+                    Boolean fSuccess = publisher.publish(new Message(9999, "foo"))
+                            .handle((s, err) ->
                                     {
-                                    err.printStackTrace();
-                                    Throwable cause = err.getCause();
-                                    while (cause != null)
+                                    if (err != null)
                                         {
-                                        err = cause;
-                                        cause = err.getCause();
+                                        err.printStackTrace();
+                                        Throwable cause = err.getCause();
+                                        while (cause != null)
+                                            {
+                                            err = cause;
+                                            cause = err.getCause();
+                                            }
+                                        System.err.println("Final publish failed " + err.getMessage());
+                                        err.printStackTrace();
+                                        return false;
                                         }
-                                    System.err.println("Final publish failed " + err.getMessage());
-                                    err.printStackTrace();
-                                    return false;
-                                    }
-                                else
-                                    {
-                                    System.err.println("Final publish success " + s);
-                                    return true;
-                                    }
-                                })
-                        .get(1, TimeUnit.MINUTES);
+                                    else
+                                        {
+                                        System.err.println("Final publish success " + s);
+                                        return true;
+                                        }
+                                    })
+                            .get(1, TimeUnit.MINUTES);
 
-                publisher.flush().get(5, TimeUnit.MINUTES);
+                    publisher.flush().get(5, TimeUnit.MINUTES);
 
-                assertThat(fSuccess, is(true));
+                    assertThat(fSuccess, is(true));
+                    }
                 }
-
+            }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
             }
         }
 
@@ -640,11 +689,6 @@ public class TopicsRecoveryTests
     static class PublishTask
             implements Runnable
         {
-        public PublishTask(Publisher<Message> publisher)
-            {
-            this(publisher, 3);
-            }
-
         public PublishTask(Publisher<Message> publisher, int cPagesPerPartition)
             {
             m_publisher          = publisher;
@@ -653,12 +697,13 @@ public class TopicsRecoveryTests
             }
 
         @Override
+        @SuppressWarnings("resource")
         public void run()
             {
             try
                 {
                 NamedTopic<Message>     topic        = m_publisher.getNamedTopic();
-                PagedTopicCaches        caches       = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
+                PagedTopicCaches        caches       = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService(), false);
                 PagedTopicDependencies  dependencies = caches.getDependencies();
                 int                     cbPage       = dependencies.getPageCapacity();
                 int                     cMsgPerPage  = 10;
