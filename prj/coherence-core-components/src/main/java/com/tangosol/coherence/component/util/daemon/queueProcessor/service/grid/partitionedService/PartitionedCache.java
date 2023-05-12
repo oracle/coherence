@@ -6755,7 +6755,7 @@ public class PartitionedCache
         
             for (int iPart = partsRestored.next(0); iPart >= 0; iPart = partsRestored.next(iPart + 1))
                 {
-                if (isIndexed() && getDaemonPool().isStarted())
+                if (isIndexed())
                     {
                     PartitionedCache service = (PartitionedCache) get_Module();
         
@@ -6767,16 +6767,24 @@ public class PartitionedCache
                             {
                             for (Iterator iterIndex = storage.getIndexExtractorMap().entrySet().iterator(); iterIndex.hasNext(); )
                                 {
-                                java.util.Map.Entry          index      = (java.util.Map.Entry) iterIndex.next();
-                                ValueExtractor extractor  = (ValueExtractor) index.getKey();
-                                Comparator     comparator = (Comparator) index.getValue();
+                                java.util.Map.Entry index      = (java.util.Map.Entry) iterIndex.next();
+                                ValueExtractor      extractor  = (ValueExtractor) index.getKey();
+                                Comparator          comparator = (Comparator) index.getValue();
         
                                 storage.createMapIndex(storage.getPartitionIndexMap(iPart), extractor, comparator);
                                 }
+                                if (!service.getDaemonPool().isStarted())
+                                    {
+                                    // re-create partition index on service thread
+                                    storage.createPartitionIndex(iPart, null);
+                                    }
                             }
                         }
-        
-                    scheduleIndexUpdate(iPart, com.tangosol.util.MapEvent.ENTRY_INSERTED);
+
+                    if (getDaemonPool().isStarted())
+                        {
+                        scheduleIndexUpdate(iPart, com.tangosol.util.MapEvent.ENTRY_INSERTED);
+                        }
                     }
         
                 getEventsHelper().onEntriesRestored(mapStorage, iPart,
@@ -64547,7 +64555,8 @@ public class PartitionedCache
             
             // only after all the addenums are processed, schedule an index update
             PartitionedCache service = (PartitionedCache) get_Module();
-            if (service.isIndexed() && service.getDaemonPool().isStarted())
+
+            if (service.isIndexed())
                 {
                 // create partition indices
                 for (Iterator iterStore = service.getStorageArray().iterator(); iterStore.hasNext();)
@@ -64557,16 +64566,24 @@ public class PartitionedCache
                         {
                         for (Iterator iterIndex = storage.getIndexExtractorMap().entrySet().iterator(); iterIndex.hasNext(); )
                             {
-                            java.util.Map.Entry          index      = (java.util.Map.Entry) iterIndex.next();
-                            ValueExtractor extractor  = (ValueExtractor) index.getKey();
-                            Comparator     comparator = (Comparator) index.getValue();
-            
+                            java.util.Map.Entry index      = (java.util.Map.Entry) iterIndex.next();
+                            ValueExtractor      extractor  = (ValueExtractor) index.getKey();
+                            Comparator          comparator = (Comparator) index.getValue();
+
                             storage.createMapIndex(storage.getPartitionIndexMap(iPartition), extractor, comparator);
+                            }
+                        if (!service.getDaemonPool().isStarted())
+                            {
+                            // re-create partition index on service thread
+                            storage.createPartitionIndex(iPartition, null);
                             }
                         }
                     }
-            
-                service.scheduleIndexUpdate(iPartition, com.tangosol.util.MapEvent.ENTRY_INSERTED);
+
+                if (service.getDaemonPool().isStarted())
+                    {
+                    service.scheduleIndexUpdate(iPartition, com.tangosol.util.MapEvent.ENTRY_INSERTED);
+                    }
                 }
             }
         
