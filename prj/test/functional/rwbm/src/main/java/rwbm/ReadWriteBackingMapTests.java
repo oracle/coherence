@@ -47,7 +47,6 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.EntryEvents;
 import com.tangosol.net.events.annotation.Interceptor;
-import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.util.InvocableMap.Entry;
 import com.tangosol.util.InvocableMap.StreamingAggregator;
 import com.tangosol.util.ListMap;
@@ -90,7 +89,6 @@ import org.hamcrest.Matchers;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -156,7 +154,12 @@ public class ReadWriteBackingMapTests
         // this test requires local storage to be enabled
         System.setProperty("coherence.distributed.localstorage", "true");
         System.setProperty("coherence.rwbm.requeue.delay", "5000");
+
+        // the thread count must be 1 for testRemoveAll to have the
+        // expected results; otherwise, the removeAll request may
+        // split into multiple jobs with different result.
         System.setProperty("tangosol.coherence.distributed.threads.min", "1");
+        System.setProperty("tangosol.coherence.distributed.threads.max", "1");
 
         AbstractFunctionalTest._startup();
         }
@@ -1470,12 +1473,10 @@ public class ReadWriteBackingMapTests
         }
 
     @Test
-    @Ignore
     public void testRemoveAll()
         {
         testRemoveAll("dist-rwbm-wt");
         testRemoveAll("dist-rwbm-wt-bin");
-
         testRemoveAll("dist-rwbm-nb-nonpc");
         }
 
