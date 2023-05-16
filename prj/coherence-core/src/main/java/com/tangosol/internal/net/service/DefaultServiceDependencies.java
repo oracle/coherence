@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,6 +54,12 @@ public class DefaultServiceDependencies
             m_cWorkerThreadsMin              = deps.getWorkerThreadCountMin();
             m_nWorkerPriority                = deps.getWorkerThreadPriority();
             m_healthCheckDependencies        = deps.getHealthCheckDependencies();
+            if (deps instanceof DefaultServiceDependencies)
+                {
+                DefaultServiceDependencies sDeps = (DefaultServiceDependencies) deps;
+                m_fDeprecatedThreadConfiguration = sDeps.m_fDeprecatedThreadConfiguration;
+                m_fThreadConfiguration           = sDeps.m_fThreadConfiguration;
+                }
             }
         }
 
@@ -199,9 +205,8 @@ public class DefaultServiceDependencies
     @Injectable("thread-count")
     public void setWorkerThreadCount(int cThreads)
         {
-        m_cWorkerThreads = cThreads;
-        setWorkerThreadCountMax(cThreads);
-        setWorkerThreadCountMin(cThreads);
+        m_fDeprecatedThreadConfiguration = true;
+        m_cWorkerThreads                 = cThreads;
         }
 
     @Override
@@ -218,13 +223,8 @@ public class DefaultServiceDependencies
     @Injectable("thread-count-max")
     public void setWorkerThreadCountMax(int cThreads)
         {
-        m_cWorkerThreadsMax = cThreads;
-
-        // consistency fix for COH-13673 to avoid validate assertion failure.
-        if (m_cWorkerThreadsMin > m_cWorkerThreadsMax)
-            {
-            m_cWorkerThreadsMin = m_cWorkerThreadsMax;
-            }
+        m_fThreadConfiguration = true;
+        m_cWorkerThreadsMax    = cThreads;
         }
 
     @Override
@@ -241,7 +241,8 @@ public class DefaultServiceDependencies
     @Injectable("thread-count-min")
     public void setWorkerThreadCountMin(int cThreads)
         {
-        m_cWorkerThreadsMin = cThreads;
+        m_fThreadConfiguration = true;
+        m_cWorkerThreadsMin    = cThreads;
         }
 
     /**
@@ -326,18 +327,40 @@ public class DefaultServiceDependencies
                 "ThreadPriority cannot be less than " + Thread.MIN_PRIORITY);
         Base.azzert(getThreadPriority() <= Thread.MAX_PRIORITY,
                 "ThreadPriority cannot be more than " + Thread.MAX_PRIORITY);
-        Base.azzert(getWorkerThreadCountMax() >= getWorkerThreadCountMin(),
-                "WorkerThreadCountMax value " + getWorkerThreadCountMax() + " must be greater than or equal to WorkerThreadCountMin value " + getWorkerThreadCountMin());
         Base.azzert(getWorkerThreadPriority() >= Thread.MIN_PRIORITY,
                 "WorkerThreadPriority cannot be less than " + Thread.MIN_PRIORITY);
         Base.azzert(getWorkerThreadPriority() <= Thread.MAX_PRIORITY,
                 "WorkerThreadPriority cannot be more than " + Thread.MAX_PRIORITY);
 
+        // if deprecated option is explicitly set, it takes precedence
+        // of new settings
+        if (m_fDeprecatedThreadConfiguration)
+            {
+            int cThreadCount = getWorkerThreadCount();
+
+            setWorkerThreadCountMin(cThreadCount);
+            setWorkerThreadCountMax(cThreadCount);
+            }
+        else
+            {
+            int cWorkerMin = getWorkerThreadCountMin();
+            int cWorkerMax = getWorkerThreadCountMax();
+
+            if (cWorkerMin > cWorkerMax)
+                {
+                // set max == min
+                setWorkerThreadCountMax(cWorkerMin);
+                }
+            }
+
+        Base.azzert(getWorkerThreadCountMax() >= getWorkerThreadCountMin(),
+                    "WorkerThreadCountMax value " + getWorkerThreadCountMax() + " must be greater than or equal to WorkerThreadCountMin value " + getWorkerThreadCountMin());
+
         if (getWorkerThreadCountMin() < 0)
             {
             Base.azzert(getWorkerThreadCountMax() == Integer.MAX_VALUE ||
                         getWorkerThreadCountMax() == -1,
-                    "Inconsistent WorkerThreadCountMax and WorkerThreadCountMin");
+                        "Inconsistent WorkerThreadCountMax and WorkerThreadCountMin");
             }
 
         return this;
@@ -394,6 +417,20 @@ public class DefaultServiceDependencies
      * The worker threads priority.
      */
     private int m_nWorkerPriority = Thread.NORM_PRIORITY;
+
+    /**
+     * Flag indicating deprecated {@code thread-config} used.
+     *
+     * @since 14.1.1.2206.5
+     */
+    private boolean m_fDeprecatedThreadConfiguration;
+
+    /**
+     * Flag indicating min/max {@code thread-config} used.
+     *
+     * @since 14.1.1.2206.5
+     */
+    private boolean m_fThreadConfiguration;
 
     /**
      * The service health check dependencies.
