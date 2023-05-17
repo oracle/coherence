@@ -1851,11 +1851,6 @@ public class ReadWriteBackingMap
                             // if we ever need to add statistics regarding a
                             // number of items that were re-queued due to a
                             // failover redistribution
-                            // if it is a remove, add it to the m_setPendingRemoves
-                            if (ExternalizableHelper.fromBinary((Binary) oValue) == null && isWriteBehindRemove())
-                                {
-                                setRemoves.add(oKey);
-                                }
                             }
                         }
                     }
