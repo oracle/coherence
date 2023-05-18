@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -450,6 +450,7 @@ public interface CoherenceClusterMember
         return getServiceStatus(scopeName + ":" + serviceName);
         }
 
+    void threadDump();
 
     /**
      * The {@link com.oracle.bedrock.runtime.MetaClass} for {@link CoherenceClusterMember}s.

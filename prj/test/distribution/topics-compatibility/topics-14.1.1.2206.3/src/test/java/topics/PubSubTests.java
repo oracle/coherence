@@ -8,18 +8,22 @@ package topics;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.common.util.Threads;
 import com.tangosol.net.topic.Subscriber;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.tangosol.net.topic.Subscriber.inGroup;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings({"unchecked", "unused"})
 public class PubSubTests
@@ -291,73 +295,83 @@ public class PubSubTests
 
             cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - creating subscribers");
 
-            TopicSubscriber.createSubscriber(memberSub1, "Sub1.1", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
-            TopicSubscriber.createSubscriber(memberSub1, "Sub1.2", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
-            TopicSubscriber.createSubscriber(memberSub2, "Sub2.1", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
-            TopicSubscriber.createSubscriber(memberSub2, "Sub2.2", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
+            try
+                {
+                TopicSubscriber.createSubscriber(memberSub1, "Sub1.1", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
+                TopicSubscriber.createSubscriber(memberSub1, "Sub1.2", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
+                TopicSubscriber.createSubscriber(memberSub2, "Sub2.1", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
+                TopicSubscriber.createSubscriber(memberSub2, "Sub2.2", sTopicName, inGroup(sGroupName), Subscriber.CompleteOnEmpty.enabled());
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - creating publisher");
-            TopicPublisher.createPublisher(memberPub, "Pub1", sTopicName);
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - creating publisher");
+                TopicPublisher.createPublisher(memberPub, "Pub1", sTopicName);
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - starting publisher");
-            CompletableFuture<Set<String>> futurePublish  = TopicPublisher.publish(memberPub, "Pub1", 1700);
-            Set<String>                    setPublish     = futurePublish.get(5, TimeUnit.MINUTES);
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished publishing " + setPublish.size() + " messages");
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - starting publisher");
+                CompletableFuture<Set<String>> futurePublish  = TopicPublisher.publish(memberPub, "Pub1", 1700);
+                Set<String>                    setPublish     = futurePublish.get(5, TimeUnit.MINUTES);
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished publishing " + setPublish.size() + " messages");
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - starting subscribers");
-            CompletableFuture<Set<String>> futureReceive1 = TopicSubscriber.receive(memberSub1, "Sub1.1", 10);
-            CompletableFuture<Set<String>> futureReceive2 = TopicSubscriber.receive(memberSub1, "Sub1.2", 10);
-            CompletableFuture<Set<String>> futureReceive3 = TopicSubscriber.receive(memberSub2, "Sub2.1", 10);
-            CompletableFuture<Set<String>> futureReceive4 = TopicSubscriber.receive(memberSub2, "Sub2.2", 10);
-            Set<String>                    setReceive1    = futureReceive1.get(5, TimeUnit.MINUTES);
-            Set<String>                    setReceive2    = futureReceive2.get(5, TimeUnit.MINUTES);
-            Set<String>                    setReceive3    = futureReceive3.get(5, TimeUnit.MINUTES);
-            Set<String>                    setReceive4    = futureReceive4.get(5, TimeUnit.MINUTES);
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 1.1 = " + setReceive1.size());
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 1.2 = " + setReceive2.size());
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 2.1 = " + setReceive3.size());
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 2.2 = " + setReceive4.size());
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - starting subscribers");
+                CompletableFuture<Set<String>> futureReceive1 = TopicSubscriber.receive(memberSub1, "Sub1.1", 10);
+                CompletableFuture<Set<String>> futureReceive2 = TopicSubscriber.receive(memberSub1, "Sub1.2", 10);
+                CompletableFuture<Set<String>> futureReceive3 = TopicSubscriber.receive(memberSub2, "Sub2.1", 10);
+                CompletableFuture<Set<String>> futureReceive4 = TopicSubscriber.receive(memberSub2, "Sub2.2", 10);
+                Set<String>                    setReceive1    = futureReceive1.get(5, TimeUnit.MINUTES);
+                Set<String>                    setReceive2    = futureReceive2.get(5, TimeUnit.MINUTES);
+                Set<String>                    setReceive3    = futureReceive3.get(5, TimeUnit.MINUTES);
+                Set<String>                    setReceive4    = futureReceive4.get(5, TimeUnit.MINUTES);
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 1.1 = " + setReceive1.size());
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 1.2 = " + setReceive2.size());
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 2.1 = " + setReceive3.size());
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - finished subscribers - 2.2 = " + setReceive4.size());
 
-            Set<String> setReceive = new HashSet<>();
-            setReceive.addAll(setReceive1);
-            setReceive.addAll(setReceive2);
-            setReceive.addAll(setReceive3);
-            setReceive.addAll(setReceive4);
+                Set<String> setReceive = new HashSet<>();
+                setReceive.addAll(setReceive1);
+                setReceive.addAll(setReceive2);
+                setReceive.addAll(setReceive3);
+                setReceive.addAll(setReceive4);
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - closing subscribers");
-            TopicSubscriber.closeSubscriber(memberSub1, "Sub1.1");
-            TopicSubscriber.closeSubscriber(memberSub2, "Sub2.1");
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - closed subscribers");
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - closing subscribers");
+                TopicSubscriber.closeSubscriber(memberSub1, "Sub1.1");
+                TopicSubscriber.closeSubscriber(memberSub2, "Sub2.1");
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - closed subscribers");
 
-            Eventually.assertDeferred(() -> TopicSubscriber.getChannelCount(memberSub1, "Sub1.2")
-                    + TopicSubscriber.getChannelCount(memberSub2, "Sub2.2"), is(17));
+                Eventually.assertDeferred(() -> TopicSubscriber.getChannelCount(memberSub1, "Sub1.2")
+                        + TopicSubscriber.getChannelCount(memberSub2, "Sub2.2"), is(17));
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - subscriber have all channels");
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - subscriber have all channels");
 
-            futureReceive2 = TopicSubscriber.receive(memberSub1, "Sub1.2");
-            futureReceive4 = TopicSubscriber.receive(memberSub2, "Sub2.2");
+                futureReceive2 = TopicSubscriber.receive(memberSub1, "Sub1.2");
+                futureReceive4 = TopicSubscriber.receive(memberSub2, "Sub2.2");
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - received all messages");
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - received all messages");
 
-            Set<String> setReceive5    = futureReceive2.get(5, TimeUnit.MINUTES);
-            Set<String> setReceive6    = futureReceive4.get(5, TimeUnit.MINUTES);
+                Set<String> setReceive5    = futureReceive2.get(5, TimeUnit.MINUTES);
+                Set<String> setReceive6    = futureReceive4.get(5, TimeUnit.MINUTES);
 
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - received all messages - 1.2 = " + setReceive5.size());
-            cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - received all messages - 2.2 = " + setReceive6.size());
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - received all messages - 1.2 = " + setReceive5.size());
+                cluster.log(">>>> In shouldPubWithMultipleSubsAndReallocation - received all messages - 2.2 = " + setReceive6.size());
 
-            setReceive = new HashSet<>();
-            setReceive.addAll(setReceive1);
-            setReceive.addAll(setReceive2);
-            setReceive.addAll(setReceive3);
-            setReceive.addAll(setReceive4);
-            setReceive.addAll(setReceive5);
-            setReceive.addAll(setReceive6);
+                setReceive = new HashSet<>();
+                setReceive.addAll(setReceive1);
+                setReceive.addAll(setReceive2);
+                setReceive.addAll(setReceive3);
+                setReceive.addAll(setReceive4);
+                setReceive.addAll(setReceive5);
+                setReceive.addAll(setReceive6);
 
-            assertThat(setPublish.isEmpty(), is(false));
-            assertThat(setReceive.isEmpty(), is(false));
-            assertThat(setReceive.size(), is(setPublish.size()));
+                assertThat(setPublish.isEmpty(), is(false));
+                assertThat(setReceive.isEmpty(), is(false));
+                assertThat(setReceive.size(), is(setPublish.size()));
 
-            cluster.log(">>>> Finished shouldPubWithMultipleSubsAndReallocation");
+                cluster.log(">>>> Finished shouldPubWithMultipleSubsAndReallocation");
+                }
+            catch (TimeoutException e)
+                {
+                cluster.threadDump();
+                System.err.println("Test timed out: ");
+                System.err.println(Threads.getThreadDump(true));
+                fail("Test failed with exception: " + e.getMessage());
+                }
             }
         }
 

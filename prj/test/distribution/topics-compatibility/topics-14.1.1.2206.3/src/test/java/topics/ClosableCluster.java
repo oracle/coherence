@@ -204,6 +204,37 @@ public class ClosableCluster
             }
         }
 
+    /**
+     * Log a thread dump on every cluster member.
+     */
+    public void threadDump()
+        {
+        CoherenceCluster cluster = m_extension.getCluster();
+        for (CoherenceClusterMember member : cluster)
+            {
+            try
+                {
+                member.threadDump();
+                }
+            catch (Exception e)
+                {
+                e.printStackTrace();
+                }
+            }
+
+        for (CoherenceClusterMember member : m_mapMember.values())
+            {
+            try
+                {
+                member.threadDump();
+                }
+            catch (Exception e)
+                {
+                e.printStackTrace();
+                }
+            }
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
