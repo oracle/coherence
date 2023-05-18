@@ -136,7 +136,8 @@
     <skip-code-coverage>true</skip-code-coverage>
 
     <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
-    <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
+    <failsafe.max.heap>1g</failsafe.max.heap>
+    <failsafe.argLine>-Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
 
@@ -1156,7 +1157,7 @@
       <id>test-production-mode</id>
       <properties>
         <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</surefire.argLine>
-        <failsafe.argLine>-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</failsafe.argLine>
+        <failsafe.argLine>-Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</failsafe.argLine>
       </properties>
       <build>
         <pluginManagement>
