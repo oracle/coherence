@@ -19,6 +19,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
@@ -54,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -68,6 +70,7 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("unchecked")
 public class TopicSubscriberManagementTests
@@ -557,6 +560,12 @@ public class TopicSubscriberManagementTests
             assertThat(element.getValue(), startsWith("foo bar"));
             Logger.info(">>>> In " + f_testName.getMethodName() + ": Subscriber 3 received");
             }
+        catch (TimeoutException e)
+            {
+            System.err.println("Test timed out: ");
+            System.err.println(Threads.getThreadDump(true));
+            fail("Test failed with exception: " + e.getMessage());
+            }
         }
 
     @Test
@@ -732,7 +741,6 @@ public class TopicSubscriberManagementTests
                 assertThat(subscriberTwo.isDisconnected(), is(false));
                 }
             }
-
         }
 
     // ----- inner remote callable: CreateSubscriber ------------------------
