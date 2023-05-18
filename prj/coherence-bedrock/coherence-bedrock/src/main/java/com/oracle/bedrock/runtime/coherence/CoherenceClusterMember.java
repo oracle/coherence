@@ -450,6 +450,7 @@ public interface CoherenceClusterMember
         return getServiceStatus(scopeName + ":" + serviceName);
         }
 
+    void threadDump();
 
     /**
      * The {@link com.oracle.bedrock.runtime.MetaClass} for {@link CoherenceClusterMember}s.

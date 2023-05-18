@@ -11,28 +11,7 @@ import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationProcess;
 import com.oracle.bedrock.runtime.Platform;
-import com.oracle.bedrock.runtime.coherence.callables.GetClusterMemberUIDs;
-import com.oracle.bedrock.runtime.coherence.callables.GetClusterName;
-import com.oracle.bedrock.runtime.coherence.callables.GetClusterSize;
-import com.oracle.bedrock.runtime.coherence.callables.GetExtendConnectionCount;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberClusterPort;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberId;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberMachineName;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberName;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberRackName;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberRoleName;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberSiteName;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberUID;
-import com.oracle.bedrock.runtime.coherence.callables.GetLocalMemberUUID;
-import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
-import com.oracle.bedrock.runtime.coherence.callables.GetSessionCache;
-import com.oracle.bedrock.runtime.coherence.callables.HasExtendConnection;
-import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
-import com.oracle.bedrock.runtime.coherence.callables.IsReady;
-import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
-import com.oracle.bedrock.runtime.coherence.callables.IsServiceRunning;
-import com.oracle.bedrock.runtime.coherence.callables.IsServiceStorageEnabled;
-import com.oracle.bedrock.runtime.coherence.callables.SessionExists;
+import com.oracle.bedrock.runtime.coherence.callables.*;
 import com.oracle.bedrock.runtime.java.AbstractJavaApplication;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.JavaApplicationProcess;
@@ -383,5 +362,11 @@ public abstract class AbstractCoherenceClusterMember
     public boolean hasExtendConnection(String sProxyName, UUID uuid)
         {
         return invoke(new HasExtendConnection(sProxyName, uuid));
+        }
+
+    @Override
+    public void threadDump()
+        {
+        submit(LogThreadDump.INSTANCE);
         }
     }
