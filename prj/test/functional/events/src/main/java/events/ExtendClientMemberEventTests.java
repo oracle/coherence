@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package events;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
+import com.oracle.bedrock.runtime.java.options.HeapSize;
+import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
@@ -75,6 +77,7 @@ public class ExtendClientMemberEventTests
         System.setProperty("coherence.member", "TestFrameworkClient");
         System.setProperty("coherence.role",   "TestFrameworkClient");
         System.setProperty("coherence.distributed.localstorage", "false");
+        System.setProperty("test.heap.max", "512");
 
         // test client does not join cluster for now
         Properties props = new Properties();
@@ -84,7 +87,11 @@ public class ExtendClientMemberEventTests
             props.setProperty("coherence.member", "ExtendClientMemberLeftServer-" + i);
             System.setProperty("coherence.role",  "ExtendClientMemberLeftServer-" + i);
 
-            CoherenceClusterMember member = startCacheServer("ExtendClientMemberLeftServer-" + i, "cache", SERVER_CACHE_CONFIG, props);
+            CoherenceClusterMember member = startCacheServer("ExtendClientMemberLeftServer-" + i, "cache", SERVER_CACHE_CONFIG, props,
+                                                             true, null,
+                                                             HeapSize.of(128, HeapSize.Units.MB, 384, HeapSize.Units.MB, true),
+                                                             JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
+
             s_lstMembers.add(member);
             }
 

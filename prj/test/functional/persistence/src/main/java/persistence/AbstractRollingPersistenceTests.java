@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,9 @@
 package persistence;
 
 import com.oracle.coherence.common.base.SimpleHolder;
+
+import com.oracle.bedrock.runtime.java.options.HeapSize;
+import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.coherence.component.util.SafeService;
@@ -122,6 +125,8 @@ public abstract class AbstractRollingPersistenceTests
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
 
+        System.setProperty("test.heap.min", "128");
+        System.setProperty("test.heap.max", "192");
         System.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         System.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         System.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
@@ -133,7 +138,9 @@ public abstract class AbstractRollingPersistenceTests
                 CacheFactory.ensureCluster(), sTest + "-", cBackups);
         for (int i = 0; i < cServers; i++)
             {
-            memberHandler.addServer();
+            memberHandler.addServer(null,
+                                    HeapSize.of(128, HeapSize.Units.MB, 256, HeapSize.Units.MB, true),
+                                    JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
             }
 
         try
@@ -241,6 +248,7 @@ public abstract class AbstractRollingPersistenceTests
         Properties props = new Properties();
         props.setProperty("test.recover.quorum", "0"); // dynamic recovery
         props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+        System.setProperty("test.heap.max", "320");
 
         try
             {

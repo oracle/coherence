@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -59,6 +59,7 @@ public class CESJavaSingleClusterTests
     @BeforeClass
     public static void setupClass()
         {
+        System.setProperty("test.heap.max", "512");
         // ensure the proxy service is running (before we connect)
         AbstractClusteredExecutorServiceTests.ensureConcurrentServiceRunning(s_coherence.getCluster());
         ensureExecutorProxyAvailable(s_coherence.getCluster());
