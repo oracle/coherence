@@ -9,6 +9,8 @@ package near;
 
 import com.oracle.bedrock.options.Timeout;
 
+import com.oracle.bedrock.runtime.java.options.HeapSize;
+import com.oracle.bedrock.runtime.java.options.JvmOptions;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Logger;
@@ -98,8 +100,13 @@ public class NearCacheTests
     @BeforeClass
     public static void startup()
         {
-        startCacheServer("NearCacheTests-1", "near", FILE_CFG_CACHE);
-        startCacheServer("NearCacheTests-2", "near", FILE_CFG_CACHE);
+        startCacheServer("NearCacheTests-1", "near", FILE_CFG_CACHE,
+                         null, true, null,
+                         HeapSize.of(128, HeapSize.Units.MB, 384, HeapSize.Units.MB, true),
+                         JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
+        startCacheServer("NearCacheTests-2", "near", FILE_CFG_CACHE, null, true, null,
+                         HeapSize.of(128, HeapSize.Units.MB, 384, HeapSize.Units.MB, true),
+                         JvmOptions.include("-XX:+ExitOnOutOfMemoryError"));
         }
 
     /**
