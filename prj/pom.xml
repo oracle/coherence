@@ -699,7 +699,7 @@
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
     <asm.version>7.2</asm.version>
     <bdb.version>6.2.31</bdb.version>
-    <bnd.version>4.3.0</bnd.version>
+    <bnd.version>6.4.0</bnd.version>
     <com.sun.xml.bind.version>2.3.0</com.sun.xml.bind.version>
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <felix.version>6.0.3</felix.version>
