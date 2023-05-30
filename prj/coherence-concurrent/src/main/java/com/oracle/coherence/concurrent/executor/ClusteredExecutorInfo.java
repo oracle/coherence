@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -620,10 +620,18 @@ public class ClusteredExecutorInfo
             {
             String sExecutorId = f_sExecutorId;
 
-            ExecutorTrace.log(() -> String.format("Closing Executor [%s]", sExecutorId));
+            if (ExecutorTrace.isEnabled())
+                {
+                ExecutorTrace.log(String.format("Closing Executor [%s]", sExecutorId));
 
-            // remove task assignments for the Executor
-            ExecutorTrace.log(() -> String.format("Determining Tasks Assigned to Executor [%s]", sExecutorId));
+                // remove task assignments for the Executor
+                ExecutorTrace.log(String.format("Determining Tasks Assigned to Executor [%s]", sExecutorId));
+
+                ExecutorTrace.log(String.format("Assignments: [%s]", assignments()));
+
+                int cTaskCountForExecutor = assignments().entrySet(new EqualsFilter<String, String>("getExecutorId", sExecutorId)).size();
+                ExecutorTrace.log(String.format("Total number of known assignments [%s] for executor [%s]", cTaskCountForExecutor, sExecutorId));
+                }
 
             try
                 {
