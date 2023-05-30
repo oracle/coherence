@@ -36,22 +36,6 @@
 
   <build>
     <plugins>
-      <!-- maven-bundle-pugin for generating manifest with metadata -->
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-      </plugin>
-
-      <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-          </archive>
-        </configuration>
-      </plugin>
-
       <!-- we deploy this module to a repository -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -76,6 +60,7 @@
           </archive>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
