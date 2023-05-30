@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ http://oss.oracle.com/licenses/upl.
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -27,11 +27,24 @@
   <artifactId>coherence-metrics</artifactId>
   <name>Coherence Metrics</name>
 
-  <dependencies>
-  </dependencies>
-
   <build>
     <plugins>
+      <!-- maven-bundle-pugin for generating manifest with metadata -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+      </plugin>
+
+      <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+
       <!-- we deploy this module to a repository -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

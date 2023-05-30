@@ -1,3 +1,4 @@
+route_guide.proto
 coherence-grpc-proxy\src\test\proto\route_guide.proto
 coherence-grpc-proxy\src\test\java\com\oracle\coherence\grpc\proxy\routeguide\
 coherence-http-netty\src\main\java\com\tangosol\coherence\http\netty\NettyInputStream.java
@@ -7,7 +8,7 @@ coherence-json\src\test\java\com\oracle\coherence\io\json\genson\
 examples\tutorials\500-graphql\complete\src\main\resources\web\index.html
 examples\tutorials\500-graphql\initial\src\main\resources\web\index.html
 test\distribution\target\
-test\functional\logging\src\test\java\org\slf4j\
+test\functional\logging\src\main\java\org\slf4j\
 tools\ant-contrib\
 tools\internal\
 tools\maven\

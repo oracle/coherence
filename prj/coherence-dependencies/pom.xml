@@ -1213,6 +1213,7 @@
                   <supportedProjectType>bundle</supportedProjectType>
                   <supportedProjectType>jar</supportedProjectType>
                   <supportedProjectType>nbm</supportedProjectType>
+                  <supportedProjectType>maven-plugin</supportedProjectType>
                 </supportedProjectTypes>
               </configuration>
             </execution>
