@@ -454,25 +454,8 @@
     <cve>CVE-2021-4277</cve>
   </suppress>
 
-  <!-- For now excluding these Helidon related CVEs till Helidon 2.6.1 is released   -->
-  <suppress>
-    <notes><![CDATA[
-     file name: graphql-java-17.4.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
-    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
-    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
-    <cve>CVE-2023-28867</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: graphql-java-15.0.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
-    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
-    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
-    <cve>CVE-2022-37734</cve>
-  </suppress>
+  <!-- The following are false positives after upgrade to
+  Helidon 2.6.1 (BUG 35431662). Hence its excluded-->
   <suppress>
     <notes><![CDATA[
      file name: guava-31.1-jre.jar
@@ -483,41 +466,13 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-     file name: netty-codec-4.1.77.Final.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-codec@.*$</packageUrl>
-    <cve>CVE-2022-41915</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: snakeyaml-1.30.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
-    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
-    <cve>CVE-2022-1471</cve>
-    <cve>CVE-2022-25857</cve>
-    <cve>CVE-2022-38749</cve>
-    <cve>CVE-2022-38751</cve>
-    <cve>CVE-2022-38752</cve>
-    <cve>CVE-2022-41854</cve>
-    <cve>CVE-2022-38750</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: snakeyaml-1.32.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
-    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
-    <cve>CVE-2022-1471</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
      file name: java-dataloader-3.1.0.jar
      ]]></notes>
     <packageUrl regex="true">^pkg:maven/com\.graphql\-java/java\-dataloader@.*$</packageUrl>
     <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
     <cve>CVE-2023-28867</cve>
   </suppress>
+
 
   <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
       call "fredsmith utils".  Unable to find anything of value regarding this library. -->
