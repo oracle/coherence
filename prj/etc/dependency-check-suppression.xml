@@ -384,8 +384,143 @@
      <cve>CVE-2022-31569</cve>
   </suppress>
 
-   <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
-       call "fredsmith utils".  Unable to find anything of value regarding this library. -->
+  <!-- Not fixable hence excluding it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: LatencyUtils-2.0.3.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.latencyutils/LatencyUtils@.*$</packageUrl>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+  <!-- Erroneous warning hence excluding it
+  <suppress>
+    <notes><![CDATA[
+     file name: guava-31.1-jre.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:/a:google:guava</cpe>
+    <cve>CVE-2020-8908</cve>
+  </suppress>
+  -->
+  <!-- Used in example hence excluding it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: h2-2.1.210.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.h2database/h2@.*$</packageUrl>
+    <cpe>cpe:2.3:a:h2database:h2</cpe>
+    <cve>CVE-2018-14335</cve>
+    <cve>CVE-2022-45868</cve>
+  </suppress>
+  <!--  Toplink not maintained by us hence excluding it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: toplink-grid-14.1.1.0.0-200329.2231.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.oracle\.toplink/toplink\-grid@.*$</packageUrl>
+    <cpe>cpe:2.3:a:oracle:coherence</cpe>
+    <cpe>cpe:2.3:a:oracle:toplink</cpe>
+    <cve>CVE-2022-21420</cve>
+    <cve>CVE-2020-36518</cve>
+    <cve>CVE-2021-37136</cve>
+    <cve>CVE-2022-21570</cve>
+    <cve>CVE-2021-43797</cve>
+    <cve>CVE-2022-21420</cve>
+    <cve>CVE-2021-21409</cve>
+  </suppress>
+  <!-- For now excluding the Maven CVEs till BUG 35406780 gets fixed -->
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-compat-3.6.3.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-compat@.*$</packageUrl>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-settings-3.6.3.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-settings@.*$</packageUrl>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-shared-utils-3.2.1.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven\.shared/maven\-shared\-utils@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:maven_shared_utils</cpe>
+    <cpe>cpe:2.3:a:utils_project:utils</cpe>
+    <cve>CVE-2022-29599</cve>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+
+  <!-- For now excluding these Helidon related CVEs till Helidon 2.6.1 is released   -->
+  <suppress>
+    <notes><![CDATA[
+     file name: graphql-java-17.4.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
+    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
+    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
+    <cve>CVE-2023-28867</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: graphql-java-15.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
+    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
+    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
+    <cve>CVE-2022-37734</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: guava-31.1-jre.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:2.3:a:google:guava</cpe>
+    <cve>CVE-2020-8908</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: netty-codec-4.1.77.Final.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-codec@.*$</packageUrl>
+    <cve>CVE-2022-41915</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: snakeyaml-1.30.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
+    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
+    <cve>CVE-2022-1471</cve>
+    <cve>CVE-2022-25857</cve>
+    <cve>CVE-2022-38749</cve>
+    <cve>CVE-2022-38751</cve>
+    <cve>CVE-2022-38752</cve>
+    <cve>CVE-2022-41854</cve>
+    <cve>CVE-2022-38750</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: snakeyaml-1.32.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
+    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
+    <cve>CVE-2022-1471</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: java-dataloader-3.1.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/java\-dataloader@.*$</packageUrl>
+    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
+    <cve>CVE-2023-28867</cve>
+  </suppress>
+
+  <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
+      call "fredsmith utils".  Unable to find anything of value regarding this library. -->
   <suppress>
      <notes><![CDATA[
      file name: hk2-utils-2.6.1.jar
