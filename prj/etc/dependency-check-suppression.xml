@@ -271,22 +271,6 @@
      <cve>CVE-2021-29425</cve>
   </suppress>
 
-  <!-- Apache Maven 3.6.3 - We are using repository manager for our build, so we are unaffected by CVE-2021-26291 -->
-  <suppress>
-     <notes><![CDATA[
-     file name: maven-core-3.6.3.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-core@.*$</packageUrl>
-     <cpe>cpe:/a:apache:maven</cpe>
-  </suppress>
-  <suppress>
-     <notes><![CDATA[
-     file name: maven-core-3.6.3.jar
-     ]]></notes>
-     <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-core@.*$</packageUrl>
-     <cve>CVE-2021-26291</cve>
-  </suppress>
-
   <!-- Jakarta Expression Language 3.0.3 - We are excluding this as there is no fix available yet -->
   <suppress>
      <notes><![CDATA[
@@ -427,31 +411,6 @@
     <cve>CVE-2021-43797</cve>
     <cve>CVE-2022-21420</cve>
     <cve>CVE-2021-21409</cve>
-  </suppress>
-  <!-- For now excluding the Maven CVEs till BUG 35406780 gets fixed -->
-  <suppress>
-    <notes><![CDATA[
-     file name: maven-compat-3.6.3.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-compat@.*$</packageUrl>
-    <cve>CVE-2021-26291</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: maven-settings-3.6.3.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-settings@.*$</packageUrl>
-    <cve>CVE-2021-26291</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: maven-shared-utils-3.2.1.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.maven\.shared/maven\-shared\-utils@.*$</packageUrl>
-    <cpe>cpe:2.3:a:apache:maven_shared_utils</cpe>
-    <cpe>cpe:2.3:a:utils_project:utils</cpe>
-    <cve>CVE-2022-29599</cve>
-    <cve>CVE-2021-4277</cve>
   </suppress>
 
   <!-- The following are false positives after upgrade to
