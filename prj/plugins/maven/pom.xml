@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2020, 2023 Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -29,7 +29,7 @@
 
   <properties>
     <!-- library dependency versions -->
-    <maven.plugin.api.version>3.8.6</maven.plugin.api.version>
+    <maven.plugin.api.version>3.9.2</maven.plugin.api.version>
 
     <!-- maven plugin versions -->
     <maven.artifact.transfer.version>0.12.0</maven.artifact.transfer.version>
