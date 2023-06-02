@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.processor;
@@ -51,7 +51,8 @@ public class NumberIncrementor<K, V, N extends Number>
     * as specified.  The Java type of the numInc parameter will dictate the
     * Java type of the original and the new value.
     *
-    * @param sName           the property name
+    * @param sName           the property name or null if the target object is
+    *                         an instance of a {@link Number})
     * @param numInc          the Number representing the magnitude and sign
     *                        of the increment
     * @param fPostIncrement  pass true to return the value as it was before
@@ -73,7 +74,8 @@ public class NumberIncrementor<K, V, N extends Number>
     * as specified.  The Java type of the numInc parameter will dictate the
     * Java type of the original and the new value.
     *
-    * @param manipulator     the ValueManipulator; could be null
+    * @param manipulator     the ValueManipulator; could be null if the target
+    *                         object is an instance of a {@link Number}
     * @param numInc          the Number representing the magnitude and sign of
     *                         the increment
     * @param fPostIncrement  pass true to return the value as it was before
