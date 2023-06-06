@@ -17,8 +17,8 @@ import com.tangosol.coherence.config.builder.ServiceFailurePolicyBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.coherence.config.xml.OperationalConfigNamespaceHandler;
 import com.tangosol.coherence.config.xml.processor.AddressProviderBuilderProcessor;
-
 import com.tangosol.coherence.config.xml.processor.SocketProviderProcessor;
+
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.expression.ChainedParameterResolver;
 import com.tangosol.config.expression.ScopedParameterResolver;
@@ -40,11 +40,12 @@ import com.tangosol.net.CompositeAddressProvider;
 import com.tangosol.net.ConfigurableAddressProviderFactory;
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.SocketOptions;
+import com.tangosol.net.SocketProviderFactory;
+
+import com.tangosol.net.internal.SubstitutionAddressProvider;
 
 import com.tangosol.persistence.ConfigurableSnapshotArchiverFactory;
 import com.tangosol.persistence.SnapshotArchiverFactory;
-
-import com.tangosol.net.internal.SubstitutionAddressProvider;
 
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
@@ -155,7 +156,7 @@ public class LegacyXmlClusterDependencies
         ctxSocketProviders.close();
 
         // process the <global-socket-provider> definition. This must be after processing the <socket-providers>
-        // definitions becuase the global provider may be a reference to an exiting provider.
+        // definitions because the global provider may be a reference to an exiting provider.
         XmlElement xmlGlobalSocketProvider = xml.getSafeElement("global-socket-provider");
         DefaultProcessingContext ctxGlobalSocketProvider = new DefaultProcessingContext(ctxClusterConfig, xmlGlobalSocketProvider);
         ctxGlobalSocketProvider.processDocument(xmlGlobalSocketProvider);
@@ -203,6 +204,21 @@ public class LegacyXmlClusterDependencies
         String sMode = xml.getSafeElement("license-mode").getString("dev");
         setMode(translateModeName(sMode));
         setLambdasSerializationMode(xml.getSafeElement("lambdas-serialization").getString());
+
+        if (getMode() == ClusterDependencies.LICENSE_MODE_PRODUCTION)
+            {
+            boolean fIsSecuredProd = xml.getSafeElement("secured-production").getBoolean(isSecuredProduction());
+
+            setSecuredProduction(fIsSecuredProd);
+            if (fIsSecuredProd && SocketProviderFactory.getGlobalSocketProviderBuilder() == null)
+                {
+                xmlGlobalSocketProvider = xml.getSafeElement("global-socket-provider");
+                xmlGlobalSocketProvider.setString("ssl");
+                ctxGlobalSocketProvider = new DefaultProcessingContext(ctxClusterConfig, xmlGlobalSocketProvider);
+                ctxGlobalSocketProvider.processDocument(xmlGlobalSocketProvider);
+                ctxGlobalSocketProvider.close();
+                }
+            }
 
         // ------------------------------------------------------------------------
         // RESUME: Use CODI to parse the operational configuration (this shouldn't be here!)

@@ -164,6 +164,7 @@ public class DefaultClusterDependencies
             m_builderRegistry                = new SimpleParameterizedBuilderRegistry(deps.getBuilderRegistry());
             m_builderUnicastSocketProvider   = deps.getUnicastSocketProviderBuilder();
             m_sLambdasSerializationMode      = deps.getLambdasSerializationMode();
+            m_fSecuredProduction             = deps.isSecuredProduction();
 
             m_customResources = new SimpleResourceRegistry();
             deps.registerResources(m_customResources);
@@ -2040,6 +2041,31 @@ public class DefaultClusterDependencies
         return this;
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isSecuredProduction()
+        {
+        return m_fSecuredProduction;
+        }
+
+    /**
+     * Set the secured-production enabled flag.
+     *
+     * @param fEnabled  true to enable secured-production mode.
+     *
+     * @return this object
+     *
+     * @since 23.09
+     */
+    public DefaultClusterDependencies setSecuredProduction(boolean fEnabled)
+        {
+        m_fSecuredProduction = fEnabled;
+        return this;
+        }
+
+
     // ----- DefaultClusterDependencies methods -----------------------------
 
     /**
@@ -2758,4 +2784,10 @@ public class DefaultClusterDependencies
      * Lambdas serialization mode. Either "static", "dynamic" or "", indicating not set.
      */
     private String m_sLambdasSerializationMode = "";
+
+    /**
+     * Specifies whether the secured production mode is enabled.
+     * Default is false.
+     */
+    private boolean m_fSecuredProduction = false;
     }

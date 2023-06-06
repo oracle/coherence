@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -2203,5 +2203,19 @@
         <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
     </xsd:complexType>
+
+    <xsd:element name="secured-production" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The secured-production element specifies whether or not this
+                cluster enables secure mode.  It is only applicable in
+                production mode.
+
+                Legal values are: true or false.
+
+                Used in: cluster-config
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
