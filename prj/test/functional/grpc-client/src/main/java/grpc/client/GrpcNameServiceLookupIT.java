@@ -21,6 +21,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.Ports;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.coherence.client.GrpcRemoteCacheService;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
@@ -49,7 +50,10 @@ public class GrpcNameServiceLookupIT
     static void setup() throws Exception
         {
         CoherenceClusterMember clusterMember = CLUSTER_EXTENSION.getCluster().getAny();
-        int                    grpcPort      = clusterMember.getGrpcProxyPort();
+
+        Eventually.assertDeferred(() -> clusterMember.isServiceRunning(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME), is(true));
+
+        int grpcPort = clusterMember.getGrpcProxyPort();
 
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.override", "test-coherence-override.xml");
