@@ -54,6 +54,7 @@ import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperDataInputStream;
 import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
@@ -85,7 +86,7 @@ import javax.inject.Named;
  *
  * @since 20.06
  */
-@Named("json")
+@Named(JsonSerializer.NAME)
 @ApplicationScoped
 public class JsonSerializer
         implements Serializer, ClassLoaderAware
@@ -116,7 +117,7 @@ public class JsonSerializer
     @Override
     public String getName()
         {
-        return "json";
+        return NAME;
         }
 
     /**
@@ -484,7 +485,33 @@ public class JsonSerializer
         private final String f_sClzGensonBundle;
         }
 
+    // ----- inner class: Factory -------------------------------------------
+
+    /**
+     * The default {@link SerializerFactory} to create a JSON serializer.
+     */
+    public static class Factory
+            implements SerializerFactory
+        {
+        @Override
+        public Serializer createSerializer(ClassLoader loader)
+            {
+            return new JsonSerializer(loader);
+            }
+
+        @Override
+        public String getName()
+            {
+            return JsonSerializer.NAME;
+            }
+        }
+
     // ----- constants ------------------------------------------------------
+
+    /**
+     * The default name for the JSON serializer.
+     */
+    public static final String NAME = "json";
 
     /**
      * Generic type for {@link Object}.
