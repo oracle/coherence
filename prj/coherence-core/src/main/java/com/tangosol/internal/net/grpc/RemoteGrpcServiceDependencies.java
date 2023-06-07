@@ -22,6 +22,13 @@ public interface RemoteGrpcServiceDependencies
         extends RemoteCacheServiceDependencies
     {
     /**
+     * Return the name of the scope configured for this service.
+     *
+     * @return the name of the scope configured for this service
+     */
+    String getScopeName();
+
+    /**
      * Return the name of the scope on the remote to connect to on the cluster.
      *
      * @return the name of the scope on the remote to connect to on the cluster
@@ -50,4 +57,11 @@ public interface RemoteGrpcServiceDependencies
      * @return the {@link DaemonPoolDependencies}
      */
     DaemonPoolDependencies getDaemonPoolDependencies();
+
+    /**
+     * Returns the deadline to use for gRPC requests.
+     *
+     * @return the deadline to use for gRPC requests
+     */
+    long getDeadline();
     }

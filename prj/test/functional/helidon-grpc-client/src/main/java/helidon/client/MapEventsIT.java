@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,7 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.Session;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.MapEvent;
 
 import io.helidon.microprofile.server.Server;
@@ -84,7 +85,7 @@ public class MapEventsIT
         System.setProperty("coherence.pof.config",       "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",      "true");
         System.setProperty("coherence.log.level",        "9");
-        System.setProperty("coherence.grpc.server.port", "1408");
+        System.setProperty(GrpcDependencies.PROP_PORT, "1408");
 
         // The CDI server will start DCS which will in turn cause the gRPC server to start
         s_server = Server.create().start();

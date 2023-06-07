@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.cluster;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
 
@@ -55,6 +56,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -2190,73 +2192,7 @@ public class DefaultClusterDependencies
      */
     protected void discoverSerializers()
         {
-        ClassLoader clzLoader = Base.getContextClassLoader();
-        loadService(ServiceLoader.load(SerializerFactory.class, clzLoader), SerializerFactory.class);
-        loadService(ServiceLoader.load(Serializer.class, clzLoader), Serializer.class);
-        }
-
-    /**
-     * Helper method for {@link #discoverSerializers()}.
-     *
-     * @param loader  the {@link ServiceLoader} to load the services from
-     * @param <T>     the service type
-     *
-     * @see #discoverSerializers()
-     *
-     * @since 20.12
-     */
-    protected <T> void loadService(ServiceLoader<T> serviceLoader, Class<T> clz)
-        {
-        Iterator<T> iterator = serviceLoader.iterator();
-        while (iterator.hasNext())
-            {
-            try
-                {
-                T                 service = iterator.next();
-                String            sName   = null;
-                SerializerFactory factory = null;
-
-                if (service instanceof SerializerFactory)
-                    {
-                    factory = (SerializerFactory) service;
-                    sName   = factory.getName();
-                    }
-                else
-                    {
-                    sName = ((Serializer) service).getName();
-
-                    factory = clzLoader ->
-                        {
-                        try
-                            {
-                            Serializer serializer = (Serializer) service.getClass().getConstructor().newInstance();
-                            if (serializer instanceof ClassLoaderAware)
-                                {
-                                ((ClassLoaderAware) serializer).setContextClassLoader(clzLoader);
-                                }
-                            return serializer;
-                            }
-                        catch (Exception e)
-                            {
-                            throw Base.ensureRuntimeException(e,
-                                    String.format("Unable to create serializer type [%s]",
-                                            service.getClass().getName()));
-                            }
-                        };
-                    }
-
-                if (m_mapSerializer.putIfAbsent(sName, factory) != null)
-                    {
-                    Logger.warn(String.format("serializer factory already defined for %s, type [%s]; ignoring this"
-                                              + " discovered implementation",
-                                              sName, service.getClass().getName()));
-                    }
-                }
-            catch (Throwable t)
-                {
-                Logger.err("Failed to load service of type " + clz, t);
-                }
-            }
+        m_mapSerializer.putAll(Serializer.discoverSerializers());
         }
 
     /**

@@ -42,6 +42,7 @@ public class BaseGrpcServiceImpl
      */
     public BaseGrpcServiceImpl(Dependencies dependencies, String sMBeanName, String sPoolName)
         {
+        f_dependencies         = dependencies;
         f_executor             = dependencies.getExecutor().orElseGet(() -> createDefaultExecutor(sPoolName));
         f_cacheFactorySupplier = dependencies.getCacheFactorySupplier().orElse(ConfigurableCacheFactorySuppliers.DEFAULT);
         f_serializerProducer   = dependencies.getNamedSerializerFactory().orElse(NamedSerializerFactory.DEFAULT);
@@ -121,13 +122,20 @@ public class BaseGrpcServiceImpl
             {
             ClassLoader loader = supplierLoader.get();
             serializer = f_storeSerializer.get(sFormatRequest, loader);
+
+            if (serializer == null)
+                {
+                serializer = f_dependencies.getContext()
+                        .map(c -> c.getNamedSerializer(sFormatRequest))
+                        .orElse(null);
+                }
             if (serializer == null)
                 {
                 serializer = f_serializerProducer.getNamedSerializer(sFormatRequest, loader);
-                if (serializer != null)
-                    {
-                    f_storeSerializer.put(serializer, loader);
-                    }
+                }
+            if (serializer != null)
+                {
+                f_storeSerializer.put(serializer, loader);
                 }
             }
 
@@ -222,6 +230,11 @@ public class BaseGrpcServiceImpl
     // ----- data members -----------------------------------------------
 
     /**
+     * The service {@link Dependencies}.
+     */
+    protected final Dependencies f_dependencies;
+
+    /**
      * The function used to obtain ConfigurableCacheFactory instances for a
      * given scope name.
      */
@@ -245,7 +258,7 @@ public class BaseGrpcServiceImpl
     /**
      * The serializers store.
      */
-    private ScopedReferenceStore<Serializer> f_storeSerializer;
+    private final ScopedReferenceStore<Serializer> f_storeSerializer;
 
     /**
      * The transfer threshold used for paged requests.

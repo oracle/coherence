@@ -37,6 +37,11 @@ public interface GrpcDependencies
     String DEFAULT_IN_PROCESS_NAME = "default";
 
     /**
+     * The system property that sets the gRPC proxy bind address.
+     */
+    String PROP_ADDRESS = "coherence.grpc.server.address";
+
+    /**
      * The system property that sets the gRPC proxy port.
      */
     String PROP_PORT = "coherence.grpc.server.port";
@@ -81,4 +86,9 @@ public interface GrpcDependencies
      * The default max page size used by the gRPC debug Channelz service.
      */
     int DEFAULT_CHANNELZ_MAX_PAGE_SIZE = 100;
+
+    /**
+     * The default rpc deadline used for gRPC client requests.
+     */
+    long DEFAULT_DEADLINE_MILLIS = 30000;
     }

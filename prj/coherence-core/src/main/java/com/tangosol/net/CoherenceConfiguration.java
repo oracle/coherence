@@ -1,19 +1,20 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
+import com.tangosol.application.Context;
 import com.tangosol.net.events.EventInterceptor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 /**
@@ -82,6 +83,16 @@ public interface CoherenceConfiguration
      * @return  an immutable {@link Iterable} of {@link EventInterceptor interceptors}
      */
     Iterable<EventInterceptor<?>> getInterceptors();
+
+    /**
+     * Return the optional application {@link Context} associated to this {@link Coherence} instance.
+     *
+     * @return the optional application {@link Context} associated to this {@link Coherence} instance
+     */
+    default Optional<Context> getApplicationContext()
+        {
+        return Optional.empty();
+        }
 
     // ----- inner class: Builder -------------------------------------------
 
@@ -255,6 +266,19 @@ public interface CoherenceConfiguration
             }
 
         /**
+         * Set the {@link Context application context} to associate to the {@link Coherence} instance.
+         *
+         * @param context  the {@link Context application context} to associate to the {@link Coherence} instance
+         *
+         * @return  this {@link Builder}
+         */
+        public Builder withApplicationContext(Context context)
+            {
+            m_context = context;
+            return this;
+            }
+
+        /**
          * Build a {@link CoherenceConfiguration} from this {@link Builder}.
          *
          * @return  a {@link CoherenceConfiguration} created from this {@link Builder}
@@ -275,7 +299,7 @@ public interface CoherenceConfiguration
                 mapConfig.put(cfgDefault.getName(), cfgDefault);
                 }
 
-            return new SimpleConfig(m_sName, mapConfig, f_listInterceptor);
+            return new SimpleConfig(this, mapConfig);
             }
 
         // ----- data members -----------------------------------------------
@@ -295,6 +319,11 @@ public interface CoherenceConfiguration
          * created by the {@link Coherence} instance.
          */
         private final List<EventInterceptor<?>> f_listInterceptor = new ArrayList<>();
+
+        /**
+         * The Context application context to associate to the {@link Coherence} instance
+         */
+        private Context m_context;
         }
 
     // ----- inner class: SimpleConfig --------------------------------------
@@ -311,22 +340,19 @@ public interface CoherenceConfiguration
          * Create an instance of a {@link CoherenceConfiguration} using the state from the
          * specified {@link Builder}.
          *
-         * @param sName            the name for the {@link Coherence} instance created
-         *                         from this {@link CoherenceConfiguration}
+         * @param builder          the configuration {@link Builder}
          * @param mapConfig        the {@link SessionConfiguration} to use to create
          *                         {@link com.tangosol.net.Session} instances
          *                         instances
-         * @param listInterceptor  the interceptors to add to the
-         *                         {@link com.tangosol.net.Session}
-         *                         instances
          */
-        private SimpleConfig(String                            sName,
-                             Map<String, SessionConfiguration> mapConfig,
-                             List<EventInterceptor<?>>         listInterceptor)
+        private SimpleConfig(Builder                           builder,
+                             Map<String, SessionConfiguration> mapConfig)
             {
-            f_sName           = sName == null || sName.trim().isEmpty() ? Coherence.DEFAULT_NAME : sName.trim();
-            f_mapConfig       = Collections.unmodifiableMap(new HashMap<>(mapConfig));
-            f_listInterceptor = Collections.unmodifiableList(new ArrayList<>(listInterceptor));
+            f_sName               = builder.m_sName == null || builder.m_sName.trim().isEmpty()
+                                            ? Coherence.DEFAULT_NAME : builder.m_sName.trim();
+            f_mapConfig           = Collections.unmodifiableMap(new HashMap<>(mapConfig));
+            f_listInterceptor     = Collections.unmodifiableList(new ArrayList<>(builder.f_listInterceptor));
+            f_context             = builder.m_context;
             }
 
         // ----- CoherenceConfiguration API methods -------------------------
@@ -349,6 +375,12 @@ public interface CoherenceConfiguration
             return f_listInterceptor;
             }
 
+        @Override
+        public Optional<Context> getApplicationContext()
+            {
+            return Optional.ofNullable(f_context);
+            }
+
         // ----- data members ---------------------------------------------------
 
         /**
@@ -365,5 +397,10 @@ public interface CoherenceConfiguration
          * The global interceptors to be added to all sessions.
          */
         private final List<EventInterceptor<?>> f_listInterceptor;
+
+        /**
+         * An optional application {@link Context}.
+         */
+        private final Context f_context;
         }
     }

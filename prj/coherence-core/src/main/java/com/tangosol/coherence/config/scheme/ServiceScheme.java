@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
 import java.util.List;
 
+import com.tangosol.application.ContainerContext;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
 
@@ -72,6 +73,42 @@ public interface ServiceScheme
      * @return an {@link List} over {@link NamedEventInterceptorBuilder}s
      */
     public List<NamedEventInterceptorBuilder> getEventInterceptorBuilders();
+
+    /**
+     * Return a scope name prefixed with any tenancy name.
+     *
+     * @param sScopeName  the scope name to prefix
+     * @param context     an optional container name to use to obtain the domain partition
+     *
+     * @return a scope name with a domain partition prefix, or the plain scope
+     *         name if there is no domain partition
+     */
+    static String getScopePrefix(String sScopeName, ContainerContext context)
+        {
+        if (sScopeName == null)
+            {
+            return null;
+            }
+
+        String sTenant = context == null || context.isGlobalDomainPartition() ? null : context.getDomainPartition();
+
+        return sTenant == null || sTenant.trim().length() == 0
+                ? sScopeName : sTenant + DELIM_DOMAIN_PARTITION + sScopeName;
+        }
+
+    /**
+     * Return a scoped service name
+     *
+     * @param sScopeName    the optional scope name
+     * @param sServiceName  the service name
+     *
+     * @return  the scoped service name
+     */
+    static String getScopedServiceName(String sScopeName, String sServiceName)
+        {
+        return sScopeName == null || sScopeName.trim().length() == 0
+                ? sServiceName : sScopeName + DELIM_APPLICATION_SCOPE + sServiceName;
+        }
 
     /**
      * Delimiter for the Domain Partition name in the {@link #getScopedServiceName()

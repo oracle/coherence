@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,6 @@ import com.tangosol.net.events.InterceptorRegistry;
 
 import com.tangosol.internal.net.DefaultSessionProvider;
 
-import com.tangosol.util.RegistrationBehavior;
 import org.junit.After;
 import org.junit.Test;
 
@@ -306,13 +305,13 @@ public class CoherenceTest
         ConfigurableCacheFactorySession    sessionOne    = mock(ConfigurableCacheFactorySession.class);
         ExtensibleConfigurableCacheFactory ccfOne        = mock(ExtensibleConfigurableCacheFactory.class);
         InterceptorRegistry                registryOne   = mock(InterceptorRegistry.class);
-        SessionProvider                    providerOne   = mock(SessionProvider.class);
+        SessionProvider                    providerOne   = mock(SessionProvider.class, "ProviderOne");
         SessionConfiguration               cfgOne        = new SessionConfigStub(Coherence.DEFAULT_NAME, Collections.emptyList(), 0, providerOne);
 
         ConfigurableCacheFactorySession    sessionTwo    = mock(ConfigurableCacheFactorySession.class);
         ExtensibleConfigurableCacheFactory ccfTwo        = mock(ExtensibleConfigurableCacheFactory.class);
         InterceptorRegistry                registryTwo   = mock(InterceptorRegistry.class);
-        SessionProvider                    providerTwo   = mock(SessionProvider.class);
+        SessionProvider                    providerTwo   = mock(SessionProvider.class, "ProviderTwo");
         SessionConfiguration               cfgTwo        = new SessionConfigStub("Two", Collections.emptyList(), 0, providerTwo);
 
         CoherenceConfiguration             configuration = CoherenceConfiguration.builder()
@@ -474,9 +473,9 @@ public class CoherenceTest
             return f_listInterceptor;
             }
 
-        private final String f_sName;
+        private final String                            f_sName;
         private final Map<String, SessionConfiguration> f_mapConfig;
-        private final Iterable<EventInterceptor<?>> f_listInterceptor;
+        private final Iterable<EventInterceptor<?>>     f_listInterceptor;
         }
 
     // ----- inner class: SessionConfigStub ---------------------------------
@@ -579,7 +578,7 @@ public class CoherenceTest
         {
         public ContextStub(Session session)
             {
-            super(Coherence.Mode.ClusterMember, DefaultSessionProvider.INSTANCE, Collections.emptyList());
+            super(Coherence.Mode.ClusterMember, DefaultSessionProvider.INSTANCE, Collections.emptyList(), null);
             complete(session);
             }
         }

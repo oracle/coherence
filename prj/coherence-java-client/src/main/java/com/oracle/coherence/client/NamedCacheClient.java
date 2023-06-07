@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutionException;
  * @author Jonathan Knight  2019.11.07
  * @since 20.06
  */
+@SuppressWarnings("rawtypes")
 public class NamedCacheClient<K, V>
         implements NamedCache<K, V>
     {
@@ -49,7 +50,7 @@ public class NamedCacheClient<K, V>
      */
     protected NamedCacheClient(AsyncNamedCacheClient<K, V> asyncClient)
         {
-        this.f_asyncClient = asyncClient;
+        f_asyncClient = asyncClient;
         }
 
     // ----- accessor methods -----------------------------------------------
@@ -276,6 +277,7 @@ public class NamedCacheClient<K, V>
         }
 
     @Override
+    @SuppressWarnings("NullableProblems")
     public void putAll(Map<? extends K, ? extends V> m)
         {
         f_asyncClient.assertActive();

@@ -9,9 +9,13 @@ package com.oracle.coherence.grpc.proxy;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.CredentialsHelper;
+import com.tangosol.application.ContainerContext;
+import com.tangosol.application.Context;
+import com.tangosol.coherence.config.scheme.ServiceScheme;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 import com.tangosol.internal.util.DaemonPool;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
 import io.grpc.Grpc;
@@ -26,10 +30,8 @@ import io.grpc.protobuf.services.ChannelzService;
 import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.net.SocketAddress;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,25 +74,31 @@ public class DefaultGrpcAcceptorController
             GrpcAcceptorDependencies deps             = getDependencies();
             ServerBuilder<?>         serverBuilder    = createServerBuilder(deps);
             InProcessServerBuilder   inProcessBuilder = createInProcessServerBuilder(deps);
+            Context                  context          = deps.getContext();
 
             GrpcServiceDependencies.DefaultDependencies serviceDeps = new GrpcServiceDependencies.DefaultDependencies();
+
+            serviceDeps.setContext(context);
+
             if (m_daemonPool != null)
                 {
                 serviceDeps.setExecutor(new DaemonPoolExecutor(m_daemonPool));
                 }
 
-            List<String> listService = new ArrayList<>();
-            for (BindableGrpcProxyService service : createGrpcServices(serviceDeps))
+            m_listServices = createGrpcServices(serviceDeps);
+            List<String> listServiceNames = new ArrayList<>();
+            for (BindableGrpcProxyService service : m_listServices)
                 {
                 GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
                 ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
                 serverBuilder.addService(definition);
                 inProcessBuilder.addService(definition);
-                listService.add(definition.getServiceDescriptor().getName());
+                listServiceNames.add(definition.getServiceDescriptor().getName());
                 }
 
             serverBuilder.addService(f_healthStatusManager.getHealthService());
             serverBuilder.addService(ChannelzService.newInstance(deps.getChannelzPageSize()));
+//            serverBuilder.intercept(new ServerLoggingInterceptor());
 
             configure(serverBuilder, inProcessBuilder);
 
@@ -100,13 +108,16 @@ public class DefaultGrpcAcceptorController
             server.start();
             inProcessServer.start();
 
-            Logger.info(() -> "In-Process GrpcAcceptor is now listening for connections using name \""
-                    + deps.getInProcessName() + "\"");
+            for (SocketAddress address : inProcessServer.getListenSockets())
+                {
+                Logger.info(() -> "In-Process GrpcAcceptor is now listening for connections using name \""
+                        + address + "\"");
+                }
 
-            m_server = server;
+            m_server          = server;
             m_inProcessServer = inProcessServer;
             f_healthStatusManager.setStatus(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME, HealthCheckResponse.ServingStatus.SERVING);
-            listService.forEach(s -> f_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
+            listServiceNames.forEach(s -> f_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
             m_fRunning = true;
             }
         catch (IOException e)
@@ -120,12 +131,13 @@ public class DefaultGrpcAcceptorController
         {
         if (isRunning())
             {
+            m_fRunning = false;
             f_healthStatusManager.enterTerminalState();
             stopServer(m_inProcessServer, "in-process server");
             m_inProcessServer = null;
             stopServer(m_server, "server");
             m_server = null;
-            m_fRunning = false;
+            m_listServices = null;
             }
         }
 
@@ -154,7 +166,26 @@ public class DefaultGrpcAcceptorController
     @Override
     public String getInProcessName()
         {
-        return getDependencies().getInProcessName();
+        if (m_inProcessServer != null)
+            {
+            return m_inProcessServer.getListenSockets()
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(String::valueOf)
+                    .findAny()
+                    .orElse(null);
+            }
+        return null;
+        }
+
+    /**
+     * Return the list of services this controller is serving.
+     *
+     * @return the list of services this controller is serving
+     */
+    public List<BindableGrpcProxyService> getBindableServices()
+        {
+        return m_listServices;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -167,7 +198,12 @@ public class DefaultGrpcAcceptorController
 
     protected InProcessServerBuilder createInProcessServerBuilder(GrpcAcceptorDependencies deps)
         {
-        return InProcessServerBuilder.forName(deps.getInProcessName());
+        Context          ctx          = deps.getContext();
+        ContainerContext ctxContainer = ctx == null ? null : ctx.getContainerContext();
+        String           sPrefix      = ctx == null ? Coherence.DEFAULT_SCOPE : ctx.getDefaultScope();
+        String           sScope       = ServiceScheme.getScopePrefix(sPrefix + GrpcDependencies.PROXY_SERVICE_SCOPE_NAME, ctxContainer);
+        String           sName        = ServiceScheme.getScopedServiceName(sScope, deps.getInProcessName());
+        return InProcessServerBuilder.forName(sName);
         }
 
     /**
@@ -183,14 +219,14 @@ public class DefaultGrpcAcceptorController
     /**
      * Obtain the list of gRPC proxy services to bind to a gRPC server.
      *
-     * @param deps  the {@link GrpcServiceDependencies} to use
+     * @param depsService  the {@link GrpcServiceDependencies} to use
      *
      * @return  the list of gRPC proxy services to bind to a gRPC server
      */
-    public static List<BindableGrpcProxyService> createGrpcServices(GrpcServiceDependencies deps)
+    public static List<BindableGrpcProxyService> createGrpcServices(GrpcServiceDependencies depsService)
         {
         BindableGrpcProxyService cacheService
-                = new NamedCacheServiceGrpcImpl(new NamedCacheService.DefaultDependencies(deps));
+                = new NamedCacheServiceGrpcImpl(new NamedCacheService.DefaultDependencies(depsService));
 //        BindableGrpcProxyService topicService
 //                = new RemoteTopicServiceGrpcImpl(new RemoteTopicService.DefaultDependencies(deps));
 //
@@ -270,4 +306,9 @@ public class DefaultGrpcAcceptorController
      * The gRPC health check service manager.
      */
     private final HealthStatusManager f_healthStatusManager = new HealthStatusManager();
+
+    /**
+     * The list of {@link BindableGrpcProxyService services} served by this controller.
+     */
+    private List<BindableGrpcProxyService> m_listServices;
     }

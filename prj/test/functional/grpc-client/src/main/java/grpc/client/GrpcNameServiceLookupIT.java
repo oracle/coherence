@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -49,8 +49,7 @@ public class GrpcNameServiceLookupIT
     static void setup() throws Exception
         {
         CoherenceClusterMember clusterMember = CLUSTER_EXTENSION.getCluster().getAny();
-        Ports ports = clusterMember.getOptions().get(Ports.class);
-        int grpcPort = ports.getPort(GrpcDependencies.PROP_PORT).getActualPort();
+        int                    grpcPort      = clusterMember.getGrpcProxyPort();
 
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.override", "test-coherence-override.xml");
@@ -156,7 +155,6 @@ public class GrpcNameServiceLookupIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
-                  SystemProperty.of(GrpcDependencies.PROP_PORT, PORTS, Ports.capture()),
                   SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                   WellKnownAddress.loopback(),
                   ClusterName.of(CLUSTER_NAME),

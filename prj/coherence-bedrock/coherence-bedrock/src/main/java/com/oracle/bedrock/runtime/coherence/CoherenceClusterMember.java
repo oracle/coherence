@@ -9,6 +9,10 @@ package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.Platform;
+import com.oracle.bedrock.runtime.coherence.callables.FindExtendProxyPort;
+import com.oracle.bedrock.runtime.coherence.callables.FindGrpcProxyPort;
+import com.oracle.bedrock.runtime.coherence.callables.HasSession;
+import com.oracle.bedrock.runtime.coherence.callables.HasSessionWithScope;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.MachineName;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
@@ -451,6 +455,112 @@ public interface CoherenceClusterMember
         }
 
     void threadDump();
+
+    /**
+     * Return the port the default Extend proxy is listening on.
+     *
+     * @return  the port the default Extend proxy is listening on,
+     *          or {@code -1} if the proxy is not running
+     */
+    default int getExtendProxyPort()
+        {
+        return invoke(FindExtendProxyPort.INSTANCE);
+        }
+
+    /**
+     * Return the port a specific Extend proxy is listening on.
+     *
+     * @param sServiceName  the proxy service name
+     *
+     * @return  the port the Extend proxy is listening on,
+     *          or {@code -1} if the proxy is not running
+     */
+    default int getExtendProxyPort(String sServiceName)
+        {
+        return invoke(new FindExtendProxyPort(sServiceName));
+        }
+
+    /**
+     * Return the port the default gRPC proxy is listening on.
+     *
+     * @return  the port the default gRPC proxy is listening on,
+     *          or {@code -1} if the proxy is not running
+     */
+    default int getGrpcProxyPort()
+        {
+        return invoke(FindGrpcProxyPort.INSTANCE);
+        }
+
+    /**
+     * Return the port a scoped gRPC proxy is listening on.
+     *
+     * @param sScope  the scope prefix to use to locate the gRPC proxy
+     *
+     * @return  the port the default gRPC proxy is listening on,
+     *          or {@code -1} if the proxy is not running
+     */
+    default int getGrpcProxyPort(String sScope)
+        {
+        return invoke(new FindGrpcProxyPort(sScope));
+        }
+
+    /**
+     * Return {@code true} if the cluster member has a named {@link Session} started by
+     * the Coherence bootstrap API.
+     *
+     * @param sName  the name of the session
+     *
+     * @return {@code true} if the cluster member has a named {@link Session} started by
+     *         the Coherence bootstrap API
+     */
+    default boolean hasSession(String sName)
+        {
+        return invoke(new HasSession(sName));
+        }
+
+    /**
+     * Return {@code true} if the cluster member has a named {@link Session} started by
+     * the Coherence bootstrap API.
+     *
+     * @param sSessionName    the name of the session
+     * @param sCoherenceName  an optional {@link Coherence} instance name
+     *
+     * @return {@code true} if the cluster member has a named {@link Session} started by
+     *         the Coherence bootstrap API
+     */
+    default boolean hasSession(String sSessionName, String sCoherenceName)
+        {
+        return invoke(new HasSession(sSessionName, sCoherenceName));
+        }
+
+    /**
+     * Return {@code true} if the cluster member has a {@link Session} with a specific
+     * scope started by the Coherence bootstrap API.
+     *
+     * @param sName  the session scope name
+     *
+     * @return {@code true} if the cluster member has a {@link Session} with a specific
+     *         scope started by the Coherence bootstrap API
+     */
+    default boolean hasSessionWithScope(String sName)
+        {
+        return invoke(new HasSessionWithScope(sName));
+        }
+
+    /**
+     * Return {@code true} if the cluster member has a {@link Session} with a specific
+     * scope started by the Coherence bootstrap API.
+     *
+     * @param sScopeName      the session scope
+     * @param sCoherenceName  an optional {@link Coherence} instance name
+     *
+     * @return {@code true} if the cluster member has a {@link Session} with a specific
+     *         scope started by the Coherence bootstrap API.
+     */
+    default boolean hasSessionWithScope(String sScopeName, String sCoherenceName)
+        {
+        return invoke(new HasSessionWithScope(sScopeName, sCoherenceName));
+        }
 
     /**
      * The {@link com.oracle.bedrock.runtime.MetaClass} for {@link CoherenceClusterMember}s.

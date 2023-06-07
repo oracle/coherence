@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,12 +32,14 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 /**
  * @author Jonathan Knight  2020.12.17
  */
+@SuppressWarnings("resource")
 public class SessionLifecycleTests
     {
     @BeforeAll
     static void setup()
         {
         System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
         }
 
@@ -125,7 +127,7 @@ public class SessionLifecycleTests
         listener.f_events.clear();
         Coherence.closeAll();
 
-        assertThat(listener.f_events.size(), is(0));
+        assertThat(listener.f_events.size(), is(1));
         }
 
     @Test
@@ -216,7 +218,7 @@ public class SessionLifecycleTests
         listener.f_events.clear();
         Coherence.closeAll();
 
-        assertThat(listener.f_events.size(), is(0));
+        assertThat(listener.f_events.size(), is(1));
         }
 
 

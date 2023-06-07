@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,11 +7,11 @@
 
 package grpc.client;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.bedrock.runtime.coherence.callables.FindGrpcProxyPort;
+
 import com.oracle.coherence.client.AsyncNamedCacheClient;
 import com.oracle.coherence.client.NamedCacheClient;
 import com.oracle.coherence.common.base.Exceptions;
-import com.oracle.coherence.grpc.CredentialsHelper;
 
 import com.tangosol.io.Serializer;
 
@@ -20,7 +20,6 @@ import com.tangosol.net.CoherenceConfiguration;
 
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
-import com.tangosol.net.grpc.GrpcChannelDependencies;
 import com.tangosol.net.grpc.GrpcDependencies;
 import io.grpc.ChannelCredentials;
 import io.grpc.Grpc;
@@ -46,8 +45,6 @@ import java.util.Properties;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.CoreMatchers.is;
 
 /**
  * A utility class to deploy the Coherence gRPC proxy service

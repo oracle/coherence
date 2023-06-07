@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.grpc.proxy;
 
+import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
@@ -16,8 +17,6 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 
 import com.tangosol.net.grpc.GrpcDependencies;
-
-import com.tangosol.util.Base;
 
 import io.grpc.Status;
 
@@ -51,7 +50,7 @@ public interface ConfigurableCacheFactorySuppliers
      * The default {@link ConfigurableCacheFactory} supplier.
      * <p>
      * This supplier will return the default {@link ConfigurableCacheFactory} from the
-     * {@link com.tangosol.net.CacheFactoryBuilder} for the default (or {@code null} scope.
+     * {@link com.tangosol.net.CacheFactoryBuilder} for the default, or {@code null} scope.
      * For other scope values a System property of {@code coherence.cacheconfig.scope-name}
      * must have been set to the URI of the required cache configuration file.
      */
@@ -64,7 +63,7 @@ public interface ConfigurableCacheFactorySuppliers
             if (scope == null || GrpcDependencies.DEFAULT_SCOPE.equals(scope))
                 {
                 return CacheFactory.getCacheFactoryBuilder()
-                        .getConfigurableCacheFactory(Base.getContextClassLoader());
+                        .getConfigurableCacheFactory(Classes.getContextClassLoader());
                 }
 
             // Try to find a Session with the required scope in a Coherence instance
@@ -90,7 +89,7 @@ public interface ConfigurableCacheFactorySuppliers
             if (sURI != null && !sURI.isEmpty())
                 {
                 return CacheFactory.getCacheFactoryBuilder()
-                        .getConfigurableCacheFactory(sURI, Base.getContextClassLoader());
+                        .getConfigurableCacheFactory(sURI, Classes.getContextClassLoader());
                 }
 
             throw Status.INVALID_ARGUMENT
@@ -135,7 +134,7 @@ public interface ConfigurableCacheFactorySuppliers
 
             if (GrpcDependencies.DEFAULT_SCOPE.equals(scope))
                 {
-                return CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(Base.getContextClassLoader());
+                return CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(Classes.getContextClassLoader());
                 }
 
             throw Status.INVALID_ARGUMENT

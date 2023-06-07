@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.tangosol.net;
 
 import com.tangosol.config.expression.ParameterResolver;
+
+import com.tangosol.internal.net.ScopedUriScopeResolver;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
 
@@ -32,7 +34,6 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -203,19 +204,13 @@ public class ScopedCacheFactoryBuilder
         // track ClassLoaders that no longer have any associated factories;
         // since the iterator for mapByLoader is read only, these ClassLoaders
         // must be removed via the Map itself (the "front door")
-        Set<ClassLoader> setLoader = new HashSet();
+        Set<ClassLoader> setLoader = new HashSet<>();
 
         Map<ClassLoader, Map<String, ConfigurableCacheFactory>> mapByLoader = m_mapByLoader;
         for (Map.Entry<ClassLoader, Map<String, ConfigurableCacheFactory>> entry : mapByLoader.entrySet())
             {
             Map<String, ConfigurableCacheFactory> mapCCF = entry.getValue();
-            for (Iterator<ConfigurableCacheFactory> iterCCF = mapCCF.values().iterator(); iterCCF.hasNext(); )
-                {
-                if (factory.equals(iterCCF.next()))
-                    {
-                    iterCCF.remove();
-                    }
-                }
+            mapCCF.values().removeIf(factory::equals);
             if (mapCCF.isEmpty())
                 {
                 // this ClassLoader no longer has any associated factories; track for removal
@@ -263,7 +258,7 @@ public class ScopedCacheFactoryBuilder
 
         if (scopeResolver == null)
             {
-            scopeResolver = ScopeResolver.INSTANCE;
+            scopeResolver = new ScopedUriScopeResolver();
             }
 
         return scopeResolver;
@@ -345,7 +340,7 @@ public class ScopedCacheFactoryBuilder
 
         if (mapCCF == null)
             {
-            mapCCF = new LiteMap();
+            mapCCF = new LiteMap<>();
             mapByLoader.put(loader, mapCCF);
             }
         return mapCCF;
@@ -362,14 +357,8 @@ public class ScopedCacheFactoryBuilder
     protected synchronized Map<URI, XmlElement> ensureConfigMap(ClassLoader loader)
         {
         Map<ClassLoader, Map<URI, XmlElement>> mapConfigByLoader = m_mapConfigByLoader;
-        Map<URI, XmlElement> mapConfig = mapConfigByLoader.get(loader);
 
-        if (mapConfig == null)
-            {
-            mapConfig = new HashMap<>();
-            mapConfigByLoader.put(loader, mapConfig);
-            }
-        return mapConfig;
+        return mapConfigByLoader.computeIfAbsent(loader, k -> new HashMap<>());
         }
 
     /**
@@ -389,7 +378,7 @@ public class ScopedCacheFactoryBuilder
             {
             return mapXml.get(url.toURI());
             }
-        catch (URISyntaxException e) {}
+        catch (URISyntaxException ignored) {}
 
         return null;
         }
@@ -409,7 +398,7 @@ public class ScopedCacheFactoryBuilder
             {
             mapXml.put(url.toURI(), xml);
             }
-        catch (URISyntaxException e) {}
+        catch (URISyntaxException ignored) {}
         }
 
     /**
@@ -420,6 +409,7 @@ public class ScopedCacheFactoryBuilder
      *
      * @return the XML configuration, or null if the config could not be loaded
      */
+    @SuppressWarnings({"ConstantValue", "AssignmentToCatchBlockParameter"})
     protected synchronized XmlElement loadConfigFromURI(String sConfigURI, ClassLoader loader)
         {
         URL        url       = resolveURL(sConfigURI, loader);
@@ -529,6 +519,7 @@ public class ScopedCacheFactoryBuilder
      *
      * @return the {@link ConfigurableCacheFactory} created
      */
+    @SuppressWarnings("deprecation")
     protected ConfigurableCacheFactory instantiateFactory(ClassLoader loader, XmlElement xmlConfig, XmlElement xmlFactory,
             String sPofConfigURI, String sScopeName, ParameterResolver resolver)
         {
@@ -539,7 +530,7 @@ public class ScopedCacheFactoryBuilder
             if (sClass.equals(ExtensibleConfigurableCacheFactory.class.getName()))
                 {
                 Dependencies dependencies = ExtensibleConfigurableCacheFactory.DependenciesHelper.
-                    newInstance(xmlConfig, loader, sPofConfigURI, sScopeName, resolver);
+                    newInstance(xmlConfig, loader, sPofConfigURI, sScopeName, null, resolver);
 
                 ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(dependencies);
                 eccf.setConfigClassLoader(loader);
@@ -658,7 +649,7 @@ public class ScopedCacheFactoryBuilder
      * (e.g. Map&lt;ClassLoader, Map&lt;URI, ConfigurableCacheFactory&gt;&gt;).
      */
     protected Map<ClassLoader, Map<String, ConfigurableCacheFactory>> m_mapByLoader =
-            new CopyOnWriteMap(WeakHashMap.class);
+            new CopyOnWriteMap<>(WeakHashMap.class);
 
     /**
      * Mapping used to associate class loaders with specific configuration elements.
@@ -666,5 +657,5 @@ public class ScopedCacheFactoryBuilder
      * of URL to XmlElement as values.
      */
     protected Map<ClassLoader, Map<URI, XmlElement>> m_mapConfigByLoader =
-            new CopyOnWriteMap(WeakHashMap.class);
+            new CopyOnWriteMap<>(WeakHashMap.class);
     }

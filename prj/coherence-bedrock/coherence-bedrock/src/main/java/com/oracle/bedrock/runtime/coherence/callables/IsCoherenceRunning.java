@@ -8,8 +8,9 @@
 package com.oracle.bedrock.runtime.coherence.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
-import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.Coherence;
+
+import java.util.Set;
 
 /**
  * A {@link RemoteCallable} to determine whether a
@@ -24,9 +25,8 @@ public class IsCoherenceRunning
      */
     public IsCoherenceRunning()
         {
-        this(Coherence.DEFAULT_NAME);
+        this(Set.of(Coherence.DEFAULT_NAME));
         }
-
 
     /**
      * Constructs an {@link IsCoherenceRunning}
@@ -35,19 +35,46 @@ public class IsCoherenceRunning
      */
     public IsCoherenceRunning(String name)
         {
-        m_name = name == null ? Coherence.DEFAULT_NAME : name;
+        this(name == null ? Set.of() : Set.of(name));
+        }
+
+    /**
+     * Constructs an {@link IsCoherenceRunning}
+     *
+     * @param setName the optional names of the Coherence instances
+     */
+    public IsCoherenceRunning(Set<String> setName)
+        {
+        if (setName.isEmpty())
+            {
+            m_setName = Set.of(Coherence.DEFAULT_NAME);
+            }
+        else
+            {
+            m_setName = setName;
+            }
         }
 
 
     @Override
     public Boolean call() throws Exception
         {
-        return Coherence.getInstances()
-                .stream()
-                .filter(c -> m_name.equals(c.getName()))
-                .map(c -> c.whenStarted().isDone() && c.isStarted())
-                .findFirst()
-                .orElse(false);
+        for (String sName : m_setName)
+            {
+            Coherence coherence = Coherence.getInstance(sName);
+            if (coherence != null)
+                {
+                if (!coherence.whenStarted().isDone() || !coherence.isStarted())
+                    {
+                    return false;
+                    }
+                }
+            else
+                {
+                return false;
+                }
+            }
+        return true;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -72,7 +99,7 @@ public class IsCoherenceRunning
     // ----- data members ---------------------------------------------------
 
     /**
-     * The name of the {@link Coherence} instance.
+     * The names of the {@link Coherence} instances.
      */
-    private final String m_name;
+    private final Set<String> m_setName;
     }

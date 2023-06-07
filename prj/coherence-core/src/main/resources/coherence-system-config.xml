@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,6 @@ It will be loaded automatically when CDI integration is used.
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
 
   <defaults>
-    <scope-name>$SYS</scope-name>
     <serializer>${coherence.system.serializer ${coherence.serializer}}</serializer>
   </defaults>
 

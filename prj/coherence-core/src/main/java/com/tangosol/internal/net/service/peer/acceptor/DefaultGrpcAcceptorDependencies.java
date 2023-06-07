@@ -7,6 +7,7 @@
 package com.tangosol.internal.net.service.peer.acceptor;
 
 import com.oracle.coherence.common.net.TcpSocketProvider;
+import com.tangosol.application.Context;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.net.grpc.GrpcDependencies;
@@ -44,11 +45,13 @@ public class DefaultGrpcAcceptorDependencies
 
         if (deps != null)
             {
-            m_sLocalAddress         = deps.getLocalAddress();
-            m_nLocalPort            = deps.getLocalPort();
-            m_builderSocketProvider = deps.getSocketProviderBuilder();
-            m_sInProcessName        = deps.getInProcessName();
-            m_controller            = deps.getController();
+            setChannelzPageSize(deps.getChannelzPageSize());
+            setContext(deps.getContext());
+            setController(deps.getController());
+            setInProcessName(deps.getInProcessName());
+            setLocalAddress(deps.getLocalAddress());
+            setLocalPort(deps.getLocalPort());
+            setSocketProviderBuilder(deps.getSocketProviderBuilder());
             }
         }
 
@@ -155,6 +158,23 @@ public class DefaultGrpcAcceptorDependencies
         m_nChannelzPageSize = nPageSize;
         }
 
+    /**
+     * Set the application Context.
+     *
+     * @param context  the application Context
+     */
+    @Injectable
+    public void setContext(Context context)
+        {
+        m_context = context;
+        }
+
+    @Override
+    public Context getContext()
+        {
+        return m_context;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -186,4 +206,9 @@ public class DefaultGrpcAcceptorDependencies
      * The max page size for the Channelz service.
      */
     private int m_nChannelzPageSize;
+
+    /**
+     * An optional application {@link Context}.
+     */
+    private Context m_context;
     }

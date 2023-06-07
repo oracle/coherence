@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
+import com.tangosol.application.Context;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 
@@ -59,4 +60,11 @@ public interface GrpcAcceptorDependencies
      * @return the max page size for the Channelz service
      */
     int getChannelzPageSize();
+
+    /**
+     * Return the optional application {@link Context}.
+     *
+     * @return the optional application {@link Context}
+     */
+    Context getContext();
     }
