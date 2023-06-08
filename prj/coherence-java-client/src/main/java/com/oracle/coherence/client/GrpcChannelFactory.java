@@ -21,6 +21,8 @@ import com.tangosol.coherence.config.builder.FactoryBasedAddressProviderBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
+import com.tangosol.coherence.config.scheme.ServiceScheme;
+
 import com.tangosol.config.expression.NullParameterResolver;
 
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
@@ -72,6 +74,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -131,12 +134,19 @@ public class GrpcChannelFactory
      */
     public Channel getChannel(GrpcRemoteService<?> service)
         {
-        RemoteGrpcServiceDependencies depsService = service.getDependencies();
-        GrpcChannelDependencies       depsChannel = depsService.getChannelDependencies();
-        ManagedChannelBuilder<?>      builder     = (ManagedChannelBuilder<?>) depsChannel.getChannelProvider()
-                                                                .orElse(createManagedChannelBuilder(service));
+        try
+            {
+            RemoteGrpcServiceDependencies depsService = service.getDependencies();
+            GrpcChannelDependencies       depsChannel = depsService.getChannelDependencies();
+            ManagedChannelBuilder<?>      builder     = (ManagedChannelBuilder<?>) depsChannel.getChannelProvider()
+                                                                    .orElse(createManagedChannelBuilder(service));
 
-        return builder.build();
+            return builder.build();
+            }
+        catch (Exception e)
+            {
+            throw new ConnectionException("Failed to create gRPC channel for service " + service.getServiceName(), e);
+            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -181,7 +191,6 @@ public class GrpcChannelFactory
         mapServiceConfig.put("healthCheckConfig", Collections.singletonMap("serviceName", GrpcDependencies.SCOPED_PROXY_SERVICE_NAME));
 
         channelBuilder.defaultServiceConfig(mapServiceConfig);
-
         channelBuilder.defaultLoadBalancingPolicy(depsChannel.getDefaultLoadBalancingPolicy());
         channelBuilder.userAgent("Coherence Java Client");
 
@@ -270,7 +279,8 @@ public class GrpcChannelFactory
         @Override
         public String getServiceAuthority()
             {
-            return m_sAuthority;
+            // should not return null
+            return m_sAuthority == null ? "" : m_sAuthority;
             }
 
         @Override
@@ -464,14 +474,7 @@ public class GrpcChannelFactory
                          Logger.finest("Failed to lookup gRPC endpoints, attempts=" + cAttempt
                                 + " : " + t.getMessage());
 
-                        try
-                            {
-                            Blocking.sleep(1000);
-                            }
-                        catch (InterruptedException e)
-                            {
-                            // ignored
-                            }
+                        Blocking.sleep(1000);
                         cAttempt++;
                         }
                     }
@@ -511,6 +514,8 @@ public class GrpcChannelFactory
             List<SocketAddress>   list            = new ArrayList<>();
             SocketAddress         address         = addressProvider.getNextAddress();
             boolean               fFirst          = true;
+
+            Logger.config("Resolving configured remote gRPC endpoints for service " + f_serviceInfo.getService());
 
             while (address != null)
                 {
@@ -557,6 +562,8 @@ public class GrpcChannelFactory
             SocketAddressProvider addressProvider = f_parent.buildSocketAddressProvider();
             RemoteNameService     serviceNS       = new RemoteNameService();
             OperationalContext    context         = f_serviceInfo.getOperationalContext();
+
+            Logger.config("Using NameService to lookup remote gRPC endpoints for service " + f_serviceInfo.getService());
 
             serviceNS.setOperationalContext(context);
             serviceNS.setContextClassLoader(Classes.getContextClassLoader());
@@ -606,8 +613,8 @@ public class GrpcChannelFactory
                 if (aoResult == null)
                     {
                     // we got an answer, which means we found the cluster, but not the service
-                    throw new ConnectionException("Unable to locate ProxyService '" + sServiceRemote
-                                                        + "' within cluster '" + f_serviceInfo.getRemoteCluster() + "'");
+                    throw new ConnectionException("Unable to locate gRPC proxy service '" + sServiceRemote
+                                                        + "' within cluster '" + sCluster + "'");
                     }
 
                 List<SocketAddress> list = new ArrayList<>();
@@ -623,7 +630,7 @@ public class GrpcChannelFactory
                 if (list.isEmpty())
                     {
                     throw new ConnectionException("Unable to locate any addresses in cluster '" + sCluster
-                            + "' while looking for its ProxyService '" + sServiceRemote + "'");
+                            + "' while looking for its gRPC proxy service '" + sServiceRemote + "'");
                     }
 
                 return list;
@@ -631,8 +638,8 @@ public class GrpcChannelFactory
             catch (Exception ex)
                 {
                 // we failed to connect, thus the cluster was not reachable
-                throw new ConnectionException("Unable to locate cluster '" + sCluster
-                        + "' while looking for its ProxyService '" + sServiceRemote + "'", ex);
+                throw new ConnectionException("Unable to lookup gRPC proxy '" + sServiceRemote + "' in cluster '" + sCluster
+                        + "' cause: " + ex.getMessage(), ex);
                 }
             finally
                 {
@@ -705,6 +712,14 @@ public class GrpcChannelFactory
             {
             String sService = service.getServiceName();
             String sScope   = service.getScopeName();
+            int    nIdx     = sService.indexOf(ServiceScheme.DELIM_APPLICATION_SCOPE);
+
+            if (sScope == null && nIdx > 0)
+                {
+                sScope   = sService.substring(0, nIdx);
+                sService = sService.substring(nIdx + 1);
+                }
+
             if (sScope == null)
                 {
                 return sService + KEY_SEPARATOR;
@@ -714,7 +729,7 @@ public class GrpcChannelFactory
 
         public static String parseServiceInfoKey(URI uri)
             {
-            String sService = uri.getAuthority();
+            String sService = uri.getHost();
             String sScope   = uri.getQuery();
             if (sScope != null && !sScope.isEmpty() && sScope.charAt(0) == '/')
                 {
@@ -731,6 +746,14 @@ public class GrpcChannelFactory
             {
             String sService = service.getServiceName();
             String sScope   = service.getScopeName();
+            int    nIdx     = sService.indexOf(ServiceScheme.DELIM_APPLICATION_SCOPE);
+
+            if (sScope == null && nIdx > 0)
+                {
+                sScope   = sService.substring(0, nIdx);
+                sService = sService.substring(nIdx + 1);
+                }
+
             if (sScope == null)
                 {
                 return RESOLVER_SCHEME + "://" + sService;
@@ -754,7 +777,11 @@ public class GrpcChannelFactory
                 {
                 return GrpcDependencies.SCOPED_PROXY_SERVICE_NAME;
                 }
-            return m_sRemoteService;
+            if (m_sRemoteService.endsWith(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME))
+                {
+                return GrpcDependencies.SCOPED_PROXY_SERVICE_NAME;
+                }
+            return m_sRemoteService + GrpcDependencies.SCOPED_PROXY_SERVICE_NAME;
             }
 
         public String getRemoteCluster()

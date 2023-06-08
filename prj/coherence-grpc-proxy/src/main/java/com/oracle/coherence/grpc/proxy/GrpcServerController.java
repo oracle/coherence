@@ -7,28 +7,35 @@
 
 package com.oracle.coherence.grpc.proxy;
 
+import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.oracle.coherence.common.base.Objects;
+import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
 import com.tangosol.application.LifecycleListener;
 
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.net.Coherence;
-import com.tangosol.net.DefaultCacheServer;
-import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-import com.tangosol.net.ProxyService;
+import com.tangosol.coherence.config.scheme.ServiceScheme;
+import com.tangosol.net.*;
 
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
 
+import com.tangosol.run.xml.XmlElement;
+import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.ResourceRegistry;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A controller class that starts and stops the default gRPC server
@@ -46,6 +53,18 @@ public class GrpcServerController
      */
     private GrpcServerController()
         {
+        this(null);
+        }
+
+    /**
+     * Private constructor for a domain specific server.
+     *
+     * @param context  an optional {@link Context} for the server
+     */
+    private GrpcServerController(Context context)
+        {
+        f_context        = context;
+        f_serviceMonitor = new SimpleServiceMonitor();
         }
 
     // ----- GrpcServerController methods -----------------------------------
@@ -55,22 +74,67 @@ public class GrpcServerController
      * <p>
      * If the server is already running this method is a no-op.
      */
-    public synchronized void start()
+    public void start()
         {
         if (isRunning() || !m_fEnabled)
             {
             return;
             }
 
+        f_startLock.lock();
         try
             {
-            ExtensibleConfigurableCacheFactory.Dependencies depsEccf
-                    = ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(GrpcDependencies.GRPC_PROXY_CACHE_CONFIG);
+            if (isRunning() || !m_fEnabled)
+                {
+                return;
+                }
 
-            m_ccf = new ExtensibleConfigurableCacheFactory(depsEccf);
-            m_dcs = new DefaultCacheServer(m_ccf);
+            ContainerContext containerContext = f_context == null ? null : f_context.getContainerContext();
+            String           sAppName         = f_context == null ? null : f_context.getApplicationName();
 
-            m_dcs.startDaemon(DefaultCacheServer.DEFAULT_WAIT_MILLIS);
+            Runnable r = () ->
+                {
+                ClassLoader loader    = Classes.getContextClassLoader();
+                XmlElement  xmlConfig = XmlHelper.loadFileOrResourceOrDefault(GrpcDependencies.GRPC_PROXY_CACHE_CONFIG,
+                        "gRPC Proxy Cache Configuration", loader);
+
+                String sCcfScope;
+                if (sAppName != null && !Coherence.SYSTEM_SCOPE.equals(sAppName))
+                    {
+                    sCcfScope = sAppName + GrpcDependencies.PROXY_SERVICE_SCOPE_NAME;
+                    }
+                else
+                    {
+                    sCcfScope = GrpcDependencies.PROXY_SERVICE_SCOPE_NAME;
+                    }
+
+                ExtensibleConfigurableCacheFactory.Dependencies deps
+                        = ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
+                                xmlConfig, loader, null, sCcfScope, f_context);
+
+                m_ccf = new ExtensibleConfigurableCacheFactory(deps);
+                m_ccf.activate();
+
+                ServiceMonitor monitor = f_serviceMonitor;
+                monitor.setConfigurableCacheFactory(m_ccf);
+                monitor.registerServices(m_ccf.getServiceMap());
+                if (monitor.isMonitoring())
+                    {
+                    String sScope = ServiceScheme.getScopePrefix(sAppName, containerContext);
+                    String sName  = ServiceScheme.getScopedServiceName(sScope, monitor.getThread().getName());
+                    monitor.getThread().setName(sName);
+                    }
+                };
+
+            if (containerContext == null)
+                {
+                r.run();
+                }
+            else
+                {
+                containerContext.runInDomainPartitionContext(r);
+                }
+
             markStarted();
             }
         catch (Throwable e)
@@ -81,6 +145,10 @@ public class GrpcServerController
                 }
             throw Exceptions.ensureRuntimeException(e);
             }
+        finally
+            {
+            f_startLock.unlock();
+            }
         }
 
     /**
@@ -88,17 +156,30 @@ public class GrpcServerController
      * <p>
      * If the server is not running this method is a no-op.
      */
-    public synchronized void stop()
+    public void stop()
         {
-        if (isRunning())
+        if (!isRunning())
             {
-            if (m_dcs != null)
+            return;
+            }
+
+        f_startLock.lock();
+        try
+            {
+            if (isRunning())
                 {
-                m_dcs.stop();
-                m_ccf = null;
-                m_dcs = null;
+                if (f_serviceMonitor.isMonitoring())
+                    {
+                    f_serviceMonitor.stopMonitoring();
+                    f_serviceMonitor.unregisterServices(m_ccf.getServiceMap().keySet());
+                    m_ccf = null;
+                    }
+                m_startFuture = new CompletableFuture<>();
                 }
-            m_startFuture = new CompletableFuture<>();
+            }
+        finally
+            {
+            f_startLock.unlock();
             }
         }
 
@@ -135,7 +216,7 @@ public class GrpcServerController
      */
     public boolean isRunning()
         {
-        return m_dcs != null && m_dcs.isMonitoringServices();
+        return f_serviceMonitor.isMonitoring();
         }
 
     /**
@@ -171,7 +252,7 @@ public class GrpcServerController
             ProxyService           proxyService = (ProxyService) m_ccf.ensureService(GrpcDependencies.PROXY_SERVICE_NAME);
             ResourceRegistry       registry     = proxyService.getResourceRegistry();
             GrpcAcceptorController controller   = registry.getResource(GrpcAcceptorController.class);
-            return controller.getLocalAddress();
+            return controller.getInProcessName();
             }
         throw new IllegalStateException("The gRPC server is not running");
         }
@@ -218,28 +299,48 @@ public class GrpcServerController
         @Override
         public void preStart(Context ctx)
             {
-            if (!m_fOwningInstance)
-                {
-                m_fOwningInstance = true;
-                }
             }
 
         @Override
         public void postStart(Context ctx)
             {
-            if (m_fOwningInstance && Config.getBoolean(GrpcDependencies.PROP_ENABLED, true))
+            if (Config.getBoolean(GrpcDependencies.PROP_ENABLED, true))
                 {
-                INSTANCE.start();
+                f_lock.lock();
+                try
+                    {
+                    ContainerContext     containerContext = ctx.getContainerContext();
+                    String               sScopePrefix     = ServiceScheme.getScopePrefix(ctx.getApplicationName(), containerContext);
+                    GrpcServerController controller       = f_mapDomainController
+                            .computeIfAbsent(sScopePrefix, k ->
+                                    Coherence.DEFAULT_SCOPE.equals(sScopePrefix) && Coherence.DEFAULT_NAME.equals(ctx.getApplicationName())
+                                        ? INSTANCE : new GrpcServerController(ctx));
+                    controller.start();
+                    }
+                finally
+                    {
+                    f_lock.unlock();
+                    }
                 }
             }
 
         @Override
         public void preStop(Context ctx)
             {
-            if (m_fOwningInstance && ctx.getConfigurableCacheFactory() != INSTANCE.m_ccf)
+            f_lock.lock();
+            try
                 {
-                INSTANCE.stop();
-                m_fOwningInstance = false;
+                ContainerContext     containerContext = ctx.getContainerContext();
+                String               sScopePrefix     = ServiceScheme.getScopePrefix(ctx.getApplicationName(), containerContext);
+                GrpcServerController controller       = f_mapDomainController.get(sScopePrefix);
+                if (controller != null && Objects.equals(ctx, controller.f_context))
+                    {
+                    controller.stop();
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
 
@@ -250,7 +351,9 @@ public class GrpcServerController
 
         // ----- data members ---------------------------------------------------
 
-        private boolean m_fOwningInstance;
+        private static final Map<String, GrpcServerController> f_mapDomainController = new ConcurrentHashMap<>();
+
+        private static final Lock f_lock = new ReentrantLock();
         }
 
     // ----- constants ------------------------------------------------------
@@ -264,7 +367,10 @@ public class GrpcServerController
 
     private ExtensibleConfigurableCacheFactory m_ccf;
 
-    private DefaultCacheServer m_dcs;
+    /**
+     * The service monitor to monitor the proxy.
+     */
+    private final ServiceMonitor f_serviceMonitor;
 
     /**
      * A flag indicating whether this controller is enabled.
@@ -272,7 +378,17 @@ public class GrpcServerController
     private boolean m_fEnabled = true;
 
     /**
+     * The optional {@link Context} for the server.
+     */
+    private final Context f_context;
+
+    /**
      * A {@link CompletableFuture} that will be completed when the server has started.
      */
     private CompletableFuture<Void> m_startFuture = new CompletableFuture<>();
+
+    /**
+     * The lock to synchronize starting and stopping the service.
+     */
+    private final Lock f_startLock = new ReentrantLock();
     }

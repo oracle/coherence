@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package net;
 
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -25,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.greaterThan;
@@ -80,17 +79,18 @@ public class DefaultCacheServerTests
      * Test of startAndMonitor.
      */
     @Test
-    public void startAndMonitorTest()
-            throws IOException
+    public void startAndMonitorTest() throws Exception
         {
         DefaultCacheServer server = new DefaultCacheServer(
                CacheFactory.getConfigurableCacheFactory(getContextClassLoader()));
 
-        s_scheduler.schedule(new ServerShutdownTask(server), 1, SECONDS);
-        server.startAndMonitor(1000);
-
-        // as startAndMonitor block the current thread if control returns to
-        // this frame then ServerShutdownTask did its job
+        s_scheduler.schedule(new ServerShutdownTask(server), 5, SECONDS);
+        try (Timeout ignored = Timeout.after(30, SECONDS))
+            {
+            server.startAndMonitor(1000);
+            // as startAndMonitor block the current thread if control returns to
+            // this frame then ServerShutdownTask did its job
+            }
         }
 
     /**

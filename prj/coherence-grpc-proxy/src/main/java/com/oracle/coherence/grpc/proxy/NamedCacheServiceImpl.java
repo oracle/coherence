@@ -13,6 +13,9 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.common.base.Classes;
+import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.grpc.AddIndexRequest;
 import com.oracle.coherence.grpc.AggregateRequest;
 import com.oracle.coherence.grpc.BinaryHelper;
@@ -49,6 +52,10 @@ import com.oracle.coherence.grpc.SizeRequest;
 import com.oracle.coherence.grpc.TruncateRequest;
 import com.oracle.coherence.grpc.ValuesRequest;
 
+import com.tangosol.application.ContainerContext;
+import com.tangosol.application.Context;
+import com.tangosol.coherence.config.scheme.ServiceScheme;
+import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 
@@ -56,6 +63,7 @@ import com.tangosol.io.Serializer;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
@@ -64,7 +72,6 @@ import com.tangosol.net.PartitionedService;
 import com.tangosol.net.cache.NearCache;
 
 import com.tangosol.util.Aggregators;
-import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
@@ -84,6 +91,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -1274,7 +1283,7 @@ public class NamedCacheServiceImpl
      *
      * @param bytes       the {@link ByteString} containing the serialized {@link Filter}
      * @param serializer  the serializer to use
-     *  @param <T>        the {@link Filter} type
+     * @param <T>         the {@link Filter} type
      *
      * @return a deserialized {@link Filter} or {@code null} if no filter is set
      */
@@ -1293,7 +1302,7 @@ public class NamedCacheServiceImpl
      *
      * @param bytes       the {@link ByteString} containing the serialized {@link Comparator}
      * @param serializer  the serializer to use
-     *  @param <T>        the {@link Comparator} type
+     * @param <T>         the {@link Comparator} type
      *
      * @return a deserialized {@link Comparator} or {@code null} if the {@link ByteString}
      *         is {@code null} or {@link ByteString#EMPTY}
@@ -1333,54 +1342,152 @@ public class NamedCacheServiceImpl
         return getCache(scope, cacheName, true);
         }
 
+    protected ConfigurableCacheFactory getCCF(String sScope)
+        {
+        Optional<Context> optional         = f_dependencies.getContext();
+        ContainerContext  containerContext = null;
+        String            sMTName;
+        String            sScopeFinal;
+
+        if (optional.isPresent())
+            {
+            Context context  = optional.get();
+            String  sAppName = context.getApplicationName();
+
+            containerContext = context.getContainerContext();
+            sMTName          = ServiceScheme.getScopePrefix(sAppName, containerContext);
+
+            if (sScope.isEmpty() || Objects.equals(sAppName, sScope) || Objects.equals(sMTName, sScope))
+                {
+                sScopeFinal = sAppName;
+                }
+            else
+                {
+                sScopeFinal = sAppName + sScope;
+                }
+            }
+        else
+            {
+            sScopeFinal = sScope;
+            sMTName     = null;
+            }
+
+        if (containerContext != null)
+            {
+            Coherence coherence = Coherence.getInstance(sMTName);
+
+            if (coherence == null)
+                {
+                String sNames = Coherence.getInstances()
+                        .stream()
+                        .map(Coherence::getName)
+                        .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
+                        .collect(Collectors.joining(","));
+
+                throw new IllegalStateException("No Coherence instance exists with name " + sMTName + " scopeFinal=" + sScopeFinal + " [" + sNames + "]" );
+                }
+
+
+            String sScopes = coherence.getSessionScopeNames().stream()
+                    .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
+                    .collect(Collectors.joining(","));
+
+            return coherence.getSessionsWithScope(sScopeFinal)
+                    .stream()
+                    .findFirst()
+                    .filter(s -> s instanceof ConfigurableCacheFactorySession)
+                    .map(ConfigurableCacheFactorySession.class::cast)
+                    .map(ConfigurableCacheFactorySession::getConfigurableCacheFactory)
+                    .orElseThrow(() -> new IllegalStateException("cannot locate a session with scope " + sScopeFinal
+                            + " Coherence instance '" + sMTName + "' contains [" + sScopes + "]"));
+            }
+        else
+            {
+            try
+                {
+                return f_cacheFactorySupplier.apply(sScopeFinal);
+                }
+            catch (Exception e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
+            }
+        }
+
     /**
      * Obtain an {@link NamedCache}.
      *
-     * @param scope      the scope name to use to obtain the CCF to get the cache from
-     * @param cacheName  the name of the cache
-     * @param passThru   {@code true} to use a binary pass-thru cache
+     * @param sScope      the scope name to use to obtain the CCF to get the cache from
+     * @param sCacheName  the name of the cache
+     * @param fPassThru   {@code true} to use a binary pass-thru cache
      *
      * @return the {@link NamedCache} with the specified name
      */
-    @SuppressWarnings("unchecked")
-    protected NamedCache<Binary, Binary> getCache(String scope, String cacheName, boolean passThru)
+    protected NamedCache<Binary, Binary> getCache(String sScope, String sCacheName, boolean fPassThru)
         {
-        if (cacheName == null || cacheName.trim().length() == 0)
+        if (sCacheName == null || sCacheName.trim().length() == 0)
             {
             throw Status.INVALID_ARGUMENT
                     .withDescription("invalid request, cache name cannot be null or empty")
                     .asRuntimeException();
             }
 
-        ClassLoader                loader = passThru ? NullImplementation.getClassLoader() : Base.getContextClassLoader();
-        ConfigurableCacheFactory   ccf    = f_cacheFactorySupplier.apply(scope);
-        NamedCache<Binary, Binary> cache  = ccf.ensureCache(cacheName, loader);
+        ConfigurableCacheFactory ccf = getCCF(sScope);
+        ContainerContext         ctx = f_dependencies.getContext().map(Context::getContainerContext).orElse(null);
 
-        // optimize front-cache out of storage enabled proxies
-        boolean near = cache instanceof NearCache;
-        if (near)
+        if (ctx != null)
             {
-            CacheService service = cache.getCacheService();
-            if (service instanceof DistributedCacheService
-                && ((DistributedCacheService) service).isLocalStorageEnabled())
-                {
-                cache = ((NearCache<Binary, Binary>) cache).getBackCache();
-                near = false;
-                }
-            }
-
-        if (near)
-            {
-            return new ConvertingNamedCache(cache,
-                                            NullImplementation.getConverter(),
-                                            ExternalizableHelper.CONVERTER_STRIP_INTDECO,
-                                            NullImplementation.getConverter(),
-                                            NullImplementation.getConverter());
+            return ctx.runInDomainPartitionContext(createCallable(ccf, sCacheName, fPassThru));
             }
         else
             {
-            return cache;
+            try
+                {
+                return createCallable(ccf, sCacheName, fPassThru).call();
+                }
+            catch (Exception e)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
             }
+        }
+
+    @SuppressWarnings("unchecked")
+    private Callable<NamedCache<Binary, Binary>> createCallable(ConfigurableCacheFactory ccf,
+                String sCacheName, boolean fPassThru)
+        {
+        return () ->
+            {
+            ClassLoader                loader = fPassThru ? NullImplementation.getClassLoader()
+                                                          : Classes.getContextClassLoader();
+            NamedCache<Binary, Binary> cache  = ccf.ensureCache(sCacheName, loader);
+
+            // optimize front-cache out of storage enabled proxies
+            boolean near = cache instanceof NearCache;
+            if (near)
+                {
+                CacheService service = cache.getCacheService();
+                if (service instanceof DistributedCacheService
+                        && ((DistributedCacheService) service).isLocalStorageEnabled())
+                    {
+                    cache = ((NearCache<Binary, Binary>) cache).getBackCache();
+                    near = false;
+                    }
+                }
+
+            if (near)
+                {
+                return new ConvertingNamedCache(cache,
+                        NullImplementation.getConverter(),
+                        ExternalizableHelper.CONVERTER_STRIP_INTDECO,
+                        NullImplementation.getConverter(),
+                        NullImplementation.getConverter());
+                }
+            else
+                {
+                return cache;
+                }
+            };
         }
 
     /**
@@ -1459,7 +1566,7 @@ public class NamedCacheServiceImpl
         return new CacheRequestHolder<>(request, cache, () -> nonPassThrough, format, serializer, f_executor);
         }
 
-    // ----- constants --------------------------------------------------
+    // ----- constants ------------------------------------------------------
 
     /**
      * The name to use for the management MBean.

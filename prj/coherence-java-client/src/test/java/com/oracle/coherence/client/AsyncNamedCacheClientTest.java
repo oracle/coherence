@@ -8,6 +8,7 @@
 package com.oracle.coherence.client;
 
 
+import com.oracle.bedrock.testsupport.matchers.ThrowableCausedByMatcher;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.Entry;
 import com.oracle.coherence.grpc.InvokeAllRequest;
@@ -19,6 +20,7 @@ import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.PriorityTask;
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
@@ -57,6 +59,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 
+import static com.oracle.bedrock.testsupport.matchers.ThrowableCausedByMatcher.causedBy;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -72,6 +75,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import static org.mockito.ArgumentMatchers.any;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -190,8 +194,8 @@ class AsyncNamedCacheClientTest
 
         deps.setClient(client);
 
-        CompletionException result = assertThrows(CompletionException.class, () -> new AsyncNamedCacheClient<>(deps));
-        assertThat(result.getCause(), is(ex));
+        Exception result = assertThrows(Exception.class, () -> new AsyncNamedCacheClient<>(deps));
+        assertThat(result, causedBy(is(ex)));
         }
 
     @Test
@@ -234,8 +238,8 @@ class AsyncNamedCacheClientTest
 
         deps.setClient(client);
 
-        CompletionException result = assertThrows(CompletionException.class, () -> new AsyncNamedCacheClient<>(deps));
-        assertThat(result.getCause(), is(instanceOf(IllegalStateException.class)));
+        Exception result = assertThrows(Exception.class, () -> new AsyncNamedCacheClient<>(deps));
+        assertThat(result, causedBy(instanceOf(IllegalStateException.class)));
         }
 
     @Test
@@ -373,7 +377,7 @@ class AsyncNamedCacheClientTest
 
         ArgumentCaptor<InvokeAllRequest> reqCaptor = ArgumentCaptor.forClass(InvokeAllRequest.class);
         ArgumentCaptor<StreamObserver>   obsCaptor = ArgumentCaptor.forClass(StreamObserver.class);
-        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture());
+        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture(), eq(PriorityTask.TIMEOUT_DEFAULT));
 
         InvokeAllRequest request  = reqCaptor.getValue();
         StreamObserver   observer = obsCaptor.getValue();
@@ -415,7 +419,7 @@ class AsyncNamedCacheClientTest
 
         ArgumentCaptor<InvokeAllRequest> reqCaptor = ArgumentCaptor.forClass(InvokeAllRequest.class);
         ArgumentCaptor<StreamObserver>   obsCaptor = ArgumentCaptor.forClass(StreamObserver.class);
-        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture());
+        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture(), eq(PriorityTask.TIMEOUT_DEFAULT));
 
         InvokeAllRequest request  = reqCaptor.getValue();
         StreamObserver   observer = obsCaptor.getValue();
@@ -453,7 +457,7 @@ class AsyncNamedCacheClientTest
 
         ArgumentCaptor<InvokeAllRequest> reqCaptor = ArgumentCaptor.forClass(InvokeAllRequest.class);
         ArgumentCaptor<StreamObserver>   obsCaptor = ArgumentCaptor.forClass(StreamObserver.class);
-        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture());
+        verify(client).invokeAllInternal(reqCaptor.capture(), obsCaptor.capture(), eq(PriorityTask.TIMEOUT_DEFAULT));
 
         InvokeAllRequest request  = reqCaptor.getValue();
         StreamObserver   observer = obsCaptor.getValue();
@@ -478,7 +482,7 @@ class AsyncNamedCacheClientTest
         AsyncNamedCacheClient<String, String> client     = Mockito.spy(realClient);
 
         Throwable error = new RuntimeException("Computer says No!");
-        doThrow(error).when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class));
+        doThrow(error).when(client).invokeAllInternal(any(InvokeAllRequest.class), any(StreamObserver.class), eq(PriorityTask.TIMEOUT_DEFAULT));
 
         List<String>                                        keys      = Arrays.asList("key-1", "key-2", "key-3");
         InvocableMap.EntryProcessor<String, String, String> processor = new ProcessorStub<>();

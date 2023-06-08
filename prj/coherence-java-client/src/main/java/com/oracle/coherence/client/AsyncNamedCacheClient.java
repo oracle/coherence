@@ -12,6 +12,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.ContainsEntryRequest;
@@ -33,8 +34,10 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
+import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
 
+import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.CacheEvent.TransformationState;
 import com.tangosol.net.cache.CacheMap;
@@ -80,6 +83,8 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.function.BiConsumer;
@@ -119,7 +124,7 @@ public class AsyncNamedCacheClient<K, V>
         f_synchronousCache          = new NamedCacheClient<>(this);
         f_listDeactivationListeners = new ArrayList<>();
         f_service                   = dependencies.getClient()
-                                                  .orElseGet(() -> new NamedCacheGrpcClient(dependencies.getChannel()));
+                                                  .orElseGet(() -> new NamedCacheGrpcClient(dependencies));
         initEvents();
         }
 
@@ -163,8 +168,15 @@ public class AsyncNamedCacheClient<K, V>
                 List<ByteString> keys = colKeys.stream()
                         .map(this::toByteString)
                         .collect(Collectors.toList());
+
+                long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
+                if (entryAggregator instanceof PriorityTask)
+                    {
+                    nDeadline = ((PriorityTask) entryAggregator).getRequestTimeoutMillis();
+                    }
+
                 return f_service.aggregate(Requests.aggregate(f_sScopeName, f_sName, f_sFormat, keys,
-                                                              toByteString(entryAggregator)))
+                                                              toByteString(entryAggregator)), nDeadline)
                         .thenApplyAsync(this::fromBytesValue)
                         .thenApply(r -> (R) r)
                         .toCompletableFuture();
@@ -185,9 +197,15 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
+                long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
+                if (entryAggregator instanceof PriorityTask)
+                    {
+                    nDeadline = ((PriorityTask) entryAggregator).getRequestTimeoutMillis();
+                    }
+
                 return f_service
                         .aggregate(Requests.aggregate(f_sScopeName, f_sName, f_sFormat, toByteString(filter),
-                                                      toByteString(entryAggregator)))
+                                                      toByteString(entryAggregator)), nDeadline)
                         .thenApplyAsync(this::fromBytesValue)
                         .thenApply(r -> (R) r)
                         .toCompletableFuture();
@@ -207,8 +225,14 @@ public class AsyncNamedCacheClient<K, V>
             {
             try
                 {
+                long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
+                if (entryProcessor instanceof PriorityTask)
+                    {
+                    nDeadline = ((PriorityTask) entryProcessor).getRequestTimeoutMillis();
+                    }
+
                 return f_service.invoke(Requests.invoke(f_sScopeName, f_sName, f_sFormat, toByteString(k),
-                                                        toByteString(entryProcessor)))
+                                                        toByteString(entryProcessor)), nDeadline)
                         .thenApplyAsync(this::valueFromBytesValue)
                         .thenApply(r -> (R) r)
                         .toCompletableFuture();
@@ -248,8 +272,15 @@ public class AsyncNamedCacheClient<K, V>
                 Collection<ByteString>                 serializedKeys = colKeys.stream()
                         .map(this::toByteString)
                         .collect(Collectors.toList());
+
+                long nDeadline = PriorityTask.TIMEOUT_DEFAULT;
+                if (processor instanceof PriorityTask)
+                    {
+                    nDeadline = ((PriorityTask) processor).getRequestTimeoutMillis();
+                    }
+
                 invokeAllInternal(Requests.invokeAll(f_sScopeName, f_sName, f_sFormat, serializedKeys, toByteString(processor)),
-                                  observer);
+                                  observer, nDeadline);
                 return future;
                 }
             catch (Throwable t)
@@ -797,9 +828,20 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected void invokeAllInternal(InvokeAllRequest request, StreamObserver<Entry> observer)
         {
-        assertActive();
+        invokeAllInternal(request, observer, PriorityTask.TIMEOUT_DEFAULT);
+        }
 
-        f_service.invokeAll(request, observer);
+    /**
+     * Helper method to perform invokeAll operations.
+     *
+     * @param request   the {@link InvokeAllRequest}
+     * @param observer  the {@link StreamObserver}
+     *
+     */
+    protected void invokeAllInternal(InvokeAllRequest request, StreamObserver<Entry> observer, long nDeadline)
+        {
+        assertActive();
+        f_service.invokeAll(request, observer, nDeadline);
         }
 
     /**
@@ -1218,8 +1260,23 @@ public class AsyncNamedCacheClient<K, V>
             return null;
             });
 
-        // wait for the init request to complete
-        future.join();
+        // Wait for the init request to complete
+        // The events bi-di channel has no deadline, but we need to ensure the initial
+        // subscription completes in a suitable time, so we use the deadline here
+        long cDeadlineMillis = f_dependencies.getDeadline();
+        try
+            {
+            future.get(cDeadlineMillis, TimeUnit.MILLISECONDS);
+            }
+        catch (InterruptedException | TimeoutException e)
+            {
+            throw new RequestTimeoutException("Timed out waiting for event subscription after "
+                    + cDeadlineMillis + " ms", e);
+            }
+        catch (ExecutionException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
         }
 
     /**
@@ -2332,7 +2389,7 @@ public class AsyncNamedCacheClient<K, V>
                            + "that supports the operation.", sre);
                    }
                }
-           throw Base.ensureRuntimeException(t);
+           throw Exceptions.ensureRuntimeException(t);
            }
        return result;
        }

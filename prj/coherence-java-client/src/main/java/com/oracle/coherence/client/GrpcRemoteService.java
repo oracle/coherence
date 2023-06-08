@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.client;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
@@ -40,6 +41,7 @@ import com.tangosol.util.SimpleResourceRegistry;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 
+import io.grpc.ManagedChannel;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.grpc.TracingClientInterceptor;
 import io.opentracing.util.GlobalTracer;
@@ -48,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -285,6 +288,19 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
                 if (m_fRunning)
                     {
                     stopInternal();
+                    if (m_channel instanceof ManagedChannel)
+                        {
+                        try
+                            {
+                            ManagedChannel managedChannel = (ManagedChannel) m_channel;
+                            managedChannel.shutdownNow();
+                            managedChannel.awaitTermination(1, TimeUnit.MINUTES);
+                            }
+                        catch (InterruptedException e)
+                            {
+                            Logger.err(e);
+                            }
+                        }
                     SimpleDaemonPoolExecutor executor = getExecutor();
                     executor.stop();
                     m_fRunning = false;

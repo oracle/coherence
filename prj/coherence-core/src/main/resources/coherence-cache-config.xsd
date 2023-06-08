@@ -875,11 +875,12 @@
               <xsd:element ref="scheme-name" minOccurs="0" />
               <xsd:element ref="scheme-ref" minOccurs="0" />
               <xsd:element ref="scope-name" minOccurs="0" />
-              <xsd:element name="remote-scope-name" type="coherence-string-type" minOccurs="0" />
+              <xsd:element ref="remote-scope-name" minOccurs="0" />
               <xsd:element ref="service-name" minOccurs="0" />
               <xsd:element ref="cluster-name" minOccurs="0" />
               <xsd:element ref="proxy-service-name" minOccurs="0" />
               <xsd:element ref="grpc-channel" minOccurs="0" />
+              <xsd:element ref="request-timeout" minOccurs="0" />
               <xsd:element ref="serializer" minOccurs="0" />
               <xsd:element name="enable-tracing" type="coherence-boolean-type" minOccurs="0" />
               <xsd:element ref="thread-count" minOccurs="0" />
@@ -893,6 +894,24 @@
           <xsd:anyAttribute namespace="##other" processContents="lax" />
       </xsd:complexType>
   </xsd:element>
+
+    <xsd:element name="remote-scope-name" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+              The remote-scope-name element contains the scope name to be used to obtain a session
+                on the proxy server.
+              If this value is not set, but the scope-name for the parent cache configuration is
+                set, then the scope-name will be used.
+              If neither the remote-scope-name element nor the parent scope-name are set, then the
+                default (empty) scope will be used on the proxy.
+              Setting this value to $DEFAULT$ will use the default (empty) scope on the proxy server,
+                this is useful where the parent scope-name is configured for this configuration as
+                the remote-scope-name cannot be set to an empty value in XML.
+
+              Used in: remote-grpc-cache-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:element name="proxy-scheme">
         <xsd:annotation>

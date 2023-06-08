@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -52,10 +52,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings("resource")
 public class DefaultCacheConfigNameServiceGrpcIT
         extends AbstractGrpcClientIT
     {
     @BeforeAll
+    @SuppressWarnings("DuplicatedCode")
     static void setupCluster() throws Exception
         {
         CoherenceCluster cluster = CLUSTER_EXTENSION.getCluster();
@@ -66,7 +68,7 @@ public class DefaultCacheConfigNameServiceGrpcIT
             }
 
         CoherenceClusterMember member      = cluster.getAny();
-        int                    nExtendPort = member.getOptions().get(Ports.class).getPort("coherence.extend.port").getActualPort();
+        int                    nExtendPort = member.getExtendProxyPort();
 
         System.setProperty("coherence.pof.config", "test-pof-config.xml");
         System.setProperty("coherence.cluster", CLUSTER_NAME);
@@ -86,6 +88,7 @@ public class DefaultCacheConfigNameServiceGrpcIT
                     .withMode(Coherence.Mode.Grpc)
                     .withParameter("coherence.serializer", sSerializer)
                     .withParameter("coherence.profile", "thin")
+//                    .withParameter("coherence.grpc.remote.proxy", )
                     .withParameter("coherence.grpc.address", "127.0.0.1")
                     .withParameter("coherence.grpc.port", "7574")
                     .build();
@@ -189,7 +192,6 @@ public class DefaultCacheConfigNameServiceGrpcIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
-                  SystemProperty.of(GrpcDependencies.PROP_PORT, PORTS, Ports.capture()),
                   SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                   WellKnownAddress.loopback(),
                   ClusterName.of(CLUSTER_NAME),

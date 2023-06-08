@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.oracle.coherence.common.base.Lockable;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Options;
 
+import com.tangosol.application.Context;
 import com.tangosol.coherence.config.CacheConfig;
 import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.Config;
@@ -1526,7 +1527,26 @@ public class ExtensibleConfigurableCacheFactory
         public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
                 String sPofConfigUri, String sScopeName)
             {
-            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, null);
+            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, null, null);
+            }
+
+        /**
+         * Construct an {@link ExtensibleConfigurableCacheFactory}
+         * {@link Dependencies} instance based on the information defined by
+         * {@link XmlElement} that of which is compliant with the
+         * "coherence-cache-config.xsd".
+         *
+         * @param xmlConfig      the {@link XmlElement} defining the configuration
+         * @param loader         an optional {@link ClassLoader} that
+         *                       should be used to load configuration resources
+         * @param sPofConfigUri  an optional {@link URI} of the POF configuration file
+         * @param sScopeName     an optional scope name
+         * @param context        an optional ContainerContext reference
+         */
+        public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
+                String sPofConfigUri, String sScopeName, Context context)
+            {
+            return newInstance(xmlConfig, loader, sPofConfigUri, sScopeName, context, null);
             }
 
         /**
@@ -1544,7 +1564,7 @@ public class ExtensibleConfigurableCacheFactory
          *                       when creating the dependencies
          */
         public static Dependencies newInstance(XmlElement xmlConfig, ClassLoader loader,
-                String sPofConfigUri, String sScopeName, ParameterResolver resolver)
+                String sPofConfigUri, String sScopeName, Context context, ParameterResolver resolver)
             {
             loader = Base.ensureClassLoader(loader);
 
@@ -1586,6 +1606,10 @@ public class ExtensibleConfigurableCacheFactory
             if (sScopeName != null)
                 {
                 resourceRegistry.registerResource(String.class, "scope-name", sScopeName);
+                }
+            if (context != null)
+                {
+                resourceRegistry.registerResource(Context.class, context);
                 }
 
             // the default parameter resolver always contains the pof-config-uri

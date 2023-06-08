@@ -6,6 +6,7 @@
  */
 package com.oracle.coherence.grpc.proxy;
 
+import com.tangosol.application.Context;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
@@ -59,10 +60,17 @@ public interface GrpcServiceDependencies
      */
     Optional<Registry> getRegistry();
 
+    /**
+     * Return the optional application {@link Context}.
+     *
+     * @return the optional application {@link Context}
+     */
+    Optional<Context> getContext();
+
     // ----- inner class: DefaultDependencies -------------------------------
 
     /**
-     * The default {@link NamedCacheServiceImpl.Dependencies} implementation.
+     * The default {@link GrpcServiceDependencies} implementation.
      */
     class DefaultDependencies
             implements GrpcServiceDependencies
@@ -75,10 +83,12 @@ public interface GrpcServiceDependencies
             {
             if (deps !=  null)
                 {
-                m_executor          = deps.getExecutor().orElse(null);
-                m_registry          = deps.getRegistry().orElse(null);
-                m_serializerFactory = deps.getNamedSerializerFactory().orElse(null);
-                m_transferThreshold = deps.getTransferThreshold().orElse(null);
+                deps.getExecutor().ifPresent(this::setExecutor);
+                deps.getRegistry().ifPresent(this::setRegistry);
+                deps.getNamedSerializerFactory().ifPresent(this::setSerializerFactory);
+                deps.getTransferThreshold().ifPresent(this::setTransferThreshold);
+                deps.getContext().ifPresent(this::setContext);
+                deps.getDaemonPool().ifPresent(this::setDaemonPool);
                 }
             }
 
@@ -163,6 +173,22 @@ public interface GrpcServiceDependencies
             m_registry = registry;
             }
 
+        @Override
+        public Optional<Context> getContext()
+            {
+            return Optional.ofNullable(m_context);
+            }
+
+        /**
+         * Set the {@link Context}.
+         *
+         * @param context  the {@link Context}
+         */
+        public void setContext(Context context)
+            {
+            m_context = context;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -189,5 +215,10 @@ public interface GrpcServiceDependencies
          * The {@link Registry} to use to register metric MBeans.
          */
         private Registry m_registry;
+
+        /**
+         * The {@link Context}.
+         */
+        private Context m_context;
         }
     }

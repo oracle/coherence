@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -145,6 +145,16 @@ public interface SessionConfiguration
      *         should use to set the {@code coherence.client} property
      */
     default Optional<Coherence.Mode> getMode()
+        {
+        return Optional.empty();
+        }
+
+    /**
+     * Return the {@link SessionProvider} to use to create a session.
+     *
+     * @return the {@link SessionProvider} to use to create a session
+     */
+    default Optional<SessionProvider> sessionProvider()
         {
         return Optional.empty();
         }
@@ -448,6 +458,19 @@ public interface SessionConfiguration
             }
 
         /**
+         * Set the {@link SessionProvider} to use.
+         *
+         * @param provider  the {@link SessionProvider} to use
+         *
+         * @return this {@link Builder}
+         */
+        public Builder withSessionProvider(SessionProvider provider)
+            {
+            m_sessionProvider = provider;
+            return this;
+            }
+
+        /**
          * Build the {@link SessionConfiguration}.
          *
          * @return the {@link SessionConfiguration}
@@ -505,6 +528,11 @@ public interface SessionConfiguration
          * The {@link Coherence.Mode} to use, which will override any mode used by the {@link Coherence} instance.
          */
         private Coherence.Mode m_mode;
+
+        /**
+         * The {@link SessionProvider} to use.
+         */
+        private SessionProvider m_sessionProvider;
         }
 
     // ----- inner class: ConfigurableCacheFactorySessionConfig -------------
@@ -531,6 +559,7 @@ public interface SessionConfiguration
             f_nPriority       = builder.m_nPriority;
             f_sScope          = builder.m_sScope == null ? Coherence.DEFAULT_SCOPE : builder.m_sScope;
             f_mode            = builder.m_mode;
+            f_sessionProvider = builder.m_sessionProvider;
 
             ParameterResolver resolver;
             if (!builder.m_parameterList.isEmpty())
@@ -622,6 +651,12 @@ public interface SessionConfiguration
             }
 
         @Override
+        public Optional<SessionProvider> sessionProvider()
+            {
+            return Optional.ofNullable(f_sessionProvider);
+            }
+
+        @Override
         public String toString()
             {
             return "ConfigurableCacheFactorySessionConfig(" +
@@ -675,6 +710,11 @@ public interface SessionConfiguration
          * The {@link Coherence.Mode} to use, which will override any mode used by the {@link Coherence} instance.
          */
         private final Coherence.Mode f_mode;
+
+        /**
+         * The {@link SessionProvider} to use.
+         */
+        private final SessionProvider f_sessionProvider;
         }
 
     // ----- constants --------------------------------------------------

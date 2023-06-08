@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -138,7 +138,7 @@ public class DefaultSessionProvider
     protected Context ensureSession(SessionConfiguration configuration, Context context)
         {
         String              sConfigLocation = configuration.getConfigUri().orElse(CacheFactoryBuilder.URI_DEFAULT);
-        String              scopeName       = configuration.getScopeName();
+        String              scopeName       = context.getScopePrefix() + configuration.getScopeName();
         ClassLoader         loader          = configuration.getClassLoader().orElse(Classes.getContextClassLoader());
         String              name            = configuration.getName();
         String              sConfigUri      = ScopedUriScopeResolver.encodeScope(sConfigLocation, scopeName);

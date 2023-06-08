@@ -23,13 +23,12 @@ import java.util.Set;
  *
  * @since 14.1.1.2206.5
  */
-@SuppressWarnings("rawtypes")
-public class UnusableAggregator
-        implements InvocableMap.EntryAggregator, Serializable, PortableObject
+public class UnusableAggregator<K, V, R>
+        implements InvocableMap.EntryAggregator<K, V, R>, Serializable, PortableObject
     {
     // ----- EntryAggregator interface ---------------------------------------
 
-    public Object aggregate(Set setEntries)
+    public R aggregate(Set<? extends InvocableMap.Entry<? extends K, ? extends V>> setEntries)
         {
         return null;
         }

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -144,9 +144,10 @@ class path, or module path, of the JVM.
     -->
     <remote-grpc-cache-scheme>
       <scheme-name>thin-grpc</scheme-name>
-      <remote-scope-name system-property="coherence.grpc.remote.scope">${coherence.scope}</remote-scope-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
       <service-name>RemoteGrpcCache</service-name>
       <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <proxy-service-name system-property="coherence.grpc.remote.proxy"/>
       <grpc-channel system-property="coherence.grpc.channel">
         <name-service-addresses>
           <socket-address>
@@ -176,7 +177,7 @@ class path, or module path, of the JVM.
     -->
     <remote-grpc-cache-scheme>
       <scheme-name>thin-grpc-fixed</scheme-name>
-      <remote-scope-name system-property="coherence.grpc.remote.scope">${coherence.scope}</remote-scope-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope"/>
       <service-name>RemoteGrpcCache</service-name>
       <cluster-name system-property="coherence.grpc.remote.cluster"/>
       <grpc-channel system-property="coherence.grpc.channel">

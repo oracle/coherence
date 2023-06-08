@@ -55,7 +55,7 @@ import com.tangosol.util.filter.MapEventFilter;
 import com.tangosol.util.processor.ExtractorProcessor;
 
 import io.grpc.StatusRuntimeException;
-import java.util.concurrent.ExecutionException;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -80,6 +80,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import java.util.stream.Stream;
@@ -93,7 +94,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.hamcrest.collection.IsMapContaining.hasEntry;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -126,6 +127,7 @@ abstract class AbstractGrpcClientIT
         String sClass  = info.getTestClass().map(Class::toString).orElse("");
         String sMethod = info.getTestMethod().map(Method::toString).orElse("");
         System.err.println(">>>>>>> Starting test " + sClass + "." + sMethod + " - " + info.getDisplayName());
+        m_nStart = System.currentTimeMillis();
         }
 
     @AfterEach
@@ -133,7 +135,8 @@ abstract class AbstractGrpcClientIT
         {
         String sClass  = info.getTestClass().map(Class::toString).orElse("");
         String sMethod = info.getTestMethod().map(Method::toString).orElse("");
-        System.err.println(">>>>>>> Finished test " + sClass + "." + sMethod + " - " + info.getDisplayName());
+        long   cMillis = System.currentTimeMillis() - m_nStart;
+        System.err.println(">>>>>>> Finished test " + sClass + "." + sMethod + " - " + info.getDisplayName() + " (" + cMillis + " ms)");
         }
 
     // ----- test methods ---------------------------------------------------
@@ -148,16 +151,12 @@ abstract class AbstractGrpcClientIT
         cache.clear();
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
-        try
-            {
-            grpcClient.aggregate(new UnusableAggregator());
-            fail("No exception thrown");
-            }
-        catch (RequestIncompleteException rie)
-            {
-            assertThat(rie.getCause(), instanceOf(ExecutionException.class));
-            assertThat(rie.getCause().getCause(), instanceOf(StatusRuntimeException.class));
-            }
+
+        RequestIncompleteException rie = assertThrows(RequestIncompleteException.class,
+                () -> grpcClient.aggregate(new UnusableAggregator<>()));
+
+        assertThat(rie.getCause(), instanceOf(ExecutionException.class));
+        assertThat(rie.getCause().getCause(), instanceOf(StatusRuntimeException.class));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -2096,4 +2095,5 @@ abstract class AbstractGrpcClientIT
 
     protected final String f_sScopeName;
 
+    protected long m_nStart;
     }

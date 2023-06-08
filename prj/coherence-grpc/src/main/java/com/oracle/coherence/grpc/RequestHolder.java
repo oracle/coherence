@@ -329,7 +329,6 @@ public abstract class RequestHolder<Req, Res>
      * @return the {@link Converter} used to convert between the request format
      *         and the cache format
      */
-    @SuppressWarnings("unchecked")
     public Converter<Binary, Binary> ensureConverterDown()
         {
         if (m_converterDown == null)
@@ -355,10 +354,10 @@ public abstract class RequestHolder<Req, Res>
 
     /**
      * Create the {@link Converter} to use to convert from
-     * Object form to inetrnal {@link Binary} form.
+     * Object form to internal {@link Binary} form.
      *
      * @return the {@link Converter} to use to convert from
-     *         Object form to inetrnal {@link Binary} form
+     *         Object form to internal {@link Binary} form
      */
     protected abstract Converter<Object, Binary> createConverterDown();
 
@@ -537,7 +536,7 @@ public abstract class RequestHolder<Req, Res>
             catch (Throwable t)
                 {
                 throw Status.UNKNOWN
-                        .withDescription("Caught an exception while serializing or deserializing")
+                        .withDescription("Caught an exception while serializing or deserializing: " + t.getMessage())
                         .withCause(t)
                         .asRuntimeException();
                 }
