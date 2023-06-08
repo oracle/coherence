@@ -712,9 +712,9 @@ public class PagedTopicSubscriber<V>
         m_cNotifyLast         = cNotifyNow;
 
         int    cChannelsPolled = f_setPolledChannels.cardinality();
-        String sChannelsPolled = f_setPolledChannels.toString();
+        String sChannelsPolled = Arrays.toString(f_setPolledChannels.stream().toArray());
         int    cChannelsHit    = f_setHitChannels.cardinality();
-        String sChannelsHit    = f_setHitChannels.toString();
+        String sChannelsHit    = Arrays.toString(f_setHitChannels.stream().toArray());
 
         String sState;
         switch (m_nState)
