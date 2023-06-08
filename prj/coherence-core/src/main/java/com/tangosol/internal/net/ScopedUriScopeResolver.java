@@ -9,6 +9,9 @@ package com.tangosol.internal.net;
 import com.tangosol.net.ScopeResolver;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A {@link ScopeResolver} that resolves a scope from the config URI.
@@ -66,9 +69,10 @@ public class ScopedUriScopeResolver
             String sPath  = uri.getPath();
             if (sPath != null && !sPath.isBlank())
                 {
-                sScope = sScope + sPath;
+                sScope = URLDecoder.decode(sScope, StandardCharsets.UTF_8)
+                        + URLDecoder.decode(sPath, StandardCharsets.UTF_8);
                 }
-            return sScope;
+            return URLDecoder.decode(sScope, StandardCharsets.UTF_8);
             }
         return sScopeName;
         }
@@ -84,9 +88,10 @@ public class ScopedUriScopeResolver
             if (sFragment != null)
                 {
                 // the original config URI had a fragment part that we shouldn't lose
-                return sQuery + "#" + sFragment;
+                return URLDecoder.decode(sQuery, StandardCharsets.UTF_8)
+                        + "#" + URLDecoder.decode(sFragment, StandardCharsets.UTF_8);
                 }
-            return sQuery;
+            return URLDecoder.decode(sQuery, StandardCharsets.UTF_8);
             }
         return sConfigURI;
         }
@@ -124,7 +129,8 @@ public class ScopedUriScopeResolver
             {
             return sConfigURI;
             }
-        return String.format(SCOPED_PATTERN, SCOPED_SCHEME, sScope, sConfigURI);
+        return String.format(SCOPED_PATTERN, SCOPED_SCHEME,
+                URLEncoder.encode(sScope, StandardCharsets.UTF_8), URLEncoder.encode(sConfigURI));
         }
     
     // ----- constants ------------------------------------------------------
