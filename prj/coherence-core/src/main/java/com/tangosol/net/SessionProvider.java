@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -67,8 +67,30 @@ public interface SessionProvider
                                             Coherence.Mode                          defaultMode,
                                             Iterable<? extends EventInterceptor<?>> interceptors)
         {
+        return createSession(configuration, defaultMode, null, interceptors);
+        }
+
+    /**
+     * Create a {@link Session} from the specified configuration.
+     *
+     * @param configuration  the configuration to use to create the session
+     * @param defaultMode    the {@link com.tangosol.net.Coherence.Mode} the session should use
+     *                       if not specified in the {@link SessionConfiguration}
+     * @param sScopePrefix   the prefix to prepend to the session scope
+     * @param interceptors   optional {@link EventInterceptor interceptors} to add to
+     *                       the session in addition to any in the configuration
+     *
+     * @return an {@link Optional} containing a {@link Session} or an empty
+     *         {@link Optional} if this provider cannot supply a {@link Session}
+     *         from the specified configuration
+     */
+    default Optional<Session> createSession(SessionConfiguration                    configuration,
+                                            Coherence.Mode                          defaultMode,
+                                            String                                  sScopePrefix,
+                                            Iterable<? extends EventInterceptor<?>> interceptors)
+        {
         Coherence.Mode mode    = configuration.getMode().orElse(defaultMode);
-        Context        context = new DefaultContext(mode, DefaultSessionProvider.getBaseProvider(), interceptors);
+        Context        context = new DefaultContext(mode, DefaultSessionProvider.getBaseProvider(), interceptors, sScopePrefix);
         Context        result  = createSession(configuration, context);
         return result == null ? Optional.empty() : Optional.ofNullable(result.getSession());
         }
@@ -302,6 +324,16 @@ public interface SessionProvider
             {
             return defaultProvider().createSession(configuration, this);
             }
+
+        /**
+         * Return any prefix to prepend to the scope name of the session.
+         *
+         * @return any prefix to prepend to the scope name of the session
+         */
+        default String getScopePrefix()
+            {
+            return Coherence.DEFAULT_SCOPE;
+            }
         }
 
     // ----- inner class DefaultContext -------------------------------------
@@ -312,18 +344,22 @@ public interface SessionProvider
         /**
          * Create a new default context.
          *
-         * @param mode      the mode to create the session
-         * @param provider  the default {@link SessionProvider}
+         * @param mode          the mode to create the session
+         * @param provider      the default {@link SessionProvider}
+         * @param sScopePrefix  the prefix to prepend to the session scope
+         * @param interceptors  the interceptors to add to the session
          *
          * @throws NullPointerException if either parameter is {@code null}
          */
         public DefaultContext(Coherence.Mode                          mode,
                               SessionProvider                         provider,
-                              Iterable<? extends EventInterceptor<?>> interceptors)
+                              Iterable<? extends EventInterceptor<?>> interceptors,
+                              String                                  sScopePrefix)
             {
             f_mode            = Objects.requireNonNull(mode);
             f_sessionProvider = Objects.requireNonNull(provider);
             f_interceptors    = interceptors;
+            f_sScopePrefix    = sScopePrefix == null ? Coherence.DEFAULT_SCOPE : sScopePrefix.trim();
             }
 
         @Override
@@ -377,6 +413,12 @@ public interface SessionProvider
             return f_interceptors;
             }
 
+        @Override
+        public String getScopePrefix()
+            {
+            return f_sScopePrefix == null ? Context.super.getScopePrefix() : f_sScopePrefix;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -403,6 +445,8 @@ public interface SessionProvider
          * The optional {@link Session} created by a provider.
          */
         private Session m_session;
+
+        private final String f_sScopePrefix;
         }
 
     // ----- inner interface Supplier ---------------------------------------

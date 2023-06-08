@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -209,11 +209,7 @@ public abstract class AbstractServiceScheme<D extends ServiceDependencies>
         {
         String sServiceName = getServiceName();
         String sScopeName   = getScopeName();
-
-        sServiceName = sScopeName == null || sScopeName.trim().length() == 0 ?
-            sServiceName : sScopeName + DELIM_APPLICATION_SCOPE + sServiceName;
-
-        return sServiceName;
+        return ServiceScheme.getScopedServiceName(sScopeName, sServiceName);
         }
 
     /**

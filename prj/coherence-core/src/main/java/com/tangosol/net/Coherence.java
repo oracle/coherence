@@ -9,11 +9,16 @@ package com.tangosol.net;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.oracle.coherence.common.util.Duration;
+
+import com.tangosol.application.Context;
+
 import com.tangosol.coherence.config.Config;
+import com.tangosol.coherence.config.scheme.ServiceScheme;
+
 import com.tangosol.internal.health.HealthCheckWrapper;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
-import com.tangosol.internal.net.ScopedUriScopeResolver;
 import com.tangosol.internal.net.SystemSessionConfiguration;
 
 import com.tangosol.net.events.CoherenceDispatcher;
@@ -49,6 +54,11 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -252,6 +262,24 @@ public class Coherence
         }
 
     /**
+     * Return the default {@link Coherence} client instance, creating it if it does not already exist.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence Concurrent extensions, this will configure Coherence
+     * Concurrent to be an Extend client.
+     *
+     * @param mode  the default mode to run the Coherence instance
+     *
+     * @return a default {@link Coherence} instance
+     */
+    public static Coherence client(Mode mode)
+        {
+        return clientBuilder(CoherenceConfiguration.create(), mode).build(true);
+        }
+
+    /**
      * Create a client {@link Coherence} instance from the specified {@link CoherenceConfiguration}.
      * <p>
      * If using the default Coherence cache configuration file, this will configure Coherence
@@ -336,12 +364,38 @@ public class Coherence
      * If using the default Coherence Concurrent extensions, this will configure Coherence
      * Concurrent to be an Extend client.
      *
+     * @param config  the {@link CoherenceConfiguration} to configure the {@link Coherence} instance
+     *
      * @return a {@link Builder} instance that can build a {@link Coherence}
      *         instance using the specified {@link CoherenceConfiguration}
      */
     public static Builder clientBuilder(CoherenceConfiguration config)
         {
-        return new Builder(config, Mode.Client);
+        return clientBuilder(config, Mode.Client);
+        }
+
+    /**
+     * Returns a {@link Builder} instance that can build a {@link Coherence}
+     * instance using the specified {@link CoherenceConfiguration}.
+     * <p>
+     * The {@link Coherence} instance built by the {@code Builder} will be a
+     * client, it will not start or join a Coherence cluster.
+     * <p>
+     * If using the default Coherence cache configuration file, this will configure Coherence
+     * to be an Extend client.
+     * <p>
+     * If using the default Coherence Concurrent extensions, this will configure Coherence
+     * Concurrent to be an Extend client.
+     *
+     * @param config  the {@link CoherenceConfiguration} to configure the {@link Coherence} instance
+     * @param mode    the default mode to run the Coherence instance
+     *
+     * @return a {@link Builder} instance that can build a {@link Coherence}
+     *         instance using the specified {@link CoherenceConfiguration}
+     */
+    public static Builder clientBuilder(CoherenceConfiguration config, Mode mode)
+        {
+        return new Builder(config, mode);
         }
 
     /**
@@ -453,15 +507,21 @@ public class Coherence
      */
     public static Collection<Session> findSessionsByScope(String sScope)
         {
+        Collection<Session> col = null;
         if (Coherence.SYSTEM_SCOPE.equals(sScope))
             {
-            return s_sessionSystem.map(Collections::singleton).orElse(Collections.emptySet());
+            col = s_systemSession.map(Collections::singleton).orElse(null);
             }
 
-        return s_mapInstance.values()
-                            .stream()
-                            .flatMap(coh -> coh.getSessionsWithScope(sScope).stream())
-                            .collect(Collectors.toList());
+        if (col == null)
+            {
+            col = s_mapInstance.values()
+                    .stream()
+                    .flatMap(coh -> coh.getSessionsWithScope(sScope).stream())
+                    .collect(Collectors.toList());
+
+            }
+        return col;
         }
 
     /**
@@ -475,14 +535,24 @@ public class Coherence
         {
         Logger.info("Stopping all Coherence instances");
         s_mapInstance.values().forEach(Coherence::close);
-        if (s_serverSystem != null)
+        if (s_systemSession != null && s_systemSession.isPresent())
             {
-            s_serverSystem.stop();
+            try
+                {
+                s_systemSession.get().close();
+                }
+            catch (Exception e)
+                {
+                e.printStackTrace();
+                }
+            }
+        if (s_systemServiceMonitor != null)
+            {
+            s_systemServiceMonitor.close();
             }
         Logger.info("All Coherence instances stopped");
-        s_serverSystem  = null;
-        s_sessionSystem = null;
-        s_fInitialized  = false;
+        s_systemServiceMonitor = null;
+        s_systemSession        = null;
         if (s_fEnsuredCluster != null && s_fEnsuredCluster)
             {
             CacheFactory.shutdown();
@@ -535,10 +605,37 @@ public class Coherence
         {
         if (SYSTEM_SESSION.equals(sName))
             {
-            return s_sessionSystem != null && s_sessionSystem.isPresent();
+            return m_localSystemSession != null && m_localSystemSession.isPresent();
             }
         SessionConfiguration configuration = getSessionConfiguration(sName);
         return configuration != null && configuration.isEnabled();
+        }
+
+    /**
+     * Return a set of session names that this {@code Coherence}
+     * instance has.
+     *
+     * @return a set of session names that this {@code Coherence}
+     *         instance has
+     */
+    public Set<String> getSessionNames()
+        {
+        return Collections.unmodifiableSet(f_mapSession.keySet());
+        }
+
+    /**
+     * Return a set of session scope names that this {@code Coherence}
+     * instance has.
+     *
+     * @return a set of session scope names that this {@code Coherence}
+     *         instance has
+     */
+    public Set<String> getSessionScopeNames()
+        {
+        return f_mapSession.values()
+                .stream()
+                .map(Session::getScopeName)
+                .collect(Collectors.toSet());
         }
 
     /**
@@ -706,7 +803,7 @@ public class Coherence
      *
      * @param sScope  the scope name of the {@link Session Sessions} to return
      *
-     * @return the {@link Session} instances with the specified scope or an
+     * @return the {@link Session} instances with the specified scope or
      *         an empty {@link Collection} if no {@link Session Sessions}
      *         have the required scope name
      *
@@ -716,7 +813,26 @@ public class Coherence
         {
         assertNotClosed();
 
-        String sScopeName = sScope == null ? Coherence.DEFAULT_SCOPE : sScope;
+        String sScopeName;
+        if (sScope == null || Coherence.DEFAULT_SCOPE.equals(sScope))
+            {
+            sScopeName = f_config.getApplicationContext()
+                    .map(Context::getDefaultScope)
+                    .orElse(Coherence.DEFAULT_SCOPE);
+            }
+        else
+            {
+            sScopeName = sScope;
+            }
+
+        if (m_localSystemSession.isPresent())
+            {
+            Session session = m_localSystemSession.get();
+            if (Coherence.SYSTEM_SCOPE.equals(sScope) || session.getScopeName().equals(sScope))
+                {
+                return Collections.singletonList(session);
+                }
+            }
 
         return getSessionConfigurations()
                 .filter(cfg -> sScopeName.equals(cfg.getScopeName()))
@@ -767,6 +883,47 @@ public class Coherence
     public boolean isClosed()
         {
         return m_fClosed;
+        }
+
+    /**
+     * Start this {@link Coherence} instance.
+     * <p>
+     * This method will wait for the default time out period for Coherence to start.
+     * <p>
+     * If this instance already been started and has not
+     * been closed this method call is a no-op.
+     *
+     * @return the running {@link Coherence} instance
+     */
+    public Coherence startAndWait() throws TimeoutException, InterruptedException
+        {
+        return startAndWait(DEFAULT_START_TIMEOUT);
+        }
+
+    /**
+     * Start this {@link Coherence} instance.
+     * <p>
+     * This method will wait for the specified timeout.
+     * <p>
+     * If this instance already been started and has not
+     * been closed this method call is a no-op.
+     *
+     * @return the running {@link Coherence} instance
+     */
+    public Coherence startAndWait(Duration timeout) throws TimeoutException, InterruptedException
+        {
+        try
+            {
+            long cMinutes = timeout == null
+                    ? DEFAULT_START_TIMEOUT.as(Duration.Magnitude.MINUTE)
+                    : Math.max(1, timeout.as(Duration.Magnitude.MINUTE));
+
+            return start().get(cMinutes, TimeUnit.MINUTES);
+            }
+        catch (ExecutionException e)
+            {
+            throw new RuntimeException(e);
+            }
         }
 
     /**
@@ -877,6 +1034,24 @@ public class Coherence
                         .forEach(this::stopServer);
 
                 f_mapServer.clear();
+
+                if (f_mode == Mode.Gar)
+                    {
+                    if (m_localSystemSession.isPresent())
+                        {
+                        try
+                            {
+                            m_localSystemSession.get().close();
+                            }
+                        catch (Exception e)
+                            {
+                            Logger.err(e);
+                            }
+                        }
+                    m_localSystemServiceMonitor.close();
+                    }
+                m_localSystemSession        = null;
+                m_localSystemServiceMonitor = null;
                 }
 
             getCluster().getManagement().unregister(f_health);
@@ -986,6 +1161,22 @@ public class Coherence
         coherence.whenClosed().join();
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "Coherence{" +
+                "name='" + f_sName + '\'' +
+                ", mode='" + f_mode + '\'' +
+                ", started='" + m_fStarted + '\'' +
+                ", closed='" + m_fClosed + '\'' +
+                ", sessions=[" + getSessionConfigurations()
+                    .map(s -> "{name='" + s.getName() + "', scope='" + s.getScopeName() + "'}")
+                    .collect(Collectors.joining(",")) + "]" +
+                '}';
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -1055,8 +1246,8 @@ public class Coherence
         initializeSystemSession(globalInterceptors);
 
         Logger.info(() -> isDefaultInstance()
-                          ? "Starting default Coherence instance"
-                          : "Starting Coherence instance " + f_sName);
+                          ? "Starting default Coherence instance" + " mode=" + f_mode
+                          : "Starting Coherence instance " + f_sName + " mode=" + f_mode);
 
         cluster.getManagement().register(f_health);
 
@@ -1069,18 +1260,18 @@ public class Coherence
             }
         catch (Throwable t)
             {
-            Logger.err("Failed to start Coherence instance " + f_sName, t);
+            Logger.err("Failed to start Coherence instance " + f_sName + " mode=" + f_mode, t);
             close();
             }
 
-        if (f_mode == Mode.ClusterMember)
+        if (f_mode == Mode.ClusterMember || f_mode == Mode.Gar)
             {
-            Logger.info(() -> "Started Coherence server " + f_sName
+            Logger.info(() -> "Started Coherence server " + f_sName  + " mode=" + f_mode
                               + CacheFactory.getCluster().getServiceBanner());
             }
         else
             {
-            Logger.info(() -> "Started Coherence client " + f_sName);
+            Logger.info(() -> "Started Coherence client " + f_sName + " mode=" + f_mode);
             }
         }
 
@@ -1101,19 +1292,21 @@ public class Coherence
         if (configuration.isEnabled())
             {
             String sName = configuration.getName();
+            Mode   mode  = configuration.getMode().orElse(f_mode);
+
             if (Coherence.DEFAULT_NAME.equals(sName))
                 {
-                Logger.info("Starting default Session mode=" + configuration.getMode().orElse(f_mode));
+                Logger.info("Starting default Session mode=" + mode);
                 }
             else
                 {
-                Logger.info("Starting Session \"" + sName + "\" mode=" + configuration.getMode().orElse(f_mode));
+                Logger.info("Starting Session \"" + sName + "\" mode=" + mode);
                 }
 
             Iterable<? extends EventInterceptor<?>> interceptors
                     = join(globalInterceptors, configuration.getInterceptors());
 
-            Optional<Session> optional = ensureSessionInternal(configuration, f_mode, interceptors);
+            Optional<Session> optional = ensureSessionInternal(configuration, f_mode, getScopePrefix(), interceptors);
             if (optional.isPresent())
                 {
                 Session session = optional.get();
@@ -1126,7 +1319,7 @@ public class Coherence
                     ConfigurableCacheFactorySession supplier = (ConfigurableCacheFactorySession) session;
                     ConfigurableCacheFactory        ccf      = supplier.getConfigurableCacheFactory();
 
-                    if (configuration.getMode().orElse(f_mode) == Mode.ClusterMember)
+                    if (mode == Mode.ClusterMember)
                         {
                         // This is a server and the session is not a client session so wrap in a DCS
                         // to manage the auto-start services.
@@ -1211,15 +1404,17 @@ public class Coherence
      *
      * @param configuration  the {@link SessionConfiguration configuration} for the {@link Session}
      * @param mode           the {@link Mode} the requesting {@link Coherence} instance is running in
+     * @param sScopePrefix   the prefix to prepend to the session scope
      * @param interceptors   optional {@link EventInterceptor interceptors} to add to
      *                       the session in addition to any in the configuration
      *
      * @return the configured and started {@link Session}
      */
     private static Optional<Session> ensureSessionInternal(SessionConfiguration configuration,
-            Mode mode, Iterable<? extends EventInterceptor<?>> interceptors)
+            Mode mode, String sScopePrefix, Iterable<? extends EventInterceptor<?>> interceptors)
         {
-        Optional<Session> optional = SessionProvider.get().createSession(configuration, mode, interceptors);
+        SessionProvider   provider = configuration.sessionProvider().orElseGet(SessionProvider::get);
+        Optional<Session> optional = provider.createSession(configuration, mode, sScopePrefix, interceptors);
         if (optional.isPresent())
             {
             String sName   = configuration.getName();
@@ -1262,6 +1457,37 @@ public class Coherence
      */
     private DefaultCacheServer startCCF(String sName, ConfigurableCacheFactory ccf)
         {
+        displayStartBanner(sName, ccf);
+        DefaultCacheServer dcs = new DefaultCacheServer(ccf);
+        dcs.startDaemon(DefaultCacheServer.DEFAULT_WAIT_MILLIS);
+        return dcs;
+        }
+
+    /**
+     * Activate and start the autostart services in the specified system {@link ConfigurableCacheFactory}.
+     * <p>
+     * The {@link ConfigurableCacheFactory} will be wrapped in a {@link ServiceMonitor} that
+     * will monitor and manage the {@link ConfigurableCacheFactory} services.
+     *
+     * @param sName  the name of the {@link ConfigurableCacheFactory}
+     * @param ccf    the {@link ConfigurableCacheFactory} to start
+     *
+     * @return the {@link ServiceMonitor} that is managing and monitoring
+     *         the {@link ConfigurableCacheFactory} services
+     */
+    private ServiceMonitor startSystemCCF(String sName, ExtensibleConfigurableCacheFactory ccf)
+        {
+        displayStartBanner(sName, ccf);
+        ServiceMonitor monitor = new SimpleServiceMonitor(DefaultCacheServer.DEFAULT_WAIT_MILLIS);
+        monitor.setConfigurableCacheFactory(ccf);
+        ccf.activate();
+        monitor.registerServices(ccf.getServiceMap());
+        monitor.getThread().setName(sName + ':' + monitor.getThread().getName());
+        return monitor;
+        }
+
+    private void displayStartBanner(String sName, ConfigurableCacheFactory ccf)
+        {
         String  sScopeName = ccf.getScopeName();
         boolean fHasScope  = sScopeName != null && !sScopeName.isEmpty();
 
@@ -1269,9 +1495,7 @@ public class Coherence
                            ? "Starting default session"
                            : "Starting session " + sName)
                           + (fHasScope ? " with scope name " + sScopeName : ""));
-        DefaultCacheServer dcs = new DefaultCacheServer(ccf);
-        dcs.startDaemon(DefaultCacheServer.DEFAULT_WAIT_MILLIS);
-        return dcs;
+
         }
 
     /**
@@ -1292,26 +1516,9 @@ public class Coherence
         }
 
     /**
-     * Perform the static initialization.
-     * <p>
-     * This will override the configured {@link CacheFactoryBuilder}
-     * to use a {@link ScopedCacheFactoryBuilder} with a custom
-     * scope resolver {@link ScopedUriScopeResolver}.
-     */
-    private static synchronized void init()
-        {
-        if (s_fInitialized)
-            {
-            return;
-            }
-        s_fInitialized = true;
-        CacheFactory.setCacheFactoryBuilder(new ScopedCacheFactoryBuilder(new ScopedUriScopeResolver(false)));
-        }
-
-    /**
      * Ensure that the singleton system {@link Session} exists and is started.
      * <p>
-     * The System session only applies to certain environments so we may not
+     * The System session only applies to certain environments, so we may not
      * actually start anything.
      *
      * @param interceptors  any interceptors to add to the system session
@@ -1319,38 +1526,89 @@ public class Coherence
      * @return the singleton system {@link Session}
      */
     @SuppressWarnings("OptionalAssignedToNull")
-    private synchronized Session initializeSystemSession(Iterable<? extends EventInterceptor<?>> interceptors)
+    private Session initializeSystemSession(Iterable<? extends EventInterceptor<?>> interceptors)
         {
-        if (s_sessionSystem == null)
+        boolean fCreated = false;
+        if (f_mode == Mode.Gar)
             {
-            // Ensure we are properly initialised
-            Coherence.init();
-
-            SessionConfiguration configuration = new SystemSessionConfiguration(f_mode);
-            Iterable<? extends EventInterceptor<?>> allInterceptors
-                    = join(interceptors, configuration.getInterceptors());
-
-            Optional<Session> optional = ensureSessionInternal(configuration, f_mode, allInterceptors);
-            if (optional.isPresent() && Mode.ClusterMember == f_mode)
+            if (m_localSystemSession == null)
                 {
-                Session session = optional.get();
-                if (session instanceof ConfigurableCacheFactorySession)
+                m_localSystemSessionLock.lock();
+                try
                     {
-                    ConfigurableCacheFactory ccfSystem = ((ConfigurableCacheFactorySession) session)
-                            .getConfigurableCacheFactory();
-                    s_serverSystem = startCCF(SYSTEM_SCOPE, ccfSystem);
+                    if (m_localSystemSession == null)
+                        {
+                        createSystemSession(interceptors);
+                        fCreated = true;
+                        }
+                    }
+                finally
+                    {
+                    m_localSystemSessionLock.unlock();
                     }
                 }
-
-            registerHealthChecks();
-
-            s_sessionSystem = optional;
+            if (!fCreated)
+                {
+                m_localSystemSession.ifPresent(session -> registerInterceptors(session, interceptors));
+                }
             }
         else
             {
-            s_sessionSystem.ifPresent(session -> registerInterceptors(session, interceptors));
+            if (s_systemSession == null)
+                {
+                s_globalSystemSessionLock.lock();
+                try
+                    {
+                    if (s_systemSession == null)
+                        {
+                        s_systemSession = createSystemSession(interceptors);
+                        fCreated        = true;
+                        }
+                    }
+                finally
+                    {
+                    s_globalSystemSessionLock.unlock();
+                    }
+                }
+            else
+                {
+                m_localSystemSession = s_systemSession;
+                }
+            s_systemServiceMonitor = m_localSystemServiceMonitor;
+            if (!fCreated)
+                {
+                s_systemSession.ifPresent(session -> registerInterceptors(session, interceptors));
+                }
             }
-        return s_sessionSystem.orElse(null);
+
+        return m_localSystemSession.orElse(null);
+        }
+
+    private Optional<Session> createSystemSession(Iterable<? extends EventInterceptor<?>> interceptors)
+        {
+        SessionConfiguration configuration = new SystemSessionConfiguration(f_mode);
+        String               sScopePrefix  = getScopePrefix();
+
+        Iterable<? extends EventInterceptor<?>> allInterceptors
+                = join(interceptors, configuration.getInterceptors());
+
+        Optional<Session> optional = ensureSessionInternal(configuration, f_mode, sScopePrefix, allInterceptors);
+        if (optional.isPresent() && (Mode.ClusterMember == f_mode || Mode.Gar == f_mode))
+            {
+            Session session = optional.get();
+            if (session instanceof ConfigurableCacheFactorySession)
+                {
+                ExtensibleConfigurableCacheFactory ccfSystem = (ExtensibleConfigurableCacheFactory)
+                        ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
+                m_localSystemServiceMonitor = startSystemCCF(configuration.getScopeName(), ccfSystem);
+                session.activate();
+                }
+            }
+
+        registerHealthChecks();
+
+        m_localSystemSession = optional;
+        return optional;
         }
 
     /**
@@ -1361,7 +1619,7 @@ public class Coherence
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     static void setSystemSession(Optional<Session> optional)
         {
-        s_sessionSystem = Objects.requireNonNull(optional);
+        s_systemSession = Objects.requireNonNull(optional);
         }
 
     /**
@@ -1411,6 +1669,26 @@ public class Coherence
             {
             throw new IllegalArgumentException("A session configuration must provide a non-null name");
             }
+        }
+
+    /**
+     * Obtain the prefix to prepend to session scopes.
+     *
+     * @return the prefix to prepend to session scopes
+     */
+    private String getScopePrefix()
+        {
+        if (f_mode == Mode.Gar)
+            {
+            return f_config.getApplicationContext()
+                    .map(a ->
+                        {
+                        String sScope = a.getDefaultScope();
+                        return ServiceScheme.getScopePrefix(sScope, a.getContainerContext());
+                        })
+                    .orElse(getName());
+            }
+        return Coherence.DEFAULT_SCOPE;
         }
 
     // ----- inner class: PriorityHolder ------------------------------------
@@ -1486,9 +1764,6 @@ public class Coherence
 
         protected Coherence build(boolean fAllowDuplicate)
             {
-            // Ensure we are properly initialised
-            Coherence.init();
-
             Coherence coherence = new Coherence(f_config, f_mode);
             Coherence prev      = s_mapInstance.putIfAbsent(f_config.getName(), coherence);
             if (prev != null)
@@ -1548,7 +1823,11 @@ public class Coherence
          * The {@link Coherence} instance should run as a non-cluster member gRPC client,
          * configured with a fixed address and port.
          */
-        GrpcFixed("grpc-fixed");
+        GrpcFixed("grpc-fixed"),
+        /**
+         * The {@link Coherence} instance has been created from a gar.
+         */
+        Gar("direct");
 
         Mode(String sClient)
             {
@@ -1695,12 +1974,17 @@ public class Coherence
      */
     public static final String DEFAULT_NAME = "";
 
-    // ----- data members ---------------------------------------------------
+    /**
+     * The system property to use to set the default timeout to wait for Coherence instances to start.
+     */
+    public static final String PROP_START_TIMEOUT = "coherence.startup.timeout";
 
     /**
-     * A flag indicating whether the static initialisation is complete.
+     * The default start up timeout.
      */
-    private static volatile boolean s_fInitialized = false;
+    public static final Duration DEFAULT_START_TIMEOUT = new Duration(5, Duration.Magnitude.MINUTE);
+
+    // ----- data members ---------------------------------------------------
 
     /**
      * The map of all named {@link Coherence} instances.
@@ -1708,15 +1992,36 @@ public class Coherence
     private static final CopyOnWriteMap<String, Coherence> s_mapInstance = new CopyOnWriteMap<>(LinkedHashMap.class);
 
     /**
-     * The System session.
+     * The lock to manage the global system session state.
+     */
+    private static final Lock s_globalSystemSessionLock = new ReentrantLock();
+
+    /**
+     * The global System session.
      */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Optional<Session> s_sessionSystem;
+    private static Optional<Session> s_systemSession;
 
     /**
      * The {@link DefaultCacheServer} wrapping the System session.
      */
-    private static DefaultCacheServer s_serverSystem;
+    private static ServiceMonitor s_systemServiceMonitor;
+
+    /**
+     * The lock to manage this instance's system session state.
+     */
+    private final Lock m_localSystemSessionLock = new ReentrantLock();
+
+    /**
+     * This instance's System session.
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private Optional<Session> m_localSystemSession;
+
+    /**
+     * The {@link DefaultCacheServer} wrapping the local System session.
+     */
+    private ServiceMonitor m_localSystemServiceMonitor;
 
     /**
      * A flag indicating whether the bootstrap API ensured the Coherence cluster service.

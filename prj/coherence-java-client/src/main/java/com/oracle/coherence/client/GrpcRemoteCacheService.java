@@ -11,6 +11,7 @@ import com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies;
 
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.RequestTimeoutException;
 
@@ -177,6 +178,10 @@ public class GrpcRemoteCacheService
         String                             sScopeName   = dependencies.getRemoteScopeName();
         GrpcCacheLifecycleEventDispatcher  dispatcher   = new GrpcCacheLifecycleEventDispatcher(sCacheName, this);
 
+        if (sScopeName == null)
+            {
+            sScopeName = Coherence.DEFAULT_SCOPE;
+            }
 
         AsyncNamedCacheClient.DefaultDependencies deps
                 = new  AsyncNamedCacheClient.DefaultDependencies(sCacheName, channel, dispatcher);
@@ -184,6 +189,7 @@ public class GrpcRemoteCacheService
         deps.setScope(sScopeName);
         deps.setSerializer(m_serializer, m_serializer.getName());
         deps.setExecutor(m_executor);
+        deps.setDeadline(dependencies.getDeadline());
 
         AsyncNamedCacheClient<?, ?> client = new AsyncNamedCacheClient<>(deps);
 

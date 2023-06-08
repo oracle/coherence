@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -595,10 +595,11 @@
         <xsd:annotation>
             <xsd:documentation>
                 The request-timeout specifies the maximum amount
-                of time a client will
-                wait for
-                a response before abandoning the
-                original request.
+                of time a client will wait for a response before
+                abandoning the original request.
+
+                When used in a remote-grpc-cache-scheme this value is
+                used to set the default deadline on individual rpc calls.
 
                 The value of this element must be in the following
                 format:
@@ -621,12 +622,12 @@
 
                 Default value is an infinite timeout (0s) for
                 clustered client requests and 30 seconds (30s)
-                for extend client requests.
+                for extend or gRPC client requests.
 
                 Used in: outgoing-message-handler, replicated-scheme,
                 distributed-scheme,
                 transactional-scheme, optimistic-scheme,
-                invocation-scheme, proxy-scheme
+                invocation-scheme, proxy-scheme, remote-grpc-cache-scheme
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

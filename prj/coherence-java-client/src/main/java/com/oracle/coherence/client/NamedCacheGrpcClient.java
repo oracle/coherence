@@ -46,12 +46,15 @@ import com.oracle.coherence.grpc.SizeRequest;
 import com.oracle.coherence.grpc.TruncateRequest;
 import com.oracle.coherence.grpc.ValuesRequest;
 
+import com.tangosol.net.PriorityTask;
+
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -64,9 +67,9 @@ public class NamedCacheGrpcClient
     {
     // ----- constructors ---------------------------------------------------
 
-    NamedCacheGrpcClient(Channel channel)
+    NamedCacheGrpcClient(AsyncNamedCacheClient.Dependencies dependencies)
         {
-        f_stub = NamedCacheServiceGrpc.newStub(channel);
+        f_dependencies = dependencies;
         }
 
     // ----- NamedCacheService methods --------------------------------------
@@ -84,12 +87,12 @@ public class NamedCacheGrpcClient
     CompletionStage<Empty> clear(ClearRequest request)
         {
         SingleValueStreamObserver<Empty> observer = new SingleValueStreamObserver<>();
-        f_stub.clear(request, observer);
+        createStub().clear(request, observer);
         return observer.completionStage();
         }
 
     /**
-     * Returns true if this map contains a mapping for the specified key to the specified value.
+     * Returns {@code true} if this map contains a mapping for the specified key to the specified value.
      *
      * @param request  the request which contains the key and value whose presence
      *                 in this map is to be tested
@@ -102,12 +105,12 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> containsEntry(ContainsEntryRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.containsEntry(request, observer);
+        createStub().containsEntry(request, observer);
         return observer.completionStage();
         }
 
     /**
-     * Returns true if this map contains a mapping for the specified key.
+     * Returns {@code true} if this map contains a mapping for the specified key.
      *
      * @param request  the request which contains the key whose presence
      *                 in this map is to be tested
@@ -120,12 +123,12 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> containsKey(ContainsKeyRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.containsKey(request, observer);
+        createStub().containsKey(request, observer);
         return observer.completionStage();
         }
 
     /**
-     * Returns true if this map contains a mapping for the specified value.
+     * Returns {@code true} if this map contains a mapping for the specified value.
      *
      * @param request  the request which contains the value whose presence
      *                 in this map is to be tested
@@ -138,7 +141,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> containsValue(ContainsValueRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.containsValue(request, observer);
+        createStub().containsValue(request, observer);
         return observer.completionStage();
         }
 
@@ -155,7 +158,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> isEmpty(IsEmptyRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.isEmpty(request, observer);
+        createStub().isEmpty(request, observer);
         return observer.completionStage();
         }
 
@@ -173,7 +176,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> isReady(IsReadyRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.isReady(request, observer);
+        createStub().isReady(request, observer);
         return observer.completionStage();
         }
 
@@ -190,7 +193,7 @@ public class NamedCacheGrpcClient
     CompletionStage<Int32Value> size(SizeRequest request)
         {
         SingleValueStreamObserver<Int32Value> observer = new SingleValueStreamObserver<>();
-        f_stub.size(request, observer);
+        createStub().size(request, observer);
         return observer.completionStage();
         }
 
@@ -207,13 +210,12 @@ public class NamedCacheGrpcClient
     CompletionStage<OptionalValue> get(GetRequest request)
         {
         SingleValueStreamObserver<OptionalValue> observer = new SingleValueStreamObserver<>();
-        f_stub.get(request, observer);
+        createStub().get(request, observer);
         return observer.completionStage();
         }
 
     /**
-     * Obtain a stream of mappings of keys to values for all of the
-     * specified keys.
+     * Obtain a stream of mappings of keys to values for all the specified keys.
      *
      * @param request  the {@link GetAllRequest} request containing the cache name
      *                 and collection of keys to obtain the mappings for
@@ -225,7 +227,7 @@ public class NamedCacheGrpcClient
         try
             {
             StreamStreamObserver<Entry> observer = new StreamStreamObserver<>();
-            f_stub.getAll(request, observer);
+            createStub().getAll(request, observer);
             return observer.future().get().stream();
             }
         catch (InterruptedException | ExecutionException e)
@@ -249,7 +251,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BytesValue> put(PutRequest request)
         {
         SingleValueStreamObserver<BytesValue> observer = new SingleValueStreamObserver<>();
-        f_stub.put(request, observer);
+        createStub().put(request, observer);
         return observer.completionStage();
         }
 
@@ -272,7 +274,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BytesValue> putIfAbsent(PutIfAbsentRequest request)
         {
         SingleValueStreamObserver<BytesValue> observer = new SingleValueStreamObserver<>();
-        f_stub.putIfAbsent(request, observer);
+        createStub().putIfAbsent(request, observer);
         return observer.completionStage();
         }
 
@@ -291,7 +293,7 @@ public class NamedCacheGrpcClient
     CompletionStage<Empty> putAll(PutAllRequest request)
         {
         SingleValueStreamObserver<Empty> observer = new SingleValueStreamObserver<>();
-        f_stub.putAll(request, observer);
+        createStub().putAll(request, observer);
         return observer.completionStage();
         }
 
@@ -309,7 +311,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BytesValue> remove(RemoveRequest request)
         {
         SingleValueStreamObserver<BytesValue> observer = new SingleValueStreamObserver<>();
-        f_stub.remove(request, observer);
+        createStub().remove(request, observer);
         return observer.completionStage();
         }
 
@@ -327,7 +329,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> removeMapping(RemoveMappingRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.removeMapping(request, observer);
+        createStub().removeMapping(request, observer);
         return observer.completionStage();
         }
 
@@ -346,7 +348,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BytesValue> replace(ReplaceRequest request)
         {
         SingleValueStreamObserver<BytesValue> observer = new SingleValueStreamObserver<>();
-        f_stub.replace(request, observer);
+        createStub().replace(request, observer);
         return observer.completionStage();
         }
 
@@ -368,7 +370,7 @@ public class NamedCacheGrpcClient
     CompletionStage<BoolValue> replaceMapping(ReplaceMappingRequest request)
         {
         SingleValueStreamObserver<BoolValue> observer = new SingleValueStreamObserver<>();
-        f_stub.replaceMapping(request, observer);
+        createStub().replaceMapping(request, observer);
         return observer.completionStage();
         }
 
@@ -388,7 +390,7 @@ public class NamedCacheGrpcClient
         try
             {
             StreamStreamObserver<BytesValue> observer = new StreamStreamObserver<>();
-            f_stub.nextKeySetPage(request, observer);
+            createStub().nextKeySetPage(request, observer);
             return observer.future().get().stream();
             }
         catch (InterruptedException | ExecutionException e)
@@ -413,7 +415,7 @@ public class NamedCacheGrpcClient
         try
             {
             StreamStreamObserver<EntryResult> observer = new StreamStreamObserver<>();
-            f_stub.nextEntrySetPage(request, observer);
+            createStub().nextEntrySetPage(request, observer);
             return observer.future().get().stream();
             }
         catch (InterruptedException | ExecutionException e)
@@ -440,37 +442,38 @@ public class NamedCacheGrpcClient
     CompletionStage<Empty> truncate(TruncateRequest request)
         {
         SingleValueStreamObserver<Empty> observer = new SingleValueStreamObserver<>();
-        f_stub.truncate(request, observer);
+        createStub().truncate(request, observer);
         return observer.completionStage();
         }
 
     /**
      * Invoke an {@link com.tangosol.util.InvocableMap.EntryProcessor} against an entry in a cache.
      *
-     * @param request  the {@link InvokeRequest} containing the serialized key of the entry and the
-     *                 serialized {@link com.tangosol.util.InvocableMap.EntryProcessor}
+     * @param request    the {@link InvokeRequest} containing the serialized key of the entry and the
+     *                   serialized {@link com.tangosol.util.InvocableMap.EntryProcessor}
+     * @param nDeadline  the deadline to apply to the request
      *
      * @return the serialized result of the {@link com.tangosol.util.InvocableMap.EntryProcessor} invocation
      */
-    CompletionStage<BytesValue> invoke(InvokeRequest request)
+    CompletionStage<BytesValue> invoke(InvokeRequest request, long nDeadline)
         {
         SingleValueStreamObserver<BytesValue> observer = new SingleValueStreamObserver<>();
-        f_stub.invoke(request, observer);
+        createStubWithDeadline(nDeadline).invoke(request, observer);
         return observer.completionStage();
         }
-
 
     /**
      * Invoke an {@link com.tangosol.util.InvocableMap.EntryProcessor} against multiple entries in a cache.
      *
-     * @param request   the {@link InvokeRequest} containing the serialized keys or serialized
-     *                  {@link com.tangosol.util.Filter} to use to identify the entries and the
-     *                  serialized {@link com.tangosol.util.InvocableMap.EntryProcessor}
-     * @param observer  the {@link io.grpc.stub.StreamObserver} to observe the invocation results
+     * @param request    the {@link InvokeRequest} containing the serialized keys or serialized
+     *                   {@link com.tangosol.util.Filter} to use to identify the entries and the
+     *                   serialized {@link com.tangosol.util.InvocableMap.EntryProcessor}
+     * @param observer   the {@link io.grpc.stub.StreamObserver} to observe the invocation results
+     * @param nDeadline  the deadline to apply to the request
      */
-    void invokeAll(InvokeAllRequest request, StreamObserver<Entry> observer)
+    void invokeAll(InvokeAllRequest request, StreamObserver<Entry> observer, long nDeadline)
         {
-        f_stub.invokeAll(request, observer);
+        createStubWithDeadline(nDeadline).invokeAll(request, observer);
         }
 
     /**
@@ -483,7 +486,7 @@ public class NamedCacheGrpcClient
     CompletionStage<Empty> destroy(DestroyRequest request)
         {
         SingleValueStreamObserver<Empty> observer = new SingleValueStreamObserver<>();
-        f_stub.destroy(request, observer);
+        createStub().destroy(request, observer);
         return observer.completionStage();
         }
 
@@ -500,7 +503,7 @@ public class NamedCacheGrpcClient
     CompletionStage<Empty> addIndex(AddIndexRequest request)
         {
         SingleValueStreamObserver<Empty> observer = new SingleValueStreamObserver<>();
-        f_stub.addIndex(request, observer);
+        createStub().addIndex(request, observer);
         return observer.completionStage();
         }
 
@@ -516,22 +519,28 @@ public class NamedCacheGrpcClient
     CompletionStage<Empty> removeIndex(RemoveIndexRequest request)
         {
         SingleValueStreamObserver<Empty> observer = new SingleValueStreamObserver<>();
-        f_stub.removeIndex(request, observer);
+        createStub().removeIndex(request, observer);
         return observer.completionStage();
         }
 
     /**
      * Execute an {@link AggregateRequest} against a cache and return the result
      * serialized in a {@link BytesValue}.
+     * <p/>
+     * A deadline value of {@link PriorityTask#TIMEOUT_DEFAULT TIMEOUT_DEFAULT} indicates
+     * a default timeout value configured for the corresponding service; the value of
+     * {@link PriorityTask#TIMEOUT_NONE TIMEOUT_NONE} indicates that the client thread
+     * is willing to wait indefinitely until the task execution completes or is
      *
-     * @param request  the {@link AggregateRequest} to execute
+     * @param request    the {@link AggregateRequest} to execute
+     * @param nDeadline  the deadline the client should apply to the request
      *
      * @return the serialized aggregation result
      */
-    CompletionStage<BytesValue> aggregate(AggregateRequest request)
+    CompletionStage<BytesValue> aggregate(AggregateRequest request, long nDeadline)
         {
         SingleValueStreamObserver<BytesValue> observer = new SingleValueStreamObserver<>();
-        f_stub.aggregate(request, observer);
+        createStubWithDeadline(nDeadline).aggregate(request, observer);
         return observer.completionStage();
         }
 
@@ -550,7 +559,7 @@ public class NamedCacheGrpcClient
         try
             {
             StreamStreamObserver<BytesValue> observer = new StreamStreamObserver<>();
-            f_stub.values(request, observer);
+            createStub().values(request, observer);
             return observer.future().get().stream();
             }
         catch (InterruptedException | ExecutionException e)
@@ -570,10 +579,64 @@ public class NamedCacheGrpcClient
      */
     StreamObserver<MapListenerRequest> events(StreamObserver<MapListenerResponse> observer)
         {
-        return f_stub.events(observer);
+        return createStubWithoutDeadline().events(observer);
+        }
+
+    /**
+     * Create the default {@link NamedCacheServiceGrpc.NamedCacheServiceStub}
+     * to use for requests.
+     *
+     * @return the default {@link NamedCacheServiceGrpc.NamedCacheServiceStub}
+     */
+    private NamedCacheServiceGrpc.NamedCacheServiceStub createStub()
+        {
+        long nDeadline = f_dependencies.getDeadline();
+        return createStubWithoutDeadline()
+                .withDeadlineAfter(nDeadline, TimeUnit.MILLISECONDS);
+        }
+
+    /**
+     * Create the default {@link NamedCacheServiceGrpc.NamedCacheServiceStub}
+     * to use for requests.
+     * <p/>
+     * The value of {@link PriorityTask#TIMEOUT_DEFAULT TIMEOUT_DEFAULT} indicates
+     * a default timeout value configured for the corresponding service; the value of
+     * {@link PriorityTask#TIMEOUT_NONE TIMEOUT_NONE} indicates that the client thread
+     * is willing to wait indefinitely until the task execution completes or is
+     *
+     * @param nDeadline  the deadline to set on the stub
+     *
+     * @return the default {@link NamedCacheServiceGrpc.NamedCacheServiceStub}
+     */
+    private NamedCacheServiceGrpc.NamedCacheServiceStub createStubWithDeadline(long nDeadline)
+        {
+        if (nDeadline == PriorityTask.TIMEOUT_NONE)
+            {
+            return createStubWithoutDeadline();
+            }
+        else if (nDeadline <= PriorityTask.TIMEOUT_DEFAULT)
+            {
+            return createStub();
+            }
+        return createStubWithoutDeadline().withDeadlineAfter(nDeadline, TimeUnit.MILLISECONDS);
+        }
+
+    /**
+     * Create the default {@link NamedCacheServiceGrpc.NamedCacheServiceStub}
+     * to use for requests.
+     *
+     * @return the default {@link NamedCacheServiceGrpc.NamedCacheServiceStub}
+     */
+    private NamedCacheServiceGrpc.NamedCacheServiceStub createStubWithoutDeadline()
+        {
+        Channel channel   = f_dependencies.getChannel();
+        return NamedCacheServiceGrpc.newStub(channel);
         }
 
     // ----- data members ---------------------------------------------------
-    
-    private final NamedCacheServiceGrpc.NamedCacheServiceStub f_stub;
+
+    /**
+     * The service dependencies.
+     */
+    private final AsyncNamedCacheClient.Dependencies f_dependencies;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -191,7 +191,6 @@ public class DefaultInsecureCacheConfigNameServiceGrpcIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
-                  SystemProperty.of(GrpcDependencies.PROP_PORT, PORTS, Ports.capture()),
                   SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                   SystemProperty.of("coherence.grpc.server.socketprovider", "grpc-insecure"),
                   WellKnownAddress.loopback(),

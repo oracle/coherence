@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,7 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 import com.oracle.bedrock.util.Capture;
 import com.oracle.coherence.guides.client.webserver.WebServer;
+import com.tangosol.net.grpc.GrpcDependencies;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -69,7 +70,7 @@ public class MultiClusterClientIT
             .include(1, CoherenceClusterMember.class,
                      ClusterName.of("Marvel"),
                      SystemProperty.of("coherence.extend.port", marvelPort),
-                     SystemProperty.of("coherence.grpc.server.port", 0),
+                     SystemProperty.of(GrpcDependencies.PROP_PORT, 0),
                      SystemProperty.of("webserver.port", 0),
                      RoleName.of("storage"),
                      IPv4Preferred.yes(),
@@ -86,7 +87,7 @@ public class MultiClusterClientIT
     static CoherenceClusterExtension starWars = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
                      ClusterName.of("StarWars"),
-                     SystemProperty.of("coherence.grpc.server.port", starWarsPort),
+                     SystemProperty.of(GrpcDependencies.PROP_PORT, starWarsPort),
                      SystemProperty.of("webserver.port", 0),
                      RoleName.of("storage"),
                      IPv4Preferred.yes(),
@@ -104,7 +105,7 @@ public class MultiClusterClientIT
             .include(1, CoherenceClusterMember.class,
                      ClusterName.of("Tenants"),
                      SystemProperty.of("coherence.extend.port", adminPort),
-                     SystemProperty.of("coherence.grpc.server.port", 0),
+                     SystemProperty.of(GrpcDependencies.PROP_PORT, 0),
                      SystemProperty.of("webserver.port", 0),
                      RoleName.of("storage"),
                      IPv4Preferred.yes(),

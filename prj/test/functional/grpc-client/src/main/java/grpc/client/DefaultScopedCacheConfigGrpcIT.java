@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,7 +8,6 @@ package grpc.client;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 import com.oracle.bedrock.junit.SessionBuilders;
-import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
@@ -21,9 +20,7 @@ import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.runtime.options.DisplayName;
-import com.oracle.bedrock.runtime.options.Ports;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
@@ -33,7 +30,6 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
-import com.tangosol.net.grpc.GrpcDependencies;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -117,7 +113,6 @@ public class DefaultScopedCacheConfigGrpcIT
                 SESSIONS.put(sName, session);
                 }
             }
-
         }
 
     @AfterAll
@@ -184,10 +179,13 @@ public class DefaultScopedCacheConfigGrpcIT
     public void shouldUseSystemSession()
         {
         Session                  session = s_coherence.getSession(Coherence.SYSTEM_SESSION);
-        ConfigurableCacheFactory ccf     = CLUSTER_EXTENSION.createSession(SessionBuilders.extendClient(Coherence.SYS_CCF_URI,
+        ConfigurableCacheFactory ccf     = CLUSTER_EXTENSION.createSession(SessionBuilders.extendClient("scoped://$SYS?" + Coherence.SYS_CCF_URI,
+                        SystemProperty.of("coherence.scope", Coherence.SYSTEM_SCOPE),
                         SystemProperty.of("coherence.client", "remote"),
                         SystemProperty.of("coherence.system.cluster.address", "127.0.0.1"),
                         SystemProperty.of("coherence.system.cluster.port", 7574)));
+
+
 
         NamedCache<String, String> cacheExtend = ccf.ensureCache("sys$config-test", null);
         NamedCache<String, String> cache       = session.getCache("sys$config-test");
@@ -210,10 +208,6 @@ public class DefaultScopedCacheConfigGrpcIT
 
     static final String CLUSTER_NAME = "DefaultScopedCacheConfigGrpcIT";
 
-    static final LocalPlatform PLATFORM = LocalPlatform.get();
-
-    static final AvailablePortIterator PORTS = PLATFORM.getAvailablePorts();
-
     static final int CLUSTER_SIZE = 3;
 
     @RegisterExtension
@@ -226,7 +220,6 @@ public class DefaultScopedCacheConfigGrpcIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
-                  SystemProperty.of(GrpcDependencies.PROP_PORT, PORTS, Ports.capture()),
                   WellKnownAddress.loopback(),
                   ClusterName.of(CLUSTER_NAME),
                   DisplayName.of("storage"),

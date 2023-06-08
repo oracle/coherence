@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,7 +28,8 @@ public class SystemSessionConfiguration
      */
     public SystemSessionConfiguration(Coherence.Mode mode)
         {
-        f_mode = mode == null ? Coherence.Mode.ClusterMember : mode;
+        f_mode   = mode == null ? Coherence.Mode.ClusterMember : mode;
+        f_sScope = Coherence.SYSTEM_SCOPE;
         }
 
     // ----- SystemSessionConfiguration methods -----------------------------
@@ -42,7 +43,7 @@ public class SystemSessionConfiguration
     @Override
     public String getScopeName()
         {
-        return Coherence.SYSTEM_SCOPE;
+        return f_sScope;
         }
 
     @Override
@@ -74,18 +75,13 @@ public class SystemSessionConfiguration
         @Override
         public Context createSession(SessionConfiguration configuration, Context context)
             {
+            if (configuration instanceof SystemSessionConfiguration)
+                {
+                return context.createSession(configuration);
+                }
             if (Coherence.SYSTEM_SESSION.equals(configuration.getName()))
                 {
-//                if (context.getMode() == Coherence.Mode.ClusterMember)
-//                    {
-//                    // we only add this System session on a cluster member
-                    return context.createSession(new SystemSessionConfiguration(context.getMode()));
-//                    }
-//                else
-//                    {
-//                    // there is no system session on an Extend client.
-//                    return context.complete();
-//                    }
+                return context.createSession(new SystemSessionConfiguration(context.getMode()));
                 }
             // the request was not for the system session
             return context;
@@ -107,4 +103,6 @@ public class SystemSessionConfiguration
     // ----- data members ---------------------------------------------------
 
     private final Coherence.Mode f_mode;
+
+    private final String f_sScope;
     }

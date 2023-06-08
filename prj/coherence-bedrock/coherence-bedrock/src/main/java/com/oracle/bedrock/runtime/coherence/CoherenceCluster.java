@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,13 +20,14 @@ import com.oracle.bedrock.runtime.coherence.callables.IsSafe;
 import com.oracle.bedrock.runtime.coherence.callables.IsServiceStorageEnabled;
 import com.oracle.bedrock.runtime.concurrent.options.Caching;
 import com.oracle.bedrock.util.Trilean;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.UID;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Predicate;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.ensure;
@@ -89,6 +90,7 @@ public class CoherenceCluster
      *
      * @return the current number of {@link CoherenceClusterMember}s
      */
+    @SuppressWarnings("resource")
     public int getClusterSize()
         {
         Iterator<CoherenceClusterMember> members = iterator();
@@ -102,11 +104,12 @@ public class CoherenceCluster
      *
      * @return a {@link Set} of {@link UID}, one for each {@link CoherenceClusterMember}
      */
+    @SuppressWarnings("resource")
     public Set<UID> getClusterMemberUIDs()
         {
         Iterator<CoherenceClusterMember> members = iterator();
 
-        return members.hasNext() ? members.next().getClusterMemberUIDs() : new TreeSet<UID>();
+        return members.hasNext() ? members.next().getClusterMemberUIDs() : Collections.emptySet();
         }
 
 
@@ -117,6 +120,7 @@ public class CoherenceCluster
      * @param cacheName the name of the {@link NamedCache}
      * @return a proxy to the {@link NamedCache}
      */
+    @SuppressWarnings({"resource", "rawtypes"})
     public NamedCache getCache(String cacheName)
         {
         Iterator<CoherenceClusterMember> members = iterator();
@@ -136,6 +140,7 @@ public class CoherenceCluster
      * @param <V>        the type of the value class
      * @return a proxy to the {@link NamedCache}
      */
+    @SuppressWarnings("resource")
     public <K, V> NamedCache<K, V> getCache(
             String cacheName,
             Class<K> keyClass,
@@ -202,7 +207,7 @@ public class CoherenceCluster
     public interface Predicates
         {
         /**
-         * A {@link Predicate} to determine if all of the services of
+         * A {@link Predicate} to determine if all the services of
          * {@link CoherenceClusterMember}s are safe.
          *
          * @return a {@link Predicate}
@@ -326,11 +331,37 @@ public class CoherenceCluster
          */
         static Predicate<CoherenceCluster> isReady(String sHealthCheck)
             {
+            return isCoherenceRunning(Set.of(Coherence.DEFAULT_NAME));
+            }
+
+        /**
+         * A {@link Predicate} to determine if {@link CoherenceCluster}
+         *  is running.
+         *
+         * @param asName  the names of the Coherence instances to verify
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isCoherenceRunning(String... asName)
+            {
+            return isCoherenceRunning(Set.of(asName));
+            }
+
+        /**
+         * A {@link Predicate} to determine if {@link CoherenceCluster}
+         *  is running.
+         *
+         * @param setName  the names of the Coherence instances to verify
+         *
+         * @return a {@link Predicate}
+         */
+        static Predicate<CoherenceCluster> isCoherenceRunning(Set<String> setName)
+            {
             return (cluster) ->
                 {
                 for (CoherenceClusterMember member : cluster)
                     {
-                    if (!member.invoke(new IsReady(sHealthCheck)))
+                    if (!member.invoke(new IsCoherenceRunning(setName)))
                         {
                         return false;
                         }

@@ -54,15 +54,16 @@ public abstract class BaseGrpcClient<V>
      */
     public BaseGrpcClient(Dependencies dependencies)
         {
-        f_sName                     = dependencies.getName();
-        f_dispatcher                = dependencies.getEventDispatcher();
-        f_sScopeName                = dependencies.getScopeName().orElse(GrpcDependencies.DEFAULT_SCOPE);
-        f_executor                  = dependencies.getExecutor().orElseGet(BaseGrpcClient::createDefaultExecutor);
-        f_sFormat                   = dependencies.getSerializerFormat()
-                                                  .orElseGet(() -> dependencies.getSerializer()
-                                                       .map(Serializer::getName)
-                                                       .orElseGet(BaseGrpcClient::getDefaultSerializerFormat));
-        f_serializer                = dependencies.getSerializer().orElseGet(() -> createSerializer(f_sFormat));
+        f_dependencies = dependencies;
+        f_sName        = dependencies.getName();
+        f_dispatcher   = dependencies.getEventDispatcher();
+        f_sScopeName   = dependencies.getScopeName().orElse(GrpcDependencies.DEFAULT_SCOPE);
+        f_executor     = dependencies.getExecutor().orElseGet(BaseGrpcClient::createDefaultExecutor);
+        f_sFormat      = dependencies.getSerializerFormat()
+                              .orElseGet(() -> dependencies.getSerializer()
+                                   .map(Serializer::getName)
+                                   .orElseGet(BaseGrpcClient::getDefaultSerializerFormat));
+        f_serializer   = dependencies.getSerializer().orElseGet(() -> createSerializer(f_sFormat));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -289,6 +290,18 @@ public abstract class BaseGrpcClient<V>
          * @return the event dispatcher for the resource
          */
         EventDispatcher getEventDispatcher();
+
+        /**
+         * Obtain a default rpc deadline value.
+         * <p/>
+         * If set to a value less than or equal to zero, a value of 30 seconds is used.
+         *
+         * @return the default request timeout
+         */
+        default long getDeadline()
+            {
+            return GrpcDependencies.DEFAULT_DEADLINE_MILLIS;
+            }
         }
 
     // ----- DefaultDependencies ----------------------------------------
@@ -359,18 +372,17 @@ public abstract class BaseGrpcClient<V>
             return f_dispatcher;
             }
 
-        // ----- setters ----------------------------------------------------
-
-        /**
-         * Set the scope name.
-         *
-         * @param sScopeName  the scope name
-         */
-        public void setScope(String sName, String sScopeName)
+        @Override
+        public long getDeadline()
             {
-            m_sScopeName = GrpcDependencies.DEFAULT_SCOPE_ALIAS.equals(sScopeName)
-                    ? GrpcDependencies.DEFAULT_SCOPE : sScopeName;
+            if (m_cDeadlineMillis <= 0)
+                {
+                return Dependencies.super.getDeadline();
+                }
+            return m_cDeadlineMillis;
             }
+
+        // ----- setters ----------------------------------------------------
 
         /**
          * Set the scope name.
@@ -444,6 +456,16 @@ public abstract class BaseGrpcClient<V>
             m_serializerFormat = sFormat;
             }
 
+        /**
+         * Set the rpc deadline to use.
+         *
+         * @param cMillis  rpc deadline
+         */
+        public void setDeadline(long cMillis)
+            {
+            m_cDeadlineMillis = cMillis;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -467,11 +489,6 @@ public abstract class BaseGrpcClient<V>
         private String m_sScopeName;
 
         /**
-         * An optional {@link NamedCacheGrpcClient} to use
-         */
-        private NamedCacheGrpcClient m_client;
-
-        /**
          * An optional {@link Executor} to use.
          */
         private Executor m_executor;
@@ -485,6 +502,11 @@ public abstract class BaseGrpcClient<V>
          * The name of the serialization format.
          */
         private String m_serializerFormat;
+
+        /**
+         * The request timeout.
+         */
+        private long m_cDeadlineMillis;
         }
 
     // ----- data members ---------------------------------------------------
@@ -528,4 +550,9 @@ public abstract class BaseGrpcClient<V>
      * The event dispatcher for this cache.
      */
     protected final EventDispatcher f_dispatcher;
+
+    /**
+     * The service dependencies.
+     */
+    protected final Dependencies f_dependencies;
     }

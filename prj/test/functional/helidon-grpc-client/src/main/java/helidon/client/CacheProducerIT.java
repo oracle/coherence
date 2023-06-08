@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.coherence.component.util.SafeNamedCache;
 import com.tangosol.internal.net.SessionNamedCache;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.SessionProvider;
+import com.tangosol.net.grpc.GrpcDependencies;
 import io.helidon.microprofile.server.Server;
 
 import org.junit.jupiter.api.AfterAll;
@@ -49,7 +50,7 @@ public class CacheProducerIT
         System.setProperty("coherence.pof.config",       "test-pof-config.xml");
         System.setProperty("coherence.pof.enabled",      "true");
         System.setProperty("coherence.log.level",        "9");
-        System.setProperty("coherence.grpc.server.port", "1408");
+        System.setProperty(GrpcDependencies.PROP_PORT,   "1408");
 
         // The CDI server will start DCS which will in turn cause the gRPC server to start
         s_server = Server.create().start();
