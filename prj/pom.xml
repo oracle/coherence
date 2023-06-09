@@ -88,9 +88,9 @@
     <skip-sign-artifacts>true</skip-sign-artifacts>
     <skip-code-coverage>true</skip-code-coverage>
 
-    <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
+    <surefire.argLine>-Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
     <failsafe.max.heap>1g</failsafe.max.heap>
-    <failsafe.argLine>-Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
+    <failsafe.argLine>-Djava.net.preferIPv4Stack=true -Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
 
