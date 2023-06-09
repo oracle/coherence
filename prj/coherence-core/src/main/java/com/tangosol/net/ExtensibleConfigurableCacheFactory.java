@@ -283,7 +283,7 @@ public class ExtensibleConfigurableCacheFactory
                 {
                 // the common path; the cache reference is active and reusable
                 checkPermission(cache);
-                
+
                 // always assert the safety of the types according to the specified assertion
                 // (as they may change between calls to ensureCache)
                 assertion.assertTypeSafety(sCacheName, mapping, /*fLog*/ false);
@@ -300,7 +300,7 @@ public class ExtensibleConfigurableCacheFactory
                     // the underlying cache service will “restart" during the very next call
                     // to any of the NamedCache API method (see COH-15083 for details)
                     checkPermission(cache);
-                    
+
                     // always assert the safety of the types according to the specified assertion
                     // (as they may change between calls to ensureCache).
                     assertion.assertTypeSafety(sCacheName, mapping, /*fLog*/ false);
@@ -1656,7 +1656,7 @@ public class ExtensibleConfigurableCacheFactory
    /**
     * Find the cache configuration override to use if xml-override attribute
     * is present in cache configuration file.
-    * 
+    *
     * @param xmlConfig  base cache configuration
     * @param loader     the {@link ClassLoader} to use
     *
@@ -1706,7 +1706,7 @@ public class ExtensibleConfigurableCacheFactory
                                     sValue);
                             }
                         }
-                    
+
                     return XmlHelper.loadResource(url, "cache configuration override", loader);
                     }
                 }
