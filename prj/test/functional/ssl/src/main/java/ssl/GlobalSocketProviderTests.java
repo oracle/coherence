@@ -219,6 +219,7 @@ public class GlobalSocketProviderTests
 
             for (CoherenceClusterMember member : cluster)
                 {
+                Eventually.assertDeferred(() -> member.isServiceRunning("Proxy"), is(true));
                 assertThat(member.getClusterSize(), is(3));
                 assertThat(member.invoke(new IsSecureProxy()), is(true));
                 }
@@ -322,18 +323,21 @@ public class GlobalSocketProviderTests
                 {
                 proxy = (ProxyService) ((SafeProxyService) proxy).getRunningService();
                 }
-            ConnectionAcceptor acceptor = ((com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService) proxy).getAcceptor();
-            if (acceptor instanceof TcpAcceptor)
+            if (proxy != null)
                 {
-                return ((TcpAcceptor) acceptor).getSocketProvider() instanceof SSLSocketProvider;
-                }
-            if (acceptor instanceof HttpAcceptor)
-                {
-                return ((HttpAcceptor) acceptor).getSocketProvider() instanceof SSLSocketProvider;
-                }
-            if (acceptor instanceof MemcachedAcceptor)
-                {
-                return ((MemcachedAcceptor) acceptor).getSocketProvider() instanceof SSLSocketProvider;
+                ConnectionAcceptor acceptor = ((com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService) proxy).getAcceptor();
+                if (acceptor instanceof TcpAcceptor)
+                    {
+                    return ((TcpAcceptor) acceptor).getSocketProvider() instanceof SSLSocketProvider;
+                    }
+                if (acceptor instanceof HttpAcceptor)
+                    {
+                    return ((HttpAcceptor) acceptor).getSocketProvider() instanceof SSLSocketProvider;
+                    }
+                if (acceptor instanceof MemcachedAcceptor)
+                    {
+                    return ((MemcachedAcceptor) acceptor).getSocketProvider() instanceof SSLSocketProvider;
+                    }
                 }
             return false;
             }
