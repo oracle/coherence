@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 
+import com.oracle.coherence.common.internal.net.ssl.SSLCertUtility;
 import com.oracle.coherence.common.internal.net.ssl.SSLSocket;
 import com.oracle.coherence.common.internal.net.ssl.SSLSocketChannel;
 import com.oracle.coherence.common.internal.net.ssl.SSLServerSocket;
@@ -197,6 +198,11 @@ public class SSLSocketProvider
         else
             {
             throw new SSLException("Unacceptable peer: " + socket);
+            }
+
+        if (SSLCertUtility.useSelfSigned(session))
+            {
+            getDependencies().getLogger().log(Level.WARNING, "Using self-signed SSL certificate in production environment is not recommended.\nPlease use SSL certificate that is signed by an certificate authority.");
             }
         }
 
