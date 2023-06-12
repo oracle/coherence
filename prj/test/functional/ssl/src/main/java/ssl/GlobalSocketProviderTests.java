@@ -155,7 +155,9 @@ public class GlobalSocketProviderTests
             assertThat(sStatus, containsString("tmbs://"));
             assertThat(member.invoke(new IsSecureUDP()), is(true));
             // health should not be secure
-            assertThat(member.invoke(new IsSecureProxy("$SYS:HealthHttpProxy")), is(false));
+            String sServiceName = "$SYS:HealthHttpProxy";
+            Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
+            assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(false));
             }
         }
 
@@ -195,7 +197,9 @@ public class GlobalSocketProviderTests
 
             assertThat(member.invoke(new IsSecureUDP()), is(true));
             // health should not be secure
-            assertThat(member.invoke(new IsSecureProxy("$SYS:HealthHttpProxy")), is(false));
+            String sServiceName = "$SYS:HealthHttpProxy";
+            Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
+            assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(false));
             }
         }
 
@@ -280,8 +284,10 @@ public class GlobalSocketProviderTests
         try (CoherenceCluster cluster = clusterBuilder.build(platform))
             {
             Eventually.assertDeferred(cluster::isReady, is(true));
-            CoherenceClusterMember member = cluster.getAny();
-            assertThat(member.invoke(new IsSecureProxy(MetricsHttpHelper.getServiceName())), is(true));
+            CoherenceClusterMember member       = cluster.getAny();
+            String                 sServiceName = MetricsHttpHelper.getServiceName();
+            Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
+            assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(true));
             }
         }
 
@@ -327,7 +333,9 @@ public class GlobalSocketProviderTests
             assertThat(sStatus, containsString("tmbs://"));
             assertThat(member.invoke(new IsSecureUDP()), is(true));
             // health should not be secure
-            assertThat(member.invoke(new IsSecureProxy("$SYS:HealthHttpProxy")), is(false));
+            String sServiceName = "$SYS:HealthHttpProxy";
+            Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
+            assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(false));
             }
         }
 
