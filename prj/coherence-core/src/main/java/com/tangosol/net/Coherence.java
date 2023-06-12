@@ -1766,12 +1766,12 @@ public class Coherence
             {
             Coherence coherence = new Coherence(f_config, f_mode);
             Coherence prev      = s_mapInstance.putIfAbsent(f_config.getName(), coherence);
-            if (prev != null)
+            if (prev != null && f_mode != Mode.Gar)
                 {
                 if (!fAllowDuplicate)
                     {
                     throw new IllegalStateException("A Coherence instance with the name "
-                                                            + f_config.getName() + " already exists");
+                            + f_config.getName() + " already exists");
                     }
                 return prev;
                 }

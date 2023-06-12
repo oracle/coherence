@@ -285,11 +285,6 @@ public interface CoherenceConfiguration
          */
         public CoherenceConfiguration build()
             {
-            if (Coherence.getInstance(m_sName) != null)
-                {
-                throw new IllegalStateException("A Coherence instance already exists with the name " + m_sName);
-                }
-
             Map<String, SessionConfiguration> mapConfig = new HashMap<>(f_mapConfig);
 
             if (mapConfig.isEmpty())

@@ -1350,12 +1350,13 @@ public class NamedCacheServiceImpl
         {
         Optional<Context> optional         = f_dependencies.getContext();
         ContainerContext  containerContext = null;
+        Context           context;
         String            sMTName;
         String            sScopeFinal;
 
         if (optional.isPresent())
             {
-            Context context  = optional.get();
+            context = optional.get();
             String  sAppName = context.getApplicationName();
 
             containerContext = context.getContainerContext();
@@ -1374,11 +1375,17 @@ public class NamedCacheServiceImpl
             {
             sScopeFinal = sScope;
             sMTName     = null;
+            context     = null;
             }
 
         if (containerContext != null)
             {
-            Coherence coherence = Coherence.getInstance(sMTName);
+            Coherence coherence = Coherence.getInstances()
+                    .stream()
+                    .filter(c -> c.getName().equals(sMTName))
+                    .filter(c -> Objects.equals(context, c.getConfiguration().getApplicationContext().orElse(null)))
+                    .findFirst()
+                    .orElse(null);
 
             if (coherence == null)
                 {
@@ -1390,7 +1397,6 @@ public class NamedCacheServiceImpl
 
                 throw new IllegalStateException("No Coherence instance exists with name " + sMTName + " scopeFinal=" + sScopeFinal + " [" + sNames + "]" );
                 }
-
 
             String sScopes = coherence.getSessionScopeNames().stream()
                     .map(s -> Coherence.DEFAULT_NAME.equals(s) ? "<default>" : s)
@@ -1436,12 +1442,13 @@ public class NamedCacheServiceImpl
                     .asRuntimeException();
             }
 
-        ConfigurableCacheFactory ccf = getCCF(sScope);
-        ContainerContext         ctx = f_dependencies.getContext().map(Context::getContainerContext).orElse(null);
+        Context                  context          = f_dependencies.getContext().orElse(null);
+        ContainerContext         containerContext = context == null ? null : context.getContainerContext();
+        ConfigurableCacheFactory ccf              = getCCF(sScope);
 
-        if (ctx != null)
+        if (containerContext != null)
             {
-            return ctx.runInDomainPartitionContext(createCallable(ccf, sCacheName, fPassThru));
+            return containerContext.runInDomainPartitionContext(createCallable(ccf, sCacheName, fPassThru));
             }
         else
             {
