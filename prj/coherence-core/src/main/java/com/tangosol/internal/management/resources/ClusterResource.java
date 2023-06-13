@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -70,6 +70,7 @@ public class ClusterResource
         router.addRoutes(sPathRoot + "/" + MEMBERS, new ClusterMembersResource());
         router.addRoutes(sPathRoot + "/" + REPORTERS, new ReportersResource());
         router.addRoutes(sPathRoot + "/" + SERVICES, new ServicesResource());
+        router.addRoutes(sPathRoot + "/" + STORAGE, new StorageManagersResource());
         router.addRoutes(sPathRoot + "/" + TOPICS, new TopicsResource());
         }
 
@@ -515,5 +516,5 @@ public class ClusterResource
      */
     public static final String TRACING_RATIO = "tracingRatio";
 
-    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, HOTCACHE, REPORTERS, WEB_APPS, EXECUTORS, TOPICS};
+    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, HOTCACHE, REPORTERS, WEB_APPS, EXECUTORS, TOPICS, STORAGE};
     }

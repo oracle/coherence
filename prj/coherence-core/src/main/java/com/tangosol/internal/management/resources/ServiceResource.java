@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,6 +56,7 @@ public class ServiceResource
         router.addRoutes(sPathRoot + "/" + CACHES, new CachesResource());
         router.addRoutes(sPathRoot + "/" + PERSISTENCE, new PersistenceResource());
         router.addRoutes(sPathRoot + "/" + TOPICS, new TopicsResource());
+        router.addRoutes(sPathRoot + "/" + STORAGE, new StorageManagersResource());
         }
 
     // ----- GET API --------------------------------------------------------
@@ -326,5 +327,5 @@ public class ServiceResource
 
     public static final String SCHEDULED_DISTRIBUTIONS = "scheduledDistributions";
 
-    public static String[] CHILD_LINKS = {CACHES, MEMBERS, PARTITION, FEDERATION, TOPICS};
+    public static String[] CHILD_LINKS = {CACHES, MEMBERS, PARTITION, FEDERATION, TOPICS, STORAGE};
     }

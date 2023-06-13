@@ -10,6 +10,9 @@
 
 package com.tangosol.coherence.component.net.management.model.localModel;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+
+import com.tangosol.net.NamedCache;
 import com.tangosol.net.events.internal.StorageDispatcher;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
@@ -718,7 +721,37 @@ public class StorageManagerModel
             storage.resetStats();
             }
         }
-    
+
+    public void clearCache()
+        {
+        checkReadOnly("clearCache");
+        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(get_Storage().getCacheName(), null);
+                cache.clear();
+                }
+            }
+        }
+
+    public void truncateCache()
+        {
+        checkReadOnly("truncateCache");
+        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(get_Storage().getCacheName(), null);
+                cache.truncate();
+                }
+            }
+        }
+
     // Accessor for the property "_Storage"
     /**
      * Setter for property _Storage.<p>

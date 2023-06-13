@@ -143,6 +143,7 @@ import java.util.zip.GZIPInputStream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.CLEAR;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBERS;
@@ -155,6 +156,8 @@ import static com.tangosol.internal.management.resources.AbstractManagementResou
 import static com.tangosol.internal.management.resources.AbstractManagementResource.RESET_STATS;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.ROLE_NAME;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.SERVICE;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.STORAGE;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.TRUNCATE;
 import static com.tangosol.internal.management.resources.ClusterMemberResource.DIAGNOSTIC_CMD;
 import static com.tangosol.internal.management.resources.ClusterResource.DUMP_CLUSTER_HEAP;
 import static com.tangosol.internal.management.resources.ClusterResource.ROLE;
@@ -3524,6 +3527,116 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         }
 
+    @Test
+    public void testClearCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(0));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyClearCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null);
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
+        }
+
+    @Test
+    public void testTruncateCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(0));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyTruncateCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null);
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
+        }
+
     // ----- utility methods----------------------------------------------------
 
     /**
@@ -3824,7 +3937,7 @@ public abstract class BaseManagementInfoResourceTests
             String sCacheName = (String) mapCache.get(NAME);
             assertThat(mapCache.get(NAME), is(oneOf(CACHES_LIST)));
 
-            if (!sCacheName.equals(PERSISTENCE_CACHE_NAME))
+            if (!sCacheName.equals(PERSISTENCE_CACHE_NAME) && !sCacheName.equals(CLEAR_CACHE_NAME))
                 {
                 Object size = mapCache.get("size");
                 assertThat(sCacheName, size, is(instanceOf(Number.class)));
@@ -3869,7 +3982,7 @@ public abstract class BaseManagementInfoResourceTests
                 }
             else
                 {
-                if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME))
+                if (!mapCache.get(NAME).equals(PERSISTENCE_CACHE_NAME) && !mapCache.get(NAME).equals(CLEAR_CACHE_NAME))
                     {
                     assertThat("Cache " + NAME + "assertion", ((Number) mapCache.get("units")).longValue(), is(1L));
                     }
@@ -4442,6 +4555,10 @@ public abstract class BaseManagementInfoResourceTests
         cache = CacheFactory.getCache(PERSISTENCE_CACHE_NAME);
         cache.put(1, binValue);
 
+        // fill clear/truncate cache
+        cache = CacheFactory.getCache(CLEAR_CACHE_NAME);
+        cache.put(1, binValue);
+
         return null;
         }
 
@@ -4692,6 +4809,11 @@ public abstract class BaseManagementInfoResourceTests
     protected static final String NEAR_CACHE_NAME = "near-test";
 
     /**
+     * The clear/truncate cache.
+     */
+    protected static final String CLEAR_CACHE_NAME = "dist-clear";
+
+    /**
      * The name of the invocation service.
      */
     protected static final String INVOCATION_SERVICE_NAME = "TestInvocationService";
@@ -4715,7 +4837,7 @@ public abstract class BaseManagementInfoResourceTests
     /**
      * The list of caches used by this test class.
      */
-    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME};
+    private static final String[] CACHES_LIST = {CACHE_NAME, "near-test", CACHE_NAME_FOO, PERSISTENCE_CACHE_NAME, CLEAR_CACHE_NAME};
 
     /**
      * The list of topics caches used by this test class.

@@ -88,6 +88,11 @@
       "name": "Topic (Short Form)",
       "description": "The Topic (Short Form) resource provides a set of endpoints for managing Coherence topics and does not require the service name to which the topic belongs. Use this resource to access operational information and performance statistics. Topic data is aggregated across all cluster members or it can be viewed for each cluster member. Applications should initially use this resource to discover topics and their associated topic names. Topic names are required to access management data.",
       "x-priority":16
+    },
+    {
+      "name": "Storage",
+      "description": "The Storage resource provides a set of endpoints for managing Coherence Storage Managers.",
+      "x-priority":17
     }
   ],
   "paths": {
@@ -4500,6 +4505,118 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/storage": {
+      "get": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "View Storage Managers",
+        "description": "Use this endpoint to view list of storage managers in the cluster. A Storage instance manages all index, listener, and lock information for the portion of the DistributedCache managed by the local member.",
+        "operationId": "/management/coherence/cluster/storage GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the storage managers in a Coherence cluster",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/storage"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/resetStatistics": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Reset Storage Manager Statistics",
+        "description": "Use this endpoint to clear the current statistics for a specific storage manager.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/truncate": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Truncate Cache",
+        "description": "Use this endpoint to truncate a specific cache.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/truncate POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/clear": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Clear Cache",
+        "description": "Use this endpoint to clear a specific cache.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/clear POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/webApplications": {
       "get": {
         "tags": [
@@ -5403,6 +5520,104 @@
           },
           {
             "$ref": "#/parameters/subscriberGroupName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/storage": {
+      "get": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "View Storage Managers",
+        "description": "Use this endpoint to view list of storage managers in the cluster. A Storage instance manages all index, listener, and lock information for the portion of the DistributedCache managed by the local member.",
+        "operationId": "/management/coherence/cluster/storage GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the storage managers in a Coherence cluster",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/storage"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/storage/{cacheName}/resetStatistics": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Reset Storage Manager Statistics",
+        "description": "Use this endpoint to clear the current statistics for a specific storage manager.",
+        "operationId": "/management/coherence/cluster/storage/{cacheName}/resetStatistics POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/storage/{cacheName}/truncate": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Truncate Cache",
+        "description": "Use this endpoint to truncate a specific cache.",
+        "operationId": "/management/coherence/cluster/storage/{cacheName}/truncate POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/storage/{cacheName}/clear": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Clear Cache",
+        "description": "Use this endpoint to clear a specific cache.",
+        "operationId": "/management/coherence/cluster/storage/{cacheName}/clear POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/cacheName"
           }
         ],
         "responses": {
@@ -9600,6 +9815,148 @@
         "name": {
           "type": "string",
           "description": "Name of the executor.",
+          "readOnly": true
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "description": "Details of the particular storage manager.",
+      "properties": {
+        "cache": {
+          "type": "string",
+          "description": "Name of the cache."
+        },
+        "service": {
+          "type": "string",
+          "description": "Name of the service."
+        },
+        "nodeId": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "description": "Storage manager members."
+        },
+        "insertCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of inserts into the backing map managed by this StorageManager. In addition to standard inserts caused by put and invoke operations or synthetic inserts caused by get operations with read-through backing map topology, this counter is incremented when distribution transfers move resources `into` the underlying backing map and is decremented when  distribution transfers move data `out`.  The insert count is used to audit the cache size in a static system.  Cache Size =  Insert Count - Remove Count - Eviction count.  Therefore the insert count is not reset by the reset statistics method.",
+          "readOnly": true
+        },
+        "evictionCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of evictions from the backing map managed by this StorageManager caused by entries expiry or insert operations that would make the underlying backing map to reach its configured size limit.  The eviction count is used to audit the cache size in a static system.  Cache Size =  Insert Count - Remove Count - Eviction count.  Therefore the eviction count is not reset by the reset statistics method.",
+          "readOnly": true
+        },
+        "indexingTotalMillis" : {
+          "type": "integet",
+          "format": "int64",
+          "description": "The cumulative duration in milliseconds of index builds since statistics were last reset.",
+          "readOnly": true
+        },
+        "listenerKeyCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The number of key-based listeners currently registered with the StorageManager.",
+          "readOnly": true
+        },
+        "nonOptimizedQueryTotalMillis": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total execution time in milliseconds for queries that could not be resolved or were partially resolved against indexes since statistics were last reset.",
+          "readOnly": true
+        },
+        "listenerRegistrations": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of listener registration requests processed by the StorageManager since the last time the statistics were reset.",
+          "readOnly": true
+        },
+        "listenerFilterCount": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The number of filter-based listeners currently registered with the StorageManager.",
+          "readOnly": true
+        },
+        "nonOptimizedQueryCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of queries that could not be resolved or were partially resolved against indexes since statistics were last reset.",
+          "readOnly": true
+        },
+        "locksGranted": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The number of locks currently granted for the portion of the partitioned cache managed by the StorageManager.",
+          "readOnly": true
+        },
+        "indexTotalUnits": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total units used by all indices on the associated cache.",
+          "readOnly": true
+        },
+        "optimizedQueryAverageMillis": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The average duration in milliseconds per optimized query execution since the statistics were last reset.",
+          "readOnly": true
+        },
+        "optimizedQueryTotalMillis": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total execution time in milliseconds for queries that were fully resolved using indexes since statistics were last reset.",
+          "readOnly": true
+        },
+        "removeCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of removes from the backing map managed by this StorageManager caused by operations such as clear, remove or invoke.  The remove count is used to audit the cache size in a static system.  Cache Size =  Insert Count - Remove Count - Eviction count.  Therefore the remove count is not reset by the reset statistics method.",
+          "readOnly": true
+        },
+        "locksPending": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The number of pending lock requests for the portion of the partitioned cache managed by the StorageManager.",
+          "readOnly": true
+        },
+        "queryContentionCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Total number of times a query had to be re-evaluated due to a concurrent update since statistics were last reset. This statistics provides a measure of an impact of concurrent updates on the query perfomance. If the total number of queries is Q and the number of contentions is C then the expected performance degradation factor should be no more than (Q + C)/Q.",
+          "readOnly": true
+        },
+        "eventsDispatched": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of events dispatched by the StorageManager since the last time the statistics were reset.",
+          "readOnly": true
+        },
+        "optimizedQueryCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of queries that were fully resolved using indexes since statistics were last reset.",
+          "readOnly": true
+        },
+        "maxQueryDurationMillis": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The duration in milliseconds of the longest query execution since statistics were last reset.",
+          "readOnly": true
+        },
+        "maxQueryThresholdMillis": {
+          "type": "integer",
+          "format": "int64",
+          "description": "A query execution threshold in milliseconds The longest query executing longer than this threshold will be reported by the MaxQueryDescription attribute.",
+          "readOnly": false
+        },
+        "nonOptimizedQueryAverageMillis": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The average duration in milliseconds per non-optimized query execution since the statistics were last reset.",
           "readOnly": true
         }
       }
