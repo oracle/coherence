@@ -107,7 +107,7 @@ public final class PluginUtils
             logger.warn("Main Resources output directory: {}.", fileResourcesDir.getAbsolutePath());
             }
 
-        return fileResourcesDir;
+        return new File(fileResourcesDir, "META-INF/schema.xml");
         }
 
     /**
@@ -163,6 +163,6 @@ public final class PluginUtils
             logger.warn("Test Resources output directory: {}.", fileResourcesDir.getAbsolutePath());
             }
 
-        return fileResourcesDir;
+        return new File(fileResourcesDir, "META-INF/schema.xml");
         }
     }

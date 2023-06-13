@@ -11,6 +11,8 @@ plugins {
 }
 repositories {
     maven { url '%s' }
+    mavenLocal()
+    mavenCentral()
 }
 dependencies {
     implementation '%s:coherence:%s'

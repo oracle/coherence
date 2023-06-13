@@ -71,6 +71,38 @@ public class TestUtils
             }
         }
 
+
+    public static void setupGradlePropertiesFile(File gradleProjectRootDirectory)
+        {
+
+        String sProxyHost = System.getProperty("https.proxyHost");
+        String sProxyPort = System.getProperty("https.proxyPort");
+
+        if (sProxyHost == null)
+            {
+            return;
+            }
+
+        String sGradlePropertiesFileName = "gradle";
+        File   fileBuild                = new File(gradleProjectRootDirectory, "gradle.properties");
+        String sPreparedBuildScript     = readToStringWithVariables(sGradlePropertiesFileName, ".properties",
+                sProxyHost,
+                sProxyHost,
+                sProxyPort,
+                sProxyPort
+                );
+        LOGGER.info(sPreparedBuildScript);
+        appendToFile(fileBuild, sPreparedBuildScript);
+        }
+    public static void setupGradleSettingsFile(File gradleProjectRootDirectory, String settingsFilename, Object... templateVariables)
+        {
+        File   fileBuild                    = new File(gradleProjectRootDirectory, "settings.gradle");
+        String sPreparedGradleSettingsFile  = readToString(settingsFilename, templateVariables);
+        LOGGER.info(sPreparedGradleSettingsFile);
+
+        appendToFile(fileBuild, sPreparedGradleSettingsFile);
+        }
+
     public static void setupGradleBuildFile(File gradleProjectRootDirectory, String gradleFilename, Object... templateVariables)
         {
         File   fileBuild            = new File(gradleProjectRootDirectory, "build.gradle");
@@ -86,11 +118,22 @@ public class TestUtils
         return String.format(sTemplate, templateVariables);
         }
 
+    public static String readToStringWithVariables(String buildFileName, String suffix, Object... templateVariables)
+        {
+        String sTemplate = readToString(buildFileName, suffix);
+        return String.format(sTemplate, templateVariables);
+        }
+
     public static String readToString(String buildFileName)
+        {
+            return readToString(buildFileName, ".gradle");
+        }
+
+    public static String readToString(String buildFileName, String suffix)
         {
         try
             {
-            String sResource = "/build-files/" + buildFileName + ".gradle";
+            String sResource = "/build-files/" + buildFileName + suffix;
             URL    url       = TestUtils.class.getResource(sResource);
             Objects.requireNonNull(url, "InputStream cannot be null for resource " + sResource);
 

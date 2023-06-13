@@ -41,6 +41,17 @@ gradlePlugin {
 test {
     useJUnitPlatform()
 
+    String proxyHost = System.getProperty("https.proxyHost")
+    if (proxyHost != null) {
+        project.logger.lifecycle("Populating proxy properties for tests: " + proxyHost)
+        systemProperty "http.proxyHost", System.getProperty("http.proxyHost")
+        systemProperty "http.proxyPort", System.getProperty("http.proxyPort")
+        systemProperty "https.proxyHost", System.getProperty("https.proxyHost")
+        systemProperty "https.proxyPort", System.getProperty("https.proxyPort")
+        systemProperty "http.nonProxyHosts", System.getProperty("http.nonProxyHosts")
+        systemProperty "https.nonProxyHosts", System.getProperty("https.nonProxyHosts")
+    }
+
     testLogging {
         showStandardStreams = true
     }
@@ -59,7 +70,8 @@ tasks.register('sourcesJar', Jar) {
 }
 
 tasks.register('processVersionFile', WriteProperties) {
-    it.outputFile("$buildDir/resources/main/coherence-gradle-plugin.properties")
+    it.setDestinationFile(
+            project.layout.buildDirectory.file("resources/main/coherence-gradle-plugin.properties"))
     property 'coherence-version', project.version
     property 'coherence-group-id', project.group
     property 'local-dependency-repo', project.projectDir.absolutePath + "/target/dependencies"
