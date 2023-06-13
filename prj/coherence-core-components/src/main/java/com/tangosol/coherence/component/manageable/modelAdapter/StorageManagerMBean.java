@@ -447,7 +447,31 @@ public class StorageManagerMBean
                 null,
                 });
             }
-        
+        // behavior clearCache()
+            {
+            mapInfo.put("clearCache()", new Object[]
+                {
+                "Removes all items from this cache. Clearing cache can be both a memory and CPU intensive task.",
+                "clearCache",
+                "V",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+        // behavior truncateCache()
+            {
+            mapInfo.put("truncateCache()", new Object[]
+                {
+                "Removes all items from this cache. The removal of entries caused by this truncate operation will not be observable.",
+                "truncateCache",
+                "V",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+
         return mapInfo;
         }
     
@@ -782,6 +806,28 @@ public class StorageManagerMBean
         {
         }
     
+    /**
+     * Clears cache.
+     *
+     * Invoking the clear() operation against a distributed cache can be both
+     * a memory and CPU intensive task and therefore is generally not recommended.
+     */
+    public void clearCache()
+        {
+        }
+
+    /**
+     * Truncates cache.
+     *
+     * The removal of entries caused by this truncate operation will not be
+     * observable. This includes any registered listeners, triggers, or
+     * interceptors. However, a CacheLifecycleEvent is raised to notify
+     * subscribers of the execution of this operation.
+     */
+    public void truncateCache()
+        {
+        }
+
     // Accessor for the property "MaxQueryThresholdMillis"
     /**
      * Setter for property MaxQueryThresholdMillis.<p>
