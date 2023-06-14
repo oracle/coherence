@@ -274,8 +274,7 @@ public class PartitionedIndexMap<K, V>
                    + ": Extractor=" + getValueExtractor()
                    + ", Ordered=" + isOrdered()
                    + ", Footprint=" + Base.toMemorySizeString(getUnits(), false)
-                   + ", Content="
-                   + (fVerbose ? getIndexContents().keySet() : getIndexContents().size());
+                   + (fVerbose ? ", Content[" + getIndexContents().size() + "]=" + getIndexContents().keySet() : "");
             }
 
         // ---- inner class: IndexContents ----------------------------------
