@@ -280,8 +280,7 @@
             <backing-map-scheme>
                 <class-scheme>
                 	<!-- a non-observable backing map -->
-                    <class-name>com.tangosol.util.SafeHashMap
-</class-name>
+                    <class-name>com.tangosol.util.SafeHashMap</class-name>
                 </class-scheme>
             </backing-map-scheme>
             <autostart>true
