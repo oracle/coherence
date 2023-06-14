@@ -17,11 +17,11 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
-import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.RegistrationBehavior;
 
 import java.util.ArrayList;
@@ -173,6 +173,12 @@ public class DefaultSessionProvider
         ConfigurableCacheFactorySession session = new ConfigurableCacheFactorySession(factory, loader, name);
         session.activate();
         return context.complete(session);
+        }
+
+    @Override
+    public void releaseSession(Session session)
+        {
+        f_cacheFactoryBuilder.get().releaseSession(session);
         }
 
     // ----- inner class: RootProvider -----------------------------------
