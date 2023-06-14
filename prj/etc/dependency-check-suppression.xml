@@ -442,4 +442,20 @@
      <packageUrl regex="true">^pkg:maven/org\.glassfish\.hk2/hk2\-utils@.*$</packageUrl>
      <cpe>cpe:/a:utils_project:utils</cpe>
   </suppress>
+  
+  <!-- temporary suppression until Helidon dependencies are addressed -->
+  <suppress>
+    <notes><![CDATA[
+    file name: graphql-java-17.5.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
+    <cve>CVE-2023-2976</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: guava-31.1-jre.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cve>CVE-2023-2976</cve>
+  </suppress>
 </suppressions>
