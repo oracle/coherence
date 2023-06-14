@@ -157,16 +157,7 @@ public class DefaultApplication
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/application/DefaultApplication".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return DefaultApplication.class;
         }
     
     //++ getter for autogen property _Module

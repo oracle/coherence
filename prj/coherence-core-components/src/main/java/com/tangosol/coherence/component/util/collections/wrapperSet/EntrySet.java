@@ -38,8 +38,8 @@ public class EntrySet
         {
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
-        __mapChildren.put("Entry", EntrySet.Entry.get_CLASS());
-        __mapChildren.put("Iterator", EntrySet.Iterator.get_CLASS());
+        __mapChildren.put("Entry", EntrySet.Entry.class);
+        __mapChildren.put("Iterator", EntrySet.Iterator.class);
         }
     
     // Default constructor
@@ -97,16 +97,7 @@ public class EntrySet
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/wrapperSet/EntrySet".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return EntrySet.class;
         }
     
     //++ getter for autogen property _Module
@@ -304,16 +295,7 @@ public class EntrySet
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/wrapperSet/EntrySet$Entry".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return EntrySet.Entry.class;
             }
         
         //++ getter for autogen property _Module
@@ -397,16 +379,7 @@ public class EntrySet
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/wrapperSet/EntrySet$Iterator".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return EntrySet.Iterator.class;
             }
         
         //++ getter for autogen property _Module

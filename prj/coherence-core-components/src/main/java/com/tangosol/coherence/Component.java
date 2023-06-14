@@ -289,16 +289,7 @@ public abstract class Component
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/Component".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return Component.class;
         }
     
     //++ getter for autogen property _Module
@@ -1062,7 +1053,7 @@ public abstract class Component
         {
         // import com.tangosol.util.WrapperException;
         
-        String        sThisClz = get_CLASS().getName();
+        String        sThisClz = Component.class.getName();
         String        sPackage = sThisClz.substring(0, sThisClz.indexOf("Component"));
         StringBuilder sbName   = new StringBuilder(sPackage.length() + name.length());
         int           ofStart  = 0;

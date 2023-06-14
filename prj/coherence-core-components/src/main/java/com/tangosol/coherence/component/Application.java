@@ -347,16 +347,7 @@ public abstract class Application
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/Application".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return Application.class;
         }
     
     //++ getter for autogen property _Module
@@ -855,7 +846,7 @@ public abstract class Application
         Config config = new Config();
         
         // load initial configuration from preset location
-        Class       clz = Application.get_CLASS();
+        Class       clz = Application.class;
         String      s   = Config.resolvePath(FILE_CFG_INITIAL);
         InputStream in  = clz.getResourceAsStream(s);
         if (in == null)

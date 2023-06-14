@@ -41,9 +41,9 @@ public class WrapperMap
         {
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
-        __mapChildren.put("EntrySet", WrapperMap.EntrySet.get_CLASS());
-        __mapChildren.put("KeySet", WrapperMap.KeySet.get_CLASS());
-        __mapChildren.put("Values", WrapperMap.Values.get_CLASS());
+        __mapChildren.put("EntrySet", WrapperMap.EntrySet.class);
+        __mapChildren.put("KeySet", WrapperMap.KeySet.class);
+        __mapChildren.put("Values", WrapperMap.Values.class);
         }
     
     // Default constructor
@@ -101,16 +101,7 @@ public class WrapperMap
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return WrapperMap.class;
         }
     
     //++ getter for autogen property _Module
@@ -284,8 +275,8 @@ public class WrapperMap
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Entry", WrapperMap.EntrySet.Entry.get_CLASS());
-            __mapChildren.put("Iterator", WrapperMap.EntrySet.Iterator.get_CLASS());
+            __mapChildren.put("Entry", WrapperMap.EntrySet.Entry.class);
+            __mapChildren.put("Iterator", WrapperMap.EntrySet.Iterator.class);
             }
         
         // Default constructor
@@ -343,16 +334,7 @@ public class WrapperMap
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$EntrySet".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return WrapperMap.EntrySet.class;
             }
         
         //++ getter for autogen property _Module
@@ -442,16 +424,7 @@ public class WrapperMap
              */
             public static Class get_CLASS()
                 {
-                Class clz;
-                try
-                    {
-                    clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$EntrySet$Entry".replace('/', '.'));
-                    }
-                catch (ClassNotFoundException e)
-                    {
-                    throw new NoClassDefFoundError(e.getMessage());
-                    }
-                return clz;
+                return WrapperMap.EntrySet.Entry.class;
                 }
             
             //++ getter for autogen property _Module
@@ -529,16 +502,7 @@ public class WrapperMap
              */
             public static Class get_CLASS()
                 {
-                Class clz;
-                try
-                    {
-                    clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$EntrySet$Iterator".replace('/', '.'));
-                    }
-                catch (ClassNotFoundException e)
-                    {
-                    throw new NoClassDefFoundError(e.getMessage());
-                    }
-                return clz;
+                return WrapperMap.EntrySet.Iterator.class;
                 }
             
             //++ getter for autogen property _Module
@@ -576,7 +540,7 @@ public class WrapperMap
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Iterator", WrapperMap.KeySet.Iterator.get_CLASS());
+            __mapChildren.put("Iterator", WrapperMap.KeySet.Iterator.class);
             }
         
         // Default constructor
@@ -634,16 +598,7 @@ public class WrapperMap
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$KeySet".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return WrapperMap.KeySet.class;
             }
         
         //++ getter for autogen property _Module
@@ -733,16 +688,7 @@ public class WrapperMap
              */
             public static Class get_CLASS()
                 {
-                Class clz;
-                try
-                    {
-                    clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$KeySet$Iterator".replace('/', '.'));
-                    }
-                catch (ClassNotFoundException e)
-                    {
-                    throw new NoClassDefFoundError(e.getMessage());
-                    }
-                return clz;
+                return WrapperMap.KeySet.Iterator.class;
                 }
             
             //++ getter for autogen property _Module
@@ -780,7 +726,7 @@ public class WrapperMap
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Iterator", WrapperMap.Values.Iterator.get_CLASS());
+            __mapChildren.put("Iterator", WrapperMap.Values.Iterator.class);
             }
         
         // Default constructor
@@ -838,16 +784,7 @@ public class WrapperMap
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$Values".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return WrapperMap.Values.class;
             }
         
         //++ getter for autogen property _Module
@@ -937,16 +874,7 @@ public class WrapperMap
              */
             public static Class get_CLASS()
                 {
-                Class clz;
-                try
-                    {
-                    clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperMap$Values$Iterator".replace('/', '.'));
-                    }
-                catch (ClassNotFoundException e)
-                    {
-                    throw new NoClassDefFoundError(e.getMessage());
-                    }
-                return clz;
+                return WrapperMap.Values.Iterator.class;
                 }
             
             //++ getter for autogen property _Module
