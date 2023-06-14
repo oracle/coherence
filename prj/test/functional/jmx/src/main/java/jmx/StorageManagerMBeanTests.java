@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
@@ -170,7 +171,7 @@ public class StorageManagerMBeanTests
         ObjectName name = getQueryName(cache);
         server.invoke(name, "clearCache", null, null);
         Eventually.assertThat(cache.size(), is(0));
-        assertEquals(100, atomicDelete.get());
+        Eventually.assertThat(atomicDelete.get(), is(100));
         }
 
     /**
@@ -214,7 +215,7 @@ public class StorageManagerMBeanTests
         ObjectName name = getQueryName(cache);
         server.invoke(name, "truncateCache", null, null);
         Eventually.assertThat(cache.size(), is(0));
-        assertEquals(0, atomicDelete.get());
+        Eventually.assertThat(atomicDelete.get(), is(0), Eventually.delayedBy(2, TimeUnit.SECONDS));
         }
 
     // ----- helpers --------------------------------------------------------
