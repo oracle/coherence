@@ -47,7 +47,7 @@ public class WrapperSet
         {
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
-        __mapChildren.put("Iterator", WrapperSet.Iterator.get_CLASS());
+        __mapChildren.put("Iterator", WrapperSet.Iterator.class);
         }
     
     // Default constructor
@@ -105,16 +105,7 @@ public class WrapperSet
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperSet".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return WrapperSet.class;
         }
     
     //++ getter for autogen property _Module
@@ -359,16 +350,7 @@ public class WrapperSet
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperSet$Iterator".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return WrapperSet.Iterator.class;
             }
         
         //++ getter for autogen property _Module

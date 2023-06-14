@@ -40,7 +40,7 @@ public class WrapperList
         {
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
-        __mapChildren.put("Iterator", WrapperList.Iterator.get_CLASS());
+        __mapChildren.put("Iterator", WrapperList.Iterator.class);
         }
     
     // Default constructor
@@ -98,16 +98,7 @@ public class WrapperList
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperList".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return WrapperList.class;
         }
     
     //++ getter for autogen property _Module
@@ -397,16 +388,7 @@ public class WrapperList
          */
         public static Class get_CLASS()
             {
-            Class clz;
-            try
-                {
-                clz = Class.forName("com.tangosol.coherence/component/util/collections/WrapperList$Iterator".replace('/', '.'));
-                }
-            catch (ClassNotFoundException e)
-                {
-                throw new NoClassDefFoundError(e.getMessage());
-                }
-            return clz;
+            return WrapperList.Iterator.class;
             }
         
         //++ getter for autogen property _Module

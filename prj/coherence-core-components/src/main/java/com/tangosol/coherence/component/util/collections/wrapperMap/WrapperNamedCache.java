@@ -36,9 +36,9 @@ public class WrapperNamedCache
         {
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
-        __mapChildren.put("EntrySet", com.tangosol.coherence.component.util.collections.WrapperMap.EntrySet.get_CLASS());
-        __mapChildren.put("KeySet", com.tangosol.coherence.component.util.collections.WrapperMap.KeySet.get_CLASS());
-        __mapChildren.put("Values", com.tangosol.coherence.component.util.collections.WrapperMap.Values.get_CLASS());
+        __mapChildren.put("EntrySet", com.tangosol.coherence.component.util.collections.WrapperMap.EntrySet.class);
+        __mapChildren.put("KeySet", com.tangosol.coherence.component.util.collections.WrapperMap.KeySet.class);
+        __mapChildren.put("Values", com.tangosol.coherence.component.util.collections.WrapperMap.Values.class);
         }
     
     // Default constructor
@@ -96,16 +96,7 @@ public class WrapperNamedCache
      */
     public static Class get_CLASS()
         {
-        Class clz;
-        try
-            {
-            clz = Class.forName("com.tangosol.coherence/component/util/collections/wrapperMap/WrapperNamedCache".replace('/', '.'));
-            }
-        catch (ClassNotFoundException e)
-            {
-            throw new NoClassDefFoundError(e.getMessage());
-            }
-        return clz;
+        return WrapperNamedCache.class;
         }
     
     //++ getter for autogen property _Module
