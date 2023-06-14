@@ -218,7 +218,7 @@
     <helidon.version>3.1.2</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
-    <groovy.version>3.0.12</groovy.version>
+    <groovy.version>3.0.17</groovy.version>
     <jackson.version>2.14.1</jackson.version>
     <jackson.databind.version>2.14.1</jackson.databind.version>
     <jacoco.version>0.8.8</jacoco.version>
@@ -762,7 +762,7 @@
           </exclusion>
         </exclusions>
       </dependency>
-      
+
       <dependency>
         <groupId>org.jboss.weld.se</groupId>
         <artifactId>weld-se-core</artifactId>
