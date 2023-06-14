@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package persistence;
 
@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.Notification;
@@ -52,6 +54,7 @@ import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 
 import static org.hamcrest.CoreMatchers.is;
 
@@ -246,19 +249,22 @@ public abstract class AbstractRollingPersistenceTests
             DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
 
             Eventually.assertThat(
-                invoking(service).getOwnershipEnabledMembers().size(),
-                is(cServers));
-
-            waitForBalanced(service);
-
-            // the following sleep should be removed once COH-19735 is done
-            sleep(4000); // when COH-14809 is done, replace with an event check
+                    invoking(service).getOwnershipEnabledMembers().size(),
+                    is(cServers));
 
             HashMap map = new HashMap();
             for (int i = 0; i < 5000; i++)
                 {
                 map.put(i, Base.getRandomBinary(100, 1024));
                 }
+
+            // partition stabilization could take over a minute which should not be
+            // a failure condition; wait after sleep
+            waitForBalanced(service, 90);
+
+            // the following sleep should be removed once COH-19735 is done
+            sleep(4000); // when COH-14809 is done, replace with an event check
+
             cache.putAll(map);
 
             // stop all servers at once (kinda)
