@@ -21,8 +21,6 @@ import org.gradle.api.Project;
 
 import org.gradle.api.artifacts.Configuration;
 
-import org.gradle.api.file.Directory;
-
 import org.gradle.api.logging.Logger;
 
 import org.gradle.api.provider.Property;
@@ -36,8 +34,6 @@ import javax.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
-
-import java.nio.file.Paths;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,27 +60,6 @@ abstract class CoherenceTask
     @Inject
     public CoherenceTask(Project project)
         {
-        getLogger().info("Setting up Task property conventions.");
-        getDebug().convention(false);
-        getInstrumentTestClasses().convention(false);
-
-        Directory mainJavaOutputDir = PluginUtils.getMainJavaOutputDir(project);
-        getMainClassesDirectory().convention(mainJavaOutputDir.getAsFile());
-
-        Directory testJavaOutputDir = PluginUtils.getTestJavaOutputDir(project);
-        getTestClassesDirectory().convention(testJavaOutputDir.getAsFile());
-
-        File fileMainResourcesOutputDir = PluginUtils.getMainResourcesOutputDir(project);
-        if (fileMainResourcesOutputDir != null)
-            {
-            getMainResourcesDirectory().convention(fileMainResourcesOutputDir);
-            }
-
-        File testResourcesOutputDir = PluginUtils.getTestResourcesOutputDir(project);
-        if (testResourcesOutputDir != null)
-            {
-            getTestResourcesDirectory().convention(testResourcesOutputDir);
-            }
         }
 
     //----- CoherenceTask methods -------------------------------------------
@@ -120,7 +95,7 @@ abstract class CoherenceTask
      **/
     @InputFiles
     @Optional
-    public abstract Property<File> getTestResourcesDirectory();
+    public abstract Property<File> getTestSchemaSourceXmlFile();
 
     /**
      * Sets the project's main classes directory. This is an optional property.
@@ -130,11 +105,11 @@ abstract class CoherenceTask
     public abstract Property<File> getMainClassesDirectory();
 
     /**
-     * Sets the project's main resources directory. This is an optional property.
+     * Sets the project's schemaSourceXmlFile property. This is an optional property.
      **/
     @InputFiles
     @Optional
-    public abstract Property<File> getMainResourcesDirectory();
+    public abstract Property<File> getSchemaSourceXmlFile();
 
     /**
      * The Gradle action to run when the task is executed.
@@ -161,8 +136,8 @@ abstract class CoherenceTask
         SchemaBuilder         schemaBuilder          = new SchemaBuilder();
         List<File>            listClassesDirectories = new ArrayList<>();
 
-        addSchemaSourceIfExists(schemaBuilder, getTestResourcesDirectory());
-        addSchemaSourceIfExists(schemaBuilder, getMainResourcesDirectory());
+        addSchemaSourceIfExists(schemaBuilder, getTestSchemaSourceXmlFile());
+        addSchemaSourceIfExists(schemaBuilder, getSchemaSourceXmlFile());
 
         if (propTestClassesDirectory.isPresent() && propTestClassesDirectory.get().exists())
             {
@@ -236,33 +211,25 @@ abstract class CoherenceTask
      * Determines whether a "schema.xml" file exists. If it exists it will be added as an
      * XmlSchemaSource to the SchemaBuilder.
      *
-     * @param builder                Coherence SchemaBuilder
-     * @param propResourcesDirectory directory that may contain a schema.xml file
+     * @param builder                     Coherence SchemaBuilder
+     * @param schemaSourceXmlFileProperty the schema.xml file property
      */
-    private void addSchemaSourceIfExists(SchemaBuilder builder, Property<File> propResourcesDirectory)
+    private void addSchemaSourceIfExists(SchemaBuilder builder, Property<File> schemaSourceXmlFileProperty)
         {
         Logger logger = getLogger();
 
-        if (propResourcesDirectory.isPresent())
+        if (schemaSourceXmlFileProperty.isPresent())
             {
-            File fileResourcesDirectory = propResourcesDirectory.get();
+            File schemaSourceXmlFile = schemaSourceXmlFileProperty.get();
 
-            if (fileResourcesDirectory.exists())
+            if (schemaSourceXmlFile.exists())
                 {
-                File xmlSchema = Paths.get(fileResourcesDirectory.getPath(), "META-INF", "schema.xml").toFile();
-                if (xmlSchema.exists())
-                    {
-                    logger.lifecycle("Add XmlSchemaSource '{}'.", xmlSchema.getAbsolutePath());
-                    builder.addSchemaSource(new XmlSchemaSource(xmlSchema));
-                    }
-                else
-                    {
-                    logger.info("No schema.xml file found at {}", xmlSchema.getAbsolutePath());
-                    }
+                logger.lifecycle("Add XmlSchemaSource '{}'.", schemaSourceXmlFile.getAbsolutePath());
+                builder.addSchemaSource(new XmlSchemaSource(schemaSourceXmlFile));
                 }
             else
                 {
-                logger.info("The specified resources directory '{}' does not exist.", fileResourcesDirectory.getAbsolutePath());
+                logger.info("No schema.xml file found at {}", schemaSourceXmlFile.getAbsolutePath());
                 }
             }
         else

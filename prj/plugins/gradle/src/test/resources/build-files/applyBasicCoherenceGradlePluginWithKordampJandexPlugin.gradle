@@ -4,10 +4,11 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
- 
+
 plugins {
     id 'java'
     id '%s'
+    id 'org.kordamp.gradle.jandex' version '0.13.2'
 }
 repositories {
     maven { url '%s' }
@@ -16,4 +17,8 @@ repositories {
 }
 dependencies {
     implementation '%s:coherence:%s'
+}
+
+test {
+    useJUnitPlatform()
 }

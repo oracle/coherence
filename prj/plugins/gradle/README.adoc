@@ -267,3 +267,42 @@ pluginManagement {
 }
 ----
 
+=== Building using a Proxy Server
+
+When building the Coherence Gradle using a proxy server instead of accessing remote repositories directly, you must
+ensure that the proxy configuration is propagated all the way down to the Gradle integration tests as they use the
+https://docs.gradle.org/current/userguide/test_kit.html#sec:functional_testing_with_the_gradle_runner[GradleRunner]
+(Gradle TestKit).
+
+==== Using Gradle directly
+
+The easiest way to provide the proxy settings (when building the Coherence Gradle plugin by invoking Gradle directly), is
+to add the proxy settings to the `gradle.properties` file:
+
+[source,properties]
+----
+systemProp.http.proxyHost=www-proxy-hqdc.us.oracle.com
+systemProp.http.proxyPort=80
+systemProp.https.proxyHost=www-proxy-hqdc.us.oracle.com
+systemProp.https.proxyPort=80
+systemProp.https.nonProxyHosts=localhost|127.0.0.1
+----
+
+==== Building the Project using Maven
+
+When building the entire Coherence project using Maven, we configure the relevant proxy properties
+in `tools/maven/settings.xml`.
+
+[source,xml]
+----
+  <properties>
+    <gradle.https.proxyHost>www-proxy-hqdc.us.oracle.com</gradle.https.proxyHost>
+    <gradle.https.proxyPort>80</gradle.https.proxyPort>
+  </properties>
+----
+
+In the `pom.xml` of the Coherence Gradle plugin module, the proxy properties are then populated using the `gradleProxy`
+Maven profile which is activated as soon as the property `gradle.https.proxyHost` is present.
+
+NOTE: The Gradle integration tests are activated once the Maven profile `stage1` is explicitly activated, and the build
+is executed with the Maven phase `verify` being triggered.

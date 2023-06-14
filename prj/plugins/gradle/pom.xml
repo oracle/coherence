@@ -59,6 +59,7 @@
             <filesets>
               <fileset>
                 <directory>build</directory>
+                <directory>target</directory>
               </fileset>
             </filesets>
           </configuration>

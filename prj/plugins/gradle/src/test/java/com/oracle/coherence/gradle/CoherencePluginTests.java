@@ -36,10 +36,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
 
-import static com.oracle.coherence.gradle.support.TestUtils.getPofClass;
 import static com.oracle.coherence.gradle.support.TestUtils.assertThatClassIsPofInstrumented;
 import static com.oracle.coherence.gradle.support.TestUtils.copyFileTo;
+import static com.oracle.coherence.gradle.support.TestUtils.getPofClass;
 import static com.oracle.coherence.gradle.support.TestUtils.setupGradleBuildFile;
+import static com.oracle.coherence.gradle.support.TestUtils.setupGradlePropertiesFile;
+import static com.oracle.coherence.gradle.support.TestUtils.setupGradleSettingsFile;
 
 
 /**
@@ -59,6 +61,8 @@ public class CoherencePluginTests
     @Test
     void applyBasicCoherenceGradlePluginWithNoSources()
         {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyBasicCoherenceGradlePluginWithNoSources",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId());
 
@@ -80,6 +84,8 @@ public class CoherencePluginTests
     @Test
     void applyBasicCoherenceGradlePluginWithClass()
         {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyBasicCoherenceGradlePluginWithClass",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                              f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
@@ -108,8 +114,74 @@ public class CoherencePluginTests
         }
 
     @Test
+    void applyBasicCoherenceGradlePluginWithClassAndKordampJandexPlugin()
+        {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
+        setupGradleBuildFile(m_gradleProjectRootDirectory, "applyWithKordampJandexPlugin",
+                f_coherenceBuildTimeProperties.getCoherenceGroupId(),
+                f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
+                f_coherenceBuildTimeProperties.getCoherenceGroupId(),
+                f_coherenceBuildTimeProperties.getCoherenceVersion());
+
+        copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
+                "/src/main/java", "Foo.java");
+
+        BuildResult gradleResult = GradleRunner.create()
+                .withProjectDir(m_gradleProjectRootDirectory)
+                .withArguments("build")
+                .withDebug(true)
+                .withPluginClasspath()
+                .build();
+
+        logOutput(gradleResult);
+
+        assertSuccess(gradleResult);
+
+        String sOutput = gradleResult.getOutput();
+        assertThat(sOutput, containsString("Instrumenting type Foo"));
+
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        assertThatClassIsPofInstrumented(foo);
+        }
+
+    @Test
+    void applyBasicCoherenceGradlePluginWithClassAndVlsiJandexPlugin()
+        {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
+        setupGradleBuildFile(m_gradleProjectRootDirectory, "applyWithVlsiJandexPlugin",
+                f_coherenceBuildTimeProperties.getCoherenceGroupId(),
+                f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
+                f_coherenceBuildTimeProperties.getCoherenceGroupId(),
+                f_coherenceBuildTimeProperties.getCoherenceVersion());
+
+        copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
+                "/src/main/java", "Foo.java");
+
+        BuildResult gradleResult = GradleRunner.create()
+                .withProjectDir(m_gradleProjectRootDirectory)
+                .withArguments("build")
+                .withDebug(true)
+                .withPluginClasspath()
+                .build();
+
+        logOutput(gradleResult);
+
+        assertSuccess(gradleResult);
+
+        String sOutput = gradleResult.getOutput();
+        assertThat(sOutput, containsString("Instrumenting type Foo"));
+
+        Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "Foo", "build/classes/java/main/");
+        assertThatClassIsPofInstrumented(foo);
+        }
+
+    @Test
     void applyCoherenceGradlePluginWithTestClass()
         {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyCoherenceGradlePluginWithTestClass",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                              f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
@@ -146,6 +218,8 @@ public class CoherencePluginTests
     @Test
     void applyCoherenceGradlePluginWithClassAndSchema()
         {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyCoherenceGradlePluginWithClassAndSchema",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                              f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
@@ -193,6 +267,8 @@ public class CoherencePluginTests
     @Test
     void applyCoherenceGradlePluginWithJarDependency()
         {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyCoherenceGradlePluginWithJarDependency",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                              f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),
@@ -222,6 +298,8 @@ public class CoherencePluginTests
     void verifyCoherenceGradlePluginWithRoundTripSerialization()
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
         {
+        setupGradlePropertiesFile(m_gradleProjectRootDirectory);
+        setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
         setupGradleBuildFile(m_gradleProjectRootDirectory, "verifyCoherenceGradlePluginWithRoundTripSerialization",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId(),
                              f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo(),

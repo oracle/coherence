@@ -9,7 +9,14 @@ package com.oracle.coherence.gradle;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.JavaCompile;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Gradle plugin to generate Coherence PortableObject code.
@@ -27,10 +34,10 @@ public class CoherencePlugin
         {
         project.getLogger().debug("Configuring the Coherence Gradle Plugin.");
 
-        // The minimum supported version of the Coherence Gradle plugin is 7.x or higher
+        // The minimum supported version of the Coherence Gradle plugin is 8.x or higher
         if (PluginUtils.getGradleMajorVersion(project) < MINIMAL_SUPPORTED_GRADLE_VERSION)
             {
-            throw new GradleException("The Coherence Gradle plugin requires Gradle version 7 or higher.");
+            throw new GradleException("The Coherence Gradle plugin requires Gradle version 8 or higher.");
             }
 
         if (!project.getPluginManager().hasPlugin("java"))
@@ -39,9 +46,15 @@ public class CoherencePlugin
             }
 
         project.getExtensions().create(POF_TASK_NAME, CoherenceExtension.class);
-        project.getTasks().register(POF_TASK_NAME, CoherenceTask.class, coherencePofTask ->
+
+        TaskProvider taskContainer = project.getTasks().register(POF_TASK_NAME, CoherenceTask.class, coherencePofTask ->
             {
-            coherencePofTask.dependsOn("compileJava", "processResources");
+            applyInitialConfig(project, coherencePofTask);
+            final List<String> dependencies = new ArrayList<>();
+            dependencies.add("compileJava");
+            dependencies.add("compileTestJava");
+
+            coherencePofTask.dependsOn(dependencies);
 
             final CoherenceExtension coherenceExtension = project.getExtensions().getByType(CoherenceExtension.class);
 
@@ -57,7 +70,6 @@ public class CoherencePlugin
 
             if (coherenceExtension.getInstrumentTestClasses().isPresent())
                 {
-                coherencePofTask.dependsOn("compileTestJava", "processTestResources");
                 coherencePofTask.getInstrumentTestClasses().set(coherenceExtension.getInstrumentTestClasses());
                 }
 
@@ -73,7 +85,46 @@ public class CoherencePlugin
             {
             javaCompileTask.finalizedBy(POF_TASK_NAME);
             }
+
+        final Task javaCompileTestTask = project.getTasks().findByName("compileTestJava");
+
+        if (javaCompileTestTask != null)
+            {
+            javaCompileTestTask.finalizedBy(POF_TASK_NAME);
+            }
         }
+
+        /**
+         * Set up default values and
+         * conventions for the properties of {@link CoherenceTask}.
+         *
+         * @param project gradle Project
+         * @param coherenceTask the task to configure
+         */
+        private void applyInitialConfig(Project project, CoherenceTask coherenceTask)
+            {
+            project.getLogger().info("Setting up Task property conventions.");
+            coherenceTask.getDebug().convention(false);
+            coherenceTask.getInstrumentTestClasses().convention(false);
+
+            Directory mainJavaOutputDir = PluginUtils.getMainJavaOutputDir(project);
+            coherenceTask.getMainClassesDirectory().convention(mainJavaOutputDir.getAsFile());
+
+            Directory testJavaOutputDir = PluginUtils.getTestJavaOutputDir(project);
+            coherenceTask.getTestClassesDirectory().convention(testJavaOutputDir.getAsFile());
+
+            File fileMainResourcesOutputDir = PluginUtils.getMainResourcesOutputDir(project);
+            if (fileMainResourcesOutputDir != null)
+                {
+                coherenceTask.getSchemaSourceXmlFile().convention(fileMainResourcesOutputDir);
+                }
+
+            File testResourcesOutputDir = PluginUtils.getTestResourcesOutputDir(project);
+            if (testResourcesOutputDir != null)
+                {
+                coherenceTask.getTestSchemaSourceXmlFile().convention(testResourcesOutputDir);
+                }
+            }
 
     // ----- constants ------------------------------------------------------
 
@@ -85,5 +136,5 @@ public class CoherencePlugin
     /**
      * Constant defining the minimally supported Gradle version.
      */
-    private static final int MINIMAL_SUPPORTED_GRADLE_VERSION = 7;
+    private static final int MINIMAL_SUPPORTED_GRADLE_VERSION = 8;
     }

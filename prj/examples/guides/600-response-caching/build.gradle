@@ -6,7 +6,7 @@
  */
 plugins {
 	id 'java'
-	id "org.kordamp.gradle.jandex" version "0.12.0"
+	id "org.kordamp.gradle.jandex" version "0.13.2"
 }
 
 ext {
@@ -87,5 +87,5 @@ task moveBeansXML {
                  todir: "${buildDir}/classes/java/main/META-INF"
     }
 }
-compileTestJava.dependsOn jandex
+compileTestJava.dependsOn("jandex")
 test.dependsOn moveBeansXML
