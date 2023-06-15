@@ -412,6 +412,13 @@ public interface CoherenceClusterMember
 
 
     /**
+     * Returns the service names known to the Coherence cluster.
+     *
+     * @return the service names known to the Coherence cluster
+     */
+    Set<String> getServiceNames();
+
+    /**
      * Determines the status of a service being run by the {@link CoherenceClusterMember}.
      *
      * @param serviceName the name of the service
