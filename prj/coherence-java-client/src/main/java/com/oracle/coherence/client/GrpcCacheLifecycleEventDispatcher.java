@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.oracle.coherence.client;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.EventInterceptor;
@@ -228,7 +229,7 @@ public class GrpcCacheLifecycleEventDispatcher
         @Override
         public String getSessionName()
             {
-            GrpcCacheLifecycleEventDispatcher dispatcher = (GrpcCacheLifecycleEventDispatcher) getEventDispatcher();
+            GrpcCacheLifecycleEventDispatcher dispatcher   = (GrpcCacheLifecycleEventDispatcher) getEventDispatcher();
             GrpcRemoteCacheService            cacheService = dispatcher.getService();
 
             if (cacheService == null)
@@ -236,11 +237,13 @@ public class GrpcCacheLifecycleEventDispatcher
                 return dispatcher.getSession().getName();
                 }
 
-            return cacheService
+            String sName = cacheService
                     .getBackingMapManager()
                     .getCacheFactory()
                     .getResourceRegistry()
                     .getResource(String.class, ConfigurableCacheFactorySession.SESSION_NAME);
+
+            return sName == null ? Coherence.DEFAULT_NAME : sName;
             }
 
         @Override
