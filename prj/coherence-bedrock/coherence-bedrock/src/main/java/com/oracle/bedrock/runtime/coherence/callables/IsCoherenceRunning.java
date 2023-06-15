@@ -57,7 +57,7 @@ public class IsCoherenceRunning
 
 
     @Override
-    public Boolean call() throws Exception
+    public Boolean call()
         {
         for (String sName : m_setName)
             {

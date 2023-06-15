@@ -510,7 +510,8 @@ public class Coherence
         Collection<Session> col = null;
         if (Coherence.SYSTEM_SCOPE.equals(sScope))
             {
-            col = s_systemSession.map(Collections::singleton).orElse(null);
+            col = s_systemSession.map(Session.class::cast)
+                    .map(Collections::singleton).orElse(null);
             }
 
         if (col == null)
@@ -535,20 +536,23 @@ public class Coherence
         {
         Logger.info("Stopping all Coherence instances");
         s_mapInstance.values().forEach(Coherence::close);
+        if (s_systemServiceMonitor != null)
+            {
+            s_systemServiceMonitor.close();
+            }
         if (s_systemSession != null && s_systemSession.isPresent())
             {
             try
                 {
-                s_systemSession.get().close();
+                ConfigurableCacheFactorySession session = s_systemSession.get();
+                session.close();
+                CacheFactoryBuilder builder = CacheFactory.getCacheFactoryBuilder();
+                builder.release(session.getConfigurableCacheFactory());
                 }
             catch (Exception e)
                 {
                 e.printStackTrace();
                 }
-            }
-        if (s_systemServiceMonitor != null)
-            {
-            s_systemServiceMonitor.close();
             }
         Logger.info("All Coherence instances stopped");
         s_systemServiceMonitor = null;
@@ -1013,12 +1017,13 @@ public class Coherence
                 // close sessions in reverse order
                 getSessionConfigurations()
                         .sorted(Comparator.reverseOrder())
-                        .map(cfg -> f_mapSession.get(cfg.getName()))
-                        .filter(Objects::nonNull)
-                        .forEach(session -> {
+                        .forEach(cfg ->
+                            {
+                            Session session = f_mapSession.get(cfg.getName());
                             try
                                 {
                                 session.close();
+                                cfg.sessionProvider().ifPresent(p -> p.releaseSession(session));
                                 }
                             catch(Throwable t)
                                 {
@@ -1037,18 +1042,23 @@ public class Coherence
 
                 if (f_mode == Mode.Gar)
                     {
+                    m_localSystemServiceMonitor.close();
                     if (m_localSystemSession.isPresent())
                         {
                         try
                             {
-                            m_localSystemSession.get().close();
+                            ConfigurableCacheFactorySession session = m_localSystemSession.get();
+                            session.getConfigurableCacheFactory().dispose();
+                            session.close();
+                            SessionProvider provider = m_localSystemSessionConfig.sessionProvider()
+                                    .orElseGet(SessionProvider::get);
+                            provider.releaseSession(session);
                             }
                         catch (Exception e)
                             {
                             Logger.err(e);
                             }
                         }
-                    m_localSystemServiceMonitor.close();
                     }
                 m_localSystemSession        = null;
                 m_localSystemServiceMonitor = null;
@@ -1584,7 +1594,7 @@ public class Coherence
         return m_localSystemSession.orElse(null);
         }
 
-    private Optional<Session> createSystemSession(Iterable<? extends EventInterceptor<?>> interceptors)
+    private Optional<ConfigurableCacheFactorySession> createSystemSession(Iterable<? extends EventInterceptor<?>> interceptors)
         {
         SessionConfiguration configuration = new SystemSessionConfiguration(f_mode);
         String               sScopePrefix  = getScopePrefix();
@@ -1592,22 +1602,23 @@ public class Coherence
         Iterable<? extends EventInterceptor<?>> allInterceptors
                 = join(interceptors, configuration.getInterceptors());
 
-        Optional<Session> optional = ensureSessionInternal(configuration, f_mode, sScopePrefix, allInterceptors);
+        Optional<ConfigurableCacheFactorySession> optional =
+                ensureSessionInternal(configuration, f_mode, sScopePrefix, allInterceptors)
+                        .map(ConfigurableCacheFactorySession.class::cast);
+
         if (optional.isPresent() && (Mode.ClusterMember == f_mode || Mode.Gar == f_mode))
             {
-            Session session = optional.get();
-            if (session instanceof ConfigurableCacheFactorySession)
-                {
-                ExtensibleConfigurableCacheFactory ccfSystem = (ExtensibleConfigurableCacheFactory)
-                        ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
-                m_localSystemServiceMonitor = startSystemCCF(configuration.getScopeName(), ccfSystem);
-                session.activate();
-                }
+            ConfigurableCacheFactorySession    session   = optional.get();
+            ExtensibleConfigurableCacheFactory ccfSystem = (ExtensibleConfigurableCacheFactory)
+                    session.getConfigurableCacheFactory();
+            m_localSystemServiceMonitor = startSystemCCF(configuration.getScopeName(), ccfSystem);
+            session.activate();
             }
 
         registerHealthChecks();
 
-        m_localSystemSession = optional;
+        m_localSystemSessionConfig = configuration;
+        m_localSystemSession       = optional;
         return optional;
         }
 
@@ -1617,7 +1628,7 @@ public class Coherence
      * @param optional an optional containing the System {@link Session}
      */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    static void setSystemSession(Optional<Session> optional)
+    static void setSystemSession(Optional<ConfigurableCacheFactorySession> optional)
         {
         s_systemSession = Objects.requireNonNull(optional);
         }
@@ -2000,7 +2011,7 @@ public class Coherence
      * The global System session.
      */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Optional<Session> s_systemSession;
+    private static Optional<ConfigurableCacheFactorySession> s_systemSession;
 
     /**
      * The {@link DefaultCacheServer} wrapping the System session.
@@ -2013,10 +2024,16 @@ public class Coherence
     private final Lock m_localSystemSessionLock = new ReentrantLock();
 
     /**
+     * This instance's System session configuration.
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private SessionConfiguration m_localSystemSessionConfig;
+
+    /**
      * This instance's System session.
      */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private Optional<Session> m_localSystemSession;
+    private Optional<ConfigurableCacheFactorySession> m_localSystemSession;
 
     /**
      * The {@link DefaultCacheServer} wrapping the local System session.

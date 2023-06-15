@@ -345,6 +345,12 @@ public abstract class AbstractCoherenceClusterMember
 
 
     @Override
+    public Set<String> getServiceNames()
+        {
+        return invoke(new GetServiceNames());
+        }
+
+    @Override
     public ServiceStatus getServiceStatus(String serviceName)
         {
         return invoke(new GetServiceStatus(serviceName));

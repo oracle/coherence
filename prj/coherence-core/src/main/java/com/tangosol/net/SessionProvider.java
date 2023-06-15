@@ -173,6 +173,15 @@ public interface SessionProvider
         return Integer.compare(getPriority(), other.getPriority());
         }
 
+    /**
+     * Release the {@link Session}.
+     *
+     * @param session  the {@link Session} to release
+     */
+    default void releaseSession(Session session)
+        {
+        }
+
     // ----- Option interface -----------------------------------------------
 
     /**
