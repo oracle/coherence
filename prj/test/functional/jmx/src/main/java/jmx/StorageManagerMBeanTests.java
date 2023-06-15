@@ -167,11 +167,11 @@ public class StorageManagerMBeanTests
             cache.put(i, i + 1);
             }
         assertEquals(100, cache.size());
-        Eventually.assertThat(atomicInsert.get(), is(100));
+        Eventually.assertDeferred(atomicInsert::get, is(100));
         ObjectName name = getQueryName(cache);
         server.invoke(name, "clearCache", null, null);
-        Eventually.assertThat(cache.size(), is(0));
-        Eventually.assertThat(atomicDelete.get(), is(100));
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred(atomicDelete::get, is(100));
         }
 
     /**
@@ -211,11 +211,11 @@ public class StorageManagerMBeanTests
             cache.put(i, i + 1);
             }
         assertEquals(100, cache.size());
-        Eventually.assertThat(atomicInsert.get(), is(100));
+        Eventually.assertDeferred(atomicInsert::get, is(100));
         ObjectName name = getQueryName(cache);
         server.invoke(name, "truncateCache", null, null);
-        Eventually.assertThat(cache.size(), is(0));
-        Eventually.assertThat(atomicDelete.get(), is(0), Eventually.delayedBy(2, TimeUnit.SECONDS));
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred(atomicDelete::get, is(0), Eventually.delayedBy(2, TimeUnit.SECONDS));
         }
 
     // ----- helpers --------------------------------------------------------
