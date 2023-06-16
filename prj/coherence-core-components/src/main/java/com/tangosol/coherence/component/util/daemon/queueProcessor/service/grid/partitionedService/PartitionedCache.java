@@ -50499,7 +50499,7 @@ public class PartitionedCache
         * structures that strongly reference the key refer to the same
         * instance.
         * 
-        * @param binkey  the binary Key
+        * @param binKey  the binary Key
         * 
         * @return the interned binary key
          */
@@ -50561,7 +50561,15 @@ public class PartitionedCache
                     java.util.Map.Entry entry = mapListeners.getEntry(binKey);
                     if (entry != null)
                         {
-                        binKey = (Binary) entry.getKey();
+                        // Bug 35355767 - avoid leaking listeners
+                        synchronized (mapListeners)
+                            {
+                            entry = mapListeners.getEntry(binKey);
+                            if (entry != null)
+                                {
+                                binKey = (Binary) entry.getKey();
+                                }
+                            }
                         }
                     }
                 }
