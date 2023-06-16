@@ -143,6 +143,11 @@ public class ReadWriteBackingMapTests
         System.setProperty("coherence.distributed.localstorage", "true");
         System.setProperty("coherence.rwbm.requeue.delay", "5000");
 
+        // the thread count must be 1 for testRemoveAll to have the
+        // expected results; otherwise, the removeAll request may
+        // split into multiple jobs with different result.
+        System.setProperty("tangosol.coherence.distributed.threads.max", "1");
+
         AbstractFunctionalTest._startup();
         }
 
@@ -1436,7 +1441,6 @@ public class ReadWriteBackingMapTests
         {
         testRemoveAll("dist-rwbm-wt");
         testRemoveAll("dist-rwbm-wt-bin");
-
         testRemoveAll("dist-rwbm-nb-nonpc");
         }
 
