@@ -30,6 +30,7 @@ die(){ cat ${RESULT_FILE} ; echo "Dependency report in ${WS_DIR}/target" ; echo 
 
 echo "Running CVE check - results: ${RESULT_FILE}"
 mvn ${MAVEN_ARGS} -Dorg.slf4j.simpleLogger.defaultLogLevel=WARN org.owasp:dependency-check-maven:aggregate \
+        -P coherence,modules,examples \
         -f ${WS_DIR}/pom.xml \
         -Dtop.parent.basedir="${WS_DIR}" \
         > ${RESULT_FILE} || die "Error running the Maven command"
