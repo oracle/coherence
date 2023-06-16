@@ -131,13 +131,13 @@ to find specific notes on changes suggested for production use.
 
     <packet-publisher>
       <packet-delivery>
-        <resend-milliseconds>200</resend-milliseconds>
+        <resend-milliseconds system-property="coherence.publisher.resend.interval">200</resend-milliseconds>
 
         <!--
         Note: For production use, the recommended value is the greater of 300000
         and two times the maximum expected full GC duration.
         -->
-        <timeout-milliseconds>300000</timeout-milliseconds>
+        <timeout-milliseconds system-property="coherence.publisher.delivery.timeout">300000</timeout-milliseconds>
 
         <flow-control>
           <enabled>true</enabled>
