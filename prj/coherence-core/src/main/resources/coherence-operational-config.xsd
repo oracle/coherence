@@ -91,6 +91,7 @@
                 <xsd:element ref="storage-authorizers" minOccurs="0" />
                 <xsd:element ref="password-providers" minOccurs="0" />
                 <xsd:element ref="resources" minOccurs="0" />
+                <xsd:element ref="secured-production" minOccurs="0" />
 
                 <!-- Must remain last. Next 2 elements are appended to cluster-config
                      child elements in Coherence.loadConfiguration method. -->

@@ -919,24 +919,24 @@ to find specific notes on changes suggested for production use.
 
        Note: Unlike the TCP socket-provider, multicast sockets are not
        supported, and thus well-known-addresses must be enabled for TCMP to
-       function with this provider.  Similarly if SSL is enabled then
+       function with this provider.  Similarly, if SSL is enabled then
        the cluster will not support sharing of its cluster port with other
        clusters running on the same machine.
       -->
       <socket-provider id="ssl">
         <ssl>
+          <protocol>TLS</protocol>
           <identity-manager>
             <key-store>
               <url system-property="coherence.security.keystore">file:keystore.jks</url>
               <password system-property="coherence.security.password"/>
             </key-store>
-            <password system-property="coherence.security.password"/>
+            <password>${coherence.security.key.password ${coherence.security.password}}</password>
           </identity-manager>
           <trust-manager>
-            <algorithm>PeerX509</algorithm>
             <key-store>
-              <url system-property="coherence.security.keystore">file:keystore.jks</url>
-              <password system-property="coherence.security.password"/>
+              <url>${coherence.security.truststore ${coherence.security.keystore file:keystore.jks}}</url>
+              <password>${coherence.security.truststore.password ${coherence.security.password}}</password>
             </key-store>
           </trust-manager>
           <protocol-versions usage="black-list">
@@ -1010,6 +1010,8 @@ to find specific notes on changes suggested for production use.
         <class-name>com.tangosol.net.security.AuditingAuthorizer</class-name>
       </storage-authorizer>
     </storage-authorizers>
+
+    <secured-production system-property="coherence.secured.production">false</secured-production>
   </cluster-config>
 
   <logging-config>
