@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.RequestTimeoutException;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
@@ -87,16 +88,18 @@ public class COH20930Tests
 
         Eventually.assertThat(clusterMember.getClusterSize(), is(2));
 
-        NamedCache cacheIterm  = getNamedCache("item");
-        NamedCache cacheNumber = getNamedCache("number");
+        // harden lookup of persistence cache with request-timeout of 60 seconds
+        // see build failure in COH-27494
+        NamedCache cacheItem   = getNamedCacheWithRetry("item");
+        NamedCache cacheNumber = getNamedCacheWithRetry("number");
 
         for (int i=0; i<5; i++)
             {
-            cacheIterm.put(i,  i);
+            cacheItem.put(i,  i);
             cacheNumber.put(i, i);
             }
 
-        DistributedCacheService serviceIterm   = (DistributedCacheService) cacheIterm.getCacheService();
+        DistributedCacheService serviceIterm   = (DistributedCacheService) cacheItem.getCacheService();
         DistributedCacheService serviceNumber  = (DistributedCacheService) cacheNumber.getCacheService();
         String                  sServiceNumber = serviceNumber.getInfo().getServiceName();
         Cluster                 cluster        = serviceIterm.getCluster();
@@ -106,7 +109,7 @@ public class COH20930Tests
         try
             {
             TestProcessor tp = new TestProcessor();
-            cacheIterm.invoke(1, tp);
+            cacheItem.invoke(1, tp);
             }
         catch (Exception e)
             {
@@ -137,6 +140,42 @@ public class COH20930Tests
             cache.get(1);
             return null;
             }
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Retrying getNamedCache for cache with persistence enabled and
+     * this test relies on a request timeout of 60 seconds, which
+     * is not long enough on a slow disk test machine.
+     *
+     * @param sName  cache name
+     *
+     * @return NamedCache or throws exception
+     */
+    private NamedCache getNamedCacheWithRetry(String sName)
+        {
+        RequestTimeoutException eDeferred = null;
+
+        for (int i = 0; i < 3; i++)
+            {
+            try
+                {
+                return getNamedCache(sName);
+                }
+            catch (RequestTimeoutException e)
+                {
+                // ignore for slow machine where creating persistence store can take longer than cache config 60s request-timeout.
+                eDeferred = e;
+                Base.log("RequestTimeoutException on getNamedCache " + sName + ". Retrying lookup...");
+                }
+            }
+        if (eDeferred != null)
+            {
+            throw eDeferred;
+            }
+
+        return null;
         }
 
     // ----- constants ------------------------------------------------------
