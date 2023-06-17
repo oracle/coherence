@@ -187,7 +187,8 @@ public class PartitionedIndexMap<K, V>
             {
             for (Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>> mapPart : f_mapPartitioned.values())
                 {
-                if (mapPart.get(f_extractor).isPartial())
+                MapIndex<K, V, ?> mapIndex = mapPart.get(f_extractor);
+                if (mapIndex != null && mapIndex.isPartial())
                     {
                     return true;
                     }
