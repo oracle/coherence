@@ -2144,7 +2144,7 @@ public class LocalCache
                 {
                 LocalCache.Entry entry = (LocalCache.Entry) getEntryInternal(iterEvict.next());
 
-                iterEvict.remove();
+                // COH-27922 - consider adding iterEvict().set(null) which would require converting iterEvict to a ListIterator
                 if (entry != null && entry.isEvictable() &&
                     removeEvicted(entry) &&
                     --cMinEntries <= 0 && m_cCurUnits < cMaxUnits)
