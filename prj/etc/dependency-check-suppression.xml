@@ -458,4 +458,49 @@
     <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
     <cve>CVE-2023-2976</cve>
   </suppress>
+
+  <!-- suppress grpc related since they have to be in sync with Helidon -->
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-protobuf-1.54.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-32731</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-stub-1.54.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32731</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-netty-1.54.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32731</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-protobuf-lite-1.54.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-32731</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-services-1.54.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32731</cve>
+  </suppress>
+
 </suppressions>
