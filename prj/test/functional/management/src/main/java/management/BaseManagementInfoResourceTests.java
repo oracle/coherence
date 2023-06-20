@@ -3548,8 +3548,9 @@ public abstract class BaseManagementInfoResourceTests
             });
         Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
 
-        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
+                is(Response.Status.OK.getStatusCode()));
         f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
@@ -3573,8 +3574,9 @@ public abstract class BaseManagementInfoResourceTests
             });
         Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
 
-        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
         f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
@@ -3603,8 +3605,9 @@ public abstract class BaseManagementInfoResourceTests
             });
         Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
 
-        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
+                is(Response.Status.OK.getStatusCode()));
         f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
@@ -3628,8 +3631,9 @@ public abstract class BaseManagementInfoResourceTests
             });
         Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
 
-        Response response = getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null);
-        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
         f_inClusterInvoker.accept(f_sClusterName, null, () ->
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
