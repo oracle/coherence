@@ -29,12 +29,14 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -1861,7 +1863,7 @@ public class OldCache
             // store off the list of pending evictions
             if (listEvict != null)
                 {
-                m_iterEvict = listEvict.iterator();
+                m_iterEvict = listEvict.listIterator();
                 }
 
             // make a first pass at the pending evictions
@@ -1915,7 +1917,7 @@ public class OldCache
     */
     private void pruneIncremental()
         {
-        Iterator iterEvict = m_iterEvict;
+        ListIterator iterEvict = m_iterEvict;
         if (iterEvict != null)
             {
             // pruning will proceed until the cache is down below the max
@@ -1927,7 +1929,7 @@ public class OldCache
                 {
                 Entry entry = (Entry) getEntryInternal(iterEvict.next());
 
-                // COH-27922 - consider adding iterEvict().set(null) which would require converting iterEvict to a ListIterator
+                iterEvict.set(null); // COH-27922 - release the reference to the entry so that it can be garbage collected
                 if (entry != null && entry.isEvictable() &&
                     removeEvicted(entry) &&
                     --cMinEntries <= 0 && m_cCurUnits < cMaxUnits)
@@ -2989,7 +2991,7 @@ public class OldCache
     * there are no entries with deferred eviction.
     * @since Coherence 3.5
     */
-    protected Iterator m_iterEvict;
+    protected ListIterator m_iterEvict;
 
     /**
     * Specifies whether or not this cache will incrementally evict.
