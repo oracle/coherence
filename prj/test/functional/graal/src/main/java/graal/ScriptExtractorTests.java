@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import java.util.Set;
 
 import java.util.stream.Collectors;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
@@ -34,6 +35,14 @@ import static org.junit.Assert.assertTrue;
 public class ScriptExtractorTests
         extends AbstractGraalFunctionalTest
     {
+
+    @BeforeClass
+    public static void _startup()
+    {
+        // we will control the startup manually
+        System.setProperty("tangosol.coherence.distributed.threads.min", "1");
+        AbstractGraalFunctionalTest._startup();
+    }
 
     /**
      * Create a new ScriptExtractorTests that will use the specified
