@@ -730,7 +730,7 @@ public class StorageManagerModel
             PartitionedCache service = storage.getService();
             if (service != null)
                 {
-                NamedCache cache = service.ensureCache(get_Storage().getCacheName(), null);
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
                 cache.clear();
                 }
             }
@@ -745,7 +745,7 @@ public class StorageManagerModel
             PartitionedCache service = storage.getService();
             if (service != null)
                 {
-                NamedCache cache = service.ensureCache(get_Storage().getCacheName(), null);
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
                 cache.truncate();
                 }
             }
