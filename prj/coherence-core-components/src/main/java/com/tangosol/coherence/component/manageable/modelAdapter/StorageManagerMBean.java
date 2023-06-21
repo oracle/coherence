@@ -471,6 +471,18 @@ public class StorageManagerMBean
                 null,
                 });
             }
+        // behavior size()
+            {
+            mapInfo.put("size()", new Object[]
+                {
+                "Returns the total size of the cache.",
+                "size",
+                "Ljava/lang/Integer;",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
 
         return mapInfo;
         }
@@ -826,6 +838,14 @@ public class StorageManagerMBean
      */
     public void truncateCache()
         {
+        }
+
+    /**
+     * Returns the total size of the cache.
+     */
+    public int size()
+        {
+        return 0;
         }
 
     // Accessor for the property "MaxQueryThresholdMillis"
