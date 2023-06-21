@@ -751,6 +751,20 @@ public class StorageManagerModel
             }
         }
 
+    public int size()
+        {
+        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                return service.ensureCache(storage.getCacheName(), null).size();
+                }
+            }
+        return 0;
+        }
+
     // Accessor for the property "_Storage"
     /**
      * Setter for property _Storage.<p>
