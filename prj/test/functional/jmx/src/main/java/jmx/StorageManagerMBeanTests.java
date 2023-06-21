@@ -38,6 +38,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -172,6 +173,35 @@ public class StorageManagerMBeanTests
         server.invoke(name, "clearCache", null, null);
         Eventually.assertDeferred(cache::size, is(0));
         Eventually.assertDeferred(atomicDelete::get, is(100));
+        }
+
+    /**
+     * Test StorageManager size() operation.
+     */
+    @Test
+    public void testSizeOperation()
+        {
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-size");
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        assertEquals(100, cache.size());
+        ObjectName name = getQueryName(cache);
+        Eventually.assertDeferred(() ->
+            {
+            try
+                {
+                return (Integer) server.invoke(name, "size", null, null);
+                }
+            catch (Exception e)
+                {
+                Assert.fail(e.getMessage());
+                }
+            return 0;
+            }, is(100));
         }
 
     /**
