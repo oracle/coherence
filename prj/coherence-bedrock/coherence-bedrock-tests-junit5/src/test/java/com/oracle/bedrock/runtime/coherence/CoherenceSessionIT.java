@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.oracle.bedrock.runtime.coherence.callables.SessionExists;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.AbstractTest;
@@ -45,6 +46,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
+                                                           WellKnownAddress.loopback(),
                                                            m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
@@ -66,6 +68,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
+                                                           WellKnownAddress.loopback(),
                                                            m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
@@ -94,6 +97,7 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
+                                                           WellKnownAddress.loopback(),
                                                            m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
@@ -116,11 +120,13 @@ public class CoherenceSessionIT
         try (CoherenceCacheServer server = platform.launch(CoherenceCacheServer.class,
                                                            ClusterPort.automatic(),
                                                            LocalHost.only(),
+                                                           WellKnownAddress.loopback(),
                                                            m_testLogs))
             {
             Eventually.assertThat(server, new GetLocalMemberId(), is(1));
             Eventually.assertThat(server, new GetClusterSize(), is(1));
             Eventually.assertThat(server, new SessionExists(Coherence.SYSTEM_SESSION), is(true));
+            Eventually.assertThat(server, new SessionExists(Coherence.DEFAULT_NAME), is(true));
 
             Session session = server.getSession(Coherence.SYSTEM_SESSION);
             assertThat(session, is(notNullValue()));
