@@ -87,7 +87,7 @@
       <plugin>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>pof-maven-plugin</artifactId>
-        <version>22.06.3</version>
+        <version>23.03</version>
         <executions>
           <execution>
             <id>instrument</id>
