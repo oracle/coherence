@@ -7,10 +7,13 @@
 package com.tangosol.net;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
+
 import com.oracle.coherence.common.util.Duration;
 
+import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
 
 import com.tangosol.coherence.config.Config;
@@ -54,9 +57,6 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -890,22 +890,7 @@ public class Coherence
         }
 
     /**
-     * Start this {@link Coherence} instance.
-     * <p>
-     * This method will wait for the default time out period for Coherence to start.
-     * <p>
-     * If this instance already been started and has not
-     * been closed this method call is a no-op.
-     *
-     * @return the running {@link Coherence} instance
-     */
-    public Coherence startAndWait() throws TimeoutException, InterruptedException
-        {
-        return startAndWait(DEFAULT_START_TIMEOUT);
-        }
-
-    /**
-     * Start this {@link Coherence} instance.
+     * Start this {@link Coherence} instance and block until Coherence has started.
      * <p>
      * This method will wait for the specified timeout.
      * <p>
@@ -913,21 +898,38 @@ public class Coherence
      * been closed this method call is a no-op.
      *
      * @return the running {@link Coherence} instance
+     *
+     * @throws InterruptedException if Coherence does not start within the timeout
      */
-    public Coherence startAndWait(Duration timeout) throws TimeoutException, InterruptedException
+    public Coherence startAndWait() throws InterruptedException
         {
-        try
-            {
-            long cMinutes = timeout == null
-                    ? DEFAULT_START_TIMEOUT.as(Duration.Magnitude.MINUTE)
-                    : Math.max(1, timeout.as(Duration.Magnitude.MINUTE));
+        return startAndWait(DEFAULT_START_TIMEOUT);
+        }
 
-            return start().get(cMinutes, TimeUnit.MINUTES);
-            }
-        catch (ExecutionException e)
+    /**
+     * Start this {@link Coherence} instance and block until Coherence has started.
+     * <p>
+     * This method will wait for the specified timeout.
+     * <p>
+     * If this instance already been started and has not
+     * been closed this method call is a no-op.
+     *
+     * @param timeout  the timeout duration to wait for Coherence to start
+     *
+     * @return the running {@link Coherence} instance
+     *
+     * @throws InterruptedException if Coherence does not start within the timeout
+     */
+    public Coherence startAndWait(Duration timeout) throws InterruptedException
+        {
+        long cMillis = timeout == null
+                ? DEFAULT_START_TIMEOUT.as(Duration.Magnitude.MILLI)
+                : Math.max(1, timeout.as(Duration.Magnitude.MILLI));
+        try (Timeout ignored = Timeout.after(cMillis))
             {
-            throw new RuntimeException(e);
+            start(true);
             }
+        return this;
         }
 
     /**
@@ -940,6 +942,35 @@ public class Coherence
      *         this {@link Coherence} instance has started
      */
     public CompletableFuture<Coherence> start()
+        {
+        return start(false);
+        }
+
+    /**
+     * Start this {@link Coherence} instance.
+     * <p>
+     * If this instance already been started and has not
+     * been closed this method call is a no-op.
+     */
+    public void startOnCallingThread()
+        {
+        start(true);
+        }
+
+    /**
+     * Start this {@link Coherence} instance.
+     * <p>
+     * If this instance already been started and has not
+     * been closed this method call is a no-op.
+     *
+     * @param fRunOnCallingThread  {@code true} to start the Coherence instance synchronously
+     *                             on the calling thread, or {@code false} to start the
+     *                             Coherence instance asynchronously
+     *
+     * @return a {@link CompletableFuture} that will be completed when
+     *         this {@link Coherence} instance has started
+     */
+    private CompletableFuture<Coherence> start(boolean fRunOnCallingThread)
         {
         assertNotClosed();
         if (m_fStarted)
@@ -962,6 +993,31 @@ public class Coherence
                 {
                 Runnable runnable = () ->
                     {
+                    ContainerContext context = f_config.getApplicationContext()
+                            .map(Context::getContainerContext)
+                            .orElse(null);
+
+                    if (context != null)
+                        {
+                        ContainerContext contextCurrent = context.getCurrentThreadContext();
+                        if (contextCurrent == null ||
+                           !contextCurrent.getDomainPartition().equals(context.getDomainPartition()))
+                            {
+                            throw new IllegalStateException("start() called out of context");
+                            }
+
+                        if (!context.isGlobalDomainPartition())
+                            {
+                            context = context.getGlobalContext();
+                            context.setCurrentThreadContext();
+                            }
+                        else
+                            {
+                            // null context indicates we don't need to reset the thread context
+                            context = null;
+                            }
+                        }
+
                     try
                         {
                         if (f_mapServer.isEmpty())
@@ -978,12 +1034,26 @@ public class Coherence
                         Logger.err(thrown);
                         f_futureStarted.completeExceptionally(thrown);
                         }
+                    finally
+                        {
+                        if (context != null)
+                            {
+                            context.resetCurrentThreadContext();
+                            }
+                        }
                     };
 
-                Thread t = Base.makeThread(null , runnable,
-                                           isDefaultInstance() ? "Coherence" : "Coherence:" + f_sName);
-                t.setDaemon(true);
-                t.start();
+                if (fRunOnCallingThread)
+                    {
+                    runnable.run();
+                    }
+                else
+                    {
+                    Thread t = Base.makeThread(null , runnable,
+                            isDefaultInstance() ? "Coherence" : "Coherence:" + f_sName);
+                    t.setDaemon(true);
+                    t.start();
+                    }
                 }
             catch (Throwable thrown)
                 {
