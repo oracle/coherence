@@ -216,32 +216,6 @@
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>
         <artifactId>moditect-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>add-module-info</id>
-            <phase>package</phase>
-            <goals>
-              <goal>add-module-info</goal>
-            </goals>
-            <configuration>
-              <module>
-                <moduleInfo>
-                  <name>${module.name}</name>
-                  <open>true</open>
-                  <exports>
-                    *;
-                  </exports>
-                </moduleInfo>
-              </module>
-              <exclusions>
-                <exclusion>
-                  <groupId>com.google.code.findbugs</groupId>
-                  <artifactId>jsr305</artifactId>
-                </exclusion>
-              </exclusions>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

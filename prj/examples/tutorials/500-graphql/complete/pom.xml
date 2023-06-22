@@ -24,7 +24,6 @@
     <helidon.version>3.0.0</helidon.version>
 
     <java.version>17</java.version>
-    <java.version.release>17</java.version.release>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>

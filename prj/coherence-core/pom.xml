@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -31,8 +31,13 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-discovery</artifactId>
       <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-21</artifactId>
+      <version>${project.version}</version>
       <scope>provided</scope>
-      <optional>true</optional>
     </dependency>
 
     <!-- asm -->
@@ -190,6 +195,12 @@
 
   <build>
     <resources>
+      <!-- include the coherence-core-21 build output in MR JAR format -->
+      <resource>
+        <directory>../coherence-core-21/target/classes</directory>
+        <targetPath>META-INF/versions/21</targetPath>
+      </resource>
+
       <!-- include the standard maven resources directory -->
       <resource>
         <directory>src/main/resources</directory>
@@ -281,6 +292,12 @@
                   <addServiceUses>true</addServiceUses>
                 </moduleInfo>
               </module>
+              <exclusions>
+                <exclusion>
+                  <groupId>${coherence.group.id}</groupId>
+                  <artifactId>coherence-core-21</artifactId>
+                </exclusion>
+              </exclusions>
             </configuration>
           </execution>
         </executions>

@@ -24,7 +24,7 @@
 
   <modules>
     <module>maven</module>
-    <module>gradle</module>
+    <!--<module>gradle</module>-->
   </modules>
 
 </project>

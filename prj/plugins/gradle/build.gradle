@@ -11,6 +11,12 @@ plugins {
     id 'maven-publish'
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(javaVersion)
+    }
+}
+
 repositories {
     maven { url 'target/dependencies' }
     mavenLocal()

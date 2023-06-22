@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
--->
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -29,9 +29,21 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!--
+      The order of the following two dependencies matters for testing.
+
+      Having the latest, version-specific Java code first ensures it is used
+      instead of legacy, version-agnostic code that's in the main JAR.
+      -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-21</artifactId>
       <artifactId>coherence-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <version>${project.version}</version>
     </dependency>
 
@@ -103,6 +115,20 @@
     </dependency>
 
     <!-- optional dependencies -->
+
+    <!-- Jakarta Activation API -->
+    <dependency>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Jakarta Annotation API -->
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Jakarta Inject API -->
     <dependency>
@@ -296,6 +322,7 @@
                   <include>com.sleepycat:je</include>
                   <include>com.sun.codemodel:codemodel</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
+                  <include>${coherence.group.id}:coherence-core-21</include>
                   <include>${coherence.group.id}:coherence-core</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
                   <include>${coherence.group.id}:opentracing-common</include>
@@ -312,7 +339,12 @@
                     <exclude>module-info*</exclude>
                     <exclude>META-INF/MANIFEST.MF</exclude>
                     <exclude>META-INF/maven/**/*</exclude>
-                    <exclude>META-INF/versions/**/*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>${coherence.group.id}:coherence-core-21</artifact>
+                  <excludes>
+                    <exclude>**/*</exclude>
                   </excludes>
                 </filter>
                 <filter>
@@ -596,6 +628,7 @@
               <manifestLocation>${artifact.classes.path}/META-INF</manifestLocation>
               <outputDirectory>${artifact.classes.path}</outputDirectory>
               <instructions>
+                <Multi-Release>true</Multi-Release>
                 <Main-Class>${main.class}</Main-Class>
                 <Build-Timestamp>${project.timestamp}</Build-Timestamp>
                 <Bundle-SymbolicName>${coherence.group.id}.${project.artifactId}</Bundle-SymbolicName>

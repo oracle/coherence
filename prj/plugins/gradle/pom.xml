@@ -131,13 +131,14 @@
                 <argument>${gradle.proxy.arg3}</argument>
                 <argument>-Pgroup=${project.groupId}</argument>
                 <argument>-Pversion=${project.version}</argument>
+                <argument>-PjavaVersion=${java.version.release}</argument>
                 <argument>-DartifactId=${project.artifactId}</argument>
                 <argument>clean</argument>
                 <argument>build</argument>
                 <argument>-x</argument>
                 <argument>test</argument>
                 <argument>-S</argument>
-                </arguments>
+              </arguments>
             </configuration>
             <goals>
               <goal>exec</goal>
@@ -155,6 +156,7 @@
                 <argument>${gradle.proxy.arg3}</argument>
                 <argument>-Pgroup=${project.groupId}</argument>
                 <argument>-Pversion=${project.version}</argument>
+                <argument>-PjavaVersion=${java.version.release}</argument>
                 <argument>-DartifactId=${project.artifactId}</argument>
                 <argument>clean</argument>
                 <argument>build</argument>

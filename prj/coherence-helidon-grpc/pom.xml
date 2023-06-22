@@ -5,7 +5,8 @@
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -89,7 +90,9 @@
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>
-            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            <manifestFile>
+              ${project.build.outputDirectory}/META-INF/MANIFEST.MF
+            </manifestFile>
           </archive>
         </configuration>
       </plugin>
@@ -116,34 +119,8 @@
       </plugin>
 
       <plugin>
-      <groupId>com.oracle.coherence.moditect</groupId>
-      <artifactId>moditect-maven-plugin</artifactId>
-      <executions>
-        <execution>
-          <id>add-module-info</id>
-          <phase>package</phase>
-          <goals>
-            <goal>add-module-info</goal>
-          </goals>
-          <configuration>
-            <module>
-              <moduleInfo>
-                <name>${module.name}</name>
-                <open>true</open>
-                <exports>
-                  *;
-                </exports>
-              </moduleInfo>
-            </module>
-            <exclusions>
-              <exclusion>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>jsr305</artifactId>
-              </exclusion>
-            </exclusions>
-          </configuration>
-        </execution>
-      </executions>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
       </plugin>
     </plugins>
   </build>

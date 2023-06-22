@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.dev.assembler;
@@ -150,7 +150,7 @@ public interface Constants
     /**
     * The maximum supported major version of the class structure.
     */
-    public static final int VERSION_MAJOR_MAX = 61;
+    public static final int VERSION_MAJOR_MAX = 65;  // Java 21
     /**
     * The maximum supported minor version of the class structure.
     */
