@@ -10,8 +10,8 @@ name: Deploy to Maven Central
 on:
   workflow_run:
     workflows: ["CI Build"]
-    # Only add branches that build with Java 17
-    branches: [ main, v22.09, v23.03 ]
+    # Only add branches that build with Java 20
+    branches: [ main ]
     types:
     - completed
 
@@ -33,10 +33,10 @@ jobs:
         fetch-depth: 0
 
     - name: Set up JDK
-      uses: actions/setup-java@v3
+      uses: oracle-actions/setup-java@v1
       with:
-        distribution: 'oracle'
-        java-version: '17'
+        website: jdk.java.net
+        release: 21
 
     - name: Cache Maven packages
       uses: actions/cache@v3

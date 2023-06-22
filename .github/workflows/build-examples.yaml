@@ -36,11 +36,11 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up JDK
-      uses: actions/setup-java@v3
+      uses: oracle-actions/setup-java@v1
       with:
-        distribution: 'oracle'
-        java-version: '17'
-
+        website: jdk.java.net
+        release: 21
+        
     - name: Print Maven & Java version
       run: mvn -version
 
