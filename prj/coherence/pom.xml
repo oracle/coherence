@@ -38,12 +38,12 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-core-21</artifactId>
-      <artifactId>coherence-core</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core</artifactId>
       <version>${project.version}</version>
     </dependency>
 

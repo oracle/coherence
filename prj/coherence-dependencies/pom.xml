@@ -167,6 +167,8 @@
      <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
      <maven.moditect.plugin.version>1.0.0-RC3</maven.moditect.plugin.version>
      <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
+     <maven.plugin.api.version>3.9.2</maven.plugin.api.version>
+     <maven.plugin.plugin.version>3.8.1</maven.plugin.plugin.version>
      <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
      <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
      <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
