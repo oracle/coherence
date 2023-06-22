@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package management;
 
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -81,6 +83,7 @@ import org.hamcrest.Matchers;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -90,6 +93,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.CACHES;
+import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.CLEAR;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBERS;
@@ -100,6 +104,8 @@ import static com.tangosol.coherence.management.internal.resources.AbstractManag
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.REPORTERS;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.ROLE_NAME;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.SERVICE;
+import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.STORAGE;
+import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.TRUNCATE;
 import static com.tangosol.coherence.management.internal.resources.ClusterMemberResource.DIAGNOSTIC_CMD;
 import static com.tangosol.coherence.management.internal.resources.ClusterResource.DUMP_CLUSTER_HEAP;
 import static com.tangosol.coherence.management.internal.resources.ClusterResource.ROLE;
@@ -163,6 +169,7 @@ public class ManagementInfoResourceTests
         propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
         propsServer1.setProperty("coherence.management.http", "inherit");
         propsServer1.setProperty("coherence.management.http.port", "0");
+        propsServer1.setProperty("coherence.management.readonly", Boolean.toString(isReadOnly()));
 
         try
             {
@@ -560,6 +567,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testUpdateJmxManagementError()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         LinkedHashMap mapEntity = new LinkedHashMap();
         mapEntity.put("refreshPolicy", "nonExistent");
         WebTarget target   = getBaseTarget().path(MANAGEMENT);
@@ -584,6 +593,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testUpdateJmxManagement()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         LinkedHashMap mapEntity = new LinkedHashMap();
         mapEntity.put("expiryDelay", 2000L);
         mapEntity.put("refreshPolicy", "refresh-behind");
@@ -627,6 +638,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testHeapDump()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path(DUMP_CLUSTER_HEAP).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
 
@@ -637,6 +650,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testHeapDumpWithRole()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         LinkedHashMap mapEntity = new LinkedHashMap();
         mapEntity.put(ROLE, "storage");
         Response response = getBaseTarget().path("dumpClusterHeap").request(MediaType.APPLICATION_JSON_TYPE)
@@ -649,6 +664,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testLogClusterState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path("logClusterState").request(MediaType.APPLICATION_JSON_TYPE)
                 .post(null);
 
@@ -659,6 +676,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testConfigureTracing()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         LinkedHashMap mapEntity = new LinkedHashMap();
         mapEntity.put(ROLE, "");
         mapEntity.put(TRACING_RATIO, 1.0f);
@@ -728,6 +747,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testMemberLogState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
 
@@ -752,6 +773,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testMemberDumpHeap()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
 
@@ -801,6 +824,8 @@ public class ManagementInfoResourceTests
     public void testJfrWithAllNodes()
             throws Exception
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
@@ -864,6 +889,8 @@ public class ManagementInfoResourceTests
     public void testJfrWithRole()
             throws Exception
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
 
@@ -1203,6 +1230,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testDirectServiceMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         LinkedHashMap mapEntity = new LinkedHashMap();
         mapEntity.put("threadCountMin", 5);
         mapEntity.put("taskHungThresholdMillis", 10);
@@ -1229,6 +1258,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testCacheMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map<String, Object> mapMethodValues = new HashMap<String, Object>()
             {{
                put("highUnits",   100005);
@@ -1263,6 +1294,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testClusterMemberUpdate()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Map<String, Object> mapMethodValues = new HashMap<String, Object>()
             {{
                put("loggingLevel"            ,9);
@@ -1295,6 +1328,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testUpdateReporterMember()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         LinkedHashMap map     = new LinkedHashMap();
         String  sMember = SERVER_PREFIX + "-1";
 
@@ -1408,6 +1443,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testStartAndStopReporter() throws IOException
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         String sMember = SERVER_PREFIX + "-1";
 
         // create a temp directory so we don't pollute any directories
@@ -1485,6 +1522,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testSuspendAndResume()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         Response response = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path("suspend")
                 .request().post(null);
 
@@ -1794,6 +1833,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testReportNodeState()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         WebTarget target   = getBaseTarget().path("members").path(SERVER_PREFIX + "-1").path("state");
         Response  response = target.request().get();
 
@@ -2313,6 +2354,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testPersistenceFailureResponses()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         // the following should fail with BAD REQUESTS
 
         // this service does not have an archiver
@@ -2357,6 +2400,8 @@ public class ManagementInfoResourceTests
     @Test
     public void testPersistence()
         {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
         String     sCacheName = "dist-persistence-test";
         NamedCache cache      = findApplication(SERVER_PREFIX + "-1").getCache(sCacheName);
 
@@ -2471,6 +2516,120 @@ public class ManagementInfoResourceTests
                 assertTrue("Improperly encoded URL: " + sUrl, sUrl.endsWith(sRel));
                 }
             }
+        }
+
+    @Test
+    public void testClearCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(0));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyClearCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
+                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
+        }
+
+    @Test
+    public void testTruncateCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Binary.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(0));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyTruncateCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
+                is(Response.Status.BAD_REQUEST.getStatusCode()));
+        m_aMembers[0].invoke((RemoteCallable<Object>) () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
         }
 
     // ----- utility methods----------------------------------------------------
@@ -2736,7 +2895,7 @@ public class ManagementInfoResourceTests
             String sCacheName = (String) mapCache.get(NAME);
             assertThat(mapCache.get(NAME), isOneOf(CACHES_LIST));
 
-            if (!sCacheName.equals("dist-persistence-test"))
+            if (!sCacheName.equals("dist-persistence-test") && !sCacheName.equals(CLEAR_CACHE_NAME))
                 {
                 assertThat(Integer.valueOf((Integer) mapCache.get("size")), greaterThan(0));
                 }
@@ -2754,7 +2913,7 @@ public class ManagementInfoResourceTests
 
         for (LinkedHashMap mapCache : listCacheMaps)
             {
-            if (!mapCache.get(NAME).equals("dist-persistence-test"))
+            if (!mapCache.get(NAME).equals("dist-persistence-test") && !mapCache.get(NAME).equals(CLEAR_CACHE_NAME))
                 {
                 assertThat((Integer) mapCache.get("totalPuts"), greaterThan(0));
                 }
@@ -2775,7 +2934,7 @@ public class ManagementInfoResourceTests
                 }
             else
                 {
-                if (!mapCache.get(NAME).equals("dist-persistence-test"))
+                if (!mapCache.get(NAME).equals("dist-persistence-test") && !mapCache.get(NAME).equals(CLEAR_CACHE_NAME))
                     {
                     assertThat(mapCache.get("units"), is(1));
                     }
@@ -3158,6 +3317,24 @@ public class ManagementInfoResourceTests
         return false;
         }
 
+    /**
+     * Set the test to run as read-only.
+     *
+     * @param fIsReadOnly indicates if read-only is true for management
+     */
+    protected static void setReadOnly(boolean fIsReadOnly)
+        {
+        s_fIsReadOnly = fIsReadOnly;
+        }
+
+    /**
+     * Return if management is to be read-only.
+     */
+    protected static boolean isReadOnly()
+        {
+        return s_fIsReadOnly;
+        }
+
     // ----- data members ------------------------------------------------------
 
     /**
@@ -3199,6 +3376,11 @@ public class ManagementInfoResourceTests
      * Temporary directory to store JFR files.
      */
     protected static File s_dirJFR;
+
+    /**
+     * A flag to indicate if management is to be read-only.
+     */
+    private static boolean s_fIsReadOnly = false;
 
     // ----- constants ------------------------------------------------------
 
@@ -3248,6 +3430,11 @@ public class ManagementInfoResourceTests
     protected static final String NEAR_CACHE_NAME = "near-test";
 
     /**
+     * The clear/truncate cache.
+     */
+    protected static final String CLEAR_CACHE_NAME = "dist-clear";
+
+    /**
      * The list of services used by this test class.
      */
     private String[] SERVICES_LIST = {SERVICE_NAME, "ExtendHttpProxyService", "ExtendProxyService",
@@ -3256,7 +3443,7 @@ public class ManagementInfoResourceTests
     /**
      * The list of caches used by this test class.
      */
-    private String[] CACHES_LIST = {CACHE_NAME, "near-test", "dist-foo"};
+    private String[] CACHES_LIST = {CACHE_NAME, "near-test", "dist-foo", "dist-persistence-test", CLEAR_CACHE_NAME};
 
     /**
      * Prefix for the spawned processes.

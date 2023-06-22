@@ -12,12 +12,15 @@ import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
+import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapListener;
 import com.tangosol.util.filter.AndFilter;
 import com.tangosol.util.filter.BetweenFilter;
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.IndexAwareFilter;
 import com.tangosol.util.filter.OrFilter;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import common.AbstractFunctionalTest;
 
 import data.persistence.Person;
@@ -27,12 +30,17 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -120,6 +128,94 @@ public class StorageManagerMBeanTests
 
         Integer afterRemoveKeyListenerCount =  (Integer) server.getAttribute(name, "ListenerKeyCount");
         assertEquals("COH-13113 regression: expected ListenerKeyCount to be 0, if non-zero, still a leak when removing KeyListener", Integer.valueOf(0), afterRemoveKeyListenerCount);
+        }
+
+    /**
+     * Test cache clear operation.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testClearOperation()
+            throws Exception
+        {
+        final AtomicInteger atomicInsert = new AtomicInteger();
+        final AtomicInteger atomicDelete = new AtomicInteger();
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-clear");
+        MapListener<Integer, Integer> listener = new MapListener<Integer, Integer>()
+            {
+            public void entryInserted(MapEvent<Integer, Integer> evt)
+                {
+                atomicInsert.incrementAndGet();
+                }
+
+            public void entryUpdated(MapEvent<Integer, Integer> evt)
+                {
+                }
+
+            public void entryDeleted(MapEvent<Integer, Integer> evt)
+                {
+                atomicDelete.incrementAndGet();
+                }
+            };
+
+        cache.addMapListener(listener);
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        assertEquals(100, cache.size());
+        Eventually.assertDeferred(atomicInsert::get, is(100));
+        ObjectName name = getQueryName(cache);
+        server.invoke(name, "clearCache", null, null);
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred(atomicDelete::get, is(100));
+        }
+
+    /**
+     * Test cache truncate operation.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testTruncateOperation()
+            throws Exception
+        {
+        final AtomicInteger atomicInsert = new AtomicInteger();
+        final AtomicInteger atomicDelete = new AtomicInteger();
+        NamedCache<Integer, Integer> cache = getNamedCache("dist-truncate");
+        MapListener<Integer, Integer> listener = new MapListener<Integer, Integer>()
+            {
+            public void entryInserted(MapEvent<Integer, Integer> evt)
+                {
+                atomicInsert.incrementAndGet();
+                }
+
+            public void entryUpdated(MapEvent<Integer, Integer> evt)
+                {
+                }
+
+            public void entryDeleted(MapEvent<Integer, Integer> evt)
+                {
+                atomicDelete.incrementAndGet();
+                }
+            };
+
+        cache.addMapListener(listener);
+        MBeanServer server = MBeanHelper.findMBeanServer();
+
+        for (int i = 0; i < 100; i++)
+            {
+            cache.put(i, i + 1);
+            }
+        assertEquals(100, cache.size());
+        Eventually.assertDeferred(atomicInsert::get, is(100));
+        ObjectName name = getQueryName(cache);
+        server.invoke(name, "truncateCache", null, null);
+        Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred(atomicDelete::get, is(0), Eventually.delayedBy(2, TimeUnit.SECONDS));
         }
 
     // ----- helpers --------------------------------------------------------

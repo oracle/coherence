@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.management.internal.resources;
 
@@ -347,6 +347,17 @@ public class ClusterResource
         }
 
     /**
+     * Sub resource for storage.
+     *
+     * @return the storage sub resource
+     */
+    @Path(STORAGE)
+    public Object getStorageManagersResource()
+        {
+        return new StorageManagersResource(this);
+        }
+
+    /**
      * Call "diagnostic-cmd/jfrCmd" to perform JFR operation on ClusterMBean.
      *
      * Valid commands are jfrStart, jfrStop, jfrDump, and jfrCheck. See jcmd JFR
@@ -498,5 +509,5 @@ public class ClusterResource
      */
     public static final String TRACING_RATIO = "tracingRatio";
 
-    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, REPORTERS, WEB_APPS};
+    public static final String[] CHILD_LINKS = {SERVICES, CACHES, MEMBERS, MANAGEMENT, JOURNAL, REPORTERS, WEB_APPS, STORAGE};
     }

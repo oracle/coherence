@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.management.internal.resources;
 
@@ -1851,6 +1851,11 @@ public abstract class AbstractManagementResource
     public static final String CWEB_APPLICATION_QUERY = ":type=*HttpSessionManager,appId=";
 
     /**
+     * MBean query to filter out all StorageManager MBean objects in the cluster.
+     */
+    public static final String STORAGE_MANAGERS_ALL_QUERY = ":type=StorageManager";
+
+    /**
      * MBean query to filter out StorageManager MBean of a specific cache and service, running on a specific node.
      */
     public static final String STORAGE_MANAGERS_QUERY = ":type=StorageManager,cache=%s";
@@ -1926,6 +1931,9 @@ public abstract class AbstractManagementResource
     public static final String TIER_BACK          = "back";
     public static final String TIER               = "tier";
     public static final String OPTIONS            = "options";
+    public static final String CACHE              = "cache";
+    public static final String TRUNCATE           = "truncate";
+    public static final String CLEAR              = "clear";
 
     /**
      * Map of URL to platform Mbean query.
