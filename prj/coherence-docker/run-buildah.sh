@@ -93,6 +93,8 @@ else
       -v /var/run/docker.sock:/var/run/docker.sock  \
       -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
+      -e JAVA_EA_BASE_URL="${JAVA_EA_BASE_URL}" \
+      -e BUILDER_IMAGE="${BUILDER_IMAGE}" \
       -e IMAGE_NAME="${IMAGE_NAME}" \
       -e IMAGE_ARCH="${IMAGE_ARCH}" \
       -e AMD_BASE_IMAGE="${AMD_BASE_IMAGE}" \
@@ -120,6 +122,6 @@ else
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \
-      quay.io/buildah/stable:v1.29.0 "${SCRIPT_NAME}"
+      quay.io/buildah/stable:v1.30.0 "${SCRIPT_NAME}"
 fi
 

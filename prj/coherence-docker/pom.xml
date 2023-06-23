@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -192,6 +192,7 @@
                      <argument>BUILD</argument>
                    </arguments>
                    <environmentVariables>
+                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
@@ -338,6 +339,7 @@
                      <argument>EXEC</argument>
                    </arguments>
                    <environmentVariables>
+                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>

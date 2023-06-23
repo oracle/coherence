@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -94,6 +94,12 @@ then
   PORT_HEALTH=6676
 fi
 
+# Ensure there is a builder image set
+if [ "${BUILDER_IMAGE}" == "" ]
+then
+  BUILDER_IMAGE="container-registry.oracle.com/os/oraclelinux:8"
+fi
+
 # we must use docker format to use health checks
 export BUILDAH_FORMAT=docker
 
@@ -134,6 +140,9 @@ ENV_VARS="${ENV_VARS} -e COH_MAIN_CLASS=${MAIN_CLASS}"
 ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_TYPE=const"
 ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_PARAM=0"
 ENV_VARS="${ENV_VARS} -e JAEGER_SERVICE_NAME=coherence"
+ENV_VARS="${ENV_VARS} -e LANG=en_US.UTF-8"
+ENV_VARS="${ENV_VARS} -e JAVA_HOME=/usr/java/jdk-21"
+
 
 # Build the exposed port list
 PORT_LIST=""
@@ -152,10 +161,40 @@ CREATED=$(date)
 # param 2: the image o/s e.g. linux
 # param 3: the base image
 # param 4: the image name
+# param 5: the Java EA download URL prefix
 common_image(){
   # make sure the old container is removed
   buildah rm "container-${1}" || true
-#  buildah rmi "coherence:${1}" || true
+
+  if [ "${5}" != "" ]
+  then
+    buildah rm "builder-${1}" || true
+    exitCode=0
+    for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "builder-${1}" "${BUILDER_IMAGE}" \
+      && exitCode=0 && break || exitCode=$? \
+      && echo "The command 'buildah from...' failed. Attempt ${i} of 5" \
+      && sleep 10; done;
+
+    if [ ${exitCode} != 0 ]; then
+      exit 1
+    fi
+
+    if [ "${1}" = "amd64" ]; then
+      ARCH="x64"
+    else
+      ARCH="aarch64"
+    fi
+    JAVA_PKG="${5}"_linux-"${ARCH}"_bin.tar.gz
+    JAVA_HOME=/usr/java/jdk-21
+
+    curl --output /tmp/jdk.tgz "$JAVA_PKG"
+    mkdir -p "/tmp${JAVA_HOME}"
+    tar --extract --file /tmp/jdk.tgz --directory "/tmp${JAVA_HOME}" --strip-components 1
+
+    buildah copy "builder-${1}" "/tmp${JAVA_HOME}" "${JAVA_HOME}"
+    rm -f /tmp/jdk.tgz
+    rm -rf "/tmp${JAVA_HOME}"
+  fi
 
   # Create the container from the base image, setting the architecture and O/S
   # The "buildah from" command will pull the base image if not present, this will
@@ -169,6 +208,14 @@ common_image(){
 
   if [ ${exitCode} != 0 ]; then
     exit 1
+  fi
+
+  if [ "${5}" != "" ]
+  then
+    IMAGE_PATH=$(buildah run --tty -- "container-${1}" printenv PATH) || IMAGE_PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+    buildah config --env PATH="${JAVA_HOME}/bin:${IMAGE_PATH}" "container-${1}"
+    buildmnt=$(buildah mount "builder-${1}")
+    buildah copy "container-${1}" "${buildmnt}${JAVA_HOME}" "${JAVA_HOME}"
   fi
 
   # Add the configuration, entrypoint, ports, env-vars etc...
@@ -228,10 +275,10 @@ then
 fi
 
 # Build the amd64 image
-common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64"
+common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64" "${JAVA_EA_BASE_URL}"
 
 # Build the arm64 image
-common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64"
+common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64" "${JAVA_EA_BASE_URL}"
 
 # Push the relevant image to the docker daemon base on the build machine's o/s architecture
 if [ "${NO_DAEMON}" != "true" ]
@@ -241,10 +288,10 @@ then
 fi
 
 # Build the amd64 Graal image
-common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64"
+common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64" ""
 
 # Build the arm64 Graal image
-common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64"
+common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64" ""
 
 # Push the relevant Graal image to the docker daemon base on the build machine's o/s architecture
 if [ "${NO_DAEMON}" != "true" ]
