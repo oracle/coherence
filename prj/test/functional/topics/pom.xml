@@ -22,7 +22,7 @@
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-    <failsafe.max.heap>1500m</failsafe.max.heap>
+    <failsafe.max.heap>2g</failsafe.max.heap>
   </properties>
 
   <dependencies>
