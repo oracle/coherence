@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -98,15 +98,4 @@ public abstract class RestHelper
                             " : " + ex.getLocalizedMessage() + sCause;
                      });
         }
-
-    /**
-     * Return an instance of ParserContext as an Object to be used for evaluation.
-     *
-     * @return an instance of ParserContext as an Object to be used for evaluation
-     */
-    public static Object getMvelParserContext()
-        {
-        return MvelHelper.getMvelParserContext();
-        }
-
     }

@@ -1,15 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.osgi;
 
 import com.tangosol.coherence.osgi.restosgitest.CoherenceRestOsgiTestBundleActivator;
 
-import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
-
+import com.tangosol.coherence.rest.util.JsonMap;
 import com.tangosol.net.CacheFactory;
 
 import org.junit.Test;
@@ -44,7 +43,7 @@ public class RestOsgiTest
         libDeploy("jersey-json.bnd");
         libDeploy("jersey-server.bnd");
         deployDependency(CacheFactory.class);
-        deployDependency(MvelExtractor.class);
+        deployDependency(JsonMap.class);
 
         // deploy this test as a bundle
         container.packageAndDeploy("/" + sPackage + "/coherence-rest-osgi-test.properties");

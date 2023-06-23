@@ -1,16 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
 
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
-
-import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
-
-import com.tangosol.coherence.rest.util.updater.MvelUpdater;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -24,6 +20,7 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueManipulator;
 import com.tangosol.util.ValueUpdater;
 
+import com.tangosol.util.extractor.UniversalExtractor;
 import com.tangosol.util.extractor.UniversalUpdater;
 
 import java.io.DataInput;
@@ -34,7 +31,12 @@ import static com.tangosol.util.extractor.AbstractExtractor.VALUE;
 
 
 /**
- *  MVEL-based ValueManipulator implementation.
+ *  UniversalManipulator implementation.
+ *  <P>
+ *  Note: Since MvelExtractor/MvepUpdater are removed, this class only works
+ *  with {@link UniversalExtractor} and {@link UniversalUpdater}.
+ *  To maintain backwards compatibility for serialization,
+ *  not renaming this class.
  *
  * @author ic  2011.07.14
  */
@@ -52,9 +54,9 @@ public class MvelManipulator
         }
 
     /**
-     * Construct a MvelManipulator based on an MVEL expression.
+     * Construct a MvelManipulator based on an {@link UniversalExtractor#createExtractor(String) UniversalExtractor name(s)} expression.
      *
-     * @param sExpr  the MVEL expression to evaluate
+     * @param sExpr  the Universal expression to evaluate
      */
     public MvelManipulator(String sExpr)
         {
@@ -75,9 +77,7 @@ public class MvelManipulator
         ValueExtractor extractor = m_extractor;
         if (extractor == null)
             {
-            m_extractor = extractor = MvelHelper.isEnabled()
-                                      ? new MvelExtractor(m_sExpr)
-                                      : new UniversalExtractorBuilder().realize("",
+            m_extractor = extractor = new UniversalExtractorBuilder().realize("",
                                                                                 VALUE,
                                                                                 m_sExpr);
             }
@@ -92,9 +92,7 @@ public class MvelManipulator
         ValueUpdater updater = m_updater;
         if (updater == null)
             {
-            m_updater = updater = MvelHelper.isEnabled()
-                                  ? new MvelUpdater(m_sExpr)
-                                  : new UniversalUpdater(m_sExpr);
+            m_updater = updater = new UniversalUpdater(m_sExpr);
             }
         return updater;
         }
@@ -186,7 +184,7 @@ public class MvelManipulator
     // ---- data members ----------------------------------------------------
 
     /**
-     * The MVEL expression to evaluate.
+     * The {@link UniversalExtractor#createExtractor(String) UniversalExtractor name(s)} expression to evaluate.
      */
     protected String m_sExpr;
 
