@@ -1,19 +1,22 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
 
 
-import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.IdentityHolder;
 import com.oracle.coherence.common.base.MutableLong;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 import com.oracle.coherence.common.collections.InflatableMap;
-import java.util.concurrent.atomic.AtomicLong;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
 * Use this class in cases that large numbers of threads can operate
@@ -24,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 * "be inside", the gate cannot fully close until they leave (exit).  Once all
 * threads are out, the gate is closed, and can be re-opened (open) or
 * permanently closed (destroy).
-*
+* <p/>
 * Each call to enter requires a corresponding call to exit, similar to the JVM
 * implementation of the "synchronized" keyword that places a monitorenter op
 * that the beginning of the synchronized portion and protects the synchronized
@@ -113,6 +116,7 @@ public class ThreadGate<R>
         f_resource = resource;
         }
 
+    // ---- public API ------------------------------------------------------
     /**
     * {@inheritDoc}
     */
@@ -155,7 +159,8 @@ public class ThreadGate<R>
             return true;
             }
 
-        synchronized (this)
+        lock();
+        try
             {
             while (true)
                 {
@@ -182,6 +187,10 @@ public class ThreadGate<R>
                     return false;
                     }
                 }
+            }
+        finally
+            {
+            unlock();
             }
         }
 
@@ -245,7 +254,8 @@ public class ThreadGate<R>
         boolean    fReenter    = false;
         boolean    fReopen     = false;
 
-        synchronized (this)
+        lock();
+        try
             {
             try
                 {
@@ -324,9 +334,13 @@ public class ThreadGate<R>
                     {
                     setCloser(null);
                     updateStatus(GATE_OPEN);
-                    notifyAll();
+                    f_open.signalAll();
                     }
                 }
+            }
+        finally
+            {
+            unlock();
             }
         }
 
@@ -358,32 +372,40 @@ public class ThreadGate<R>
     *
     * @param oContender the contender destroying the gate
     */
-    protected synchronized void destroyInternal(Object oContender)
+    protected void destroyInternal(Object oContender)
         {
-        switch (getStatus())
+        lock();
+        try
             {
-            case GATE_CLOSED:
+            switch (getStatus())
+                {
+                case GATE_CLOSED:
                 {
                 if (oContender != getCloser())
                     {
                     throw new IllegalStateException(
-                       "ThreadGate.destroy: Gate was not closed by " + oContender + "; "
-                       + this);
+                            "ThreadGate.destroy: Gate was not closed by " + oContender + "; "
+                            + this);
                     }
 
                 updateStatus(GATE_DESTROYED);
                 setCloser(null);
-                notifyAll();
+                f_open.signalAll();
                 }
                 break;
 
-            case GATE_DESTROYED:
-                // the gate has already been destroyed
-                break;
+                case GATE_DESTROYED:
+                    // the gate has already been destroyed
+                    break;
 
-            default:
-                throw new IllegalStateException(
-                        "ThreadGate.destroy: Gate is not closed! " + this);
+                default:
+                    throw new IllegalStateException(
+                            "ThreadGate.destroy: Gate is not closed! " + this);
+                }
+            }
+        finally
+            {
+            unlock();
             }
         }
 
@@ -508,7 +530,8 @@ public class ThreadGate<R>
                     case GATE_CLOSED:
                         // we know that we were not already in the gate, and are
                         // not the one closing the gate; wait for it to open
-                        synchronized (this)
+                        lock();
+                        try
                             {
                             long nStatus = getStatus();
                             if (nStatus == GATE_CLOSING || nStatus == GATE_CLOSED)
@@ -520,6 +543,10 @@ public class ThreadGate<R>
                                     return false;
                                     }
                                 }
+                            }
+                        finally
+                            {
+                            unlock();
                             }
                         break; // retry
 
@@ -561,6 +588,7 @@ public class ThreadGate<R>
             exitInternal(oContender);
             }
         }
+
     /**
      * Internal version of exit.
      *
@@ -576,9 +604,14 @@ public class ThreadGate<R>
                 {
                 // we were the last to exit, and the gate is in the CLOSING state
                 // notify everyone, to ensure that we notify the closing thread
-                synchronized (this)
+                lock();
+                try
                     {
-                    notifyAll();
+                    f_open.signalAll();
+                    }
+                finally
+                    {
+                    unlock();
                     }
                 }
             }
@@ -588,6 +621,7 @@ public class ThreadGate<R>
             throw new IllegalMonitorStateException("ThreadGate.exit: (" + oContender + ") has already exited! " + this);
             }
         }
+
 
    /**
     * {@inheritDoc}
@@ -627,11 +661,16 @@ public class ThreadGate<R>
                 if (cClosed == 0)
                     {
                     // we've opened the gate
-                    synchronized (this)
+                    lock();
+                    try
                         {
                         updateStatus(GATE_OPEN);
                         setCloser(null);
-                        notifyAll();
+                        f_open.signalAll();
+                        }
+                    finally
+                        {
+                        unlock();
                         }
                     }
                 return;
@@ -727,8 +766,23 @@ public class ThreadGate<R>
     // ----- internal helpers -----------------------------------------------
 
     /**
+     * Lock this gate.
+     */
+    protected void lock()
+        {
+        f_lock.lock();
+        }
+
+    /**
+     * Unlock this gate.
+     */
+    protected void unlock()
+        {
+        f_lock.unlock();
+        }
+
+    /**
     * Wait up to the specified number of milliseconds for notification.
-    * Caller must be synchronized.
     *
     * @param cMillis  the wait time
     *
@@ -744,7 +798,7 @@ public class ThreadGate<R>
         long lTime = SafeClock.INSTANCE.getSafeTimeMillis();
         try
             {
-            Blocking.wait(this, Math.max(0, cMillis));
+            f_open.await(Math.max(0, cMillis), TimeUnit.MILLISECONDS);
             }
         catch (InterruptedException e)
             {
@@ -804,7 +858,7 @@ public class ThreadGate<R>
     /**
     * Specify the thread that is closing the gates.
     *
-    * The caller must be synchronized on the ThreadGate.
+    * The caller must hold the lock on the ThreadGate itself.
     *
     * @param oCloser  the closer
     */
@@ -854,34 +908,41 @@ public class ThreadGate<R>
     * Provide a human-readable representation of this ThreadGate.
     */
     @Override
-    public synchronized String toString()
+    public String toString()
         {
-        String sState;
-        switch (getStatus())
+        lock();
+        try
             {
-            case GATE_OPEN:
-                sState = "GATE_OPEN";
-                break;
-            case GATE_CLOSING:
-                sState = "GATE_CLOSING";
-                break;
-            case GATE_CLOSED:
-                sState = "GATE_CLOSED";
-                break;
-            case GATE_DESTROYED:
-                sState = "GATE_DESTROYED";
-                break;
-            default:
-                sState = "INVALID";
-                break;
+            String sState;
+            switch (getStatus())
+                {
+                case GATE_OPEN:
+                    sState = "GATE_OPEN";
+                    break;
+                case GATE_CLOSING:
+                    sState = "GATE_CLOSING";
+                    break;
+                case GATE_CLOSED:
+                    sState = "GATE_CLOSED";
+                    break;
+                case GATE_DESTROYED:
+                    sState = "GATE_DESTROYED";
+                    break;
+                default:
+                    sState = "INVALID";
+                    break;
+                }
+
+            return "ThreadGate{State=" + sState
+                   + ", ActiveCount=" + getActiveCount()
+                   + ", CloseCount=" + getCloseCount()
+                   + ", Closer= " + getCloser()
+                   + '}';
             }
-
-        return "ThreadGate{State=" + sState
-            + ", ActiveCount=" + getActiveCount()
-            + ", CloseCount="  + getCloseCount()
-            + ", Closer= " + getCloser()
-            + '}';
-
+        finally
+            {
+            unlock();
+            }
         }
 
     /**
@@ -1026,13 +1087,18 @@ public class ThreadGate<R>
         ConcurrentHashMap<IdentityHolder<Object>, MutableLong> map = m_mapContenderEnters;
         if (map == null)
             {
-            synchronized (this)
+            lock();
+            try
                 {
                 map = m_mapContenderEnters;
                 if (map == null)
                     {
                     map = m_mapContenderEnters = new ConcurrentHashMap<>();
                     }
+                }
+            finally
+                {
+                unlock();
                 }
             }
 
@@ -1182,8 +1248,8 @@ public class ThreadGate<R>
     public static class NonReentrant<R>
         extends ThreadGate<R>
         {
-        // performance tests against the reentrant gate have shown it to be about 3x faster then the reentrant
-        // version; and about 30% faster then locking/unlocking the read lock of Java's ReentrantReadWriteLock.
+        // performance tests against the reentrant gate have shown it to be about 3x faster than the reentrant
+        // version; and about 30% faster than locking/unlocking the read lock of Java's ReentrantReadWriteLock.
 
         /**
          * Construct a NonReentrant gate.
@@ -1249,9 +1315,14 @@ public class ThreadGate<R>
                 {
                 // we were the last to exit, and the gate is in the CLOSING state
                 // notify everyone, to ensure that we notify the closing thread
-                synchronized (this)
+                lock();
+                try
                     {
-                    notifyAll();
+                    f_open.signalAll();
+                    }
+                finally
+                    {
+                    unlock();
                     }
                 }
             else if (lStatus < 0)
@@ -1320,6 +1391,17 @@ public class ThreadGate<R>
 
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * Internal lock used for synchronized state access.
+     */
+    private final Lock f_lock = new ReentrantLock();
+
+    /**
+     * A condition associated with a synchronization lock above that is used
+     * to wait for notification and to notify waiting threads.
+     */
+    protected final Condition f_open = f_lock.newCondition();
 
     /**
      * The protected resource.
