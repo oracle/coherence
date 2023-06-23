@@ -10,10 +10,13 @@
 
 package com.tangosol.coherence.component.util;
 
-import com.oracle.coherence.common.base.Blocking;
+import com.tangosol.coherence.Component;
 import com.tangosol.util.Base;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The MessageQueue provides a means to efficiently (and in a thread-safe
@@ -46,7 +49,11 @@ public class Queue
      */
     private volatile transient boolean __m_Signaled;
     private static com.tangosol.util.ListMap __mapChildren;
-    
+
+    protected final ReentrantLock f_lock = new ReentrantLock();
+
+    protected final Condition f_notEmpty = f_lock.newCondition();
+
     // Static initializer
     static
         {
@@ -181,13 +188,21 @@ public class Queue
      */
     public boolean add(Object oElement)
         {
-        getElementList().add(oElement);
-        
-        // this Queue reference is waited on by the blocking remove
-        // method; use signal to wakeup waiting threads
-        signal();
-        
-        return true;
+        lock();
+        try
+            {
+            getElementList().add(oElement);
+
+            // this Queue reference is waited on by the blocking remove
+            // method; use signal to wakeup waiting threads
+            signal();
+
+            return true;
+            }
+        finally
+            {
+            unlock();
+            }
         }
     
     /**
@@ -197,12 +212,20 @@ public class Queue
      */
     public boolean addHead(Object oElement)
         {
-        getElementList().add(0, oElement);
-        
-        // see #add()
-        signal();
-        
-        return true;
+        lock();
+        try
+            {
+            getElementList().add(0, oElement);
+
+            // see #add()
+            signal();
+
+            return true;
+            }
+        finally
+            {
+            unlock();
+            }
         }
     
     // From interface: com.oracle.coherence.common.base.Notifier
@@ -217,18 +240,20 @@ public class Queue
             throws java.lang.InterruptedException
         {
         // import com.oracle.coherence.common.base.Blocking;
-        
-        if (!isAvailable() && !isSignaled()) // isAvailable is specialized by AssociatedQueue
+        lock();
+        try
             {
-            synchronized (this)
+            if (!isAvailable() && !isSignaled()) // isAvailable is specialized by AssociatedQueue
                 {
-                if (!isAvailable() && !isSignaled())
-                    {
-                    Blocking.wait(this, cMillis);
-                    }
+                f_notEmpty.await(cMillis, TimeUnit.MILLISECONDS);
                 }
+            setSignaled(false);
             }
-        setSignaled(false);
+        finally
+            {
+            unlock();
+            }
+
         }
     
     /**
@@ -241,12 +266,8 @@ public class Queue
     
     // Accessor for the property "ElementList"
     /**
-     * Getter for property ElementList.<p>
-    * The List that backs the Queue.
-    * 
-    * @volatile subclasses are allowed to change the value of ElementList over
-    * time, and this property is accessed in unsynchronized methods, thus it is
-    * volatile.
+     * Getter for property ElementList.
+     * <p/>The List that backs the Queue.
      */
     protected com.tangosol.util.RecyclingLinkedList getElementList()
         {
@@ -264,16 +285,25 @@ public class Queue
         }
     
     /**
-     * Determine the number of elements in this Queue. The size of the Queue may
-    * change after the size is returned from this method, unless the Queue is
-    * synchronized on before calling size() and the monitor is held until the
-    * operation based on this size result is complete.
-    * 
-    * @return the number of elements in this Queue
+     * Determine if this Queue is empty.
+     *
+     * The result of this method may change after it is returned, unless the Queue is
+     * {@link #lock() locked} before calling this method and the lock is held until the
+     * operation based on the returned result is complete.
+     *
+     * @return {@code true} if this Queue is empty; {@code false} otherwise
      */
     public boolean isEmpty()
         {
-        return getElementList().isEmpty();
+        lock();
+        try
+            {
+            return getElementList().isEmpty();
+            }
+        finally
+            {
+            unlock();
+            }
         }
     
     // Accessor for the property "Signaled"
@@ -289,18 +319,28 @@ public class Queue
         }
     
     /**
-     * Provides an iterator over the elements in this Queue. The iterator is a
-    * point-in-time snapshot, and the contents of the Queue may change after
-    * the iterator is returned, unless the Queue is synchronized on before
-    * calling iterator() and until the iterator is exhausted.
-    * 
-    * @return an iterator of the elements in this Queue
+     * Provides an iterator over the elements in this Queue.
+     * <p/>
+     * The returned iterator is a point-in-time snapshot, and the contents of
+     * the Queue may change after the iterator is returned, unless the Queue is
+     * {@link #lock() locked} before calling iterator() and the lock is held
+     * until the iterator is exhausted.
+     *
+     * @return an iterator of the elements in this Queue
      */
     public java.util.Iterator iterator()
         {
-        Queue.Iterator iter = (Queue.Iterator) _newChild("Iterator");
-        iter.setList(getElementList());
-        return iter;
+        lock();
+        try
+            {
+            Queue.Iterator iter = (Queue.Iterator) _newChild("Iterator");
+            iter.setList(getElementList());
+            return iter;
+            }
+        finally
+            {
+            unlock();
+            }
         }
     
     /**
@@ -319,7 +359,15 @@ public class Queue
      */
     public Object peekNoWait()
         {
-        return getElementList().getFirst();
+        lock();
+        try
+            {
+            return getElementList().getFirst();
+            }
+        finally
+            {
+            unlock();
+            }
         }
     
     /**
@@ -355,33 +403,41 @@ public class Queue
     public Object remove(long cMillis)
         {
         // import com.tangosol.util.Base;
-        
-        Object o = removeNoWait();
-        while (o == null)
+
+        lock();
+        try
             {
-            long cWait = cMillis <= 0L ? 1000L : Math.min(1000L, cMillis);
-        
-            try
+            Object o = removeNoWait();
+            while (o == null)
                 {
-                await(cWait);
-                }
-            catch (InterruptedException e)
-                {
-                Thread.currentThread().interrupt();
-                throw Base.ensureRuntimeException(e);
-                }
-            
-            o = removeNoWait();    
-            if (cMillis > 0L)
-                {
-                cMillis -= cWait;
-                if (cMillis <= 0L)
+                long cWait = cMillis <= 0L ? 1000L : Math.min(1000L, cMillis);
+
+                try
                     {
-                    break;
+                    await(cWait);
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    throw Base.ensureRuntimeException(e);
+                    }
+
+                o = removeNoWait();
+                if (cMillis > 0L)
+                    {
+                    cMillis -= cWait;
+                    if (cMillis <= 0L)
+                        {
+                        break;
+                        }
                     }
                 }
+            return o;
             }
-        return o;
+        finally
+            {
+            unlock();
+            }
         }
     
     /**
@@ -397,17 +453,22 @@ public class Queue
      */
     public Object removeNoWait()
         {
-        return getElementList().removeFirst();
+        lock();
+        try
+            {
+            return getElementList().removeFirst();
+            }
+        finally
+            {
+            unlock();
+            }
         }
     
     // Accessor for the property "ElementList"
+
     /**
-     * Setter for property ElementList.<p>
-    * The List that backs the Queue.
-    * 
-    * @volatile subclasses are allowed to change the value of ElementList over
-    * time, and this property is accessed in unsynchronized methods, thus it is
-    * volatile.
+     * Setter for property ElementList.
+     * <p/>The List that backs the Queue.
      */
     protected void setElementList(com.tangosol.util.RecyclingLinkedList list)
         {
@@ -429,24 +490,54 @@ public class Queue
     // From interface: com.oracle.coherence.common.base.Notifier
     public void signal()
         {
-        synchronized (this)
+        lock();
+        try
             {
             setSignaled(true);
-            notifyAll();
+            f_notEmpty.signalAll();
+            }
+        finally
+            {
+            unlock();
             }
         }
-    
+
     /**
-     * Determine the number of elements in this Queue. The size of the Queue may
-    * change after the size is returned from this method, unless the Queue is
-    * synchronized on before calling size() and the monitor is held until the
-    * operation based on this size result is complete.
-    * 
-    * @return the number of elements in this Queue
+     * Determine the number of elements in this Queue.
+     *
+     * The size of the Queue may change after it is returned from this method,
+     * unless the Queue is {@link #lock() locked} before calling {@code size()}
+     * and the lock is held until the operation based on this size result is complete.
+     *
+     * @return the number of elements in this Queue
      */
     public int size()
         {
-        return getElementList().size();
+        lock();
+        try
+            {
+            return getElementList().size();
+            }
+        finally
+            {
+            unlock();
+            }
+        }
+
+    /**
+     * Lock this Queue.
+     */
+    public void lock()
+        {
+        f_lock.lock();
+        }
+
+    /**
+     * Unlock this Queue.
+     */
+    public void unlock()
+        {
+        f_lock.unlock();
         }
 
     // ---- class: com.tangosol.coherence.component.util.Queue$Iterator
@@ -624,7 +715,10 @@ public class Queue
                 Object oElement = getItem(iIndex);
                 int    iGuess   = iIndex - cRemoved;
                 List   list     = getList();
-                synchronized (get_Parent())
+
+                Queue queue = (Queue) get_Parent();
+                queue.lock();
+                try
                     {
                     if (list.get(iGuess) == oElement)
                         {
@@ -638,6 +732,11 @@ public class Queue
                             }
                         }
                     }
+                finally
+                    {
+                    queue.unlock();
+                    }
+                
                 setRemoveCount(cRemoved + 1);
                 }
             else
@@ -663,10 +762,16 @@ public class Queue
             _assert(getList() == null);
             
             __m_List = (list);
-            
-            synchronized (get_Parent())
+
+            Queue queue = (Queue) get_Parent();
+            queue.lock();
+            try
                 {
                 setItem(list.toArray());
+                }
+            finally
+                {
+                queue.unlock();
                 }
             }
         
