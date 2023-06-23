@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.net.ssl.SSLException;
 
 /**
@@ -4485,7 +4486,9 @@ public class TcpAcceptor
             
                 boolean fFlush, fSuspect;
                 long    cQueued, cbQueued, cSent, cbSent;
-                synchronized (queue) // prevent unecessary flushes
+
+                queue.lock();  // prevent unnecessary flushes
+                try
                     {
                     queue.add(wb);
                     fFlush = queue.size() == 1;
@@ -4498,11 +4501,15 @@ public class TcpAcceptor
                     setStatsQueued(cQueued);
                     setStatsBytesQueued(cbQueued);
             
-                    // snap-shot the amount sent so far while we're at it
+                    // snapshot the amount sent so far while we're at it
                     cSent  = getStatsSent();
                     cbSent = getStatsBytesSent();
             
                     fSuspect = isSuspect();
+                    }
+                finally
+                    {
+                    queue.unlock();
                     }
             
                 if (fFlush)

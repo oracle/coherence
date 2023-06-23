@@ -11,10 +11,16 @@
 package com.tangosol.coherence.component.net.extend.message;
 
 import com.tangosol.coherence.component.net.extend.Channel;
-import com.oracle.coherence.common.base.Blocking;
+
 import com.tangosol.net.RequestTimeoutException;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.WrapperException;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Base definition of a Request component.
@@ -417,7 +423,17 @@ public abstract class Request
          * @volatile
          */
         private volatile com.tangosol.net.messaging.Response __m_Response;
-        
+
+        /**
+         * The lock that should be used to control concurrent access to this Status.
+         */
+        private final Lock __m_Lock = new ReentrantLock();
+
+        /**
+         * The condition that is used to signal when the request is completed.
+         */
+        private final Condition __m_Completed = __m_Lock.newCondition();
+
         // Default constructor
         public Status()
             {
@@ -513,7 +529,8 @@ public abstract class Request
                 }
             
             Channel channel;
-            synchronized (this)
+            lock();
+            try
                 {
                 if (isClosed())
                     {
@@ -526,6 +543,10 @@ public abstract class Request
                     setError(cause);
                     onCompletion();
                     }
+                }
+            finally
+                {
+                unlock();
                 }
             
             if (channel != null)
@@ -670,7 +691,7 @@ public abstract class Request
         protected void onCompletion()
             {
             setClosed(true);
-            notifyAll();
+            __m_Completed.signalAll();
             }
         
         // Declared at the super level
@@ -786,7 +807,8 @@ public abstract class Request
             _assert(response != null);
             
             Channel channel;
-            synchronized (this)
+            lock();
+            try
                 {
                 if (isClosed())
                     {
@@ -801,6 +823,10 @@ public abstract class Request
                     __m_Response = (response);
                     onCompletion();
                     }
+                }
+            finally
+                {
+                unlock();
                 }
             
             if (channel != null)
@@ -833,20 +859,26 @@ public abstract class Request
                 if (cMillis <= 0L)
                     {
                     getChannel().getConnectionManager().drainOverflow(0L);
-                
-                    synchronized (this)
+
+                    lock();
+                    try
                         {
                         while (!isClosed())
                             {
-                            Blocking.wait(this);
+                            __m_Completed.await();
                             }
+                        }
+                    finally
+                        {
+                        unlock();
                         }
                     }
                 else
                     {
                     long cRemain = getChannel().getConnectionManager().drainOverflow(cMillis);
-                
-                    synchronized (this)
+
+                    lock();
+                    try
                         {
                         long ldtStart = -1L;
             
@@ -856,8 +888,8 @@ public abstract class Request
                                 {
                                 ldtStart = Base.getSafeTimeMillis();
                                 }
-            
-                            Blocking.wait(this, cRemain);
+
+                            __m_Completed.await(cRemain, TimeUnit.MILLISECONDS);
             
                             if (isClosed())
                                 {
@@ -868,6 +900,10 @@ public abstract class Request
                                 throw new RequestTimeoutException("Request timed out");
                                 }
                             }
+                        }
+                    finally
+                        {
+                        unlock();
                         }
                     }
                 }
@@ -883,6 +919,22 @@ public abstract class Request
                 }
             
             return getResponse();
+            }
+
+        /**
+         * Lock this Status.
+         */
+        public void lock()
+            {
+            __m_Lock.lock();
+            }
+
+        /**
+         * Unlock this Status.
+         */
+        public void unlock()
+            {
+            __m_Lock.unlock();
             }
         }
     }
