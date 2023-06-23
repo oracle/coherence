@@ -12,24 +12,34 @@ package com.tangosol.coherence.component.util;
 
 import com.tangosol.coherence.Component;
 import com.tangosol.coherence.component.util.queue.ConcurrentQueue;
+
 import com.oracle.coherence.common.base.Associated;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.base.Notifier;
+
 import com.oracle.coherence.common.util.AssociationPile;
 import com.oracle.coherence.common.util.ConcurrentAssociationPile;
 import com.oracle.coherence.common.util.Timers;
+
 import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
+import com.tangosol.internal.util.VirtualThreads;
+
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian;
 import com.tangosol.net.PriorityTask;
+
 import com.tangosol.run.component.EventDeathException;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Gate;
 import com.tangosol.util.ThreadGateLite;
+
 import java.lang.reflect.Array;
+
 import java.util.Iterator;
 import java.util.Set;
 
@@ -1850,9 +1860,9 @@ public class DaemonPool
         {
         setInternalGuardian(deps.getGuardian());
         setName(deps.getName());
-        setDaemonCount(deps.getThreadCount());
-        setDaemonCountMax(deps.getThreadCountMax());
         setDaemonCountMin(deps.getThreadCountMin());
+        setDaemonCountMax(deps.getThreadCountMax());
+        setDaemonCount(deps.getThreadCount());
         setThreadGroup(deps.getThreadGroup());
         setThreadPriority(deps.getThreadPriority());
         }
@@ -2633,10 +2643,11 @@ public class DaemonPool
                 }
         
             // create the Daemons and associate with the corresponding slots 
-            int       cDaemons = getDaemonCount();
-            DaemonPool.Daemon[] aDaemon  = new DaemonPool.Daemon[cDaemons];
+            int cDaemons = Math.max(getDaemonCount(), getDaemonCountMin());
             _assert(cDaemons > 0);
-        
+
+            DaemonPool.Daemon[] aDaemon  = new DaemonPool.Daemon[cDaemons];
+
             int               cQueues = Math.min(cDaemons, cSlots);
             AssociationPile[] aQueue  = new AssociationPile[cQueues];
         
@@ -2669,7 +2680,8 @@ public class DaemonPool
                         getWorkSlot(iDaemon % cSlots).getQueue());
                     }
                 }
-        
+
+            setDaemonCount(cDaemons);
             setQueues(aQueue);
             setDaemons(aDaemon);
         
@@ -2741,7 +2753,7 @@ public class DaemonPool
                 }
         
             AssociationPile queue  = instantiateQueue();
-            DaemonPool.Daemon         daemon = instantiateDaemon(DAEMON_STANDARD, queue);
+            Daemon          daemon = instantiateDaemon(DAEMON_STANDARD, queue);
         
             setQueues((AssociationPile[]) copyOnAdd(getQueues(), queue));
             setDaemons((DaemonPool.Daemon[]) copyOnAdd(aDaemon, daemon));
@@ -2778,7 +2790,7 @@ public class DaemonPool
             AssociationPile queue = findMinDaemonSharingQueue();
             _assert(queue != null);
         
-            DaemonPool.Daemon daemon = instantiateDaemon(DAEMON_STANDARD, queue);
+            Daemon daemon = instantiateDaemon(DAEMON_STANDARD, queue);
         
             setDaemons((DaemonPool.Daemon[]) copyOnAdd(aDaemon, daemon));
         
@@ -3772,7 +3784,25 @@ public class DaemonPool
             
             super.start();
             }
-        
+
+        protected Thread instantiateThread()
+            {
+            DaemonPool pool = (DaemonPool) get_Module();
+            
+            Thread thread =  pool.isDynamic() || getDaemonType() == DAEMON_NONPOOLED
+                   ? VirtualThreads.makeThread(getThreadGroup(), this, getThreadName())
+                   : Base.makeThread(getThreadGroup(), this, getThreadName());
+
+            thread.setDaemon(true);
+            int nPriority = getPriority();
+            if (nPriority != 0)
+                {
+                thread.setPriority(nPriority);
+                }
+
+            return thread;
+            }
+
         // Declared at the super level
         public String toString()
             {
@@ -4308,14 +4338,14 @@ public class DaemonPool
                 {
                 setIdleFraction(0.333);
                 setIdleLimit(20);
-                setPeriodAdjust(1000L);
+                setPeriodAdjust(250L);
                 setPeriodMax(10000L);
-                setPeriodMin(1000L);
+                setPeriodMin(100L);
                 setPeriodShake(600000L);
-                setResizeGrow(0.1);
+                setResizeGrow(1.0);
                 setResizeJitter(0.05);
                 setResizeShake(0.15);
-                setResizeShrink(0.05);
+                setResizeShrink(0.25);
                 }
             catch (java.lang.Exception e)
                 {
@@ -4489,7 +4519,7 @@ public class DaemonPool
          * Parse the value of the named system property as a double.
         * 
         * @param sName  the name of the system property to parse
-        * @param flDefault  the value to return if the system property is not
+        * @param dflDefault  the value to return if the system property is not
         * defined or has an unparseable value
         * 
         * @return the parsed value
@@ -4754,12 +4784,8 @@ public class DaemonPool
         
         /**
          * Determine if the DaemonPool is overutilized.
-        * 
-        * @param cThreads the current size of the pool
-        * @param dflActive the running average number of active daemon threads
-        * @param dflTP the current throughput of the pool
-        * 
-        * @return true if the DaemonPool is overutilized
+         *
+         * @return true if the DaemonPool is overutilized
          */
         protected boolean isDaemonPoolOverutilized()
             {
@@ -4775,12 +4801,8 @@ public class DaemonPool
         
         /**
          * Determine if the DaemonPool is underutilized.
-        * 
-        * @param cThreads the current size of the pool
-        * @param dflActive the running average number of active daemon threads
-        * @param dflTP the current throughput of the pool
-        * 
-        * @return true if the DaemonPool is underutilized
+         *
+         * @return true if the DaemonPool is underutilized
          */
         protected boolean isDaemonPoolUnderutilized()
             {
@@ -4866,13 +4888,12 @@ public class DaemonPool
         
         /**
          * Resize the DaemonPool.
-        *  
-        * @param cThreads the current size of the pool
-        * @param cDelta the number of daemon threads to add or remove
-        * @param sReason an optional debug message as to why the pool is being
-        * resized
-        * 
-        * @return the new size of the pool
+         *
+         * @param cDelta the number of daemon threads to add or remove
+         * @param sReason an optional debug message as to why the pool is being
+         * resized
+         *
+         * @return the new size of the pool
          */
         protected int resizeDaemonPool(int cDelta, String sReason)
             {
@@ -4893,7 +4914,7 @@ public class DaemonPool
                 _trace("DaemonPool \"" + pool.getName() + "\" "
                         + (cDelta > 0 ? "increasing" : "decreasing")
                         + " the pool size from " + cCurrent + " to " + cNew + " thread(s)"
-                        + reasonToString(sReason), 3);
+                        + reasonToString(sReason), 5);
                 }
             
             pool.setDaemonCount(cNew);
