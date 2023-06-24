@@ -671,6 +671,11 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.util.extractor.ChainedFragmentExtractor</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>197</type-id>
+      <class-name>com.tangosol.util.UniversalManipulator</class-name>
+    </user-type>
+
     <!-- com.tangosol.util.filter package (continued) (200-209) -->
 
     <user-type>

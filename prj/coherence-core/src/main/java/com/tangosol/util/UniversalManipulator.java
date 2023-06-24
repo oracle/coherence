@@ -4,7 +4,7 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.coherence.rest.util;
+package com.tangosol.util;
 
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
@@ -14,15 +14,8 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.util.Base;
-import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.ValueManipulator;
-import com.tangosol.util.ValueUpdater;
-
 import com.tangosol.util.extractor.UniversalExtractor;
 import com.tangosol.util.extractor.UniversalUpdater;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -32,15 +25,11 @@ import static com.tangosol.util.extractor.AbstractExtractor.VALUE;
 
 /**
  *  UniversalManipulator implementation.
- *  <P>
- *  Note: Since MvelExtractor/MvepUpdater are removed, this class only works
- *  with {@link UniversalExtractor} and {@link UniversalUpdater}.
- *  To maintain backwards compatibility for serialization,
- *  not renaming this class.
  *
  * @author ic  2011.07.14
+ * @author jf  2023.06.23
  */
-public class MvelManipulator
+public class UniversalManipulator
         implements ValueManipulator, ExternalizableLite, PortableObject
     {
     // ----- constructors ----------------------------------------------------
@@ -49,16 +38,16 @@ public class MvelManipulator
      * Default constructor (necessary for the ExternalizableLite and
      * PortableObject interfaces).
      */
-    public MvelManipulator()
+    public UniversalManipulator()
         {
         }
 
     /**
-     * Construct a MvelManipulator based on an {@link UniversalExtractor#createExtractor(String) UniversalExtractor name(s)} expression.
+     * Construct a UniversalManipulator based on an {@link UniversalExtractor#createExtractor(String) UniversalExtractor name(s)} expression.
      *
      * @param sExpr  the Universal expression to evaluate
      */
-    public MvelManipulator(String sExpr)
+    public UniversalManipulator(String sExpr)
         {
         if (sExpr == null)
             {
@@ -100,9 +89,9 @@ public class MvelManipulator
     // ----- Object methods -------------------------------------------------
 
      /**
-     * Compare the MvelManipulator with another object to determine equality.
+     * Compare the UniversalManipulator with another object to determine equality.
      *
-     * @return true iff this MvelManipulator and the passed object are
+     * @return true iff this UniversalManipulator and the passed object are
      *         equivalent MvelManipulators
      */
     public boolean equals(Object o)
@@ -111,9 +100,9 @@ public class MvelManipulator
             {
             return true;
             }
-        if (o instanceof MvelManipulator)
+        if (o instanceof UniversalManipulator)
             {
-            MvelManipulator that = (MvelManipulator) o;
+            UniversalManipulator that = (UniversalManipulator) o;
             return Base.equals(this.m_sExpr, that.m_sExpr);    
             }
 
@@ -121,10 +110,10 @@ public class MvelManipulator
         }
 
     /**
-     * Determine a hash value for the MvelManipulator object according to the
+     * Determine a hash value for the UniversalManipulator object according to the
      * general {@link Object#hashCode()} contract.
      *
-     * @return an integer hash value for this MvelManipulator object
+     * @return an integer hash value for this UniversalManipulator object
      */
     public int hashCode()
         {
@@ -132,13 +121,13 @@ public class MvelManipulator
         }
 
     /**
-     * Provide a human-readable description of this MvelManipulator object.
+     * Provide a human-readable description of this UniversalManipulator object.
      *
-     * @return a human-readable description of this MvelManipulator object
+     * @return a human-readable description of this UniversalManipulator object
      */
     public String toString()
         {
-        return "MvelManipulator(" + m_sExpr + ')';
+        return "UniversalManipulator(" + m_sExpr + ')';
         }
 
     // ----- ExternalizableLite interface -----------------------------------

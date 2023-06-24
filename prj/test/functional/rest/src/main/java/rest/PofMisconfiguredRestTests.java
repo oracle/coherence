@@ -55,7 +55,7 @@ public class PofMisconfiguredRestTests
 
         // validate in server log that there are large number of "unknown user type" for rest types
         validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
-                            "unknown user type", 75);
+                            "unknown user type", 50);
         validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
                             "unknown user type: com.tangosol.coherence.rest.util.StaticContent", 16);
         }
