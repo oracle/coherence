@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import com.tangosol.net.management.MBeanAccessor.QueryBuilder.ParsedQuery;
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 
+import com.tangosol.util.WrapperException;
 import com.tangosol.util.function.Remote;
 
 import java.io.Serializable;
@@ -796,6 +797,19 @@ public class MBeanAccessor
                                          "): ignoring InstanceNotFoundException: " + e.getMessage(), Base.LOG_QUIET);
 
                         continue;
+                        }
+                    catch (WrapperException e)
+                        {
+                        if (e.getCause() instanceof InstanceNotFoundException)
+                            {
+                            // ignore; assume MBean unregistered between query and invoke
+                            CacheFactory.log("MBeanAccessor$Invoke#apply(mbeanServer=" + mBeanServer +
+                                    ", objName=" + sObjectName +
+                                    "): ignoring InstanceNotFoundException: " + e.getMessage(), Base.LOG_QUIET);
+
+                            continue;
+                            }
+                        throw e;
                         }
                     mapMBeans.put(sObjectName, result);
                     }
