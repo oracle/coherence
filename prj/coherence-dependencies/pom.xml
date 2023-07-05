@@ -208,7 +208,7 @@
     <graal.version>19.3.1</graal.version>
     <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
     <graal.image.tag>ol8-java17-22.1.0</graal.image.tag>
-    <grpc.version>1.49.2</grpc.version>
+    <grpc.version>1.53.0</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
