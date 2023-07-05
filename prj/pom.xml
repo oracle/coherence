@@ -88,9 +88,11 @@
     <skip-sign-artifacts>true</skip-sign-artifacts>
     <skip-code-coverage>true</skip-code-coverage>
 
-    <surefire.argLine>-Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</surefire.argLine>
+    <default.surefire.argLine>-Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.surefire.argLine>
+    <surefire.argLine>${default.surefire.argLine}</surefire.argLine>
     <failsafe.max.heap>1g</failsafe.max.heap>
-    <failsafe.argLine>-Djava.net.preferIPv4Stack=true -Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</failsafe.argLine>
+    <default.failsafe.argLine>-Djava.net.preferIPv4Stack=true -Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.failsafe.argLine>
+    <failsafe.argLine>${default.failsafe.argLine}</failsafe.argLine>
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
 
@@ -958,8 +960,10 @@
     <profile>
       <id>test-production-mode</id>
       <properties>
-        <surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</surefire.argLine>
-        <failsafe.argLine>-Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</failsafe.argLine>
+        <default.surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</default.surefire.argLine>
+        <surefire.argLine>${default.surefire.argLine}</surefire.argLine>
+        <default.failsafe.argLine>-Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</default.failsafe.argLine>
+        <failsafe.argLine>${default.failsafe.argLine}</failsafe.argLine>
       </properties>
       <build>
         <pluginManagement>
