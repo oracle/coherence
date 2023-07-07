@@ -33,7 +33,7 @@
     <hamcrest.version>2.2</hamcrest.version>
     <hsqldb.version>2.7.1</hsqldb.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
-    <h2.version>2.1.214</h2.version>
+    <h2.version>2.2.220</h2.version>
     <r2dbc.version>Borca-SR1</r2dbc.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
