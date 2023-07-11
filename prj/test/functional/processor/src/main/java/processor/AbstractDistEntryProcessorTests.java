@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -174,13 +174,13 @@ public abstract class AbstractDistEntryProcessorTests
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER_BIN, 1L);
         cache.invoke("key", processor);
 
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         // ensure setting the expiry & value for a non-existent entry
         // functions as expected
         cache.invoke("key2", new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER, 750L));
         assertEquals("value2", cache.get("key2"));
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
     /**
