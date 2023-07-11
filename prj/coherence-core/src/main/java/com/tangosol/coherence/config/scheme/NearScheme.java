@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -46,6 +46,12 @@ public class NearScheme
     public ServiceBuilder getServiceBuilder()
         {
         return getBackScheme().getServiceBuilder();
+        }
+
+    @Override
+    public String getServiceType()
+        {
+        return TYPE_NEAR;
         }
 
     // ----- BackingMapManagerBuilder interface -----------------------------
@@ -170,6 +176,15 @@ public class NearScheme
         {
         m_exprInvalidationStrategy = expr;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Service type for near caches.
+     *
+     * @since 12.2.1.4.19
+     */
+    protected static final String TYPE_NEAR = "NearCache";
 
     // ----- data members ---------------------------------------------------
 
