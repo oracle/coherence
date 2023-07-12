@@ -139,6 +139,7 @@ public abstract class AbstractDistEntryProcessorTests
         {
         NamedCache cache = getNamedCache();
         cache.clear();
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         cache.put("key", "value");
         InvocableMap.EntryProcessor processor =
@@ -163,6 +164,7 @@ public abstract class AbstractDistEntryProcessorTests
         {
         NamedCache cache = getNamedCache();
         cache.clear();
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         cache.put("key", "value");
         InvocableMap.EntryProcessor processor =
@@ -367,68 +369,69 @@ public abstract class AbstractDistEntryProcessorTests
         {
         // NOTE: this test presumes a single storage-enabled cluster member that
         //       is this test to reference count deserialization
-        try (NamedCache cache = getNamedCache())
+        NamedCache cache = getNamedCache();
+        cache.clear();
+        Eventually.assertDeferred(cache::size, is(0));
+
+        if (!Config.getBoolean("coherence.distributed.localstorage", true) ||
+            cache.getCacheService().getInfo().getServiceMembers().size() > 1)
             {
-            cache.clear();
-            Eventually.assertDeferred(cache::size, is(0));
-
-            if (!Config.getBoolean("coherence.distributed.localstorage", true) ||
-                cache.getCacheService().getInfo().getServiceMembers().size() > 1)
-                {
-                return; // skip test
-                }
-
-            Logger.out("[testSkipKeySerialization] cache instance: " + cache);
-
-            final int SIZE = 100;
-            Set<SerializationCountingKey> setKeys = new HashSet<>(SIZE / 2);
-
-            for (int i = 0; i < SIZE; i++)
-                {
-                SerializationCountingKey key = new SerializationCountingKey("foo-" + i);
-                if ((i & 1) == 0)
-                    {
-                    setKeys.add(key);
-                    }
-
-                cache.put(key, "bar-" + i);
-                }
-
-            SafeService      safeService = (SafeService) cache.getCacheService();
-            PartitionedCache distService = (PartitionedCache) safeService.getService();
-            Eventually.assertDeferred(() -> distService.getOwnershipEnabledMembers().size(), is(1));
-            waitForBalanced(cache.getCacheService());
-            Eventually.assertDeferred(cache::size, is(SIZE));
-            Eventually.assertDeferred(() -> distService.isDistributionStable(), is(true));
-
-            SerializationCountingKey.reset();
-            Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
-            Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
-
-            Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
-            Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
-
-            // we do not expect any deserialization as the processor adds binary
-            // keys and there is no reason for PC to deserialize the key
-            int cExpected = cache instanceof ContinuousQueryCache
-                    ? setKeys.size() : 0;
-
-            assertEquals("Deserialization should not occur for cache: " + cache,
-                    cExpected, SerializationCountingKey.DESERIALIZATION_COUNTER.get());
-
-            // force the key to be deserialized
-            for (Map.Entry entry : (Set<Map.Entry>) mapResults.entrySet())
-                {
-                entry.getKey();
-                }
-
-            assertEquals("Deserialization should not occur for cache: " + cache,
-                    cExpected + setKeys.size(), SerializationCountingKey.DESERIALIZATION_COUNTER.get());
+            return; // skip test
             }
+
+        Logger.info("[testSkipKeySerialization] cache instance: " + cache.getClass().getName());
+
+        final int SIZE = 100;
+        Set<SerializationCountingKey> setKeys = new HashSet<>(SIZE / 2);
+
+        for (int i = 0; i < SIZE; i++)
+            {
+            SerializationCountingKey key = new SerializationCountingKey("foo-" + i);
+            if ((i & 1) == 0)
+                {
+                setKeys.add(key);
+                }
+
+            cache.put(key, "bar-" + i);
+            }
+
+        SafeService      safeService = (SafeService) cache.getCacheService();
+        PartitionedCache distService = (PartitionedCache) safeService.getService();
+        Eventually.assertDeferred(() -> distService.getOwnershipEnabledMembers().size(), is(1));
+        waitForBalanced(cache.getCacheService());
+        Eventually.assertDeferred(cache::size, is(SIZE));
+        Eventually.assertDeferred(() -> distService.isDistributionStable(), is(true));
 
         SerializationCountingKey.reset();
         Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
         Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
+
+        Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
+        Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
+
+        // we do not expect any deserialization as the processor adds binary
+        // keys and there is no reason for PC to deserialize the key
+        int cExpected = cache instanceof ContinuousQueryCache
+                ? setKeys.size() : 0;
+
+        assertEquals("Deserialization should not occur for cache: " + cache,
+                cExpected, SerializationCountingKey.DESERIALIZATION_COUNTER.get());
+
+        // force the key to be deserialized
+        for (Map.Entry entry : (Set<Map.Entry>) mapResults.entrySet())
+            {
+            entry.getKey();
+            }
+
+        assertEquals("Deserialization should not occur for cache: " + cache,
+                cExpected + setKeys.size(), SerializationCountingKey.DESERIALIZATION_COUNTER.get());
+
+        SerializationCountingKey.reset();
+        Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
+        Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
+
+        cache.clear();
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
     // ----- inner classes --------------------------------------------------
