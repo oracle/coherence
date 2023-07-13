@@ -318,7 +318,7 @@ public class TaskExecutorServicePersistenceTests
                                       Caches.tasks(service),
                                       Caches.properties(service));
 
-        //Utils.heapdump(s_coherence.getCluster());
+        Utils.heapdump(s_coherence.getCluster());
         }
 
     protected CacheService getCacheService()
