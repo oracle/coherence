@@ -1,17 +1,20 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package jmx;
 
-import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.tangosol.coherence.component.util.SafeCluster;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Service;
+
+import com.tangosol.net.internal.ScopedServiceReferenceStore;
 import com.tangosol.net.internal.ViewCacheService;
+
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.Registry;
 
@@ -268,7 +271,7 @@ public class CacheMBeanTests
                            + ",nodeId=1,service=" + cache.getCacheService().getInfo().getServiceName()
                            + "," + Registry.VIEW_TYPE;
 
-            ObjectName nameMBean = new ObjectName(sName);
+            ObjectName      nameMBean      = new ObjectName(sName);
             Set<ObjectName> setObjectNames = serverJMX.queryNames(nameMBean, null);
             assertEquals(1, setObjectNames.size());
 
@@ -282,11 +285,9 @@ public class CacheMBeanTests
                 }
 
 
-            ConcurrentHashMap<String, Service> mapServices = cache.getService()
-                    .getCluster()
-                    .getResourceRegistry()
-                    .getResource(ConcurrentHashMap.class, ViewCacheService.KEY_CLUSTER_REGISTRY);
-            Service service = mapServices.get("DistributedCache");
+	    SafeCluster                 safeCluster = (SafeCluster) cache.getService().getCluster();
+            ScopedServiceReferenceStore store       = safeCluster.getScopedServiceStore();
+            Service                     service     = store.getService(ViewCacheService.KEY_CLUSTER_REGISTRY + "-DistributedCache");
             ((ViewCacheService)service).destroyCache(cache);
 
             setObjectNames = serverJMX.queryNames(nameMBean, null);
