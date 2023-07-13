@@ -2814,7 +2814,7 @@ public abstract class ExternalizableHelper
                 return readSerializable(in, loader);
 
             case FMT_OPT:
-                return in.readBoolean() ? Optional.of(readObject(in)) : Optional.empty();
+                return in.readBoolean() ? Optional.of(readObject(in, loader)) : Optional.empty();
 
             case FMT_OPT_INT:
                 return in.readBoolean() ? OptionalInt.of(readInt(in)) : OptionalInt.empty();
