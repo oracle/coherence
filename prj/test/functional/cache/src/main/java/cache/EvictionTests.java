@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -172,8 +172,7 @@ public class EvictionTests
      */
     public void doActiveEvictionTest(NamedCache cache)
         {
-        long cExpiry = 3000L;
-        long cSleep  = 1000L;
+        long cSleep = 1000L;
 
         // EvictionTask should be scheduled for cache with expiry configured.
         ClientListener listener = new ClientListener();
@@ -192,7 +191,7 @@ public class EvictionTests
         cache.put(2, EvictionTests.VALUE, 1000L);
         listener.assertDeleteEvent(2, true);
 
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(EXPIRY - cSleep + 250L);
         listener.assertDeleteEvent(1, true);
         assertNull(cache.get(1));
         assertNull(cache.get(2));
@@ -203,8 +202,7 @@ public class EvictionTests
      */
     public void doExpirySlidingTest(NamedCache cache)
         {
-        long       cExpiry     = 3000L;
-        long       cSleep      = 2000L;
+        long       cSleep      = EXPIRY/2;
         int        cSize       = 10;
         Map        map         = new HashMap();
         Set        setKeys     = new HashSet();
@@ -219,15 +217,15 @@ public class EvictionTests
         cache.putAll(map);
         Base.sleep(cSleep);
         cache.get(1);
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(1, cache.size());
         cache.clear();
 
-        // all keys's expiry should be extended after the getAll call
+        // all keys' expiry should be extended after the getAll call
         cache.putAll(map);
         Base.sleep(cSleep);
         cache.getAll(setKeys);
-        Base.sleep(cExpiry - cSleep + 250);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(cSize, cache.size());
         cache.clear();
 
@@ -238,7 +236,7 @@ public class EvictionTests
         Base.sleep(cSleep);
         TestProcessor processor = new TestProcessor();
         cache.invoke(1, processor);
-        Base.sleep(cExpiry - cSleep + 250L);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(2, cache.size());
         cache.clear();
         cleanup();
@@ -249,7 +247,6 @@ public class EvictionTests
      */
     public void doQueryExpirySlidingTest(NamedCache cache)
         {
-        long       cExpiry     = 3000L;
         long       cSleep      = 1000L;
         int        cSize       = 10;
 
@@ -264,7 +261,7 @@ public class EvictionTests
 
         cache.aggregate(AlwaysFilter.INSTANCE, agent);
 
-        Base.sleep(cExpiry - cSleep + 250);
+        Base.sleep(EXPIRY - cSleep + 250);
         assertEquals(0, cache.size());
         cache.clear();
 
@@ -387,4 +384,9 @@ public class EvictionTests
      * The value put into the cache.
      */
     private final static String VALUE = "foo";
+
+    /**
+     * The expiry specified in the cache configuration.
+     */
+    private final static long EXPIRY = 3_000L;
 }
