@@ -55,7 +55,6 @@ public class IllegalaccessProfile
             {
             // options introduced in jdk 9
             Freeforms jvmOptions = JvmOptions.include(
-                        "--add-opens=java.base/java.util=ALL-UNNAMED",
                         "--add-opens=java.base/java.nio=ALL-UNNAMED",
                         "--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED",
                         "--add-exports=java.management/sun.management=ALL-UNNAMED",
