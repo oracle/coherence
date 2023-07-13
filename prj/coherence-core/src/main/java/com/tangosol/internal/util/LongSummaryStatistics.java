@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util;
+
+import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.SerializationSupport;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -18,11 +21,11 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import java.lang.reflect.Field;
+import java.io.ObjectStreamException;
 
 import javax.json.bind.annotation.JsonbCreator;
 import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 
 /**
  * Adds serialization support to {@link java.util.LongSummaryStatistics}.
@@ -32,40 +35,74 @@ import javax.json.bind.annotation.JsonbProperty;
  */
 public class LongSummaryStatistics
         extends java.util.LongSummaryStatistics
-        implements Remote.LongConsumer, Remote.IntConsumer, com.tangosol.io.ExternalizableLite, PortableObject,
-            Externalizable
+        implements Remote.LongConsumer, Remote.IntConsumer,
+                   SerializationSupport,
+                   ExternalizableLite, PortableObject, Externalizable
     {
-    // ---- helpers ---------------------------------------------------------
+    // ----- Constructors ---------------------------------------------------
 
-    private void setPrivateField(java.util.LongSummaryStatistics stats, String sFieldName, Object oValue)
-            throws NoSuchFieldException, IllegalAccessException
+    /**
+     * Constructs an empty instance with zero count, zero sum,
+     * {@code Long.MAX_VALUE} min, {@code LONG.MIN_VALUE}
+     * max and zero average.
+     */
+    public LongSummaryStatistics()
         {
-        Field field = java.util.LongSummaryStatistics.class.getDeclaredField(sFieldName);
-        field.setAccessible(true);
-        field.set(stats, oValue);
+        super();
+        }
+
+    /**
+     * Constructs a non-empty instance with the specified {@code count},
+     * {@code min}, {@code max}, and {@code sum}.
+     *
+     * <p>If {@code count} is zero then the remaining arguments are ignored and
+     * an empty instance is constructed.
+     *
+     * <p>If the arguments are inconsistent then an {@code IllegalArgumentException}
+     * is thrown.  The necessary consistent argument conditions are:
+     * <ul>
+     *   <li>{@code count >= 0}</li>
+     *   <li>{@code min <= max}</li>
+     * </ul>
+     *
+     * @param count the count of values
+     * @param min   the minimum value
+     * @param max   the maximum value
+     * @param sum   the sum of all values
+     *
+     * @throws IllegalArgumentException if the arguments are inconsistent
+     * @since 22.06.5
+     */
+    public LongSummaryStatistics(long count, long min, long max, long sum)
+        {
+        // super class constructor added since JDK 10
+        super(count, min, max, sum);
+        m_cCount = count;
+        m_lMin   = min;
+        m_lMax   = max;
+        m_lSum   = sum;
+        }
+
+    // ---- SerializationSupport interface ----------------------------------
+
+    public Object readResolve() throws ObjectStreamException
+        {
+        // create a new instance from the temp fields we deserialized into
+        return new LongSummaryStatistics(m_cCount, m_lMin, m_lMax, m_lSum);
         }
 
     // ---- ExternalizableLite interface ------------------------------------
 
+    @Override
     public void readExternal(DataInput input) throws IOException
         {
-        try
-            {
-            setPrivateField(this, "count", input.readLong());
-            setPrivateField(this, "sum", input.readLong());
-            setPrivateField(this, "min", input.readLong());
-            setPrivateField(this, "max", input.readLong());
-            }
-        catch (IOException e)
-            {
-            throw e;
-            }
-        catch (Exception e)
-            {
-            throw new IOException(e);
-            }
+        m_cCount = input.readLong();
+        m_lSum   = input.readLong();
+        m_lMin   = input.readLong();
+        m_lMax   = input.readLong();
         }
 
+    @Override
     public void writeExternal(DataOutput output) throws IOException
         {
         output.writeLong(getCount());
@@ -76,25 +113,16 @@ public class LongSummaryStatistics
 
     // ---- PortableObject interface ----------------------------------------
 
+    @Override
     public void readExternal(PofReader reader) throws IOException
         {
-        try
-            {
-            setPrivateField(this, "count", reader.readLong(0));
-            setPrivateField(this, "sum", reader.readLong(1));
-            setPrivateField(this, "min", reader.readLong(2));
-            setPrivateField(this, "max", reader.readLong(3));
-            }
-        catch (IOException e)
-            {
-            throw e;
-            }
-        catch (Exception e)
-            {
-            throw new IOException(e);
-            }
+        m_cCount = reader.readLong(0);
+        m_lSum   = reader.readLong(1);
+        m_lMin   = reader.readLong(2);
+        m_lMax   = reader.readLong(3);
         }
 
+    @Override
     public void writeExternal(PofWriter writer) throws IOException
         {
         writer.writeLong(0, getCount());
@@ -124,10 +152,10 @@ public class LongSummaryStatistics
     /**
      * Create an {@link LongSummaryStatistics} instance from the annotated Json attributes.
      *
-     * @param nCount  the statistics total count
-     * @param nSum    the statistics total sum
-     * @param nMin    the statistics min
-     * @param nMax    the statistics max
+     * @param count  the statistics total count
+     * @param sum    the statistics total sum
+     * @param min    the statistics min
+     * @param max    the statistics max
      *
      * @return a new {@link LongSummaryStatistics}
      *
@@ -136,19 +164,13 @@ public class LongSummaryStatistics
      */
     @JsonbCreator
     public static LongSummaryStatistics createLongSummaryStatistics(
-            @JsonbProperty("count") long nCount,
-            @JsonbProperty("sum")   long nSum,
-            @JsonbProperty("min")   long nMin,
-            @JsonbProperty("max")   long nMax)
+            @JsonbProperty("count") long count,
+            @JsonbProperty("sum")   long sum,
+            @JsonbProperty("min")   long min,
+            @JsonbProperty("max")   long max)
             throws NoSuchFieldException, IllegalAccessException
         {
-        LongSummaryStatistics statistics = new LongSummaryStatistics();
-        statistics.setPrivateField(statistics, "count", nCount);
-        statistics.setPrivateField(statistics, "sum",   nSum);
-        statistics.setPrivateField(statistics, "min",   nMin);
-        statistics.setPrivateField(statistics, "max",   nMax);
-
-        return statistics;
+        return new LongSummaryStatistics(count, min, max, sum);
         }
 
     // ----- accessors for JsonSerialization --------------------------------
@@ -196,4 +218,29 @@ public class LongSummaryStatistics
         {
         return getMax();
         }
+
+    // ----- constants -------------------------------------------------------
+
+    private static final long serialVersionUID = 6685745411569023906L;
+
+    // ----- data members ----------------------------------------------------
+
+    /*
+     * The fields below are only used temporarily during deserialization,
+     * to read data into from the input before calling readResolve to create the
+     * actual instance of this class that will be used as the final deserialization
+     * result.
+     */
+
+    @JsonbTransient
+    private transient long m_cCount;
+
+    @JsonbTransient
+    private transient long m_lSum;
+
+    @JsonbTransient
+    private transient long m_lMin = Long.MAX_VALUE;
+
+    @JsonbTransient
+    private transient long m_lMax = Long.MIN_VALUE;
     }
