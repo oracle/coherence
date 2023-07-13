@@ -7,7 +7,6 @@
 
 package processor;
 
-
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Continuation;
@@ -76,16 +75,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.oracle.bedrock.deferred.DeferredHelper.valueOf;
-
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 
 /**
 * A collection of functional tests for the various
@@ -128,11 +123,11 @@ public abstract class AbstractDistEntryProcessorTests
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_NONE, 1L);
         cache.invoke("key", processor);
 
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         // ensure setting the expiry for a non-existent entry is a no-op
         cache.invoke("key2", processor);
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
     /**
@@ -150,13 +145,13 @@ public abstract class AbstractDistEntryProcessorTests
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE_BIN, 1L);
         cache.invoke("key", processor);
 
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         // ensure setting the value & expiry for a non-existent entry
         // functions as expected
         cache.invoke("key2", new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE, 750L));
         assertEquals("value2", cache.get("key2"));
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
     /**
@@ -206,7 +201,7 @@ public abstract class AbstractDistEntryProcessorTests
             cache.invoke(oKey, new SingleEntryAsynchronousProcessor(proc0));
             }
 
-        Eventually.assertThat(invoking(cache).size(), is(10));
+        Eventually.assertDeferred(cache::size, is(10));
 
         // increment by 2 -> 2
         EntryProcessor proc1 = new NumberIncrementor((ValueManipulator) null, Integer.valueOf(2), false);
@@ -259,9 +254,6 @@ public abstract class AbstractDistEntryProcessorTests
         try
             {
             cache = getNamedCache();
-
-            SafeService      safeService = (SafeService) cache.getCacheService();
-            PartitionedCache distService = (PartitionedCache) safeService.getService();
 
             waitForBalanced(cache.getCacheService());
 
@@ -329,7 +321,7 @@ public abstract class AbstractDistEntryProcessorTests
 
                         notifier.await(5000);
 
-                        Eventually.assertThat(valueOf(atomicFlag), is(true));
+                        Eventually.assertDeferred(atomicFlag::get, is(true));
                         break;
                         }
                     }
@@ -410,8 +402,8 @@ public abstract class AbstractDistEntryProcessorTests
             Eventually.assertDeferred(() -> distService.isDistributionStable(), is(true));
 
             SerializationCountingKey.reset();
-            Eventually.assertThat(SerializationCountingKey.DESERIALIZATION_COUNTER.get(), is(0));
-            Eventually.assertThat(SerializationCountingKey.SERIALIZATION_COUNTER.get(), is(0));
+            Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
+            Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
 
             Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
             Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
