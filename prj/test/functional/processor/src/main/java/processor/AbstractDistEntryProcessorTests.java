@@ -7,14 +7,16 @@
 
 package processor;
 
-
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.NonBlocking;
 import com.oracle.coherence.common.base.Notifier;
 import com.oracle.coherence.common.base.SingleWaiterMultiNotifier;
 
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -26,7 +28,6 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
@@ -52,6 +53,8 @@ import com.tangosol.util.processor.SingleEntryAsynchronousProcessor;
 import com.tangosol.util.processor.UpdaterProcessor;
 
 import org.junit.Test;
+import org.junit.runner.OrderWith;
+import org.junit.runner.manipulation.Alphanumeric;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -72,16 +75,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static com.oracle.bedrock.deferred.DeferredHelper.valueOf;
-
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 
 /**
 * A collection of functional tests for the various
@@ -90,6 +89,7 @@ import static org.junit.Assert.fail;
 *
 * @author gg Mar 17, 2010
 */
+@OrderWith(value = Alphanumeric.class)
 public abstract class AbstractDistEntryProcessorTests
         extends AbstractEntryProcessorTests
     {
@@ -123,11 +123,11 @@ public abstract class AbstractDistEntryProcessorTests
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_NONE, 1L);
         cache.invoke("key", processor);
 
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         // ensure setting the expiry for a non-existent entry is a no-op
         cache.invoke("key2", processor);
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
     /**
@@ -145,13 +145,13 @@ public abstract class AbstractDistEntryProcessorTests
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE_BIN, 1L);
         cache.invoke("key", processor);
 
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
 
         // ensure setting the value & expiry for a non-existent entry
         // functions as expected
         cache.invoke("key2", new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE, 750L));
         assertEquals("value2", cache.get("key2"));
-        Eventually.assertThat(invoking(cache).isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
     /**
@@ -201,7 +201,7 @@ public abstract class AbstractDistEntryProcessorTests
             cache.invoke(oKey, new SingleEntryAsynchronousProcessor(proc0));
             }
 
-        Eventually.assertThat(invoking(cache).size(), is(10));
+        Eventually.assertDeferred(cache::size, is(10));
 
         // increment by 2 -> 2
         EntryProcessor proc1 = new NumberIncrementor((ValueManipulator) null, Integer.valueOf(2), false);
@@ -251,19 +251,22 @@ public abstract class AbstractDistEntryProcessorTests
             // thrown by async processing or an attempt to restart the service
             }
 
-       try
-           {
-           cache = getNamedCache();
-           cache.invokeAll(AlwaysFilter.INSTANCE, aproc2);
+        try
+            {
+            cache = getNamedCache();
 
-           Map mapResult = (Map) aproc2.get();
+            waitForBalanced(cache.getCacheService());
 
-           assertEquals(RESULT, mapResult);
-           }
-       catch (Exception e)
-           {
-           fail(getStackTrace());
-           }
+            cache.invokeAll(AlwaysFilter.INSTANCE, aproc2);
+
+            Map mapResult = (Map) aproc2.get();
+
+            assertEquals(RESULT, mapResult);
+            }
+        catch (Exception e)
+            {
+            fail(getStackTrace());
+            }
         }
 
     /**
@@ -318,7 +321,7 @@ public abstract class AbstractDistEntryProcessorTests
 
                         notifier.await(5000);
 
-                        Eventually.assertThat(valueOf(atomicFlag), is(true));
+                        Eventually.assertDeferred(atomicFlag::get, is(true));
                         break;
                         }
                     }
@@ -364,15 +367,19 @@ public abstract class AbstractDistEntryProcessorTests
         {
         // NOTE: this test presumes a single storage-enabled cluster member that
         //       is this test to reference count deserialization
-        NamedCache cache = getNamedCache();
+        try (NamedCache cache = getNamedCache())
+            {
+            cache.clear();
+            Eventually.assertDeferred(cache::size, is(0));
 
-        if (!Config.getBoolean("coherence.distributed.localstorage", true) ||
+            if (!Config.getBoolean("coherence.distributed.localstorage", true) ||
                 cache.getCacheService().getInfo().getServiceMembers().size() > 1)
-            {
-            return; // skip test
-            }
-        try
-            {
+                {
+                return; // skip test
+                }
+
+            Logger.out("[testSkipKeySerialization] cache instance: " + cache);
+
             final int SIZE = 100;
             Set<SerializationCountingKey> setKeys = new HashSet<>(SIZE / 2);
 
@@ -387,15 +394,26 @@ public abstract class AbstractDistEntryProcessorTests
                 cache.put(key, "bar-" + i);
                 }
 
+            SafeService      safeService = (SafeService) cache.getCacheService();
+            PartitionedCache distService = (PartitionedCache) safeService.getService();
+            Eventually.assertDeferred(() -> distService.getOwnershipEnabledMembers().size(), is(1));
+            waitForBalanced(cache.getCacheService());
+            Eventually.assertDeferred(cache::size, is(SIZE));
+            Eventually.assertDeferred(() -> distService.isDistributionStable(), is(true));
+
             SerializationCountingKey.reset();
+            Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
+            Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
+
             Map mapResults = cache.invokeAll(setKeys, new OptimizedGetAllProcessor());
+            Eventually.assertDeferred(mapResults::size, is(setKeys.size()));
 
             // we do not expect any deserialization as the processor adds binary
             // keys and there is no reason for PC to deserialize the key
             int cExpected = cache instanceof ContinuousQueryCache
                     ? setKeys.size() : 0;
 
-            assertEquals("Deserialization should not occur",
+            assertEquals("Deserialization should not occur for cache: " + cache,
                     cExpected, SerializationCountingKey.DESERIALIZATION_COUNTER.get());
 
             // force the key to be deserialized
@@ -404,15 +422,13 @@ public abstract class AbstractDistEntryProcessorTests
                 entry.getKey();
                 }
 
-            assertEquals("Deserialization should not occur",
+            assertEquals("Deserialization should not occur for cache: " + cache,
                     cExpected + setKeys.size(), SerializationCountingKey.DESERIALIZATION_COUNTER.get());
             }
-        finally
-            {
-            cache.truncate();
-            cache.destroy();
-            SerializationCountingKey.reset();
-            }
+
+        SerializationCountingKey.reset();
+        Eventually.assertDeferred(SerializationCountingKey.DESERIALIZATION_COUNTER::get, is(0));
+        Eventually.assertDeferred(SerializationCountingKey.SERIALIZATION_COUNTER::get, is(0));
         }
 
     // ----- inner classes --------------------------------------------------
@@ -635,3 +651,4 @@ public abstract class AbstractDistEntryProcessorTests
             }
         }
     }
+
