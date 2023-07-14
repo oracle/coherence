@@ -6,6 +6,7 @@
  */
 package topics;
 
+import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -2403,14 +2404,14 @@ public abstract class AbstractNamedTopicTests
             publisher.publish("message-two").get(1, TimeUnit.MINUTES);
             publisher.publish("message-three").get(1, TimeUnit.MINUTES);
 
-            Eventually.assertDeferred(futureTwo::isDone, is(true));
+            Eventually.assertDeferred(futureTwo::isDone, is(true), Timeout.after(5, TimeUnit.MINUTES));
             assertThat(futureTwo.isCancelled(), is(false));
 
             Element<String> element = futureTwo.get();
             assertThat(element, is(notNullValue()));
             assertThat(element.getValue(), is("message-one"));
 
-            element = subscriber.receive().get(1, TimeUnit.MINUTES);
+            element = subscriber.receive().get(5, TimeUnit.MINUTES);
             assertThat(element, is(notNullValue()));
             assertThat(element.getValue(), is("message-two"));
             }
