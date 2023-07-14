@@ -6,16 +6,20 @@
  */
 package cache;
 
-import com.oracle.coherence.common.base.Converter;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.oracle.coherence.common.base.Converter;
+
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
+
+import com.tangosol.net.partition.KeyAssociator;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
@@ -24,29 +28,30 @@ import com.tangosol.util.MapEvent;
 import com.tangosol.util.MultiplexingMapListener;
 import com.tangosol.util.ValueExtractor;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
-import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.tangosol.net.partition.KeyAssociator;
-
 import com.tangosol.util.aggregator.DistinctValues;
+
+import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
 
 import com.tangosol.util.processor.AbstractProcessor;
-import data.Person;
 
-import com.tangosol.util.extractor.ReflectionExtractor;
+import data.Person;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+
+import org.hamcrest.CoreMatchers;
+
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -206,7 +211,7 @@ public class EvictionTests
         int        cSize       = 10;
         Map        map         = new HashMap();
         Set        setKeys     = new HashSet();
-        Integer    IPart       = 100;
+
         for (int i = 0; i < cSize; i++)
             {
             map.put(i, i);
@@ -247,7 +252,7 @@ public class EvictionTests
      */
     public void doQueryExpirySlidingTest(NamedCache cache)
         {
-        long       cSleep      = 1000L;
+        long       cSleep      = EXPIRY/2;
         int        cSize       = 10;
 
         ValueExtractor extractor = new ReflectionExtractor("getLastName");
@@ -259,12 +264,12 @@ public class EvictionTests
         assertEquals(cSize, cache.size());
         Base.sleep(cSleep);
 
+        // aggregate DOES NOT extend expiry
         cache.aggregate(AlwaysFilter.INSTANCE, agent);
-
-        Base.sleep(EXPIRY - cSleep + 250);
+        Base.sleep(cSleep + (cSleep / 2));
         assertEquals(0, cache.size());
-        cache.clear();
 
+        cache.clear();
         cleanup();
         }
 
