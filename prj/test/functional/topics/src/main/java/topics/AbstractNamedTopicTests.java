@@ -2512,17 +2512,9 @@ public abstract class AbstractNamedTopicTests
                     }
                 }
 
-            long start = System.currentTimeMillis();
             try
                 {
-                while (cReceive.get() < cMessage)
-                    {
-                    //noinspection BusyWait
-                    Thread.sleep(1);
-                    long now = System.currentTimeMillis();
-                    assertThat("Timed out - received " + cReceive.get() + " out of " + cMessage + " " + subscriber,
-                               now - start, is(lessThan(30000L)));
-                    }
+                Eventually.assertDeferred(cReceive::get, is(cMessage));
                 }
             finally
                 {
