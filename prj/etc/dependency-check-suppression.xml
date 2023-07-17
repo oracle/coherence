@@ -529,4 +529,22 @@
     <cve>CVE-2023-35116</cve>
   </suppress>
 
+  <!-- Suppressing this since it is only used in examples -->
+  <suppress>
+    <notes><![CDATA[
+    file name: sshd-sftp-2.9.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.sshd/sshd\-sftp@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:sshd</cpe>
+    <cve>CVE-2023-35887</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: sshd-common-2.9.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.sshd/sshd\-common@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:sshd</cpe>
+    <cve>CVE-2023-35887</cve>
+  </suppress>
+
 </suppressions>
