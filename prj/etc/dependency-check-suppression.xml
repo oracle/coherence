@@ -547,4 +547,13 @@
     <cve>CVE-2023-35887</cve>
   </suppress>
 
+  <!-- temporary suppression since  this CVE is being analysed -->
+  <suppress>
+    <notes><![CDATA[
+    file name: okio-2.8.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okio/okio@.*$</packageUrl>
+    <cve>CVE-2023-3635</cve>
+  </suppress>
+
 </suppressions>
