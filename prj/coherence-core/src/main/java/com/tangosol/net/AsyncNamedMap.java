@@ -166,7 +166,7 @@ public interface AsyncNamedMap<K, V>
      */
     default CompletableFuture<Void> put(K key, V value)
         {
-        return invoke(key, CacheProcessors.put(value, CacheMap.EXPIRY_NEVER));
+        return invoke(key, CacheProcessors.put(value, CacheMap.EXPIRY_DEFAULT));
         }
 
     /**
