@@ -1,18 +1,23 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
 import com.oracle.coherence.common.base.Classes;
 
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.ValueTypeAssertion;
 import com.tangosol.net.cache.TypeAssertion;
+
+import com.tangosol.net.events.EventDispatcherAwareInterceptor;
+import com.tangosol.net.events.EventDispatcherRegistry;
+import com.tangosol.net.events.internal.Registry;
 
 import com.tangosol.net.options.WithClassLoader;
 
@@ -292,5 +297,28 @@ public class ConfigurableCacheFactorySessionTest
         assertTrue(sessionTopic != sessionTopic1);
 
         sessionTopic.close();
+        }
+
+    @Test
+    public void shouldUnregisterEventListenerOnSessionClose()
+            throws Exception
+        {
+        ClassLoader              loaderSession       = mock(ClassLoader.class);
+        ConfigurableCacheFactory eccf                = mock(ExtensibleConfigurableCacheFactory.class);
+        ResourceRegistry         registry            = new SimpleResourceRegistry();
+        Registry                 interceptorRegistry = mock(Registry.class);
+        String                   interceptorId       = "fooInterceptor";
+
+        registry.registerResource(EventDispatcherRegistry.class, new Registry());
+        when(eccf.getResourceRegistry()).thenReturn(registry);
+        when(eccf.getInterceptorRegistry()).thenReturn(interceptorRegistry);
+        when(interceptorRegistry.registerEventInterceptor(any(EventDispatcherAwareInterceptor.class))).thenReturn(interceptorId);
+
+        ConfigurableCacheFactorySession session = new ConfigurableCacheFactorySession(eccf, loaderSession);
+        session.activate();
+        verify(interceptorRegistry).registerEventInterceptor(any(EventDispatcherAwareInterceptor.class));
+
+        session.close();
+        verify(interceptorRegistry).unregisterEventInterceptor(interceptorId);
         }
     }
