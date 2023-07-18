@@ -3788,8 +3788,21 @@ public class DaemonPool
         protected Thread instantiateThread()
             {
             DaemonPool pool = (DaemonPool) get_Module();
-            
-            Thread thread =  pool.isDynamic() || getDaemonType() == DAEMON_NONPOOLED
+
+            // NOTE:  virtual threads will not be used if the security manager
+            //        is enabled.  The following from the javadocs of
+            //        java.lang.Thread explains why:
+            //              Creating a platform thread captures the caller
+            //              context to limit the permissions of the new thread
+            //              when it executes code that performs a privileged
+            //              action. The captured caller context is the new
+            //              thread's "Inherited AccessControlContext".
+            //              Creating a virtual thread does not capture the
+            //              caller context; virtual threads have no permissions
+            //              when executing code that performs a privileged
+            //              action.
+            Thread thread = System.getSecurityManager() == null
+                             && (pool.isDynamic() || getDaemonType() == DAEMON_NONPOOLED)
                    ? VirtualThreads.makeThread(getThreadGroup(), this, getThreadName())
                    : Base.makeThread(getThreadGroup(), this, getThreadName());
 
