@@ -6,6 +6,7 @@
  */
 package ssl;
 
+import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
@@ -15,6 +16,7 @@ import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
@@ -29,6 +31,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 
+import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -64,6 +67,7 @@ import com.tangosol.net.messaging.ConnectionAcceptor;
 import com.tangosol.util.Resources;
 import com.tangosol.util.UUID;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,6 +77,7 @@ import javax.management.ObjectName;
 import java.net.URL;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -88,7 +93,6 @@ public class GlobalSocketProviderTests
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
         System.setProperty(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one");
         System.setProperty(LocalStorage.PROPERTY, "false");
-        System.setProperty(ClusterName.PROPERTY, CLUSTER_NAME);
         URL urlKeystore = Resources.findFileOrResource("server.jks", Classes.getContextClassLoader());
         System.setProperty("coherence.security.keystore", urlKeystore.toExternalForm());
         URL urlTruststore = Resources.findFileOrResource("trust.jks", Classes.getContextClassLoader());
@@ -98,17 +102,17 @@ public class GlobalSocketProviderTests
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.role", "client");
         System.setProperty(MetricsHttpHelper.PROP_METRICS_ENABLED, "true");
+
+        m_ports = LocalPlatform.get().getAvailablePorts();
         }
 
-    //@Test
-    public void shouldRunLocal() throws Exception
+    @Before
+    public void generateCLusterName()
         {
-        Coherence coherence = Coherence.clusterMember().start().get(5, TimeUnit.MINUTES);
-
-        Boolean fSecureNS = new IsSecureNameService().call();
-        assertThat(fSecureNS, is(false));
-        Boolean fSecureMetrics = new IsSecureProxy(MetricsHttpHelper.getServiceName()).call();
-        assertThat(fSecureMetrics, is(true));
+        m_sClusterName = "GlobalSocketProviderTests" + m_nClusterId.incrementAndGet();
+        System.setProperty(ClusterName.PROPERTY, m_sClusterName);
+        m_nClusterPort = m_ports.next();
+        System.setProperty(ClusterPort.PROPERTY, String.valueOf(m_nClusterPort));
         }
 
     @Test
@@ -116,18 +120,22 @@ public class GlobalSocketProviderTests
         {
         LocalPlatform platform = LocalPlatform.get();
 
+        OptionsByType optionsByType = OptionsByType.of(
+                OperationalOverride.of("global-ssl-test-override.xml"),
+                SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
+                ClusterName.of(m_sClusterName),
+                ClusterPort.of(m_nClusterPort),
+                JMXManagementMode.ALL,
+                JmxProfile.enabled(),
+                WellKnownAddress.of("127.0.0.1"),
+                LocalHost.only(),
+                IPv4Preferred.yes(),
+                m_logs,
+                DisplayName.of("storage"));
+
+        optionsByType.addAll(m_exOptionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
-                .include(3, CoherenceClusterMember.class,
-                         OperationalOverride.of("global-ssl-test-override.xml"),
-                         SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
-                         ClusterName.of("shouldUseGlobalSocketProviderWithTMB"),
-                         JMXManagementMode.ALL,
-                         JmxProfile.enabled(),
-                         WellKnownAddress.of("127.0.0.1"),
-                         LocalHost.only(),
-                         IPv4Preferred.yes(),
-                         m_logs,
-                         DisplayName.of("storage"));
+                .include(3, CoherenceClusterMember.class, optionsByType.asArray());
 
         try (CoherenceCluster cluster = clusterBuilder.build(platform))
             {
@@ -158,19 +166,23 @@ public class GlobalSocketProviderTests
         {
         LocalPlatform platform = LocalPlatform.get();
 
+        OptionsByType optionsByType = OptionsByType.of(
+                OperationalOverride.of("global-ssl-test-override.xml"),
+                SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
+                ClusterName.of(m_sClusterName),
+                ClusterPort.of(m_nClusterPort),
+                SystemProperty.of("coherence.transport.reliable", "datagram"),
+                JMXManagementMode.ALL,
+                JmxProfile.enabled(),
+                WellKnownAddress.of("127.0.0.1"),
+                LocalHost.only(),
+                IPv4Preferred.yes(),
+                m_logs,
+                DisplayName.of("storage"));
+
+        optionsByType.addAll(m_exOptionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
-                .include(3, CoherenceClusterMember.class,
-                         OperationalOverride.of("global-ssl-test-override.xml"),
-                         SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
-                         ClusterName.of("shouldUseGlobalSocketProviderWithDatagram"),
-                         SystemProperty.of("coherence.transport.reliable", "datagram"),
-                         JMXManagementMode.ALL,
-                         JmxProfile.enabled(),
-                         WellKnownAddress.of("127.0.0.1"),
-                         LocalHost.only(),
-                         IPv4Preferred.yes(),
-                         m_logs,
-                         DisplayName.of("storage"));
+                .include(3, CoherenceClusterMember.class, optionsByType.asArray());
 
         try (CoherenceCluster cluster = clusterBuilder.build(platform))
             {
@@ -202,7 +214,8 @@ public class GlobalSocketProviderTests
                          OperationalOverride.of("global-ssl-test-override.xml"),
                          SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
                          SystemProperty.of("coherence.extend.port", extendPort),
-                         ClusterName.of(CLUSTER_NAME),
+                         ClusterName.of(m_sClusterName),
+                         ClusterPort.of(m_nClusterPort),
                          JMXManagementMode.ALL,
                          JmxProfile.enabled(),
                          WellKnownAddress.of("127.0.0.1"),
@@ -248,22 +261,25 @@ public class GlobalSocketProviderTests
         {
         LocalPlatform    platform    = LocalPlatform.get();
         Capture<Integer> metricsPort = new Capture<>(platform.getAvailablePorts());
-        String           sCluster    = "shouldUseGlobalSocketProviderWithMetrics";
 
+        OptionsByType optionsByType = OptionsByType.of(
+                OperationalOverride.of("global-ssl-test-override.xml"),
+                SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
+                SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
+                SystemProperty.of("coherence.metrics.http.port", metricsPort),
+                ClusterName.of(m_sClusterName),
+                ClusterPort.of(m_nClusterPort),
+                JMXManagementMode.ALL,
+                JmxProfile.enabled(),
+                WellKnownAddress.of("127.0.0.1"),
+                LocalHost.only(),
+                IPv4Preferred.yes(),
+                m_logs,
+                DisplayName.of("storage"));
+
+        optionsByType.addAll(m_exOptionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
-                .include(1, CoherenceClusterMember.class,
-                         OperationalOverride.of("global-ssl-test-override.xml"),
-                         SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
-                         SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
-                         SystemProperty.of("coherence.metrics.http.port", metricsPort),
-                         ClusterName.of(sCluster),
-                         JMXManagementMode.ALL,
-                         JmxProfile.enabled(),
-                         WellKnownAddress.of("127.0.0.1"),
-                         LocalHost.only(),
-                         IPv4Preferred.yes(),
-                         m_logs,
-                         DisplayName.of("storage"));
+                .include(1, CoherenceClusterMember.class, optionsByType.asArray());
 
         try (CoherenceCluster cluster = clusterBuilder.build(platform))
             {
@@ -272,6 +288,54 @@ public class GlobalSocketProviderTests
             String                 sServiceName = MetricsHttpHelper.getServiceName();
             Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
             assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(true));
+            }
+        }
+
+    @Test
+    public void shouldUseGlobalSocketProviderWithSecuredProduction() throws Exception
+        {
+        LocalPlatform platform = LocalPlatform.get();
+
+        OptionsByType optionsByType = OptionsByType.of(
+                OperationalOverride.of("global-ssl-test-override.xml"),
+                SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
+                ClusterName.of(m_sClusterName),
+                ClusterPort.of(m_nClusterPort),
+                JMXManagementMode.ALL,
+                JmxProfile.enabled(),
+                WellKnownAddress.of("127.0.0.1"),
+                LocalHost.only(),
+                IPv4Preferred.yes(),
+                m_logs,
+                DisplayName.of("storage"),
+                SystemProperty.of("coherence.mode", "prod"),
+                SystemProperty.of("coherence.secured.production", "true"));
+
+        optionsByType.addAll(m_exOptionsByType);
+        CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
+                .include(3, CoherenceClusterMember.class, optionsByType.asArray());
+
+        try (CoherenceCluster cluster = clusterBuilder.build(platform))
+            {
+            Eventually.assertDeferred(cluster::isReady, is(true));
+
+            for (CoherenceClusterMember member : cluster)
+                {
+                assertThat(member.getClusterSize(), is(3));
+                }
+
+            CoherenceClusterMember member     = cluster.getAny();
+            JmxFeature             jmxFeature = member.get(JmxFeature.class);
+            int                    nId        = member.getLocalMemberId();
+            ObjectName             objectName = new ObjectName("Coherence:type=Node,nodeId=" + nId);
+            String                 sStatus    = jmxFeature.getMBeanAttribute(objectName, "TransportStatus", String.class);
+
+            assertThat(sStatus, containsString("tmbs://"));
+            assertThat(member.invoke(new IsSecureUDP()), is(true));
+            // health should not be secure
+            String sServiceName = "$SYS:HealthHttpProxy";
+            Eventually.assertDeferred(() -> member.isServiceRunning(sServiceName), is(true));
+            assertThat(member.invoke(new IsSecureProxy(sServiceName)), is(false));
             }
         }
 
@@ -367,12 +431,24 @@ public class GlobalSocketProviderTests
             }
         }
 
-    // ----- constants ------------------------------------------------------
-
-    public static final String CLUSTER_NAME = "GlobalSocketProviderTests";
-
     // ----- data members ---------------------------------------------------
 
     @Rule
     public final TestLogs m_logs = new TestLogs(GlobalSocketProviderTests.class);
+
+    /**
+     * An {@link AtomicInteger} used to generate a cluster name.
+     */
+    protected final AtomicInteger m_nClusterId = new AtomicInteger(0);
+
+    /**
+     * The cluster name for a test.
+     */
+    protected String m_sClusterName;
+
+    protected static AvailablePortIterator m_ports;
+
+    protected int m_nClusterPort;
+
+    protected static OptionsByType m_exOptionsByType = OptionsByType.empty();
     }
