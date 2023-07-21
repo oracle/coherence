@@ -483,4 +483,14 @@
     <cve>CVE-2023-2976</cve>
   </suppress>
 
+  <!-- suppression for graal-sdk-19.3.1.jar CVE scan error -->
+  <suppress>
+    <notes><![CDATA[
+    file name: graal-sdk-19.3.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
+    <cve>CVE-2023-22006</cve>
+    <cve>CVE-2023-22049</cve>
+  </suppress>
+
 </suppressions>
