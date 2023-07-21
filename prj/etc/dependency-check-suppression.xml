@@ -413,26 +413,6 @@
     <cve>CVE-2021-21409</cve>
   </suppress>
 
-  <!-- The following are false positives after upgrade to
-  Helidon 2.6.1 (BUG 35431662). Hence its excluded-->
-  <suppress>
-    <notes><![CDATA[
-     file name: guava-31.1-jre.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
-    <cpe>cpe:2.3:a:google:guava</cpe>
-    <cve>CVE-2020-8908</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: java-dataloader-3.1.0.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/java\-dataloader@.*$</packageUrl>
-    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
-    <cve>CVE-2023-28867</cve>
-  </suppress>
-
-
   <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
       call "fredsmith utils".  Unable to find anything of value regarding this library. -->
   <suppress>
@@ -443,75 +423,10 @@
      <cpe>cpe:/a:utils_project:utils</cpe>
   </suppress>
   
-  <!-- temporary suppression until Helidon dependencies are addressed -->
-  <suppress>
-    <notes><![CDATA[
-    file name: graphql-java-17.5.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
-    <cve>CVE-2023-2976</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: guava-31.1-jre.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
-    <cve>CVE-2023-2976</cve>
-  </suppress>
-
   <!-- suppress grpc related since they have to be in sync with Helidon -->
   <suppress>
     <notes><![CDATA[
-    file name: grpc-protobuf-1.54.1.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
-    <cve>CVE-2023-32731</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-stub-1.54.1.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32731</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-netty-1.54.1.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32731</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-protobuf-lite-1.54.1.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
-    <cve>CVE-2023-32731</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: grpc-services-1.54.1.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
-    <cpe>cpe:2.3:a:grpc:grpc</cpe>
-    <cve>CVE-2023-32731</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
     file name: netty-handler-4.1.87.Final.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
-    <cve>CVE-2023-34462</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: netty-handler-4.1.90.Final.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
     <cve>CVE-2023-34462</cve>
@@ -554,6 +469,18 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/com\.squareup\.okio/okio@.*$</packageUrl>
     <cve>CVE-2023-3635</cve>
+  </suppress>
+
+  <!-- The following still comes up after upgrade to
+  Helidon 2.6.2 (BUG 35431662). Hence its excluded-->
+  <suppress>
+    <notes><![CDATA[
+    file name: guava-31.1-jre.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:2.3:a:google:guava</cpe>
+    <cve>CVE-2020-8908</cve>
+    <cve>CVE-2023-2976</cve>
   </suppress>
 
 </suppressions>
