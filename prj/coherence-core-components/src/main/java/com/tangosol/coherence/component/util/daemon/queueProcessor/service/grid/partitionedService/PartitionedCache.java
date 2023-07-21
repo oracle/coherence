@@ -4977,7 +4977,7 @@ public class PartitionedCache
                     : null;
         
             // no need to pin - we are on the service thread
-            PartitionSet   partsMask = calculatePartitionSet(getThisMember(), 0,/*fCheckLocked*/ true);
+            PartitionSet   partsMask = calculatePartitionSet(getThisMember(), 0);
             RequestContext context   = msgRequest.getRequestContext();
             if (fAdd)
                 {
