@@ -53760,18 +53760,21 @@ public class PartitionedCache
                         PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) service.getPartitionControl(iPart);
                         PersistentStore   store    = ctrlPart.getPersistentStore();
             
-                        if (fAdd)
+                        if (store != null)
                             {
-                            // ensure lazily written cache metadata is persisted to ensure index
-                            // is materialized on recovery
-                            ctrlPart.ensurePersistentExtent(getCacheId());
+                            if (fAdd)
+                                {
+                                // ensure lazily written cache metadata is persisted to ensure index
+                                // is materialized on recovery
+                                ctrlPart.ensurePersistentExtent(getCacheId());
             
-                            com.tangosol.persistence.CachePersistenceHelper.registerIndex(store, getCacheId(), binExtractor,
-                                              com.tangosol.util.ExternalizableHelper.toBinary(comparator, serializer), /*oToken*/ null);
-                            }
-                        else
-                            {
-                            com.tangosol.persistence.CachePersistenceHelper.unregisterIndex(store, getCacheId(), binExtractor, /*oToken*/ null);
+                                com.tangosol.persistence.CachePersistenceHelper.registerIndex(store, getCacheId(), binExtractor,
+                                                  com.tangosol.util.ExternalizableHelper.toBinary(comparator, serializer), /*oToken*/ null);
+                                }
+                            else
+                                {
+                                com.tangosol.persistence.CachePersistenceHelper.unregisterIndex(store, getCacheId(), binExtractor, /*oToken*/ null);
+                                }
                             }
                         }
                     }
