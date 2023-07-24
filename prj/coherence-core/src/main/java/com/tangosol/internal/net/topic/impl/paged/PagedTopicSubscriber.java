@@ -716,29 +716,8 @@ public class PagedTopicSubscriber<V>
         int    cChannelsHit    = f_setHitChannels.cardinality();
         String sChannelsHit    = Arrays.toString(f_setHitChannels.stream().toArray());
 
-        String sState;
-        switch (m_nState)
-            {
-            case STATE_INITIAL:
-                sState = "Initial";
-                break;
-            case STATE_CONNECTED:
-                sState = "Connected";
-                break;
-            case STATE_DISCONNECTED:
-                sState = "Disconnected";
-                break;
-            case STATE_CLOSING:
-                sState = "Closing";
-                break;
-            case STATE_CLOSED:
-                sState = "Closed";
-                break;
-            default:
-                sState = "Unknown(" + m_nState + ")";
-            }
-
-        String sName = f_sIdentifyingName == null ? "" : ", name=" + f_sIdentifyingName;
+        String sState = getStateName();
+        String sName  = f_sIdentifyingName == null ? "" : ", name=" + f_sIdentifyingName;
 
         return getClass().getSimpleName() + "(" + "topic=" + m_caches.getTopicName() + sName +
             ", id=" + f_id +
@@ -1002,6 +981,12 @@ public class PagedTopicSubscriber<V>
 
             while(m_nState != STATE_CONNECTED)
                 {
+                if (!isActive())
+                    {
+                    // the subscriber has been closed
+                    break;
+                    }
+
                 int nPrevState = setState(STATE_CONNECTING);
 
                 if (fReconnect)
@@ -1790,7 +1775,7 @@ public class PagedTopicSubscriber<V>
             {
             return STATES[nState];
             }
-        return "Unknown";
+        return "Unknown (" + nState + ")";
         }
 
     /**
@@ -1806,7 +1791,10 @@ public class PagedTopicSubscriber<V>
             {
             int nPrevState = m_nState;
             m_nState = nState;
-            notifyStateChange(nState, nPrevState);
+            if (nPrevState != nState)
+                {
+                notifyStateChange(nState, nPrevState);
+                }
             return nPrevState;
             }
         }
@@ -1887,7 +1875,7 @@ public class PagedTopicSubscriber<V>
      */
     protected void reconnectInternal()
         {
-        if (getState() == PagedTopicSubscriber.STATE_CONNECTED || !isActive())
+        if (getState() == STATE_CONNECTED || !isActive())
             {
             // nothing to do, either the subscriber is connected, or it is closed
             return;
@@ -1977,6 +1965,10 @@ public class PagedTopicSubscriber<V>
                                 }
                             }
                         }
+                    if (error == null)
+                        {
+                        f_queueReceiveOrders.triggerOperations();
+                        }
                     }
 
                 if (error != null)
@@ -2064,7 +2056,7 @@ public class PagedTopicSubscriber<V>
                     }
                 else
                     {
-                    if (casState(nState, STATE_DISCONNECTED))
+                    if (nState == STATE_DISCONNECTED || casState(nState, STATE_DISCONNECTED))
                         {
                         break;
                         }
@@ -2674,7 +2666,10 @@ public class PagedTopicSubscriber<V>
         {
         if (m_nState != STATE_CLOSED)
             {
-            setState(STATE_CLOSING); // accept no new requests, and cause all pending ops to complete ASAP (see onReceiveResult)
+            try (Sentry<?> ignored = f_gate.close())
+                {
+                setState(STATE_CLOSING); // accept no new requests, and cause all pending ops to complete ASAP (see onReceiveResult)
+                }
 
             try
                 {
