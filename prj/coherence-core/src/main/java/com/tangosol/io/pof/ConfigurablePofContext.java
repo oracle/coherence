@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1105,11 +1105,15 @@ public class ConfigurablePofContext
 
             if (xmlSer == null)
                 {
-                if (PortableObject.class.isAssignableFrom(clz))
+                if (clz.isAnnotationPresent(PortableType.class))
                     {
-                    serializer = clz.isAnnotationPresent(PortableType.class)
-                                 ? new PortableTypeSerializer<>(nTypeId, clz)
-                                 : new PortableObjectSerializer(nTypeId);
+                    serializer = clz.isEnum()
+                                 ? new EnumPofSerializer()
+                                 : instantiateSerializer(clz.getAnnotation(PortableType.class).serializer(), nTypeId, clz);
+                    }
+                else if (PortableObject.class.isAssignableFrom(clz))
+                    {
+                    serializer = new PortableObjectSerializer(nTypeId);
                     }
                 else if (clz.getAnnotation(Portable.class) == null)
                     {
@@ -1194,7 +1198,7 @@ public class ConfigurablePofContext
                 {
                 report(sURI, nTypeId, null, null, "Duplicate user type id from PortableType annotation");
                 }
-            
+
             final Class<?> clz = loadClass(sURI, sClass, nTypeId);
 
             validateClass(sURI, sClass, clz, nTypeId, fAllowInterfaces, fAllowSubclasses);
@@ -1203,7 +1207,10 @@ public class ConfigurablePofContext
             mapTypeIdByClassName.put(sClass, ITypeId);
             mapClassNameByTypeId.put(ITypeId, sClass);
             aClzByTypeId[nTypeId] = new WeakReference(clz);
-            aSerByTypeId[nTypeId] = new PortableTypeSerializer<>(nTypeId, clz);
+            PofSerializer serializer = clz.isEnum()
+                                 ? new EnumPofSerializer()
+                                 : instantiateSerializer(clz.getAnnotation(PortableType.class).serializer(), nTypeId, clz);
+            aSerByTypeId[nTypeId] = serializer;
             }
 
         // store off the reusable configuring in a PofConfig object
@@ -1329,48 +1336,11 @@ public class ConfigurablePofContext
             // transposed form of the parameters)
             XmlElement xmlParams = xmlSer.getElement("init-params");
             Iterator   iterParam;
-            InstantiateSerializer: if (xmlParams == null
+            if (xmlParams == null
                     || (iterParam = xmlParams.getElements("init-param")).hasNext()
                     && ((XmlElement) iterParam.next()).getElement("param-type") == null)
                 {
-                // try the four prescribed constructors
-                try
-                    {
-                    serializer = (PofSerializer) ClassHelper.newInstance(clzSer,
-                            new Object[] {ITypeId, clz, getContextClassLoader()});
-                    break InstantiateSerializer;
-                    }
-                catch (Throwable e) {}
-
-                try
-                    {
-                    serializer = (PofSerializer) ClassHelper.newInstance(clzSer,
-                            new Object[] {ITypeId, clz});
-                    break InstantiateSerializer;
-                    }
-                catch (Throwable e) {}
-
-                try
-                    {
-                    serializer = (PofSerializer) ClassHelper.newInstance(clzSer,
-                            new Object[] {ITypeId});
-                    break InstantiateSerializer;
-                    }
-                catch (Throwable e) {}
-
-                try
-                    {
-                    serializer = (PofSerializer) clzSer.newInstance();
-                    }
-                catch (Throwable e)
-                    {
-                    // all four failed, so use the exception from this
-                    // most recent failure as the basis for reporting
-                    // the failure
-                    report(sURI, nTypeId, clz.getName(), e,
-                            "Unable to instantiate PofSerializer class using"
-                            + " predefined constructors: " + sSerClass);
-                    }
+                serializer = instantiateSerializer(clzSer, nTypeId, clz);
                 }
             else
                 {
@@ -1430,6 +1400,57 @@ public class ConfigurablePofContext
             }
 
         return serializer;
+        }
+
+    /**
+     * Instantiate specified {@link PofSerializer}.
+     *
+     * @param clzSer   the class of the serializer to create
+     * @param nTypeId  the user type id this class is registered with
+     * @param clz      the class of the user type
+     *
+     * @return a PofSerializer implementation capable of (de)serializing
+     *         <tt>clz</tt>
+     */
+    protected PofSerializer<?> instantiateSerializer(Class<? extends PofSerializer> clzSer, Integer nTypeId, Class<?> clz)
+        {
+        // try the four prescribed constructors
+        try
+            {
+            return (PofSerializer<?>) ClassHelper.newInstance(clzSer,
+                    new Object[] {nTypeId, clz, getContextClassLoader()});
+            }
+        catch (Throwable ignore) {}
+
+        try
+            {
+            return (PofSerializer<?>) ClassHelper.newInstance(clzSer,
+                    new Object[] {nTypeId, clz});
+            }
+        catch (Throwable ignore) {}
+
+        try
+            {
+            return (PofSerializer<?>) ClassHelper.newInstance(clzSer,
+                    new Object[] {nTypeId});
+            }
+        catch (Throwable ignore) {}
+
+        try
+            {
+            return clzSer.getDeclaredConstructor().newInstance();
+            }
+        catch (Throwable e)
+            {
+            // all four failed, so use the exception from this
+            // most recent failure as the basis for reporting
+            // the failure
+            report(m_sUri, nTypeId, clz.getName(), e,
+                "Unable to instantiate PofSerializer class using"
+                     + " predefined constructors: " + clzSer.getName());
+            }
+
+        return null;
         }
 
     /**
