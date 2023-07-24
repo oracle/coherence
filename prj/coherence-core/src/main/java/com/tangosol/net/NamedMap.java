@@ -183,7 +183,7 @@ public interface NamedMap<K, V>
      * </p>
      * An example of when this method would return {@code false} would
      * be where a partitioned cache service that owns this cache has no
-     * store-enabled members.
+     * storage-enabled members.
      *
      * @return return {@code true} if the {@code NamedMap} may be used
      *         otherwise returns {@code false}.
