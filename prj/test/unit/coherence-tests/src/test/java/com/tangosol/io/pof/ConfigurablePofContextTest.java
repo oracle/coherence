@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -298,6 +298,32 @@ public class ConfigurablePofContextTest
             assertThat(ctx.getUserTypeIdentifier(PortableTypeTestNoId.class.getName()), is(nTypeId));
             Class<?> clazz = ctx.getClass(nTypeId);
             assertThat(clazz.getName(), is(PortableTypeTestNoId.class.getName()));
+            }
+        finally
+            {
+            fileIndex.delete();
+            }
+        }
+
+    @Test
+    public void testPortableTypeEnumWithId()
+            throws IOException
+        {
+        File fileIndex = setupIndex(TestEnum.class);
+
+        try
+            {
+            ConfigurablePofContext ctx = new ConfigurablePofContext("com/tangosol/io/pof/portable-type-pof-config7.xml");
+            ctx.setIndexFileName(fileIndex.getAbsolutePath());
+            ctx.setContextClassLoader(TestEnum.class.getClassLoader());
+            ctx.ensureInitialized();
+
+            int nTypeId = ctx.getUserTypeIdentifier(TestEnum.class);
+            PofSerializer pofSerializer = ctx.getPofSerializer(nTypeId);
+            assertThat(pofSerializer, is(instanceOf(EnumPofSerializer.class)));
+            assertThat(ctx.getUserTypeIdentifier(TestEnum.class.getName()), is(nTypeId));
+            Class<?> clazz = ctx.getClass(nTypeId);
+            assertThat(clazz.getName(), is(TestEnum.class.getName()));
             }
         finally
             {
@@ -667,7 +693,6 @@ public class ConfigurablePofContextTest
     public static class PortableTypeTestConflicting
         extends PortableTypeTestBase
         {
-
         public PortableTypeTestConflicting()
             {
             super();
@@ -688,16 +713,21 @@ public class ConfigurablePofContextTest
     public static class PortableTypeTestNoId
         extends PortableTypeTestBase
         {
-
         public PortableTypeTestNoId()
             {
             super();
             }
 
-         public PortableTypeTestNoId(int nId, String sString)
+        public PortableTypeTestNoId(int nId, String sString)
              {
              super(nId, sString);
              }
+        }
+
+    @PortableType(id = 1234)
+    public enum TestEnum
+        {
+        BRONZE, SILVER, GOLD
         }
 
     // ----- helpers --------------------------------------------------------
