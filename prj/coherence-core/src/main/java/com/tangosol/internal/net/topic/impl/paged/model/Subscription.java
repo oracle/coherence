@@ -757,7 +757,8 @@ public class Subscription
                 + ", converter=" + m_fnConvert
                 + ", owner=" + m_owningSubscriber
                 + ", lastPolledBy=" + m_lastPolledSubscriber
-                + ", subscribers=" + m_mapSubscriber + ")";
+                + ", subscribers=" + m_mapSubscriber
+                + ", channelOwners=" + Arrays.toString(m_aChannel) + ")";
         }
 
     // ----- helper methods -------------------------------------------------
