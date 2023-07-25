@@ -13,8 +13,6 @@ package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid
 import com.tangosol.coherence.component.net.Cluster;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
-import com.tangosol.coherence.component.net.Message;
-import com.tangosol.coherence.component.net.Poll;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
@@ -40,22 +38,17 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.TopicException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ValueExtractor;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.SortedMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -183,7 +176,7 @@ public class PagedTopic
         // register child classes
         __mapChildren = new com.tangosol.util.ListMap();
         __mapChildren.put("Acknowledgement", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.Acknowledgement.get_CLASS());
-        __mapChildren.put("AggregateAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.AggregateAllRequest.get_CLASS());
+        __mapChildren.put("AggregateAllRequest", AggregateAllRequest.get_CLASS());
         __mapChildren.put("AggregateFilterRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.AggregateFilterRequest.get_CLASS());
         __mapChildren.put("BackingMapContext", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BackingMapContext.get_CLASS());
         __mapChildren.put("BackupAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BackupAllRequest.get_CLASS());
@@ -278,8 +271,8 @@ public class PagedTopic
         __mapChildren.put("SnapshotArchiveRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.SnapshotArchiveRequest.get_CLASS());
         __mapChildren.put("SnapshotListRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.SnapshotListRequest.get_CLASS());
         __mapChildren.put("SnapshotRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.SnapshotRequest.get_CLASS());
-        __mapChildren.put("Storage", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage.get_CLASS());
-        __mapChildren.put("StorageConfirmRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.StorageConfirmRequest.get_CLASS());
+        __mapChildren.put("Storage", Storage.get_CLASS());
+        __mapChildren.put("StorageConfirmRequest", StorageConfirmRequest.get_CLASS());
         __mapChildren.put("StorageIdRequest", PagedTopic.StorageIdRequest.get_CLASS());
         __mapChildren.put("SubscriberConfirmRequest", PagedTopic.SubscriberConfirmRequest.get_CLASS());
         __mapChildren.put("SubscriberIdRequest", PagedTopic.SubscriberIdRequest.get_CLASS());
@@ -287,7 +280,7 @@ public class PagedTopic
         __mapChildren.put("TransferResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.TransferResponse.get_CLASS());
         __mapChildren.put("UnlockRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.UnlockRequest.get_CLASS());
         __mapChildren.put("UpdateIndexRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.UpdateIndexRequest.get_CLASS());
-        __mapChildren.put("ViewMap", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ViewMap.get_CLASS());
+        __mapChildren.put("ViewMap", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.ViewMap.get_CLASS());
         __mapChildren.put("WrapperGuardable", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.WrapperGuardable.get_CLASS());
         }
     
@@ -1756,12 +1749,12 @@ public class PagedTopic
     /**
      * Remove storage of the specified cacheId from the storage array.
      */
-    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage removeStorage(long lCacheId)
+    public Storage removeStorage(long lCacheId)
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage;
+        // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$Storage as Storage;
         // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
         
-        com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Storage storage = super.removeStorage(lCacheId);
+        Storage storage = super.removeStorage(lCacheId);
         if (storage != null && isOwnershipEnabled())
             {
             String  sName   = storage.getCacheName(); 
@@ -1887,7 +1880,7 @@ public class PagedTopic
      */
     @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
     public static class BinaryMap
-            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap
+            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap
         {
         // ---- Fields declarations ----
         private static com.tangosol.util.ListMap __mapChildren;
@@ -1903,13 +1896,13 @@ public class PagedTopic
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Entry", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.Entry.get_CLASS());
-            __mapChildren.put("EntryAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.EntryAdvancer.get_CLASS());
-            __mapChildren.put("KeyAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeyAdvancer.get_CLASS());
-            __mapChildren.put("KeyRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeyRequestStatus.get_CLASS());
-            __mapChildren.put("KeySetRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeySetRequestStatus.get_CLASS());
-            __mapChildren.put("MapRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.MapRequestStatus.get_CLASS());
-            __mapChildren.put("PartialRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.PartialRequestStatus.get_CLASS());
+            __mapChildren.put("Entry", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.Entry.get_CLASS());
+            __mapChildren.put("EntryAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.EntryAdvancer.get_CLASS());
+            __mapChildren.put("KeyAdvancer", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeyAdvancer.get_CLASS());
+            __mapChildren.put("KeyRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeyRequestStatus.get_CLASS());
+            __mapChildren.put("KeySetRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeySetRequestStatus.get_CLASS());
+            __mapChildren.put("MapRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.MapRequestStatus.get_CLASS());
+            __mapChildren.put("PartialRequestStatus", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.PartialRequestStatus.get_CLASS());
             }
         
         // Default constructor
@@ -1948,9 +1941,9 @@ public class PagedTopic
                 }
             
             // containment initialization: children
-            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.EntrySet("EntrySet", this, true), "EntrySet");
-            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.KeySet("KeySet", this, true), "KeySet");
-            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap.Values("Values", this, true), "Values");
+            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.EntrySet("EntrySet", this, true), "EntrySet");
+            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.KeySet("KeySet", this, true), "KeySet");
+            _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap.Values("Values", this, true), "Values");
             
             // signal the end of the initialization
             set_Constructed(true);
@@ -3064,7 +3057,7 @@ public class PagedTopic
             {
             // register child classes
             __mapChildren = new com.tangosol.util.ListMap();
-            __mapChildren.put("Poll", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.StorageIdRequest.Poll.get_CLASS());
+            __mapChildren.put("Poll", StorageIdRequest.Poll.get_CLASS());
             }
         
         // Default constructor
