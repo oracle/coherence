@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -262,21 +262,20 @@ public class SSLSocketProvider
         public SSLParameters getSSLParameters();
 
         /**
-         * Return true iff produced server sockets will require client
-         * authentication.
+         * Returns the configured {@link ClientAuthMode}.
          *
-         * @return  true iff client authentication is required
+         * @return the {@link ClientAuthMode}
          */
-        public boolean isClientAuthenticationRequired();
+        public ClientAuthMode getClientAuth();
 
         /**
-         * Specify if client authentication is required.
+         * Set the {@link ClientAuthMode}
          *
-         * @param fRequired  true iff client authentication is required
+         * @param mode  the {@link ClientAuthMode}
          *
          * @return this object
          */
-        public DefaultDependencies setClientAuthenticationRequired(boolean fRequired);
+        public DefaultDependencies setClientAuth(ClientAuthMode mode);
 
         /**
          * Return the SSL HostnameVerifier to be used to verify hostnames
@@ -408,7 +407,7 @@ public class SSLSocketProvider
                 {
                 m_delegate                  = deps.getDelegateSocketProvider();
                 m_ctx                       = deps.getSSLContext();
-                m_fClientAuthRequired       = deps.isClientAuthenticationRequired();
+                m_clientAuthMode            = deps.getClientAuth();
                 m_hostnameVerifier          = deps.getHostnameVerifier();
                 m_asCipherSuitesEnabled     = deps.getEnabledCipherSuites();
                 m_asProtocolVersionsEnabled = deps.getEnabledProtocolVersions();
@@ -427,7 +426,7 @@ public class SSLSocketProvider
         public DefaultDependencies applySSLSettings(SSLSettings settingsSSL)
             {
             return this.setSSLContext(settingsSSL.getSSLContext())
-                    .setClientAuthenticationRequired(settingsSSL.isClientAuthenticationRequired())
+                    .setClientAuth(settingsSSL.getClientAuth())
                     .setHostnameVerifier(settingsSSL.getHostnameVerifier())
                     .setEnabledCipherSuites(settingsSSL.getEnabledCipherSuites())
                     .setEnabledProtocolVersions(settingsSSL.getEnabledProtocolVersions());
@@ -506,7 +505,22 @@ public class SSLSocketProvider
                 params.setProtocols(asProtocols);
                 }
 
-            params.setNeedClientAuth(isClientAuthenticationRequired());
+            switch (getClientAuth())
+                {
+                case wanted:
+                    params.setNeedClientAuth(false);
+                    params.setWantClientAuth(true);
+                    break;
+                case required:
+                    params.setWantClientAuth(true);
+                    params.setNeedClientAuth(true);
+                    break;
+                case none:
+                default:
+                    params.setWantClientAuth(false);
+                    params.setNeedClientAuth(false);
+                    break;
+                }
 
             return params;
             }
@@ -515,22 +529,21 @@ public class SSLSocketProvider
          * {@inheritDoc}
          */
         @Override
-        public boolean isClientAuthenticationRequired()
+        public ClientAuthMode getClientAuth()
             {
-            return m_fClientAuthRequired;
+            return m_clientAuthMode;
             }
 
         /**
-         * Specify if client authentication is required.
+         * Specify they type of client authentication required.
          *
-         * @param fRequired  true iff client authentication is required
+         * @param mode  the {@link ClientAuthMode}
          *
          * @return this object
          */
-        @Override
-        public DefaultDependencies setClientAuthenticationRequired(boolean fRequired)
+        public DefaultDependencies setClientAuth(ClientAuthMode mode)
             {
-            m_fClientAuthRequired = fRequired;
+            m_clientAuthMode = mode;
             return this;
             }
 
@@ -732,9 +745,10 @@ public class SSLSocketProvider
                 sb.append(", hostname-verifier=enabled");
                 }
 
-            if (isClientAuthenticationRequired())
+            ClientAuthMode clientAuth = getClientAuth();
+            if (clientAuth != null)
                 {
-                sb.append(", client-auth=enabled");
+                sb.append(", client-auth=" + clientAuth);
                 }
 
             return sb.toString();
@@ -788,9 +802,9 @@ public class SSLSocketProvider
         protected SSLContext m_ctx;
 
         /**
-         * True if client authentication is required.
+         * The client authentication mode.
          */
-        protected boolean m_fClientAuthRequired;
+        protected ClientAuthMode m_clientAuthMode;
 
         /**
          * The HostnameVerifier used by this SocketProvider.
@@ -845,6 +859,27 @@ public class SSLSocketProvider
             }
         }
 
+
+    // ----- inner enum: ClientAuthMode -------------------------------------
+
+    /**
+     * An enum to represent different client auth modes.
+     */
+    public enum ClientAuthMode
+        {
+        /**
+         * Client auth is not required.
+         */
+        none,
+        /**
+         * The client will be requested to send a cert.
+         */
+        wanted,
+        /**
+         * The client will be required to send a cert.
+         */
+        required;
+        }
 
     // ----- data members ---------------------------------------------------
 

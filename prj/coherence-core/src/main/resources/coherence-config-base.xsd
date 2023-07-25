@@ -1085,6 +1085,7 @@
             <xsd:element ref="cipher-suites" minOccurs="0" />
             <xsd:element ref="protocol-versions" minOccurs="0" />
             <xsd:element ref="socket-provider" minOccurs="0"/>
+            <xsd:element ref="client-auth" minOccurs="0"/>
             <xsd:element ref="refresh-period" minOccurs="0" />
             <xsd:element name="refresh-policy" type="ssl-refresh-policy-type" minOccurs="0" />
             <xsd:any namespace="##other" processContents="lax"  minOccurs="0" maxOccurs="unbounded" />
@@ -1155,6 +1156,43 @@
             <xsd:anyAttribute namespace="##other" processContents="lax"/>
         </xsd:complexType>
     </xsd:element>
+
+    <xsd:simpleType name="client-auth-enum-type">
+        <xsd:restriction base="xsd:normalizedString">
+            <xsd:enumeration value="none" />
+            <xsd:enumeration value="wanted" />
+            <xsd:enumeration value="required" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="client-auth-base-type">
+        <xsd:union memberTypes="coherence-base-type client-auth-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="client-auth-type">
+        <xsd:simpleContent>
+            <xsd:extension base="client-auth-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="client-auth" type="client-auth-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The client auth mode to use for an SSL context.
+                This only applies to server sockets and only if
+                a trust store is present.
+
+                Valid names include: none, wanted, required
+
+                Default value when a trust store is specified is "required".
+
+                Used in: ssl
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
 
     <xsd:element name="executor">
         <xsd:annotation>

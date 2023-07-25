@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net.exabus.util;
 
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Hasher;
 
+import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.exabus.Bus;
 import com.oracle.coherence.common.net.exabus.Depot;
 import com.oracle.coherence.common.net.exabus.EndPoint;
@@ -2293,9 +2294,25 @@ public class MessageBusTest
 
             ctx.init(keymanager.getKeyManagers(), trustmanager.getTrustManagers(), new SecureRandom());
 
-            depsDepot.setSSLSettings(new SSLSettings().setSSLContext(ctx)
-                    .setClientAuthenticationRequired(Boolean.parseBoolean(
-                                        props.getProperty(sPrefix + "ssl.clientauth", "false"))));
+            SSLSettings sslSettings = new SSLSettings().setSSLContext(ctx);
+            String sClientAuth = props.getProperty(sPrefix + "ssl.clientauth", "none").toLowerCase();
+            switch (sClientAuth)
+                {
+                case "wanted":
+                    sslSettings.setClientAuth(SSLSocketProvider.ClientAuthMode.wanted);
+                    break;
+                case "required":
+                case "true":
+                    sslSettings.setClientAuth(SSLSocketProvider.ClientAuthMode.required);
+                    break;
+                case "none":
+                case "false":
+                default:
+                    sslSettings.setClientAuth(SSLSocketProvider.ClientAuthMode.none);
+                    break;
+                }
+
+            depsDepot.setSSLSettings(sslSettings);
             }
 
         Map<String, Driver> mapDriver = new HashMap<>(depsDepot.getDrivers());

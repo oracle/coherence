@@ -78,7 +78,7 @@ public class MasterMemberSet
      * determines unannounced Member death.
      */
     private int __m_RecycleMillis;
-    
+
     /**
      * Property RecycleSet
      *

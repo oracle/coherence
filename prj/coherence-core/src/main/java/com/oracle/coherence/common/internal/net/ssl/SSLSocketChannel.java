@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.internal.net.ssl;
@@ -1254,7 +1254,22 @@ public class SSLSocketChannel
             engine.setEnabledProtocols(asProtocols);
             }
 
-        engine.setNeedClientAuth(deps.isClientAuthenticationRequired());
+        switch (deps.getClientAuth())
+            {
+            case wanted:
+                engine.setNeedClientAuth(false);
+                engine.setWantClientAuth(true);
+                break;
+            case required:
+                engine.setWantClientAuth(true);
+                engine.setNeedClientAuth(true);
+                break;
+            case none:
+            default:
+                engine.setWantClientAuth(false);
+                engine.setNeedClientAuth(false);
+                break;
+            }
 
         return engine;
         }
