@@ -158,11 +158,11 @@ public abstract class AsyncContext
     * The client cache reference (BinaryMap) associated with this async request
     * context.
      */
-    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap getCache()
+    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap getCache()
         {
         // import Component.Util.Daemon.QueueProcessor.Service.Grid.PartitionedService.PartitionedCache$BinaryMap as com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap;
         
-        return (com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.BinaryMap) get_Parent();
+        return (com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap) get_Parent();
         }
     
     // Accessor for the property "Partition"
