@@ -1892,6 +1892,7 @@ public class PagedTopicSubscriber<V>
                     {
                     Logger.finest("Running reconnect task, reconnecting " + this);
                     ensureConnected();
+                    f_queueReceiveOrders.triggerOperations();
                     }
                 else
                     {
