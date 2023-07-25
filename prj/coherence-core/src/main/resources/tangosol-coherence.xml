@@ -766,6 +766,7 @@ to find specific notes on changes suggested for production use.
             <name>SSLv3</name>
           </protocol-versions>
           <socket-provider>tcp</socket-provider>
+          <client-auth system-property="coherence.security.clientauth"/>
         </ssl>
       </socket-provider>
 

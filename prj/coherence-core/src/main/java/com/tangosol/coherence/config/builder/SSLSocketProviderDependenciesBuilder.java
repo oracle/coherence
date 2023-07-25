@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
 import com.oracle.coherence.common.internal.net.ssl.SSLCertUtility;
+import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.SocketProvider;
 
 import com.tangosol.coherence.config.Config;
@@ -237,6 +238,30 @@ public class SSLSocketProviderDependenciesBuilder
         m_bldrDelegateSocketProvider = bldr;
         }
 
+    /**
+     * Set the client auth mode to use.
+     *
+     * @param sAuthMode  the client auth mode to use
+     */
+    @Injectable("client-auth")
+    public void setClientAuth(String sAuthMode)
+        {
+        if (sAuthMode == null || sAuthMode.isEmpty())
+            {
+            m_clientAuthMode = SSLSocketProvider.ClientAuthMode.none;
+            }
+        else
+            {
+            try
+                {
+                m_clientAuthMode = SSLSocketProvider.ClientAuthMode.valueOf(sAuthMode);
+                }
+            catch (IllegalArgumentException e)
+                {
+                throw new IllegalArgumentException("Invalid client auth configuration", e);
+                }
+            }
+        }
 
     /**
      * Get delegate socket provider builder
@@ -408,7 +433,6 @@ public class SSLSocketProviderDependenciesBuilder
                 factory.init(keyStore);
 
                 aTrustManager = factory.getTrustManagers();
-                deps.setClientAuthenticationRequired(aTrustManager != null);
                 }
 
 
@@ -462,14 +486,38 @@ public class SSLSocketProviderDependenciesBuilder
 
             deps.setDelegateSocketProviderBuilder(m_bldrDelegateSocketProvider);
 
-            String sAuth = aKeyManager == null && aTrustManager == null
-                           ? "none"
-                           : aKeyManager == null && aTrustManager != null
-                             ? "one-way client"
-                             : aKeyManager != null && aTrustManager == null ? "one-way server" : "two-way";
+            SSLSocketProvider.ClientAuthMode clientAuthMode = m_clientAuthMode;
+            String sAuthDesc;
 
-            deps.setDescription(sbDesc.insert(0, "SSLSocketProvider(auth=" + sAuth + ", ").append(')').toString());
-            CacheFactory.log("instantiated SSLSocketProviderDependencies: " + sbDesc.toString(), Base.LOG_DEBUG);
+            if (aKeyManager == null && aTrustManager == null)
+                {
+                clientAuthMode = SSLSocketProvider.ClientAuthMode.none;
+                sAuthDesc = "none";
+                }
+            else
+                {
+                if (clientAuthMode == null)
+                    {
+                    clientAuthMode = aTrustManager == null
+                            ? SSLSocketProvider.ClientAuthMode.none
+                            : SSLSocketProvider.ClientAuthMode.required;
+
+                    sAuthDesc =
+                            aKeyManager == null && aTrustManager == null ? "none"
+                                    : aKeyManager == null && aTrustManager != null ? "one-way client"
+                                            : aKeyManager != null && aTrustManager == null ? "one-way server"
+                                                    : "two-way";
+                    }
+                else
+                    {
+                    sAuthDesc = "client-auth " + clientAuthMode.name();
+                    }
+                }
+
+            deps.setClientAuth(clientAuthMode);
+
+            deps.setDescription(sbDesc.insert(0, "SSLSocketProvider(auth=" + sAuthDesc + ", ").append(')').toString());
+            CacheFactory.log("instantiated SSLSocketProviderDependencies: " + sbDesc, Base.LOG_DEBUG);
             m_fRealized = true;
             }
         catch (GeneralSecurityException e)
@@ -1512,4 +1560,9 @@ public class SSLSocketProviderDependenciesBuilder
      * SSL Socket provider protocol.
      */
     private String                                 m_sNameProtocol;
+
+    /**
+     * The client authentication mode.
+     */
+    private SSLSocketProvider.ClientAuthMode m_clientAuthMode;
     }

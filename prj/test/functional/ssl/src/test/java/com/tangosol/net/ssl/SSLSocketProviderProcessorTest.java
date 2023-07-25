@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.ssl;
 
@@ -32,6 +32,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 
@@ -162,7 +163,7 @@ public class SSLSocketProviderProcessorTest
         assertNull(sslDeps.getHostnameVerifier());
         assertNull(sslDeps.getEnabledCipherSuites());
         assertNull(sslDeps.getEnabledProtocolVersions());
-        assertFalse(sslDeps.isClientAuthenticationRequired());
+        assertThat(sslDeps.getClientAuth(), is(SSLSocketProvider.ClientAuthMode.none));
 
         try
             {

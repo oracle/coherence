@@ -313,6 +313,51 @@ public class SSLTests
         }
 
     @Test
+    public void testUntrustedClientConfigWithClientAuthNone()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-guest-trust.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testUntrustedClientConfigWithClientAuthWanted()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-guest-trust.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-wanted.xml");
+        untrustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustOnlyClientConfigWithClientAuthNone()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-none.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustOnlyClientConfigWithClientAuthWanted()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-wanted.xml");
+        trustedServerConfigTest(client, server);
+        }
+
+    @Test
+    public void testTrustOnlyClientConfigWithClientAuthRequired()
+            throws IOException
+        {
+        EchoClient client = createClient("provider-config-client.xml");
+        EchoServer server = createServer("provider-config-server-peer-client-auth-required.xml");
+        untrustedServerConfigTest(client, server);
+        }
+
+    @Test
     public void testClientHostnameVerifierConfig()
             throws IOException
         {
@@ -656,6 +701,28 @@ public class SSLTests
                 assertEquals(client.echo(sMsgI), sMsgI);
                 }
             assertEquals(server.getConnectionCount(), 1);
+            }
+        finally
+            {
+            client.disconnect();
+            server.stop();
+            }
+        }
+
+    protected void untrustedServerConfigTest(EchoClient client, EchoServer server)
+        {
+        final String sMsg = "HELLO!";
+
+        server.start();
+        try
+            {
+            assertEquals(server.getConnectionCount(), 0);
+            client.echo(sMsg);
+            fail("IO exception expected");
+            }
+        catch (IOException e)
+            {
+            // expected
             }
         finally
             {

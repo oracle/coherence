@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.internal.net.ssl;
@@ -135,7 +135,22 @@ public class SSLSocket
             sslDelegate.setUseClientMode(fClientMode);
             if (!fClientMode)
                 {
-                sslDelegate.setNeedClientAuth( deps.isClientAuthenticationRequired());
+                switch (deps.getClientAuth())
+                    {
+                    case wanted:
+                        sslDelegate.setNeedClientAuth(false);
+                        sslDelegate.setWantClientAuth(true);
+                        break;
+                    case required:
+                        sslDelegate.setWantClientAuth(true);
+                        sslDelegate.setNeedClientAuth(true);
+                        break;
+                    case none:
+                    default:
+                        sslDelegate.setWantClientAuth(false);
+                        sslDelegate.setNeedClientAuth(false);
+                        break;
+                    }
                 }
 
             String[] asCiphers =  deps.getEnabledCipherSuites();

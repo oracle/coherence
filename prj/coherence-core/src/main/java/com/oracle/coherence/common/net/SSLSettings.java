@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net;
 
@@ -41,7 +41,7 @@ public class SSLSettings
         if (settingsSSL != null)
             {
             m_ctx                       = settingsSSL.getSSLContext();
-            m_fClientAuthRequired       = settingsSSL.isClientAuthenticationRequired();
+            m_clientAuthMode            = settingsSSL.getClientAuth();
             m_hostnameVerifier          = settingsSSL.getHostnameVerifier();
             m_asCipherSuitesEnabled     = settingsSSL.getEnabledCipherSuites();
             m_asProtocolVersionsEnabled = settingsSSL.getEnabledProtocolVersions();
@@ -81,26 +81,25 @@ public class SSLSettings
         }
 
     /**
-     * Return true iff produced server sockets will require client
-     * authentication.
+     * Return the client auth mode for the produced server sockets.
      *
-     * @return  true iff client authentication is required
+     * @return  the client auth mode for the produced server sockets
      */
-    public boolean isClientAuthenticationRequired()
+    public SSLSocketProvider.ClientAuthMode getClientAuth()
         {
-        return m_fClientAuthRequired;
+        return m_clientAuthMode;
         }
 
     /**
-     * Specify if client authentication is required.
+     * Specify the client authentication mode.
      *
-     * @param fRequired  true iff client authentication is required
+     * @param mode  the client authentication mode
      *
      * @return this object
      */
-    public SSLSettings setClientAuthenticationRequired(boolean fRequired)
+    public SSLSettings setClientAuth(SSLSocketProvider.ClientAuthMode mode)
         {
-        m_fClientAuthRequired = fRequired;
+        m_clientAuthMode = mode;
         return this;
         }
 
@@ -181,9 +180,9 @@ public class SSLSettings
     protected SSLContext m_ctx;
 
     /**
-     * True if client authentication is required.
+     * The client authentication mode.
      */
-    protected boolean m_fClientAuthRequired;
+    protected SSLSocketProvider.ClientAuthMode m_clientAuthMode;
 
     /**
      * The HostnameVerifier, null for default.
