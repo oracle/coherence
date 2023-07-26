@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -103,7 +104,7 @@ public class SSLSocketProviderProcessorTest
         assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
         assertThat(sslDeps.getEnabledCipherSuites(), is(nullValue()));
         assertThat(sslDeps.getEnabledProtocolVersions(), is(nullValue()));
-        assertThat(sslDeps.isClientAuthenticationRequired(), is(true));
+        assertThat(sslDeps.getClientAuth(), is(SSLSocketProvider.ClientAuthMode.required));
 
         try
             {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -67,7 +67,8 @@ public class SSLContextDependencies
             m_sProtocol            = deps.m_sProtocol;
             m_provider             = deps.m_provider;
             m_sProviderName        = deps.m_sProviderName;
-            m_fPeerAuthentication  = deps.m_fPeerAuthentication;
+            m_clientAuthMode       = deps.m_clientAuthMode;
+            m_fClientAuthModeUnset = deps.m_clientAuthMode == null;
             m_nRefreshPeriodMillis = deps.m_nRefreshPeriodMillis;
             }
         }
@@ -177,23 +178,24 @@ public class SSLContextDependencies
         }
 
     /**
-     * Set whether peer authentication is required.
+     * Set the client authentication mode.
      *
-     * @param fPeerAuthentication  {@code true} if peer authentication is required
+     * @param mode  the {@link com.oracle.coherence.common.net.SSLSocketProvider.ClientAuthMode}
      */
-    public void setPeerAuthentication(boolean fPeerAuthentication)
+    public void setClientAuth(SSLSocketProvider.ClientAuthMode mode)
         {
-        m_fPeerAuthentication = fPeerAuthentication;
+        m_fClientAuthModeUnset = mode == null;
+        m_clientAuthMode       = mode;
         }
 
     /**
-     * Return whether peer authentication is required.
+     * Return the client authentication mode.
      *
-     * @return  {@code true} if peer authentication is required
+     * @return  the {@link com.oracle.coherence.common.net.SSLSocketProvider.ClientAuthMode}
      */
-    public boolean isPeerAuthentication()
+    public SSLSocketProvider.ClientAuthMode getClientAuth()
         {
-        return m_fPeerAuthentication;
+        return m_clientAuthMode;
         }
 
     /**
@@ -413,11 +415,16 @@ public class SSLContextDependencies
                 return;
                 }
 
-            m_aKeyManager         = keyManagersBuilder.buildKeyManagers(m_depsIdMgr, sbDesc);
-            m_aTrustManagers      = trustManagersBuilder.buildTrustManagers(m_depsTrustMgr, sbDesc.append(", "));
-            m_fPeerAuthentication = m_aTrustManagers != null;
+            m_aKeyManager    = keyManagersBuilder.buildKeyManagers(m_depsIdMgr, sbDesc);
+            m_aTrustManagers = trustManagersBuilder.buildTrustManagers(m_depsTrustMgr, sbDesc.append(", "));
 
-            m_deps.setClientAuthenticationRequired(m_fPeerAuthentication);
+            if (m_fClientAuthModeUnset)
+                {
+                m_clientAuthMode = m_aTrustManagers == null || m_aTrustManagers.length == 0
+                        ? SSLSocketProvider.ClientAuthMode.none
+                        : SSLSocketProvider.ClientAuthMode.required;
+                }
+            m_deps.setClientAuth(m_clientAuthMode);
 
             if (m_listener != null)
                 {
@@ -510,7 +517,9 @@ public class SSLContextDependencies
 
     private String m_sProviderName;
 
-    private boolean m_fPeerAuthentication;
+    private SSLSocketProvider.ClientAuthMode m_clientAuthMode;
+
+    private boolean m_fClientAuthModeUnset;
 
     private long m_nRefreshPeriodMillis;
 

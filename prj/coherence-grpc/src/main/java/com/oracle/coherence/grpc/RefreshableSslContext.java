@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.oracle.coherence.grpc;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.tangosol.internal.net.ssl.SSLContextDependencies;
 
 import io.grpc.netty.GrpcSslContexts;
@@ -22,6 +23,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSessionContext;
+import javax.net.ssl.TrustManager;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
@@ -62,8 +64,29 @@ public class RefreshableSslContext
                         .keyManager(dependencies.getKeyManagers()[0]);
                 }
 
-            ClientAuth clientAuth = dependencies.isPeerAuthentication()
-                    ? ClientAuth.REQUIRE : ClientAuth.OPTIONAL;
+            TrustManager[] aTrustManager = dependencies.getTrustManagers();
+
+            SSLSocketProvider.ClientAuthMode mode = dependencies.getClientAuth();
+            if (mode == null && aTrustManager.length > 0)
+                {
+                mode = SSLSocketProvider.ClientAuthMode.required;
+                }
+
+            ClientAuth clientAuth;
+            //noinspection EnhancedSwitchMigration
+            switch (mode)
+                {
+                case wanted:
+                    clientAuth = ClientAuth.OPTIONAL;
+                    break;
+                case required:
+                    clientAuth = ClientAuth.REQUIRE;
+                    break;
+                case none:
+                default:
+                    clientAuth = ClientAuth.NONE;
+                    break;
+                }
 
             String[] asCipher = dependencies.getEnabledCipherSuites();
             if (asCipher != null && asCipher.length > 0)
@@ -71,9 +94,12 @@ public class RefreshableSslContext
                 builder.ciphers(Arrays.asList(asCipher));
                 }
 
+            if (aTrustManager.length > 0)
+                {
+                builder.trustManager(aTrustManager[0]);
+                }
 
             builder.clientAuth(clientAuth)
-                    .trustManager(dependencies.getTrustManagers()[0])
                     .sslContextProvider(dependencies.getProvider())
                     .startTls(false);
 

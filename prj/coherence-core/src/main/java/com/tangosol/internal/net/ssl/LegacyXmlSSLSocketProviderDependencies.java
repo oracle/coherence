@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.ssl;
 
@@ -116,10 +116,10 @@ public class LegacyXmlSSLSocketProviderDependencies
      * {@inheritDoc}
      */
     @Override
-    public boolean isClientAuthenticationRequired()
+    public SSLSocketProvider.ClientAuthMode getClientAuth()
         {
         ensureConfigured();
-        return super.isClientAuthenticationRequired();
+        return super.getClientAuth();
         }
 
     /**
@@ -462,8 +462,7 @@ public class LegacyXmlSSLSocketProviderDependencies
                     }
                 factory.init(keyStore);
 
-                aTrustManager         = factory.getTrustManagers();
-                m_fClientAuthRequired = aTrustManager != null;
+                aTrustManager = factory.getTrustManagers();
                 }
 
             // <hostname-verifier>
@@ -563,13 +562,40 @@ public class LegacyXmlSSLSocketProviderDependencies
                 setDelegate(m_DependenciesProviderFactory.getSocketProviderFactory().getSocketProvider(xmlChild));
                 }
 
-            String sAuth =
-                    aKeyManager == null && aTrustManager == null ? "none"
-                            : aKeyManager == null && aTrustManager != null ? "one-way client"
-                                    : aKeyManager != null && aTrustManager == null ? "one-way server"
-                                            : "two-way";
+            SSLSocketProvider.ClientAuthMode clientAuthMode = null;
 
-            m_sDescription = sbDesc.insert(0,"SSLSocketProvider(auth=" + sAuth + ", ")
+            String sAuthDesc;
+            if (aKeyManager == null && aTrustManager == null)
+                {
+                clientAuthMode = SSLSocketProvider.ClientAuthMode.none;
+                sAuthDesc = "none";
+                }
+            else
+                {
+                xmlChild = xml.getElement("client-auth");
+                String sAuthName = xmlChild == null ? null : xmlChild.getString();
+                if (sAuthName == null)
+                    {
+                    clientAuthMode = aTrustManager == null
+                            ? SSLSocketProvider.ClientAuthMode.none
+                            : SSLSocketProvider.ClientAuthMode.required;
+
+                    sAuthDesc =
+                            aKeyManager == null && aTrustManager == null ? "none"
+                                    : aKeyManager == null && aTrustManager != null ? "one-way client"
+                                            : aKeyManager != null && aTrustManager == null ? "one-way server"
+                                                    : "two-way";
+                    }
+                else
+                    {
+                    clientAuthMode = SSLSocketProvider.ClientAuthMode.valueOf(sAuthName);
+                    sAuthDesc = "client-auth " + clientAuthMode.name();
+                    }
+                }
+
+            m_clientAuthMode = clientAuthMode;
+
+            m_sDescription = sbDesc.insert(0,"SSLSocketProvider(auth=" + sAuthDesc + ", ")
                     .append(')').toString();
             }
         catch (GeneralSecurityException e)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.internal.net.ssl;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.net.SSLSocketProvider;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -69,7 +70,27 @@ public class SSLContextSpiImpl
         KeyManager[]   aKeyManager    = m_dependencies.getKeyManagers();
         TrustManager[] aTrustManagers = m_dependencies.getTrustManagers();
         SecureRandom   secureRandom   = m_dependencies.getSecureRandom();
+
         ctx.init(aKeyManager, aTrustManagers, secureRandom);
+
+        SSLSocketProvider.ClientAuthMode mode = m_dependencies.getClientAuth();
+        //noinspection EnhancedSwitchMigration
+        switch (mode)
+            {
+            case wanted:
+                ctx.getDefaultSSLParameters().setWantClientAuth(true);
+                ctx.getDefaultSSLParameters().setNeedClientAuth(false);
+                break;
+            case required:
+                ctx.getDefaultSSLParameters().setWantClientAuth(true);
+                ctx.getDefaultSSLParameters().setNeedClientAuth(true);
+                break;
+            case none:
+            default:
+                ctx.getDefaultSSLParameters().setWantClientAuth(false);
+                ctx.getDefaultSSLParameters().setNeedClientAuth(false);
+                break;
+            }
 
         m_sslContext = ctx;
         }
