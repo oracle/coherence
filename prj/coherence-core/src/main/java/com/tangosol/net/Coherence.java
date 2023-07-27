@@ -542,16 +542,22 @@ public class Coherence
             }
         if (s_systemSession != null && s_systemSession.isPresent())
             {
+            ConfigurableCacheFactorySession session = s_systemSession.get();
+            CacheFactoryBuilder             builder = CacheFactory.getCacheFactoryBuilder();
+            ConfigurableCacheFactory        ccf     = session.getConfigurableCacheFactory();
+
             try
                 {
-                ConfigurableCacheFactorySession session = s_systemSession.get();
                 session.close();
-                CacheFactoryBuilder builder = CacheFactory.getCacheFactoryBuilder();
-                builder.release(session.getConfigurableCacheFactory());
                 }
             catch (Exception e)
                 {
                 e.printStackTrace();
+                }
+            finally
+                {
+                builder.release(ccf);
+                ccf.dispose();
                 }
             }
         Logger.info("All Coherence instances stopped");
