@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,12 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 // # tag::src[]
+
 /**
  * A simple user entity.
  */
 public class User
-        implements PortableObject, ExternalizableLite
-    {
+        implements PortableObject, ExternalizableLite {
+
     /**
      * The user's identifier.
      */
@@ -49,9 +50,8 @@ public class User
     /**
      * A default constructor, required for Coherence serialization.
      */
-    public User()
-        {
-        }
+    public User() {
+    }
 
     /**
      * Create a user.
@@ -61,93 +61,84 @@ public class User
      * @param lastName   the user's last name
      * @param email      the user's email address
      */
-    public User(String id, String firstName, String lastName, String email)
-        {
+    public User(String id, String firstName, String lastName, String email) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        }
+    }
 
     /**
      * Returns the user's identifier.
      *
      * @return the user's identifier
      */
-    public String getId()
-        {
+    public String getId() {
         return id;
-        }
+    }
 
     /**
      * Set the user's identifier.
      *
      * @param id  the user's identifier
      */
-    public void setId(String id)
-        {
+    public void setId(String id) {
         this.id = id;
-        }
+    }
 
     /**
      * Returns the user's first name.
      *
      * @return the user's first name
      */
-    public String getFirstName()
-        {
+    public String getFirstName() {
         return firstName;
-        }
+    }
 
     /**
      * Set the user's first name.
      *
      * @param firstName  the user's first name
      */
-    public void setFirstName(String firstName)
-        {
+    public void setFirstName(String firstName) {
         this.firstName = firstName;
-        }
+    }
 
     /**
      * Returns the user's last name.
      *
      * @return the user's last name
      */
-    public String getLastName()
-        {
+    public String getLastName() {
         return lastName;
-        }
+    }
 
     /**
      * Set the user's last name.
      *
      * @param lastName  the user's last name
      */
-    public void setLastName(String lastName)
-        {
+    public void setLastName(String lastName) {
         this.lastName = lastName;
-        }
+    }
 
     /**
      * Returns the user's email address.
      *
      * @return the user's email address
      */
-    public String getEmail()
-        {
+    public String getEmail() {
         return email;
-        }
+    }
 
     /**
      * Set the user's email address.
      *
      * @param email  the user's email address
      */
-    public void setEmail(String email)
-        {
+    public void setEmail(String email) {
         this.email = email;
-        }
+    }
     // # end::src[]
 
     /**
@@ -159,13 +150,12 @@ public class User
      * @throws IOException if serialization fails
      */
     @Override
-    public void readExternal(DataInput in) throws IOException
-        {
+    public void readExternal(DataInput in) throws IOException {
         id = ExternalizableHelper.readSafeUTF(in);
         firstName = ExternalizableHelper.readSafeUTF(in);
         lastName = ExternalizableHelper.readSafeUTF(in);
         email = ExternalizableHelper.readSafeUTF(in);
-        }
+    }
 
     /**
      * Serialize a {@link User} when Java serialization is being used.
@@ -175,13 +165,12 @@ public class User
      * @throws IOException if serialization fails
      */
     @Override
-    public void writeExternal(DataOutput out) throws IOException
-        {
+    public void writeExternal(DataOutput out) throws IOException {
         ExternalizableHelper.writeSafeUTF(out, id);
         ExternalizableHelper.writeSafeUTF(out, firstName);
         ExternalizableHelper.writeSafeUTF(out, lastName);
         ExternalizableHelper.writeSafeUTF(out, email);
-        }
+    }
 
     /**
      * Deserialize a {@link User} when POF serialization is being used.
@@ -191,13 +180,12 @@ public class User
      * @throws IOException if serialization fails
      */
     @Override
-    public void readExternal(PofReader in) throws IOException
-        {
+    public void readExternal(PofReader in) throws IOException {
         id = in.readString(0);
         firstName = in.readString(1);
         lastName = in.readString(2);
         email = in.readString(3);
-        }
+    }
 
     /**
      * Serialize a {@link User} when POF serialization is being used.
@@ -207,22 +195,20 @@ public class User
      * @throws IOException if serialization fails
      */
     @Override
-    public void writeExternal(PofWriter out) throws IOException
-        {
+    public void writeExternal(PofWriter out) throws IOException {
         out.writeString(0, id);
         out.writeString(1, firstName);
         out.writeString(2, lastName);
         out.writeString(3, email);
-        }
+    }
 
     @Override
-    public String toString()
-        {
+    public String toString() {
         return "User{" +
-                "id='" + id + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
-                '}';
-        }
+               "id='" + id + '\'' +
+               ", firstName='" + firstName + '\'' +
+               ", lastName='" + lastName + '\'' +
+               ", email='" + email + '\'' +
+               '}';
     }
+}

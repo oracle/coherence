@@ -24,8 +24,19 @@ import com.tangosol.util.ValueExtractor;
  * @since 22.06.4
  */
 public class BinaryValueExtractor<T, E>
-        implements ValueExtractor<Binary, E>
-    {
+        implements ValueExtractor<Binary, E> {
+
+    /**
+     * The delegate {@link ValueExtractor}.
+     */
+    private final ValueExtractor<T, E> m_delegate;
+
+    /**
+     * The {@link Converter} to convert the {@link Binary} value
+     * to a value to pass to the delegate {@link ValueExtractor}
+     */
+    private final Converter<Binary, T> m_converter;
+
     /**
      * Create a {@link BinaryValueExtractor}.
      *
@@ -33,34 +44,26 @@ public class BinaryValueExtractor<T, E>
      * @param converter  the {@link Converter} to convert the {@link Binary} value
      *                   to a value to pass to the delegate {@link ValueExtractor}
      */
-    public BinaryValueExtractor(ValueExtractor<T, E> delegate, Converter<Binary, T> converter)
-        {
-        m_delegate  = delegate;
+    public BinaryValueExtractor(ValueExtractor<T, E> delegate, Converter<Binary, T> converter) {
+        m_delegate = delegate;
         m_converter = converter;
-        }
-
-    // ----- ValueExtractor -------------------------------------------------
+    }
 
     @Override
-    public E extract(Binary target)
-        {
+    public E extract(Binary target) {
         T value = m_converter.convert(target);
         return m_delegate.extract(value);
-        }
+    }
 
     @Override
-    public int getTarget()
-        {
+    public int getTarget() {
         return m_delegate.getTarget();
-        }
+    }
 
     @Override
-    public String getCanonicalName()
-        {
+    public String getCanonicalName() {
         return m_delegate.getCanonicalName();
-        }
-
-    // ----- helper methods -------------------------------------------------
+    }
 
     /**
      * A factory method to create a {@link BinaryValueExtractor}.
@@ -74,21 +77,7 @@ public class BinaryValueExtractor<T, E>
      * @param <T>  the underlying type to extract from after being deserialized
      * @param <E>  the type of the extracted value
      */
-    public static <T, E> ValueExtractor<Binary, E> of(ValueExtractor<T, E> delegate, Converter<Binary, T> converter)
-        {
+    public static <T, E> ValueExtractor<Binary, E> of(ValueExtractor<T, E> delegate, Converter<Binary, T> converter) {
         return new BinaryValueExtractor<>(delegate, converter);
-        }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The delegate {@link ValueExtractor}.
-     */
-    private final ValueExtractor<T, E> m_delegate;
-
-    /**
-     * The {@link Converter} to convert the {@link Binary} value
-     * to a value to pass to the delegate {@link ValueExtractor}
-     */
-    private final Converter<Binary, T> m_converter;
     }
+}

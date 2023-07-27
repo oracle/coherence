@@ -30,60 +30,56 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("resource")
-public class ExecutorBasicTests
-    {
+public class ExecutorBasicTests {
+
     // # tag::bootstrap[]
     @BeforeAll
-    static void boostrapCoherence()
-        {
-        System.setProperty("coherence.wka",         "127.0.0.1");
+    static void boostrapCoherence() {
+        System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.cacheconfig", "custom-executors.xml"); // <1>
 
         Coherence                    coherence = Coherence.clusterMember(); // <2>
         CompletableFuture<Coherence> future    = coherence.start(); // <3>
 
         future.join(); // <4>
-        }
+    }
     // # end::bootstrap[]
 
     // # tag::cleanup[]
     @AfterAll
-    static void shutdownCoherence()
-        {
+    static void shutdownCoherence() {
         Coherence coherence = Coherence.getInstance(); //<1>
 
         coherence.close();
-        }
+    }
     // # end::cleanup[]
 
     // # tag::basic-runnable[]
     @Test
     void testSimpleRunnable()
-            throws Exception
-        {
+            throws Exception {
         NamedMap<String, String> map             = getMap(); // <1>
         RemoteExecutor           defaultExecutor = RemoteExecutor.getDefault(); // <2>
 
         map.truncate(); //<3>
         assertTrue(map.isEmpty());
 
-        Future<?> result = defaultExecutor.submit((Remote.Runnable) () ->
+        Future<?> result = defaultExecutor.submit((Remote.Runnable) ()->
                 Coherence.getInstance()
-                        .getSession().getMap("data").put("key-1", "value-1")); // <4>
+                         .getSession().getMap("data").put("key-1", "value-1")); // <4>
 
         result.get(); // <5>
 
         String sValue = map.get("key-1"); // <6>
 
         assertEquals(sValue, "value-1"); // <7>
-        }
+    }
     // # end::basic-runnable[]
 
     // # tag::basic-callable[]
     @Test
     void testSimpleCallable()
-            throws Exception
-        {
+            throws Exception {
         NamedMap<String, String> map             = getMap(); // <1>
         RemoteExecutor           defaultExecutor = RemoteExecutor.getDefault(); // <2>
 
@@ -92,7 +88,7 @@ public class ExecutorBasicTests
 
         map.put("key-1", "value-1"); // <4>
 
-        Future<String> result = defaultExecutor.submit((Remote.Callable<String>) () ->
+        Future<String> result = defaultExecutor.submit((Remote.Callable<String>) ()->
                 (String) Coherence.getInstance().getSession().getMap("data").put("key-1", "value-2")); // <5>
 
         String sResult = result.get(); // <6>
@@ -100,48 +96,42 @@ public class ExecutorBasicTests
 
         assertEquals(sResult, "value-1"); // <8>
         assertEquals(sValue, "value-2"); // <9>
-        }
+    }
     // # end::basic-callable[]
 
     // # tag::fixed-executor[]
     @Test
     void testCustomExecutor()
-            throws Exception
-        {
+            throws Exception {
         RemoteExecutor fixed5 = RemoteExecutor.get("fixed-5"); // <1>
 
         List<Remote.Callable<String>> listCallables = new ArrayList<>(5); // <2>
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++) {
+            listCallables.add(()->
             {
-            listCallables.add(() ->
-                              {
-                              Thread.sleep(1000);
-                              return Thread.currentThread().getName();
-                              });
-            }
+                Thread.sleep(1000);
+                return Thread.currentThread().getName();
+            });
+        }
 
         List<Future<String>> listFutures = fixed5.invokeAll(listCallables); // <3>
 
         Set<String> results = new LinkedHashSet<>(); // <4>
-        for (Future<String> listFuture : listFutures)
-            {
+        for (Future<String> listFuture : listFutures) {
             results.add(listFuture.get());
-            }
+        }
 
         System.out.printf("Tasks executed on threads %s", results);
 
         assertEquals(5, results.size()); // <5>
-        }
+    }
     // # end::fixed-executor[]
 
-    // ----- helper methods -------------------------------------------------
-
     // # tag::get-map[]
-    NamedMap<String, String> getMap()
-        {
+    NamedMap<String, String> getMap() {
         Coherence coherence = Coherence.getInstance(); // <1>
-        Session session = coherence.getSession(); // <2>
+        Session   session   = coherence.getSession(); // <2>
         return session.getMap("data"); // <3>
-        }
-    // # end::get-map[]
     }
+    // # end::get-map[]
+}

@@ -12,8 +12,7 @@ package com.oracle.coherence.guides.partitions.bank;
  * @author Jonathan Knight 2023.01.14
  * @since 22.06.4
  */
-public interface BankCacheNames
-    {
+public interface BankCacheNames {
     /**
      * The name of the customers cache.
      */
@@ -23,4 +22,4 @@ public interface BankCacheNames
      * The name of the customers cache.
      */
     String ACCOUNTS = "accounts";
-    }
+}

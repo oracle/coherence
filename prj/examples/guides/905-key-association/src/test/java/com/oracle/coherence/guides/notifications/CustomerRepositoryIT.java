@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -36,8 +36,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @BootstrapCoherence(properties = "coherence.serializer=pof")
-public class CustomerRepositoryIT
-    {
+public class CustomerRepositoryIT {
     @BootstrapCoherence.Cache(name = CustomerRepository.CUSTOMERS_MAP_NAME)
     public static NamedMap<String, Customer> customers;
 
@@ -47,10 +46,9 @@ public class CustomerRepositoryIT
     static CustomerRepository repository;
 
     @BeforeAll
-    static void createRepository()
-        {
+    static void createRepository() {
         repository = new CustomerRepository();
-        }
+    }
 
     /**
      * This test is to verify that the required indexes have been created
@@ -58,28 +56,26 @@ public class CustomerRepositoryIT
      */
     @Test
     @SuppressWarnings("rawtypes")
-    public void shouldHaveIndexes()
-        {
+    public void shouldHaveIndexes() {
         repository.createIndices();
-        CacheService service = notifications.getService();
-        BackingMapManagerContext context = service.getBackingMapManager().getContext();
-        BackingMapContext backingMapContext = context.getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
-        Map<ValueExtractor, MapIndex> indexMap = backingMapContext.getIndexMap();
+        CacheService                  service           = notifications.getService();
+        BackingMapManagerContext      context           = service.getBackingMapManager().getContext();
+        BackingMapContext             backingMapContext = context.getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
+        Map<ValueExtractor, MapIndex> indexMap          = backingMapContext.getIndexMap();
 
         ValueExtractor<NotificationId, String> extractorCustomerId = ValueExtractor.of(NotificationId::getCustomerId).fromKey();
-        MapIndex indexCustomerId = indexMap.get(extractorCustomerId);
+        MapIndex                               indexCustomerId     = indexMap.get(extractorCustomerId);
         assertThat(indexCustomerId, is(notNullValue()));
-        }
+    }
 
     /**
      * Should be able to add a {@link Customer} to the customers cache
      * using the {@link CustomerRepository}.
      */
     @Test
-    public void shouldAddCustomer()
-        {
+    public void shouldAddCustomer() {
         CustomerRepository repository = new CustomerRepository();
-        Customer customer = new Customer("JV19", "Primož", "Roglič");
+        Customer           customer   = new Customer("JV19", "Primož", "Roglič");
         repository.save(customer);
 
         Customer result = customers.get(customer.getId());
@@ -87,18 +83,17 @@ public class CustomerRepositoryIT
         assertThat(result.getId(), is(customer.getId()));
         assertThat(result.getFirstName(), is(customer.getFirstName()));
         assertThat(result.getLastName(), is(customer.getLastName()));
-        }
+    }
 
     /**
      * Should be able to add multiple {@link Customer Customers} to the customers cache
      * using the {@link CustomerRepository}.
      */
     @Test
-    public void shouldAddMultipleCustomers()
-        {
+    public void shouldAddMultipleCustomers() {
         CustomerRepository repository = new CustomerRepository();
-        Customer customer1 = new Customer("UAE20", "Tadej", "Pogačar");
-        Customer customer2 = new Customer("JV21", "Wout", "van Aert");
+        Customer           customer1  = new Customer("UAE20", "Tadej", "Pogačar");
+        Customer           customer2  = new Customer("JV21", "Wout", "van Aert");
 
         repository.saveAll(List.of(customer1, customer2));
 
@@ -113,11 +108,10 @@ public class CustomerRepositoryIT
         assertThat(result2.getId(), is(customer2.getId()));
         assertThat(result2.getFirstName(), is(customer2.getFirstName()));
         assertThat(result2.getLastName(), is(customer2.getLastName()));
-        }
+    }
 
     @Test
-    public void shouldAddNotification()
-        {
+    public void shouldAddNotification() {
         // # tag::shouldAddNotification[]
         CustomerRepository repository = new CustomerRepository();
 
@@ -128,24 +122,24 @@ public class CustomerRepositoryIT
         repository.addNotifications(customer, "FRA", notification);
         // # end::shouldAddNotification[]
 
-        Filter<?> filter = Filters.equal(ValueExtractor.of(NotificationId::getCustomerId).fromKey(), customer.getId());
+        Filter<?>                filter     = Filters.equal(ValueExtractor.of(NotificationId::getCustomerId).fromKey(),
+                customer.getId());
         Collection<Notification> collection = notifications.values(filter);
         assertThat(collection.size(), is(1));
         Notification result = collection.iterator().next();
         assertThat(result, is(notNullValue()));
         assertThat(result.getBody(), is(notification.getBody()));
         assertThat(result.getTTL(), is(notification.getTTL()));
-        }
+    }
 
     @Test
-    public void shouldGetNotifications()
-        {
+    public void shouldGetNotifications() {
         CustomerRepository repository = new CustomerRepository();
-        Customer customer1 = new Customer("IG1", "Richard", "Carapaz");
-        Customer customer2 = new Customer("IG2", "Filippo", "Ganna");
-        Customer customer3 = new Customer("IG3", "Geraint", "Thomas");
-        Customer customer4 = new Customer("IG4", "Adam", "Yates");
-        LocalDateTime ttl = LocalDateTime.now().plusDays(1);
+        Customer           customer1  = new Customer("IG1", "Richard", "Carapaz");
+        Customer           customer2  = new Customer("IG2", "Filippo", "Ganna");
+        Customer           customer3  = new Customer("IG3", "Geraint", "Thomas");
+        Customer           customer4  = new Customer("IG4", "Adam", "Yates");
+        LocalDateTime      ttl        = LocalDateTime.now().plusDays(1);
 
         repository.saveAll(List.of(customer1, customer2, customer3, customer4));
 
@@ -184,33 +178,32 @@ public class CustomerRepositoryIT
         assertThat(list.get(0).getBody(), is(notification3.getBody()));
         assertThat(list.get(1), is(notNullValue()));
         assertThat(list.get(1).getBody(), is(notification4.getBody()));
-        }
+    }
 
     @Test
-    public void shouldExpireNotifications()
-        {
+    public void shouldExpireNotifications() {
         CustomerRepository repository = new CustomerRepository();
-        Customer customer = new Customer("AF01", "Mathieu", "van der Poel");
+        Customer           customer   = new Customer("AF01", "Mathieu", "van der Poel");
         repository.save(customer);
 
-        LocalDateTime ttl10 = LocalDateTime.now().plusSeconds(10);
-        LocalDateTime ttl20 = LocalDateTime.now().plusSeconds(20);
-        LocalDateTime ttl30 = LocalDateTime.now().plusSeconds(30);
-        LocalDateTime ttl40 = LocalDateTime.now().plusSeconds(40);
-        Notification notification1 = new Notification("one", ttl10);
-        Notification notification2 = new Notification("two", ttl30);
+        LocalDateTime ttl10         = LocalDateTime.now().plusSeconds(10);
+        LocalDateTime ttl20         = LocalDateTime.now().plusSeconds(20);
+        LocalDateTime ttl30         = LocalDateTime.now().plusSeconds(30);
+        LocalDateTime ttl40         = LocalDateTime.now().plusSeconds(40);
+        Notification  notification1 = new Notification("one", ttl10);
+        Notification  notification2 = new Notification("two", ttl30);
 
         repository.addNotifications(customer, "NL", List.of(notification1, notification2));
 
         List<Notification> list = repository.getNotifications(customer);
         assertThat(list.size(), is(2));
 
-        Eventually.assertDeferred(() -> ttl20.isBefore(LocalDateTime.now()), is(true));
+        Eventually.assertDeferred(()->ttl20.isBefore(LocalDateTime.now()), is(true));
         list = repository.getNotifications(customer);
         assertThat(list.size(), is(1));
 
-        Eventually.assertDeferred(() -> ttl40.isBefore(LocalDateTime.now()), is(true));
+        Eventually.assertDeferred(()->ttl40.isBefore(LocalDateTime.now()), is(true));
         list = repository.getNotifications(customer);
         assertThat(list.size(), is(0));
-        }
     }
+}
