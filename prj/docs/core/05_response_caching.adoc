@@ -58,10 +58,9 @@ Method marked with @CacheAdd is *always* invoked, and its execution result store
     @POST
     @CacheAdd
     @CacheName("messages")
-    public Message addMessage(@PathParam("name") String name)
-        {
+    public Message addMessage(@PathParam("name") String name) {
         return new Message("Hello " + name);
-        }
+    }
 ----
 
 [#CacheGet]
@@ -73,10 +72,9 @@ If the return value is present in the cache, it is fetched and returned. Otherwi
     @GET
     @CacheGet
     @CacheName("messages")
-    public Message getMessage(@PathParam("name") String name)
-        {
+    public Message getMessage(@PathParam("name") String name) {
         return new Message("Hello " + name);
-        }
+    }
 ----
 
 [#CachePut]
@@ -93,10 +91,9 @@ In this example, the passed message will be stored in the cache for the key whos
     @CachePut
     @CacheName("messages")
     public Response putMessage(@CacheKey @PathParam("name") String name,
-                               @CacheValue Message message)
-        {
+                               @CacheValue Message message) {
         return Response.status(Response.Status.CREATED).build();
-        }
+    }
 ----
 
 [#CacheRemove]
@@ -109,10 +106,9 @@ In this example, the key whose value was passed as the `name` parameter will be 
     @Path("{name}")
     @DELETE
     @CacheRemove
-    public Response removeMessage(@PathParam("name") String name)
-        {
+    public Response removeMessage(@PathParam("name") String name) {
         return Response.ok().build();
-        }
+    }
 ----
 
 [#CacheKey]
@@ -127,9 +123,8 @@ In this example, only the values of the `lastName` and `firstName` parameters wi
     @CacheGet
     public Message getMessage(@PathParam("lastName") @CacheKey String lastName,
                               @PathParam("firstName") @CacheKey String firstName,
-                              @HeaderParam("Accept-Language") String acceptLanguage)
-        {
+                              @HeaderParam("Accept-Language") String acceptLanguage) {
         return new Message("Hello " + firstName + " " + lastName);
-        }
+    }
 ----
 
