@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,10 +23,10 @@ import java.util.Objects;
  * @since 22.06
  */
 // # tag::src[]
-@PortableType(id=1011, version=1)
+@PortableType(id = 1011, version = 1)
 public class NotificationId
-        implements KeyAssociation<String>, Comparable<NotificationId>
-    {
+        implements KeyAssociation<String>, Comparable<NotificationId> {
+
     /**
      * The customer the notification is for.
      */
@@ -49,86 +49,74 @@ public class NotificationId
      * @param region      the region the notification applies to
      * @param id          the notification identifier
      */
-    public NotificationId(String customerId, String region, UUID id)
-        {
+    public NotificationId(String customerId, String region, UUID id) {
         this.customerId = customerId;
         this.region = region;
         this.id = id;
-        }
+    }
 
     /**
      * Returns the identifier of the customer the notification is for.
      *
      * @return the identifier of the customer the notification is for
      */
-    public String getCustomerId()
-        {
+    public String getCustomerId() {
         return customerId;
-        }
+    }
 
     /**
      * Returns the region the notification applies to.
      *
      * @return the region the notification applies to
      */
-    public String getRegion()
-        {
+    public String getRegion() {
         return region;
-        }
+    }
 
     /**
      * Returns the notification identifier.
      *
      * @return the notification identifier
      */
-    public UUID getId()
-        {
+    public UUID getId() {
         return id;
-        }
+    }
 
     // # tag::ka[]
     @Override
-    public String getAssociatedKey()
-        {
+    public String getAssociatedKey() {
         return customerId;
-        }
+    }
     // # end::ka[]
 
     @Override
-    public int compareTo(NotificationId o)
-        {
+    public int compareTo(NotificationId o) {
         int n = SafeComparator.compareSafe(Comparator.naturalOrder(), customerId, o.customerId);
-        if (n == 0)
-            {
+        if (n == 0) {
             n = Long.compare(id.getTimestamp(), o.id.getTimestamp());
-            if (n == 0)
-                {
+            if (n == 0) {
                 n = Long.compare(id.getCount(), o.id.getCount());
-                }
             }
-        return n;
         }
+        return n;
+    }
 
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
-            }
-        if (o == null || getClass() != o.getClass())
-            {
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-            }
+        }
         NotificationId that = (NotificationId) o;
         return Objects.equals(customerId, that.customerId) && Objects.equals(region, that.region)
-                && Objects.equals(id, that.id);
-        }
+               && Objects.equals(id, that.id);
+    }
 
     @Override
-    public int hashCode()
-        {
+    public int hashCode() {
         return Objects.hash(customerId, region, id);
-        }
     }
+}
 // # end::src[]

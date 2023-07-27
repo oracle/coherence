@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,8 +14,7 @@ import com.tangosol.util.HealthCheck;
  * A simple custom health check.
  */
 public class ApplicationHealth
-        implements HealthCheck
-    {
+        implements HealthCheck {
 
     /**
      * The health check name.
@@ -23,33 +22,28 @@ public class ApplicationHealth
     public static final String NAME = "Demo";
 
     @Override
-    public String getName()
-        {
+    public String getName() {
         return NAME;
-        }
-
-    @Override
-    public boolean isReady()
-        {
-        return true;
-        }
-
-    @Override
-    public boolean isLive()
-        {
-        return true;
-        }
-
-    @Override
-    public boolean isStarted()
-        {
-        return true;
-        }
-
-    @Override
-    public boolean isSafe()
-        {
-        return true;
-        }
     }
+
+    @Override
+    public boolean isReady() {
+        return true;
+    }
+
+    @Override
+    public boolean isLive() {
+        return true;
+    }
+
+    @Override
+    public boolean isStarted() {
+        return true;
+    }
+
+    @Override
+    public boolean isSafe() {
+        return true;
+    }
+}
 // # end::custom[]
