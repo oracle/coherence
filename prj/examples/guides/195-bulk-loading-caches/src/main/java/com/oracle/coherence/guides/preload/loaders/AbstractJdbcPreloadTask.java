@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,8 +26,28 @@ import java.util.Map;
  * @param <V>  the type of the cache value
  */
 public abstract class AbstractJdbcPreloadTask<K, V>
-        implements Runnable
-    {
+        implements Runnable {
+
+    /**
+     * The database connection to use.
+     */
+    private final Connection connection;
+
+    /**
+     * The Coherence {@link Session} to use to obtain the cache to load.
+     */
+    private final Session session;
+
+    /**
+     * The number of entries to load in a single batch.
+     */
+    private final int batchSize;
+
+    /**
+     * The simple name of the loader used in log messages.
+     */
+    private final String name;
+
     /**
      * Create a {@link AbstractJdbcPreloadTask}
      *
@@ -35,62 +55,53 @@ public abstract class AbstractJdbcPreloadTask<K, V>
      * @param session     the Coherence {@link Session} to use to obtain the cache to load
      * @param batchSize   the number of entries to load in each {@link NamedMap#putAll(Map)} batch
      */
-    protected AbstractJdbcPreloadTask(Connection connection, Session session, int batchSize)
-        {
+    protected AbstractJdbcPreloadTask(Connection connection, Session session, int batchSize) {
         this.connection = connection;
         this.session = session;
         this.batchSize = batchSize;
         this.name = getClass().getSimpleName();
-        }
+    }
 
     @Override
-    public void run()
-        {
+    public void run() {
         NamedMap<K, V> namedMap = session.getMap(getMapName());
 
         try (PreparedStatement statement = prepareStatement();
-             ResultSet resultSet = statement.executeQuery())
-            {
+                ResultSet resultSet = statement.executeQuery()) {
             Map<K, V> batch = new HashMap<>(batchSize);
 
-            while (resultSet.next())
-                {
-                K key = keyFromResultSet(resultSet);
+            while (resultSet.next()) {
+                K key   = keyFromResultSet(resultSet);
                 V value = valueFromResultSet(resultSet);
                 batch.put(key, value);
-                if (batch.size() >= batchSize)
-                    {
+                if (batch.size() >= batchSize) {
                     load(batch, namedMap);
-                    }
-                }
-
-            if (!batch.isEmpty())
-                {
-                load(batch, namedMap);
                 }
             }
-        catch (SQLException e)
-            {
-            throw Exceptions.ensureRuntimeException(e);
+
+            if (!batch.isEmpty()) {
+                load(batch, namedMap);
             }
         }
+        catch (SQLException e) {
+            throw Exceptions.ensureRuntimeException(e);
+        }
+    }
 
     @Override
-    public String toString()
-        {
+    public String toString() {
         return name + "(mapName=\""
-                + getMapName()
-                + "\" sql=\"" + getSQL()
-                +  "\")";
-        }
+               + getMapName()
+               + "\" sql=\"" + getSQL()
+               + "\")";
+    }
 
-    private void load(Map<K, V> batch, NamedMap<K, V> namedMap)
-        {
+    private void load(Map<K, V> batch, NamedMap<K, V> namedMap) {
         namedMap.putAll(batch);
         Logger.info("Preloader " + name + " loaded "
-                            + batch.size() + " entries to cache " + namedMap.getName());
+                    + batch.size() + " entries to cache " + namedMap.getName());
         batch.clear();
-        }
+    }
 
     /**
      * Create the {@link PreparedStatement} to execute to obtain data from the database.
@@ -102,11 +113,10 @@ public abstract class AbstractJdbcPreloadTask<K, V>
      *
      * @throws SQLException if there is an error creating the {@link PreparedStatement}
      */
-    protected PreparedStatement prepareStatement() throws SQLException
-        {
+    protected PreparedStatement prepareStatement() throws SQLException {
         String query = getSQL();
         return connection.prepareStatement(query);
-        }
+    }
 
     /**
      * Return the SQL query to use to get data from the database.
@@ -143,26 +153,4 @@ public abstract class AbstractJdbcPreloadTask<K, V>
      * @throws SQLException if there is an error creating the value
      */
     protected abstract V valueFromResultSet(ResultSet resultSet) throws SQLException;
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The database connection to use.
-     */
-    private final Connection connection;
-
-    /**
-     * The Coherence {@link Session} to use to obtain the cache to load.
-     */
-    private final Session session;
-
-    /**
-     * The number of entries to load in a single batch.
-     */
-    private final int batchSize;
-
-    /**
-     * The simple name of the loader used in log messages.
-     */
-    private final String name;
-    }
+}

@@ -25,106 +25,82 @@ import java.util.Objects;
  * @since 22.06.4
  */
 public class CustomerId
-        implements ExternalizableLite, PortableObject
-    {
-    // ----- constructors ---------------------------------------------------
+        implements ExternalizableLite, PortableObject {
+
+    /**
+     * The id of the customer.
+     */
+    private String id;
 
     /**
      * A default no-args constructor required for serialization.
      */
-    public CustomerId()
-        {
-        }
+    public CustomerId() {
+    }
 
     /**
      * Create a {@link CustomerId}.
      *
      * @param id  the id of the customer
      */
-    public CustomerId(String id)
-        {
+    public CustomerId(String id) {
         this.id = id;
-        }
-
-    // ----- accessors ------------------------------------------------------
+    }
 
     /**
      * Return the id.
      *
-     * @return  the customer id
+     * @return the customer id
      */
-    public String getId()
-        {
+    public String getId() {
         return id;
-        }
-
-    // ----- Object methods -------------------------------------------------
+    }
 
     // Coherence key classes must properly implement equals() using
     // all the fields in the class
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
-            }
-        if (o == null || getClass() != o.getClass())
-            {
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-            }
+        }
         CustomerId that = (CustomerId) o;
         return Objects.equals(id, that.id);
-        }
+    }
 
     // Coherence key classes must properly implement hashCode() using
     // all the fields in the class
     @Override
-    public int hashCode()
-        {
+    public int hashCode() {
         return Objects.hash(id);
-        }
-
-    @Override
-    public String toString()
-        {
-        return "CustomerId{" +
-                "id='" + id + '\'' +
-                '}';
-        }
-
-    // ----- ExternalizableLite methods -------------------------------------
-
-    @Override
-    public void readExternal(DataInput in) throws IOException
-        {
-        id = ExternalizableHelper.readSafeUTF(in);
-        }
-
-    @Override
-    public void writeExternal(DataOutput out) throws IOException
-        {
-        ExternalizableHelper.writeSafeUTF(out, id);
-        }
-
-    // ----- PortableObject methods -----------------------------------------
-
-    @Override
-    public void readExternal(PofReader in) throws IOException
-        {
-        id = in.readString(0);
-        }
-
-    @Override
-    public void writeExternal(PofWriter out) throws IOException
-        {
-        out.writeString(0, id);
-        }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The id of the customer.
-     */
-    private String id;
     }
+
+    @Override
+    public String toString() {
+        return "CustomerId{" +
+               "id='" + id + '\'' +
+               '}';
+    }
+
+    @Override
+    public void readExternal(DataInput in) throws IOException {
+        id = ExternalizableHelper.readSafeUTF(in);
+    }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException {
+        ExternalizableHelper.writeSafeUTF(out, id);
+    }
+
+    @Override
+    public void readExternal(PofReader in) throws IOException {
+        id = in.readString(0);
+    }
+
+    @Override
+    public void writeExternal(PofWriter out) throws IOException {
+        out.writeString(0, id);
+    }
+}

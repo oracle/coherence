@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,9 +19,9 @@ import java.time.LocalDateTime;
  * @since 22.06
  */
 // # tag::src[]
-@PortableType(id=1010, version=1)
-public class Notification
-    {
+@PortableType(id = 1010, version = 1)
+public class Notification {
+
     /**
      * The notification text.
      */
@@ -38,30 +38,27 @@ public class Notification
      * @param body  the notification text
      * @param ttl   the time the notification expires
      */
-    public Notification(String body, LocalDateTime ttl)
-        {
+    public Notification(String body, LocalDateTime ttl) {
         this.body = body;
         this.ttl = ttl;
-        }
+    }
 
     /**
      * Returns the notification text.
      *
      * @return the notification text
      */
-    public String getBody()
-        {
+    public String getBody() {
         return body;
-        }
+    }
 
     /**
      * Returns the time the notification expires.
      *
      * @return the time the notification expires
      */
-    public LocalDateTime getTTL()
-        {
+    public LocalDateTime getTTL() {
         return ttl;
-        }
     }
+}
 // # end::src[]

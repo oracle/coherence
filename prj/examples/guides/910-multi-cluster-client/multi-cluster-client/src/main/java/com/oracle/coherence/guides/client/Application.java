@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,42 +23,36 @@ import com.tangosol.net.events.CoherenceLifecycleEvent;
  * A Coherence lifecycle listener to start and the multi-tenant client application.
  */
 public class Application
-        implements Coherence.LifecycleListener
+        implements Coherence.LifecycleListener {
+    public static final JsonSerializer SERIALIZER = new JsonSerializer(null, builder->
     {
-    public static final JsonSerializer SERIALIZER = new JsonSerializer(null, builder ->
-                    {
-                    builder.setEnforceTypeAliases(false);
-                    return builder.useIndentation(true);
-                    }, false);
+        builder.setEnforceTypeAliases(false);
+        return builder.useIndentation(true);
+    }, false);
 
     private WebServer webServer;
 
     @Override
-    public void onEvent(CoherenceLifecycleEvent event)
-        {
-        if (event.getType() == CoherenceLifecycleEvent.Type.STARTED)
-            {
+    public void onEvent(CoherenceLifecycleEvent event) {
+        if (event.getType() == CoherenceLifecycleEvent.Type.STARTED) {
             // Coherence has started
             start(event.getCoherence());
-            }
-        else if (event.getType() == CoherenceLifecycleEvent.Type.STOPPING)
-            {
-            stop(event.getCoherence());
-            }
         }
+        else if (event.getType() == CoherenceLifecycleEvent.Type.STOPPING) {
+            stop(event.getCoherence());
+        }
+    }
 
     /**
      * The application entry point.
      */
-    public synchronized void start(Coherence coherence)
-        {
-        if (webServer == null)
-            {
-            Session session = coherence.getSession();
+    public synchronized void start(Coherence coherence) {
+        if (webServer == null) {
+            Session                          session = coherence.getSession();
             NamedMap<String, TenantMetaData> tenants = session.getMap("tenants");
 
             TenantController tenantController = new TenantController(tenants, SERIALIZER);
-            UserController userController = new UserController(tenants, SERIALIZER);
+            UserController   userController   = new UserController(tenants, SERIALIZER);
 
             RequestRouter router = new RequestRouter("/");
 
@@ -77,16 +71,14 @@ public class Application
             webServer = new WebServer(router);
             coherence.getManagement().register(webServer);
             webServer.start();
-            }
         }
+    }
 
-    public synchronized void stop(Coherence coherence)
-        {
-        if (webServer != null)
-            {
+    public synchronized void stop(Coherence coherence) {
+        if (webServer != null) {
             coherence.getManagement().unregister(webServer);
             webServer.stop();
             webServer = null;
-            }
         }
     }
+}

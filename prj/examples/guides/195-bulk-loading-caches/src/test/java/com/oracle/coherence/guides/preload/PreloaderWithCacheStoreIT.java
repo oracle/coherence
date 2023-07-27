@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,51 +44,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class PreloaderWithCacheStoreIT
-        extends AbstractPreloadIT
-    {
-    @BeforeAll
-    public static void setupCaches()
-        {
-        CoherenceCluster cluster = clusterRunner.getCluster();
-        assertThat(cluster.isSafe(), is(true));
-
-        ConfigurableCacheFactory ccf = clusterRunner.createSession(SessionBuilders.storageDisabledMember());
-        Session session = new ConfigurableCacheFactorySession(ccf, Classes.getContextClassLoader());
-
-        customersCache = session.getCache("customers");
-        }
-
-    @BeforeEach
-    public void resetData() throws SQLException
-        {
-        customersCache.clear();
-        createTables(connection);
-        }
-
-    @Test
-    public void shouldLoadCustomersToCacheButNotWriteThrough() throws Exception
-        {
-        // turn off the customers cache store
-        SimpleController.disableCacheStores(customersCache);
-        Eventually.assertDeferred(() -> IsCacheStoreEnabled.isDisabled(customersCache), is(true));
-
-        Map<Integer, Customer> customers = createTestCustomers();
-        customersCache.putAll(customers);
-
-        // turn the customers cache store on
-        SimpleController.enableCacheStores(customersCache);
-        Eventually.assertDeferred(() -> IsCacheStoreEnabled.isEnabled(customersCache), is(true));
-
-        // the customers table in the DB should be empty as we disabled cache stores
-        try (Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery("select count(*) from customers");)
-            {
-            assertThat(resultSet.next(), is(true));
-            assertThat(resultSet.getInt(1), is(0));
-            }
-        }
-
-    // ----- data members ---------------------------------------------------
+        extends AbstractPreloadIT {
 
     private static NamedCache<Integer, Customer> customersCache;
 
@@ -107,8 +63,46 @@ public class PreloaderWithCacheStoreIT
                     IPv4Preferred.yes(),
                     LocalHost.only())
             .include(3, CoherenceClusterMember.class,
-                     LocalStorage.enabled(),
-                     testLogs,
-                     RoleName.of("storage"),
-                     DisplayName.of("storage"));
+                    LocalStorage.enabled(),
+                    testLogs,
+                    RoleName.of("storage"),
+                    DisplayName.of("storage"));
+
+    @BeforeAll
+    public static void setupCaches() {
+        CoherenceCluster cluster = clusterRunner.getCluster();
+        assertThat(cluster.isSafe(), is(true));
+
+        ConfigurableCacheFactory ccf     = clusterRunner.createSession(SessionBuilders.storageDisabledMember());
+        Session                  session = new ConfigurableCacheFactorySession(ccf, Classes.getContextClassLoader());
+
+        customersCache = session.getCache("customers");
     }
+
+    @BeforeEach
+    public void resetData() throws SQLException {
+        customersCache.clear();
+        createTables(connection);
+    }
+
+    @Test
+    public void shouldLoadCustomersToCacheButNotWriteThrough() throws Exception {
+        // turn off the customers cache store
+        SimpleController.disableCacheStores(customersCache);
+        Eventually.assertDeferred(()->IsCacheStoreEnabled.isDisabled(customersCache), is(true));
+
+        Map<Integer, Customer> customers = createTestCustomers();
+        customersCache.putAll(customers);
+
+        // turn the customers cache store on
+        SimpleController.enableCacheStores(customersCache);
+        Eventually.assertDeferred(()->IsCacheStoreEnabled.isEnabled(customersCache), is(true));
+
+        // the customers table in the DB should be empty as we disabled cache stores
+        try (Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery("select count(*) from customers");) {
+            assertThat(resultSet.next(), is(true));
+            assertThat(resultSet.getInt(1), is(0));
+        }
+    }
+}

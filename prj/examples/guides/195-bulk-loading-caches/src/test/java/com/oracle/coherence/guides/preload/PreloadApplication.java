@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,25 +20,20 @@ import java.util.Collection;
 import java.util.List;
 
 public class PreloadApplication
-        extends AbstractPreloadApplication
-    {
-    public PreloadApplication(Collection<Runnable> tasks, Duration timeout)
-        {
+        extends AbstractPreloadApplication {
+    public PreloadApplication(Collection<Runnable> tasks, Duration timeout) {
         super(tasks, timeout);
-        }
+    }
 
-    public static void main(String[] args) throws Exception
-        {
+    public static void main(String[] args) throws Exception {
         // Start a Coherence custer member (and wait for it to be fully started)
-        try (Coherence coherence = Coherence.clusterMember().start().join())
-            {
+        try (Coherence coherence = Coherence.clusterMember().start().join()) {
             Session session = coherence.getSession();
 
             String url = System.getProperty("jdbc.url");
-            if (url == null || url.isBlank())
-                {
+            if (url == null || url.isBlank()) {
                 throw new IllegalStateException("The jdbc.url system property has not been set");
-                }
+            }
             Logger.info("Preload application connecting to database: " + url);
             Connection connection = DriverManager.getConnection(url);
 
@@ -50,6 +45,6 @@ public class PreloadApplication
             PreloadApplication application = new PreloadApplication(tasks, Duration.ofMinutes(10));
 
             application.run();
-            }
         }
     }
+}

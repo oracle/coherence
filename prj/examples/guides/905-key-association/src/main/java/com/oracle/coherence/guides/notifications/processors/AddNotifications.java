@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,10 +32,10 @@ import java.util.Map;
  * @since 22.06
  */
 // # tag::src-one[]
-@PortableType(id=1100, version=1)
+@PortableType(id = 1100, version = 1)
 public class AddNotifications
-        implements InvocableMap.EntryProcessor<String, Customer, Void>
-    {
+        implements InvocableMap.EntryProcessor<String, Customer, Void> {
+
     /**
      * The notifications to add to the customer.
      */
@@ -46,42 +46,41 @@ public class AddNotifications
      *
      * @param notifications  the notifications to add to the customer
      */
-    public AddNotifications(Map<String, List<Notification>> notifications)
-        {
+    public AddNotifications(Map<String, List<Notification>> notifications) {
         this.notifications = notifications;
-        }
+    }
 
     // # tag::process[]
     @Override
     @SuppressWarnings("unchecked")
     public Void process(InvocableMap.Entry<String, Customer> entry)
     // # end::src-one[]
-        {
-        BackingMapManagerContext context = entry.asBinaryEntry().getContext();
-        Converter<NotificationId, Binary> converter = context.getKeyToInternalConverter();
-        BackingMapContext ctxNotifications = context.getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
-        String customerId = entry.getKey();
-        LocalDateTime now = LocalDateTime.now();
+    {
+        BackingMapManagerContext          context          = entry.asBinaryEntry().getContext();
+        Converter<NotificationId, Binary> converter        = context.getKeyToInternalConverter();
+        BackingMapContext                 ctxNotifications = context.getBackingMapContext(
+                CustomerRepository.NOTIFICATIONS_MAP_NAME);
+        String                            customerId       = entry.getKey();
+        LocalDateTime                     now              = LocalDateTime.now();
 
-        notifications.forEach((region, notificationsForRegion) ->
+        notifications.forEach((region, notificationsForRegion)->
+        {
+            notificationsForRegion.forEach(notification->
             {
-            notificationsForRegion.forEach(notification ->
-                {
                 long ttlInMillis = ChronoUnit.MILLIS.between(now, notification.getTTL());
-                if (ttlInMillis > 0)
-                    {
-                    NotificationId id = new NotificationId(customerId, region, new UUID());
-                    Binary binaryKey = converter.convert(id);
+                if (ttlInMillis > 0) {
+                    NotificationId id        = new NotificationId(customerId, region, new UUID());
+                    Binary         binaryKey = converter.convert(id);
                     BinaryEntry<NotificationId, Notification> binaryEntry =
                             (BinaryEntry<NotificationId, Notification>) ctxNotifications.getBackingMapEntry(binaryKey);
 
                     binaryEntry.setValue(notification);
                     binaryEntry.expire(ttlInMillis);
-                    }
-                });
+                }
             });
+        });
 
         return null;
-        }
-    // # end::process[]
     }
+    // # end::process[]
+}

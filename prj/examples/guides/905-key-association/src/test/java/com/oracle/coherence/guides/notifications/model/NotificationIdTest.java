@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,18 +17,16 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class NotificationIdTest
-    {
+public class NotificationIdTest {
     @Test
-    public void shouldSort()
-        {
-        InetAddress address = null;
-        NotificationId id1 = new NotificationId("A1", "Z", new UUID(0, address, 0, 9));
-        NotificationId id2 = new NotificationId("A1", "A", new UUID(1, address, 0, 8));
-        NotificationId id3 = new NotificationId("A1", "Z", new UUID(2, address, 0, 7));
-        NotificationId id4 = new NotificationId("B1", "A", new UUID(0, address, 0, 8));
-        NotificationId id5 = new NotificationId("B1", "Z", new UUID(1, address, 0, 8));
-        NotificationId id6 = new NotificationId("B1", "A", new UUID(2, address, 0, 7));
+    public void shouldSort() {
+        InetAddress    address = null;
+        NotificationId id1     = new NotificationId("A1", "Z", new UUID(0, address, 0, 9));
+        NotificationId id2     = new NotificationId("A1", "A", new UUID(1, address, 0, 8));
+        NotificationId id3     = new NotificationId("A1", "Z", new UUID(2, address, 0, 7));
+        NotificationId id4     = new NotificationId("B1", "A", new UUID(0, address, 0, 8));
+        NotificationId id5     = new NotificationId("B1", "Z", new UUID(1, address, 0, 8));
+        NotificationId id6     = new NotificationId("B1", "A", new UUID(2, address, 0, 7));
 
         List<NotificationId> list = new ArrayList<>();
         list.add(id6);
@@ -46,6 +44,6 @@ public class NotificationIdTest
         assertThat(list.get(3), is(id4));
         assertThat(list.get(4), is(id5));
         assertThat(list.get(5), is(id6));
-        }
-
     }
+
+}
