@@ -6,6 +6,8 @@
  */
 package topics;
 
+import com.oracle.bedrock.Option;
+import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
@@ -38,9 +40,9 @@ public abstract class BaseTopicsTests
      *
      * @return  the running {@link ClosableCluster}
      */
-    static ClosableCluster createRunningCluster(String sClusterName, Version version)
+    static ClosableCluster createRunningCluster(String sClusterName, Version version, Option... options)
         {
-        return createRunningCluster(sClusterName, version, 3);
+        return createRunningCluster(sClusterName, version, 3, options);
         }
 
     /**
@@ -52,11 +54,11 @@ public abstract class BaseTopicsTests
      *
      * @return  the running {@link ClosableCluster}
      */
-    static ClosableCluster createRunningCluster(String sClusterName, Version version, int cMember)
+    static ClosableCluster createRunningCluster(String sClusterName, Version version, int cMember, Option... options)
         {
         try
             {
-            ClosableCluster clusterExtension = createCluster(sClusterName, version, cMember);
+            ClosableCluster clusterExtension = createCluster(sClusterName, version, cMember, options);
             clusterExtension.start();
             return clusterExtension;
             }
@@ -74,9 +76,9 @@ public abstract class BaseTopicsTests
      *
      * @return  the running {@link ClosableCluster}
      */
-    static ClosableCluster createCluster(String sClusterName, Version version)
+    static ClosableCluster createCluster(String sClusterName, Version version, Option... options)
         {
-        return createCluster(sClusterName, version, 3);
+        return createCluster(sClusterName, version, 3, options);
         }
 
     /**
@@ -88,7 +90,7 @@ public abstract class BaseTopicsTests
      *
      * @return  the running {@link ClosableCluster}
      */
-    static ClosableCluster createCluster(String sClusterName, Version version, int cMember)
+    static ClosableCluster createCluster(String sClusterName, Version version, int cMember, Option... options)
         {
         if (sClusterName == null || sClusterName.isBlank())
             {
@@ -100,23 +102,25 @@ public abstract class BaseTopicsTests
             cMember = 3;
             }
 
+        File          file          = MavenProjectFileUtils.ensureTestOutputBaseFolder(BaseTopicsTests.class);
+        OptionsByType optionsByType = OptionsByType.of(CacheConfig.of("coherence-cache-config.xml"),
+                version.getClassPath(),
+                WellKnownAddress.loopback(),
+                ClusterName.of(sClusterName),
+                DisplayName.of("storage-" + version.name()),
+                RoleName.of("storage"),
+                Logging.atMax(),
+                LocalHost.only(),
+                IPv4Preferred.yes(),
+                JvmOptions.include("-XX:+ExitOnOutOfMemoryError", "-XX:HeapDumpPath=" + file.getAbsolutePath()),
+                HeapSize.of(64, HeapSize.Units.MB, 512, HeapSize.Units.MB, true),
+                m_testLogs);
+
+        optionsByType.addAll(options);
+
         ClosableCluster closableCluster = new ClosableCluster();
-
-        File file = MavenProjectFileUtils.ensureTestOutputBaseFolder(BaseTopicsTests.class);
-
         closableCluster.getExtension()
-                    .with(CacheConfig.of("coherence-cache-config.xml"),
-                          version.getClassPath(),
-                          WellKnownAddress.loopback(),
-                          ClusterName.of(sClusterName),
-                          DisplayName.of("storage-" + version.name()),
-                          RoleName.of("storage"),
-                          Logging.atFinest(),
-                          LocalHost.only(),
-                          IPv4Preferred.yes(),
-                          JvmOptions.include("-XX:+ExitOnOutOfMemoryError", "-XX:HeapDumpPath=" + file.getAbsolutePath()),
-                          HeapSize.of(64, HeapSize.Units.MB, 512, HeapSize.Units.MB, true),
-                          m_testLogs)
+                    .with(optionsByType.asArray())
                     .include(cMember, CoherenceClusterMember.class);
 
         return closableCluster;

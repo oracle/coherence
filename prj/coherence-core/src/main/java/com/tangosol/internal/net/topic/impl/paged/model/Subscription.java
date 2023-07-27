@@ -283,17 +283,6 @@ public class Subscription
         }
 
     /**
-     * Set the count of channels when the Subscriber was created,
-     * or when the channel count was changed.
-     *
-     * @param cChannel  the channel count
-     */
-    public void setCreatedChannelCount(int cChannel)
-        {
-        m_cChannel = cChannel;
-        }
-
-    /**
      * Returns the identifier of the subscriber owning the specified channel
      *
      * @param nChannel  the channel to obtain the owning subscriber identifier for
@@ -591,6 +580,7 @@ public class Subscription
                     m_aChannel = new long[alChannel.length];
                     }
                 System.arraycopy(alChannel, 0, m_aChannel, 0, alChannel.length);
+                m_cChannel = m_aChannel.length;
                 }
             finally
                 {
