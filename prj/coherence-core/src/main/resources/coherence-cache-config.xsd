@@ -1047,6 +1047,7 @@
             <xsd:sequence>
                 <xsd:element ref="scheme-name" minOccurs="0" />
                 <xsd:element ref="scheme-ref" minOccurs="0" />
+                <xsd:element ref="service-name" minOccurs="0" />
                 <xsd:element ref="class-name" minOccurs="0" />
                 <xsd:element ref="init-params" minOccurs="0" />
                 <xsd:element ref="front-scheme" minOccurs="0" />
