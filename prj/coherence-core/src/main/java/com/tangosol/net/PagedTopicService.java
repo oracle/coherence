@@ -9,7 +9,6 @@ package com.tangosol.net;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -102,6 +101,16 @@ public interface PagedTopicService
      * @param subscriberId   the {@link Subscriber.Id}
      */
     void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id subscriberId);
+
+    /**
+     * Ensure the specified subscriber is subscribed to a subscription.
+     *
+     * @param sTopicName       the name of the topic
+     * @param lSubscription    the unique id of the subscriber group
+     * @param subscriberId     the {@link Subscriber.Id}
+     * @param fForceReconnect  force a reconnection even if the subscriber is known to the service
+     */
+    void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id subscriberId, boolean fForceReconnect);
 
     /**
      * Remove an existing subscriber from a subscriber group.

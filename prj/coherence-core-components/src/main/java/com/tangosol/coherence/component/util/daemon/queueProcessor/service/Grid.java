@@ -2567,7 +2567,7 @@ public abstract class Grid
      * Check whether any of the members in the specified MemberSet run a version
     * that precedes the specified one.
      */
-    protected boolean isVersionCompatible(com.tangosol.coherence.component.net.MemberSet setMembers, int nVersion)
+    public boolean isVersionCompatible(com.tangosol.coherence.component.net.MemberSet setMembers, int nVersion)
         {
         // import Component.Net.MemberSet.ActualMemberSet.ServiceMemberSet.MasterMemberSet as com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
         

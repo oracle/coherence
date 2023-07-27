@@ -1009,7 +1009,7 @@ public class PagedTopicSubscriber<V>
                         {
                         // this is a reconnect request, ensure the group still exists
                         // ensure this subscriber is subscribed
-                        service.ensureSubscription(f_topic.getName(), m_subscriptionId, f_id);
+                        service.ensureSubscription(f_topic.getName(), m_subscriptionId, f_id, m_fForceReconnect);
                         if (service.isSubscriptionDestroyed(m_subscriptionId))
                             {
                             close();
@@ -2017,6 +2017,18 @@ public class PagedTopicSubscriber<V>
      */
     public void disconnect()
         {
+        disconnectInternal(false);
+        }
+
+    /**
+     * Disconnect this subscriber.
+     * <p>
+     * This will cause the subscriber to re-initialize itself on re-connection.
+     *
+     * @param fForceReconnect  force the subscriber to reconnect
+     */
+    private void disconnectInternal(boolean fForceReconnect)
+        {
         long nTimestamp = m_connectionTimestamp;
         if (isActive())
             {
@@ -2038,6 +2050,7 @@ public class PagedTopicSubscriber<V>
 
                         if (isActive() && casState(nState, STATE_DISCONNECTED))
                             {
+                            m_fForceReconnect = fForceReconnect;
                             m_cDisconnect.mark();
                             if (!f_fAnonymous)
                                 {
@@ -2609,7 +2622,7 @@ public class PagedTopicSubscriber<V>
                 // The subscriber was unknown, possibly due to a persistence snapshot recovery or the topic being
                 // destroyed whilst the poll was in progress.
                 // Disconnect and let reconnection sort us out
-                disconnect();
+                disconnectInternal(true);
                 }
             }
         else // remove failed; this is fairly catastrophic
@@ -4046,7 +4059,7 @@ public class PagedTopicSubscriber<V>
         @Override
         public void onDisconnect()
             {
-            disconnect();
+            disconnectInternal(false);
             }
 
         @Override
@@ -4185,7 +4198,8 @@ public class PagedTopicSubscriber<V>
                     Subscription subscription = evt.getNewValue();
                     if (subscription.hasSubscriber(f_id))
                         {
-                        setChannel = Arrays.stream(subscription.getChannels(f_id, m_caches.getChannelCount()))
+                        int cChannel = m_caches.getChannelCount();
+                        setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel))
                                 .boxed()
                                 .collect(Collectors.toCollection(TreeSet::new));
                         }
@@ -4207,7 +4221,7 @@ public class PagedTopicSubscriber<V>
                     {
                     Logger.finest("Disconnecting Subscriber " + PagedTopicSubscriber.this);
                     updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
-                    disconnect();
+                    disconnectInternal(false);
                     }
                 }
             }
@@ -4530,6 +4544,12 @@ public class PagedTopicSubscriber<V>
      * The state of the subscriber.
      */
     private volatile int m_nState = STATE_INITIAL;
+
+    /**
+     * A flag to indicate that the reconnect logic should force a reconnect
+     * request even if the subscriber is in the config map.
+     */
+    private volatile boolean m_fForceReconnect;
 
     /**
      * Optional queue of prefetched values which can be used to fulfil future receive requests.

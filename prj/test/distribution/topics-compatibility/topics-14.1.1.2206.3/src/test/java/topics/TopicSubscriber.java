@@ -202,10 +202,14 @@ public class TopicSubscriber
         @Override
         public Integer call()
             {
+            Logger.info("Getting channel count for subscriber " + m_sId);
             Subscriber<String> subscriber = s_mapSubscriber.get(m_sId);
             if (subscriber != null)
                 {
-                return subscriber.getChannels().length;
+                Logger.info("Getting channel count for subscriber " + subscriber);
+                int cChannel = subscriber.getChannels().length;
+                Logger.info("Getting channel count for subscriber channels= " + cChannel + " subscriber: " + subscriber);
+                return cChannel;
                 }
             return 0;
             }
