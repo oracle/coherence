@@ -11,6 +11,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.persistence.PersistenceManager;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
@@ -27,11 +29,13 @@ import com.tangosol.util.Base;
 
 import com.tangosol.persistence.bdb.BerkeleyDBManager;
 
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.management.MBeanException;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.Properties;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -588,4 +592,8 @@ public class BerkeleyDBSimplePersistenceTests
             FileHelper.deleteDirSilent(fileTrash);
             }
         }
+    // ----- data members ---------------------------------------------------
+
+    @ClassRule
+    public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(90, TimeUnit.MINUTES);
     }
