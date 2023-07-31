@@ -118,7 +118,7 @@
     <graal.base.image.name.amd>container-registry.oracle.com/graalvm/enterprise:${graal.image.tag}</graal.base.image.name.amd>
     <graal.base.image.name.arm>container-registry.oracle.com/graalvm/enterprise:${graal.image.tag}</graal.base.image.name.arm>
     <!-- The Java EA build number to use to install an EA version of Java in the image -->
-    <java.ea.build>30</java.ea.build>
+    <java.ea.build>33</java.ea.build>
     <!-- The prefix of the Java EA download URL (this URL does not have the arch specific part on the end, that is created by the build script) -->
     <java.ea.base.url>https://download.java.net/java/early_access/jdk21/${java.ea.build}/GPL/openjdk-21-ea+${java.ea.build}</java.ea.base.url>
     <!-- default ports configured in the image -->
