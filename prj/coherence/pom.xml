@@ -245,14 +245,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- jakarta.annotation-api -->
-    <dependency>
-      <groupId>jakarta.annotation</groupId>
-      <artifactId>jakarta.annotation-api</artifactId>
-      <version>${jakarta.annotation.version}</version>
-      <optional>true</optional>
-    </dependency>
-
     <!--
     Bedrock is temporarily here to force a download of snapshot dependencies,
     which the two-step Coherence CI builds will not do.
