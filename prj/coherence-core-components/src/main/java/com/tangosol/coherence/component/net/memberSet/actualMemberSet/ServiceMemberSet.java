@@ -916,6 +916,10 @@ public class ServiceMemberSet
      */
     public static int getVersionPrefix(int nYear, int nMonth)
         {
+        if (nYear > 23 || (nYear == 23 && nMonth >= 9))
+            {
+            return encodeVersion(14, 1, 2, 0, 0);
+            }
         return encodeVersion(14, 1, 1, 0, 0);
         }
     
