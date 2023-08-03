@@ -11,7 +11,6 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,7 +72,7 @@ public abstract class PagedTopicConfigMap
         PagedTopicSubscription subscription = getSubscription(configMap, sTopicName, groupId);
         if (subscription != null)
             {
-            return new HashSet<>(subscription.getSubscribers().values());
+            return subscription.getSubscriberIds();
             }
         return Collections.emptySet();
         }
