@@ -572,7 +572,7 @@ public class Subscription
                     m_mapSubscriber = new TreeMap<>();
                     }
 
-                m_mapSubscriber.putAll(subscription.getSubscribers());
+                subscription.addSubscribersTo(m_mapSubscriber);
                 long[] alChannel = subscription.getChannelAllocations();
 
                 if (m_aChannel == null || m_aChannel.length != alChannel.length)
