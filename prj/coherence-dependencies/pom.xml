@@ -220,7 +220,7 @@
     <jackson.version>2.14.1</jackson.version>
     <jackson.databind.version>2.14.1</jackson.databind.version>
     <jacoco.version>0.8.8</jacoco.version>
-    <jaeger.version>1.6.0</jaeger.version>
+    <jaeger.version>1.8.1</jaeger.version>
     <!-- NOTE: these Jakarta versions should ideally be in sync' with that used by Helidon -->
     <jakarta.activation.version>2.0.1</jakarta.activation.version>
     <jakarta.annotation.version>2.0.0</jakarta.annotation.version>
@@ -248,7 +248,7 @@
     <jettison.version>1.5.4</jettison.version>
     <jline.version>3.20.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
-    <micrometer.version>1.6.6</micrometer.version>
+    <micrometer.version>1.11.0</micrometer.version>
     <!-- NOTE: mvel dependency removed.
          version is preserved for backwards compatibility testing in rest-mvel -->
     <mvel.version>2.4.12.Final</mvel.version>

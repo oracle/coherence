@@ -9,6 +9,7 @@
      ]]></notes>
     <packageUrl regex="true">^pkg:maven/jakarta\.resource/jakarta\.resource-api@.*$</packageUrl>
     <cve>CVE-2022-37422</cve>
+    <cve>CVE-2022-45129</cve>
   </suppress>
 
   <!-- Berkeley DB - suppress the CVEs for the C version of BDB; these generate false positives as we only use JE -->
@@ -377,8 +378,167 @@
      <cve>CVE-2022-31569</cve>
   </suppress>
 
-   <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
-       call "fredsmith utils".  Unable to find anything of value regarding this library. -->
+  <!-- Not fixable hence excluding it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: LatencyUtils-2.0.3.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.latencyutils/LatencyUtils@.*$</packageUrl>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+
+  <!-- Used in example hence excluding it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: h2-2.1.210.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.h2database/h2@.*$</packageUrl>
+    <cpe>cpe:2.3:a:h2database:h2</cpe>
+    <cve>CVE-2018-14335</cve>
+    <cve>CVE-2022-45868</cve>
+  </suppress>
+  <!--  Toplink not maintained by us hence excluding it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: toplink-grid-14.1.1.0.0-200329.2231.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.oracle\.toplink/toplink\-grid@.*$</packageUrl>
+    <cpe>cpe:2.3:a:oracle:coherence</cpe>
+    <cpe>cpe:2.3:a:oracle:toplink</cpe>
+    <cve>CVE-2022-21420</cve>
+    <cve>CVE-2020-36518</cve>
+    <cve>CVE-2021-37136</cve>
+    <cve>CVE-2022-21570</cve>
+    <cve>CVE-2021-43797</cve>
+    <cve>CVE-2022-21420</cve>
+    <cve>CVE-2021-21409</cve>
+  </suppress>
+
+  <!-- Excluding these Helidon related CVEs -->
+  <suppress>
+    <notes><![CDATA[
+     file name: graphql-java-15.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.graphql\-java/graphql\-java@.*$</packageUrl>
+    <cpe>cpe:2.3:a:graphql-java:graphql-java</cpe>
+    <cpe>cpe:2.3:a:graphql-java_project:graphql-java</cpe>
+    <cve>CVE-2022-37734</cve>
+    <cve>CVE-2023-28867</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: netty-codec-4.1.77.Final.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-codec@.*$</packageUrl>
+    <cve>CVE-2022-41915</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: snakeyaml-1.30.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
+    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
+    <cve>CVE-2022-1471</cve>
+    <cve>CVE-2022-25857</cve>
+    <cve>CVE-2022-38749</cve>
+    <cve>CVE-2022-38751</cve>
+    <cve>CVE-2022-38752</cve>
+    <cve>CVE-2022-41854</cve>
+    <cve>CVE-2022-38750</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: snakeyaml-1.32.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
+    <cpe>cpe:2.3:a:snakeyaml_project:snakeyaml</cpe>
+    <cve>CVE-2022-1471</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-core-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-core@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:grpc:grpc-core</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-api-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-api@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:grpc:grpc-api</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-stub-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+  <notes><![CDATA[
+    file name: grpc-protobuf-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-protobuf-lite-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-netty-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-services-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-context-1.49.2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-context@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: netty-handler-4.1.77.Final.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
+    <cve>CVE-2023-34462</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: netty-handler-4.1.86.Final.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
+    <cve>CVE-2023-34462</cve>
+  </suppress>
+
+  <!-- This appears to be a false positive flagged against hk2-utils due to a dependency on something
+      call "fredsmith utils".  Unable to find anything of value regarding this library. -->
   <suppress>
      <notes><![CDATA[
      file name: hk2-utils-2.6.1.jar
@@ -396,4 +556,59 @@
      <packageUrl regex="true">^pkg:maven/jakarta\.json/jakarta\.json\-api@.*$</packageUrl>
      <cpe>cpe:/a:json-java_project:json-java</cpe>
   </suppress>
+
+  <!-- temporary suppression since  this CVE is in DISPUTED state.
+    We will need to watch this-->
+  <suppress>
+    <notes><![CDATA[
+    file name: jackson-databind-2.14.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+    <cpe>cpe:2.3:a:fasterxml:jackson-databind</cpe>
+    <cpe> cpe:2.3:a:fasterxml:jackson-modules-java8</cpe>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
+
+  <!-- temporary suppression since  this CVE is being analysed -->
+  <suppress>
+    <notes><![CDATA[
+    file name: okio-2.8.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okio/okio@.*$</packageUrl>
+    <cve>CVE-2023-3635</cve>
+  </suppress>
+
+  <!-- COH-28200  -->
+  <suppress>
+    <notes><![CDATA[
+    file name: okhttp-4.9.3.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okhttp3/okhttp@.*$</packageUrl>
+    <cpe>cpe:2.3:a:squareup:okhttp</cpe>
+    <cpe>cpe:2.3:a:squareup:okhttp3</cpe>
+    <cve>CVE-2023-3782</cve>
+  </suppress>
+
+  <!-- The following still comes up after upgrade to
+  Helidon 2.6.2 (BUG 35431662). Hence its excluded-->
+  <suppress>
+    <notes><![CDATA[
+    file name: guava-31.1-jre.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:2.3:a:google:guava</cpe>
+    <cve>CVE-2020-8908</cve>
+    <cve>CVE-2023-2976</cve>
+  </suppress>
+
+  <!-- suppression for graal-sdk-19.3.1.jar CVE scan error -->
+  <suppress>
+    <notes><![CDATA[
+    file name: graal-sdk-19.3.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
+    <cve>CVE-2023-22006</cve>
+    <cve>CVE-2023-22049</cve>
+  </suppress>
+
 </suppressions>
