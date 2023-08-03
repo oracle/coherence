@@ -24,8 +24,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -244,13 +246,40 @@ public class PagedTopicSubscription
         }
 
     /**
-     * Return the subscribers subscribed to this subscription.
+     * Return the identifiers of the subscribers subscribed to this subscription.
      *
-     * @return the subscribers subscribed to this subscription
+     * @return the identifiers of the subscribers subscribed to this subscription
      */
-    public SortedMap<Long, SubscriberId> getSubscribers()
+    public Set<SubscriberId> getSubscriberIds()
         {
-        return Collections.unmodifiableSortedMap(m_mapSubscriber);
+        f_lock.lock();
+        try
+            {
+            return new HashSet<>(m_mapSubscriber.values());
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+        }
+
+    /**
+     * Add the subscribers subscribed to this subscription
+     * to the specified map.
+     *
+     * @param map  the map to add the subscribers to
+     */
+    public void addSubscribersTo(Map<Long, SubscriberId> map)
+        {
+        f_lock.lock();
+        try
+            {
+            map.putAll(m_mapSubscriber);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     /**
@@ -278,7 +307,6 @@ public class PagedTopicSubscription
             {
             f_lock.unlock();
             }
-
         }
 
     /**
@@ -512,14 +540,22 @@ public class PagedTopicSubscription
     @Override
     public void writeExternal(DataOutput out) throws IOException
         {
-        ExternalizableHelper.writeObject(out, m_key);
-        out.writeLong(m_nSubscriptionId);
-        ExternalizableHelper.writeObject(out, m_filter);
-        ExternalizableHelper.writeObject(out, m_extractor);
-        ExternalizableHelper.writeObject(out, m_aChannelAllocation);
-        ExternalizableHelper.writeMap(out, m_mapSubscriber);
-        ExternalizableHelper.writeMap(out, m_mapSubscriberChannels);
-        ExternalizableHelper.writeMap(out, m_mapSubscriberTimestamp);
+        f_lock.lock();
+        try
+            {
+            ExternalizableHelper.writeObject(out, m_key);
+            out.writeLong(m_nSubscriptionId);
+            ExternalizableHelper.writeObject(out, m_filter);
+            ExternalizableHelper.writeObject(out, m_extractor);
+            ExternalizableHelper.writeObject(out, m_aChannelAllocation);
+            ExternalizableHelper.writeMap(out, m_mapSubscriber);
+            ExternalizableHelper.writeMap(out, m_mapSubscriberChannels);
+            ExternalizableHelper.writeMap(out, m_mapSubscriberTimestamp);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     // ----- Object methods -------------------------------------------------

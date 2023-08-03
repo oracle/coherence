@@ -6,6 +6,7 @@
  */
 package com.tangosol.internal.net.topic.impl.paged.agent;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
@@ -89,6 +90,7 @@ public class EnsureSubscriptionProcessor
             }
         catch (Throwable thrown)
             {
+            Logger.err(thrown);
             return new Result(null, m_lSubscriptionId, thrown);
             }
         }
