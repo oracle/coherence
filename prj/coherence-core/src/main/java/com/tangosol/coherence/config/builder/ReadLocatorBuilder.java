@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
@@ -153,7 +153,7 @@ public class ReadLocatorBuilder
 
     /**
      * A BiFunction implementation that returns a member that is 'closest' to
-     * this member based on provided metadata (machine, rack, or site).
+     * this member based on provided metadata (member, machine, rack, or site).
      */
     public static final BiFunction<Ownership, PartitionedService, Member> CLOSEST = (owners, service) ->
             {
@@ -178,7 +178,11 @@ public class ReadLocatorBuilder
                         memberClosest = member;
                         }
 
-                    if (memberThis.getMachineId() == member.getMachineId())
+                    if (memberThis.equals(member))
+                        {
+                        return member;
+                        }
+                    else if (memberThis.getMachineId() == member.getMachineId())
                         {
                         return member;
                         }
