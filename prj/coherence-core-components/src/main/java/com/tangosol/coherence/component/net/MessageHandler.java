@@ -1667,7 +1667,7 @@ public class MessageHandler
                         Grid service  = msg.getService();
                         int  cWorkers = service.getDependencies().getWorkerThreadCount();
 
-                        if (cWorkers <= 0)
+                        if (cWorkers <= 0 && (service.isAcceptingOthers() || service == getService()))
                             {
                             // we deserialize on a transport thread if the service doesn't have a daemon pool,
                             // to avoid deserialization on the service thread
