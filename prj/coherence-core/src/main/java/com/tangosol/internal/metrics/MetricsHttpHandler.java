@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.metrics;
 
@@ -93,6 +93,30 @@ public class MetricsHttpHandler
         return f_format;
         }
 
+    /**
+     * Returns the String being used for the context root.
+     *
+     * @return the String being used for the context root
+     *
+     * @since 14.1.2.0.0
+     */
+    public String getPath()
+        {
+        return m_sPath;
+        }
+
+    /**
+     * Setter for path of the context root.
+     *
+     * @param sPath  the root path
+     *
+     * @since 14.1.2.0.0
+     */
+    public void setPath(String sPath)
+        {
+        m_sPath = sPath;
+        }
+
     // ----- HttpHandler methods --------------------------------------------
 
     @Override
@@ -110,12 +134,12 @@ public class MetricsHttpHandler
                                                         || listExtended != null && !listExtended.isEmpty()
                                                         && Boolean.parseBoolean(listExtended.get(0));
 
-            // The path will always start with "/metrics" but may have *anything* after that
+            // The path will always start with the context root path, e.g. /metrics, but may have *anything* after that
             // as the JDK http server is not fussy
             String sPath = requestURI.getPath();
-            if (sPath.equals("/metrics") || sPath.startsWith("/metrics/"))
+            if (sPath.equals(getPath()) || sPath.startsWith(getPath() + "/"))
                 {
-                // path is valid so far, as it is either /metrics or /metrics/......
+                // path is valid so far, as it is either the root path or root + "/"...
 
                 // strip any .suffix which can be used to override the accepted media type
                 if (sPath.endsWith(".txt"))
@@ -977,4 +1001,11 @@ public class MetricsHttpHandler
      * The format to use for metric names and tag keys.
      */
     private final Format f_format;
+
+    /**
+     * The context root path.
+     *
+     * @since 14.1.2.0.0
+     */
+    private String m_sPath;
     }
