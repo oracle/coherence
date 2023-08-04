@@ -135,7 +135,7 @@ This guide walks you through how to use and configure Cache Stores.
 .Bulk Loading Caches
 [link=examples/guides/195-bulk-loading-caches/README.adoc]
 --
-This guide shows approaches to bluk load data into caches, typically this would be loading data into caches from a DB when applications start.
+This guide shows approaches to bulk load data into caches, typically this would be loading data into caches from a DB when applications start.
 --
 
 [CARD]
@@ -143,6 +143,13 @@ This guide shows approaches to bluk load data into caches, typically this would 
 [link=examples/guides/210-ssl/README.adoc]
 --
 This guide walks you through how to secure Coherence using SSL/TLS.
+--
+
+[CARD]
+.Performance over Consistency & Availability
+[link=examples/guides/220-performance/README.adoc]
+--
+This guide walks you through how to tweak Coherence to provide more performance at the expense of data consistency and availability.
 --
 
 [CARD]

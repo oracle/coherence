@@ -1,0 +1,272 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2023, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Performance over Consistency & Availability
+:description: Coherence Guides Client Events
+:keywords: coherence, java, documentation, consistency, availability,, read-locator, primary, backup, async, backup
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Performance over Consistency & Availability
+
+This guide walks you through how to tweak Coherence to provide more performance **at the expense of data consistency and availability.**
+Out of the box, Coherence provides many features that ensure data consistency, including:
+
+1. Backups - By default there is 1 backup, which will automatically be stored on a separate node, machine or site from the primary to provide redundancy
+in the case of the loss of a node, machine or site.
+
+2. Synchronous backups - When entries are mutated, control will not be returned to the client until the primary and backup have been written.
+
+3. Data consistency - All data access is always directed to the primary copy of the data to ensure that the data received is the most recent and consistent.
+
+These guarantees of data consistency and availability are one of the many hallmarks of Coherence, but there may be cases where you may
+need to maximize cache reads/ writes by removing some of the above guarantees.
+
+This guide will explore and compare various methods of achieving better performance and the expenses of data consistency and availability.
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-will-need,What You Need>>
+* <<building, Building the Example Code>>
+* <<example-tests-1, Review the Tests>>
+* <<example-tests-config, Review the cache configuration>>
+* <<run-example-1, Run the Tests>>
+* <<oci, OCI Test Results>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+In this example you will run a test that will demonstrate different methods for improving Coherence read/ write performance at
+the expense of data consistency and availability. These methods are outlined below with their potential impact.
+
+.Tested Cache Config Scenarios
+[options="header"]
+!===
+|Method	| Description| Data Read Consistency Impact	| Data Availability/Loss Impact | Other comments
+|Changing the default read-locator from `primary` to `closest` |Changing the `read-locator` to `closest` (primary or backup) can balance request load or reduce latency | Dirty / stale read from out of date backup| None |
+|Using async backups | Enabling asynchronous backups allows the client to continue processing without waiting for the backup to complete | None | Medium - If the node with the primary copy failed before the backup is complete, data may be lost | Async backups result in `n` backup requests, see below
+|Using scheduling backups | Enabling scheduled backups allows backups to be scheduled at regular intervals after a delay | None | Medium->High - There is potentially more risk of data loss as multiple batched backups could be lost with node failure| Can be more efficient than asynchronous backups as backups can be batched
+|Disabling backups | Setting `backup-count` to zero | None | High - If any node is lost, then the primary data will be lost |
+!===
+
+See below for documentation links:
+
+* {commercial-docs-base-url}/develop-applications/implementing-storage-and-backing-maps.html#GUID-FCC1ADAE-8A67-4E5E-BB17-381D91DB5AC3[Using the Read Locator]
+* {commercial-docs-base-url}/develop-applications/implementing-storage-and-backing-maps.html#GUID-7D64D271-7F74-4AFB-ACB8-6F8BB5B37A33[Using Asynchronous Backups]
+* {commercial-docs-base-url}/develop-applications/implementing-storage-and-backing-maps.html#GUID-84223FCD-A1CE-4CB6-81FA-FC3980907D3C[Using Scheduled Backups]
+* {commercial-docs-base-url}/develop-applications/cache-configuration-elements.html[Disabling Backups]
+
+[#what-you-will-need]
+==== What You Need
+:java_version: 17
+:duration: 15
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+NOTE: You can skip the tests in the initial build by adding the following options: `-DskipTests` for Maven or `-x test` for Gradle.
+
+[#running]
+==== Running the Examples
+
+This example comprises a number of tests running with difference cache configurations.
+
+1. Running each example
++
+Each example can be run direct from the IDE, or can be run via executing the tests.
++
+[source,bash]
+----
+./mvnw clean verify
+----
++
+or
++
+[source,bash]
+----
+./gradlew clean test
+----
+
+[#example-tests-1]
+=== Review the Tests
+
+The example code comprises a main test class `PerformanceOverConsistencyTest` which has number of methods.
+
+The following JUnit test method creates multiple caches with different setup and runs the `runTest()` method against
+each to record times.
+
+Each test-run is run once first and then results are recorded to try and get more consistent results.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/performance/PerformanceOverConsistencyTest.java[tag=test]
+----
+
+NOTE: The test results you get may vary as they are run on a single machine. You should carry out tests of different configurations in
+your own development/test environments to see the effect these scenarios have.
+
+The following JUnit test method runs various operations including `get()`, `put()`, `getAll()` and `invoke()` and times them to compare
+the different cache configuration.
+
+See comments in code for explanations.
+
+[source,java,indent=0]
+----
+include::src/test/java/com/oracle/coherence/guides/performance/PerformanceOverConsistencyTest.java[tag=runTest]
+----
+
+[#example-tests-config]
+==== Review the cache config
+
+The cache configuration contains various `cache-scheme-mappings` and related `distributed-scheme` entries to test various scenarios.
+
+1. Review the Caching Scheme Mapping
++
+[source,xml,indent=0]
+----
+include::src/test/resources/coherence-cache-config.xml[tag=cacheScheme]
+----
+<1> Base mapping with out-of-the box defaults
+<2> Read locator
+<3> Async backup
+<4> Scheduled backup
+<5> No backup
+
+2. Review the base distributed scheme
++
+[source,xml,indent=0]
+----
+include::src/test/resources/coherence-cache-config.xml[tag=base]
+----
+
+3. Review distributed scheme with read-locator set to `closest`
++
+[source,xml,indent=0]
+----
+include::src/test/resources/coherence-cache-config.xml[tag=rl]
+----
+
+4. Review distributed scheme with backups set to asynchronous
++
+[source,xml,indent=0]
+----
+include::src/test/resources/coherence-cache-config.xml[tag=async]
+----
+
+5. Review distributed scheme with backups set the scheduled every 2 seconds
++
+[source,xml,indent=0]
+----
+include::src/test/resources/coherence-cache-config.xml[tag=sched]
+----
+
+6. Review distributed scheme with no backups
++
+[source,xml,indent=0]
+----
+include::src/test/resources/coherence-cache-config.xml[tag=none]
+----
+
+[#run-example-1]
+=== Run the Tests
+
+Run the examples using the test case below using Maven or Gradle.
+
+E.g. for Maven use:
+
+[source,bash]
+----
+./mvnw clean verify
+----
+
+or
+
+[source,bash]
+----
+./gradlew clean test
+----
+
+When the test is run you will see output from the test code. The tests with take approximately 5 minutes and there
+may be a lot of other output regarding server startup, but the main output we are interested is below.  Search for `Running Tests` in your output.
+
+NOTE: Output has been truncated and formatted for easier reading.
+
+[source,bash]
+----
+[Coherence:err:70562]    6: 2023-07-28 11:35:18.334/2.520 Oracle Coherence GE 14.1.1.2206.5 <Warning> (thread=Coherence, member=n/a): Local address "127.0.0.1" is a loopback address; this cluster node will not connect to nodes located on different machines
+
+Running Tests
+####
+Cache Type          10k Puts    80 PutAll    1k Invoke      20k Get    1k GetAll
+base                 6,168ms      2,199ms      1,199ms      8,715ms        607ms
+base-rl              5,908ms      1,958ms      1,227ms      6,058ms        721ms
+async-backup         5,248ms      1,045ms      1,014ms      8,314ms        789ms
+sched-backup         4,516ms        946ms        873ms     10,403ms        613ms
+no-backup            4,646ms        780ms        661ms      7,898ms        640ms
+####
+Note: The above times are to run the individual parts of tests, not to do an individual put/get, etc.
+
+[Coherence:err:70562]    7: (terminated)
+[Coherence:out:70562]    1: (terminated)
+----
+<1> The base results with defaults
+<2> Read locator set to `closest` means data could be read from backup or primary which could be on the same machine. As all the members are running on the same machine, the results if this test may not be relevant.
+<3> Async backup improves `put()`, `putAll()` and `invoke()` operations significantly
+<4> Scheduled backups can have small improvements over async backups
+<5> No backups has marginal or negligible improvement from asynchronous oe scheduled backups
+
+NOTE: The test results you get may vary as they are run on a single machine. You should carry out tests of different configurations in
+your own development/test environments to see the effect these scenarios have.
+
+[#oci]
+=== OCI Test Results
+Below are the results of additional tests run on an Oracle Cloud Infrastructure (OCI)
+where there is a some latency between nodes, (rather then being on a single machine) as well as cache servers on multiple machines to show the difference more clearly.
+
+The setup was 3 storage nodes across 3 availability domains as well as 3 JMeter runners running tests.
+
+==== Various Backup Types
+
+image::backup-types.png[align="center",width="100%"]
+
+From the above you can see the default put time for this environment with standard (one) backup was around 1.8ms and the scheduled, async and no-backup were considerably less.
+
+==== Default and Closest Read Locators
+
+Running random get operations (50,000) using default read-locator of `primary` and then running using read-locator of `closest`, the following results were observed:
+
+.Read Locator Test on OCI
+[options="header"]
+!===
+|Read Locator| Test Runner 1 | Test Runner 2 | Test Runner 3 | Average
+|primary | 0.439ms | 0.517ms| 0.575ms | 0.518ms
+|closest | 0.308ms | 0.441ms| 0.413ms | 0.387ms
+!===
+
+
+[#summary]
+=== Summary
+
+This guide walks you through how to tweak Coherence to provide more performance **at the expense of data consistency and availability.**
+
+A few notes from the above results:
+
+1. If your application can tolerate some data loss, then rather than using zero backups, you should use async or scheduled backups as this does provide better availability that no backups.
+
+2. If your application can tolerate potential dirty reads, then use the `closest` read locator.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/develop-applications/implementing-storage-and-backing-maps.html#GUID-FCC1ADAE-8A67-4E5E-BB17-381D91DB5AC3[Using Read Locator]
+* {commercial-docs-base-url}/develop-applications/implementing-storage-and-backing-maps.html#GUID-7D64D271-7F74-4AFB-ACB8-6F8BB5B37A33[Using Asynchronous Backups]
+* {commercial-docs-base-url}/develop-applications/implementing-storage-and-backing-maps.html#GUID-84223FCD-A1CE-4CB6-81FA-FC3980907D3C[Using Scheduled Backups]
+* {commercial-docs-base-url}/develop-applications/cache-configuration-elements.html[Disabling Backups]
