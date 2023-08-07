@@ -141,10 +141,12 @@ public class PerformanceOverConsistencyTest {
      * @return the test results
      */
     private TestResult runTest(NamedCache<Integer, Customer> cache, String type) {
+        System.err.println("Starting " + type);
         cache.clear();
 
         long start = System.currentTimeMillis();
 
+        System.err.println("Starting put " + type);
         // insert multiple customers using individual put()
         for (int i = 1; i <= 2_000; i++) {
             Customer c = getCustomer(i);
@@ -154,6 +156,7 @@ public class PerformanceOverConsistencyTest {
 
         Map<Integer, Customer> buffer = new HashMap<>();
 
+        System.err.println("Starting putAll " + type);
         start = System.currentTimeMillis();
         // insert customers using putAll in batches
         for (int i = 2_001; i <= 10_000; i++) {
@@ -171,6 +174,7 @@ public class PerformanceOverConsistencyTest {
 
         long putAllDuration = System.currentTimeMillis() - start;
 
+        System.err.println("Starting get " + type);
         start = System.currentTimeMillis();
         // issue 2,000 get() operations
         for (int i = 1; i < 2_000; i++) {
@@ -179,6 +183,7 @@ public class PerformanceOverConsistencyTest {
 
         long getDuration = System.currentTimeMillis() - start;
 
+        System.err.println("Starting getAll " + type);
         start = System.currentTimeMillis();
         // issue 100 getAll() operations
         for (int i = 1; i < 100; i++) {
@@ -188,6 +193,7 @@ public class PerformanceOverConsistencyTest {
         long getAllDuration = System.currentTimeMillis() - start;
 
         start = System.currentTimeMillis();
+        System.err.println("Starting entry processor " + type);
         // issue 100 entry processor updates which require backup updates
         for (int i = 1; i < 100L; i++) {
             cache.invoke(i, Processors.update(Customer::setCustomerType, Customer.GOLD));
