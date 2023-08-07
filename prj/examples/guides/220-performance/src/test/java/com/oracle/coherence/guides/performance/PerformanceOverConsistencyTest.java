@@ -123,7 +123,7 @@ public class PerformanceOverConsistencyTest {
         listResults.add(runTest(cacheNoBackup, "no-backup"));
 
         // output the results
-        System.out.printf(headerFormat, "Cache Type", "10k Puts", "80 PutAll","1k Invoke", "20k Get", "1k GetAll");
+        System.out.printf(headerFormat, "Cache Type", "2k Put", "8 PutAll","100 Invoke", "2k Get", "100 GetAll");
 
         listResults.forEach(
                 (v)->System.out.printf(lineFormat, v.getType(), v.getPutDuration(), v.getPutAllDuration(),
@@ -146,7 +146,7 @@ public class PerformanceOverConsistencyTest {
         long start = System.currentTimeMillis();
 
         // insert multiple customers using individual put()
-        for (int i = 1; i <= 10_000; i++) {
+        for (int i = 1; i <= 2_000; i++) {
             Customer c = getCustomer(i);
             cache.put(c.getId(), c);
         }
@@ -156,7 +156,7 @@ public class PerformanceOverConsistencyTest {
 
         start = System.currentTimeMillis();
         // insert customers using putAll in batches
-        for (int i = 20_001; i <= 100_000; i++) {
+        for (int i = 2_001; i <= 10_000; i++) {
             Customer c = getCustomer(i);
             buffer.put(c.getId(), c);
             if (i % 1_000 == 0) {
@@ -172,8 +172,8 @@ public class PerformanceOverConsistencyTest {
         long putAllDuration = System.currentTimeMillis() - start;
 
         start = System.currentTimeMillis();
-        // issue 20,000 get() operations
-        for (int i = 1; i < 20_000; i++) {
+        // issue 2,000 get() operations
+        for (int i = 1; i < 2_000; i++) {
             Customer value = cache.get(i);
         }
 
@@ -181,15 +181,15 @@ public class PerformanceOverConsistencyTest {
 
         start = System.currentTimeMillis();
         // issue 100 getAll() operations
-        for (int i = 1; i < 1000; i++) {
+        for (int i = 1; i < 100; i++) {
             Map<Integer, Customer> all = cache.getAll(Set.of(i, i + 1, i + 2, i + 3, i + 4, i + 5));
         }
 
         long getAllDuration = System.currentTimeMillis() - start;
 
         start = System.currentTimeMillis();
-        // issue 10,000 entry processor updates which require backup updates
-        for (int i = 1; i < 1_000L; i++) {
+        // issue 100 entry processor updates which require backup updates
+        for (int i = 1; i < 100L; i++) {
             cache.invoke(i, Processors.update(Customer::setCustomerType, Customer.GOLD));
         }
         long invokeDuration = System.currentTimeMillis() - start;
@@ -268,5 +268,4 @@ public class PerformanceOverConsistencyTest {
         return new Customer(id, "Customer Name " + id, "Address " + id,
                 CUSTOMER_TYPES[RANDOM.nextInt(3)], RANDOM.nextLong(100_000L) + 1000L);
     }
-
 }

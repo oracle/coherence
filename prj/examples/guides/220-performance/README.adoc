@@ -205,12 +205,12 @@ NOTE: Output has been truncated and formatted for easier reading.
 
 Running Tests
 ####
-Cache Type          10k Puts    80 PutAll    1k Invoke      20k Get    1k GetAll
-base                 6,168ms      2,199ms      1,199ms      8,715ms        607ms
-base-rl              5,908ms      1,958ms      1,227ms      6,058ms        721ms
-async-backup         5,248ms      1,045ms      1,014ms      8,314ms        789ms
-sched-backup         4,516ms        946ms        873ms     10,403ms        613ms
-no-backup            4,646ms        780ms        661ms      7,898ms        640ms
+Cache Type            2k Put     8 PutAll   100 Invoke       2k Get   100 GetAll
+base                 2,758ms        252ms        191ms      1,310ms        159ms
+base-rl              1,536ms        140ms        127ms        755ms        125ms
+async-backup           956ms        124ms        124ms        840ms         87ms
+sched-backup         1,140ms        108ms        128ms      1,101ms        103ms
+no-backup              713ms         98ms         85ms        925ms         83ms
 ####
 Note: The above times are to run the individual parts of tests, not to do an individual put/get, etc.
 
@@ -218,7 +218,7 @@ Note: The above times are to run the individual parts of tests, not to do an ind
 [Coherence:out:70562]    1: (terminated)
 ----
 <1> The base results with defaults
-<2> Read locator set to `closest` means data could be read from backup or primary which could be on the same machine. As all the members are running on the same machine, the results if this test may not be relevant.
+<2> Read locator set to `closest` means data could be read from backup or primary which could be on the same machine. As all the members are running on the same machine, the results if this test may not be relevant. See the OCI results below for more relevant test results.
 <3> Async backup improves `put()`, `putAll()` and `invoke()` operations significantly
 <4> Scheduled backups can have small improvements over async backups
 <5> No backups has marginal or negligible improvement from asynchronous oe scheduled backups
