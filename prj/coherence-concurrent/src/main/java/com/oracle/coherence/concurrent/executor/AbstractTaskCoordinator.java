@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -188,7 +188,7 @@ public abstract class AbstractTaskCoordinator<T>
     protected void closeSubscriber(Task.Subscriber<? super T> subscriber,
                                    boolean fRemove)
         {
-        ExecutorTrace.entering(AbstractTaskCoordinator.class, "closeSubscriber", subscriber, getTaskId());
+        ExecutorTrace.entering(AbstractTaskCoordinator.class, "closeSubscriber", subscriber, getTaskId(), m_lastValue);
 
         if (fRemove)
             {
@@ -204,12 +204,17 @@ public abstract class AbstractTaskCoordinator<T>
             {
             if (f_cancelled.get())
                 {
+                ExecutorTrace.log(() -> String.format("Notifying Subscriber %s of cancellation", subscriber));
                 subscriber.onError(new InterruptedException("Task " + getTaskId() + " has been cancelled."));
                 }
             else if (m_lastValue != null && m_lastValue.isValue())
                 {
                 // only call onComplete() if the task returned a value
                 subscriber.onComplete();
+                }
+            else
+                {
+                ExecutorTrace.log(() -> String.format("Subscriber %s of closed, but no results received.", subscriber));
                 }
             }
         catch (Throwable throwable)
