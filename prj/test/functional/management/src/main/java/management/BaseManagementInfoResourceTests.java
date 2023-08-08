@@ -16,16 +16,15 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
-
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
+
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
-
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
-
 import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
 
 import com.oracle.bedrock.runtime.java.ClassPath;
@@ -52,6 +51,7 @@ import com.tangosol.internal.management.MBeanResponse;
 
 import com.tangosol.internal.management.resources.AbstractManagementResource;
 import com.tangosol.internal.management.resources.ClusterMemberResource;
+import com.tangosol.internal.management.resources.ClusterResource;
 
 import com.tangosol.internal.net.management.HttpHelper;
 
@@ -144,7 +144,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.delayedBy;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CLEAR;
@@ -3640,6 +3639,21 @@ public abstract class BaseManagementInfoResourceTests
             Eventually.assertDeferred(cache::size, is(1));
             return null;
             });
+        }
+
+    @Test
+    public void testGetClusterConfig()
+            throws Exception
+        {
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(ClusterResource.GET_CLUSTER_CONFIG).request().get().getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+
+        Response response = getBaseTarget().path(ClusterResource.GET_CLUSTER_CONFIG).request().get();
+        assertNotNull(response);
+
+        String sResponse = response.readEntity(String.class);
+        assertTrue(sResponse.startsWith("<cluster-config"));
         }
 
     // ----- utility methods----------------------------------------------------
