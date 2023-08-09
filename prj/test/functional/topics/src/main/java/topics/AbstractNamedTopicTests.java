@@ -4636,39 +4636,55 @@ public abstract class AbstractNamedTopicTests
         boolean             fElementsDefined  = false;
         Set<ObjectInstance> setMBean          = server.queryMBeans(new ObjectName("Coherence:type=" + sTypeMBean +",*"), null);
         boolean             fCache            = false;
-        int                 cUnits            = 0;
-        int                 cSize             = 0;
 
-        for (ObjectInstance inst : setMBean)
+        for (int attempt = 0; attempt < 5; attempt++)
             {
-            String sNameMBean = inst.getObjectName().toString();
+            int                 cUnits            = 0;
+            int                 cSize             = 0;
 
-            assertFalse("Topic MetaCache MBean containing prefix " +  PagedTopicCaches.Names.METACACHE_PREFIX + " must not exist: " + sNameMBean,
-                        sNameMBean.contains(PagedTopicCaches.Names.METACACHE_PREFIX));
-            if (sNameMBean.contains(elementsCacheName))
+            for (ObjectInstance inst : setMBean)
                 {
-                fElementsDefined = true;
+                String sNameMBean = inst.getObjectName().toString();
 
-                if (sNameMBean.contains("Cache"))
+                assertFalse("Topic MetaCache MBean containing prefix " +  PagedTopicCaches.Names.METACACHE_PREFIX + " must not exist: " + sNameMBean,
+                        sNameMBean.contains(PagedTopicCaches.Names.METACACHE_PREFIX));
+                if (sNameMBean.contains(elementsCacheName))
                     {
-                    assertThat(sNameMBean + " MBean attribute constraint check: MemoryUnits", (boolean) server.getAttribute(inst.getObjectName(), "MemoryUnits"));
+                    fElementsDefined = true;
 
-                    int  units      = (int) server.getAttribute(inst.getObjectName(),  "Units");
-                    int  unitFactor = (int) server.getAttribute(inst.getObjectName(),  "UnitFactor");
+                    if (sNameMBean.contains("Cache"))
+                        {
+                        assertThat(sNameMBean + " MBean attribute constraint check: MemoryUnits", (boolean) server.getAttribute(inst.getObjectName(), "MemoryUnits"));
 
-                    fCache     = true;
-                    cUnits     += (units * unitFactor);
-                    cSize      += (int) server.getAttribute(inst.getObjectName(),  "Size");
+                        int  units      = (int) server.getAttribute(inst.getObjectName(),  "Units");
+                        int  unitFactor = (int) server.getAttribute(inst.getObjectName(),  "UnitFactor");
+
+                        fCache     = true;
+                        cUnits     += (units * unitFactor);
+                        cSize      += (int) server.getAttribute(inst.getObjectName(),  "Size");
+                        }
                     }
                 }
-            }
 
             if (fCache)
                 {
                 // validate that number of messages and number of bytes sent is correct across all storage enabled cache servers.
-                assertThat("MBean attribute constraint check: units * unitFactor", cUnits, greaterThan(nMessageSize * cMessages));
-                assertThat("MBean attribute constraint check: size", cSize, is(cMessages));
+                try
+                    {
+                    assertThat("MBean attribute constraint check: units * unitFactor", cUnits, greaterThan(nMessageSize * cMessages));
+                    assertThat("MBean attribute constraint check: size", cSize, is(cMessages));
+                    }
+                catch (Throwable e)
+                    {
+                    System.err.println("Failed (attempt=" + attempt + ") " + e.getMessage());
+                    Thread.sleep(1000);
+                    if (attempt == 4)
+                        {
+                        throw Exceptions.ensureRuntimeException(e);
+                        }
+                    }
                 }
+            }
 
             assertThat("Missing " + sTypeMBean + " MBean for " + elementsCacheName, fElementsDefined);
         }
@@ -4706,6 +4722,7 @@ public abstract class AbstractNamedTopicTests
                 }
             }
         publisher.flush().get(5, TimeUnit.MINUTES);
+        System.err.println("**** Published " + nCount + " messages");
         }
 
     protected synchronized NamedTopic<String> ensureTopic()
