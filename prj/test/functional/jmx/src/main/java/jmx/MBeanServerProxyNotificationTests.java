@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,6 +47,7 @@ public class MBeanServerProxyNotificationTests
     @BeforeClass
     public static void setupClass() throws Exception
         {
+        System.setProperty("coherence.management", "all");
         String sCluster  = "MBeanServerProxyNotificationTests";
 
         s_cluster = startCluster(sCluster, CLUSTER_SIZE);
@@ -133,40 +134,40 @@ public class MBeanServerProxyNotificationTests
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 1));
-        assertThat(listener.getCount(), is(5L));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        Eventually.assertDeferred(listener::getCount, is(5L));
 
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 111);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 222);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 333);
 
-        Eventually.assertThat("verify that listener has been called 3 times", invoking(listener).getCount(), is(2L));
+        Eventually.assertDeferred("verify that listener has been called 3 times", listener::getCount, is(2L));
 
         // the listener should eventually receive the notifications
-        Eventually.assertThat(invoking(listener).getNewValue(), is(333));
+        Eventually.assertDeferred(listener::getNewValue, is(333));
 
         proxy.removeNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is gone by checking the listener count on the server goes back to the before count
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore));
 
         // should not receive this notification
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 444);
-        assertThat("verify listener was unregistered and not called for modification setting CacheSize to 444", listener.getCount(), is(2L));
+        Eventually.assertDeferred("verify listener was unregistered and not called for modification setting CacheSize to 444", listener::getCount, is(2L));
 
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
 
-        assertThat("verify listener still not called for modification setting CacheSize to 444", listener.getCount(), is(2L));
+        Eventually.assertDeferred("verify listener still not called for modification setting CacheSize to 444", listener::getCount, is(2L));
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 555);
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 666);
 
         assertThat("wait until no outstanding expected notifications to listener", listener.await(1, TimeUnit.MINUTES), is(true));
-        Eventually.assertThat("wait until see last expected modification", invoking(listener).getNewValue(), is(666));
+        Eventually.assertDeferred("wait until see last expected modification", listener::getNewValue, is(666));
 
-        assertThat("CacheSize of 444 should not have been sent to listener", listener.getValues().contains(444), is(false));
+        Eventually.assertDeferred("CacheSize of 444 should not have been sent to listener", () -> listener.getValues().contains(444), is(false));
         }
 
     @Test
@@ -183,15 +184,16 @@ public class MBeanServerProxyNotificationTests
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
 
         proxy.removeNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener has been removed by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore));
 
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 1234);
 
+        Eventually.assertDeferred(() -> proxy.getAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE), is(1234));
         assertThat(listener.await(5, TimeUnit.SECONDS), is(false));
 
         assertThat(listener.getValues(), is(emptyIterable()));
@@ -219,6 +221,7 @@ public class MBeanServerProxyNotificationTests
         for (int i=1; i<=9; i++)
             {
             proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, i);
+            Eventually.assertDeferred(() -> proxy.getAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE), is(i));
             }
 
         assertThat(listener.await(1, TimeUnit.MINUTES), is(true));
@@ -244,17 +247,18 @@ public class MBeanServerProxyNotificationTests
         proxy.addNotificationListener(sMBeanName, listener, filterMod4, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 2));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 2));
 
         // remove listener - should remove all registrations
         proxy.removeNotificationListener(sMBeanName, listener);
 
         // Ensure that the listener have been removed by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore));
 
         for (int i=1; i<=9; i++)
             {
             proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, i);
+            Eventually.assertDeferred(() -> proxy.getAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE), is(i));
             }
 
         // should not receive any notifications
@@ -277,6 +281,7 @@ public class MBeanServerProxyNotificationTests
                 .countMBeanListeners(s_memberResponsibility, RESPONSIBILITY_MBEAN_NAME), is(cBefore + 1));
 
         proxy.setAttribute(RESPONSIBILITY_MBEAN_NAME, ATTRIBUTE_CACHE_SIZE, 1234);
+        Eventually.assertDeferred(() -> proxy.getAttribute(RESPONSIBILITY_MBEAN_NAME, ATTRIBUTE_CACHE_SIZE), is(1234));
 
         assertThat(listener.await(1, TimeUnit.MINUTES), is(true));
 
