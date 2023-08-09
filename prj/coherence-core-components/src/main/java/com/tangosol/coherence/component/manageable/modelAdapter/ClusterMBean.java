@@ -333,7 +333,20 @@ public class ClusterMBean
                 null,
                 });
             }
-        
+
+        // behavior getClusterConfig()
+            {
+            mapInfo.put("getClusterConfig()", new Object[]
+                {
+                "Get Coherence Cluster configuration.",
+                "getClusterConfig",
+                "Ljava/lang/String;",
+                new String[] {},
+                new String[] {},
+                null
+                });
+            }
+
         // behavior logClusterState(String sRole)
             {
             mapInfo.put("logClusterState(Ljava.lang.String;)", new Object[]
@@ -424,7 +437,15 @@ public class ClusterMBean
         {
         return null;
         }
-    
+
+    /**
+     * Get the Coherence Cluster Configuration
+     */
+    public String getClusterConfig()
+        {
+        return null;
+        }
+
     // Accessor for the property "ClusterName"
     /**
      * Getter for property ClusterName.<p>
