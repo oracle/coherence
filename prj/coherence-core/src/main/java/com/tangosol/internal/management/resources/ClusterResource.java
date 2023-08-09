@@ -50,6 +50,8 @@ public class ClusterResource
         router.addGet(sPathRoot + "/" + PLATFORM + "/{" + PLATFORM_MBEAN + "}", this::getPlatformResponse);
         router.addGet(sPathRoot + "/" + METADATA_CATALOG, this::getMetadataCatalog)
                 .produces(MEDIA_TYPE_JSON, MEDIA_TYPE_SWAGGER_JSON);
+        router.addGet(sPathRoot + "/" + GET_CLUSTER_CONFIG, this::getClusterConfig)
+                .produces(MEDIA_TYPE_XML);
 
         router.addPost(sPathRoot, this::updateNodes);
         router.addPost(sPathRoot + "/" + SHUTDOWN, this::shutdownCluster);
@@ -352,6 +354,23 @@ public class ClusterResource
     // ----- ClusterResource methods ----------------------------------------
 
     /**
+     * Get Coherence Cluster Configuration
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     *
+     * @since 14.1.2.0
+     */
+    public Response getClusterConfig(HttpRequest request)
+        {
+        return executeMBeanOperation(request, getQuery(request),
+                                     GET_CLUSTER_CONFIG,
+                                     null,
+                                     null);
+        }
+
+    /**
      * The response for a Coherence ClusterMBean.
      *
      * @param request       the {@link HttpRequest}
@@ -504,6 +523,15 @@ public class ClusterResource
      * @since 14.1.1.0
      */
     public static final String CONFIGURE_TRACING = "configureTracing";
+
+    // ----- GET API (Operations) constants --------------------------------
+
+    /**
+     * The name of operation to get Coherence cluster configuration
+     *
+     *  @since 14.1.2.0
+     */
+    public static final String GET_CLUSTER_CONFIG = "getClusterConfig";
 
     // ----- constants ------------------------------------------------------
 
