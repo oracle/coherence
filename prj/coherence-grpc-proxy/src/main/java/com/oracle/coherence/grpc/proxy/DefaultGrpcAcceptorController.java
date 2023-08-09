@@ -31,8 +31,13 @@ import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The default {@link GrpcAcceptorController} implementation.
@@ -69,8 +74,19 @@ public class DefaultGrpcAcceptorController
     @Override
     public void start()
         {
+        if (m_fRunning)
+            {
+            return;
+            }
+
+        f_lock.lock();
         try
             {
+            if (m_fRunning)
+                {
+                return;
+                }
+
             GrpcAcceptorDependencies deps             = getDependencies();
             ServerBuilder<?>         serverBuilder    = createServerBuilder(deps);
             InProcessServerBuilder   inProcessBuilder = createInProcessServerBuilder(deps);
@@ -96,7 +112,8 @@ public class DefaultGrpcAcceptorController
                 listServiceNames.add(definition.getServiceDescriptor().getName());
                 }
 
-            serverBuilder.addService(f_healthStatusManager.getHealthService());
+            m_healthStatusManager = new HealthStatusManager();
+            serverBuilder.addService(m_healthStatusManager.getHealthService());
             serverBuilder.addService(ChannelzService.newInstance(deps.getChannelzPageSize()));
 //            serverBuilder.intercept(new ServerLoggingInterceptor());
 
@@ -116,28 +133,44 @@ public class DefaultGrpcAcceptorController
 
             m_server          = server;
             m_inProcessServer = inProcessServer;
-            f_healthStatusManager.setStatus(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME, HealthCheckResponse.ServingStatus.SERVING);
-            listServiceNames.forEach(s -> f_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
+            m_healthStatusManager.setStatus(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME, HealthCheckResponse.ServingStatus.SERVING);
+            listServiceNames.forEach(s -> m_healthStatusManager.setStatus(s, HealthCheckResponse.ServingStatus.SERVING));
             m_fRunning = true;
             }
         catch (IOException e)
             {
             throw Exceptions.ensureRuntimeException(e, "Failed to start gRPC server");
             }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     @Override
     public void stop()
         {
-        if (isRunning())
+        if (m_fRunning)
             {
-            m_fRunning = false;
-            f_healthStatusManager.enterTerminalState();
-            stopServer(m_inProcessServer, "in-process server");
-            m_inProcessServer = null;
-            stopServer(m_server, "server");
-            m_server = null;
-            m_listServices = null;
+            f_lock.lock();
+            try
+                {
+                if (m_fRunning)
+                    {
+                    m_fRunning = false;
+                    m_healthStatusManager.enterTerminalState();
+                    m_healthStatusManager = null;
+                    stopServer(m_inProcessServer, "in-process server");
+                    m_inProcessServer = null;
+                    stopServer(m_server, "server");
+                    m_server = null;
+                    m_listServices = null;
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
             }
         }
 
@@ -156,19 +189,21 @@ public class DefaultGrpcAcceptorController
     @Override
     public int getLocalPort()
         {
-        if (m_server == null)
+        Server server = m_server;
+        if (server == null)
             {
             throw new IllegalStateException("The gRPC server is not started");
             }
-        return m_server.getPort();
+        return server.getPort();
         }
 
     @Override
     public String getInProcessName()
         {
-        if (m_inProcessServer != null)
+        Server server = m_inProcessServer;
+        if (server != null)
             {
-            return m_inProcessServer.getListenSockets()
+            return server.getListenSockets()
                     .stream()
                     .filter(Objects::nonNull)
                     .map(String::valueOf)
@@ -231,7 +266,7 @@ public class DefaultGrpcAcceptorController
 //                = new RemoteTopicServiceGrpcImpl(new RemoteTopicService.DefaultDependencies(deps));
 //
 //        return Arrays.asList(cacheService, topicService);
-        return Arrays.asList(cacheService);
+        return List.of(cacheService);
         }
 
     protected void configure(ServerBuilder<?> serverBuilder, InProcessServerBuilder inProcessServerBuilder)
@@ -305,10 +340,15 @@ public class DefaultGrpcAcceptorController
     /**
      * The gRPC health check service manager.
      */
-    private final HealthStatusManager f_healthStatusManager = new HealthStatusManager();
+    private HealthStatusManager m_healthStatusManager;
 
     /**
      * The list of {@link BindableGrpcProxyService services} served by this controller.
      */
     private List<BindableGrpcProxyService> m_listServices;
+
+    /**
+     * The lock to control start and stop state.
+     */
+    private final Lock f_lock = new ReentrantLock();
     }
