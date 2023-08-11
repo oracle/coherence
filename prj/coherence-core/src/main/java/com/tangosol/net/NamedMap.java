@@ -163,17 +163,13 @@ public interface NamedMap<K, V>
     /**
      * Construct a {@code view} of this {@link NamedMap}.
      *
-     * @param <V_FRONT>  the type of the entry values in this {@code view}, which
-     *                   will be the same as {@code V_BACK}, unless a {@code transformer} is specified
-     *                   when creating this {@code view}
-     *
      * @return a local {@code view} for this {@link NamedMap}
      *
      * @see ViewBuilder
      *
      * @since 12.2.1.4
      */
-    default <V_FRONT> MapViewBuilder<K, V, V_FRONT> view()
+    default MapViewBuilder<K, V> view()
         {
         return new MapViewBuilder<>(this);
         }
