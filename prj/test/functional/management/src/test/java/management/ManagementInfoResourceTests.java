@@ -19,7 +19,7 @@ import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.management.internal.resources.AbstractManagementResource;
 import com.tangosol.coherence.management.internal.resources.ClusterMemberResource;
-
+import com.tangosol.coherence.management.internal.resources.ClusterResource;
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.internal.net.management.HttpHelper;
@@ -288,6 +288,21 @@ public class ManagementInfoResourceTests
         assertThat(linkNames, hasItem(MEMBERS));
         assertThat(linkNames, hasItem(SERVICES));
         assertThat(linkNames, hasItem(CACHES));
+        }
+
+    @Test
+    public void testGetClusterConfig()
+            throws Exception
+        {
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(ClusterResource.GET_CLUSTER_CONFIG).request().get().getStatus(),
+                is(Response.Status.OK.getStatusCode()));
+
+        Response response = getBaseTarget().path(ClusterResource.GET_CLUSTER_CONFIG).request().get();
+        assertNotNull(response);
+
+        String sResponse = response.readEntity(String.class);
+        assertTrue(sResponse.startsWith("<cluster-config"));
         }
 
     @Test

@@ -314,6 +314,32 @@
         }
       }
     },
+    "/management/coherence/cluster/getClusterConfig": {
+      "get": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Get the Coherence Cluster Configuration",
+        "description": "Use this endpoint to get the Coherence Cluster Configuration.",
+        "operationId": "/management/coherence/cluster/getClusterConfig GET",
+        "produces": [
+          "application/xml"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns Coherence Cluster Configuration",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/members": {
       "get": {
         "tags": [

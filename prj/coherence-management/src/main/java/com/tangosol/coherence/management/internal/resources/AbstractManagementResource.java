@@ -24,7 +24,11 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
 
+import java.io.ByteArrayInputStream;
+
 import java.net.URI;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -296,6 +300,16 @@ public abstract class AbstractManagementResource
                 {
                 return Response.status(Response.Status.NOT_FOUND).build();
                 }
+            else if (!mapMBeans.isEmpty() &&
+                    getRequestContext().getMethod().equalsIgnoreCase("GET") &&
+                    !MEDIA_TYPE_JSON.equals(getRequestContext().getHeaderString("Accept")))
+               {
+               Object obj = mapMBeans.get(mapMBeans.keySet().iterator().next());
+               if (obj instanceof String)
+                   {
+                   return Response.ok(new ByteArrayInputStream(((String) obj).getBytes(StandardCharsets.UTF_8))).build();
+                   }
+               }
             }
         catch (RuntimeException e)
             {
@@ -1575,6 +1589,11 @@ public abstract class AbstractManagementResource
      * Constant used for json application type.
      */
     public static final String MEDIA_TYPE_JSON = MediaType.APPLICATION_JSON;
+
+    /**
+     * Constant used for xml application type.
+     */
+    public static final String MEDIA_TYPE_XML = "application/xml";
 
     /**
      * Constant used for Swagger.

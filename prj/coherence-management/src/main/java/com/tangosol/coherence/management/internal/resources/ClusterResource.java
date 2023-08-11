@@ -167,6 +167,23 @@ public class ClusterResource
         return response(responseMap);
         }
 
+    /**
+     * Get Coherence Cluster Configuration
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     *
+     * @since 14.1.1.0
+     */
+    @GET
+    @Produces(MEDIA_TYPE_XML)
+    @Path(GET_CLUSTER_CONFIG)
+    public Response getClusterConfig()
+        {
+        return executeMBeanOperation(getQuery(), GET_CLUSTER_CONFIG, null, null);
+        }
+
     // ----- POST API (Operations) ------------------------------------------
 
     /**
@@ -497,6 +514,15 @@ public class ClusterResource
      * @since 14.1.1.0
      */
     public static final String CONFIGURE_TRACING = "configureTracing";
+
+    // ----- GET API (Operations) constants --------------------------------
+
+    /**
+     * The name of operation to get Coherence cluster configuration
+     *
+     *  @since 14.1.1.0
+     */
+    public static final String GET_CLUSTER_CONFIG = "getClusterConfig";
 
     // ----- constants ------------------------------------------------------
 
