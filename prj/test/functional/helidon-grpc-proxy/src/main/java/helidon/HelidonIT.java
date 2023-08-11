@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package helidon;
 
 import com.google.protobuf.Int32Value;
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.coherence.grpc.NamedCacheServiceGrpc;
 import com.oracle.coherence.grpc.Requests;
 import com.oracle.coherence.grpc.proxy.GrpcServerController;
@@ -36,17 +37,22 @@ public class HelidonIT
     @BeforeAll
     static void setupBaseTest() throws Exception
         {
+        Integer nPort = LocalPlatform.get().getAvailablePorts().next();
+
         System.setProperty("coherence.ttl",          "0");
+        System.setProperty("coherence.wka",          "127.0.0.1");
+        System.setProperty("coherence.localhost",    "127.0.0.1");
         System.setProperty("coherence.clustername",  "HelidonIT");
         System.setProperty("coherence.cacheconfig",  "coherence-config.xml");
         System.setProperty("coherence.pof.enabled",  "true");
         System.setProperty("coherence.log.level",    "9");
         System.setProperty("coherence.grpc.enabled", "false");
+        System.setProperty("grpc.port", String.valueOf(nPort));
 
         s_server  = Server.create().start();
 
         s_channel = ManagedChannelBuilder
-                .forAddress("127.0.0.1", 1408)
+                .forAddress("127.0.0.1", nPort)
                 .usePlaintext()
                 .build();
 
