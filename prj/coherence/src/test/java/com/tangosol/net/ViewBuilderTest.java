@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -11,6 +11,7 @@ import com.tangosol.net.ViewBuilder;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.cache.WrapperNamedCache;
+
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
@@ -24,12 +25,12 @@ import java.util.HashMap;
 
 import org.junit.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-
-import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests for {@link ViewBuilder}.
@@ -45,7 +46,7 @@ public class ViewBuilderTest
     public void testViewBuilderDefaults()
         {
         NamedCache<String, String> cache =
-                new ViewBuilder<String, String, String>(() -> getCache("defaults")).build();
+                new ViewBuilder<String, String>(() -> getCache("defaults")).build();
         assertThat(cache, is(instanceOf(ContinuousQueryCache.class)));
 
         ContinuousQueryCache<String, String, String> queryCache =
@@ -63,7 +64,7 @@ public class ViewBuilderTest
     public void testViewFromNamedCache()
         {
         NamedCache<String, String> backCache = getCache("fromNamedCache");
-        NamedCache<String, String> view      = backCache.<String>view().build();
+        NamedCache<String, String> view      = backCache.view().build();
 
         assertThat(view, is(instanceOf(ContinuousQueryCache.class)));
 
@@ -83,7 +84,7 @@ public class ViewBuilderTest
     public void testViewBuilderWithFilter()
         {
         EqualsFilter<String, String> filter = new EqualsFilter<>("foo", "bar");
-        NamedCache<String, String>   cache  = new ViewBuilder<String, String, String>(
+        NamedCache<String, String>   cache  = new ViewBuilder<String, String>(
                 getCache("filter")).filter(filter).build();
 
         assertThat(cache, is(instanceOf(ContinuousQueryCache.class)));
@@ -98,7 +99,7 @@ public class ViewBuilderTest
     public void testViewBuilderWithListener()
         {
         MapListener<String, String> listener = new TestListener<>();
-        NamedCache<String, String>  cache    = new ViewBuilder<String, String, String>(
+        NamedCache<String, String>  cache    = new ViewBuilder<String, String>(
                 getCache("listener")).listener(listener).build();
 
         assertThat(cache, is(instanceOf(ContinuousQueryCache.class)));
@@ -113,7 +114,7 @@ public class ViewBuilderTest
     public void testViewBuilderWithTransformer()
         {
         ValueExtractor<String, String> transformer = new IdentityExtractor<>();
-        NamedCache<String, String>     cache       = new ViewBuilder<String, String, String>(
+        NamedCache<String, String>     cache       = new ViewBuilder<String, String>(
                 getCache("transformer")).map(transformer).build();
 
         assertThat(cache, is(instanceOf(ContinuousQueryCache.class)));
@@ -128,7 +129,7 @@ public class ViewBuilderTest
     @Test
     public void testViewBuilderCacheValues()
         {
-        NamedCache<String, String> cache = new ViewBuilder<String, String, String>(
+        NamedCache<String, String> cache = new ViewBuilder<String, String>(
                 getCache("cachingValues")).values().build();
 
         assertThat(cache, is(instanceOf(ContinuousQueryCache.class)));
@@ -142,7 +143,7 @@ public class ViewBuilderTest
     @Test
     public void testViewBuilderKeysOnly()
         {
-        NamedCache<String, String> cache = new ViewBuilder<String, String, String>(
+        NamedCache<String, String> cache = new ViewBuilder<String, String>(
                 getCache("keysOnly")).keys().build();
 
         assertThat(cache, is(instanceOf(ContinuousQueryCache.class)));
@@ -153,29 +154,48 @@ public class ViewBuilderTest
         assertThat(queryCache.isCacheValues(), is(false));
         }
 
+    @Test
+    public void testViewBuilderMapFunction()
+        {
+        NamedCache<String, Data> underlying = getCache("cachingValues");
+        underlying.put("1", new Data("A", 42));
+
+        NamedCache<String, String> cacheString =
+                new ViewBuilder<>(underlying)
+                        .map(Data::getString).build();
+
+
+        NamedCache<String, Integer> cacheInt =
+                new ViewBuilder<>(underlying)
+                        .map(Data::getInteger).build();
+
+
+        assertThat(cacheString.get("1"), is("A"));
+        assertThat(cacheInt.get("1"),    is(42));
+        }
+
     // ----- inner class : TestListener -------------------------------------
 
     private static final class TestListener<K, V> implements MapListener<K, V>
         {
         // ----- MapListener methods ----------------------------------------
 
-        public void entryInserted(MapEvent evt)
+        public void entryInserted(MapEvent<K, V> evt)
             {
 
             }
 
-        public void entryUpdated(MapEvent evt)
+        public void entryUpdated(MapEvent<K, V> evt)
             {
 
             }
 
-        public void entryDeleted(MapEvent evt)
+        public void entryDeleted(MapEvent<K, V> evt)
             {
 
             }
 
         // ----- Object methods ---------------------------------------------
-
 
         public int hashCode()
             {
@@ -193,5 +213,35 @@ public class ViewBuilderTest
     protected <K, V> NamedCache<K, V> getCache(String sName)
         {
         return new WrapperNamedCache<>(new HashMap<>(), sName);
+        }
+
+    // ---- inner class: Data -----------------------------------------------
+
+    public static class Data
+        {
+        // ----- constructors ----------------------------------------------
+
+        public Data(String sString, Integer nInteger)
+            {
+            m_sString = sString;
+            m_nInteger = nInteger;
+            }
+
+        // ----- accessors --------------------------------------------------
+
+        public String getString()
+            {
+            return m_sString;
+            }
+
+        public Integer getInteger()
+            {
+            return m_nInteger;
+            }
+
+        // ----- data members ----------------------------------------------
+
+        protected String m_sString;
+        protected Integer m_nInteger;
         }
     }

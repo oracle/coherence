@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -193,7 +193,7 @@ public interface NamedCache<K, V>
      * the returned AsyncNamedCache will be preserved by ensuring that all
      * operations invoked from the same client thread are executed on the server
      * sequentially, using the same {@link AsynchronousAgent#getUnitOfOrderId
-     * unit-of-order}. This tends to provide best performance for fast,
+     * unit-of-order}. This tends to provide the best performance for fast,
      * non-blocking operations.
      * <p>
      * However, when invoking CPU-intensive or blocking operations, such as
@@ -249,17 +249,13 @@ public interface NamedCache<K, V>
     /**
      * Construct a {@code view} of this {@link NamedCache}.
      *
-     * @param <V_FRONT>  the type of the entry values in this {@code view}, which
-     *                   will be the same as {@code V_BACK}, unless a {@code transformer} is specified
-     *                   when creating this {@code view}
-     *
      * @return a local {@code view} for this {@link NamedCache}
      *
      * @see ViewBuilder
      *
      * @since 12.2.1.4
      */
-    public default <V_FRONT> ViewBuilder<K, V, V_FRONT> view()
+    public default ViewBuilder<K, V> view()
         {
         return new ViewBuilder<>(this);
         }
