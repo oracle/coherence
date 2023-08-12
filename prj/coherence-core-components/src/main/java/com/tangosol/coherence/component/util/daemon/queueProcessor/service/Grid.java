@@ -97,6 +97,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.management.Notification;
@@ -3435,15 +3437,19 @@ public abstract class Grid
         
                         if (cDelayMillis > 0)
                             {
-                            Grid    service = (Grid) get_Module();
-                            com.tangosol.coherence.component.util.DaemonPool pool    = service.getDaemonPool();
+                            Grid service = (Grid) get_Module();
+                            com.tangosol.coherence.component.util.DaemonPool pool = service.getDaemonPool();
         
-                            if (pool.getDaemonCount() == 0)
+                            if (pool.isStarted())
                                 {
-                                pool.setDaemonCount(1);
-                                pool.start();
-                                }                   
-                            pool.schedule(task, cDelayMillis);
+                                pool.schedule(task, cDelayMillis);
+                                }
+                            else
+                                {
+                                ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+                                scheduler.schedule(task, cDelayMillis, TimeUnit.MILLISECONDS);
+                                scheduler.shutdown();
+                                }
                             }
                         else
                             {
