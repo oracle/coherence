@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,7 +27,6 @@ import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheEvent;
 
@@ -56,11 +55,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A class to encapsulate bi-directional streaming of map events for a single cache.
+ * A class to encapsulate bidirectional streaming of map events for a single cache.
  *
  * @author Jonathan Knight  2019.12.03
  * @since 20.06
  */
+@SuppressWarnings({"PatternVariableCanBeUsed", "EnhancedSwitchMigration"})
 public class MapListenerProxy
         implements StreamObserver<MapListenerRequest>, MapListener<Object, Object>
     {
@@ -111,7 +111,7 @@ public class MapListenerProxy
             boolean                    subscribe    = request.getSubscribe();
             ByteString                 triggerBytes = request.getTrigger();
             MapTrigger<Binary, Binary> trigger      = null;
-            if (triggerBytes != null && !triggerBytes.isEmpty())
+            if (!triggerBytes.isEmpty())
                 {
                 trigger = BinaryHelper.fromByteString(triggerBytes, m_holder.getSerializer());
                 }
@@ -161,8 +161,16 @@ public class MapListenerProxy
     @Override
     public synchronized void onError(Throwable throwable)
         {
-        CacheFactory.err("Error received in MapListenerProxy onError");
-        CacheFactory.err(throwable);
+        boolean fClientCancel = throwable instanceof StatusRuntimeException
+                && ((StatusRuntimeException) throwable).getStatus().getCode() == Status.Code.CANCELLED;
+
+        if (!fClientCancel)
+            {
+            // only log the error if it was not due to the client cancelling the stream
+            Logger.err("Error received in MapListenerProxy onError");
+            Logger.err(throwable);
+            }
+
         try
             {
             removeAllListeners();
@@ -403,9 +411,9 @@ public class MapListenerProxy
                     // was priming therefore nothing to do
                     register = false;
 
-                    // as we have already registered a map listener and now
+                    // as we have already registered a map listener, and now
                     // we have a NearCache.get it is unnecessary to register
-                    // the listener with PartitionedCache but we must dispatch
+                    // the listener with PartitionedCache, but we must dispatch
                     // the MapEvent
 
                     MapEventResponse eventResponse = MapEventResponse.newBuilder()
@@ -636,8 +644,8 @@ public class MapListenerProxy
             }
         catch (Throwable thrown)
             {
-            CacheFactory.err("Error processing MapEvent");
-            CacheFactory.err(thrown);
+            Logger.err("Error processing MapEvent");
+            Logger.err(thrown);
             }
         }
 
@@ -694,7 +702,7 @@ public class MapListenerProxy
                 }
             }
 
-        int tranformationState = evtCache == null
+        int transformationState = evtCache == null
                                  ? CacheEvent.TransformationState.TRANSFORMABLE.ordinal()
                                  : evtCache.getTransformationState().ordinal();
 
@@ -704,7 +712,7 @@ public class MapListenerProxy
                 .addAllFilterIds(colFilterIds)
                 .setKey(BinaryHelper.toByteString(oKey, serializer))
                 .setSynthetic(fSynthetic)
-                .setTransformationStateValue(tranformationState)
+                .setTransformationStateValue(transformationState)
                 .setPriming(evtCache != null && evtCache.isPriming());
 
 
@@ -778,6 +786,7 @@ public class MapListenerProxy
      * {@link NamedCacheDeactivationListener} that will communicate cache truncation
      * and destruction events over the proxy.
      */
+    @SuppressWarnings("rawtypes")
     protected static class DeactivationListener
             extends AbstractMapListener
             implements NamedCacheDeactivationListener
@@ -815,8 +824,8 @@ public class MapListenerProxy
                     }
                 catch (Throwable t)
                     {
-                    CacheFactory.err("Failed to send cache destroy response for cache " + sCacheName);
-                    CacheFactory.err(t);
+                    Logger.err("Failed to send cache destroy response for cache " + sCacheName);
+                    Logger.err(t);
                     }
                 }
             }
