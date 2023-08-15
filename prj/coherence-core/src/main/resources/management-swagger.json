@@ -1524,29 +1524,6 @@
         }
       }
     },
-    "/management/coherence/cluster/members/{memberIdentifier}/platform/codeCache": {
-      "get": {
-        "tags": [
-          "Platform"
-        ],
-        "summary": "View PS Code Cache Information",
-        "description": "Use this endpoint to view PS code cache information for the JVM on a specific cluster member.",
-        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/platform/codeCache GET",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/memberIdentifier"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A successful request that returns PS code cache information"
-          }
-        }
-      }
-    },
     "/management/coherence/cluster/members/{memberIdentifier}/platform/g1CodeHeapProfiledNMethods": {
       "get": {
         "tags": [

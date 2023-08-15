@@ -2086,12 +2086,6 @@ public abstract class AbstractManagementResource
             = ":type=Platform,Domain=java.lang,subType=MemoryPool,name=PS Old Gen";
 
     /**
-     * MBean query to filter out platform(JVM) PS MemoryPool MBean(Code Cache).
-     */
-    public static final String CODECACHE_QUERY
-            = ":type=Platform,Domain=java.lang,subType=MemoryPool,name=Code Cache";
-
-    /**
      * MBean query to filter out platform(JVM) PS MemoryPool MBean(PS Eden Space).
      */
     public static final String PS_EDEN_SPACE_QUERY
@@ -2342,7 +2336,6 @@ public abstract class AbstractManagementResource
                 put("psOldGen", PS_OLDGEN_QUERY);
                 put("psEdenSpace", PS_EDEN_SPACE_QUERY);
                 put("psSurvivorSpace", PS_SURVIVOR_SPACE_QUERY);
-                put("codeCache", CODECACHE_QUERY);
             }});
 
     /**
