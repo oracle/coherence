@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyIterable.emptyIterable;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
@@ -274,6 +275,7 @@ public class MBeanServerProxyNotificationTests
         Listener         listener   = new Listener(1, sHandback);
         int              cBefore    = countMBeanListeners(s_memberResponsibility, RESPONSIBILITY_MBEAN_NAME);
 
+        Eventually.assertDeferred(() -> proxy.getMBeanInfo(RESPONSIBILITY_MBEAN_NAME), is(notNullValue()));
         proxy.addNotificationListener(RESPONSIBILITY_MBEAN_NAME, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
