@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,12 +19,10 @@ import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
-import com.oracle.coherence.client.GrpcSessionConfiguration;
 
 import com.oracle.coherence.concurrent.atomic.Atomics;
 import com.oracle.coherence.concurrent.atomic.RemoteAtomicInteger;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
-import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.oracle.coherence.io.json.genson.GensonBuilder;
 
@@ -34,18 +32,11 @@ import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
-import com.tangosol.io.Serializer;
-
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.NamedMap;
 import com.tangosol.net.Service;
 import com.tangosol.net.Session;
-import com.tangosol.net.SessionConfiguration;
-
-import io.grpc.Channel;
-import io.grpc.ManagedChannelBuilder;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -125,26 +116,40 @@ public class DockerImageTests
     @MethodSource("getImageNames")
     void shouldStartContainerWithExtend(String sImageName)
         {
+        assertCoherenceClient(sImageName, "remote-fixed");
+        }
+
+    @ParameterizedTest
+    @MethodSource("getImageNames")
+    void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
+        {
+        assertCoherenceClient(sImageName, "grpc-fixed");
+        }
+
+    void assertCoherenceClient(String sImageName, String sClient)
+        {
         ImageNames.verifyTestAssumptions();
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
-                .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
+                .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
 
             LocalPlatform platform       = LocalPlatform.get();
             int           extendPort     = container.getMappedPort(EXTEND_PORT);
+            int           grpcPort       = container.getMappedPort(GRPC_PORT);
             int           concurrentPort = container.getMappedPort(CONCURRENT_EXTEND_PORT);
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
-                    SystemProperty.of("coherence.client", "remote-fixed"),
+                    SystemProperty.of("coherence.client", sClient),
                     SystemProperty.of("coherence.extend.address", "127.0.0.1"),
                     SystemProperty.of("coherence.extend.port", extendPort),
+                    SystemProperty.of("coherence.grpc.address", "127.0.0.1"),
+                    SystemProperty.of("coherence.grpc.port", grpcPort),
                     SystemProperty.of("coherence.concurrent.extend.address", "127.0.0.1"),
                     SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
-                    SystemProperty.of(GrpcSessionConfiguration.PROP_DEFAULT_SESSION_ENABLED, false),
                     IPv4Preferred.yes(),
                     LocalHost.only(),
                     DisplayName.of("client"),
@@ -291,38 +296,6 @@ public class DockerImageTests
             assertThat(response.statusCode(), is(200));
             assertThat(response.body(), is(notNullValue()));
             assertThat(response.body().length(), is(not(0)));
-            }
-        }
-
-    @ParameterizedTest
-    @MethodSource("getImageNames")
-    void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
-        {
-        ImageNames.verifyTestAssumptions();
-
-        try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
-                .withImagePullPolicy(NeverPull.INSTANCE)
-                .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
-                .withExposedPorts(GRPC_PORT)))
-            {
-            Eventually.assertDeferred(container::isHealthy, is(true));
-
-            int     hostPort = container.getMappedPort(GRPC_PORT);
-            Channel channel  = ManagedChannelBuilder.forAddress("localhost", hostPort)
-                                    .usePlaintext()
-                                    .build();
-
-            Serializer           serializer = new JsonSerializer();
-            SessionConfiguration cfg        = GrpcSessionConfiguration.builder(channel)
-                                                            .withSerializer(serializer, "json")
-                                                            .build();
-
-            Session session = Session.create(cfg).orElseThrow(() -> new AssertionError("Session is null"));
-
-            NamedMap<String, String> map = session.getMap("grpc-test");
-
-            map.put("key-1", "value-1");
-            assertThat(map.get("key-1"), is("value-1"));
             }
         }
 

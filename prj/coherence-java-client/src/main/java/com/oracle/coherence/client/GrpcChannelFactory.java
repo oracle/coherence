@@ -177,7 +177,7 @@ public class GrpcChannelFactory
             }
 
         SocketProviderBuilder    builder        = depsChannel.getSocketProviderBuilder();
-        ChannelCredentials       credentials    = CredentialsHelper.createChannelCredentials(sService, builder);
+        ChannelCredentials       credentials    = CredentialsHelper.createChannelCredentials(builder);
         ManagedChannelBuilder<?> channelBuilder = Grpc.newChannelBuilder(sTarget, credentials);
 
         depsChannel.getAuthorityOverride().ifPresent(channelBuilder::overrideAuthority);

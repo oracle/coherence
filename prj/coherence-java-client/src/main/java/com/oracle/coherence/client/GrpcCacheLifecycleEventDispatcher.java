@@ -50,37 +50,6 @@ public class GrpcCacheLifecycleEventDispatcher
         super(EVENT_TYPES);
         f_sCacheName = sCacheName;
         f_service    = Objects.requireNonNull(service);
-        f_session    = null;
-        }
-
-    /**
-     * Create a {@link GrpcCacheLifecycleEventDispatcher}.
-     *
-     * @param sCacheName  the name of the cache to dispatch lifecycle events for
-     * @param session     the {@link GrpcRemoteSession} that owns the cache
-     *
-     * @deprecated this method will be removed when {@link GrpcRemoteSession} is removed.
-     */
-    @Deprecated(since = "22.06.2")
-    GrpcCacheLifecycleEventDispatcher(String sCacheName, GrpcRemoteSession session)
-        {
-        super(EVENT_TYPES);
-        f_sCacheName = sCacheName;
-        f_session    = Objects.requireNonNull(session);
-        f_service    = null;
-        }
-
-    // ----- GrpcCacheLifecycleEventDispatcher methods ----------------------
-
-    /**
-     * Returns the session owning the cache.
-     *
-     * @return  the session owning the cache
-     */
-    @Deprecated(since = "22.06.2")
-    public GrpcRemoteSession getSession()
-        {
-        return f_session;
         }
 
     // ----- CacheLifecycleEventDispatcher methods --------------------------
@@ -100,22 +69,22 @@ public class GrpcCacheLifecycleEventDispatcher
     @Override
     public String getScopeName()
         {
-        return f_service == null ? f_session.getScopeName() : f_service.getScopeName();
+        return f_service == null ? Coherence.SYSTEM_SCOPE : f_service.getScopeName();
         }
 
     // ----- RemoteSessionDispatcher methods --------------------------------
 
-    public void dispatchCacheCreated(NamedCache cache)
+    public void dispatchCacheCreated(NamedCache<?, ?> cache)
         {
         dispatchCacheEvent(CacheLifecycleEvent.Type.CREATED, cache);
         }
 
-    public void dispatchCacheDestroyed(NamedCache cache)
+    public void dispatchCacheDestroyed(NamedCache<?, ?> cache)
         {
         dispatchCacheEvent(CacheLifecycleEvent.Type.DESTROYED, cache);
         }
 
-    public void dispatchCacheTruncated(NamedCache cache)
+    public void dispatchCacheTruncated(NamedCache<?, ?> cache)
         {
         dispatchCacheEvent(CacheLifecycleEvent.Type.TRUNCATED, cache);
         }
@@ -135,7 +104,7 @@ public class GrpcCacheLifecycleEventDispatcher
      * @param eventType  the enum representing the event type
      * @param cache      the related cache
      */
-    protected void dispatchCacheEvent(CacheLifecycleEvent.Type eventType, NamedCache cache)
+    protected void dispatchCacheEvent(CacheLifecycleEvent.Type eventType, NamedCache<?, ?> cache)
         {
         List<NamedEventInterceptor<?>> list = getInterceptorMap().get(eventType);
         if (list != null)
@@ -185,19 +154,13 @@ public class GrpcCacheLifecycleEventDispatcher
          * @param dispatcher   the dispatcher that raised this event
          * @param eventType    the event type
          */
-        protected GrpcCacheLifecycleEvent(GrpcCacheLifecycleEventDispatcher dispatcher, Type eventType, NamedCache cache)
+        protected GrpcCacheLifecycleEvent(GrpcCacheLifecycleEventDispatcher dispatcher, Type eventType, NamedCache<?, ?> cache)
             {
             super(dispatcher, eventType);
             f_cache = cache;
             }
 
         // ----- AbstractEvent methods --------------------------------------
-
-        @Override
-        protected boolean isMutableEvent()
-            {
-            return false;
-            }
 
         @Override
         protected String getDescription()
@@ -231,11 +194,6 @@ public class GrpcCacheLifecycleEventDispatcher
             {
             GrpcCacheLifecycleEventDispatcher dispatcher   = (GrpcCacheLifecycleEventDispatcher) getEventDispatcher();
             GrpcRemoteCacheService            cacheService = dispatcher.getService();
-
-            if (cacheService == null)
-                {
-                return dispatcher.getSession().getName();
-                }
 
             String sName = cacheService
                     .getBackingMapManager()
@@ -292,11 +250,6 @@ public class GrpcCacheLifecycleEventDispatcher
      * The {@link GrpcRemoteCacheService} owning the cache.
      */
      private final GrpcRemoteCacheService f_service;
-
-    /**
-     * The session owning the cache.
-     */
-    private GrpcRemoteSession f_session;
 
     // ----- static initializer ---------------------------------------------
 

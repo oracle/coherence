@@ -260,19 +260,6 @@ public class GrpcServerController
         }
 
     /**
-     * Obtain the list of gRPC proxy services to bind to a gRPC server.
-     *
-     * @return  the list of gRPC proxy services to bind to a gRPC server
-     *
-     * @deprecated use {@link DefaultGrpcAcceptorController#createGrpcServices()}
-     */
-    @Deprecated(since = "22.06.2")
-    public List<BindableGrpcProxyService> createGrpcServices()
-        {
-        return DefaultGrpcAcceptorController.createGrpcServices();
-        }
-
-    /**
      * Enable or disable this controller.
      * <p>
      * If disabled then the gRPC proxy will not be started.

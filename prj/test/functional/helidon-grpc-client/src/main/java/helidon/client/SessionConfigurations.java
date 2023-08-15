@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,21 +9,12 @@ package helidon.client;
 import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
-import com.oracle.coherence.client.GrpcSessionConfiguration;
-import com.tangosol.coherence.config.ResolvableParameterList;
-import com.tangosol.config.expression.Parameter;
-import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.WrapperSessionConfiguration;
-import io.grpc.Channel;
-import io.helidon.microprofile.grpc.client.GrpcChannel;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
-
-import java.util.Optional;
 
 /**
  * A set of {@link SessionInitializer} CDI beans

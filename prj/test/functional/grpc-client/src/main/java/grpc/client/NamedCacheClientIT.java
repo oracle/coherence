@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,8 @@ class NamedCacheClientIT
     @RegisterExtension
     static ServerHelper s_serverHelper = new ServerHelper()
             .setProperty("coherence.ttl", "0")
+            .setProperty("coherence.wka", "127.0.0.1")
+            .setProperty("coherence.localhost", "127.0.0.1")
             .setProperty("coherence.clustername", "GrpcServer")
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.pof.config", "test-pof-config.xml")

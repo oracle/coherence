@@ -45,11 +45,13 @@ public class NamedCacheServiceImplMultipleScopeIT
     @BeforeAll
     protected static void setup()
         {
-        System.setProperty("coherence.ttl",        "0");
-        System.setProperty("coherence.cluster",    "NamedCacheServiceIT");
+        System.setProperty("coherence.ttl",         "0");
+        System.setProperty("coherence.wka",         "127.0.0.1");
+        System.setProperty("coherence.localhost",   "127.0.0.1");
+        System.setProperty("coherence.cluster",     "NamedCacheServiceIT");
         System.setProperty("coherence.cacheconfig", "coherence-config.xml");
-        System.setProperty("coherence.pof.config", "test-pof-config.xml");
-        System.setProperty("coherence.override",   "test-coherence-override.xml");
+        System.setProperty("coherence.pof.config",  "test-pof-config.xml");
+        System.setProperty("coherence.override",    "test-coherence-override.xml");
 
         s_ccfDefault = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(null);
         DefaultCacheServer.startServerDaemon(s_ccfDefault).waitForServiceStart();
