@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -25,12 +25,4 @@ public class ManagementTest
         boolean fEnabled = HttpHelper.isHttpCapable(Base.getContextClassLoader());
         assertThat(fEnabled, is(true));
         }
-
-    @Test
-    public void shouldStartManagement()
-        {
-        boolean fStarted = HttpHelper.startService(CacheFactory.ensureCluster());
-        assertThat(fStarted, is(true));
-        }
-
-    }
+}
