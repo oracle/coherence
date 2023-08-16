@@ -20,6 +20,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
 
+import com.oracle.coherence.client.GrpcRemoteCacheService;
 import com.oracle.coherence.concurrent.atomic.Atomics;
 import com.oracle.coherence.concurrent.atomic.RemoteAtomicInteger;
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
@@ -116,17 +117,18 @@ public class DockerImageTests
     @MethodSource("getImageNames")
     void shouldStartContainerWithExtend(String sImageName)
         {
-        assertCoherenceClient(sImageName, "remote-fixed");
+        assertCoherenceClient(sImageName, "remote-fixed", new CheckExtendCacheAccess(), new CheckConcurrentAccess());
         }
 
     @ParameterizedTest
     @MethodSource("getImageNames")
     void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
         {
-        assertCoherenceClient(sImageName, "grpc-fixed");
+        assertCoherenceClient(sImageName, "grpc-fixed", new CheckGrpcCacheAccess());
         }
 
-    void assertCoherenceClient(String sImageName, String sClient)
+    @SuppressWarnings("unchecked")
+    void assertCoherenceClient(String sImageName, String sClient, RemoteCallable<Void>... assertions)
         {
         ImageNames.verifyTestAssumptions();
 
@@ -157,44 +159,10 @@ public class DockerImageTests
                 {
                 Eventually.assertDeferred(client::isCoherenceRunning, is(true));
 
-                RemoteCallable<Void> testExtend = () ->
+                for (RemoteCallable<Void> callable : assertions)
                     {
-                    Session                    session = Coherence.getInstance().getSession();
-                    NamedCache<String, String> cache   = session.getCache("test-cache");
-
-                    Service cacheService = cache.getService();
-                    if (cacheService instanceof SafeService)
-                        {
-                        cacheService = ((SafeService) cacheService).getService();
-                        }
-                    assertThat(cacheService, is(instanceOf(RemoteCacheService.class)));
-
-                    cache.put("key-1", "value-1");
-                    assertThat(cache.get("key-1"), is("value-1"));
-                    return null;
-                    };
-
-                RemoteCallable<Void> testConcurrent = () ->
-                    {
-                    Session                    session = Coherence.getInstance().getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
-                    NamedCache<String, String> cache   = session.getCache("atomic-foo");
-
-                    Service cacheService = cache.getService();
-                    if (cacheService instanceof SafeService)
-                        {
-                        cacheService = ((SafeService) cacheService).getService();
-                        }
-                    assertThat(cacheService, is(instanceOf(RemoteCacheService.class)));
-
-                    RemoteAtomicInteger atomic = Atomics.remoteAtomicInteger("test");
-                    atomic.set(100);
-                    assertThat(atomic.get(), is(100));
-
-                    return null;
-                    };
-
-                client.invoke(testExtend);
-                client.invoke(testConcurrent);
+                    client.invoke(callable);
+                    }
                 }
             }
         }
@@ -369,6 +337,105 @@ public class DockerImageTests
         catch (FileNotFoundException e)
             {
             throw new RuntimeException(e);
+            }
+        }
+
+    // ----- inner class: CheckCacheAccess ----------------------------------
+
+    /**
+     * A {@link RemoteCallable} to verify that caches can be accessed
+     * from a client.
+     */
+    protected abstract static class CheckCacheAccess
+            implements RemoteCallable<Void>
+        {
+        public CheckCacheAccess(Class<?> clzExpectedService)
+            {
+            this.clzExpectedService = clzExpectedService;
+            }
+
+        @Override
+        public Void call()
+            {
+            Session                    session = Coherence.getInstance().getSession();
+            NamedCache<String, String> cache   = session.getCache("test-cache");
+
+            Service cacheService = cache.getService();
+            if (cacheService instanceof SafeService)
+                {
+                cacheService = ((SafeService) cacheService).getService();
+                }
+            assertThat(cacheService, is(instanceOf(clzExpectedService)));
+
+            cache.put("key-1", "value-1");
+            assertThat(cache.get("key-1"), is("value-1"));
+            return null;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private final Class<?> clzExpectedService;
+        }
+
+    // ----- inner class: CheckExtendCacheAccess ----------------------------
+
+    /**
+     * A {@link RemoteCallable} to verify that caches can be accessed
+     * from a client, where the cache service should be an Extend
+     * {@link RemoteCacheService}.
+     */
+    protected static class CheckExtendCacheAccess
+            extends CheckCacheAccess
+        {
+        public CheckExtendCacheAccess()
+            {
+            super(RemoteCacheService.class);
+            }
+        }
+
+    // ----- inner class: CheckGrpcCacheAccess ------------------------------
+
+    /**
+     * A {@link RemoteCallable} to verify that caches can be accessed
+     * from a client, where the cache service should be a gRPC
+     * {@link GrpcRemoteCacheService}.
+     */
+    protected static class CheckGrpcCacheAccess
+            extends CheckCacheAccess
+        {
+        public CheckGrpcCacheAccess()
+            {
+            super(GrpcRemoteCacheService.class);
+            }
+        }
+
+    // ----- inner class: CheckConcurrentAccess -----------------------------
+
+    /**
+     * A {@link RemoteCallable} to verify that Coherence concurrent works
+     * from a client.
+     */
+    protected static class CheckConcurrentAccess
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call()
+            {
+            Session                    session = Coherence.getInstance().getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
+            NamedCache<String, String> cache   = session.getCache("atomic-foo");
+
+            Service cacheService = cache.getService();
+            if (cacheService instanceof SafeService)
+                {
+                cacheService = ((SafeService) cacheService).getService();
+                }
+            assertThat(cacheService, is(instanceOf(RemoteCacheService.class)));
+
+            RemoteAtomicInteger atomic = Atomics.remoteAtomicInteger("test");
+            atomic.set(100);
+            assertThat(atomic.get(), is(100));
+
+            return null;
             }
         }
 

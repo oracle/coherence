@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.oracle.coherence.docker;
 
 import com.oracle.bedrock.options.Diagnostics;
+import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
 import com.oracle.bedrock.runtime.LocalPlatform;
@@ -156,9 +157,10 @@ public class ImageNames
         Platform platform = LocalPlatform.get();
 
         try (Application app = platform.launch("docker",
-                                               Argument.of("inspect"),
-                                               Argument.of(sImage),
-                                               NullApplicationConsole.builder()))
+                   Argument.of("inspect"),
+                   Argument.of(sImage),
+                   LaunchLogging.disabled(),
+                   NullApplicationConsole.builder()))
             {
             int exitCode = app.waitFor();
             return exitCode == 0;

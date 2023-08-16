@@ -280,7 +280,7 @@
     <mockito.version>3.12.4</mockito.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>7.0.2</oracle.bedrock.version>
-    <testcontainers.version>1.17.3</testcontainers.version>
+    <testcontainers.version>1.18.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
   </properties>
@@ -1355,6 +1355,7 @@
             <argLine>${failsafe.argLine} ${failsafe.coverage.argline} ${failsafe.modules.argline}</argLine>
             <environmentVariables>
               <TESTCONTAINERS_RYUK_DISABLED>${testcontainers.ryuk.disabled}</TESTCONTAINERS_RYUK_DISABLED>
+              <TESTCONTAINERS_CHECKS_DISABLE>true</TESTCONTAINERS_CHECKS_DISABLE>
             </environmentVariables>
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
