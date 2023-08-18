@@ -977,26 +977,27 @@ public class ConfigurablePofContext
             Map<URL, Index> mapIndexes = loadIndexes();
 
             // find the list of classes that implement PortableType
-            if (mapIndexes.size() > 0)
+            for (Map.Entry<URL, Index> entry : mapIndexes.entrySet())
                 {
-                for (Map.Entry<URL, Index> entry : mapIndexes.entrySet())
+                Index index = entry.getValue();
+                cClasses = 0;
+                for (AnnotationInstance anno : index.getAnnotations(DotName.createSimple(PortableType.class.getName())))
                     {
-                    Index index = entry.getValue();
-                    cClasses = 0;
-                    for (AnnotationInstance anno : index.getAnnotations(DotName.createSimple(PortableType.class.getName())))
+                    if (anno.target().kind().equals(AnnotationTarget.Kind.CLASS))
                         {
-                        if (anno.target().kind().equals(AnnotationTarget.Kind.CLASS))
-                            {
-                            AnnotationValue id = anno.value("id");
-                            mapPortableTypes.put(anno.target().asClass().toString(), id == null ? -1 : id.asInt());
-                            cClasses++;
-                            }
-                        }
+                        AnnotationValue id        = anno.value("id");
+                        String          sTypeName = anno.target().asClass().toString();
+                        int             nTypeId   = id == null ? -1 : id.asInt();
+                        mapPortableTypes.put(sTypeName, nTypeId);
+                        cClasses++;
 
-                    Logger.info(cClasses + " class" + (cClasses != 1 ? "es" : "") +
-                                " registered with PortableType annotation " +
-                                "from index: " + entry.getKey());
+                        Logger.finest(() -> String.format("Registered portable type %s(id=%d)", sTypeName, nTypeId));
+                        }
                     }
+
+                Logger.info(cClasses + " class" + (cClasses != 1 ? "es" : "") +
+                            " registered with PortableType annotation " +
+                            "from index: " + entry.getKey());
                 }
             }
 
