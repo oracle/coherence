@@ -14,6 +14,7 @@ import com.tangosol.coherence.component.net.Security;
 import com.tangosol.coherence.component.net.extend.RemoteService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid;
 import com.oracle.coherence.common.base.Timeout;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
@@ -34,6 +35,7 @@ import com.tangosol.util.SynchronousListener;
 import java.security.AccessController;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.function.IntPredicate;
 
 /*
 * Integrates
@@ -1602,6 +1604,36 @@ public class SafeService
                 registry.unregister(sName);
                 }
             }
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        return getService().isVersionCompatible(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        return getService().isVersionCompatible(nYear, nMonth, nPatch);
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return getService().isVersionCompatible(nVersion);
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return getService().isVersionCompatible(predicate);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return getService().getMinimumServiceVersion();
         }
 
     // ---- class: com.tangosol.coherence.component.util.SafeService$EnsureServiceAction

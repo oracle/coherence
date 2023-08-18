@@ -874,6 +874,8 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.util.Fragment</class-name>
     </user-type>
 
+    <!-- external (executor): internal types (270 - 299) -->
+
     <!-- com.tangosol.net.internal package (300-349) -->
 
     <user-type>
@@ -1100,7 +1102,7 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.stream.DoublePipeline$Optional</class-name>
     </user-type>
 
-    <!-- com.tangosol.internal.util.processor package (470-489) -->
+    <!-- com.tangosol.internal.util.processor package (470-499) -->
 
     <user-type>
       <type-id>470</type-id>
@@ -1197,6 +1199,22 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>490</type-id>
       <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>491</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryBlindPutProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>492</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$RemoveNoResults</class-name>
+    </user-type>
+    <user-type>
+      <type-id>493</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$PutAllWithExpiry</class-name>
+    </user-type>
+    <user-type>
+      <type-id>494</type-id>
+      <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllWithExpiryProcessor</class-name>
     </user-type>
 
     <!-- com.tangosol.internal.util.aggregator package (990-999) -->
@@ -1550,6 +1568,8 @@ descriptor: pof-config.xsd.
     <!-- com.tangosol.coherence.rest package (800-820) -->
     <!-- defined in coherence-rest-pof-config.xml within coherence-rest.jar -->
 
+    <!-- external (executor): internal types 821-829 -->
+
     <!-- com.tangosol.coherence.memcached package (830-849) -->
     <user-type>
       <type-id>830</type-id>
@@ -1603,6 +1623,8 @@ descriptor: pof-config.xsd.
 
     <!-- oracle.toplink.goldengate.coherence package (850-869) -->
     <!-- defined in coherence-hotcache-pof-config.xml within coherence-hotcache.jar -->
+
+    <!-- external (executor): 870-899) -->
 
     <!-- java packages (900 - 949) -->
 

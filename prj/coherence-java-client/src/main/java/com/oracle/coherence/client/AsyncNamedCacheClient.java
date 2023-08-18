@@ -658,7 +658,13 @@ public class AsyncNamedCacheClient<K, V>
     @Override
     public CompletableFuture<Void> putAll(Map<? extends K, ? extends V> map)
         {
-        return putAllInternal(map).thenApply(v -> VOID);
+        return putAllInternal(map, CacheMap.EXPIRY_DEFAULT).thenApply(v -> VOID);
+        }
+
+    @Override
+    public CompletableFuture<Void> putAll(Map<? extends K, ? extends V> map, long cMillis)
+        {
+        return putAllInternal(map, cMillis).thenApply(v -> VOID);
         }
 
     @Override
@@ -896,11 +902,12 @@ public class AsyncNamedCacheClient<K, V>
     /**
      * Helper method for storing the contents of the provided map within the cache.
      *
-     * @param map  the {@link Map} of key/value pairs to store in the cache.
+     * @param map      the {@link Map} of key/value pairs to store in the cache.
+     * @param cMillis  the expiry delay t apply to the entries
      *
      * @return a {@link CompletableFuture}
      */
-    protected CompletableFuture<Empty> putAllInternal(Map<? extends K, ? extends V> map)
+    protected CompletableFuture<Empty> putAllInternal(Map<? extends K, ? extends V> map, long cMillis)
         {
         return executeIfActive(() ->
         {
@@ -913,7 +920,7 @@ public class AsyncNamedCacheClient<K, V>
                                         .setKey(toByteString(entry.getKey()))
                                         .setValue(toByteString(entry.getValue())).build());
                     }
-                return f_service.putAll(Requests.putAll(f_sScopeName, f_sName, f_sFormat, entries)).toCompletableFuture();
+                return f_service.putAll(Requests.putAll(f_sScopeName, f_sName, f_sFormat, entries, cMillis)).toCompletableFuture();
                 }
             catch (Throwable t)
                 {

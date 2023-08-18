@@ -8,6 +8,7 @@ package com.tangosol.net;
 
 import com.tangosol.internal.util.DefaultAsyncNamedCache;
 
+import com.tangosol.internal.util.DistributedAsyncNamedCache;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.InvocableMap;
@@ -157,6 +158,10 @@ public interface NamedMap<K, V>
      */
     default AsyncNamedMap<K, V> async(AsyncNamedMap.Option... options)
         {
+        if (getService() instanceof DistributedCacheService)
+            {
+            return new DistributedAsyncNamedCache<>((NamedCache<K, V>) this, options);
+            }
         return new DefaultAsyncNamedCache<>((NamedCache<K, V>) this, options);
         }
 

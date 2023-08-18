@@ -6,10 +6,12 @@
  */
 package com.oracle.coherence.client;
 
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.grpc.RemoteGrpcCacheServiceDependencies;
 
 import com.tangosol.net.BackingMapManager;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
@@ -27,6 +29,7 @@ import io.grpc.ClientInterceptors;
 
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.function.IntPredicate;
 
 /**
  * A remote cache service that accesses caches via a remote gRPC proxy.
@@ -129,6 +132,38 @@ public class GrpcRemoteCacheService
         map.destroy();
         NamedCacheClient<?,?> cache = (NamedCacheClient<?,?>) map;
         m_scopedCacheStore.release(cache.getAsyncClient());
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return CacheFactory.VERSION_ENCODED >= nEncoded;
+        }
+
+    @Override
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return CacheFactory.VERSION_ENCODED >= nVersion;
+        }
+
+    @Override
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return predicate.test(CacheFactory.VERSION_ENCODED);
+        }
+
+    @Override
+    public int getMinimumServiceVersion()
+        {
+        return CacheFactory.VERSION_ENCODED;
         }
 
     // ----- helper methods -------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1094,6 +1094,11 @@ public abstract class CacheFactory
     public static final String VERSION;
 
     /**
+    * Software version encoded to an int.
+    */
+    public static final int VERSION_ENCODED;
+
+    /**
     * The Class name of the Coherence application.
     */
     private static final String COHERENCE =
@@ -1184,6 +1189,7 @@ public abstract class CacheFactory
 
         PRODUCT                 = ep.m_sProduct;
         VERSION                 = ep.m_sVersion;
+        VERSION_ENCODED         = ep.m_nVersionEncoded;
         METHOD_GETSAFECLUSTER   = ep.m_methGetSafeCluster;
         METHOD_SHUTDOWN         = ep.m_methShutdown;
         METHOD_GETLOCALTX       = ep.m_methGetLocalTransaction;
@@ -1211,6 +1217,7 @@ public abstract class CacheFactory
                 Class clzLibrary = Class.forName(COHERENCE);
                 m_sProduct = (String) clzLibrary.getField("TITLE").get(null);
                 m_sVersion = (String) clzLibrary.getField("VERSION").get(null);
+                m_nVersionEncoded = (Integer) clzLibrary.getField("VERSION_INT").get(null);
 
                 // look up methods (cache for faster use)
                 m_methGetSafeCluster      = clzLibrary.getMethod("getSafeCluster",
@@ -1243,6 +1250,7 @@ public abstract class CacheFactory
 
         String    m_sProduct;
         String    m_sVersion;
+        int    m_nVersionEncoded;
         Method    m_methGetSafeCluster;
         Method    m_methShutdown;
         Method    m_methGetLocalTransaction;

@@ -626,7 +626,7 @@ abstract class AbstractGrpcClientIT
         String                     result     = grpcClient.putIfAbsent("key-1", "value-2");
 
         assertThat(result, is(nullValue()));
-        assertThat(cache.get("key-1"), is(nullValue()));
+        assertThat(cache.get("key-1"), is("value-2"));
         }
 
 
@@ -649,6 +649,27 @@ abstract class AbstractGrpcClientIT
         assertThat(cache.size(), is(2));
         assertThat(cache.get("key-1"), is("value-1"));
         assertThat(cache.get("key-2"), is("value-2"));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    void shouldPutAllWithExpiry(String sSerializerName, Serializer serializer) throws Exception
+        {
+        String                     cacheName = "test-cache-" + sSerializerName;
+        NamedCache<String, String> cache     = ensureCache(cacheName);
+        cache.clear();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("key-1", "value-1");
+        map.put("key-2", "value-2");
+
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
+
+        AsyncNamedCache<String, String> async = grpcClient.async();
+        async.putAll(map, 5000L).get(1, TimeUnit.MINUTES);
+
+        assertThat(cache.size(), is(2));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
