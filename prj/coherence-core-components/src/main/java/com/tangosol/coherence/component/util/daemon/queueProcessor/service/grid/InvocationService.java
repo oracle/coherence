@@ -15,6 +15,8 @@ import com.tangosol.coherence.component.net.Message;
 import com.tangosol.coherence.component.util.WindowedArray;
 import com.oracle.coherence.common.base.Associated;
 import com.oracle.coherence.common.base.NonBlocking;
+import com.tangosol.internal.net.service.grid.DefaultInvocationServiceDependencies;
+import com.tangosol.internal.net.service.grid.InvocationServiceDependencies;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocableInOrder;
 import com.tangosol.net.InvocationObserver;
@@ -230,8 +232,35 @@ public class InvocationService
         {
         return __mapChildren;
         }
-    
+
     // Declared at the super level
+
+    /**
+     * Create a new Default dependencies object by copying the supplies
+     * dependencies.  Each class or component that uses dependencies implements
+     * a Default dependencies class which provides the clone functionality. The
+     * dependency injection design pattern requires every component in the
+     * component hierarchy to implement clone, producing their variant of the
+     * dependencies interface.
+     *
+     * @return the cloned dependencies
+     */
+    protected com.tangosol.internal.net.service.DefaultServiceDependencies cloneDependencies(com.tangosol.net.ServiceDependencies deps)
+        {
+        return new DefaultInvocationServiceDependencies((InvocationServiceDependencies) deps);
+        }
+
+    // From interface: com.tangosol.internal.util.GridComponent
+    // From interface: com.tangosol.net.Service
+    // Declared at the super level
+    public synchronized void configure(com.tangosol.run.xml.XmlElement xml)
+        {
+        setDependencies(com.tangosol.internal.net.service.grid.LegacyXmlGridHelper.fromXml(xml,
+               new DefaultInvocationServiceDependencies(), getOperationalContext(), getContextClassLoader()));
+
+        setServiceConfig(xml);
+        }
+
     /**
      * Wait for the service's associated backlog to drain.
     * 
@@ -434,7 +463,7 @@ public class InvocationService
         // import Component.Util.DaemonPool as com.tangosol.coherence.component.util.DaemonPool;
         
         com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
-        if (pool.getDaemonCount() > 0)
+        if (pool.getDaemonCountMin() > 0)
             {
             pool.setThreadGroup(new ThreadGroup(getServiceName()));
             pool.start();
