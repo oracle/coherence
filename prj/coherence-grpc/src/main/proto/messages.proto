@@ -154,6 +154,8 @@ message PutAllRequest {
     string format = 3;
     // The cache entries to put.
     repeated Entry entry = 4;
+    // The time to live in millis.
+    int64 ttl = 6;
 }
 
 // A request to associate the specified value with the

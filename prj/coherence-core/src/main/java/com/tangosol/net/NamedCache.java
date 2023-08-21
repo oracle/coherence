@@ -8,8 +8,10 @@ package com.tangosol.net;
 
 import com.tangosol.internal.util.DefaultAsyncNamedCache;
 
+import com.tangosol.internal.util.DistributedAsyncNamedCache;
 import com.tangosol.net.cache.CacheMap;
 
+import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.Base;
 import com.tangosol.util.InvocableMap;
@@ -187,6 +189,10 @@ public interface NamedCache<K, V>
      */
     public default AsyncNamedCache<K, V> async(AsyncNamedCache.Option... options)
         {
+        if (getService() instanceof DistributedCacheService)
+            {
+            return new DistributedAsyncNamedCache<>(this, options);
+            }
         return new DefaultAsyncNamedCache<>(this, options);
         }
 

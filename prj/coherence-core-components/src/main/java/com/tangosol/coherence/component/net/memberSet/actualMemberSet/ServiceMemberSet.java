@@ -16,10 +16,14 @@ import com.tangosol.util.Base;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ObservableHashMap;
 import com.tangosol.util.ObservableMap;
+import com.tangosol.util.VersionHelper;
+
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 
 /**
  * Set of Member objects; must be thread safe.
@@ -188,7 +192,17 @@ public class ServiceMemberSet
      * Member, indexed by Member id.
      */
     private int[] __m_ServiceVersionInt;
-    
+
+    /**
+     * The minimum version across all members.
+     */
+    private int m_nVersionMin;
+
+    /**
+     * The maximum version across all members.
+     */
+    private int m_nVersionMax;
+
     /**
      * Property State
      *
@@ -411,16 +425,7 @@ public class ServiceMemberSet
      */
     public static int encodeVersion(int nYear, int nMonth, int nPatch)
         {
-        // 64(0x3F)-based - 5 elements 6 bits each
-        
-        // the version prefix (e.g. 14.1.1 or 14.1.2) consumes the first 3 elements
-        // with the remainder used for year, month and patch
-        
-        nPatch = (nMonth > 6 ? 0x1 << 5 : 0x0) | (nPatch & 0x1F);
-        
-        return getVersionPrefix(nYear, nMonth)
-            | ((nYear & 0x3F) << 6*1)
-            | (nPatch & 0x3F);
+        return VersionHelper.encodeVersion(nYear, nMonth, nPatch);
         }
     
     /**
@@ -428,13 +433,7 @@ public class ServiceMemberSet
      */
     public static int encodeVersion(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
         {
-        // 64(0x3F)-based - 5 elements 6 bits each
-        
-        return ((nMajor   & 0x3F) << 6*4)
-            | ((nMinor    & 0x3F) << 6*3)
-            | ((nMicro    & 0x3F) << 6*2)
-            | ((nPatchSet & 0x3F) << 6*1)
-            | (nPatch     & 0x3F);
+        return VersionHelper.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
         }
     
     public synchronized com.tangosol.util.ObservableMap ensureMemberConfigMap(int i)
@@ -783,13 +782,59 @@ public class ServiceMemberSet
      * Getter for property ServiceName.<p>
     * The ServiceName.
     * 
-    * @see ServiceInfo#setServiceName
+    * @see com.tangosol.coherence.component.net.ServiceInfo#setServiceName
      */
     public String getServiceName()
         {
         return __m_ServiceName;
         }
-    
+
+    /**
+     * Return {@code true} if all members have the same version.
+     *
+     * @return {@code true} if all members have the same version
+     */
+    public boolean isVersionConsistent()
+        {
+        return m_nVersionMax == m_nVersionMin;
+        }
+
+    /**
+     * Return the minimum version for the members in this set.
+     *
+     * @return the minimum version for the members in this set
+     */
+    public  int getMinimumVersion()
+        {
+        return m_nVersionMin;
+        }
+
+    /**
+     * Return {@code true} if all members are running a version that is greater than
+     * or equal to the specified version.
+     *
+     * @return {@code true} if all members are running a version that is greater than
+     *          or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nVersion)
+        {
+        return m_nVersionMin >= nVersion;
+        }
+
+    /**
+     * Return {@code true} if all members are running a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param predicate  an {@link IntPredicate} to use to apply to the minumum service version
+     *
+     * @return {@code true} if all members are running a version that is greater than
+     *          or equal to the specified version
+     */
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        return predicate.test(m_nVersionMin);
+        }
+
     // Accessor for the property "ServiceVersion"
     /**
      * Getter for property ServiceVersion.<p>
@@ -850,20 +895,9 @@ public class ServiceMemberSet
     * The Service version internal integer representation for each running
     * Member, indexed by Member id.
      */
-    public int[] getServiceVersionInt()
-        {
-        return __m_ServiceVersionInt;
-        }
-    
-    // Accessor for the property "ServiceVersionInt"
-    /**
-     * Getter for property ServiceVersionInt.<p>
-    * The Service version internal integer representation for each running
-    * Member, indexed by Member id.
-     */
     public int getServiceVersionInt(int i)
         {
-        int[] anVersion = getServiceVersionInt();
+        int[] anVersion = __m_ServiceVersionInt;
         return anVersion == null || i >= anVersion.length ? 0 : anVersion[i];
         }
     
@@ -916,11 +950,7 @@ public class ServiceMemberSet
      */
     public static int getVersionPrefix(int nYear, int nMonth)
         {
-        if (nYear > 23 || (nYear == 23 && nMonth >= 9))
-            {
-            return encodeVersion(14, 1, 2, 0, 0);
-            }
-        return encodeVersion(14, 1, 1, 0, 0);
+        return VersionHelper.getVersionPrefix(nYear, nMonth);
         }
     
     /**
@@ -928,7 +958,7 @@ public class ServiceMemberSet
      */
     protected static boolean isCalendarVersion(int nVersion)
         {
-        return nVersion >= 20; // 2020 was the first use of calendar versions
+        return VersionHelper.isCalendarVersion(nVersion);
         }
     
     /**
@@ -985,89 +1015,7 @@ public class ServiceMemberSet
      */
     public static int parseVersion(String sVersion)
         {
-        // import java.util.Arrays;
-        
-        if (sVersion == null || sVersion.length() == 0)
-            {
-            return 0;
-            }
-        
-        // the format of the version string is
-        //   major.minor.micro.patchset.patch [<space><suffix>]
-        //          or
-        //   major.minor.micro.year.month.patch
-        
-        // for example:
-        //   "12.2.1.1.0" or "12.2.3.0.0 internal build"
-        //          or 
-        //   "14.1.1.20.06.0" or "14.1.1.20.06.0 internal build"
-        //          or feature pack version
-        //   "14.1.1.2006.0" or "14.1.1.2006.0 internal build"
-        
-        // (optional suffix could come from the "Implementation-Description"
-        // element of the manifest; see Coherence._initStatic)
-        
-        // remove an optional suffix first
-        int ofSuffix = sVersion.indexOf(" ");
-        if (ofSuffix > 0)
-            {
-            sVersion = sVersion.substring(0, ofSuffix);
-            }
-        
-        final int INDEX_YEAR  = 3; // 14.1.1.20.06.01
-        final int INDEX_MONTH = 4; // 14.1.1.20.06.01
-        
-        String[] asVersions = sVersion.split("\\.");
-        int[]    an         = new int[5];
-        
-        // handle feature pack which condenses YY && MM into a single string
-            {
-            String sYear = asVersions.length > INDEX_YEAR ? asVersions[INDEX_YEAR] : "";
-            if (sYear.length() >= 4) // YYMM
-                {
-                asVersions = (String[]) Arrays.copyOf(asVersions, asVersions.length + 1);
-        
-                // right shift
-                for (int i = asVersions.length - 2; i > INDEX_YEAR; --i)
-                    {
-                    asVersions[i + 1] = asVersions[i];
-                    asVersions[i]     = null;
-                    }
-        
-                asVersions[INDEX_YEAR]  = sYear.substring(0, 2);
-                asVersions[INDEX_MONTH] = sYear.substring(2);
-                }
-            }
-        
-        // process the version converting to 5 base 64 encoded ints
-        
-        for (int i = 0, c = Math.min(an.length, asVersions.length); i < c; i++)
-            {
-            try
-                {
-                // the range of the version part is 0 .. 63
-                int nVersion = Integer.parseInt(asVersions[i]);
-        
-                if (i == INDEX_MONTH && isCalendarVersion(an[i - 1]))
-                    {
-                    nVersion = nVersion > 6
-                            ? 0x1 << 5
-                            : 0x0;
-        
-                    nVersion |= i + 1 < asVersions.length
-                                ? Integer.parseInt(asVersions[i + 1])
-                                : 0;
-                    }
-        
-                an[i] = Math.min(63, nVersion);
-                }
-            catch (NumberFormatException e)
-                {
-                // un-parsable part; leave as zero
-                }
-            }
-        
-        return encodeVersion(an[0], an[1], an[2], an[3], an[4]);
+        return VersionHelper.parseVersion(sVersion);
         }
     
     // Declared at the super level
@@ -1516,7 +1464,7 @@ public class ServiceMemberSet
     * 
     * @functional
      */
-    public synchronized void setServiceVersion(int i, String sVersion)
+    public void setServiceVersion(int i, String sVersion)
         {
         setServiceVersionInt(i, parseVersion(sVersion));
         }
@@ -1527,20 +1475,9 @@ public class ServiceMemberSet
     * The Service version internal integer representation for each running
     * Member, indexed by Member id.
      */
-    public void setServiceVersionInt(int[] anInt)
+    private synchronized void setServiceVersionInt(int i, int nVersion)
         {
-        __m_ServiceVersionInt = anInt;
-        }
-    
-    // Accessor for the property "ServiceVersionInt"
-    /**
-     * Setter for property ServiceVersionInt.<p>
-    * The Service version internal integer representation for each running
-    * Member, indexed by Member id.
-     */
-    protected void setServiceVersionInt(int i, int nVersion)
-        {
-        int[] anVersion = getServiceVersionInt();
+        int[] anVersion = __m_ServiceVersionInt;
         
         // resize if storing non-null beyond bounds
         boolean fBeyondBounds = (anVersion == null || i >= anVersion.length);
@@ -1557,14 +1494,29 @@ public class ServiceMemberSet
         
             // store array
             anVersion = anVersionNew;
-            setServiceVersionInt(anVersion);
-        
+            __m_ServiceVersionInt = anVersion;
             fBeyondBounds = false;
             }
         
         if (!fBeyondBounds)
             {
             anVersion[i] = nVersion;
+            }
+
+        if (anVersion != null)
+            {
+            int nMin = Integer.MAX_VALUE;
+            int nMax = Integer.MIN_VALUE;
+            for (int n : anVersion)
+                {
+                if (n != 0)
+                    {
+                    nMin = Math.min(n, nMin);
+                    nMax = Math.max(n, nMax);
+                    }
+                }
+            m_nVersionMin = nMin;
+            m_nVersionMax = nMax;
             }
         }
     
@@ -1671,17 +1623,7 @@ public class ServiceMemberSet
      */
     public static int[] toVersionArray(String sVersion)
         {
-        // 64-based - 5 elements 6 bits each
-        
-        int nVersion = parseVersion(sVersion);
-        return new int[]
-            {
-            (nVersion & 0x3F000000) >> 6*4,
-            (nVersion & 0x00FC0000) >> 6*3,
-            (nVersion & 0x0003F000) >> 6*2,
-            (nVersion & 0x00000FC0) >> 6*1,
-            (nVersion & 0x0000003F),
-            };
+        return VersionHelper.toVersionArray(sVersion);
         }
     
     /**
@@ -1692,40 +1634,7 @@ public class ServiceMemberSet
      */
     protected static String toVersionString(int nVersion, boolean fIncludePrefix)
         {
-        // nVersion is 64-based: 5 elements with 6 bits each
-        
-        int nYear  = (nVersion & 0x00000FC0) >> 6;
-        int nPatch = nVersion & 0x0000003F;
-        
-        String sVersion = (fIncludePrefix || !isCalendarVersion(nYear)
-                ? ((nVersion & 0x3F000000) >> 6*4) + "." +
-                  ((nVersion & 0x00FC0000) >> 6*3) + "." +
-                  ((nVersion & 0x0003F000) >> 6*2) + "."
-                : "") + nYear;
-        
-        if (isCalendarVersion(nYear))
-            {
-            int nPatchActual = nPatch & ~0x20;
-        
-            if ((nPatch & 0x20) == 0)
-                {
-                // display 6 for feature packs in years before 22 and 03 for years beyond
-                sVersion += (nYear <= 22 ? "06" : "03");
-                }
-            else
-                {
-                // display 12 for feature packs in years before 21 and 09 for years beyond
-                sVersion += (nYear <= 21 ? "12" : "09");
-                }
-        
-            sVersion += "." + nPatchActual;
-            }
-        else
-            {
-            sVersion += "." + nPatch;
-            }
-        
-        return sVersion;
+        return VersionHelper.toVersionString(nVersion, fIncludePrefix);
         }
     
     /**

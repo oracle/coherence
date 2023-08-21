@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -11,6 +11,8 @@ package com.tangosol.net;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.util.ResourceRegistry;
+
+import java.util.function.IntPredicate;
 
 
 /**
@@ -136,6 +138,65 @@ public interface Service
      * @since 22.06
      */
     public boolean isSuspended();
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nMajor     the major version number
+     * @param nMinor     the minor version number
+     * @param nMicro     the micro version number
+     * @param nPatchSet  the patch set version number
+     * @param nPatch     the patch version number
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch);
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nYear   the year version number
+     * @param nMonth  the month version number
+     * @param nPatch  the patch version number
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch);
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nVersion  the encoded version to compare
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nVersion);
+
+    /**
+     * Check whether the members of this service run a minimum service version
+     * that matches a specified {@link IntPredicate}.
+     *
+     * @param predicate  an {@link IntPredicate} to apply to the minimum encoded service version
+     *
+     * @return {@code true} if the minimum service version matches the predicate
+     */
+    public boolean isVersionCompatible(IntPredicate predicate);
+
+    /**
+     * Return the minimum version for the members in this set.
+     * <p/>
+     * The version is the {@code int} encoded version
+     * (see {@link com.tangosol.util.VersionHelper}).
+     *
+     * @return the minimum version for the members in this set
+     */
+    public int getMinimumServiceVersion();
 
     // ----- inner interface: MemberJoinAction ----------------------------
 

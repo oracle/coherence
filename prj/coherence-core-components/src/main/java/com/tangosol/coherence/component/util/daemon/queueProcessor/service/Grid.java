@@ -57,6 +57,7 @@ import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.license.LicenseException;
 import com.tangosol.net.ActionPolicy;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
@@ -93,7 +94,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -101,6 +101,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntPredicate;
 import javax.management.Notification;
 
 /**
@@ -150,7 +151,7 @@ import javax.management.Notification;
  * 13   * RESERVED for join protocol compatibility *
  * 17   * RESERVED for join protocol compatibility *
  */
-@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment", "JavadocBlankLines", "JavadocDeclaration", "EnhancedSwitchMigration"})
 public abstract class Grid
         extends    com.tangosol.coherence.component.util.daemon.queueProcessor.Service
         implements com.tangosol.internal.util.GridComponent,
@@ -2534,14 +2535,94 @@ public abstract class Grid
         }
     
     /**
-     * Check whether the specified members runs a version that precedes the
-    * specified one.
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nMajor     the major version number
+     * @param nMinor     the minor version number
+     * @param nMicro     the micro version number
+     * @param nPatchSet  the patch set version number
+     * @param nPatch     the patch version number
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch);
+        return isVersionCompatible(nEncoded);
+        }
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nYear   the year version number
+     * @param nMonth  the month version number
+     * @param nPatch  the patch version number
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+        {
+        int nEncoded = ServiceMemberSet.encodeVersion(nYear, nMonth, nPatch);
+        return isVersionCompatible(nEncoded);
+        }
+
+    /**
+     * Check whether the members of this service run a version that is greater than
+     * or equal to the specified version.
+     *
+     * @param nVersion  the encoded version to compare
+     *
+     * @return {@code true} if the members of the service are all running a version that
+     *         is greater than or equal to the specified version
+     */
+    public boolean isVersionCompatible(int nVersion)
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        return memberSet != null && memberSet.isVersionCompatible(nVersion);
+        }
+
+    /**
+     * Check whether the members of this service run a minimum service version
+     * that matches a specified {@link IntPredicate}.
+     *
+     * @param predicate  an {@link IntPredicate} to apply to the minimum encoded service version
+     *
+     * @return {@code true} if the minimum service version matches the predicate
+     */
+    public boolean isVersionCompatible(IntPredicate predicate)
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        return memberSet != null && memberSet.isVersionCompatible(predicate);
+        }
+
+    /**
+     * Return the minimum Coherence version being run by members of this service.
+     *
+     * @return  the minimum Coherence version being run by members of this service,
+     *          or zero if the service member set is {@code null}.
+     */
+    public int getMinimumServiceVersion()
+        {
+        MasterMemberSet memberSet = getClusterMemberSet();
+        return memberSet == null ? 0 : memberSet.getMinimumVersion();
+        }
+
+    /**
+     * Check whether the specified member run a version that is greater than
+     * or equal to the specified one.
+     *
+     * @param member    the {@link com.tangosol.coherence.component.net.Member} member to check
+     * @param nVersion  the encoded version to compare
      */
     protected boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nVersion)
         {
         return getClusterMemberSet().getServiceVersionInt(member.getId()) >= nVersion;
         }
-    
+
     /**
      * Check whether the specified members runs a version that precedes the
     * specified one.

@@ -8,6 +8,7 @@
 package com.oracle.coherence.grpc;
 
 import com.google.protobuf.ByteString;
+import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.grpc.GrpcDependencies;
 
 import java.util.UUID;
@@ -701,6 +702,22 @@ public final class Requests
      */
     public static PutAllRequest putAll(String scope, String cacheName, String format, Iterable<Entry> entries)
         {
+        return putAll(scope, cacheName, format, entries, CacheMap.EXPIRY_DEFAULT);
+        }
+
+    /**
+     * Create a {@link PutAllRequest}.
+     *
+     * @param scope      the scope name to use to obtain the cache from.
+     * @param cacheName  the name of the cache to put the values into
+     * @param format     the serialization format used
+     * @param entries    the entries to put into the cache
+     * @param cMillis    the expiry delay to apply to the entries
+     *
+     * @return a {@link PutAllRequest}
+     */
+    public static PutAllRequest putAll(String scope, String cacheName, String format, Iterable<Entry> entries, long cMillis)
+        {
         validateRequest(cacheName, format);
         if (entries == null)
             {
@@ -711,6 +728,7 @@ public final class Requests
                 .setCache(cacheName)
                 .setFormat(format)
                 .addAllEntry(entries)
+                .setTtl(cMillis)
                 .build();
         }
 

@@ -109,6 +109,41 @@ public interface AsyncNamedMap<K, V>
         }
 
     /**
+     * Get all the entries that satisfy the specified filter. For each entry
+     * that satisfies the filter, the key and its corresponding value will be
+     * placed in the map that is returned by this method.
+     *
+     * @param filter    a Filter that determines the set of entries to return
+     * @param callback  a consumer of results as they become available
+     *
+     * @return a {@link CompletableFuture} for a Map of keys to values for the
+     *         specified filter
+     */
+    default CompletableFuture<Void> getAll(Filter<?> filter,
+                                           BiConsumer<? super K, ? super V> callback)
+        {
+        return invokeAll(filter, CacheProcessors.get(), callback);
+        }
+
+
+    /**
+     * Get all the entries that satisfy the specified filter. For each entry
+     * that satisfies the filter, the key and its corresponding value will be
+     * placed in the map that is returned by this method.
+     *
+     * @param filter    a Filter that determines the set of entries to return
+     * @param callback  a consumer of results as they become available
+     *
+     * @return a {@link CompletableFuture} for a Map of keys to values for the
+     *         specified filter
+     */
+    default CompletableFuture<Void> getAll(Filter<?> filter,
+                                           Consumer<? super Map.Entry<? extends K, ? extends V>> callback)
+        {
+        return invokeAll(filter, CacheProcessors.get(), callback);
+        }
+
+    /**
      * Stream the entries associated with the specified keys to the provided
      * callback.
      * <p/>
@@ -221,6 +256,10 @@ public interface AsyncNamedMap<K, V>
 
     /**
      * Return a set view of all the keys contained in this map.
+     * <p/>
+     * NOTE: The returned {@link Set} will contain all the keys from the cache,
+     * which for a large cache could be a very large set consuming a large amount
+     * of memory. In this case it is better to use {@link #keySet(Consumer)}
      *
      * @return a complete set of keys for this map
      */
@@ -812,7 +851,7 @@ public interface AsyncNamedMap<K, V>
      */
     default CompletableFuture<Void> clear()
         {
-        return removeAll(AlwaysFilter.INSTANCE);
+        return removeAll(AlwaysFilter.INSTANCE());
         }
 
     /**

@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.grpc.AggregateRequest;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.Entry;
@@ -2422,6 +2423,33 @@ public class NamedCacheServiceImplIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
+    public void shouldPutAllWithExpiry(String serializerName, Serializer serializer, String sScope) throws Exception
+        {
+        String                     sCacheName = "test-cache";
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
+        cache.clear();
+
+        NamedCacheService service = createService();
+        ByteString        key1    = toByteString("key-1", serializer);
+        ByteString        value1  = toByteString("value-1", serializer);
+        ByteString        key2    = toByteString("key-2", serializer);
+        ByteString        value2  = toByteString("value-2", serializer);
+
+        List<Entry> listEntries = new ArrayList<>();
+        listEntries.add(Entry.newBuilder().setKey(key1).setValue(value1).build());
+        listEntries.add(Entry.newBuilder().setKey(key2).setValue(value2).build());
+
+        long cMillis = 5000L;
+        CompletionStage<Empty> response = service.putAll(Requests.putAll(sScope, sCacheName, serializerName, listEntries, cMillis));
+        assertThat(response, is(notNullValue()));
+        CompletableFuture<Empty> future = response.toCompletableFuture();
+        future.get(1, TimeUnit.MINUTES);
+        assertThat(cache.size(), is(2));
+        Eventually.assertDeferred(cache::size, is(0));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
     public void shouldPutAllWithZeroEntries(String serializerName, Serializer serializer, String sScope) throws Exception
         {
         String                     sCacheName = "test-cache";
@@ -2507,7 +2535,7 @@ public class NamedCacheServiceImplIT
         BytesValue                    oResult = future.get(1, TimeUnit.MINUTES);
         assertThat(oResult, is(notNullValue()));
         assertThat(fromBytesValue(oResult, serializer, String.class), is(nullValue()));
-        assertThat(cache.get("key-1"), is(nullValue()));
+        assertThat(cache.get("key-1"), is("value-2"));
         }
 
     // ----- Remove ---------------------------------------------------------

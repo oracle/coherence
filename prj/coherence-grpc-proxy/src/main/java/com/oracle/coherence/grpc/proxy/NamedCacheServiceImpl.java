@@ -869,7 +869,7 @@ public class NamedCacheServiceImpl
             }
         else
             {
-            return plainPutAll(holder.getAsyncCache(), map);
+            return plainPutAll(holder.getAsyncCache(), map, request.getTtl());
             }
         }
 
@@ -904,10 +904,12 @@ public class NamedCacheServiceImpl
                 mapForMember.put(key, entry.getValue());
                 }
 
+
             AsyncNamedCache<Binary, Binary> cache   = holder.getAsyncCache();
+            long                            cMillis = holder.getRequest().getTtl();
             CompletableFuture<?>[]          futures = mapByOwner.values()
                     .stream()
-                    .map(mapForMember -> plainPutAll(cache, mapForMember))
+                    .map(mapForMember -> plainPutAll(cache, mapForMember, cMillis))
                     .map(CompletionStage::toCompletableFuture)
                     .toArray(CompletableFuture[]::new);
 
@@ -925,14 +927,16 @@ public class NamedCacheServiceImpl
     /**
      * Perform a {@code putAll} operation on a partitioned cache.
      *
-     * @param cache  the {@link AsyncNamedCache} to update
-     * @param map    the map of {@link Binary} keys and values to put into the cache
+     * @param cache    the {@link AsyncNamedCache} to update
+     * @param map      the map of {@link Binary} keys and values to put into the cache
+     * @param cMillis  the expiry delay to set on the entries
      *
      * @return a {@link CompletionStage} that completes when the {@code putAll} operation completes
      */
-    protected CompletionStage<Empty> plainPutAll(AsyncNamedCache<Binary, Binary> cache, Map<Binary, Binary> map)
+    protected CompletionStage<Empty> plainPutAll(AsyncNamedCache<Binary, Binary> cache,
+            Map<Binary, Binary> map, long cMillis)
         {
-        return cache.invokeAll(map.keySet(), BinaryProcessors.putAll(map))
+        return cache.invokeAll(map.keySet(), BinaryProcessors.putAll(map, cMillis))
                 .thenApplyAsync(v -> BinaryHelper.EMPTY, f_executor);
         }
 

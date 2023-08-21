@@ -7,6 +7,7 @@
 package com.tangosol.internal.util.processor;
 
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.io.pof.PofReader;
@@ -27,6 +28,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -80,6 +82,11 @@ public class CacheProcessors
         return new PutAll<>(map);
         }
 
+    public static <K, V> InvocableMap.EntryProcessor<K, V, Void> putAll(Map<? extends K, ? extends V> map, long cMillis)
+        {
+        return new PutAllWithExpiry<>(map, cMillis);
+        }
+
     public static <K, V> InvocableMap.EntryProcessor<K, V, V> putIfAbsent(V value)
         {
         return new PutIfAbsent<>(value);
@@ -93,6 +100,11 @@ public class CacheProcessors
     public static <K, V> InvocableMap.EntryProcessor<K, V, Boolean> removeBlind()
         {
         return new RemoveBlind<>();
+        }
+
+    public static <K, V> InvocableMap.EntryProcessor<K, V, Void> removeWithoutResults()
+        {
+        return new RemoveNoResults<>();
         }
 
     public static <K, V> InvocableMap.EntryProcessor<K, V, Boolean> remove(Object value)
@@ -589,6 +601,114 @@ public class CacheProcessors
         }
 
     /**
+     * PutAllWithExpiry entry processor.
+     *
+     * @param <K> the type of the Map entry key
+     * @param <V> the type of the Map entry value
+     */
+    public static class PutAllWithExpiry<K, V>
+            extends BaseProcessor<K, V, Void>
+        {
+        public PutAllWithExpiry()
+            {
+            }
+
+        public PutAllWithExpiry(Map<? extends K, ? extends V> map, long cMillis)
+            {
+            m_map     = map;
+            m_cMillis = cMillis;
+            }
+
+        // ---- EntryProcessor methods --------------------------------------
+
+        @Override
+        public Void process(InvocableMap.Entry<K, V> entry)
+            {
+            // avoid returning the old value by using the synthetic variant
+            // of setValue.
+            entry.setValue(m_map.get(entry.getKey()), /*fSynthetic*/ false);
+            if (entry instanceof BinaryEntry)
+                {
+                ((BinaryEntry<K, V>) entry).expire(m_cMillis);
+                }
+            return null;
+            }
+
+        @Override
+        public Map<K, Void> processAll(Set<? extends InvocableMap.Entry<K, V>> setEntries)
+            {
+            Guardian.GuardContext ctxGuard = GuardSupport.getThreadContext();
+            long                  cMillis  = ctxGuard == null ? 0L : ctxGuard.getTimeoutMillis();
+            for (Iterator<? extends InvocableMap.Entry<K, V>> iter = setEntries.iterator(); iter.hasNext(); )
+                {
+                process(iter.next());
+                iter.remove();
+                if (ctxGuard != null)
+                    {
+                    ctxGuard.heartbeat(cMillis);
+                    }
+                }
+            return new LiteMap<>();
+            }
+
+        // ---- ExternalizableLite methods ----------------------------------
+
+        @Override
+        public void readExternal(DataInput in)
+                throws IOException
+            {
+            readMap(in, m_map, null);
+            m_cMillis = in.readLong();
+            }
+
+        @Override
+        public void writeExternal(DataOutput out)
+                throws IOException
+            {
+            writeMap(out, m_map);
+            out.writeLong(m_cMillis);
+            }
+
+        // ---- PortableObject methods --------------------------------------
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            in.readMap(0, m_map);
+            m_cMillis = in.readLong(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            out.writeMap(0, m_map);
+            out.writeLong(1, m_cMillis);
+            }
+
+        // ---- accessors ---------------------------------------------------
+
+        public Map<? extends K, ? extends V> getMap()
+            {
+            return m_map;
+            }
+
+        public long getExpiry()
+            {
+            return m_cMillis;
+            }
+
+        // ---- data members ------------------------------------------------
+
+        @JsonbProperty("entries")
+        protected Map<? extends K, ? extends V> m_map = new HashMap<>();
+
+        @JsonbProperty("ttl")
+        protected long m_cMillis;
+        }
+
+    /**
      * PutIfAbsent entry processor.
      *
      * @param <K> the type of the Map entry key
@@ -695,10 +815,93 @@ public class CacheProcessors
         {
         public Boolean process(InvocableMap.Entry<K, V> entry)
             {
-            V value = entry.getValue();
+            boolean fRemoved = entry.isPresent();
             entry.remove(false);
-            return value != null;
+            return fRemoved;
             }
+        }
+
+    /**
+     * Remove entry processor that will return no results.
+     *
+     * @param <K> the type of the Map entry key
+     * @param <V> the type of the Map entry value
+     */
+    public static class RemoveNoResults<K, V>
+            extends BaseProcessor<K, V, Void>
+        {
+        /**
+         * A default constructor for serialization.
+         */
+        public RemoveNoResults()
+            {
+            this(false);
+            }
+
+        /**
+         * Create a {@link RemoveNoResults} processor.
+         *
+         * @param fSynthetic  {@code true} to perform synthetic removes.
+         */
+        public RemoveNoResults(boolean fSynthetic)
+            {
+            m_fSynthetic = fSynthetic;
+            }
+
+        public Void process(InvocableMap.Entry<K, V> entry)
+            {
+            entry.remove(m_fSynthetic);
+            return null;
+            }
+
+        @Override
+        public Map<K, Void> processAll(Set<? extends InvocableMap.Entry<K, V>> setEntries)
+            {
+            Guardian.GuardContext ctxGuard = GuardSupport.getThreadContext();
+            long                  cMillis  = ctxGuard == null ? 0L : ctxGuard.getTimeoutMillis();
+            for (Iterator<? extends InvocableMap.Entry<K, V>> iter = setEntries.iterator(); iter.hasNext(); )
+                {
+                InvocableMap.Entry<K, V> entry = iter.next();
+                entry.remove(m_fSynthetic);
+                iter.remove();
+                if (ctxGuard != null)
+                    {
+                    ctxGuard.heartbeat(cMillis);
+                    }
+                }
+            return new LiteMap<>();
+            }
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_fSynthetic = in.readBoolean();
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            out.writeBoolean(m_fSynthetic);
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_fSynthetic = in.readBoolean(0);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeBoolean(0, m_fSynthetic);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * A flag to indicate whether the remove should be synthetic.
+         */
+        private boolean m_fSynthetic;
         }
 
     /**

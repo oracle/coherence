@@ -18,6 +18,7 @@ import com.tangosol.coherence.component.net.Security;
 import com.tangosol.coherence.component.net.jmxHelper.HttpAdapter;
 import com.tangosol.coherence.component.net.jmxHelper.ServerConnector;
 import com.tangosol.coherence.component.net.management.Gateway;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.net.packet.messagePacket.Broadcast;
 import com.tangosol.coherence.component.net.socket.UdpSocket;
 import com.tangosol.coherence.component.util.SafeCluster;
@@ -396,6 +397,11 @@ public class Coherence
     public static final String VERSION;
     
     /**
+     * The version encoded to an {@code int} (initialized in __initStatic()).
+     */
+    public static final int VERSION_INT;
+
+    /**
      * Property VERSION_INTERNAL
      *
      * Build internal version; is initialized in _initStatic().
@@ -480,6 +486,8 @@ public class Coherence
         
         // <major>.<minor>.<service>.(YY.MM | <patchset>.<patch>)
         VERSION_INTERNAL = sVersionPrefix + sVersion;
+
+        VERSION_INT = ServiceMemberSet.parseVersion(sVersion);
         }
     
     // Default static initializer
