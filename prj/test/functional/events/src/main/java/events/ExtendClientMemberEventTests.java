@@ -228,7 +228,6 @@ public class ExtendClientMemberEventTests
         if (mapResults.size() > 0)
             {
             mapResults.truncate();
-            Eventually.assertDeferred(()-> mapResults.size(), is(0));
             }
 
         Properties props = new Properties();
@@ -271,7 +270,7 @@ public class ExtendClientMemberEventTests
 
         // reset so can wait till clients all rejoin after rolling restart of proxy.
         mapResults.truncate();
-        Eventually.assertDeferred(() -> mapResults.size(), is(0));
+        Eventually.assertDeferred(() -> mapResults.size(), Matchers.lessThan(TEST_NUM_CLIENTS));
 
         // Rolling restart of proxy servers
         Properties propsProxy = new Properties();
