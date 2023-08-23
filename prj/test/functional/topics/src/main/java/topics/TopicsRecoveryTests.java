@@ -93,7 +93,17 @@ public class TopicsRecoveryTests
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.ttl", "0");
+        }
 
+    @AfterClass
+    public static void cleanup()
+        {
+        Coherence.closeAll();
+        }
+
+    @Before
+    public void setupTest() throws Exception
+        {
         CoherenceConfiguration config = CoherenceConfiguration.builder()
                 .withSession(SessionConfiguration.defaultSession())
                 .build();
@@ -101,37 +111,13 @@ public class TopicsRecoveryTests
         s_coherence = Coherence.clusterMember(config);
         s_coherence.start().get(5, TimeUnit.MINUTES);
         s_session = s_coherence.getSession();
-        }
-
-    @AfterClass
-    public static void cleanup()
-        {
-        if (s_coherence != null)
-            {
-            Coherence.closeAll();
-            }
-        }
-
-    @Before
-    public void setupTest()
-        {
         s_count.incrementAndGet();
         }
 
     @After
     public void cleanupTest()
         {
-        if (m_topic != null)
-            {
-            try
-                {
-                m_topic.close();
-                }
-            catch (Exception e)
-                {
-                // ignored
-                }
-            }
+        Coherence.closeAll();
         }
 
     @Test
