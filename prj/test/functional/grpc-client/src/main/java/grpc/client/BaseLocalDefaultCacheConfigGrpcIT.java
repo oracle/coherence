@@ -93,9 +93,6 @@ public abstract class BaseLocalDefaultCacheConfigGrpcIT
     @AfterAll
     static void shutdownCoherence()
         {
-        SESSIONS.values().forEach(BaseLocalDefaultCacheConfigGrpcIT::closeSilent);
-        SESSIONS.clear();
-        closeSilent(s_defaultSession);
         Coherence.closeAll();
         }
 

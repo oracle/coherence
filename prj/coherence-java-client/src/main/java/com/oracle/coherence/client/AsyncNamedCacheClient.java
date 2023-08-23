@@ -27,6 +27,7 @@ import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 import com.oracle.coherence.grpc.Requests;
 
+import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.net.AsyncNamedCache;
@@ -87,6 +88,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -104,7 +107,7 @@ import java.util.stream.Stream;
  * @author Jonathan Knight  2019.11.22
  * @since 20.06
  */
-@SuppressWarnings("DuplicatedCode")
+@SuppressWarnings({"DuplicatedCode", "PatternVariableCanBeUsed"})
 public class AsyncNamedCacheClient<K, V>
         extends BaseGrpcClient<V>
         implements AsyncNamedCache<K, V>
@@ -997,13 +1000,11 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, K key)
         {
         return executeIfActive(() ->
             {
-            CompletableFuture<Void> future  = new CompletableFuture<>();
-            MapListenerSupport      support = getMapListenerSupport();
+            MapListenerSupport support = getMapListenerSupport();
             synchronized (support)
                 {
                 support.removeListener(listener, key);
@@ -1020,23 +1021,20 @@ public class AsyncNamedCacheClient<K, V>
                                 f_sFormat, toByteString(key), fPriming, ByteString.EMPTY);
 
                         uid = request.getUid();
-                        f_mapFuture.put(uid, future);
-                        m_evtRequestObserver.onNext(request);
+                        return m_evtResponseObserver.send(request);
                         }
-                    catch (RuntimeException e)
+                    catch (Throwable t)
                         {
-                        f_mapFuture.remove(uid);
-                        future.completeExceptionally(e);
+                        m_evtResponseObserver.removeAndComplete(uid, t);
+                        return CompletableFuture.failedFuture(t);
                         }
                     }
                 else
                     {
                     // we're not actually adding the listener to the server so complete the future now.
-                    future.complete(VOID);
+                    return CompletableFuture.completedFuture(VOID);
                     }
                 }
-
-            return future;
             });
         }
 
@@ -1048,19 +1046,23 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return a {@link CompletableFuture} returning {@link Void}
      */
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected CompletableFuture<Void> removeMapListener(MapListener<? super K, ? super V> listener, Filter<?> filter)
         {
         return executeIfActive(() ->
             {
             if (listener instanceof NamedCacheDeactivationListener && filter == null)
                 {
-                synchronized (this)
+                f_lockDeactivationListeners.lock();
+                try
                     {
                     if (f_listCacheDeactivationListeners.remove(listener))
                         {
                         f_cListener.decrementAndGet();
                         }
+                    }
+                finally
+                    {
+                    f_lockDeactivationListeners.unlock();
                     }
                 return CompletableFuture.completedFuture(VOID);
                 }
@@ -1106,15 +1108,13 @@ public class AsyncNamedCacheClient<K, V>
                     .removeFilterMapListener(f_sScopeName, f_sName, f_sFormat, filterBytes, nFilterId,
                                              false, false, triggerBytes);
             uid = request.getUid();
-            f_mapFuture.put(uid, future);
-            m_evtRequestObserver.onNext(request);
+            future = m_evtResponseObserver.send(request);
             }
-        catch (RuntimeException e)
+        catch (Throwable t)
             {
-            f_mapFuture.remove(uid);
-            future.completeExceptionally(e);
+            m_evtResponseObserver.removeAndComplete(uid, t);
+            future.completeExceptionally(t);
             }
-
         return future;
         }
 
@@ -1237,22 +1237,9 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected void initEvents()
         {
-        MapListenerRequest request = MapListenerRequest.newBuilder()
-                .setScope(f_sScopeName)
-                .setCache(f_sName)
-                .setUid(UUID.randomUUID().toString())
-                .setSubscribe(true)
-                .setFormat(f_sFormat)
-                .setType(MapListenerRequest.RequestType.INIT)
-                .build();
-
-        m_evtResponseObserver = new EventStreamObserver(request.getUid());
-        m_evtRequestObserver  = f_service.events(m_evtResponseObserver);
+        m_evtResponseObserver = new EventStreamObserver();
         m_listenerSupport     = new MapListenerSupport();
         m_aEvtFilter          = new SparseArray<>();
-        // initialise the bidirectional stream so that this client will receive
-        // destroy and truncate events
-        m_evtRequestObserver.onNext(request);
 
         // create a future to allow us to wait for the init request to complete
         CompletableFuture<Void> future = m_evtResponseObserver.whenSubscribed().toCompletableFuture();
@@ -1262,7 +1249,7 @@ public class AsyncNamedCacheClient<K, V>
             if (err != null)
                 {
                 // close the channel if subscription failed
-                m_evtRequestObserver.onCompleted();
+                m_evtResponseObserver.onCompleted();
                 }
             return null;
             });
@@ -1403,9 +1390,9 @@ public class AsyncNamedCacheClient<K, V>
         CompletableFuture<Void> future;
 
         // close the events bidirectional channel and any event listeners
-        if (m_evtRequestObserver != null)
+        if (m_evtResponseObserver != null)
             {
-            m_evtRequestObserver.onCompleted();
+            m_evtResponseObserver.onCompleted();
             }
         f_cListener.set(0);
 
@@ -1443,7 +1430,7 @@ public class AsyncNamedCacheClient<K, V>
                 }
             catch (Throwable t)
                 {
-                t.printStackTrace();
+                Logger.err(t);
                 }
             }
         f_listDeactivationListeners.clear();
@@ -1457,7 +1444,7 @@ public class AsyncNamedCacheClient<K, V>
                 }
             catch (Throwable t)
                 {
-                t.printStackTrace();
+                Logger.err(t);
                 }
             }
         f_listCacheDeactivationListeners.clear();
@@ -1492,13 +1479,21 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to add
      */
-    public synchronized void addDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ?
+    public void addDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ?
             super V>> listener)
         {
         assertActive();
-        if (listener != null)
+        f_lockDeactivationListeners.lock();
+        try
             {
-            f_listDeactivationListeners.add(listener);
+            if (listener != null)
+                {
+                f_listDeactivationListeners.add(listener);
+                }
+            }
+        finally
+            {
+            f_lockDeactivationListeners.unlock();
             }
         }
 
@@ -1508,7 +1503,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to add
      */
-    public synchronized void addDeactivationListener(NamedCacheDeactivationListener listener)
+    public void addDeactivationListener(NamedCacheDeactivationListener listener)
         {
         if (listener != null)
             {
@@ -1518,7 +1513,15 @@ public class AsyncNamedCacheClient<K, V>
                 }
             else
                 {
-                f_listCacheDeactivationListeners.add(listener);
+                f_lockDeactivationListeners.lock();
+                try
+                    {
+                    f_listCacheDeactivationListeners.add(listener);
+                    }
+                finally
+                    {
+                    f_lockDeactivationListeners.unlock();
+                    }
                 }
             }
         }
@@ -1528,11 +1531,19 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param listener  the listener to remove
      */
-    protected synchronized void removeDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener)
+    protected void removeDeactivationListener(DeactivationListener<AsyncNamedCacheClient<? super K, ? super V>> listener)
         {
         if (listener != null)
             {
-            f_listDeactivationListeners.remove(listener);
+            f_lockDeactivationListeners.lock();
+            try
+                {
+                f_listDeactivationListeners.remove(listener);
+                }
+            finally
+                {
+                f_lockDeactivationListeners.unlock();
+                }
             }
         }
 
@@ -1674,15 +1685,12 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected CompletableFuture<Void> addKeyMapListener(MapListener<? super K, ? super V> listener, Object key,
                                                         boolean fLite)
         {
-        CompletableFuture<Void> future  = new CompletableFuture<>();
-        MapListenerSupport      support = getMapListenerSupport();
-
-        boolean first = support.addListenerWithCheck(listener, key, fLite);
-        boolean priming = MapListenerSupport.isPrimingListener(listener);
+        MapListenerSupport support = getMapListenerSupport();
+        boolean            first   = support.addListenerWithCheck(listener, key, fLite);
+        boolean            priming = MapListenerSupport.isPrimingListener(listener);
 
         // "priming" request should be sent regardless
         if (first || priming)
@@ -1694,26 +1702,23 @@ public class AsyncNamedCacheClient<K, V>
                         .addKeyMapListener(f_sScopeName, f_sName, f_sFormat, toByteString(key),
                                            fLite, priming, ByteString.EMPTY);
                 uid = request.getUid();
-                f_mapFuture.put(uid, future);
-                m_evtRequestObserver.onNext(request);
+                return m_evtResponseObserver.send(request);
                 }
-            catch (RuntimeException e)
+            catch (Throwable t)
                 {
                 synchronized (support)
                     {
                     support.removeListener(listener, key);
-                    f_mapFuture.remove(uid);
+                    m_evtResponseObserver.removeAndComplete(uid, t);
                     }
-                future.completeExceptionally(e);
+                return CompletableFuture.failedFuture(t);
                 }
             }
         else
             {
             // we're not actually adding the listener to the server so complete the future now.
-            future.complete(VOID);
+            return CompletableFuture.completedFuture(VOID);
             }
-
-        return future;
         }
 
     /**
@@ -1735,18 +1740,20 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @return {@link CompletableFuture} returning type {@link Void}
      */
-    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected CompletableFuture<Void> addFilterMapListener(MapListener<? super K, ? super V> listener,
                                                            Filter<?> filter, boolean fLite)
         {
         if (listener instanceof NamedCacheDeactivationListener)
             {
-            synchronized (this)
+            f_lockDeactivationListeners.lock();
+            try
                 {
-                if (f_listCacheDeactivationListeners.add((NamedCacheDeactivationListener) listener))
-                    {
-                    f_cListener.incrementAndGet();
-                    }
+                f_listCacheDeactivationListeners.add((NamedCacheDeactivationListener) listener);
+                f_cListener.incrementAndGet();
+                }
+            finally
+                {
+                f_lockDeactivationListeners.unlock();
                 }
             return CompletableFuture.completedFuture(VOID);
             }
@@ -1812,21 +1819,19 @@ public class AsyncNamedCacheClient<K, V>
                                                               long nFilterId, boolean fLite, ByteString triggerBytes)
         {
         String uid = "";
-        CompletableFuture<Void> future = new CompletableFuture<>();
+        CompletableFuture<Void> future;
         try
             {
             MapListenerRequest request = Requests
                     .addFilterMapListener(f_sScopeName, f_sName, f_sFormat, filterBytes, nFilterId, fLite, false, triggerBytes);
             uid = request.getUid();
-            f_mapFuture.put(uid, future);
-            m_evtRequestObserver.onNext(request);
+            future = m_evtResponseObserver.send(request);
             }
-        catch (RuntimeException e)
+        catch (Throwable t)
             {
-            f_mapFuture.remove(uid);
-            future.completeExceptionally(e);
+            m_evtResponseObserver.removeAndComplete(uid, t);
+            future = CompletableFuture.failedFuture(t);
             }
-
         return future;
         }
 
@@ -1879,7 +1884,7 @@ public class AsyncNamedCacheClient<K, V>
      *
      * @param response  the {@link MapEventResponse} to process
      */
-    @SuppressWarnings({"unchecked", "rawtypes", "SynchronizationOnLocalVariableOrMethodParameter", "ConstantConditions"})
+    @SuppressWarnings({"unchecked", "rawtypes", "ConstantConditions"})
     protected void dispatch(MapEventResponse response)
         {
         List<Long>          listFilterIds  = response.getFilterIdsList();
@@ -2101,6 +2106,7 @@ public class AsyncNamedCacheClient<K, V>
     /**
      * A {@code EventStreamObserver} that processes {@link MapListenerResponse}s.
      */
+    @SuppressWarnings("EnhancedSwitchMigration")
     protected class EventStreamObserver
             implements StreamObserver<MapListenerResponse>
         {
@@ -2108,13 +2114,27 @@ public class AsyncNamedCacheClient<K, V>
 
         /**
          * Constructs a new EventStreamObserver
-         *
-         * @param uid  the event ID to observe
          */
-        protected EventStreamObserver(String uid)
+        protected EventStreamObserver()
             {
-            f_sUid   = Objects.requireNonNull(uid);
+            f_sUid   = UUID.randomUUID().toString();
             f_future = new CompletableFuture<>();
+            StreamObserver<MapListenerRequest> observer = f_service.events(this);
+            m_evtRequestObserver = (SafeStreamObserver<MapListenerRequest>) SafeStreamObserver.ensureSafeObserver(observer);
+            m_evtRequestObserver.whenDone().thenAccept(v -> f_mapFuture.values().forEach(f -> f.complete(null)));
+
+            // initialise the bidirectional stream so that this client will receive
+            // destroy and truncate events
+            MapListenerRequest request = MapListenerRequest.newBuilder()
+                    .setScope(f_sScopeName)
+                    .setCache(f_sName)
+                    .setUid(f_sUid)
+                    .setSubscribe(true)
+                    .setFormat(f_sFormat)
+                    .setType(MapListenerRequest.RequestType.INIT)
+                    .build();
+
+            observer.onNext(request);
             }
 
         // ----- public methods ---------------------------------------------
@@ -2134,82 +2154,25 @@ public class AsyncNamedCacheClient<K, V>
         @Override
         public void onNext(MapListenerResponse response)
             {
-            CompletableFuture<Void> future;
             switch (response.getResponseTypeCase())
                 {
                 case SUBSCRIBED:
-                    MapListenerSubscribedResponse subscribed  = response.getSubscribed();
-                    String                        responseUid = subscribed.getUid();
-                    if (f_sUid.equals(responseUid))
-                        {
-                        f_future.complete(VOID);
-                        }
-                    future = f_mapFuture.remove(responseUid);
-                    if (future != null)
-                        {
-                        future.complete(VOID);
-                        }
-                    f_cListener.incrementAndGet();
+                    onSubscribed(response);
                     break;
                 case UNSUBSCRIBED:
-                    MapListenerUnsubscribedResponse unsubscribed = response.getUnsubscribed();
-                    future = f_mapFuture.remove(unsubscribed.getUid());
-                    if (future != null)
-                        {
-                        future.complete(VOID);
-                        }
-                    f_cListener.decrementAndGet();
+                    onUnsubscribed(response);
                     break;
                 case EVENT:
                     dispatch(response.getEvent());
                     break;
                 case ERROR:
-                    MapListenerErrorResponse error = response.getError();
-                    responseUid = error.getUid();
-                    if (f_sUid.equals(responseUid))
-                        {
-                        f_future.completeExceptionally(new RuntimeException(error.getMessage()));
-                        }
-                    else
-                        {
-                        future = f_mapFuture.remove(responseUid);
-                        if (future != null)
-                            {
-                            future.completeExceptionally(new RuntimeException(error.getMessage()));
-                            }
-                        }
+                    onError(response);
                     break;
                 case DESTROYED:
-                    if (response.getDestroyed().getCache().equals(f_sName))
-                        {
-                        synchronized (this)
-                            {
-                            if (isActiveInternal())
-                                {
-                                m_fDestroyed = true;
-                                releaseInternal(true);
-                                }
-                            }
-                        f_cListener.set(0);
-                        }
+                    onDestroyed(response);
                     break;
                 case TRUNCATED:
-                    if (response.getTruncated().getCache().equals(f_sName))
-                        {
-                        CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/ false);
-                        for (NamedCacheDeactivationListener listener : f_listCacheDeactivationListeners)
-                            {
-                            try
-                                {
-                                listener.entryUpdated(evt);
-                                }
-                            catch (Throwable t)
-                                {
-                                t.printStackTrace();
-                                }
-                            }
-
-                        }
+                    onTruncated(response);
                     break;
                 case RESPONSETYPE_NOT_SET:
                     Logger.info("Received unexpected event without a response type!");
@@ -2222,21 +2185,175 @@ public class AsyncNamedCacheClient<K, V>
         @Override
         public void onError(Throwable t)
             {
-            Logger.err(() -> "Caught exception handling onError", t);
-            if (!f_future.isDone())
+            f_lock.lock();
+            try
                 {
-                f_future.completeExceptionally(t);
+                m_fDone = true;
+                if (!f_future.isDone())
+                    {
+                    f_future.completeExceptionally(t);
+                    }
+                f_mapFuture.values().forEach(f -> f.complete(null));
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
 
         @Override
         public void onCompleted()
             {
-            if (!f_future.isDone())
+            f_lock.lock();
+            try
                 {
-                f_future.completeExceptionally(
-                        new IllegalStateException("Event observer completed without subscription"));
+                m_fDone = true;
+                if (!f_future.isDone())
+                    {
+                    f_future.completeExceptionally(
+                            new IllegalStateException("Event observer completed without subscription"));
+                    }
+                f_mapFuture.values().forEach(f -> f.complete(null));
                 }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        private void onSubscribed(MapListenerResponse response)
+            {
+            MapListenerSubscribedResponse subscribed  = response.getSubscribed();
+            String                        responseUid = subscribed.getUid();
+            if (f_sUid.equals(responseUid))
+                {
+                f_future.complete(VOID);
+                }
+            else
+                {
+                CompletableFuture<Void> future = f_mapFuture.remove(responseUid);
+                if (future != null)
+                    {
+                    future.complete(VOID);
+                    }
+                f_cListener.incrementAndGet();
+                }
+            }
+
+        private void onUnsubscribed(MapListenerResponse response)
+            {
+            MapListenerUnsubscribedResponse unsubscribed = response.getUnsubscribed();
+            CompletableFuture<Void> future = f_mapFuture.remove(unsubscribed.getUid());
+            if (future != null)
+                {
+                future.complete(VOID);
+                }
+            f_cListener.decrementAndGet();
+            }
+
+        private void onDestroyed(MapListenerResponse response)
+            {
+            if (response.getDestroyed().getCache().equals(f_sName))
+                {
+                if (isActiveInternal())
+                    {
+                    m_fDestroyed = true;
+                    releaseInternal(true);
+                    }
+                f_cListener.set(0);
+                }
+            }
+
+        private void onTruncated(MapListenerResponse response)
+            {
+            if (response.getTruncated().getCache().equals(f_sName))
+                {
+                CacheEvent<?, ?> evt = createDeactivationEvent(/*destroyed*/ false);
+                for (NamedCacheDeactivationListener listener : f_listCacheDeactivationListeners)
+                    {
+                    try
+                        {
+                        listener.entryUpdated(evt);
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                }
+            }
+
+        private void onError(MapListenerResponse response)
+            {
+            MapListenerErrorResponse error       = response.getError();
+            String                   responseUid = error.getUid();
+            if (f_sUid.equals(responseUid))
+                {
+                f_future.completeExceptionally(new RuntimeException(error.getMessage()));
+                }
+            else
+                {
+                CompletableFuture<Void> future = f_mapFuture.remove(responseUid);
+                if (future != null)
+                    {
+                    future.completeExceptionally(new RuntimeException(error.getMessage()));
+                    }
+                }
+            }
+
+
+        public CompletableFuture<Void> send(MapListenerRequest request)
+            {
+            if (m_fDone)
+                {
+                return CompletableFuture.completedFuture(null);
+                }
+
+            f_lock.lock();
+            try
+                {
+                if (m_fDone)
+                    {
+                    return CompletableFuture.completedFuture(null);
+                    }
+                CompletableFuture<Void> future = new CompletableFuture<>();
+                f_mapFuture.put(request.getUid(), future);
+                m_evtRequestObserver.onNext(request);
+                return future;
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+            }
+
+        public void removeAndComplete(String uid, Throwable t)
+            {
+            CompletableFuture<Void> future = f_mapFuture.remove(uid);
+            if (future != null && !future.isDone())
+                {
+                if (t == null)
+                    {
+                    future.complete(null);
+                    }
+                else
+                    {
+                    future.completeExceptionally(t);
+                    }
+                }
+            }
+
+        // ----- Object methods ---------------------------------------------
+
+        @Override
+        public String toString()
+            {
+            return "EventStreamObserver(" +
+                    "cacheName='" + f_sName + '\'' +
+                    ", uid='" + f_sUid + '\'' +
+                    ')';
             }
 
         // ----- data members -----------------------------------------------
@@ -2250,6 +2367,26 @@ public class AsyncNamedCacheClient<K, V>
          * The {@link CompletableFuture} to notify
          */
         protected final CompletableFuture<Void> f_future;
+
+        /**
+         * A flag indicating that this observer is closed.
+         */
+        protected volatile boolean m_fDone;
+
+        /**
+         * The lock to control sending messages and closing the channel.
+         */
+        protected final Lock f_lock = new ReentrantLock();
+
+        /**
+         * The client channel for events observer.
+         */
+        private final SafeStreamObserver<MapListenerRequest> m_evtRequestObserver;
+
+        /**
+         * The map of event listener request futures keyed by request id.
+         */
+        protected final Map<String, CompletableFuture<Void>> f_mapFuture = new ConcurrentHashMap<>();
         }
 
     // ----- inner class: WrapperDeactivationListener -----------------------
@@ -2431,10 +2568,7 @@ public class AsyncNamedCacheClient<K, V>
      */
     protected final List<NamedCacheDeactivationListener> f_listCacheDeactivationListeners = new ArrayList<>();
 
-    /**
-     * The client channel for events observer.
-     */
-    protected StreamObserver<MapListenerRequest> m_evtRequestObserver;
+    protected final Lock f_lockDeactivationListeners = new ReentrantLock();
 
     /**
      * The event response observer.
@@ -2450,11 +2584,6 @@ public class AsyncNamedCacheClient<K, V>
      * The array of filter.
      */
     protected LongArray<Filter<?>> m_aEvtFilter;
-
-    /**
-     * The map of future keyed by request id.
-     */
-    protected final Map<String, CompletableFuture<Void>> f_mapFuture = new ConcurrentHashMap<>();
 
     /**
      * The count of successfully registered {@link MapListener map listeners}

@@ -185,7 +185,8 @@ public final class ServerHelper
 
             int nPort = FindGrpcProxyPort.local();
             ChannelCredentials credentials = InsecureChannelCredentials.create();
-            m_channel = Grpc.newChannelBuilderForAddress("127.0.0.1", nPort, credentials).build();
+            m_channel = Grpc.newChannelBuilderForAddress("127.0.0.1", nPort, credentials)
+                    .build();
 
             m_fRunning = true;
             }

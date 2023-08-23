@@ -534,12 +534,12 @@ public abstract class BaseGrpcClient<V>
     /**
      * A flag indicating whether this client has been released.
      */
-    protected boolean m_fReleased;
+    protected volatile boolean m_fReleased;
 
     /**
      * A flag indicating whether this client has been destroyed.
      */
-    protected boolean m_fDestroyed;
+    protected volatile boolean m_fDestroyed;
 
     /**
      * The {@link Executor} to use to dispatch events.

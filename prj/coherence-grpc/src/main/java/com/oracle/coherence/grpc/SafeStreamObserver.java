@@ -1,15 +1,19 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc;
 
 import io.grpc.Status;
+
 import io.grpc.stub.StreamObserver;
 
+import java.net.SocketException;
+
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +26,6 @@ import java.util.logging.Logger;
 public class SafeStreamObserver<T>
         implements StreamObserver<T>
     {
-
     /**
      * Create a {@link SafeStreamObserver} that wraps another {@link io.grpc.stub.StreamObserver}.
      *
@@ -44,8 +47,8 @@ public class SafeStreamObserver<T>
         if (t == null)
             {
             onError(Status.INVALID_ARGUMENT
-                            .withDescription("onNext called with null. Null values are generally not allowed.")
-                            .asRuntimeException());
+                    .withDescription("onNext called with null. Null values are generally not allowed.")
+                    .asRuntimeException());
             }
         else
             {
@@ -72,14 +75,17 @@ public class SafeStreamObserver<T>
                 }
             else
                 {
-                done = true;
+                setDone(thrown);
                 delegate.onError(ErrorsHelper.ensureStatusRuntimeException(checkNotNull(thrown)));
                 }
             }
         catch (Throwable t)
             {
             throwIfFatal(t);
-            LOGGER.log(Level.SEVERE, t, () -> "Caught exception handling onError");
+            if (!isSocketClosedError(thrown))
+                {
+                LOGGER.log(Level.SEVERE, t, () -> "Caught exception handling onError");
+                }
             }
         }
 
@@ -94,13 +100,16 @@ public class SafeStreamObserver<T>
             {
             try
                 {
-                done = true;
+                setDone(null);
                 delegate.onCompleted();
                 }
             catch (Throwable thrown)
                 {
                 throwIfFatal(thrown);
-                LOGGER.log(Level.SEVERE, thrown, () -> "Caught exception handling onComplete");
+                if (!isSocketClosedError(thrown))
+                    {
+                    LOGGER.log(Level.SEVERE, thrown, () -> "Caught exception handling onComplete");
+                    }
                 }
             }
         }
@@ -113,6 +122,47 @@ public class SafeStreamObserver<T>
     public StreamObserver<? super T> delegate()
         {
         return delegate;
+        }
+
+    /**
+     * Returns {@code true} if this observer is complete.
+     *
+     * @return {@code true} if this observer is complete
+     */
+    public boolean isDone()
+        {
+        return done;
+        }
+
+
+    public CompletableFuture<Void> whenDone()
+        {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        doneFuture.whenComplete((v, err) ->
+            {
+            if (err == null)
+                {
+                future.complete(null);
+                }
+            else
+                {
+                future.completeExceptionally(err);
+                }
+            });
+        return future;
+        }
+
+    private void setDone(Throwable t)
+        {
+        done = true;
+        if (t == null)
+            {
+            doneFuture.complete(null);
+            }
+        else
+            {
+            doneFuture.completeExceptionally(t);
+            }
         }
 
     private Throwable checkNotNull(Throwable thrown)
@@ -128,11 +178,10 @@ public class SafeStreamObserver<T>
         }
 
     /**
-     * Throws a particular {@code Throwable} only if it belongs to a set of "fatal" error varieties. These varieties are
-     * as follows:
+     * Throws a particular {@code Throwable} only if it belongs to a set of "fatal" error
+     * varieties. These varieties are as follows:
      * <ul>
      * <li>{@code VirtualMachineError}</li>
-     * <li>{@code ThreadDeath}</li>
      * <li>{@code LinkageError}</li>
      * </ul>
      *
@@ -144,14 +193,33 @@ public class SafeStreamObserver<T>
             {
             throw (VirtualMachineError) thrown;
             }
-        else if (thrown instanceof ThreadDeath)
-            {
-            throw (ThreadDeath) thrown;
-            }
         else if (thrown instanceof LinkageError)
             {
             throw (LinkageError) thrown;
             }
+        }
+
+    /**
+     * Returns {@code true} if the {@link Throwable} or its root cause
+     * is due to a socket being closed.
+     *
+     * @param throwable  the {@link Throwable} to test
+     *
+     * @return {@code true} if the {@link Throwable} or its root cause
+     *         is due to a socket being closed
+     */
+    private boolean isSocketClosedError(Throwable throwable)
+        {
+        Throwable cause = throwable;
+        while (cause != null)
+            {
+            if (cause instanceof SocketException && "Socket closed".equals(cause.getMessage()))
+                {
+                return true;
+                }
+            cause = cause.getCause();
+            }
+        return false;
         }
 
     /**
@@ -178,15 +246,20 @@ public class SafeStreamObserver<T>
     /**
      * The actual StreamObserver.
      */
-    private StreamObserver<? super T> delegate;
+    private final StreamObserver<? super T> delegate;
 
     // ----- data members ---------------------------------------------------
+
     /**
      * Indicates a terminal state.
      */
-    private boolean done;
+    private volatile boolean done;
+
+    private final CompletableFuture<Void> doneFuture = new CompletableFuture<>();
+
     /**
      * The {2link Logger} to use.
      */
     private static final Logger LOGGER = Logger.getLogger(SafeStreamObserver.class.getName());
+
     }
