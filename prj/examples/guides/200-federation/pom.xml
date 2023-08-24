@@ -24,7 +24,7 @@
 
     <java.version>17</java.version>
 
-    <jline.version>3.20.0</jline.version>
+    <jline.version>3.23.0</jline.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
