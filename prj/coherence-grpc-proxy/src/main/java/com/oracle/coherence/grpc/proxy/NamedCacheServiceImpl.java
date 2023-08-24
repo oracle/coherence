@@ -313,11 +313,18 @@ public class NamedCacheServiceImpl
     @Override
     public CompletionStage<Empty> clear(ClearRequest request)
         {
-        return getAsyncCache(request.getScope(), request.getCache())
-                .thenComposeAsync(cache -> cache.invokeAll(AlwaysFilter.INSTANCE(),
-                                                           BinarySyntheticRemoveBlindProcessor.INSTANCE),
-                                  f_executor)
-                .thenApplyAsync(this::empty, f_executor);
+        CompletableFuture<Empty> future = new CompletableFuture<>();
+        try
+            {
+            AsyncNamedCache<Binary, Binary> cache = getPassThroughCache(request.getScope(), request.getCache()).async();
+            cache.getNamedCache().clear();
+            future.complete(Empty.getDefaultInstance());
+            }
+        catch (Throwable t)
+            {
+            future.completeExceptionally(t);
+            }
+        return future;
         }
 
     // ----- containsEntry --------------------------------------------------
@@ -1165,9 +1172,19 @@ public class NamedCacheServiceImpl
             Filter<Binary>     filter     = ensureFilter(request.getFilter(), serializer);
             Comparator<Binary> comparator = deserializeComparator(request.getComparator(), serializer);
 
-            holder.runAsync(holder.getAsyncCache().values(filter, comparator))
-                    .handleAsync((h, err) -> ResponseHandlers.handleStream(h, err, observer), f_executor)
-                    .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
+            AsyncNamedCache<Binary, Binary> cache = holder.getAsyncCache();
+            if (comparator == null)
+                {
+                Consumer<Binary> callback = holder.binaryConsumer(observer);
+                cache.values(filter, callback)
+                        .handleAsync((v, err) -> ResponseHandlers.handleErrorOrComplete(err, observer), f_executor);
+                }
+            else
+                {
+                holder.runAsync(holder.getAsyncCache().values(filter, comparator))
+                        .handleAsync((h, err) -> ResponseHandlers.handleStream(h, err, observer), f_executor)
+                        .handleAsync((v, err) -> ResponseHandlers.handleError(err, observer), f_executor);
+                }
             }
         catch (Throwable t)
             {

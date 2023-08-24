@@ -61,6 +61,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 
@@ -500,8 +501,9 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleClearError()
         {
-        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
-                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenThrow(ERROR);
+        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
+        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
+        doThrow(ERROR).when(cache).clear();
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
         CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
@@ -511,16 +513,16 @@ class NamedCacheServiceImplTest
         assertThat(cause, is(sameInstance(ERROR)));
         }
 
-    @Test
-    public void shouldHandleClearAsyncError()
-        {
-        CompletableFuture<Map<Binary, Void>> failed = failedFuture(ERROR);
 
-        when(m_testAsyncCache.invokeAll(isA(AlwaysFilter.class),
-                                        isA(BinaryProcessors.BinarySyntheticRemoveBlindProcessor.class))).thenReturn(failed);
+    @Test
+    public void shouldHandleTruncateError()
+        {
+        NamedCache<Binary, Binary> cache = mock(NamedCache.class);
+        when(m_testAsyncCache.getNamedCache()).thenReturn(cache);
+        doThrow(ERROR).when(cache).truncate();
 
         NamedCacheServiceImpl    service   = new NamedCacheServiceImpl(m_dependencies);
-        CompletionStage<Empty>   stage     = service.clear(Requests.clear(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
+        CompletionStage<Empty>   stage     = service.truncate(Requests.truncate(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME));
         CompletableFuture<Empty> future    = stage.toCompletableFuture();
         ExecutionException       exception = assertThrows(ExecutionException.class, future::get);
         Throwable                cause     = rootCause(exception);
@@ -1518,7 +1520,7 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldHandleValuesError() throws Exception
         {
-        when(m_testAsyncCache.values(any(Filter.class), nullable(Comparator.class))).thenThrow(ERROR);
+        when(m_testAsyncCache.values(any(Filter.class), any(Consumer.class))).thenThrow(ERROR);
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
@@ -1535,12 +1537,34 @@ class NamedCacheServiceImplTest
         cause.printStackTrace();
         assertThat(cause, is(sameInstance(ERROR)));
         }
+    @Test
+    public void shouldHandleValuesWithComparatorError() throws Exception
+        {
+        when(m_testAsyncCache.values(any(Filter.class), nullable(Comparator.class))).thenThrow(ERROR);
+
+        Comparator                     comparator  = new UniversalExtractor("foo");
+        ByteString                     cmpBytes    = BinaryHelper.toByteString(comparator, SERIALIZER);
+        Filter                         filter      = new EqualsFilter("foo", "bar");
+        ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
+        NamedCacheServiceImpl          service     = new NamedCacheServiceImpl(m_dependencies);
+        TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
+
+        service.values(Requests.values(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes, cmpBytes), observer);
+
+        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        observer.assertNoValues()
+                .assertError(StatusRuntimeException.class);
+
+        Throwable cause = rootCause(observer.getError());
+        cause.printStackTrace();
+        assertThat(cause, is(sameInstance(ERROR)));
+        }
 
     @Test
     public void shouldHandleValuesAsyncError() throws Exception
         {
         CompletableFuture<Map> failed = failedFuture(ERROR);
-        when(m_testAsyncCache.values(any(Filter.class), nullable(Comparator.class))).thenReturn(failed);
+        when(m_testAsyncCache.values(any(Filter.class), any(Consumer.class))).thenReturn(failed);
 
         Filter                         filter      = new EqualsFilter("foo", "bar");
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
@@ -1548,6 +1572,29 @@ class NamedCacheServiceImplTest
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
 
         service.values(Requests.values(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes), observer);
+
+        assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+        observer.assertNoValues()
+                .assertError(StatusRuntimeException.class);
+
+        Throwable cause = rootCause(observer.getError());
+        assertThat(cause, is(sameInstance(ERROR)));
+        }
+
+    @Test
+    public void shouldHandleValuesWithComparatorAsyncError() throws Exception
+        {
+        CompletableFuture<Map> failed = failedFuture(ERROR);
+        when(m_testAsyncCache.values(any(Filter.class), nullable(Comparator.class))).thenReturn(failed);
+
+        Comparator                     comparator  = new UniversalExtractor("foo");
+        ByteString                     cmpBytes    = BinaryHelper.toByteString(comparator, SERIALIZER);
+        Filter                         filter      = new EqualsFilter("foo", "bar");
+        ByteString                     filterBytes = BinaryHelper.toByteString(filter, SERIALIZER);
+        NamedCacheServiceImpl          service     = new NamedCacheServiceImpl(m_dependencies);
+        TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
+
+        service.values(Requests.values(GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, filterBytes, cmpBytes), observer);
 
         assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
         observer.assertNoValues()

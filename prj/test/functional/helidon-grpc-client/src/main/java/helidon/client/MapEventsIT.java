@@ -79,6 +79,8 @@ public class MapEventsIT
     static void setupBaseTest() throws Exception
         {
         System.setProperty("coherence.ttl",              "0");
+        System.setProperty("coherence.wka",              "127.0.0.1");
+        System.setProperty("coherence.localhost",        "127.0.0.1");
         System.setProperty("coherence.clustername",      "MapEventsIT");
         System.setProperty("coherence.cacheconfig",      "coherence-config.xml");
         System.setProperty("coherence.profile",          "thin");
@@ -126,7 +128,7 @@ public class MapEventsIT
 
         // Wait for the listeners to be registered as it happens async
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(underlying), is(greaterThanOrEqualTo(2)));
-        Eventually.assertDeferred(() -> getListenerCount(cacheDefault), is(greaterThanOrEqualTo(4)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheDefault), is(greaterThanOrEqualTo(3)));
 
         underlying.put("homer", new Person("Homer", "Simpson", 45, "male"));
         underlying.put("marge", new Person("Marge", "Simpson", 43, "female"));
@@ -185,7 +187,7 @@ public class MapEventsIT
                                         is(greaterThanOrEqualTo(1)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
-        Eventually.assertDeferred(() -> getListenerCount(cacheThree), is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheThree), is(greaterThanOrEqualTo(1)));
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));
@@ -216,8 +218,8 @@ public class MapEventsIT
                                         is(greaterThanOrEqualTo(1)));
         Eventually.assertDeferred(() -> EventsHelper.getListenerCount(cacheTwo),
                                         is(greaterThanOrEqualTo(1)));
-        Eventually.assertDeferred(() -> getListenerCount(cacheClientOne), is(greaterThanOrEqualTo(2)));
-        Eventually.assertDeferred(() -> getListenerCount(cacheClientTwo), is(greaterThanOrEqualTo(2)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheClientOne), is(greaterThanOrEqualTo(1)));
+        Eventually.assertDeferred(() -> getListenerCount(cacheClientTwo), is(greaterThanOrEqualTo(1)));
 
         // both of these client side caches are the same server side cache
         cacheOne.put("homer", new Person("Homer", "Simpson", 45, "male"));

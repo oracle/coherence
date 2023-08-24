@@ -21,6 +21,7 @@ import com.oracle.coherence.grpc.MapListenerResponse;
 import com.oracle.coherence.grpc.MapListenerSubscribedResponse;
 import com.oracle.coherence.grpc.MapListenerUnsubscribedResponse;
 
+import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.tangosol.coherence.component.net.message.MapEventMessage;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
@@ -53,6 +54,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A class to encapsulate bidirectional streaming of map events for a single cache.
@@ -78,7 +81,7 @@ public class MapListenerProxy
     public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
         {
         f_service              = service;
-        f_observer             = observer;
+        f_observer             = (SafeStreamObserver<MapListenerResponse>) SafeStreamObserver.ensureSafeObserver(observer);
         f_mapFilter            = new SegmentedConcurrentMap();
         f_mapKeys              = new SegmentedConcurrentMap();
         f_setKeys              = new HashSet<>();
@@ -88,8 +91,9 @@ public class MapListenerProxy
     // ----- StreamObserver methods -----------------------------------------
 
     @Override
-    public synchronized void onNext(MapListenerRequest request)
+    public void onNext(MapListenerRequest request)
         {
+        f_lock.lock();
         try
             {
             if (m_holder == null)
@@ -156,28 +160,39 @@ public class MapListenerProxy
             Logger.err(t);
             f_observer.onNext(MapListenerResponse.newBuilder().setError(error(request.getUid(), t)).build());
             }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     @Override
-    public synchronized void onError(Throwable throwable)
+    public void onError(Throwable throwable)
         {
-        boolean fClientCancel = throwable instanceof StatusRuntimeException
-                && ((StatusRuntimeException) throwable).getStatus().getCode() == Status.Code.CANCELLED;
-
-        if (!fClientCancel)
-            {
-            // only log the error if it was not due to the client cancelling the stream
-            Logger.err("Error received in MapListenerProxy onError");
-            Logger.err(throwable);
-            }
-
+        f_lock.lock();
         try
             {
-            removeAllListeners();
+            boolean fClientCancel = throwable instanceof StatusRuntimeException
+                    && ((StatusRuntimeException) throwable).getStatus().getCode() == Status.Code.CANCELLED;
+
+            if (!fClientCancel)
+                {
+                // only log the error if it was not due to the client cancelling the stream
+                Logger.err("Error received in MapListenerProxy onError");
+                Logger.err(throwable);
+                }
+            try
+                {
+                removeAllListeners();
+                }
+            catch (Throwable t)
+                {
+                // ignored - we already have errors.
+                }
             }
-        catch (Throwable t)
+        finally
             {
-            // ignored - we already have errors.
+            f_lock.unlock();
             }
         }
 
@@ -186,7 +201,8 @@ public class MapListenerProxy
         {
         if (!m_fCompleted)
             {
-            synchronized (this)
+            f_lock.lock();
+            try
                 {
                 if (!m_fCompleted)
                     {
@@ -195,6 +211,10 @@ public class MapListenerProxy
                     f_observer.onCompleted();
                     m_holder = null;
                     }
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
         }
@@ -617,12 +637,17 @@ public class MapListenerProxy
         {
         if (m_primingListener == null)
             {
-            synchronized (this)
+            f_lock.lock();
+            try
                 {
                 if (m_primingListener == null)
                     {
                     m_primingListener = new WrapperPrimingListener(this);
                     }
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
         return m_primingListener;
@@ -1037,7 +1062,7 @@ public class MapListenerProxy
     /**
      * The {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent} instances to.
      */
-    protected final StreamObserver<MapListenerResponse> f_observer;
+    protected final SafeStreamObserver<MapListenerResponse> f_observer;
 
     /**
      * The map of {@link Filter Filters} that this {@link MapListenerProxy} was registered with.
@@ -1070,4 +1095,6 @@ public class MapListenerProxy
      * event containing the current value to the requesting client.
      */
     protected volatile WrapperPrimingListener m_primingListener;
+
+    private final Lock f_lock = new ReentrantLock();
     }

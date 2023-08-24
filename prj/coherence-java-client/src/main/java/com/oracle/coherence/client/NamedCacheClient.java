@@ -25,6 +25,8 @@ import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Implementation of a {@link NamedCache}
@@ -72,8 +74,8 @@ public class NamedCacheClient<K, V>
         {
         return "NamedCacheClient{"
                + "scope: \"" + f_asyncClient.getScopeName() + '"'
-               + "name: \"" + f_asyncClient.getCacheName() + '"'
-               + " format: \"" + f_asyncClient.getFormat() + '"'
+               + ", name: \"" + f_asyncClient.getCacheName() + '"'
+               + ", format: \"" + f_asyncClient.getFormat() + '"'
                + '}';
         }
 
@@ -105,7 +107,8 @@ public class NamedCacheClient<K, V>
     public void addMapListener(MapListener<? super K, ? super V> mapListener, Filter filter, boolean lite)
         {
         f_asyncClient.assertActive();
-        handleCompletableFuture(f_asyncClient.addMapListener(mapListener, filter, lite));
+        CompletableFuture<Void> future = f_asyncClient.addMapListener(mapListener, filter, lite);
+        handleCompletableFuture(future);
         }
 
     @Override
@@ -432,8 +435,17 @@ public class NamedCacheClient<K, V>
 
     protected <T> T handleCompletableFuture(CompletableFuture<T> future)
         {
+        return handleCompletableFuture(future, -1L);
+        }
+
+    protected <T> T handleCompletableFuture(CompletableFuture<T> future, long cTimeoutMillis)
+        {
         try
             {
+            if (cTimeoutMillis > 0)
+                {
+                return future.get(cTimeoutMillis, TimeUnit.MILLISECONDS);
+                }
             return future.get();
             }
         catch (ExecutionException e)
@@ -445,7 +457,7 @@ public class NamedCacheClient<K, V>
                 }
             throw new RequestIncompleteException(e);
             }
-        catch (InterruptedException e)
+        catch (TimeoutException | InterruptedException e)
             {
             throw new RequestIncompleteException(e);
             }

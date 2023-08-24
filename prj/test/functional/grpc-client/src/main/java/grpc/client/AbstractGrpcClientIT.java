@@ -83,6 +83,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -145,7 +146,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldThrowException(String sSerializerName, Serializer serializer)
         {
-        String     cacheName = "test-cache";
+        String     cacheName = createCacheName();
         NamedCache cache     = ensureCache(cacheName);
 
         cache.clear();
@@ -163,7 +164,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldClearEmptyCache(String sSerializerName, Serializer serializer)
         {
-        String     cacheName = "test-cache";
+        String     cacheName = createCacheName();
         NamedCache cache     = ensureCache(cacheName);
 
         cache.clear();
@@ -178,7 +179,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldBeReady(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName  = "test-cache";
+        String                     cacheName  = createCacheName();
         NamedCache                 cache      = ensureCache(cacheName);
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
@@ -189,7 +190,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldClearPopulatedCache(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
 
         clearAndPopulate(cache, 10);
@@ -197,7 +198,7 @@ abstract class AbstractGrpcClientIT
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
         grpcClient.clear();
 
-        assertThat(cache.isEmpty(), is(true));
+        Eventually.assertDeferred(cache::isEmpty, is(true));
         }
 
 
@@ -205,7 +206,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnTrueForContainsKeyWithExistingMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
 
         clearAndPopulate(cache, 5);
@@ -221,7 +222,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnFalseForContainsKeyWithNonExistentMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -235,7 +236,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldContainValueWhenValuePresent(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 3);
 
@@ -248,7 +249,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldContainValueWhenValuePresentMultipleTimes(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.put("key-1", "value-1");
         cache.put("key-2", "value-2");
@@ -264,7 +265,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldNotContainValueWhenMappingNotPresent(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 3);
 
@@ -278,7 +279,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldDestroyCache(String sSerializerName, Serializer serializer)
         {
-        String                          cacheName   = "test-cache";
+        String                          cacheName   = createCacheName();
         NamedCache<String, String>      cache       = ensureCache(cacheName);
         DeactivationListener            listener    = mock(DeactivationListener.class);
         NamedCache<String, String>      grpcCache   = createClient(cacheName, sSerializerName, serializer);
@@ -304,7 +305,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldReleaseCache(String sSerializerName, Serializer serializer)
         {
-        String     cacheName = "test-cache";
+        String     cacheName = createCacheName();
         NamedCache cache     = ensureCache(cacheName);
 
         DeactivationListener<AsyncNamedCache<? super String, ? super String>> listener = mock(DeactivationListener.class);
@@ -333,7 +334,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetExistingKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -346,7 +347,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetExistingKeyMappedToNull(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
         cache.put("key-2", null);
@@ -360,7 +361,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetNonExistentKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -374,7 +375,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetOrDefaultForExistingKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -387,7 +388,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetOrDefaultForExistingKeyMappedToNull(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
         cache.put("key-2", null);
@@ -401,7 +402,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetOrDefaultForNonExistentKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -415,7 +416,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetAllForEmptyKeyCollection(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -426,7 +427,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetAllWhenNoKeysMatch(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 4);
 
@@ -439,7 +440,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetAllWhenAllKeysMatch(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 4);
 
@@ -452,7 +453,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetAllWhenAllSomeKeysMatch(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 4);
 
@@ -475,7 +476,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldBeEmpty(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -488,7 +489,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldNotBeEmpty(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 10);
 
@@ -502,7 +503,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldInsertNewEntry(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -517,7 +518,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldInsertNewEntryWithExpiry(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -537,7 +538,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldUpdateEntry(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -553,7 +554,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldUpdateEntryPreviouslyMappedToNull(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", null);
@@ -569,7 +570,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldUpdateEntryWithNullValue(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -586,7 +587,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldPutIfAbsentForNonExistentKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -601,7 +602,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldPutIfAbsentForExistingKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -617,7 +618,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldPutIfAbsentForExistingKeyMappedToNullValue(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", null);
@@ -634,7 +635,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldPutAllEntries(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -676,7 +677,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldPutAllWithZeroEntries(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -692,7 +693,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldRemoveOnNonExistentEntry(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         int                        count     = 10;
         clearAndPopulate(cache, count);
@@ -707,7 +708,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnPreviousValueForRemoveOnExistingMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         int                        count     = 10;
         clearAndPopulate(cache, count);
@@ -724,7 +725,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnFalseForRemoveMappingOnNonExistentKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -737,7 +738,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnFalseForRemoveMappingOnNonMatchingMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -752,7 +753,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnTrueForRemoveMappingOnMatchingMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -768,7 +769,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnNullValueForReplaceOnNonExistentMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -782,7 +783,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnNonNullForReplaceOnExistentMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -797,7 +798,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnFalseForReplaceMappingOnNonExistentKey(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -811,7 +812,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnFalseForReplaceMappingOnNonMatchingMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -826,7 +827,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnTrueForReplaceMappingOnMatchingMapping(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -841,7 +842,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReplaceAllWithKeySet(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -865,7 +866,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReplaceAllWithFilter(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -894,7 +895,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetSizeOfEmptyCache(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -907,7 +908,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldGetSizeOfPopulatedCache(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 10);
 
@@ -921,7 +922,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldTruncate(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
 
@@ -935,7 +936,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnKeySetWithFilter(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -959,7 +960,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldReturnEntrySetWithFilter(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -984,7 +985,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldComputeAndUpdateEntry(String sSerializerName, Serializer serializer)
         {
-        String                      cacheName = "test-cache";
+        String                      cacheName = createCacheName();
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("k1", 1);
@@ -1006,7 +1007,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallInvoke(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-cache";
+        String                     cacheName = createCacheName();
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         String key    = "bb";
@@ -1029,7 +1030,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallInvokeAllWithFilter(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1055,7 +1056,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallInvokeAllWithAlwaysFilter(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1081,7 +1082,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallInvokeAllWithKeys(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1109,7 +1110,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithFilterExpectingSingleResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1135,7 +1136,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithFilterMatchingNoEntriesExpectingSingleResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1160,7 +1161,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithKeysExpectingSingleResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1187,7 +1188,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithKeysMatchingNoEntriesExpectingSingleResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1213,7 +1214,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithNoKeysOrFilterExpectingSingleResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1237,7 +1238,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithFilterExpectingMapResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1267,7 +1268,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallAggregateWithKeysExpectingMapResult(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1296,7 +1297,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallValuesWithFilterWhenSomeEntriesMatch(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1321,7 +1322,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallValuesWithFilterWhenAllEntriesMatch(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1346,7 +1347,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldCallValuesWithFilterWhenNoEntriesMatch(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "people";
+        String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -1372,7 +1373,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldCallValuesWithFilterAndComparatorWhenSomeEntriesMatch(String sSerializerName, Serializer serializer)
         {
-        String                      cacheName = "numbers";
+        String                      cacheName = createCacheName("numbers");
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -1397,7 +1398,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldCallValuesWithFilterAndComparatorWhenAllEntriesMatch(String sSerializerName, Serializer serializer)
         {
-        String                      cacheName = "numbers";
+        String                      cacheName = createCacheName("numbers");
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -1422,7 +1423,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldCallValuesWithFilterAndComparatorWhenNoEntriesMatch(String sSerializerName, Serializer serializer)
         {
-        String                      cacheName = "numbers";
+        String                      cacheName = createCacheName("numbers");
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -1502,7 +1503,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForMultipleKeys(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1525,7 +1526,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldSubscribeToEventsForAllKeys(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1617,7 +1618,7 @@ abstract class AbstractGrpcClientIT
     @Disabled
     void shouldSubscribeToEventsForKeyAndFilter(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                      cacheName = "test-events-" + System.currentTimeMillis();
+        String                      cacheName = createCacheName("test-events");
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1665,7 +1666,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldReceiveDeactivationEvent(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1684,13 +1685,13 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldReceiveTruncateEvent(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("foo", "bar");
 
-        TestDeactivationListener         listener = new TestDeactivationListener(1);
-        NamedCache<String, String> grpcClient  = createClient(cacheName, sSerializerName, serializer);
+        TestDeactivationListener   listener   = new TestDeactivationListener(1);
+        NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
         grpcClient.addMapListener(listener);
 
         cache.truncate();
@@ -1704,7 +1705,7 @@ abstract class AbstractGrpcClientIT
     @SuppressWarnings("unchecked")
     void shouldReceiveTruncateAndDeactivationEvent(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "val-1");
@@ -1734,7 +1735,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldAddPrimingListenerForExistingKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
         cache.put("key-1", "val-1");
@@ -1770,7 +1771,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldAddPrimingListenerForNonExistingKey(String sSerializerName, Serializer serializer) throws Exception
         {
-        String                     cacheName = "test-events-" + System.currentTimeMillis();  // make cache name unique
+        String                     cacheName = createCacheName("test-events");
         NamedCache<String, String> cache     = ensureCache(cacheName);
         cache.clear();
 
@@ -1800,7 +1801,7 @@ abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     void shouldAddMapTrigger(String sSerializerName, Serializer serializer)
         {
-        String                     cacheName = "test-trigger";
+        String                     cacheName = createCacheName("test-trigger");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
 
         MapTriggerListener listener = new MapTriggerListener(new PersonMapTrigger());
@@ -1825,6 +1826,15 @@ abstract class AbstractGrpcClientIT
 
     // ----- helper methods -------------------------------------------------
 
+    protected String createCacheName()
+        {
+        return createCacheName("test-cache-");  
+        }
+
+    protected String createCacheName(String sPrefix)
+        {
+        return sPrefix + "-" + f_cacheId.getAndIncrement(); 
+        }
 
     protected abstract <K, V> NamedCache<K, V> createClient(String sCacheName, String sSerializerName, Serializer serializer);
 
@@ -2113,6 +2123,8 @@ abstract class AbstractGrpcClientIT
         }
 
     // ----- data members ---------------------------------------------------
+
+    protected static final AtomicLong f_cacheId = new AtomicLong(0L);
 
     protected final String f_sScopeName;
 
