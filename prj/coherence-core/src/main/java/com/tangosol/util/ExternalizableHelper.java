@@ -466,19 +466,23 @@ public abstract class ExternalizableHelper
         {
         loader = ensureClassLoader(loader);
 
-        Map map = s_mapSerializerByClassLoader;
-        Serializer serializer = (Serializer) map.get(loader);
+        return s_mapSerializerByClassLoader.computeIfAbsent(loader, ExternalizableHelper::createDefaultSerializer);
+        }
 
-        if (serializer == null)
-            {
-            serializer = USE_POF_STREAMS && loader != NullImplementation.getClassLoader()
-                ? new ConfigurablePofContext()
-                : new DefaultSerializer();
-            ((ClassLoaderAware) serializer).setContextClassLoader(loader);
-            map.put(loader, serializer);
-            }
-
-        return serializer;
+    /**
+     * Create default serializer for the specified ClassLoader.
+     *
+     * @param loader  a ClassLoader
+     *
+     * @return the Serializer to use with the specified ClassLoader
+     */
+    private static Serializer createDefaultSerializer(ClassLoader loader)
+        {
+        Serializer ser = USE_POF_STREAMS && loader != NullImplementation.getClassLoader()
+                         ? new ConfigurablePofContext()
+                         : new DefaultSerializer();
+        ((ClassLoaderAware) ser).setContextClassLoader(loader);
+        return ser;
         }
 
     /**
@@ -3882,14 +3886,14 @@ public abstract class ExternalizableHelper
                 {
                 if (loader != null)
                     {
-                    return Class.forName(sClass, false, loader);
+                    return loader.loadClass(sClass);
                     }
                 }
-            catch (ClassNotFoundException e) {}
+            catch (ClassNotFoundException ignore) {}
             }
 
         // nothing worked; try the current class loader as a last chance
-        return Class.forName(sClass);
+        return ExternalizableHelper.class.getClassLoader().loadClass(sClass);
         }
 
     /**
