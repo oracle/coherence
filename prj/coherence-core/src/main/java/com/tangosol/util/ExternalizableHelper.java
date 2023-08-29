@@ -20,6 +20,8 @@ import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.ExternalizableLiteSerializer;
+import com.tangosol.io.ExternalizableType;
 import com.tangosol.io.InputStreaming;
 import com.tangosol.io.MultiBufferReadBuffer;
 import com.tangosol.io.MultiBufferWriteBuffer;
@@ -2357,6 +2359,11 @@ public abstract class ExternalizableHelper
 
     /**
      * Read an ExternalizableLite object from a DataInput stream.
+     * <p>
+     * If the class of the object in the DataInput stream is an {@link ExternalizableLite} class
+     * annotated with {@link ExternalizableType}, use the specified serializer's
+     * {@link ExternalizableLiteSerializer#deserialize(DataInput) deserialize method} to
+     * deserialize the object from the DataInput stream.
      *
      * @param in      a DataInput stream to read from
      * @param loader  the ClassLoader to use
@@ -2368,7 +2375,7 @@ public abstract class ExternalizableHelper
     public static ExternalizableLite readExternalizableLite(DataInput in, ClassLoader loader)
             throws IOException
         {
-        ExternalizableLite value;
+        ExternalizableLite value = null;
 
         if (in instanceof PofInputStream)
             {
@@ -2376,6 +2383,9 @@ public abstract class ExternalizableHelper
             }
         else
             {
+            Class<?>           clz  = null;
+            ExternalizableType type = null;
+
             // instantiate the object
             String sClass = readUTF(in);
 
@@ -2383,11 +2393,22 @@ public abstract class ExternalizableHelper
                     ? (WrapperDataInputStream) in : null;
             try
                 {
-                Class<?> clz = loadClass(sClass, loader,
+                clz = loadClass(sClass, loader,
                         inWrapper == null ? null : inWrapper.getClassLoader());
 
                 validateLoadClass(clz, in);
-                value = (ExternalizableLite) clz.newInstance();
+
+                // check for class annotation for ExternalizableLiteSerializer
+                type = clz.getAnnotation(ExternalizableType.class);
+                if (type == null || type.serializer() == null)
+                    {
+                    value = (ExternalizableLite) clz.newInstance();
+                    }
+                else
+                    {
+                    // instance allocated by serializer deserialize
+                    value = null;
+                    }
                 }
             catch (InstantiationException e)
                 {
@@ -2422,7 +2443,34 @@ public abstract class ExternalizableHelper
                     }
                 }
 
-            value.readExternal(in);
+            if (value != null)
+                {
+                value.readExternal(in);
+                }
+            else
+                {
+                try
+                    {
+                    value = (ExternalizableLite) type.serializer().newInstance().deserialize(in);
+                    if (value != null && value.getClass() != clz)
+                        {
+                        // deserialize returned an instance that is not same as previously validated load class.
+                        // validate the class of the value returned by deserializer against the ObjectInputFilter.
+                        // same JEP 290 logic as applied by method #safeRealize(...).
+                        validateLoadClass(value.getClass(), in);
+                        }
+                    }
+                catch (Exception e)
+                    {
+                    throw new IOException(
+                            "Class initialization failed: " + e +
+                            "\n" + getStackTrace(e) +
+                            "\nClass: " + sClass +
+                            "\nExternalizableLiteSerializer class: " + type.serializer().getName() +
+                            "\nClassLoader: " + loader +
+                            "\nContextClassLoader: " + getContextClassLoader(), e);
+                    }
+                }
             if (value instanceof SerializerAware)
                 {
                 ((SerializerAware) value).setContextSerializer(ensureSerializer(loader));
@@ -2474,6 +2522,12 @@ public abstract class ExternalizableHelper
     /**
      * Write an ExternalizableLite object to a DataOutput stream.
      *
+     * <p>
+     * If the class of parameter <code>o</code> is annotated with {@link ExternalizableType},
+     * use the specified serializer's
+      {@link ExternalizableLiteSerializer#serialize(DataOutput, Object) serialize method} to
+     * write <code>o</code> into the DataOutput stream.
+     *
      * @param out  a DataOutput stream to write to
      * @param o    an ExternalizableLite value to write
      *
@@ -2489,8 +2543,29 @@ public abstract class ExternalizableHelper
             }
         else
             {
-            writeUTF(out, o.getClass().getName());
-            o.writeExternal(out);
+            Class              clz  = o.getClass();
+            ExternalizableType type = (ExternalizableType) clz.getAnnotation(ExternalizableType.class);
+
+            writeUTF(out, clz.getName());
+            if (type == null || type.serializer() == null)
+                {
+                o.writeExternal(out);
+                }
+            else
+                {
+                try
+                    {
+                    type.serializer().newInstance().serialize(out, o);
+                    }
+                catch (InstantiationException e)
+                    {
+                    throw new IOException(e);
+                    }
+                catch (IllegalAccessException e)
+                    {
+                    throw new IOException(e);
+                    }
+                }
             }
         }
 

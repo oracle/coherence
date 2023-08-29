@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -57,7 +57,8 @@ public interface ExternalizableLite
     * @exception NotActiveException  if the object is not in its initial
     *            state, and therefore cannot be deserialized into
     */
-    public void readExternal(DataInput in) throws IOException;
+    default public void readExternal(DataInput in) throws IOException
+        {}
 
     /**
     * Save the contents of this object by storing the object's state into
@@ -67,5 +68,6 @@ public interface ExternalizableLite
     *
     * @exception IOException if an I/O exception occurs
     */
-    public void writeExternal(DataOutput out) throws IOException;
+    default public void writeExternal(DataOutput out) throws IOException
+        {}
     }

@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ExternalizableLiteSerializer;
+import com.tangosol.io.ExternalizableType;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 
@@ -660,6 +662,20 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         testExternalizableLiteObjectInputFilter(true, false, 500000 );
         }
 
+    @Test
+    public void testExternalizableType() throws IOException
+        {
+        Point point = new Point(5, 10);
+        ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+        ExternalizableHelper.writeObject(wb.getBufferOutput(), point);
+
+        ByteArrayReadBuffer inRaw = new ByteArrayReadBuffer(wb.toByteArray());
+        ReadBuffer.BufferInput in = inRaw.getBufferInput();
+
+        assertEquals(point, ExternalizableHelper.readObject(in, null));
+        }
+
     /**
      * Test deserialization filter on {@link ReadBuffer.BufferInput}.
      */
@@ -1129,6 +1145,91 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         long lStop = System.currentTimeMillis();
         long lElapsed = lStop - ldtStart;
         out(sDescription + " (" + lElapsed + "ms)");
+        }
+
+    // ----- inner class: PointNotSerializable -------------------------------
+
+    /**
+     * Not serializable class without public setters, only public constructor to set object state.
+     */
+    static public class PointNotSerializable
+        {
+        public PointNotSerializable(int nX, int nY)
+            {
+            m_nX = nX;
+            m_nY = nY;
+            }
+
+        public int getX()
+            {
+            return m_nX;
+            }
+
+        public int getY()
+            {
+            return m_nY;
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (o instanceof PointNotSerializable)
+                {
+                PointNotSerializable p = (PointNotSerializable) o;
+                return m_nX == p.getX() && m_nY == p.getY();
+                }
+            return false;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return m_nX + m_nY;
+            }
+
+        @Override
+        public String toString()
+            {
+            return "Point[x=" + m_nX + ", y=" + m_nY + "]";
+            }
+
+        private int m_nX;
+        private int m_nY;
+        }
+
+    // ----- inner class: Point ----------------------------------------------
+
+    /**
+     * Add ExternalizableLite to a superclass without public setters.
+     */
+    @ExternalizableType(serializer = Point.Serializer.class)
+    static public class Point
+            extends PointNotSerializable
+            implements ExternalizableLite
+        {
+        public Point(int nX, int nY)
+            {
+            super(nX, nY);
+            }
+
+        static public class Serializer
+                implements ExternalizableLiteSerializer<Point>
+            {
+            public Point deserialize(DataInput in) throws IOException
+                {
+                int nX = in.readInt();
+                int nY = in.readInt();
+
+                return new Point(nX, nY);
+                }
+
+            public void serialize(DataOutput out, Point value)
+                    throws IOException
+                {
+                out.writeInt(value.getX());
+                out.writeInt(value.getY());
+                }
+            }
         }
 
     // ----- constants ----------------------- -------------------------------
