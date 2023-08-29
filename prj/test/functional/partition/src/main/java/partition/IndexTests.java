@@ -153,7 +153,8 @@ public class IndexTests
             {
             for (int i = 0; i < 257; i++)
                 {
-                keySizes += ((Set<Binary>) getPartitionedIndexMap(cache, i).get(extractor).getIndexContents().get(k)).stream().mapToLong(Binary::length).sum();
+                Set<Binary> setKeys = (Set<Binary>) getPartitionedIndexMap(cache, i).get(extractor).getIndexContents().get(k);
+                keySizes += setKeys == null ? 0 : setKeys.stream().mapToLong(Binary::length).sum();
                 }
             }
 
