@@ -20,6 +20,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.TimeHelper;
 import com.oracle.coherence.common.base.Timeout;
 import com.tangosol.coherence.component.net.Message;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
 import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
@@ -27,6 +28,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
+import com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -49,18 +51,23 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ListMap;
+import com.tangosol.util.LiteSet;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.TaskDaemon;
+import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * See PartitionedCacheService.doc in the main depot
@@ -1597,7 +1604,48 @@ public class PagedTopic
         
         setChannelAllocationStrategy(new SimpleChannelAllocationStrategy());
         }
-    
+
+    @Override
+    public void onOwnershipSeniority(com.tangosol.coherence.component.net.Member memberPreviousSenior)
+        {
+        super.onOwnershipSeniority(memberPreviousSenior);
+        cleanupSubscribers();
+        }
+
+    @Override
+    public void onNotifyServiceLeft(Member member)
+        {
+        super.onNotifyServiceLeft(member);
+        cleanupSubscribers();
+        }
+
+    /**
+     * Clean up any left-over subscribers.
+     * <p/>
+     * If this member is not the service senior this is a no-op.
+     */
+    public void cleanupSubscribers()
+        {
+        Member memberThis        = getThisMember();
+        Member memberCoordinator = getServiceOldestMember();
+
+        if (memberThis == memberCoordinator)
+            {
+            getDaemonPool().add(() ->
+                {
+                try
+                    {
+                    CleanupSubscribers processor = new CleanupSubscribers();
+                    processor.execute(this);
+                    }
+                catch (Throwable t)
+                    {
+                    Logger.err(t);
+                    }
+                });
+            }
+        }
+
     // Declared at the super level
     /**
      * The default implementation of this method sets AcceptingClients to true.
