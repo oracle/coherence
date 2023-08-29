@@ -203,8 +203,10 @@ public class PagedTopicSubscriber<V>
         f_taskReconnect = new ReconnectTask(this);
 
         f_daemon = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":" + f_id.getId());
-        f_daemon.start();
+        f_executor       = f_daemon::executeTask;
         f_daemonChannels = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":Channels:" + f_id.getId());
+        f_executorChannels = f_daemonChannels::executeTask;
+        f_daemon.start();
         f_daemonChannels.start();
 
         long cBacklog = cluster.getDependencies().getPublisherCloggedCount();
@@ -2106,7 +2108,7 @@ public class PagedTopicSubscriber<V>
      */
     private void onChannelPopulatedNotification(MapEvent<?, ?> evt)
         {
-        CompletableFuture.runAsync(() -> onChannelPopulatedNotification((int[]) evt.getOldValue()));
+        CompletableFuture.runAsync(() -> onChannelPopulatedNotification((int[]) evt.getOldValue()), f_executorChannels);
         }
 
     /**
@@ -4068,7 +4070,7 @@ public class PagedTopicSubscriber<V>
             Logger.finest("Detected destroy of topic "
                                 + m_caches.getTopicName() + ", closing subscriber "
                                 + PagedTopicSubscriber.this);
-            CompletableFuture.runAsync(() -> closeInternal(true));
+            CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
             }
 
         @Override
@@ -4077,7 +4079,7 @@ public class PagedTopicSubscriber<V>
             Logger.finest("Detected release of topic "
                                 + m_caches.getTopicName() + ", closing subscriber "
                                 + PagedTopicSubscriber.this);
-            CompletableFuture.runAsync(() -> closeInternal(true));
+            CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
             }
         }
 
@@ -4100,7 +4102,7 @@ public class PagedTopicSubscriber<V>
                 Logger.finest("Detected removal of subscriber group "
                                     + f_subscriberGroupId.getGroupName() + ", closing subscriber "
                                     + PagedTopicSubscriber.this);
-                CompletableFuture.runAsync(() -> closeInternal(true));
+                CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
                 }
             }
         }
@@ -4587,9 +4589,19 @@ public class PagedTopicSubscriber<V>
     protected final TaskDaemon f_daemon;
 
     /**
+     * The {@link Executor} to execute async operations (this will wrap {@link #f_daemon}).
+     */
+    private final Executor f_executor;
+
+    /**
      * The daemon used to execute subscriber channel allocation changes.
      */
     protected final TaskDaemon f_daemonChannels;
+
+    /**
+     * The {@link Executor} to execute channel operations (this will wrap {@link #f_daemonChannels}).
+     */
+    private final Executor f_executorChannels;
 
     /**
      * The listener that receives notifications for non-empty channels.

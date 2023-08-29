@@ -60,6 +60,7 @@ import java.util.Objects;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -134,7 +135,8 @@ public class PagedTopicPublisher<V>
         dependencies.setThreadCount(1);
         dependencies.setThreadCountMax(Integer.MAX_VALUE);
 
-        f_daemon = Daemons.newDaemonPool(dependencies);
+        f_daemon   = Daemons.newDaemonPool(dependencies);
+        f_executor = f_daemon::add;
         f_daemon.start();
 
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
@@ -188,7 +190,7 @@ public class PagedTopicPublisher<V>
                 PagedTopicChannelPublisher channelPublisher = ensureChannelPublisher(value);
                 CompletableFuture<Status>  future           = channelPublisher.publish(f_convValueToBinary.convert(value));
 
-                future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()));
+                future.handleAsync((status, error) -> handlePublished(channelPublisher.getChannel()), f_executor);
 
                 return future;
                 }
@@ -1013,6 +1015,12 @@ public class PagedTopicPublisher<V>
      * The {@link DaemonPool} used to complete published message futures so that they are not on the service thread.
      */
     private final DaemonPool f_daemon;
+
+    /**
+     * The {@link Executor} used to complete async operations (this will wrap {@link #f_daemon}).
+     */
+    private final Executor f_executor;
+
 
     /**
      * A unique identifier for this publisher.
