@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,12 +9,16 @@ package topics;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
 
+import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -58,6 +62,10 @@ public class TopicSubscribeCleanupTests
         {
         System.setProperty(LocalStorage.PROPERTY, "true");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.cluster", "TopicSubscribeCleanupTests");
 
         s_coherence = Coherence.clusterMember();
         s_coherence.start().join();
@@ -94,12 +102,17 @@ public class TopicSubscribeCleanupTests
         }
 
     @Test
-    public void shouldCloseSubscribersOnMemberDeparture()
+    public void shouldCloseSubscribersOnMemberDeparture() throws Exception
         {
         LocalPlatform platform = LocalPlatform.get();
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                                                         LocalStorage.enabled(),
+                                                        WellKnownAddress.loopback(),
+                                                        LocalHost.only(),
                                                         ClassName.of(Coherence.class),
+                                                        ClusterName.of("TopicSubscribeCleanupTests"),
+                                                        IPv4Preferred.no(),
+                                                        Logging.atMax(),
                                                         s_testLogs.builder()))
             {
             NamedTopic<String> topic   = s_session.getTopic(f_testName.getMethodName());
@@ -117,6 +130,10 @@ public class TopicSubscribeCleanupTests
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(cChannel));
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
 
+                System.err.println("***** Subscriber has all channels");
+                System.err.println("***** " + subscriberOne);
+
+                System.err.println("***** Creating subscribers on member " + member.getLocalMemberId());
                 // create some more subscribers on the remote member
                 int cExistingSubscriber = caches.Subscribers.size();
                 int cNewSubscriber      = member.invoke(new CreateSubscriber(topic.getName()));
@@ -127,11 +144,18 @@ public class TopicSubscribeCleanupTests
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(not(cChannel)));
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(cSubscriber));
 
+                Thread.sleep(5000);
+                System.err.println("***** Subscriber channels reallocated");
+                System.err.println("***** " + subscriberOne);
+
+                System.err.println("***** Closing member " + member.getLocalMemberId());
                 // close the remote member, which should trigger subscriber clean-up
                 member.close();
 
                 // Eventually there will just be the local subscriber owning all channels
+                System.err.println("Waiting for only one subscriber");
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
+                System.err.println("Waiting for subscriber to have all channels");
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(cChannel));
                 }
             }
@@ -151,12 +175,17 @@ public class TopicSubscribeCleanupTests
         @Override
         public Integer call()
             {
+            System.err.println("***** Creating subscribers on topic " + f_sTopicName);
             Session            session = Coherence.getInstance().getSession();
             NamedTopic<String> topic   = session.getTopic(f_sTopicName);
             topic.createSubscriber(inGroup("group-one"));
+            System.err.println("***** Created first subscriber on topic " + f_sTopicName + " group-one");
             topic.createSubscriber(inGroup("group-one"));
+            System.err.println("***** Created second subscriber on topic " + f_sTopicName + " group-one");
             topic.createSubscriber(inGroup("group-two"));
+            System.err.println("***** Created first subscriber on topic " + f_sTopicName + " group-two");
             topic.createSubscriber(inGroup("group-two"));
+            System.err.println("***** Created second subscriber on topic " + f_sTopicName + " group-two");
             return 4;
             }
 
