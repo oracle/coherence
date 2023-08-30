@@ -1,17 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.bdb;
-
-
-import com.tangosol.io.AbstractBinaryStore;
-
-import com.tangosol.util.Base;
-import com.tangosol.util.Binary;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
@@ -21,9 +15,16 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.OperationStatus;
 
+import com.tangosol.io.AbstractBinaryStore;
+
+import com.tangosol.util.Base;
+import com.tangosol.util.Binary;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
 * An implementation of the BinaryStore interface using Sleepycat Berkeley
@@ -104,6 +105,9 @@ public class BerkeleyDBBinaryStore
         DatabaseEntry  dbeValue = new DatabaseEntry();
         DatabaseHolder db       = getDbHolder();
 
+        // COH-27981: temporary fix to ensure single-thread access until
+        //            BDB deadlock issues with virtual threads are fixed.
+        f_lock.lock();
         try
             {
             OperationStatus status = db.getDb().get(null /*tx*/,
@@ -134,6 +138,10 @@ public class BerkeleyDBBinaryStore
             // retry the operation, otherwise raise an exception
             throw Base.ensureRuntimeException(e, "Berkeley DB load operation failed");
             }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
     /**
@@ -151,6 +159,9 @@ public class BerkeleyDBBinaryStore
         DatabaseEntry  dbeValue = new DatabaseEntry(binValue.toByteArray());
         DatabaseHolder db       = getDbHolder();
 
+        // COH-27981: temporary fix to ensure single-thread access until
+        //            BDB deadlock issues with virtual threads are fixed.
+        f_lock.lock();
         try
             {
             OperationStatus status = db.getDb().put(null /*tx*/, dbeKey, dbeValue);
@@ -166,6 +177,10 @@ public class BerkeleyDBBinaryStore
             {
             throw Base.ensureRuntimeException(e, "Berkeley DB store operation failed.");
             }
+        finally
+            {
+            f_lock.unlock();
+            }
         }
 
 
@@ -178,6 +193,10 @@ public class BerkeleyDBBinaryStore
         {
         DatabaseEntry  dbeKey = new DatabaseEntry(binKey.toByteArray());
         DatabaseHolder db     = getDbHolder();
+
+        // COH-27981: temporary fix to ensure single-thread access until
+        //            BDB deadlock issues with virtual threads are fixed.
+        f_lock.lock();
         try
             {
             OperationStatus status = db.getDb().delete(null /*tx*/, dbeKey);
@@ -193,6 +212,10 @@ public class BerkeleyDBBinaryStore
         catch (DatabaseException e)
             {
             throw Base.ensureRuntimeException(e, "Berkeley DB delete operation failed.");
+            }
+        finally
+            {
+            f_lock.unlock();
             }
         }
 
@@ -226,6 +249,10 @@ public class BerkeleyDBBinaryStore
             // persistent databases cannot be deleted by simply swapping
             // the db reference, instead we must do a deletion of
             // all the keys, preserving the current DB reference
+
+            // COH-27981: temporary fix to ensure single-thread access until
+            //            BDB deadlock issues with virtual threads are fixed.
+            f_lock.lock();
             try
                 {
                 DatabaseHolder db     = getDbHolder();
@@ -276,6 +303,10 @@ public class BerkeleyDBBinaryStore
                 {
                 throw Base.ensureRuntimeException(e, "Error while performing eraseAll on Berkeley DB.");
                 }
+            finally
+                {
+                f_lock.unlock();
+                }
             }
         }
 
@@ -289,8 +320,21 @@ public class BerkeleyDBBinaryStore
         try
             {
             final DatabaseHolder db     = getDbHolder();
-            final Cursor         cursor = db.getDb().openCursor(null /*tx*/,
-                                            CursorConfig.READ_UNCOMMITTED);
+            final Cursor         cursor;
+
+            // COH-27981: temporary fix to ensure single-thread access until
+            //            BDB deadlock issues with virtual threads are fixed.
+            f_lock.lock();
+            try
+                {
+                cursor = db.getDb().openCursor(null /*tx*/,
+                           CursorConfig.READ_UNCOMMITTED);
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
+
             // return an Iterator which is based by a DB cursor
             return new Iterator()
                 {
@@ -315,6 +359,9 @@ public class BerkeleyDBBinaryStore
                 private Binary readNext()
                     {
                     byte[] abKey = null;
+                    // COH-27981: temporary fix to ensure single-thread access until
+                    //            BDB deadlock issues with virtual threads are fixed.
+                    f_lock.lock();
                     try
                         {
                         DatabaseEntry dbeKey   = m_dbeKey;
@@ -333,6 +380,10 @@ public class BerkeleyDBBinaryStore
                             }
                         }
                     catch (DatabaseException e)  {}
+                    finally
+                        {
+                        f_lock.unlock();
+                        }
 
                     // on error, or DB change trigger iteration end
                     if (abKey == null || db != getDbHolder())
@@ -344,11 +395,18 @@ public class BerkeleyDBBinaryStore
                     }
                 private void invalidate()
                     {
+                    // COH-27981: temporary fix to ensure single-thread access until
+                    //            BDB deadlock issues with virtual threads are fixed.
+                    f_lock.lock();
                     try
                         {
                         cursor.close();
                         }
                     catch (Throwable e) {}
+                    finally
+                        {
+                        f_lock.unlock();
+                        }
                     }
                 protected void finalize()
                         throws Throwable
@@ -424,6 +482,10 @@ public class BerkeleyDBBinaryStore
     */
     protected DatabaseFactory m_factory;
 
+    /**
+     * The lock to hold during read and write operations.
+     */
+    protected final Lock f_lock = new ReentrantLock();
 
     // ----- inner class: DatabaseHolder ------------------------------------
 

@@ -132,7 +132,7 @@ public class CacheMBeanTests
     /**
      * Test that MBeans report the accurate size for RWBM with overflow cache.
      */
-    //@Test
+    @Test
     public void testRWBMWithOverflowCacheSize()
         {
         validateCacheSize("readwriteoverflow-test", 10000);
