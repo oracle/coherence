@@ -44,4 +44,11 @@ Instrument Portable Types using Gradle.
 Use caching annotations for response caching.
 --
 
+[CARD]
+.Secured Production Mode
+[icon=fa-expeditedssl,link=docs/core/06_secured_production.adoc]
+--
+Run Coherence in secured production mode.
+--
+
 ====
