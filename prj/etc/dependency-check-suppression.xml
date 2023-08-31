@@ -612,9 +612,10 @@
   </suppress>
 
   <!-- suppression for grpc-protobuf-1.56.0.jar and grpc-stub-1.56.0.jar - CVE-2023-33953 -->
+
   <suppress>
     <notes><![CDATA[
-    file name: grpc-protobuf-1.49.2.jar
+    file name: grpc-protobuf-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -623,7 +624,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-stub-1.49.2.jar
+    file name: grpc-stub-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -631,7 +632,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-netty-1.49.2.jar
+    file name: grpc-netty-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -639,7 +640,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-core-1.49.2.jar
+    file name: grpc-core-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-core@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -647,7 +648,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-protobuf-lite-1.49.2.jar
+    file name: grpc-protobuf-lite-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -656,7 +657,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-api-1.49.2.jar
+    file name: grpc-api-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-api@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -664,7 +665,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-context-1.49.2.jar
+    file name: grpc-context-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-context@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
@@ -672,7 +673,7 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-    file name: grpc-services-1.49.2.jar
+    file name: grpc-services-1.56.0.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
