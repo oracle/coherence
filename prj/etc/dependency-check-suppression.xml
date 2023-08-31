@@ -9,6 +9,7 @@
      ]]></notes>
     <packageUrl regex="true">^pkg:maven/jakarta\.resource/jakarta\.resource-api@.*$</packageUrl>
     <cve>CVE-2022-37422</cve>
+    <cve>CVE-2022-45129</cve>
   </suppress>
 
   <!-- Berkeley DB - suppress the CVEs for the C version of BDB; these generate false positives as we only use JE -->
@@ -396,4 +397,153 @@
      <packageUrl regex="true">^pkg:maven/jakarta\.json/jakarta\.json\-api@.*$</packageUrl>
      <cpe>cpe:/a:json-java_project:json-java</cpe>
   </suppress>
+
+  <!-- temporary suppression since  this CVE is in DISPUTED state.
+    We will need to watch this-->
+  <suppress>
+    <notes><![CDATA[
+    file name: jackson-databind-2.14.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+    <cpe>cpe:2.3:a:fasterxml:jackson-databind</cpe>
+    <cpe> cpe:2.3:a:fasterxml:jackson-modules-java8</cpe>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
+
+  <!-- temporary suppression since  this CVE is being analysed -->
+  <suppress>
+    <notes><![CDATA[
+    file name: okio-2.8.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okio/okio@.*$</packageUrl>
+    <cve>CVE-2023-3635</cve>
+  </suppress>
+
+  <!-- COH-28200  -->
+  <suppress>
+    <notes><![CDATA[
+    file name: okhttp-4.9.3.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okhttp3/okhttp@.*$</packageUrl>
+    <cpe>cpe:2.3:a:squareup:okhttp</cpe>
+    <cpe>cpe:2.3:a:squareup:okhttp3</cpe>
+    <cve>CVE-2023-3782</cve>
+  </suppress>
+
+  <!-- The following still comes up after upgrade to
+  Helidon 2.6.2 (BUG 35431662). Hence its excluded-->
+  <suppress>
+    <notes><![CDATA[
+    file name: guava-31.1-jre.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:2.3:a:google:guava</cpe>
+    <cve>CVE-2020-8908</cve>
+    <cve>CVE-2023-2976</cve>
+  </suppress>
+
+  <!-- suppression for graal-sdk-19.3.1.jar CVE scan error -->
+  <suppress>
+    <notes><![CDATA[
+    file name: graal-sdk-19.3.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.graalvm\.sdk/graal\-sdk@.*$</packageUrl>
+    <cve>CVE-2023-22006</cve>
+    <cve>CVE-2023-22049</cve>
+  </suppress>
+
+  <!-- suppression for grpc-protobuf-1.56.0.jar and grpc-stub-1.56.0.jar - CVE-2023-33953 -->
+
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-protobuf-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-stub-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-netty-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-core-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-core@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-protobuf-lite-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-api-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-api@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-context-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-context@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: grpc-services-1.56.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+  </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-core-3.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-core@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:maven</cpe>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-settings-3.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-settings@.*$</packageUrl>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-shared-utils-3.1.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven\.shared/maven\-shared\-utils@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:maven_shared_utils</cpe>
+    <cpe>cpe:2.3:a:utils_project:utils</cpe>
+    <cve>CVE-2022-29599</cve>
+  </suppress>
+
 </suppressions>
