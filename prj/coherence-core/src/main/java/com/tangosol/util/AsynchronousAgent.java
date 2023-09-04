@@ -13,6 +13,7 @@ import com.oracle.coherence.common.base.Timeout;
 
 import com.oracle.coherence.common.util.Duration;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.FlowControl;
 
 import com.tangosol.util.aggregator.AbstractAsynchronousAggregator;
@@ -224,7 +225,7 @@ public abstract class AsynchronousAgent<T>
                     }
                 else
                     {
-                    future.completeAsync(supplier)
+                    future.completeAsync(supplier, Daemons.commonPool())
                             .whenComplete((r, e) ->
                                 {
                                 m_fCompleted = true;
@@ -353,7 +354,7 @@ public abstract class AsynchronousAgent<T>
                 {
                 assert m_supplier != null;
 
-                future.completeAsync(m_supplier)
+                future.completeAsync(m_supplier, Daemons.commonPool())
                         .whenComplete((r, e) -> f_notifier.signal());
                 }
             }

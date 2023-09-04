@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util;
 
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.OperationalContext;
 import com.tangosol.util.Base;
 
 /**
@@ -38,6 +40,16 @@ public abstract class Daemons
             {
             throw Base.ensureRuntimeException(e);
             }
+        }
+
+    /**
+     * Returns the singleton common {@link DaemonPool}.
+     *
+     * @return the singleton common {@link DaemonPool}
+     */
+    public static DaemonPool commonPool()
+        {
+        return ((OperationalContext) CacheFactory.getCluster()).getCommonDaemonPool();
         }
 
     // ----- constants ------------------------------------------------------

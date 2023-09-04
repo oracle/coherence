@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.MemberEvent;
@@ -74,7 +75,7 @@ public class SubscriberCleanupListener
                 CleanupSubscribers processor = new CleanupSubscribers();
                 processor.execute(service);
                 }
-        }).handle((ignored, err) ->
+        }, Daemons.commonPool()).handle((ignored, err) ->
             {
             // don't bother logging the error if the service shutdown
             if (err != null && evt.getService().isRunning())
@@ -109,7 +110,7 @@ public class SubscriberCleanupListener
             {
             CleanupSubscribers processor = new CleanupSubscribers();
             processor.execute(service, evt.getPartitionSet());
-            }).handle((ignored, err) ->
+            }, Daemons.commonPool()).handle((ignored, err) ->
                 {
                 // don't bother logging the error if the service shutdown
                 if (err != null && evt.getService().isRunning())

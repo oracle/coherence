@@ -1013,6 +1013,12 @@ to find specific notes on changes suggested for production use.
     </storage-authorizers>
 
     <secured-production system-property="coherence.secured.production">false</secured-production>
+
+    <common-daemon-pool>
+      <thread-count system-property="coherence.common.pool.threads"/>
+      <thread-count-max system-property="coherence.common.pool.max.threads"/>
+      <thread-count-min system-property="coherence.common.pool.min.threads"/>
+    </common-daemon-pool>
   </cluster-config>
 
   <logging-config>

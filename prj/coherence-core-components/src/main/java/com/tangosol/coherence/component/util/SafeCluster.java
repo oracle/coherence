@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.util;
 
+import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.component.application.console.Coherence;
 import com.tangosol.coherence.component.net.Cluster;
 import com.tangosol.coherence.component.net.Member;
@@ -17,8 +18,6 @@ import com.tangosol.coherence.component.net.Security;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteInvocationService;
 import com.tangosol.coherence.component.net.management.Gateway;
-import com.tangosol.coherence.component.util.LocalCache;
-import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.coherence.component.util.safeService.SafeInvocationService;
 import com.tangosol.coherence.component.util.safeService.SafeProxyService;
@@ -26,8 +25,13 @@ import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDi
 import com.tangosol.coherence.component.util.safeService.safeCacheService.safeDistributedCacheService.SafePagedTopicService;
 import com.oracle.coherence.common.base.Timeout;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.coherence.config.builder.ParameterizedBuilder;
+import com.tangosol.config.expression.SystemPropertyParameterResolver;
 import com.tangosol.internal.net.cluster.DefaultClusterDependencies;
 import com.tangosol.internal.net.cluster.LegacyXmlClusterDependencies;
+import com.tangosol.internal.util.DaemonPool;
+import com.tangosol.internal.util.Daemons;
+import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ClusterDependencies;
@@ -50,7 +54,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.function.BiFunction;
 
 /**
  * Cluster wrapper that never dies, unless explicitely commanded.
@@ -192,6 +195,12 @@ public class SafeCluster
      * AutoCloseable to release aquired lock via exclusively().
      */
     private SafeCluster.Unlockable __m_Unlockable;
+
+    /**
+     * The common {@link DaemonPool}.
+     */
+    private DaemonPool m_commonDaemon;
+
     private static com.tangosol.util.ListMap __mapChildren;
     
     // Static initializer
@@ -745,7 +754,38 @@ public class SafeCluster
         
         return getInternalCluster();
         }
-    
+
+    @Override
+    public DaemonPool getCommonDaemonPool()
+        {
+        DaemonPool pool = m_commonDaemon;
+        if (pool == null)
+            {
+            synchronized (this)
+                {
+                pool = m_commonDaemon;
+                if (pool == null)
+                    {
+                    ParameterizedBuilder<DaemonPool> builder = getBuilderRegistry().getBuilder(DaemonPool.class, DaemonPool.COMMON_POOL_BUILDER_NAME);
+                    if (builder != null)
+                        {
+                        SystemPropertyParameterResolver resolver = new SystemPropertyParameterResolver();
+                        ClassLoader                     loader = Classes.getContextClassLoader();
+                        pool = m_commonDaemon = builder.realize(resolver, loader, null);
+                        }
+
+                    if (pool == null)
+                        {
+                        pool = Daemons.newDaemonPool(new DefaultDaemonPoolDependencies());
+                        }
+
+                    pool.start();
+                    }
+                }
+            }
+        return pool;
+        }
+
     // From interface: com.tangosol.net.Cluster
     // Accessor for the property "ContextClassLoader"
     /**

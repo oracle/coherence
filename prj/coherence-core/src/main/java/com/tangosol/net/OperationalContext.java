@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net;
 
@@ -10,6 +10,7 @@ import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 
 import com.oracle.coherence.common.base.Disposable;
 
+import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperStreamFactory;
 
@@ -165,4 +166,15 @@ public interface OperationalContext
      * @since 12.2.1
      */
     public InetAddress getDiscoveryInterface();
+
+    /**
+     * Return the common {@link DaemonPool}.
+     * <p/>
+     * The common pool is used by Coherence for common tasks such
+     * as async handling of completable futures in place of the
+     * fork-join pool.
+     *
+     * @return the common {@link DaemonPool}
+     */
+    public DaemonPool getCommonDaemonPool();
     }

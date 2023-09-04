@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util;
 
 import com.tangosol.net.Guardian;
 import com.tangosol.util.Controllable;
+
+import java.util.concurrent.Executor;
 
 /**
  * A DaemonPool processes queued operations on one or more daemon threads.
@@ -15,7 +17,7 @@ import com.tangosol.util.Controllable;
  * @author jh  2014.06.25
  */
 public interface DaemonPool
-        extends Controllable
+        extends Controllable, Executor
     {
 
     // ----- DaemonPool interface -------------------------------------------
@@ -75,4 +77,15 @@ public interface DaemonPool
      *         last time this method was called
      */
     public boolean isStuck();
+
+    @Override
+    default void execute(Runnable task)
+        {
+        this.add(task);
+        }
+
+    /**
+     * The name used to register the common pool builder in the cluster registry.
+     */
+    String COMMON_POOL_BUILDER_NAME = "common-daemon-pool";
     }
