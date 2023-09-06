@@ -6099,7 +6099,7 @@ public class PartitionedCache
                         }
         
                     postEvents(msgRequest.isPriming() || lVersion == com.tangosol.net.partition.VersionAwareMapListener.PRIMING
-                        ? storage.getPrimingEvent(member, status)
+                        ? storage.getPrimingEvent(member, binKey, binValue, status.getPartition())
                         : storage.getPreviousEvents(member, binKey, status.getPartition(), lVersion));
         
                     processChanges(null, binKey, status, lCacheId, null);
