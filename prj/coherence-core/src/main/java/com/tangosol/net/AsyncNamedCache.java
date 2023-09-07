@@ -68,7 +68,7 @@ public interface AsyncNamedCache<K, V>
      * <p/>
      * NOTE: This method was introduced in a patch to Coherence. All the cluster members must be
      * running with a compatible version (the patch or higher) for this method to work.
-     * See {@link DistributedAsyncNamedCache#IS_COH28060_COMPATIBLE}
+     * See {@link DistributedAsyncNamedCache#IS_BINARY_PROCESSOR_COMPATIBLE}
      *
      * @param map      mappings to be added to this map
      * @param cMillis  the number of milliseconds until the cache entry will
@@ -84,7 +84,7 @@ public interface AsyncNamedCache<K, V>
      */
     default CompletableFuture<Void> putAll(Map<? extends K, ? extends V> map, long cMillis)
         {
-        if (getNamedCache().getCacheService().isVersionCompatible(DistributedAsyncNamedCache.IS_COH28060_COMPATIBLE))
+        if (getNamedCache().getCacheService().isVersionCompatible(DistributedAsyncNamedCache.IS_BINARY_PROCESSOR_COMPATIBLE))
             {
             return invokeAll(map.keySet(), CacheProcessors.putAll(map, cMillis)).thenAccept(nil -> {});
             }
