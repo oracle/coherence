@@ -31,6 +31,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntPredicate;
 
+import static com.tangosol.util.VersionHelper.VERSION_14_1_1_2206_6;
+import static com.tangosol.util.VersionHelper.VERSION_23_09;
+import static com.tangosol.util.VersionHelper.isPatchCompatible;
+import static com.tangosol.util.VersionHelper.isVersionCompatible;
+
 /**
  * An {@link com.tangosol.net.AsyncNamedCache} that wraps a distributed cache.
  * <p/>
@@ -171,7 +176,7 @@ public class DistributedAsyncNamedCache<K, V>
         {
         Binary binary = f_valueToInternalConverter.convert(value);
         InvocableMap.EntryProcessor processor;
-        if (isCOH28060Compatible())
+        if (isBinaryProcessorCompatible())
             {
             processor = BinaryProcessors.blindPut(binary, cMillis);
             return invoke(key, processor);
@@ -197,7 +202,7 @@ public class DistributedAsyncNamedCache<K, V>
     @SuppressWarnings({"unchecked", "rawtypes"})
     public CompletableFuture<Void> putAll(Map<? extends K, ? extends V> map, long cMillis)
         {
-        if (isCOH28060Compatible())
+        if (isBinaryProcessorCompatible())
             {
             Map<Binary, Binary> mapBinary = ConverterCollections.getMap((Map<K, V>) map, f_keyToInternalConverter,
                     f_keyFromInternalConverter, f_valueToInternalConverter, f_valueFromInternalConverter);
@@ -224,7 +229,7 @@ public class DistributedAsyncNamedCache<K, V>
     @Override
     public CompletableFuture<Void> removeAll(Collection<? extends K> colKeys)
         {
-        if (isCOH28060Compatible())
+        if (isBinaryProcessorCompatible())
             {
             return invokeAll(colKeys, CacheProcessors.removeWithoutResults()).thenAccept(ANY);
             }
@@ -234,7 +239,7 @@ public class DistributedAsyncNamedCache<K, V>
     @Override
     public CompletableFuture<Void> removeAll(Filter<?> filter)
         {
-        if (isCOH28060Compatible())
+        if (isBinaryProcessorCompatible())
             {
             return invokeAll(filter, CacheProcessors.removeWithoutResults()).thenAccept(ANY);
             }
@@ -245,14 +250,14 @@ public class DistributedAsyncNamedCache<K, V>
 
     /**
      * Determine whether the service members are all compatible with changes
-     * made in COH-28060.
+     * made in COH-28060 to use binary processors within async API.
      *
      * @return {@code true} if the service members are all compatible with changes
-     *          made in COH-28060
+     *          made in COH-28060 to use binary processors within async API
      */
-    protected boolean isCOH28060Compatible()
+    protected boolean isBinaryProcessorCompatible()
         {
-        return m_cache.getService().isVersionCompatible(IS_COH28060_COMPATIBLE);
+        return m_cache.getService().isVersionCompatible(IS_BINARY_PROCESSOR_COMPATIBLE);
         }
     
     /**
@@ -262,34 +267,21 @@ public class DistributedAsyncNamedCache<K, V>
      * @return {@code true} if the specified version is compatible with changes
      *          made in COH-28060
      */
-    protected static boolean is_COH28060_Compatible(int nVersion)
+    protected static boolean isBinaryProcessorCompatible(int nVersion)
         {
-        // >= 15.1.1.0 or >= 23.09.0 or >= 14.1.2.0.0 ok
-        if (VersionHelper.VERSION_23_09_0_COMPATIBLE
-                .or(VersionHelper.VERSION_14_1_2_0_0_COMPATIBLE).test(nVersion))
-            {
-            return true;
-            }
-
-        // >= 14.1.1.2206.6 so ok
-        if (VersionHelper.VERSION_14_1_1_2206_6_COMPATIBLE.test(nVersion))
-            {
-            // not ok if this is >= 23.03.* which is > 14.1.1.2206.6 but will not have the fix
-            return !VersionHelper.VERSION_23_03_0_COMPATIBLE.test(nVersion);
-            }
-
-        // Older than 14.1.1.2206.6
-        return false;
+        // >= 23.09.0 or >= 14.1.1.2206.6 ok
+        return isVersionCompatible(VERSION_23_09, nVersion)
+                || isPatchCompatible(VERSION_14_1_1_2206_6, nVersion);
         }
 
     // ----- constants ------------------------------------------------------
 
     /**
      * A version compatibility predicate to assert that members of a cache service are all on
-     * a specific version for features introduced in JIRA COH-28060.
+     * a version that supports binary entry processors introduced in COH-28060.
      * See {@link CacheService#isVersionCompatible(IntPredicate)}
      */
-    public static final IntPredicate IS_COH28060_COMPATIBLE = DistributedAsyncNamedCache::is_COH28060_Compatible;
+    public static final IntPredicate IS_BINARY_PROCESSOR_COMPATIBLE = DistributedAsyncNamedCache::isBinaryProcessorCompatible;
 
     // ----- data members ---------------------------------------------------
 

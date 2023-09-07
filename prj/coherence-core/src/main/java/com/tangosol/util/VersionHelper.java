@@ -81,7 +81,7 @@ public class VersionHelper
      */
     public static int getVersionPrefix(int nYear, int nMonth)
         {
-        if (nYear > 23 || (nYear == 23 && nMonth >= 9))
+        if (nYear > 23)
             {
             return encodeVersion(14, 1, 2, 0, 0);
             }
@@ -235,6 +235,7 @@ public class VersionHelper
             {
             int nPatchActual = nPatch & ~0x20;
 
+            sVersion += (fIncludePrefix ? "" : ".");
             if ((nPatch & 0x20) == 0)
                 {
                 // display 6 for feature packs in years before 22 and 03 for years beyond
@@ -256,45 +257,71 @@ public class VersionHelper
         return sVersion;
         }
 
+    /**
+     * Return {@code true} iff the actual version provided is greater than or equal
+     * to the required version.
+     *
+     * @param nRequired  the required version in its encoded form
+     * @param nActual    the actual version in its encoded form
+     *
+     * @return {@code true} iff the actual version provided is greater than or equal
+     *         to the required version
+     */
+    public static boolean isVersionCompatible(int nRequired, int nActual)
+        {
+        return nRequired <= nActual;
+        }
+
+    /**
+     * Return {@code true} iff the required and the actual versions provided have
+     * the identical base version, and the actual patch version is greater or equal
+     * to the required patch version.
+     *
+     * @param nRequired  the required version in its encoded form
+     * @param nActual    the actual version in its encoded form
+     *
+     * @return {@code true} iff the required and the actual versions provided have
+     *         the identical base version, and the actual patch version is greater or equal
+     *         to the required patch version
+     */
+    public static boolean isPatchCompatible(int nRequired, int nActual)
+        {
+        return (nRequired & ~0x3F) == (nActual & ~0x3F) && (nRequired & 0x3F) <= (nActual & 0x3F);
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
      * The encoded CE 23.09.0 version.
      */
-    public static final int VERSION_23_09_0 = encodeVersion(23, 9, 0);
+    public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
 
     /**
-     * The encoded CE 23.03.0 version.
+     * The encoded 14.1.1.2206.0 and 6 versions.
      */
-    public static final int VERSION_23_03_0 = encodeVersion(23, 3, 0);
-
-    /**
-     * The encoded CE 14.1.1.2206.6 version.
-     */
+    public static final int VERSION_14_1_1_2206 = encodeVersion(14, 1, 1, 2206, 0);
     public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
 
     /**
-     * The encoded CE 14.1.2.0.0 version.
+     * The encoded 14.1.2.0.0 version.
      */
-    public static final int VERSION_14_1_2_0_0 = encodeVersion(14, 1, 2, 0, 0);
+    public static final int VERSION_14_1_2_0 = encodeVersion(14, 1, 2, 0, 0);
 
     /**
-     * A version predicate used to check compatibility with CE 23.09.0.
+     * The encoded 14.1.1.0.0 and 15 versions.
      */
-    public static final IntPredicate VERSION_23_09_0_COMPATIBLE = v -> v >= VERSION_23_09_0;
+    public static final int VERSION_14_1_1_0 = encodeVersion(14, 1, 1, 0, 0);
+    public static final int VERSION_14_1_1_0_15 = encodeVersion(14, 1, 1, 0, 15);
 
     /**
-     * A version predicate used to check compatibility with CE 23.03.0.
+     * The encoded 12.2.1.4.0 and 19 versions.
      */
-    public static final IntPredicate VERSION_23_03_0_COMPATIBLE = v -> v >= VERSION_23_03_0;
+    public static final int VERSION_12_2_1_4 = encodeVersion(12, 2, 1, 4, 0);
+    public static final int VERSION_12_2_1_4_19 = encodeVersion(12, 2, 1, 4, 19);
 
     /**
-     * A version predicate used to check compatibility with 14.1.1.2206.6.
+     * The encoded 12.2.1.6.0 and 5 versions.
      */
-    public static final IntPredicate VERSION_14_1_1_2206_6_COMPATIBLE = v -> v >= VERSION_14_1_1_2206_6;
-
-    /**
-     * A version predicate used to check compatibility with 14.1.2.0.0.
-     */
-    public static final IntPredicate VERSION_14_1_2_0_0_COMPATIBLE = v -> v >= VERSION_14_1_2_0_0;
+    public static final int VERSION_12_2_1_6 = encodeVersion(12, 2, 1, 6, 0);
+    public static final int VERSION_12_2_1_6_5 = encodeVersion(12, 2, 1, 6, 5);
     }

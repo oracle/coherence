@@ -29,9 +29,9 @@ public class DistributedAsyncNamedCacheTest
         }
 
     @Test
-    public void shouldBe_COH28060_Compatible()
+    public void shouldBeBinaryProcessorCompatible()
         {
-        assertThat(DistributedAsyncNamedCache.is_COH28060_Compatible(m_nVersion), is(m_fExpected));
+        assertThat(DistributedAsyncNamedCache.isBinaryProcessorCompatible(m_nVersion), is(m_fExpected));
         }
 
     @Parameterized.Parameters(name= "{index}: version={0}")
