@@ -23,6 +23,8 @@ import java.io.IOException;
  *
  * @see com.tangosol.util.ExternalizableHelper#readExternalizableLite(DataInput,ClassLoader)
  * @see com.tangosol.util.ExternalizableHelper#writeExternalizableLite(DataOutput,ExternalizableLite)
+ * @see ExternalizableLite
+ * @see ExternalizableType
  *
  * @author jf  2023.06.05
  * @since 23.09

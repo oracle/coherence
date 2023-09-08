@@ -38,6 +38,34 @@ import java.io.Serializable;
 * according to their "equals()" implementation produce equivalent serialized
 * streams. Violating this relationship will result in non-deterministic behavior
 * for many Coherence services.
+* <p>
+* Here is an example of how to write a custom ExternalizableLite deserialization method
+* that incorporates calling a constructor to set members that do not have a setter.
+* <pre>
+* public class NotAPojo {
+*     public NotAPojo(int field) {this.field = field;}
+*     public int getField()      {return field;}
+*     private int field;
+* }
+* </pre>
+* <pre>
+* {@code @ExternalizableType(serializer = Serializer.class)}
+* public class NotAPojoSerializable extends NotAPojo implements ExternalizableLite {
+*     public NotAPojoSerializable(int field) { super(field); }
+*
+*     static public class Serializer implements ExternalizableLiteSerializer {
+*         public T deserialize(DataInput in) throws IOException {
+*             return new NotAPojoSerializable(in.readInt());
+*         }
+*
+*         public void serialize(DataOutput out,T value) throws IOException {
+*             out.writeInt(value.getField());
+*        }
+* }
+* </pre>
+*
+* @see ExternalizableLiteSerializer
+* @see ExternalizableType
 *
 * @author gg 2003.02.08
 *

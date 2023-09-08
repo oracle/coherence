@@ -15,6 +15,9 @@ import java.lang.annotation.Target;
  * Class-level annotation specifying {@link ExternalizableLiteSerializer serializer}
  * for this type.
  *
+ * @see ExternalizableLiteSerializer
+ * @see ExternalizableLite
+ *
  * @author jf  2023.06.06
  * @since  23.09
  */
