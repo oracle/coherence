@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
 import com.oracle.coherence.common.util.Duration;
 
+import com.oracle.coherence.common.util.MemorySize;
 import java.util.function.Supplier;
 
 /**
@@ -324,6 +325,53 @@ public abstract class Config
         Duration d = getDuration(sName);
 
         return d == null ? dDefault : d;
+        }
+
+    /**
+     * Return Coherence system property value as a {@link MemorySize}.
+     * <p>
+     * Backwards compatibility support is described in {@link Config}.
+     *
+     * @param sName  Coherence system property name beginning with <code>coherence.</code>
+     *
+     * @return property value as {@link MemorySize} if property lookup and conversion
+     *         of the String value to {@link MemorySize} succeeds;
+     *         otherwise, return null
+     *
+     * @since 23.09
+     */
+    public static MemorySize getMemorySize(String sName)
+        {
+        String sValue = getProperty(sName);
+        try
+            {
+            return sValue == null || sValue.isEmpty() ? null : new MemorySize(sValue);
+            }
+        catch (RuntimeException e)
+            {
+            return null;
+            }
+        }
+
+    /**
+     * Return Coherence system property value as a {@link MemorySize}.
+     * <p>
+     * Backwards compatibility support is described in {@link Config}.
+     *
+     * @param sName     Coherence system property name beginning with <code>coherence.</code>
+     * @param sDefault  default {@link MemorySize} value as string
+     *
+     * @return property value as {@link MemorySize} if property lookup and conversion
+     *         of the String value to {@link MemorySize} succeeds; otherwise,
+     *         return the specified default
+     *
+     * @since 23.09
+     */
+    public static MemorySize getMemorySize(String sName, String sDefault)
+        {
+        MemorySize d = getMemorySize(sName);
+
+        return d == null ? new MemorySize(sDefault) : d;
         }
 
     /**
