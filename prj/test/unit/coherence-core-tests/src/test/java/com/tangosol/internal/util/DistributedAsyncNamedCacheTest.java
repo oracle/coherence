@@ -8,7 +8,6 @@
 package com.tangosol.internal.util;
 
 
-import com.tangosol.util.VersionHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

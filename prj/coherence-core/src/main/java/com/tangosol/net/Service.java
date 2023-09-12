@@ -190,9 +190,6 @@ public interface Service
 
     /**
      * Return the minimum version for the members in this set.
-     * <p/>
-     * The version is the {@code int} encoded version
-     * (see {@link com.tangosol.util.VersionHelper}).
      *
      * @return the minimum version for the members in this set
      */

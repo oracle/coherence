@@ -5,10 +5,9 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.tangosol.util;
+package com.tangosol.internal.util;
 
 import java.util.Arrays;
-import java.util.function.IntPredicate;
 
 /**
  * A utility class for working with Coherence versions.

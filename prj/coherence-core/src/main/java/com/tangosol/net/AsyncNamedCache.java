@@ -7,10 +7,10 @@
 package com.tangosol.net;
 
 import com.tangosol.internal.util.DistributedAsyncNamedCache;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.net.cache.CacheMap;
-import com.tangosol.util.VersionHelper;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
