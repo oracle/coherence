@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.util.ChainedSet;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.SafeSortedMap;
+import com.tangosol.util.SegmentedHashMap;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -23,7 +24,6 @@ import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -140,6 +140,16 @@ public class PartitionedIndexMap<K, V>
                 .iterator();
         }
 
+    @Override
+    public String toString()
+        {
+        return "PartitionedIndexMap{" +
+               "f_ctx=" + f_ctx +
+               ", f_mapPartitioned=" + f_mapPartitioned +
+               ", f_partitions=" + f_partitions +
+               '}';
+        }
+
     // ---- inner class: PartitionedIndex -----------------------------------
 
     /**
@@ -163,9 +173,27 @@ public class PartitionedIndexMap<K, V>
             {
             f_extractor  = extractor;
             f_fOrdered   = fOrdered;
-            f_comparator = fOrdered && comparator == null
+            f_comparator = fOrdered ? ensureSafeComparator(comparator) : null;
+            }
+
+        /**
+         * Ensures that the comparator used for index sorting supports {@code null} values.
+         *
+         * @param comparator  the comparator to wrap, if necessary; can be {@code null}, in
+         *                    which case a trivial {@code SafeComparator} that uses natural
+         *                    ordering will be returned
+         *
+         * @return a {@link SafeComparator} instance
+         *
+         * @param <T>  the type of objects that may be compared by this comparator
+         */
+        private static <T> Comparator<T> ensureSafeComparator(Comparator<T> comparator)
+            {
+            return comparator == null
                            ? SafeComparator.INSTANCE()
-                           : comparator;
+                           : comparator instanceof SafeComparator
+                             ? comparator
+                             : new SafeComparator<>(comparator);
             }
 
         // ---- MapIndex interface ------------------------------------------
@@ -454,7 +482,7 @@ public class PartitionedIndexMap<K, V>
              */
             protected Map<E, Set<K>> emptyMap()
                 {
-                return Collections.emptyMap();
+                return (Map<E, Set<K>>) SegmentedHashMap.EMPTY;
                 }
 
             /**
@@ -532,6 +560,7 @@ public class PartitionedIndexMap<K, V>
          * Provides composite view over the contents/inverse maps of ordered
          * partitioned indices.
          */
+        @SuppressWarnings("NullableProblems")
         class SortedIndexContents
                 extends IndexContents
                 implements SortedMap<E, Set<K>>
@@ -609,7 +638,7 @@ public class PartitionedIndexMap<K, V>
             @Override
             protected Map<E, Set<K>> emptyMap()
                 {
-                return Collections.emptySortedMap();
+                return (Map<E, Set<K>>) SafeSortedMap.EMPTY;
                 }
 
             @Override
