@@ -65,7 +65,7 @@ public class VersionedBackingMap
             Map mapMisses, CacheLoader loader, NamedCache mapVersionTransient,
             NamedCache mapVersionPersist, boolean fManageTransient)
         {
-        super(ctxService, mapInternal, mapMisses, loader, true, 0, 0.0, RWBM_WB_REMOVE_DEFAULT);
+        super(ctxService, mapInternal, mapMisses, loader, true, 0, 0.0);
         init(mapVersionTransient, mapVersionPersist, fManageTransient);
         }
 
@@ -111,57 +111,7 @@ public class VersionedBackingMap
             double dflRefreshAheadFactor,NamedCache mapVersionTransient, NamedCache mapVersionPersist,
             boolean fManageTransient)
         {
-        this(ctxService, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds,
-                dflRefreshAheadFactor, mapVersionTransient, mapVersionPersist, fManageTransient, RWBM_WB_REMOVE_DEFAULT);
-        }
-
-    /**
-    * Construct a VersionedBackingMap using a CacheStore object.
-    *
-    * @param ctxService            the context provided by the CacheService
-    *                              which is using this backing map
-    * @param mapInternal           the ObservableMap used to store the data
-    *                              internally in this backing map
-    * @param mapMisses             the Map used to cache CacheStore misses
-    *                              (optional)
-    * @param store                 the object responsible for the persistence
-    *                              of the cached data (optional)
-    * @param fReadOnly             pass true to use the CacheStore only for
-    *                              read operations
-    * @param cWriteBehindSeconds   number of seconds to write if there is a
-    *                              CacheStore; zero disables write-behind
-    *                              caching (optional)
-    * @param dflRefreshAheadFactor the interval before an entry expiration time
-    *                              (expressed as a percentage of the internal
-    *                              cache expiration interval) during which an
-    *                              asynchronous load request for the
-    *                              entry will be scheduled; zero disables
-    *                              refresh-ahead; only applicable when
-    *                              the <tt>mapInternal</tt> parameter is an
-    *                              instance of {@link LocalCache} (optional)
-    * @param mapVersionTransient   (optional) a replicated cache of versions
-    *                              of the cached data as it is in memory
-    * @param mapVersionPersist     (optional) a replicated cache of versions
-    *                              of the cached data as it was written to the
-    *                              CacheStore
-    * @param fManageTransient      if true, the backing map is responsible for
-    *                              keeping the transient version cache up to
-    *                              date; if false (as is the case when using
-    *                              the VersionedNearCache implementation), the
-    *                              backing map manages the transient version
-    *                              cache only for operations for which no
-    *                              other party is aware (such as entry expiry)
-    * @param fWriteBehindRemove    pass true if the specified loader is in fact
-    *                              a CacheStore that needs to apply write-behind to remove
-    *
-    * @since 12.1.1.4.18
-    */
-    public VersionedBackingMap(BackingMapManagerContext ctxService, ObservableMap mapInternal,
-                               Map mapMisses, CacheStore store, boolean fReadOnly, int cWriteBehindSeconds,
-                               double dflRefreshAheadFactor,NamedCache mapVersionTransient, NamedCache mapVersionPersist,
-                               boolean fManageTransient, boolean fWriteBehindRemove)
-        {
-        super(ctxService, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove);
+        super(ctxService, mapInternal, mapMisses, store, fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor);
         init(mapVersionTransient, mapVersionPersist, fManageTransient);
         }
 
