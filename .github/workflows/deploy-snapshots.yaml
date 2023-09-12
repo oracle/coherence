@@ -10,8 +10,8 @@ name: Deploy to Maven Central
 on:
   workflow_run:
     workflows: ["CI Build"]
-    # Only add branches that build with Java 20
-    branches: [ main ]
+    # Only add branches that build with Java 21
+    branches: [ main, v23.09 ]
     types:
     - completed
 
