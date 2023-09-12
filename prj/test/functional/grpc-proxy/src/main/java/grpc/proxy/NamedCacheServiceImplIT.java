@@ -62,6 +62,7 @@ import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.aggregator.Count;
 import com.tangosol.util.aggregator.ReducerAggregator;
 
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.UniversalExtractor;
 
@@ -213,7 +214,7 @@ public class NamedCacheServiceImplIT
 
         ValueExtractor extractor     = new UniversalExtractor("foo");
         ByteString     binExtractor  = toByteString(extractor, serializer);
-        Comparator     comparator    = new UniversalExtractor("bar");
+        Comparator     comparator    = new SafeComparator(new UniversalExtractor("bar"));
         ByteString     binComparator = toByteString(comparator, serializer);
 
         NamedCacheService service  = createService();
