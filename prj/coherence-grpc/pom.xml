@@ -62,10 +62,6 @@
           <groupId>io.grpc</groupId>
           <artifactId>grpc-api</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -75,10 +71,6 @@
         <exclusion>
           <groupId>io.grpc</groupId>
           <artifactId>grpc-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -93,10 +85,6 @@
           <exclusion>
               <groupId>io.grpc</groupId>
               <artifactId>grpc-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
           </exclusion>
       </exclusions>
     </dependency>
@@ -113,12 +101,6 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 
