@@ -53,18 +53,18 @@ import static org.junit.Assert.*;
 
 
 /**
-* A collection of functional tests for the {@link ValueExtractor}.
-*
-* @author oew 01/22/2007
-*/
+ * A collection of functional tests for the {@link ValueExtractor}.
+ *
+ * @author oew 01/22/2007
+ */
 public class ExtractorTests
         extends AbstractFunctionalTest
     {
     // ----- test lifecycle -------------------------------------------------
 
     /**
-    * Initialize the test class.
-    */
+     * Initialize the test class.
+     */
     @BeforeClass
     public static void _startup()
         {
@@ -78,8 +78,8 @@ public class ExtractorTests
     // ----- test methods ---------------------------------------------------
 
     /**
-    * A simple test for the {@link ReflectionExtractor}.
-    */
+     * A simple test for the {@link ReflectionExtractor}.
+     */
     @Test
     public void testReflection()
         {
@@ -104,7 +104,7 @@ public class ExtractorTests
         ValueExtractor itTestExt = new ReflectionExtractor("getAge", arParm);
         Filter         filter    = new LessEqualsFilter(itTestExt, nAge);
         assertTrue("ReflextionExtractor : Error invoking cache query Extractor",
-                (cache.entrySet(filter).size() == 26));
+                   (cache.entrySet(filter).size() == 26));
 
         cache.destroy();
         }
@@ -124,34 +124,34 @@ public class ExtractorTests
 
         Filter filter = new EqualsFilter("getValue", Integer.valueOf(3));
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("Standard use: wrong result", 100, cache.keySet(filter).size());
-        int count = Value.s_nDeserializationCount;
+        int count = Value.f_deserializationCount.get();
         assertEquals("Standard use: wrong deserialization count", 1000, count);
 
         // install the pro-active accelerator
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         cache.addIndex(new DeserializationAccelerator(), false, null);
         Assert.assertEquals("Pro-active use: wrong result", cache.keySet(filter).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("Pro-active use: wrong deserialization count after query", 1000, count);
 
         cache.removeIndex(new DeserializationAccelerator());
 
         // install the on-demand accelerator
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         cache.addIndex(new DeserializationAccelerator(IdentityExtractor.INSTANCE, true), false, null);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("Pro-active use: wrong deserialization count after install", 0, count);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("On-demand use: wrong result", cache.keySet(filter).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("On-demand use: wrong deserialization count after the first query", 1000, count);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("On-demand use: wrong result", cache.keySet(filter).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("On-demand use: wrong deserialization count after the second query", 0, count);
 
         cache.removeIndex(new DeserializationAccelerator(IdentityExtractor.INSTANCE, true));
@@ -180,73 +180,73 @@ public class ExtractorTests
         Filter filterMethRef = new EqualsFilter<>(Value::getValue, 3);
         Filter filterLambda  = new EqualsFilter<>(veLambda, 3);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("MethRef use: wrong result", 100, cache.keySet(filterMethRef).size());
-        int count = Value.s_nDeserializationCount;
+        int count = Value.f_deserializationCount.get();
         assertEquals("MethRef use: wrong deserialization count: " + count, 1000, count);
 
         // install the deserialization accelerator
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         cache.addIndex(new DeserializationAccelerator(), false, null);
         Assert.assertEquals("MethRef use: wrong result", cache.keySet(filterMethRef).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("MethRef use: accelerator not used", 1000, count);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("Lambda use: wrong result", cache.keySet(filterLambda).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("Lambda use: accelerator not used", 0, count);
 
         cache.removeIndex(new DeserializationAccelerator());
 
         // install a standard index and check whether the MethRef query use it
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         cache.addIndex(veReflect, false, null);
         Assert.assertEquals("MethRef use: wrong result ", cache.keySet(filterMethRef).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("MethRef use: index not used", 1000, count);
 
         // remove as a MethRef index
         cache.removeIndex(veMethRef);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("Standard use: wrong result ", cache.keySet(filterReflect).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("index is not removed", 1000, count);
 
         // install a MethRef index and check whether the standard query uses it
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         cache.addIndex(veMethRef, false, null);
         Assert.assertEquals("MethRef use: wrong result ", cache.keySet(filterMethRef).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("MethRef use: index not used", 1000, count);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("Standard use: wrong result ", cache.keySet(filterReflect).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("Standard use: index not used", 0, count);
 
         // remove as a standard index
         cache.removeIndex(veReflect);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("Standard use: wrong result ", cache.keySet(filterReflect).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("index is not removed", 1000, count);
 
         // install a lambda index and check whether it is being used
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         cache.addIndex(veLambda, false, null);
         Assert.assertEquals("Lambda use: wrong result ", cache.keySet(filterLambda).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("MethRef use: index not used", 1000, count);
 
         // remove lambda index
         cache.removeIndex(veLambda);
 
-        Value.s_nDeserializationCount = 0;
+        Value.f_deserializationCount.set(0);
         Assert.assertEquals("Lambda use: wrong result ", cache.keySet(filterLambda).size(), 100);
-        count = Value.s_nDeserializationCount;
+        count = Value.f_deserializationCount.get();
         assertEquals("index is not removed", 1000, count);
 
         cache.destroy();
@@ -285,7 +285,7 @@ public class ExtractorTests
 
     @Test(expected = IllegalArgumentException.class)
     public void testMustNotExtractFromRuntime()
-        throws Throwable
+            throws Throwable
         {
         ValueExtractor<Runtime, String> extractor = new UniversalExtractor<>("toString()");
         try
@@ -302,7 +302,7 @@ public class ExtractorTests
 
     @Test(expected = IllegalArgumentException.class)
     public void testMustNotExtractFromClass()
-        throws Throwable
+            throws Throwable
         {
         ValueExtractor<Class, String> extractor = new UniversalExtractor<>("toString()");
         try
@@ -318,10 +318,10 @@ public class ExtractorTests
         }
 
     /**
-    * Return the cache used by all test methods.
-    *
-    * @return the test cache
-    */
+     * Return the cache used by all test methods.
+     *
+     * @return the test cache
+     */
     protected NamedCache getNamedCache()
         {
         return getNamedCache("dist-test");
@@ -345,34 +345,34 @@ public class ExtractorTests
             }
 
         public void readExternal(DataInput in)
-            throws IOException
+                throws IOException
             {
             m_iValue = in.readInt();
-            s_nDeserializationCount++;
+            f_deserializationCount.incrementAndGet();
             }
 
         public void writeExternal(DataOutput out)
-            throws IOException
+                throws IOException
             {
             out.writeInt(m_iValue);
             }
 
         public void readExternal(PofReader in)
-            throws IOException
+                throws IOException
             {
             m_iValue = in.readInt(0);
-            s_nDeserializationCount++;
+            f_deserializationCount.incrementAndGet();
             }
 
         public void writeExternal(PofWriter out)
-            throws IOException
+                throws IOException
             {
             out.writeInt(0, m_iValue);
             }
 
         private int m_iValue;
 
-        public static int s_nDeserializationCount;
+        protected static final AtomicInteger f_deserializationCount = new AtomicInteger();
         }
 
     // ----- inner class: CountingExtractor ---------------------------------

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -124,7 +124,9 @@ public class AnyFilter
     protected Filter applyIndex(Map mapIndexes, Set setKeys, QueryContext ctx,
             QueryRecord.PartialResult.TraceStep step)
         {
-        optimizeFilterOrder(mapIndexes, setKeys);
+        // this code is buggy, re-ordering is sometimes wrong
+        // remove comment when addressed
+        //optimizeFilterOrder(mapIndexes, setKeys);
 
         Filter[] aFilter    = m_aFilter;
         int      cFilters   = aFilter.length;
