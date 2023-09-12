@@ -33,4 +33,39 @@ public class VirtualThreads
         {
         return Base.makeThread(group, runnable, sName);
         }
+
+    /**
+     * Return {@code true} if the current runtime supports virtual threads.
+     *
+     * @return {@code true} if the current runtime supports virtual threads;
+     *         {@code false} otherwise
+     */
+    public static boolean isSupported()
+        {
+        return false;
+        }
+
+    /**
+     * Return {@code true} if virtual threads are enabled.
+     *
+     * @return {@code true} if the virtual threads are enabled;
+     *         {@code false} otherwise
+     */
+    public static boolean isEnabled()
+        {
+        return false;
+        }
+
+    /**
+     * Return {@code true} if virtual threads are enabled for the specified service.
+     *
+     * @param serviceName  the name of the service to check
+     *
+     * @return {@code true} if the virtual threads are enabled for the specified service;
+     *         {@code false} otherwise
+     */
+    public static boolean isEnabled(String serviceName)
+        {
+        return false;
+        }
     }

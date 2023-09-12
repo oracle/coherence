@@ -7,6 +7,10 @@
 
 package com.tangosol.internal.util;
 
+import com.tangosol.coherence.config.Config;
+
+import java.util.function.Function;
+
 /**
  * Helper class for virtual threads functionality.
  * <p>
@@ -36,4 +40,57 @@ public class VirtualThreads
             }
         return builder.unstarted(runnable);
         }
+
+    /**
+     * Return {@code true} if the current runtime supports virtual threads.
+     *
+     * @return {@code true} if the current runtime supports virtual threads;
+     *         {@code false} otherwise
+     */
+    @SuppressWarnings("removal")
+    public static boolean isSupported()
+        {
+        // NOTE:  virtual threads will not be used if the security manager
+        //        is enabled.  The following from the javadocs of
+        //        java.lang.Thread explains why:
+        //              Creating a platform thread captures the caller
+        //              context to limit the permissions of the new thread
+        //              when it executes code that performs a privileged
+        //              action. The captured caller context is the new
+        //              thread's "Inherited AccessControlContext".
+        //              Creating a virtual thread does not capture the
+        //              caller context; virtual threads have no permissions
+        //              when executing code that performs a privileged
+        //              action.
+        return System.getSecurityManager() == null;
+        }
+
+    /**
+     * Return {@code true} if virtual threads are enabled.
+     *
+     * @return {@code true} if the virtual threads are enabled;
+     *         {@code false} otherwise
+     */
+    public static boolean isEnabled()
+        {
+        return Config.getBoolean(PROPERTY_ENABLED, true);
+        }
+
+    /**
+     * Return {@code true} if virtual threads are enabled for the specified service.
+     *
+     * @param serviceName  the name of the service to check
+     *
+     * @return {@code true} if the virtual threads are enabled for the specified service;
+     *         {@code false} otherwise
+     */
+    public static boolean isEnabled(String serviceName)
+        {
+        return serviceName == null
+               ? isEnabled()
+               : Config.getBoolean(PROPERTY_SERVICE_ENABLED.apply(serviceName), isEnabled());
+        }
+
+    static final String PROPERTY_ENABLED = "coherence.service.virtualthreads.enabled";
+    static final Function<String, String> PROPERTY_SERVICE_ENABLED = (serviceName) -> String.format("coherence.service.%s.virtualthreads.enabled", serviceName);
     }
