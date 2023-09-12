@@ -286,6 +286,14 @@
   </properties>
 
   <build>
+    <resources>
+      <!-- include the coherence-core-21 build output in MR JAR format -->
+      <resource>
+        <directory>../coherence-core-21/target/classes</directory>
+        <targetPath>META-INF/versions/21</targetPath>
+      </resource>
+    </resources>
+
     <plugins>
       <!-- create the shaded JAR by combining existing dependencies and relocating some -->
       <plugin>
@@ -314,8 +322,8 @@
                   <include>com.sleepycat:je</include>
                   <include>com.sun.codemodel:codemodel</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
-                  <include>${coherence.group.id}:coherence-core-21</include>
                   <include>${coherence.group.id}:coherence-core</include>
+                  <include>${coherence.group.id}:coherence-core-21</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
                   <include>${coherence.group.id}:opentracing-common</include>
                   <include>${coherence.group.id}:opentracing-0.33</include>
