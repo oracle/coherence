@@ -187,7 +187,7 @@ public class PartitionedIndexMap<K, V>
          *
          * @param <T>  the type of objects that may be compared by this comparator
          */
-        private static <T> Comparator<T> ensureSafeComparator(Comparator<T> comparator)
+        private <T> Comparator<T> ensureSafeComparator(Comparator<T> comparator)
             {
             return comparator == null
                            ? SafeComparator.INSTANCE()
