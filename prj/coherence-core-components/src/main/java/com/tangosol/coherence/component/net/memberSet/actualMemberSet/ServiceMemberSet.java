@@ -10,20 +10,21 @@
 
 package com.tangosol.coherence.component.net.memberSet.actualMemberSet;
 
-import com.tangosol.coherence.component.net.Member;
 import com.oracle.coherence.common.net.exabus.EndPoint;
+
+import com.tangosol.coherence.component.net.Member;
+
+import com.tangosol.internal.util.VersionHelper;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ObservableHashMap;
 import com.tangosol.util.ObservableMap;
-import com.tangosol.util.VersionHelper;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntPredicate;
-import java.util.function.Predicate;
 
 /**
  * Set of Member objects; must be thread safe.

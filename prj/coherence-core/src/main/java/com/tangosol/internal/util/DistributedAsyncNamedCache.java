@@ -20,7 +20,6 @@ import com.tangosol.util.Converter;
 import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.VersionHelper;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,10 +30,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntPredicate;
 
-import static com.tangosol.util.VersionHelper.VERSION_14_1_1_2206_6;
-import static com.tangosol.util.VersionHelper.VERSION_23_09;
-import static com.tangosol.util.VersionHelper.isPatchCompatible;
-import static com.tangosol.util.VersionHelper.isVersionCompatible;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_6;
+import static com.tangosol.internal.util.VersionHelper.VERSION_23_09;
+import static com.tangosol.internal.util.VersionHelper.isPatchCompatible;
+import static com.tangosol.internal.util.VersionHelper.isVersionCompatible;
 
 /**
  * An {@link com.tangosol.net.AsyncNamedCache} that wraps a distributed cache.
