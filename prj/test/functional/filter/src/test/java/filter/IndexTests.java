@@ -183,7 +183,7 @@ public class IndexTests
             cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
             // Insert/Update
-            UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+            UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
 
             for (int i = 0; i < s_cIterations; i++)
                 {
@@ -210,7 +210,7 @@ public class IndexTests
         cache.addIndex(IdentityExtractor.INSTANCE, true, null);
 
         // Insert/Update
-        UpdateThread[] updateThreads = startUpdateThreads(cache, 0);
+        UpdateThread[] updateThreads = startUpdateThreads(cache, 30);
 
         for (int i = 0; i < s_cIterations; i++)
             {
@@ -575,8 +575,7 @@ public class IndexTests
      */
     private  void testCollectionsCondIndex(NamedCache cache, boolean fFwdIdx)
         {
-        ValueExtractor extractorCond = new ConditionalExtractor(new AlwaysFilter(),
-                new EveryOtherTimeExtractor(), fFwdIdx);
+        ValueExtractor extractorCond = new ConditionalExtractor(new AlwaysFilter(), new EveryOtherTimeExtractor(), fFwdIdx);
 
         // test update with intersecting old and new values and non-deterministic extractor
         cache.addIndex(extractorCond, fFwdIdx, null);
@@ -754,8 +753,8 @@ public class IndexTests
 
         public Object process(Entry entry)
             {
-            assertTrue("Value is not greater or equal ("
-                        + entry.getValue() + ")", ((Integer) entry.getValue()) >= queryValue);
+            assertTrue("Value " + entry.getValue() + " is not greater or equal to " + queryValue,
+                       ((Integer) entry.getValue()) >= queryValue);
 
             // Set back the value to something predictable: (key)
             Object newValue = entry.getKey();
