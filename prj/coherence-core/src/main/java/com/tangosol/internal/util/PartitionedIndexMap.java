@@ -420,7 +420,7 @@ public class PartitionedIndexMap<K, V>
                         {
                         Iterator<E> itKeys = setKeys.iterator();
 
-                        return new Iterator<>()
+                        return new Iterator()
                             {
                             public boolean hasNext()
                                 {
@@ -452,7 +452,7 @@ public class PartitionedIndexMap<K, V>
                         {
                         Iterator<E> itKeys = setKeys.iterator();
 
-                        return new Iterator<>()
+                        return new Iterator()
                             {
                             public boolean hasNext()
                                 {
