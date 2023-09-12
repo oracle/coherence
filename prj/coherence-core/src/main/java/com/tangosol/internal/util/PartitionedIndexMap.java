@@ -414,7 +414,7 @@ public class PartitionedIndexMap<K, V>
                 {
                 Set<E> setKeys = keySet();
 
-                return new AbstractCollection<>()
+                return new AbstractCollection()
                     {
                     public Iterator<Set<K>> iterator()
                         {
@@ -446,7 +446,7 @@ public class PartitionedIndexMap<K, V>
                 {
                 Set<E> setKeys = keySet();
 
-                return new AbstractSet<>()
+                return new AbstractSet()
                     {
                     public Iterator<Map.Entry<E, Set<K>>> iterator()
                         {
@@ -664,7 +664,7 @@ public class PartitionedIndexMap<K, V>
              */
             private Set<K> chainSets(Set<K> setFirst, Set<K> setSecond)
                 {
-                return setFirst instanceof ChainedSet<K>
+                return setFirst instanceof ChainedSet
                        ? new ChainedSet<>((ChainedSet<K>) setFirst, setSecond)
                        : new ChainedSet<>(setFirst, setSecond);
                 }
