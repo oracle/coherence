@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.UniversalExtractor;
 
@@ -98,7 +99,7 @@ abstract class BaseNamedCacheClientIT
         NamedCache<?, ?>                cache      = ensureCache(cacheName);
         Map<ValueExtractor, MapIndex>   indexMap   = removeIndexes(cache);
         ValueExtractor<String, Integer> extractor  = new UniversalExtractor<>("length()");
-        Comparator<Integer>             comparator = IdentityExtractor.INSTANCE();
+        Comparator<Integer>             comparator = SafeComparator.INSTANCE();
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
         grpcClient.addIndex(extractor, true, comparator);
