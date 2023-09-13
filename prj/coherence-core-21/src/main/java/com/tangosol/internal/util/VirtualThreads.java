@@ -79,18 +79,29 @@ public class VirtualThreads
     /**
      * Return {@code true} if virtual threads are enabled for the specified service.
      *
-     * @param serviceName  the name of the service to check
+     * @param sServiceName  the name of the service to check
      *
      * @return {@code true} if the virtual threads are enabled for the specified service;
      *         {@code false} otherwise
      */
-    public static boolean isEnabled(String serviceName)
+    public static boolean isEnabled(String sServiceName)
         {
-        return serviceName == null
+        return sServiceName == null
                ? isEnabled()
-               : Config.getBoolean(PROPERTY_SERVICE_ENABLED.apply(serviceName), isEnabled());
+               : Config.getBoolean(PROPERTY_SERVICE_ENABLED.apply(sServiceName), isEnabled());
         }
 
-    static final String PROPERTY_ENABLED = "coherence.service.virtualthreads.enabled";
-    static final Function<String, String> PROPERTY_SERVICE_ENABLED = (serviceName) -> String.format("coherence.service.%s.virtualthreads.enabled", serviceName);
+    // ---- constants -------------------------------------------------------
+
+    /**
+     * Config property used to globally enable or disable virtual threads.
+     */
+    static final String PROPERTY_ENABLED = "coherence.virtualthreads.enabled";
+
+    /**
+     * Config property used to selectively enable or disable virtual threads for
+     * a specific service.
+     */
+    static final Function<String, String> PROPERTY_SERVICE_ENABLED =
+            (sServiceName) -> String.format("coherence.service.%s.virtualthreads.enabled", sServiceName);
     }
