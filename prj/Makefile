@@ -50,6 +50,18 @@ docker: ## Build the Coherence image (does not rebuild Coherence jars)
 docker-test: ## Build the Coherence image (does not rebuild Coherence image)
 	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu
 
+.PHONY: pof
+pof: ## Dump the POF config information
+	mvn exec:exec -pl coherence-liberte/ -nsu -Pmodules,-coherence
+
+TEST_MODULE ?=
+TEST_CLASS ?=
+.PHONY: test-security
+test-security: ## Run a functional test with security manager enabled (must specify TEST_MODULE and TEST_CLASS)
+	mvn clean verify -Pmodules,-coherence -nsu -Dtest.security.enabled=true -Dproject.official=true \
+		-pl test/functional/$(TEST_MODULE)/ -Dit.test=$(TEST_CLASS) -am -Dtest=_  \
+		-Dfailsafe.failIfNoSpecifiedTests=false -Dsurefire.failIfNoSpecifiedTests=false
+
 define mvn_build_coherence
 	mvn clean install -T 1.5C -U -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef

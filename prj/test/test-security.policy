@@ -540,7 +540,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-micrometer/target/c
   permission javax.management.MBeanTrustPermission "*";
 };
 
-grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/-" {
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-helidon/-" {
   permission java.lang.RuntimePermission "getClassLoader";
   permission javax.security.auth.AuthPermission "doAs";
   permission javax.security.auth.AuthPermission "getSubject";
@@ -548,6 +548,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/-" {
   permission java.io.FilePermission "<<ALL FILES>>", "read";
   permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
   permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
+  permission java.io.SerializablePermission "serialFilter";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
@@ -559,6 +560,8 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/-" {
   permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
+  permission java.lang.RuntimePermission "getStackWalkerWithClassReference";
+  permission java.lang.RuntimePermission "shutdownHooks";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
   permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
   permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";
@@ -566,16 +569,17 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/-" {
   permission javax.security.auth.AuthPermission "createLoginContext.CoherenceREST";
 };
 
-grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/target/coherence-http-grizzly-${test.project.version}.jar" {
+grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-helidon/target/coherence-http-helidon-${test.project.version}.jar" {
   permission java.lang.RuntimePermission "getClassLoader";
   permission javax.security.auth.AuthPermission "doAs";
   permission javax.security.auth.AuthPermission "getSubject";
 
   permission java.io.FilePermission "<<ALL FILES>>", "read";
-  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/rest-grizzly/target", "read, write, delete, execute";
-  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/rest-grizzly/target/-", "read, write, delete, execute";
+  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/rest-helidon/target", "read, write, delete, execute";
+  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/rest-helidon/target/-", "read, write, delete, execute";
   permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
   permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
+  permission java.io.SerializablePermission "serialFilter";
   permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
   permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
@@ -587,59 +591,8 @@ grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-grizzly/target
   permission java.lang.RuntimePermission "getenv.*";
   permission java.lang.RuntimePermission "getFileSystemAttributes";
   permission java.lang.RuntimePermission "setContextClassLoader";
-  permission java.net.SocketPermission "*", "accept,resolve,listen";
-  permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
-  permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";
-  permission java.util.PropertyPermission "*", "read,write";
-};
-
-grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-jetty/-" {
-  permission java.lang.RuntimePermission "getClassLoader";
-  permission javax.security.auth.AuthPermission "doAs";
-  permission javax.security.auth.AuthPermission "getSubject";
-
-  permission java.io.FilePermission "<<ALL FILES>>", "read";
-  permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
-  permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
-  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
-  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
-  permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
-  permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
-  permission java.lang.RuntimePermission "accessDeclaredMembers";
-  permission java.lang.RuntimePermission "accessSystemModules";
-  permission java.lang.RuntimePermission "createClassLoader";
-  permission java.lang.RuntimePermission "getenv.*";
-  permission java.lang.RuntimePermission "getFileSystemAttributes";
-  permission java.lang.RuntimePermission "setContextClassLoader";
-  permission java.net.SocketPermission "*", "accept,resolve,listen";
-  permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
-  permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";
-  permission java.util.PropertyPermission "*", "read,write";
-  permission javax.security.auth.AuthPermission "createLoginContext.CoherenceREST";
-};
-
-grant codeBase "file:${oracle.coherence.lib}/../../coherence-http-jetty/target/coherence-http-jetty-${test.project.version}.jar" {
-  permission java.lang.RuntimePermission "getClassLoader";
-  permission javax.security.auth.AuthPermission "doAs";
-  permission javax.security.auth.AuthPermission "getSubject";
-
-  permission java.io.FilePermission "<<ALL FILES>>", "read";
-  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/rest-jetty/target", "read, write, delete, execute";
-  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/rest-jetty/target/-", "read, write, delete, execute";
-  permission java.io.FilePermission "${java.io.tmpdir}${/}-", "read, write, delete, execute";
-  permission java.io.FilePermission "${test.tmp.dir}${/}-", "read, write, delete, execute";
-  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2";
-  permission java.lang.RuntimePermission "accessClassInPackage.com.sun.xml.internal.bind.v2.runtime.reflect";
-  permission java.lang.RuntimePermission "accessClassInPackage.sun.misc";
-  permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
-  permission java.lang.RuntimePermission "accessDeclaredMembers";
-  permission java.lang.RuntimePermission "accessSystemModules";
-  permission java.lang.RuntimePermission "createClassLoader";
-  permission java.lang.RuntimePermission "getenv.*";
-  permission java.lang.RuntimePermission "getFileSystemAttributes";
-  permission java.lang.RuntimePermission "setContextClassLoader";
+  permission java.lang.RuntimePermission "getStackWalkerWithClassReference";
+  permission java.lang.RuntimePermission "shutdownHooks";
   permission java.net.SocketPermission "*", "accept,resolve,listen";
   permission java.security.SecurityPermission "getProperty.ssl.KeyManagerFactory.algorithm";
   permission java.security.SecurityPermission "getProperty.ssl.TrustManagerFactory.algorithm";

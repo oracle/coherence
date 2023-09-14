@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2023, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -123,22 +123,7 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-hotcache-core</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-hotcache-oracle</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-         <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-http-grizzly</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-        <dependency>
-         <groupId>${coherence.group.id}</groupId>
-          <artifactId>coherence-http-jetty</artifactId>
+          <artifactId>coherence-http-helidon</artifactId>
           <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -337,6 +322,12 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>http-helidon</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
           <artifactId>http-netty</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
@@ -434,6 +425,12 @@
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
           <artifactId>rest</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>rest-helidon</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>
