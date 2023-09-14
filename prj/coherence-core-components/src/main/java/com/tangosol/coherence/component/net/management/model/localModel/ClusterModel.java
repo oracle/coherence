@@ -514,6 +514,15 @@ public class ClusterModel
                + CacheFactory.getSecurityConfig().toString();
         }
 
+    /**
+     * Get cluster description.
+     */
+    public String getClusterDescription()
+        {
+        Cluster cluster = get_Cluster();
+        return cluster == null ? canonicalString(null) : cluster.toString();
+        }
+
     // Accessor for the property "ClusterName"
     /**
      * Getter for property ClusterName.<p>

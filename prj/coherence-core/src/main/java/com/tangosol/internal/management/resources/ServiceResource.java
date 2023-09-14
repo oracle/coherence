@@ -42,6 +42,7 @@ public class ServiceResource
         router.addGet(sPathRoot + "/" + PARTITION, this::getPartitionAssignment);
         router.addGet(sPathRoot + "/" + PARTITION + "/" + SCHEDULED_DISTRIBUTIONS, this::getScheduledDistributions);
         router.addGet(sPathRoot + "/" + PROXY, this::getAggregatedProxyMetricsResponse);
+        router.addGet(sPathRoot + "/" + DESCRIPTION, this::getServiceDescription);
 
         router.addPost(sPathRoot, this::update);
         router.addPost(sPathRoot + "/suspend", this::suspendService);
@@ -137,6 +138,20 @@ public class ServiceResource
 
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, queryBuilder, responseMap);
         return response(responseMap);
+        }
+
+    /**
+     * Return the service description.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response getServiceDescription(HttpRequest request)
+        {
+        String       sServiceName = request.getFirstPathParameter(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sServiceName);
+        return response(getResponseFromMBeanOperation(request, queryBuilder, DESCRIPTION, "getServiceDescription"));
         }
 
     // ----- POST API(Operations) -------------------------------------------
