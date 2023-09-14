@@ -471,17 +471,6 @@
     <cve>CVE-2023-3635</cve>
   </suppress>
 
-  <!-- COH-28200  -->
-  <suppress>
-    <notes><![CDATA[
-    file name: okhttp-4.9.3.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.squareup\.okhttp3/okhttp@.*$</packageUrl>
-    <cpe>cpe:2.3:a:squareup:okhttp</cpe>
-    <cpe>cpe:2.3:a:squareup:okhttp3</cpe>
-    <cve>CVE-2023-3782</cve>
-  </suppress>
-
   <!-- suppression for graal-sdk-19.3.1.jar CVE scan error -->
   <suppress>
     <notes><![CDATA[
