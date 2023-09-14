@@ -510,8 +510,7 @@ public class ClusterModel
         {
         return CacheFactory.getClusterConfig().toString() + "\n"
                + CacheFactory.getLoggingConfig().toString() + "\n"
-               + CacheFactory.getManagementConfig().toString() + "\n"
-               + CacheFactory.getSecurityConfig().toString();
+               + CacheFactory.getManagementConfig().toString();
         }
 
     // Accessor for the property "ClusterName"

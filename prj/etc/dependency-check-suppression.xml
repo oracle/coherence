@@ -680,31 +680,6 @@
     <cve>CVE-2023-33953</cve>
   </suppress>
 
-  <suppress>
-    <notes><![CDATA[
-     file name: maven-core-3.0.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-core@.*$</packageUrl>
-    <cpe>cpe:2.3:a:apache:maven</cpe>
-    <cve>CVE-2021-26291</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: maven-settings-3.0.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-settings@.*$</packageUrl>
-    <cve>CVE-2021-26291</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-     file name: maven-shared-utils-3.1.0.jar
-     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.maven\.shared/maven\-shared\-utils@.*$</packageUrl>
-    <cpe>cpe:2.3:a:apache:maven_shared_utils</cpe>
-    <cpe>cpe:2.3:a:utils_project:utils</cpe>
-    <cve>CVE-2022-29599</cve>
-  </suppress>
-
   <!-- suppress netty-handler CVE-2023-4586 4.1.87, 4.1.94, 4.1.97 -->
   <suppress>
     <notes><![CDATA[
