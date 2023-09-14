@@ -578,17 +578,6 @@
     <cve>CVE-2023-3635</cve>
   </suppress>
 
-  <!-- COH-28200  -->
-  <suppress>
-    <notes><![CDATA[
-    file name: okhttp-4.9.3.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.squareup\.okhttp3/okhttp@.*$</packageUrl>
-    <cpe>cpe:2.3:a:squareup:okhttp</cpe>
-    <cpe>cpe:2.3:a:squareup:okhttp3</cpe>
-    <cve>CVE-2023-3782</cve>
-  </suppress>
-
   <!-- The following still comes up after upgrade to
   Helidon 2.6.2 (BUG 35431662). Hence its excluded-->
   <suppress>
