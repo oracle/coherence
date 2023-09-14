@@ -147,6 +147,7 @@ import java.util.zip.GZIPInputStream;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CLEAR;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.DESCRIPTION;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBERS;
@@ -341,6 +342,19 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(linkNames, hasItem(MEMBERS));
         assertThat(linkNames, hasItem(SERVICES));
         assertThat(linkNames, hasItem(CACHES));
+        }
+
+    @Test
+    public void testClusterDescription()
+        {
+        WebTarget target   = getBaseTarget().path(DESCRIPTION);
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+                           .startsWith("SafeCluster: Name=" + CLUSTER_NAME + ", ClusterPort="),
+                   is(true));
         }
 
     @Test
@@ -959,6 +973,33 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testMemberDescription()
+        {
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
+
+        assertThat(listMemberIds, notNullValue());
+        assertThat(listMemberIds.size(), greaterThan(0));
+
+        Number nMemberId = listMemberIds.get(0);
+
+        response = getBaseTarget().path("members").path(String.valueOf(nMemberId))
+                .path(DESCRIPTION).request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+                           .startsWith("Member(Id=" + nMemberId),
+                   is(true));
+        }
+
+    @Test
     public void testJfrWithAllNodes()
             throws Exception
         {
@@ -1292,6 +1333,19 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         mapResponse = readEntity(target, response);
         assertThat(((Number) ((Map) mapResponse.get("storageEnabled")).get("false")).longValue(), is(1L));
+        }
+
+    @Test
+    public void testServiceDescription()
+        {
+        Response response = getBaseTarget().path(SERVICES).path(getScopedServiceName(SERVICE_NAME))
+                .path(DESCRIPTION).request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+                           .startsWith("PartitionedCache{Name="),
+                   is(true));
         }
 
     @Test

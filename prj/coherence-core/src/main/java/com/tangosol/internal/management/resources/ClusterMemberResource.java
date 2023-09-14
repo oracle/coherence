@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -51,6 +51,7 @@ public class ClusterMemberResource
         router.addGet(sPathRoot + "/" + FEDERATION, this::getFederationResponse);
         router.addGet(sPathRoot + "/" + FEDERATION+ "/" + TOPOLOGIES, this::getTopologiesResponse);
         router.addGet(sPathRoot + "/" + FEDERATION + "/" + TOPOLOGIES + "/{" + TOPOLOGY_NAME + "}", this::getTopologyResponse);
+        router.addGet(sPathRoot + "/" + DESCRIPTION, this::getNodeDescription);
 
         router.addPost(sPathRoot, this::update);
         router.addPost(sPathRoot + "/{" + OPERATION_NAME + "}", this::executeOperation);
@@ -175,6 +176,17 @@ public class ClusterMemberResource
                 .withMember(sMemberKey);
 
         return response(getResponseEntityForMbean(request, queryBuilder));
+        }
+
+    /**
+     * Return the member description.
+     *
+     * @return the response object
+     */
+    public Response getNodeDescription(HttpRequest request)
+        {
+        String sMemberKey = request.getFirstPathParameter(MEMBER_KEY);
+        return response(getResponseFromMBeanOperation(request, getQuery(request, sMemberKey), DESCRIPTION, "getNodeDescription"));
         }
 
     // ----- POST API(Update) -----------------------------------------------

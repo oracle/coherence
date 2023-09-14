@@ -2373,6 +2373,20 @@ public class ServiceModel
             mapSnapshot.put("PersistenceBackupSpaceUsed", Long.valueOf(ExternalizableHelper.readLong(in)));
             }
         }
+
+    /**
+     * Get service description.
+     */
+    public String getServiceDescription()
+        {
+        Grid svc = get_ServiceImpl();
+        if (svc == null)
+            {
+            return canonicalString(null);
+            }
+        ServiceMemberSet setMember = svc.getServiceMemberSet();
+        return svc + (setMember == null ? canonicalString(null) : setMember.getDescription());
+        }
     
     /**
      * Report partition distributions for which this service member is either

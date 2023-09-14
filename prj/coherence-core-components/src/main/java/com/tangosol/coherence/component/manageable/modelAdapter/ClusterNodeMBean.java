@@ -1050,6 +1050,19 @@ public class ClusterNodeMBean
                 });
             }
         
+        // behavior getNodeDescription()
+            {
+            mapInfo.put("getNodeDescription()", new Object[]
+                {
+                "Get member description.",
+                "getNodeDescription",
+                "Ljava/lang/String;",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+
         // behavior logNodeState()
             {
             mapInfo.put("logNodeState()", new Object[]

@@ -347,6 +347,19 @@ public class ClusterMBean
                 });
             }
 
+        // behavior getClusterDescription()
+            {
+            mapInfo.put("getClusterDescription()", new Object[]
+                {
+                "Get cluster description.",
+                "getClusterDescription",
+                "Ljava/lang/String;",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+
         // behavior logClusterState(String sRole)
             {
             mapInfo.put("logClusterState(Ljava.lang.String;)", new Object[]

@@ -1097,6 +1097,19 @@ public class ServiceMBean
         {
         java.util.Map mapInfo = super.get_MethodInfo();
         
+        // behavior getServiceDescription()
+            {
+            mapInfo.put("getServiceDescription()", new Object[]
+                {
+                "Get service description",
+                "getServiceDescription",
+                "Ljava/lang/String;",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
+
         // behavior reportDistributionState(boolean fVerbose)
             {
             mapInfo.put("reportDistributionState(Z)", new Object[]
