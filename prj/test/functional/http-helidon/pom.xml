@@ -11,7 +11,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.oracle.coherence.tests</groupId>
+    <groupId>com.oracle.coherence.ce.tests</groupId>
     <artifactId>coherence-functional-tests</artifactId>
     <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
