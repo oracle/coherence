@@ -52,6 +52,7 @@ public class ClusterResource
                 .produces(MEDIA_TYPE_JSON, MEDIA_TYPE_SWAGGER_JSON);
         router.addGet(sPathRoot + "/" + GET_CLUSTER_CONFIG, this::getClusterConfig)
                 .produces(MEDIA_TYPE_XML);
+        router.addGet(sPathRoot + "/" + DESCRIPTION, this::getClusterDescription);
 
         router.addPost(sPathRoot, this::updateNodes);
         router.addPost(sPathRoot + "/" + SHUTDOWN, this::shutdownCluster);
@@ -172,6 +173,18 @@ public class ClusterResource
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, queryBuilder, responseMap);
 
         return response(responseMap);
+        }
+
+    /**
+     * Return the cluster description.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response getClusterDescription(HttpRequest request)
+        {
+        return response(getResponseFromMBeanOperation(request, getQuery(request), DESCRIPTION, "getClusterDescription"));
         }
 
     // ----- POST API (Operations) ------------------------------------------

@@ -2307,6 +2307,7 @@ public abstract class AbstractManagementResource
     public static final String CACHE              = "cache";
     public static final String TRUNCATE           = "truncate";
     public static final String CLEAR              = "clear";
+    public static final String DESCRIPTION        = "description";
 
     public static final String DOMAIN_NAME        = "domainName";
     public static final String DOMAIN_FILTER      = "domainPartitionFilter";

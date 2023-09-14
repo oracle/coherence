@@ -1601,6 +1601,15 @@ public class ClusterNodeModel
         
         _trace(createNodeState(), 1);
         }
+
+    /**
+     * Get member description.
+     */
+    public String getNodeDescription()
+        {
+        Member member = (Member) get_Member();
+        return member == null ? "n/a" : member.toString(Member.SHOW_LICENSE);
+        }
     
     // Declared at the super level
     /**
