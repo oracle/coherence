@@ -414,7 +414,7 @@ public class PartitionedIndexMap<K, V>
                 {
                 Set<E> setKeys = keySet();
 
-                return new AbstractCollection<>()
+                return new AbstractCollection()
                     {
                     public Iterator<Set<K>> iterator()
                         {
@@ -446,7 +446,7 @@ public class PartitionedIndexMap<K, V>
                 {
                 Set<E> setKeys = keySet();
 
-                return new AbstractSet<>()
+                return new AbstractSet()
                     {
                     public Iterator<Map.Entry<E, Set<K>>> iterator()
                         {
