@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package jmx;
@@ -24,6 +24,7 @@ import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.ServiceInfo;
 import com.tangosol.net.events.EventInterceptor;
 
 import com.tangosol.net.events.annotation.Interceptor;
@@ -1412,6 +1413,55 @@ public class JmxTests
                    setMBeansAfter, containsInAnyOrder(setMBeansBefore.toArray()));
 
         return memberAfter;
+        }
+
+    /**
+     * Test get{Node|Service|Cluster}Description operations.
+     */
+    @Test
+    public void testDescriptions() throws Exception
+        {
+        CacheFactory.shutdown();
+
+        System.setProperty("coherence.management","all");
+        System.setProperty("coherence.management.remote","true");
+        try
+            {
+            MBeanServer serverJMX = MBeanHelper.findMBeanServer();
+            Cluster     cluster   = CacheFactory.ensureCluster();
+            Registry    registry  = cluster.getManagement();
+            String      sDomain   = registry.getDomainName();
+            NamedCache  cache     = CacheFactory.getCache("dist-cache");
+
+            // invoke the getClusterDescription operation of ClusterMBean.
+            String clusterDesc = (String) serverJMX.invoke(new ObjectName(sDomain + ":" + Registry.CLUSTER_TYPE), "getClusterDescription",
+                                                           new Object[] {},
+                                                           new String[] {});
+            assertTrue(clusterDesc.startsWith("SafeCluster: Name="));
+            assertTrue(clusterDesc.contains("MasterMemberSet("));
+
+            // invoke the getServiceDescription operation of ServiceMBean.
+            ServiceInfo serviceInfo = cache.getCacheService().getInfo();
+            String      sService    = sDomain + ":" + Registry.SERVICE_TYPE
+                                      + ",name=" + serviceInfo.getServiceName()
+                                      + ",nodeId=" + ((Member) serviceInfo.getServiceMembers().stream().findFirst().get()).getId();
+            String      serviceDesc = (String) serverJMX.invoke(new ObjectName(sService), "getServiceDescription",
+                                                                new Object[] {},
+                                                                new String[] {});
+            assertTrue(serviceDesc.contains("PartitionedCache{Name=DistributedCache, State=(SERVICE_STARTED)"));
+
+            // invoke the getNodeDescription operation of ClusterNodeMBean.
+            String sNode    = sDomain + ":" + Registry.NODE_TYPE + ",nodeId=" + cluster.getLocalMember().getId();
+            String nodeDesc = (String) serverJMX.invoke(new ObjectName(sNode), "getNodeDescription",
+                                                        new Object[] {},
+                                                        new String[] {});
+            assertTrue(nodeDesc.startsWith("Member(Id="));
+            }
+        finally
+            {
+            System.clearProperty("coherence.management");
+            System.clearProperty("coherence.management.remote");
+            }
         }
 
     // ----- helper classes ---------------------------------------------------

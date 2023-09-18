@@ -184,6 +184,21 @@ public class ClusterResource
         return executeMBeanOperation(getQuery(), GET_CLUSTER_CONFIG, null, null);
         }
 
+    /**
+     * Get the cluster description.
+     *
+     * @return the response object
+     *
+     * @since 14.1.1.15
+     */
+    @GET
+    @Produces(MEDIA_TYPES)
+    @Path(DESCRIPTION)
+    public Response getClusterDescription()
+        {
+        return response(getResponseFromMBeanOperation(getQuery(), "description", "getClusterDescription"));
+        }
+
     // ----- POST API (Operations) ------------------------------------------
 
     /**

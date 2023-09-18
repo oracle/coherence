@@ -79,6 +79,7 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 
 import org.junit.AfterClass;
@@ -94,6 +95,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.CACHES;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.CLEAR;
+import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.DESCRIPTION;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.coherence.management.internal.resources.AbstractManagementResource.MEMBERS;
@@ -303,6 +305,19 @@ public class ManagementInfoResourceTests
 
         String sResponse = response.readEntity(String.class);
         assertTrue(sResponse.startsWith("<cluster-config"));
+        }
+
+    @Test
+    public void testClusterDescription()
+        {
+        WebTarget target   = getBaseTarget().path(DESCRIPTION);
+        Response  response = target.request().get();
+
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        MatcherAssert.assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+                                         .startsWith("SafeCluster: Name=" + CLUSTER_NAME + ", ClusterPort="),
+                                 is(true));
         }
 
     @Test
@@ -786,6 +801,32 @@ public class ManagementInfoResourceTests
         }
 
     @Test
+    public void testMemberDescription()
+        {
+        WebTarget target   = getBaseTarget();
+        Response  response = target.request().get();
+
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+        Map mapResponse = readEntity(target, response);
+
+        List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
+
+        MatcherAssert.assertThat(listMemberIds, notNullValue());
+        MatcherAssert.assertThat(listMemberIds.size(), greaterThan(0));
+
+        Number nMemberId = listMemberIds.get(0);
+
+        response = getBaseTarget().path("members").path(String.valueOf(nMemberId))
+                .path(DESCRIPTION).request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+                                         .startsWith("Member(Id=" + nMemberId),
+                                 is(true));
+        }
+    @Test
     public void testMemberDumpHeap()
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
@@ -1144,6 +1185,19 @@ public class ManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         mapResponse = new LinkedHashMap(readEntity(target, response));
         assertThat(((LinkedHashMap) mapResponse.get("storageEnabled")).get("false"), is(1));
+        }
+
+    @Test
+    public void testServiceDescription()
+        {
+        Response response = getBaseTarget().path(SERVICES).path("DistributedCache")
+                .path(DESCRIPTION).request(MediaType.APPLICATION_JSON_TYPE)
+                .get();
+
+        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        MatcherAssert.assertThat(((String) (response.readEntity(Map.class).get(DESCRIPTION)))
+                                         .startsWith("PartitionedCache{Name="),
+                                 is(true));
         }
 
     @Test

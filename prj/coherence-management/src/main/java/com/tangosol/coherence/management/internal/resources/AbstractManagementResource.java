@@ -1927,6 +1927,7 @@ public abstract class AbstractManagementResource
     public static final String STATISTICS       = "statistics";
     public static final String INCOMING         = "incoming";
     public static final String OUTGOING         = "outgoing";
+    public static final String DESCRIPTION      = "description";
 
     // ------------------------------ URL constants ends ---------------------------------------------
 

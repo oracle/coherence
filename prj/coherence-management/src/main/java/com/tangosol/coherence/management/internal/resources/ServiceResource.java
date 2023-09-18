@@ -150,6 +150,23 @@ public class ServiceResource
         return response(responseMap);
         }
 
+    /**
+     * Return the service description.
+     *
+     * @param sServiceName  the service name
+     *
+     * @return the response object
+     */
+    @GET
+    @Produces(MEDIA_TYPES)
+    @Path(DESCRIPTION)
+    public Response getServiceDescription(@PathParam(SERVICE_NAME) String sServiceName)
+        {
+        QueryBuilder bldrQuery = getQuery(sServiceName);
+        return response(getResponseFromMBeanOperation(bldrQuery,
+                                                      "description", "getServiceDescription"));
+        }
+
     // ----- POST API(Operations) -------------------------------------------
 
     /**

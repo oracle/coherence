@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.management.internal.resources;
 
@@ -135,6 +135,22 @@ public class ClusterMemberResource
         {
         return response(getResponseFromMBeanOperation(getQuery(sMemberKey),
                 "state", "reportNodeState"));
+        }
+
+    /**
+     * Return the member description.
+     *
+     * @param sMemberKey     the member key, can be a member name or node Id
+     *
+     * @return the response object
+     */
+    @GET
+    @Produces(MEDIA_TYPES)
+    @Path(DESCRIPTION)
+    public Response getNodeDescription(@PathParam(MEMBER_KEY) String sMemberKey) throws Exception
+        {
+        return response(getResponseFromMBeanOperation(getQuery(sMemberKey),
+                                                      "description", "getNodeDescription"));
         }
 
     // ----- POST API(Update) -----------------------------------------------

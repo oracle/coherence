@@ -340,6 +340,32 @@
         }
       }
     },
+    "/management/coherence/cluster/description": {
+      "get": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Get the Coherence Cluster description",
+        "description": "Use this endpoint to retrieve the Coherence Cluster description.",
+        "operationId": "/management/coherence/cluster/description GET",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns Coherence Cluster description",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/members": {
       "get": {
         "tags": [
@@ -443,6 +469,37 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/members/{memberIdentifier}/description": {
+      "get": {
+        "tags": [
+          "Cluster"
+        ],
+        "summary": "Get member description.",
+        "description": "Use this endpoint to retrieve member description.",
+        "operationId": "/management/coherence/cluster/members/{memberIdentifier}/description GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/memberIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the member description",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -1565,6 +1622,29 @@
         "responses": {
           "200": {
             "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/services/{serviceName}/description": {
+      "post": {
+        "tags": [
+          "Service"
+        ],
+        "summary": "Get service description.",
+        "description": "Use this endpoint to retrieve service description.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/description GET",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful request that returns the service description"
           }
         }
       }
@@ -3156,8 +3236,8 @@
           "Storage Managers"
         ],
         "summary": "View Storage Managers",
-        "description": "Use this endpoint to view list of storage managers in the cluster. A Storage instance manages all index, listener, and lock information for the portion of the DistributedCache managed by the local member.",
-        "operationId": "/management/coherence/cluster/storage GET",
+        "description": "Use this endpoint to view list of storage managers in a service.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage GET",
         "produces": [
           "application/json"
         ],
@@ -3168,7 +3248,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A successful request that returns the storage managers in a Coherence cluster",
+            "description": "A successful request that returns the list of storage managers in a service",
             "schema": {
               "type": "object",
               "properties": {
@@ -6847,7 +6927,7 @@
           "readOnly": true
         },
         "indexingTotalMillis" : {
-          "type": "integet",
+          "type": "integer",
           "format": "int64",
           "description": "The cumulative duration in milliseconds of index builds since statistics were last reset.",
           "readOnly": true
