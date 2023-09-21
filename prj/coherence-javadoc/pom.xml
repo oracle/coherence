@@ -261,6 +261,7 @@
             <configuration>
               <stylesheetfile>${stylesheet.file}</stylesheetfile>
               <sourcepath>${javadoc.src}</sourcepath>
+              <notimestamp>true</notimestamp>
             </configuration>
 
             <executions>
