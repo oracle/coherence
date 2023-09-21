@@ -357,6 +357,8 @@
                   <artifact>com.sleepycat:je</artifact>
                   <excludes>
                     <exclude>com/sleepycat/persist/model/ClassEnhancerTask*</exclude>
+                    <!-- see COH-28458 -->
+                    <exclude>com/sleepycat/je/utilint/JVMSystemUtils*</exclude>
                   </excludes>
                 </filter>
               </filters>

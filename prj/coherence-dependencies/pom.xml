@@ -106,8 +106,6 @@
 
     <failsafe.argLine/>
     <default.failsafe.modules.argline>
-      --add-exports java.management/sun.management=com.oracle.coherence
-      --add-exports java.management/sun.management=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
@@ -117,8 +115,6 @@
     <failsafe.coverage.argline/>
 
     <default.surefire.modules.argline>
-      --add-exports java.management/sun.management=com.oracle.coherence
-      --add-exports java.management/sun.management=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
