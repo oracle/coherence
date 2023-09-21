@@ -31,8 +31,10 @@ import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Session;
 import com.tangosol.util.Processors;
 
 import org.junit.jupiter.api.AfterAll;
@@ -45,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 
 import static org.hamcrest.CoreMatchers.is;
@@ -65,12 +68,14 @@ public class PerformanceOverConsistencyTest {
     private static final Random   RANDOM         = new Random();
     private static final String   CACHE_CONFIG   = "coherence-cache-config.xml";
     private static final String   TEST           = "perf";
+    private static final String   CLUSTER_NAME   = "performance";
 
     protected static AvailablePortIterator availablePortIteratorWKA;
     protected static CoherenceCacheServer  member1 = null;
     protected static CoherenceCacheServer  member2 = null;
     protected static CoherenceCacheServer  member3 = null;
     protected static CoherenceCacheServer  member4 = null;
+    protected static int clusterPort;
 
     @BeforeAll
     public static void startup() {
@@ -91,17 +96,29 @@ public class PerformanceOverConsistencyTest {
     /**
      * Run the same test against different cache types.
      */
-    public void testDifferentScenarios() {
+    public void testDifferentScenarios() throws Exception {
+        // set the system properties to join the cluster
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
+        System.setProperty("coherence.clusterport", Integer.toString(clusterPort));
+        System.setProperty("coherence.cacheconfig", CACHE_CONFIG);
+        System.setProperty("coherence.log.level", "1");
+        System.setProperty("coherence.distributed.localstorage", "false");
+
+        Coherence coh     = Coherence.clusterMember().start().get(5, TimeUnit.MINUTES);
+        Session   session = coh.getSession();
+
         System.out.println("Running Tests");
         System.out.flush();
         final String headerFormat = "%-15s %12s %12s %12s %12s %12s\n";
         final String lineFormat   = "%-15s %,10dms %,10dms %,10dms %,10dms %,10dms\n";
 
-        NamedCache<Integer, Customer> cache            = member1.getCache("base-customers");
-        NamedCache<Integer, Customer> cacheReadLocator = member1.getCache("rl-customers");
-        NamedCache<Integer, Customer> cacheAsyncBackup = member1.getCache("async-backup-customers");
-        NamedCache<Integer, Customer> cacheSchedBackup = member1.getCache("sched-backup-customers");
-        NamedCache<Integer, Customer> cacheNoBackup    = member1.getCache("no-backup-customers");
+        NamedCache<Integer, Customer> cache            = session.getCache("base-customers");
+        NamedCache<Integer, Customer> cacheReadLocator = session.getCache("rl-customers");
+        NamedCache<Integer, Customer> cacheAsyncBackup = session.getCache("async-backup-customers");
+        NamedCache<Integer, Customer> cacheSchedBackup = session.getCache("sched-backup-customers");
+        NamedCache<Integer, Customer> cacheNoBackup    = session.getCache("no-backup-customers");
 
         List<TestResult> listResults = new ArrayList<>();
 
@@ -207,7 +224,7 @@ public class PerformanceOverConsistencyTest {
         availablePortIteratorWKA = platform.getAvailablePorts();
         availablePortIteratorWKA.next();
 
-        int clusterPort = availablePortIteratorWKA.next();
+        clusterPort = availablePortIteratorWKA.next();
 
         OptionsByType member1Options = createCacheServerOptions(clusterPort, TEST, 1, CACHE_CONFIG);
         OptionsByType member2Options = createCacheServerOptions(clusterPort, TEST, 2, CACHE_CONFIG);
@@ -242,7 +259,7 @@ public class PerformanceOverConsistencyTest {
                 MachineName.of(machine),
                 SystemProperty.of("-Xmx1g"),
                 SystemProperty.of("-Xms1g"),
-                ClusterName.of("performance"),
+                ClusterName.of(CLUSTER_NAME),
                 ClusterPort.of(clusterPort));
 
         return optionsByType;
