@@ -12,8 +12,10 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
 
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.filter.AlwaysFilter;
 
+import java.util.Comparator;
 import java.util.function.Supplier;
 
 /**
@@ -106,6 +108,33 @@ public class ViewBuilder<K, V>
         {
         m_mapper = mapper;
         return (ViewBuilder<K, U>) this;
+        }
+
+    /**
+     * Ensure that the view is sorted  based on the natural order of
+     * the values, which must implement {@link Comparable} interface.
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public ViewBuilder<K, V> sorted()
+        {
+        return sorted(null);
+        }
+
+    /**
+     * Ensure that the view is sorted using specified {@link Comparator}.
+     *
+     * @param comparator  the {@link Comparator} that will be used to sort the
+     *                    entries in this view; if {@code null}, the entries will
+     *                    be sorted based on the natural order of the values, which
+     *                    must implement {@link Comparable} interface
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public ViewBuilder<K, V> sorted(Comparator<? super V> comparator)
+        {
+        m_comparator = SafeComparator.ensureSafe(comparator);
+        return this;
         }
 
     /**

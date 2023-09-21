@@ -18,12 +18,14 @@ import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
 
+import java.util.Comparator;
 import java.util.HashMap;
 
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.instanceOf;
@@ -169,6 +171,29 @@ public class ViewBuilderTest
 
         assertThat(cacheString.get("1"), is("A"));
         assertThat(cacheInt.get("1"),    is(42));
+        }
+
+    @Test
+    public void testViewBuilderSorted()
+        {
+        NamedCache<Integer, Data> underlying = getCache("cachingValues");
+        underlying.put(1, new Data("A", 42));
+        underlying.put(2, new Data("B", 32));
+        underlying.put(3, new Data("C", 22));
+        underlying.put(4, new Data("D", 12));
+
+        NamedCache<Integer, Data> viewData =
+                new ViewBuilder<>(underlying)
+                        .sorted(Comparator.comparing(Data::getString)).build();
+        assertThat(viewData.keySet(), contains(1, 2, 3, 4));
+
+        NamedCache<Integer, Integer> viewInt =
+                new ViewBuilder<>(underlying)
+                        .map(Data::getInteger)
+                        .sorted()
+                        .build();
+        assertThat(viewInt.keySet(), contains(4, 3, 2, 1));
+        assertThat(viewInt.values(), contains(12, 22, 32, 42));
         }
 
     // ----- inner class : TestListener -------------------------------------
