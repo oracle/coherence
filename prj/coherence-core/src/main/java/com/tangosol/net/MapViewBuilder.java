@@ -6,14 +6,17 @@
  */
 package com.tangosol.net;
 
+import com.tangosol.internal.util.OrderedView;
 import com.tangosol.net.cache.ContinuousQueryCache;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.filter.AlwaysFilter;
 
+import java.util.Comparator;
 import java.util.function.Supplier;
 
 /**
@@ -106,6 +109,33 @@ public class MapViewBuilder<K, V>
         }
 
     /**
+     * Ensure that the view is sorted  based on the natural order of
+     * the values, which must implement {@link Comparable} interface.
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public MapViewBuilder<K, V> sorted()
+        {
+        return sorted(null);
+        }
+
+    /**
+     * Ensure that the view is sorted using specified {@link Comparator}.
+     *
+     * @param comparator  the {@link Comparator} that will be used to sort the
+     *                    entries in this view; if {@code null}, the entries will
+     *                    be sorted based on the natural order of the values, which
+     *                    must implement {@link Comparable} interface
+     *
+     * @return this {@link MapViewBuilder}
+     */
+    public MapViewBuilder<K, V> sorted(Comparator<? super V> comparator)
+        {
+        m_comparator = comparator == null ? SafeComparator.INSTANCE() : comparator;
+        return this;
+        }
+
+    /**
      * The resulting {@code view} will only map keys.
      * <p></p>
      * NOTE: this is mutually exclusive with {@link #values()}.
@@ -152,14 +182,14 @@ public class MapViewBuilder<K, V>
     @SuppressWarnings({"unchecked", "rawtypes"})
     public NamedMap<K, V> build()
         {
-        Filter<?>   filter = m_filter;
-        ClassLoader loader = m_loader;
-        return new ContinuousQueryCache(f_supplierNamedCache,
-                                        filter == null ? AlwaysFilter.INSTANCE : filter,
-                                        m_fCacheValues,
-                                        m_listener,
-                                        m_mapper,
-                                        loader == null ? Base.getContextClassLoader(this) : loader);
+        Filter<?>        filter = m_filter;
+        ClassLoader      loader = m_loader;
+        NamedCache<K, V> view   = new ContinuousQueryCache(f_supplierNamedCache,
+                                                           filter == null ? AlwaysFilter.INSTANCE : filter,
+                                                           m_fCacheValues, m_listener, m_mapper,
+                                                           loader == null ? Base.getContextClassLoader(this) : loader);
+
+        return m_comparator == null ? view : new OrderedView<>(view, m_comparator);
         }
 
     // ----- data members ---------------------------------------------------
@@ -189,6 +219,11 @@ public class MapViewBuilder<K, V>
      * specified, this {@code view} will become {@code read-only}.
      */
     protected ValueExtractor<? super V, ?> m_mapper;
+
+    /**
+     * The {@link Comparator} to use when creating a sorted view.
+     */
+    protected Comparator<? super V> m_comparator;
 
     /**
      * Flag controlling if the {@code view} will store both keys and values
