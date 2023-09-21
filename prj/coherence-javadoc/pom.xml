@@ -444,6 +444,7 @@
             <configuration>
               <sourcepath>${javadoc.src}</sourcepath>
               <doclint>${doclint.check}</doclint>
+              <notimestamp>true</notimestamp>
             </configuration>
 
             <executions>
