@@ -609,6 +609,7 @@
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -617,6 +618,7 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-stub@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -625,6 +627,7 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-netty@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -633,6 +636,7 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-core@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -642,6 +646,7 @@
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-protobuf\-lite@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
     <cpe>cpe:2.3:a:protobuf:protobuf</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -650,6 +655,7 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-api@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -658,6 +664,7 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-context@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
   <suppress>
@@ -666,6 +673,7 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.grpc/grpc\-services@.*$</packageUrl>
     <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-4785</cve>
     <cve>CVE-2023-33953</cve>
   </suppress>
 
