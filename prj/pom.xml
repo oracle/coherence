@@ -698,16 +698,12 @@
 
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
         <default.failsafe.modules.argline>
-          --add-exports java.management/sun.management=com.oracle.coherence
-          --add-exports java.management/sun.management=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
           --add-opens=java.base/java.lang=ALL-UNNAMED
         </default.failsafe.modules.argline>
         <default.surefire.modules.argline>
-          --add-exports java.management/sun.management=com.oracle.coherence
-          --add-exports java.management/sun.management=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
@@ -793,15 +789,11 @@
       <properties>
         <!-- This is a work-around due to FailSafe putting JUnit jars on both the classpath and module path -->
         <failsafe.modules.argline>
-          --add-exports java.management/sun.management=com.oracle.coherence
-          --add-exports java.management/sun.management=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
         </failsafe.modules.argline>
         <surefire.modules.argline>
-          --add-exports java.management/sun.management=com.oracle.coherence
-          --add-exports java.management/sun.management=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED

@@ -33,7 +33,6 @@
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <failsafe.modules.argline>
       ${default.failsafe.modules.argline}
-      --add-exports java.management/sun.management=com.oracle.coherence
     </failsafe.modules.argline>
   </properties>
 
