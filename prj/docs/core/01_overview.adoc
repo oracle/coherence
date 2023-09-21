@@ -51,4 +51,18 @@ Use caching annotations for response caching.
 Run Coherence in secured production mode.
 --
 
+[CARD]
+.Sorted Views
+[icon=fa-sort-alpha-asc,link=docs/core/07_sorted_views.adoc]
+--
+Create sorted client-side views of cached data.
+--
+
+[CARD]
+.Virtual Threads Support
+[icon=fa-random,link=docs/core/08_virtual_threads.adoc]
+--
+Use Java 21 virtual threads within Coherence.
+--
+
 ====
