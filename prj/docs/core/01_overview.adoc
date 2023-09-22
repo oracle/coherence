@@ -45,10 +45,10 @@ Use caching annotations for response caching.
 --
 
 [CARD]
-.Secured Production Mode
-[icon=fa-expeditedssl,link=docs/core/06_secured_production.adoc]
+.Virtual Threads Support
+[icon=fa-random,link=docs/core/06_virtual_threads.adoc]
 --
-Run Coherence in secured production mode.
+Use Java 21 virtual threads within Coherence.
 --
 
 [CARD]
@@ -59,10 +59,10 @@ Create sorted client-side views of cached data.
 --
 
 [CARD]
-.Virtual Threads Support
-[icon=fa-random,link=docs/core/08_virtual_threads.adoc]
+.Secured Production Mode
+[icon=fa-expeditedssl,link=docs/core/08_secured_production.adoc]
 --
-Use Java 21 virtual threads within Coherence.
+Run Coherence in secured production mode.
 --
 
 ====
