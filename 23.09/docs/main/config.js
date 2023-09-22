@@ -143,7 +143,33 @@ function createRoutes(){
             component: loadPage('docs-core-05_response_caching', '/docs/core/05_response_caching', {})
         },
         {
-            path: '/docs/core/06_secured_production',
+            path: '/docs/core/06_virtual_threads',
+            meta: {
+                h1: 'Virtual Threads Support',
+                title: 'Virtual Threads Support',
+                h1Prefix: null,
+                description: 'Coherence Core Improvements',
+                keywords: 'coherence, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-06_virtual_threads', '/docs/core/06_virtual_threads', {})
+        },
+        {
+            path: '/docs/core/07_sorted_views',
+            meta: {
+                h1: 'Sorted Views',
+                title: 'Sorted Views',
+                h1Prefix: null,
+                description: 'Coherence Core Improvements',
+                keywords: 'coherence, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-07_sorted_views', '/docs/core/07_sorted_views', {})
+        },
+        {
+            path: '/docs/core/08_secured_production',
             meta: {
                 h1: 'Secured Production Mode',
                 title: 'Secured Production Mode',
@@ -153,7 +179,7 @@ function createRoutes(){
                 customLayout: null,
                 hasNav: true
             },
-            component: loadPage('docs-core-06_secured_production', '/docs/core/06_secured_production', {})
+            component: loadPage('docs-core-08_secured_production', '/docs/core/08_secured_production', {})
         },
         {
             path: '/coherence-docker/README',
@@ -784,7 +810,9 @@ function createNav(){
                                 { href: '/docs/core/03_microprofile_health', title: 'Microprofile Health' },
                                 { href: '/docs/core/04_gradle', title: 'Gradle POF Plugin' },
                                 { href: '/docs/core/05_response_caching', title: 'CDI Response Caching' },
-                                { href: '/docs/core/06_secured_production', title: 'Secured Production Mode' }
+                                { href: '/docs/core/06_virtual_threads', title: 'Virtual Threads Support' },
+                                { href: '/docs/core/07_sorted_views', title: 'Sorted Views' },
+                                { href: '/docs/core/08_secured_production', title: 'Secured Production Mode' }
                             ]
                         },
                         {

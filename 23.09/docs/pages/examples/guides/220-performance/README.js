@@ -260,17 +260,29 @@ lang="java"
 /**
  * Run the same test against different cache types.
  */
-public void testDifferentScenarios() {
+public void testDifferentScenarios() throws Exception {
+    // set the system properties to join the cluster
+    System.setProperty("coherence.wka", "127.0.0.1");
+    System.setProperty("coherence.ttl", "0");
+    System.setProperty("coherence.cluster", CLUSTER_NAME);
+    System.setProperty("coherence.clusterport", Integer.toString(clusterPort));
+    System.setProperty("coherence.cacheconfig", CACHE_CONFIG);
+    System.setProperty("coherence.log.level", "1");
+    System.setProperty("coherence.distributed.localstorage", "false");
+
+    Coherence coh     = Coherence.clusterMember().start().get(5, TimeUnit.MINUTES);
+    Session   session = coh.getSession();
+
     System.out.println("Running Tests");
     System.out.flush();
     final String headerFormat = "%-15s %12s %12s %12s %12s %12s\n";
     final String lineFormat   = "%-15s %,10dms %,10dms %,10dms %,10dms %,10dms\n";
 
-    NamedCache&lt;Integer, Customer&gt; cache            = member1.getCache("base-customers");
-    NamedCache&lt;Integer, Customer&gt; cacheReadLocator = member1.getCache("rl-customers");
-    NamedCache&lt;Integer, Customer&gt; cacheAsyncBackup = member1.getCache("async-backup-customers");
-    NamedCache&lt;Integer, Customer&gt; cacheSchedBackup = member1.getCache("sched-backup-customers");
-    NamedCache&lt;Integer, Customer&gt; cacheNoBackup    = member1.getCache("no-backup-customers");
+    NamedCache&lt;Integer, Customer&gt; cache            = session.getCache("base-customers");
+    NamedCache&lt;Integer, Customer&gt; cacheReadLocator = session.getCache("rl-customers");
+    NamedCache&lt;Integer, Customer&gt; cacheAsyncBackup = session.getCache("async-backup-customers");
+    NamedCache&lt;Integer, Customer&gt; cacheSchedBackup = session.getCache("sched-backup-customers");
+    NamedCache&lt;Integer, Customer&gt; cacheNoBackup    = session.getCache("no-backup-customers");
 
     List&lt;TestResult&gt; listResults = new ArrayList&lt;&gt;();
 
@@ -549,11 +561,11 @@ lang="bash"
 Running Tests
 ####
 Cache Type            2k Put     8 PutAll   100 Invoke       2k Get   100 GetAll
-base                 2,758ms        252ms        191ms      1,310ms        159ms
-base-rl              1,536ms        140ms        127ms        755ms        125ms
-async-backup           956ms        124ms        124ms        840ms         87ms
-sched-backup         1,140ms        108ms        128ms      1,101ms        103ms
-no-backup              713ms         98ms         85ms        925ms         83ms
+base                 1,245ms        153ms        103ms        600ms         45ms
+base-rl                904ms         81ms         89ms        414ms         36ms
+async-backup           541ms        100ms         70ms        379ms         24ms
+sched-backup           393ms         57ms         65ms        437ms         31ms
+no-backup              354ms         56ms         50ms        364ms         24ms
 ####
 Note: The above times are to run the individual parts of tests, not to do an individual put/get, etc.
 
