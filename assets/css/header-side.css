@@ -1,0 +1,190 @@
+/** Side Menu
+ **************************************************************** **/
+body.menu-vertical #wrapper {
+	margin-left:263px;
+}
+
+body.menu-vertical #mainMenu.sidebar-vertical {
+	position:fixed;
+	left:0; top:0; bottom:0;
+	width:263px;
+	background-color:#fff;
+	z-index:100;
+}
+
+body.menu-vertical #mainMenu .navbar-collapse {
+	background-color:#transparent;
+	border-color:transparent;
+}
+
+body.menu-vertical #mainMenu .navbar-default {
+	background-color:transparent !important;
+	border:0;
+}
+
+body.menu-vertical #mainMenu .logo {
+	display:block;
+	margin:30px 0 30px 0;
+	padding:30px 0;
+}
+body.menu-vertical #mainMenu a.dropdown-toggle {
+	margin-top:3px;
+}
+
+
+/* Aside Vertical */ 
+body.menu-vertical #mainMenu.sidebar-vertical .navbar-default .navbar-nav>li>a {
+	border-bottom:#eee 1px solid;
+	padding:10px 15px 10px 40px;
+}
+
+body.menu-vertical #mainMenu.sidebar-vertical .dropdown-menu {
+	top:-1px;
+	left:auto;
+	right:-200px;
+	padding:0;
+	width:200px;
+	overflow:hidden;
+}
+body.menu-vertical #mainMenu.sidebar-vertical .dropdown-menu>li>a {
+	border-bottom:#eee 1px solid;
+}
+
+body.menu-vertical #mainMenu.sidebar-vertical .navbar-default .navbar-nav>.active>a,
+body.menu-vertical #mainMenu.sidebar-vertical li.dropdown.open>a,
+body.menu-vertical #mainMenu.sidebar-vertical .sidebar-nav .navbar li:hover>a {
+	background-color:transparent !important;
+	color:#E62B25;
+}
+
+body.menu-vertical #mainMenu.sidebar-vertical .social-icons {
+	padding:30px 15px;
+}
+
+body.menu-vertical #mainMenu .social {
+  width: 30px;
+  height: 30px;
+  background-color: #eee;
+  color: #999;
+  text-align: center;
+  font-size: 20px;
+  line-height: 30px;
+  border-color: #eaeaea;
+  text-decoration: none !important;
+  margin-right: 3px;
+  margin-bottom: 6px;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+	/* Responsive */ 
+	@media (min-width: 768px) {
+		body.menu-vertical #mainMenu.sidebar-vertical .sidebar-nav .navbar .navbar-collapse {
+			padding: 0;
+			max-height: none;
+		}
+		body.menu-vertical #mainMenu.sidebar-vertical .sidebar-nav .navbar ul {
+			float: none;
+			border-top:#eee 1px solid;
+		}
+		body.menu-vertical #mainMenu.sidebar-vertical .sidebar-nav .navbar ul:not {
+			display: block;
+
+		}
+		body.menu-vertical #mainMenu.sidebar-vertical .sidebar-nav .navbar li {
+			float: none;
+			display: block;
+		}
+		body.menu-vertical #mainMenu.sidebar-vertical .sidebar-nav .navbar li a {
+			padding-top: 8px;
+			padding-bottom: 8px;
+			color:#000;
+
+			-webkit-transition: all .10s;
+			   -moz-transition: all .10s;
+				 -o-transition: all .10s;
+					transition: all .10s; 
+
+		}
+		body.menu-vertical #mainMenu.sidebar-vertical li.dropdown:hover>ul.dropdown-menu {
+			display:block;
+		}
+	}
+	@media (min-width: 768px) {
+		/* uncomment if you would like the menu to be fixed */
+		/* .navbar {
+			position: fixed;
+			width: 170px;
+			z-index: 2;
+		} */
+	}
+	@media (min-width: 992px) {
+		body.menu-vertical #mainMenu.sidebar-vertical .navbar {
+			width: 212px;
+		}
+	}
+	@media (min-width: 1200px) {
+		body.menu-vertical #mainMenu.sidebar-vertical .navbar {
+			width: 262px;
+		}
+	}
+	@media (min-width: 768px) {
+		body.menu-vertical #mainMenu .navbar-default {
+			border:0;
+		}
+		body.menu-vertical #mainMenu {
+			border-right:#d6d6d6 1px solid;
+
+			-webkit-box-shadow: 10px 0px 30px -2px rgba(0, 0, 0, 0.14);
+			   -moz-box-shadow: 10px 0px 30px -2px rgba(0, 0, 0, 0.14);
+					box-shadow: 10px 0px 30px -2px rgba(0, 0, 0, 0.14);
+		}
+	}
+	@media (max-width: 768px) {
+		body.menu-vertical #mainMenu {
+			position:relative;
+			width:100%;
+		}
+		body.menu-vertical #mainMenu .navbar-nav {
+			margin-bottom:0;
+			margin-top:0;
+		}
+		body.menu-vertical #mainMenu .navbar-header {
+			background-color:#fafafa;
+		}
+		body.menu-vertical #middle {
+			padding:15px !important;
+		}
+
+		body.menu-vertical #mainMenu .logo {
+			padding:0;
+			margin:15px 0;
+		}
+		
+		body.menu-vertical #wrapper {
+			margin-left:0;
+		}
+		body.menu-vertical #mainMenu.sidebar-vertical {
+			position:relative;
+			width:100%;
+		}
+		
+		body.menu-vertical .navbar {
+			margin-bottom:0;
+		}
+		
+		body.menu-vertical #mainMenu.sidebar-vertical .dropdown-menu {
+			width:100%;
+		}
+	}
+
+	.sidebar-vertical .sidebar-nav .navbar-header { 
+		float: none; 
+	}
+
+
+
+
+
+

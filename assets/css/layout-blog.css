@@ -1,0 +1,243 @@
+/** Blog
+**************************************************************** **/
+
+#blog header.page-default-title {
+	margin-bottom:60px;
+	margin-top:-70px;
+
+}
+#blog .widget small {
+	color:#999;
+	display:block;
+	font-size:11px;
+}
+#blog .widget {
+	margin-bottom:60px;
+}
+#blog .widget h3 {
+	margin-bottom:20px;
+}
+#blog .widget h3,
+#blog .widget h4 {
+	font-size:17px;
+}
+#blog .widget a.thumb {
+	float:left;
+	width:85px;
+	overflow:hidden;
+	text-align:center;
+}
+#blog .widget a {
+	color:#333;
+}
+#blog .widget ul {
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+#blog .widget ul li a i {
+	padding-right:8px;
+}
+#blog .widget ul li {
+	margin:10px 0;
+}
+#blog .widget ul.nav-list li {
+	margin:0;
+}
+#blog .widget ul.nav-list li a {
+	padding-left:0;
+
+	-webkit-transition: all 0.2s;
+	   -moz-transition: all 0.2s;
+		 -o-transition: all 0.2s;
+			transition: all 0.2s;
+}
+#blog .widget ul.nav-list li a {
+	padding-left:8px !important;
+}
+#blog .widget ul.nav-list li a:hover {
+	padding-left:0;
+	background-color:#E4E4E4;
+}
+#blog .widget ul.nav-tabs>li {
+	margin:0 !important;
+}
+#blog .widget input.form-control {
+	border:0;
+	height:38px;
+	background-color: rgba(0,0,0,0.1);
+}
+#blog .widget .nav>li>a {
+	padding-top:5px !important;
+	padding-bottom:5px !important;
+}
+#blog .widget a.tag {
+	background-color:#E4E4E4;
+	padding-top:6px;
+	padding-bottom:6px;
+	margin-bottom:6px;
+}
+#blog a.tag {
+	color:#333;
+	background-color:#E4E4E4;
+}
+#comments {
+	margin-top:60px;
+}
+#comments h4 {
+	font-size:16px;
+}
+#blog .comment {
+	margin:40px 0;
+}
+#blog a.replyBtn {
+	float:right;
+	font-size:11px;
+	text-transform:uppercase;
+}
+#blog span.user-avatar {
+	background:#eee;
+	width:64px; height:64px;
+	float:left;
+	margin-right:10px;
+}
+#blog form input[type="text"],
+#blog form input[type="password"],
+#blog form input[type="email"],
+#blog form input[type="phone"],
+#blog form textarea {
+	width:100%;
+}
+#blog header.blog-post {
+	margin-bottom:30px;
+}
+#blog header.blog-post h1 {
+	font-weight:300;
+	font-size:40px !important;
+	line-height:60px !important;
+	text-transform:none;
+	margin:0; padding:0;
+}
+
+
+#blog .owl-carousel {
+	margin-bottom:30px;
+}
+.owl-item .item {
+	background:none !important;
+	margin:0 !important;
+	padding:0 !important;
+}
+
+
+#blog .socials {
+	float:right;
+	margin-top:-20px;
+}
+#blog p {
+	padding:10px 0;
+}
+
+
+#commentForm {
+	padding:15px;
+}
+
+
+#blog .blog-prev-date {
+	text-align:right;
+}
+#blog .blog-prev-date.text-left {
+	text-align:left;
+}
+#blog .blog-prev-date span.date {
+	text-align:center;
+	font-size: 60px;
+	display: inline-block;
+	line-height: 50px;
+	color: #313131;
+}
+#blog .blog-prev-date span.date small {
+	text-transform: uppercase;
+	display: block;
+	font-size: 14px;
+	line-height:20px;
+}
+#blog .blog-prev-date span.info {
+	border-top:#ddd 1px solid;
+	display:block;
+	margin-top:20px;
+	padding-top:20px;
+	font-size:11px;
+	color:#333;
+}
+#blog .blog-prev-date span.info a {
+	color:#888;
+}
+#blog h1,
+#blog h2.article-title {
+	font-size:25px;
+	line-height:30px;
+	text-transform:uppercase;
+}
+#blog h1 a,
+#blog h2.article-title a {
+	color:#333;
+}
+#blog h1.article-title a cite,
+#blog h2.article-title a cite {
+	display:block;
+	font-size:12px;
+	margin:0;
+	padding:0;
+}
+#blog .read-more {
+	padding-left:0;
+	padding-right:0;
+}
+#blog .prev-article {
+	border-bottom:#ddd 1px solid;
+	padding-bottom:60px;
+	margin-bottom:60px;
+}
+#blog .prev-article:last-child {
+	border-bottom:0;
+	padding-bottom:0;
+	margin-bottom:0;
+}
+
+#blog .prev-next {
+	display:block;
+	padding:8px 0;
+	margin-top:100px;
+	margin-bottom:-100px;
+	border-top:#ccc 1px dotted;
+}
+#blog .prev-next a {
+	text-decoration:none;
+	color:#999;
+	font-size:60px;
+	line-height:60px;
+}
+#blog .prev-next a:hover {
+	color:#333;
+}
+
+@media only screen and (max-width: 768px) {
+	#blog .socials {
+		float:none;
+		margin-top:0;
+		text-align:center;
+	}
+	#blog .blog-prev-date  { 
+		text-align:left;
+	}
+	#blog .blog-prev-date span.date { 
+		color:#888;
+		font-size:13px;
+		line-height:13px;
+	}
+	#blog .blog-prev-date span.date small {
+		display:inline-block;
+	}
+}

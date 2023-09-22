@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<!--[if IE 8]>			<html class="ie ie8"> <![endif]-->
+<!--[if IE 9]>			<html class="ie ie9"> <![endif]-->
+<!--[if gt IE 9]><!-->	<html> <!--<![endif]-->
+	<head>
+		<meta charset="utf-8" />
+		<title>Coherence Community: Examples</title>
+		<meta name="keywords" content="HTML5,CSS3,Template" />
+		<meta name="description" content="Oracle Coherence Examples" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+		<!-- mobile settings -->
+		<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
+
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="assets/images/favicon.ico" />
+
+		<!-- WEB FONTS -->
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700,800&amp;subset=latin,latin-ext,cyrillic,cyrillic-ext" rel="stylesheet" type="text/css" />
+
+		<!-- CORE CSS -->
+		<link href="assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/font-awesome.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/sky-forms.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/weather-icons.min.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/line-icons.css" rel="stylesheet" type="text/css" />
+		<link href="assets/plugins/owl-carousel/owl.pack.css" rel="stylesheet" type="text/css" />
+		<link href="assets/plugins/magnific-popup/magnific-popup.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/animate.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/flexslider.css" rel="stylesheet" type="text/css" />
+
+		<!-- REVOLUTION SLIDER -->
+		<link href="assets/css/revolution-slider.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/layerslider.css" rel="stylesheet" type="text/css" />
+
+		<!-- THEME CSS -->
+		<link href="assets/css/essentials.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/layout.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/header-transparent.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/footer-default.css" rel="stylesheet" type="text/css" />
+		<link href="assets/css/color_scheme/red.css" rel="stylesheet" type="text/css" id="color_scheme" />
+
+		<!-- Morenizr -->
+		<script type="text/javascript" src="assets/plugins/modernizr.min.js"></script>
+
+		<!--[if lte IE 8]>
+			<script src="assets/plugins/respond.js"></script>
+		<![endif]-->
+	</head>
+
+	<!--
+		Available body classes:
+			smoothscroll			= enable chrome browser smooth scroll
+			grey 					= grey content background
+			boxed 					= boxed style
+			pattern1 ... pattern10 	= background pattern
+
+		Background Image - add to body:
+			data-background="assets/images/boxed_background/1.jpg"
+	-->
+	<body class="smoothscroll pattern6">
+
+		<div id="wrapper">
+
+			<header id="header">
+
+				<!-- Top Nav -->
+				<header id="topNav">
+					<div class="container">
+
+						<!-- Logo -->
+						<a class="logo" href="index.html">
+							<img src="assets/images/logo-red.png" height="50" alt="" />
+						</a>
+
+						<!-- Mobile Menu Button -->
+						<button class="btn btn-mobile" data-toggle="collapse" data-target=".nav-main-collapse">
+							<i class="fa fa-bars"></i>
+						</button>
+
+						<!-- Top Nav -->
+						<div class="navbar-collapse nav-main-collapse collapse">
+							<nav class="nav-main">
+
+								<!--
+									NOTE
+
+									For a regular link, remove "dropdown" class from LI tag and "dropdown-toggle" class from the href.
+									Direct Link Example:
+
+									<li>
+										<a href="#">HOME</a>
+									</li>
+								-->
+								<ul id="topMain" class="nav nav-pills nav-main white"><!-- add "white" class if you want white menu text color-->
+									<li>
+										<a href="index.html#overview">Overview</a>
+									</li>
+									<li>
+										<a href="index.html#features">Features</a>
+									</li>
+									<li>
+										<a href="index.html#quickstart">Quick Start</a>
+									</li>
+									<li class="active">
+										<a href="#">Examples</a>
+									</li>
+									<li>
+										<a href="projects.html">Projects</a>
+									</li>
+									<li class="dropdown">
+										<a class="dropdown-toggle" href="#">Documentation</a>
+										<ul class="dropdown-menu">
+											<li><a href="https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/index.html" target="_blank"><i class="fa fa-external-link"></i> Official Documentation (all editions)</a></li>
+											<li class="divider"></li>
+                                            <li><a href="latest/23.03/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 23.03 (latest) Documentation</a></li>
+											<li><a href="latest/22.06/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 22.06 (LTS) Documentation</a></li>
+                                            <li><a href="latest/14.1.1.0/docs/" target="_blank"><i class="fa fa-external-link"></i> Coherence CE 14.1.1 (LTS) Documentation</a></li>
+										</ul>
+									</li>
+									<li>
+										<a href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Blog</a>
+									</li>
+									<li>
+										<a href="https://github.com/oracle/coherence" target="_blank"><i class="fa fa-github"></i> Code</a>
+									</li>
+								</ul>
+
+							</nav>
+						</div>
+						<!-- /Top Nav -->
+
+					</div><!-- /.container -->
+				</header>
+				<!-- /Top Nav -->
+
+			</header>
+
+
+			<!-- REVOLUTION SLIDER -->
+			<div class="slider fullwidthbanner-container roundedcorners">
+				<div class="fullwidthbanner" data-height="650">
+					<ul class="hide">
+
+						<!-- SLIDE  -->
+						<li data-transition="fade" data-slotamount="14"  data-masterspeed="300" data-delay="10000">
+
+							<!-- COVER IMAGE -->
+							<img src="assets/images/1x1.png" data-lazyload="assets/images/wall.jpg" alt="" data-bgfit="cover" data-bgposition="left top" data-bgrepeat="no-repeat" />
+
+							<div class="tp-caption modern_medium_fat_white lfl stl"
+								data-x="60"
+								data-y="300"
+								data-speed="300"
+								data-start="500"
+								data-easing="easeOutExpo">PREFER TO LEARN FROM
+							</div>
+
+							<div class="tp-caption large_bold_white sft stb"
+								data-x="60"
+								data-y="323"
+								data-speed="300"
+								data-start="1000"
+								data-easing="easeOutExpo">EXAMPLES?
+							</div>
+
+							   <div class="tp-caption lfl stl medium_light_white"
+								   data-x="950"
+								   data-y="80"
+								   data-speed="3000"
+								   data-start="2000"
+								   data-easing="easeOutExpo"><img src="assets/images/sockshop-ui-2.png" width="400" alt="" />
+							   </div>
+							<div class="tp-caption sfb medium_light_white"
+								data-x="620"
+								data-y="220"
+								data-speed="2000"
+								data-start="2000"
+								data-easing="easeOutExpo"><img src="assets/images/coherence-demo.png" width="500" alt="" />
+							</div>
+
+							   <div class="tp-caption medium_light_white sft stb"
+								   data-x="60"
+								   data-y="400"
+								   data-speed="500"
+								   data-start="3000"
+								   data-easing="easeOutExpo">From simple ones, to complete apps
+							   </div>
+
+						</li>
+						<!-- /SLIDE -->
+
+					</ul>
+
+					<div class="tp-bannertimer"></div>
+				</div>
+			</div>
+			<!-- /REVOLUTION SLIDER -->
+
+
+			<!-- CONTENT -->
+			<section>
+				<div class="container">
+
+					<h2>Featured <strong>Examples</strong></h2>
+					<hr/>
+					
+					<div class="row">
+						<div class="col-sm-6 col-md-7">
+							<!-- VIDEO -->
+							<div class="embed-responsive embed-responsive-16by9">
+								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/dbegsSXKkoI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							</div>
+							<!-- /VIDEO -->
+						</div>
+
+						<div class="col-sm-6 col-md-5">
+
+							<h3>Sock <strong>Shop</strong></h3>
+							<p>Our flagship example application shows you not only how easy it is to develop Coherence-based microservices
+							with Spring, Micronaut, or Helidon, but also how to deploy them to Kubernetes using Coherence Operator,
+							and monitor them using Prometheus, Grafana and Jaeger.</p>
+							
+							<ul class="list-icon star-o">
+								<li>Integration with
+									<a href="https://github.com/oracle/coherence-spring-sockshop-sample"    target="_blank">Spring Boot</a>,
+									<a href="https://github.com/oracle/coherence-micronaut-sockshop-sample" target="_blank">Micronaut</a> and
+									<a href="https://github.com/oracle/coherence-helidon-sockshop-sample"   target="_blank">Helidon</a>
+								</li>
+								<li>Event-driven Processing</li>
+								<li>Deployment to Kubernetes using <a href="https://oracle.github.io/coherence-operator/docs/latest/#/about/01_overview" target="_blank">Coherence Operator</a></li>
+								<li>Monitoring with Prometheus, Grafana and Jaeger</li>
+							</ul>
+
+							<a href="https://github.com/oracle/coherence-spring-sockshop-sample" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> Spring</a>
+							<a href="https://github.com/oracle/coherence-micronaut-sockshop-sample" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> Micronaut</a>
+							<a href="https://github.com/oracle/coherence-helidon-sockshop-sample" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> Helidon</a>
+						</div>
+					</div>
+					<hr/>
+
+					<div class="row">
+						<div class="col-sm-6 col-md-7">
+							<!-- VIDEO -->
+							<div class="embed-responsive embed-responsive-16by9">
+								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/f9JHafygfUE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							</div>
+							<!-- /VIDEO -->
+						</div>
+
+						<div class="col-sm-6 col-md-5">
+
+							<h3>Coherence <strong>Demo</strong></h3>
+							<p>The main "pure" Coherence demo application showcases many general features, as well as scalability and HA capabilities of Coherence:</p>
+
+							<ul class="list-icon star-o">
+								<li>Clustering and Data Sharding</li>
+								<li>Scalability and High Availability</li>
+								<li>Persistence to Disk</li>
+								<li>Parallel Queries and Aggregation</li>
+								<li>In-Place Processing</li>
+								<li>Multi-Data Center Federation (Grid Edition feature only)</li>
+								<li>OpenTracing Support</li>
+							</ul>
+
+							<a href="https://github.com/coherence-community/coherence-demo/" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
+						</div>
+					</div>
+					<hr/>
+
+					<div class="row">
+						<div class="col-sm-6 col-md-7">
+							<!-- VIDEO -->
+							<div class="embed-responsive embed-responsive-16by9">
+								<iframe class="embed-responsive-item" width="800" src="https://www.youtube.com/embed/uCTfvCoqMDw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							</div>
+							<!-- /VIDEO -->
+						</div>
+
+						<div class="col-sm-6 col-md-5">
+
+							<h3>To Do <strong>List</strong></h3>
+							<p>An extension of the <a href="index.html#quickstart">Quick Start</a> that adds various client implementations (React.js, Oracle JET, JavaFX),
+							as well as the additional REST API implementation (Node.js/Express). It demonstrates how the same Web Server
+							that is used to host REST API can be used to serve modern static web front ends.</p>
+							<p>The entire application is documented in detail in a series of articles published in the Java Magazine:</p>
+							<ul>
+								<li><a href="https://medium.com/oracle-coherence/hello-coherence-part-1-6900de3f9ceb" target="_blank">Hello, Coherence (Part 1): REST API</a></li>
+								<li><a href="https://medium.com/oracle-coherence/hello-coherence-part-2-8d26d7840139" target="_blank">Hello, Coherence (Part 2): Clients</a></li>
+								<li><a href="https://medium.com/oracle-coherence/hello-coherence-part-3-2670050925d"  target="_blank">Hello, Coherence (Part 3): Deployment and Operations</a></li>
+							</ul>
+
+							<ul class="list-icon star-o">
+								<li>Integration with
+									<a href="https://medium.com/oracle-coherence/hello-coherence-part-1-6900de3f9ceb" 			  target="_blank">Helidon</a>,
+									<a href="https://medium.com/oracle-coherence/hello-coherence-now-with-micronaut-ed05dfda4209" target="_blank">Micronaut</a> and
+									<a href="https://medium.com/oracle-coherence/hello-coherence-bootiful-spring-be83554b3859" 	  target="_blank">Spring Boot</a>
+								</li>
+								<li>Integration with <a href="https://medium.com/oracle-coherence/the-coherence-javascript-client-71b50dfd1869" target="_blank">Node.js/Express</a>, <a href="https://medium.com/oracle-coherence/the-coherence-go-client-6750513ccbe1" target="_blank">Go</a> and <a href="https://github.com/oracle/coherence-py-client" target="_blank">Python</a> </li>
+								<li>REST, gRPC and GraphQL endpoints</li>
+								<li>Client-side Events</li>
+								<li>React and Oracle JET Web Front End</li>
+								<li>JavaFX Client</li>
+								<li>Deployment to Kubernetes using <a href="https://oracle.github.io/coherence-operator/docs/latest/#/about/01_overview" target="_blank">Coherence Operator</a></li>
+								<li>Monitoring with Prometheus, Grafana and Jaeger</li>
+							</ul>
+
+							<a href="https://github.com/coherence-community/todo-list-example" target="_blank" class="btn btn-primary btn-lg btn-margin-top"><i class="fa fa-github"></i> View on GitHub</a>
+						</div>
+					</div>
+
+					<!--
+
+					<h2>Additional <strong>Examples</strong></h2>
+					<div class="row">
+
+						<div class="col-md-3">
+							<div class="item-box">
+								<figure>
+									<a class="item-hover" href="portfolio-single-basic.html">
+										<span class="overlay color2"></span>
+										<span class="inner">
+											<span class="block fa fa-plus fsize20"></span>
+											<strong>PROJECT</strong> DETAIL
+										</span>
+									</a>
+									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a3.jpg" width="260" height="260" alt="">
+								</figure>
+								<div class="item-box-desc">
+									<h4>To Do List</h4>
+									<small class="styleColor">29 June, 2014</small>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3">
+							<div class="item-box">
+								<figure>
+									<a class="item-hover lightbox" href="http://www.youtube.com/watch?v=W7Las-MJnJo" data-plugin-options='{"type":"iframe"}'>
+										<span class="overlay color2"></span>
+										<span class="inner">
+											<span class="block fa fa-plus fsize20"></span>
+											<strong>VIEW</strong> VIDEO
+										</span>
+									</a>
+									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a4.jpg" width="260" height="260" alt="">
+								</figure>
+								<div class="item-box-desc">
+									<h4>Web Crawler</h4>
+									<small class="styleColor">29 June, 2014</small>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3">
+							<div class="item-box">
+								<figure>
+									<a class="item-hover lightbox" href="assets/images/demo/portfolio/thumb/a5.jpg" data-plugin-options='{"type":"image"}'>
+										<span class="overlay color2"></span>
+										<span class="inner">
+											<span class="block fa fa-plus fsize20"></span>
+											<strong>PROJECT</strong> DETAIL
+										</span>
+									</a>
+									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a5.jpg" width="260" height="260" alt="">
+								</figure>
+								<div class="item-box-desc">
+									<h4>Coherence REST Demo</h4>
+									<small class="styleColor">29 June, 2014</small>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-md-3">
+							<div class="item-box">
+								<figure>
+									<a class="item-hover" href="portfolio-single-basic.html">
+										<span class="overlay color2"></span>
+										<span class="inner">
+											<span class="block fa fa-plus fsize20"></span>
+											<strong>PROJECT</strong> DETAIL
+										</span>
+									</a>
+									<img class="img-responsive" src="assets/images/demo/portfolio/thumb/a7.jpg" width="260" height="260" alt="">
+								</figure>
+								<div class="item-box-desc">
+									<h4>Atropos Project</h4>
+									<small class="styleColor">29 June, 2014</small>
+								</div>
+							</div>
+						</div>
+
+					</div>
+					-->
+
+				</div>
+			</section>
+			<!-- /CONTENT -->
+
+			<!-- FOOTER -->
+			<footer id="footer">
+			    <div class="container">
+
+				    <div class="row">
+
+					    <!-- col #1 -->
+					    <div class="spaced col-md-4 col-sm-4">
+
+						    <h4>Stay <strong>Connected</strong></h4>
+
+						    <p>
+						 	   Connect with us on social networks.
+						    </p>
+
+						    <p class="block"><!-- social -->
+							    <a href="https://twitter.com/OracleCoherence" target="_blank" class="social fa fa-twitter"></a>
+							    <a href="https://www.linkedin.com/groups/1782166/" target="_blank" class="social fa fa-linkedin"></a>
+							    <a href="http://www.facebook.com/oraclecoherencepm" target="_blank" class="social fa fa-facebook"></a>
+						    </p><!-- /social -->
+
+						    <h4><strong>Contribute</strong></h4>
+
+						    <ul class="list-unstyled nobordered">
+							    <li><a class="block" href="https://github.com/oracle/coherence" target="_blank"><i class="fa fa-github"></i> Fork us on GitHub and start coding.</a></li>
+						    </ul>
+
+					    </div>
+					    <!-- /col #1 -->
+
+					    <!-- col #2 -->
+					    <div class="spaced col-md-8 col-sm-8">
+
+						    <div class="row">
+
+						 	    <div class="col-md-4 col-sm-12 col-xs-12">
+								    <h4>Learn <strong>More</strong></h4>
+								    <ul class="list-unstyled nobordered">
+								 	    <li><a class="block" href="https://www.youtube.com/user/OracleCoherence" target="_blank"><i class="fa fa-youtube"></i> Watch our Videos</a></li>
+									    <li><a class="block" href="https://medium.com/oracle-coherence" target="_blank"><i class="fa fa-medium"></i> Read our Blog</a></li>
+									    <li><a class="block" href="https://stackoverflow.com/tags/oracle-coherence" target="_blank"><i class="fa fa-stack-overflow"></i> Find Answers</a></li>
+									    <li><a class="block" href="https://join.slack.com/t/oraclecoherence/shared_invite/zt-9ufv220y-Leudk0o5ntgNV0xraa8DNw" target="_blank"><i class="fa fa-slack"></i> Chat with Us</a></li>
+								    </ul>
+							    </div>
+
+							    <div class="col-md-4 hidden-sm hidden-xs">
+								    <h4>Related <strong>Projects</strong></h4>
+								    <ul class="list-unstyled nobordered">
+								 	    <li><a class="block" href="https://github.com/oracle/coherence-operator" target="_blank"><i class="fa fa-external-link"></i> Coherence  Operator</a></li>
+									    <li><a class="block" href="https://helidon.io" target="_blank"><i class="fa fa-external-link"></i> Helidon </a></li>
+									    <li><a class="block" href="https://www.graalvm.org" target="_blank"><i class="fa fa-external-link"></i> GraalVM</a></li>
+									    <li><a class="block" href="https://verrazzano.io" target="_blank"><i class="fa fa-external-link"></i> Verrazzano</a></li>
+									    <li><a class="block" href="https://github.com/coherence-community/coherence-spring" target="_blank"><i class="fa fa-external-link"></i> Spring Integration</a></li>
+									    <li><a class="block" href="https://github.com/coherence-community/coherence-hibernate" target="_blank"><i class="fa fa-external-link"></i> Hibernate Integration</a></li>
+								    </ul>
+							    </div>
+
+							    <!--
+							    <div class="col-md-4 hidden-sm hidden-xs">
+								    <h4>About <strong>Us</strong></h4>
+								    <ul class="list-unstyled nobordered">
+								 	    <li><a class="block" href="team.html"><i class="fa fa-angle-right"></i> Meet the Team</a></li>
+									    <li><a class="block" href="events.html"><i class="fa fa-angle-right"></i> Upcoming Events</a></li>
+									    <li><a class="block" href="presentations.html"><i class="fa fa-angle-right"></i> Past Presentations</a></li>
+									    <li><a class="block" href="faq.html"><i class="fa fa-angle-right"></i> FAQ</a></li>
+								    </ul>
+							    </div>
+							    -->
+
+						    </div>
+
+					   </div>
+					   <!-- /col #2 -->
+
+				   </div>
+
+				</div>
+
+				<hr />
+
+				<div class="copyright">
+					<div class="container text-center fsize12">
+						Copyright &copy; 2020, 2021, Oracle and/or its affiliates. All rights reserved &bull; Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.
+					</div>
+				</div>
+			</footer>
+			<!-- /FOOTER -->
+
+			<a href="#" id="toTop"></a>
+
+	 	</div><!-- /#wrapper -->
+
+		<!-- JAVASCRIPT FILES -->
+		<script type="text/javascript" src="assets/plugins/jquery-2.2.3.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/jquery.isotope.js"></script>
+		<script type="text/javascript" src="assets/plugins/masonry.js"></script>
+
+		<script type="text/javascript" src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/magnific-popup/jquery.magnific-popup.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/owl-carousel/owl.carousel.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/knob/js/jquery.knob.js"></script>
+		<script type="text/javascript" src="assets/plugins/flexslider/jquery.flexslider-min.js"></script>
+
+		<!-- REVOLUTION SLIDER -->
+		<script type="text/javascript" src="assets/plugins/revolution-slider/js/jquery.themepunch.tools.min.js"></script>
+		<script type="text/javascript" src="assets/plugins/revolution-slider/js/jquery.themepunch.revolution.min.js"></script>
+		<script type="text/javascript" src="assets/js/revolution_slider.js"></script>
+
+		<script type="text/javascript" src="assets/js/scripts.js"></script>
+	</body>
+</html>
