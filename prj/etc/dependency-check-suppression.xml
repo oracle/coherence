@@ -44,4 +44,89 @@
     <cve>CVE-2023-35887</cve>
   </suppress>
 
+  <!-- Suppressing JUnit since it is only used in tests -->
+  <suppress>
+    <notes><![CDATA[
+    file name: junit-4.12.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
+    <cpe>cpe:2.3:a:junit:junit4</cpe>
+    <cve>CVE-2020-15250</cve>
+  </suppress>
+
+  <!-- temporary suppression since  this CVE is in DISPUTED state.
+    We will need to watch this-->
+  <suppress>
+    <notes><![CDATA[
+    file name: jackson-databind-2.14.1.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
+    <cpe>cpe:2.3:a:fasterxml:jackson-databind</cpe>
+    <cpe> cpe:2.3:a:fasterxml:jackson-modules-java8</cpe>
+    <cve>CVE-2023-35116</cve>
+  </suppress>
+
+  <!-- Kotlin libraries pulled in via Jaeger from OKHttp -
+  Only used for testing and the latest Jaeger still includes it -->
+  <suppress>
+    <notes><![CDATA[
+     file name: kotlin-stdlib-1.4.10.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-.*$</packageUrl>
+    <cve>CVE-2020-29582</cve>
+    <cve>CVE-2022-24329</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: kotlin-stdlib-common-1.4.0.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-stdlib\-common@.*$</packageUrl>
+    <cve>CVE-2020-15824</cve>
+    <cve>CVE-2020-29582</cve>
+    <cve>CVE-2022-24329</cve>
+  </suppress>
+
+  <!-- For now excluding the Maven CVEs till BUG 35406780 gets fixed -->
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-compat-3.2.5.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-compat@.*$</packageUrl>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-settings-3.2.5.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-settings@.*$</packageUrl>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: maven-core-3.2.5.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven\-core@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:maven</cpe>
+    <cve>CVE-2021-26291</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+     file name: guava-16.0.1.jar
+     ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.google\.guava/guava@.*$</packageUrl>
+    <cpe>cpe:2.3:a:google:guava</cpe>
+    <cve>CVE-2018-10237</cve>
+    <cve>CVE-2020-8908</cve>
+    <cve>CVE-2023-2976</cve>
+  </suppress>
+
+  <!-- Needs updated jaeger client - transitive dependency-->
+  <suppress>
+    <notes><![CDATA[
+    file name: okio-2.8.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okio/okio@.*$</packageUrl>
+    <cve>CVE-2023-3635</cve>
+  </suppress>
+
 </suppressions>
