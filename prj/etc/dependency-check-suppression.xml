@@ -11,16 +11,6 @@
     <cve>CVE-2023-4586</cve>
   </suppress>
 
-  <!-- Suppressing JUnit since it is only used in tests -->
-  <suppress>
-    <notes><![CDATA[
-    file name: junit-4.12.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/junit/junit@.*$</packageUrl>
-    <cpe>cpe:2.3:a:junit:junit4</cpe>
-    <cve>CVE-2020-15250</cve>
-  </suppress>
-
   <!-- temporary suppression since  this CVE is in DISPUTED state.
     We will need to watch this-->
   <suppress>
