@@ -2,21 +2,6 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 <!-- For information see https://jeremylong.github.io/DependencyCheck/general/suppression.html -->
 
-  <!-- JQuery from REST examples  -->
-  <suppress>
-    <notes><![CDATA[
-      file name: jquery-1-7.js
-      ]]></notes>
-    <packageUrl regex="true">^pkg:javascript/jquery@.*$</packageUrl>
-    <cve>CVE-2012-6708</cve>
-    <cve>CVE-2020-7656</cve>
-    <cve>CVE-2015-9251</cve>
-    <cve>CVE-2020-11022</cve>
-    <cve>CVE-2020-11023</cve>
-    <cve>CVE-2019-11358</cve>
-    <cve>CVE-2020-23064</cve>
-  </suppress>
-
   <!-- suppress netty-handler CVE-2023-4586 4.1.87, 4.1.94, 4.1.97 -->
   <suppress>
     <notes><![CDATA[
@@ -24,24 +9,6 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-handler@.*$</packageUrl>
     <cve>CVE-2023-4586</cve>
-  </suppress>
-
-  <!-- Suppressing this since it is only used in examples -->
-  <suppress>
-    <notes><![CDATA[
-    file name: sshd-sftp-2.9.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.sshd/sshd\-sftp@.*$</packageUrl>
-    <cpe>cpe:2.3:a:apache:sshd</cpe>
-    <cve>CVE-2023-35887</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: sshd-common-2.9.2.jar
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.sshd/sshd\-common@.*$</packageUrl>
-    <cpe>cpe:2.3:a:apache:sshd</cpe>
-    <cve>CVE-2023-35887</cve>
   </suppress>
 
   <!-- Suppressing JUnit since it is only used in tests -->
