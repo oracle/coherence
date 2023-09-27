@@ -12,7 +12,8 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Gradle POF Plugin
 
-:coherence-gradle-plugin-version: {version-coherence}
+:coherence-gradle-plugin-version: 23.03.1
+:coherence-version: {version-coherence}
 :com-github-vlsi-jandex-version: 1.86
 :org-kordamp-gradle-jandex-version: 0.13.2
 
@@ -32,15 +33,29 @@ for more information and detailed instructions on Portable Types creation and us
 
 === Usage
 
-In order to use the POF Gradle Plugin, you need to declare it as a plugin dependency in your `build.gradle` file:
+In order to use the POF Gradle Plugin, you need to declare it as a plugin dependency in your `build.gradle` file. Furthermore,
+you should declare your Coherence dependency:
 
-[source,groovy]
+[source,groovy,subs=normal]
 ----
 plugins {
     id 'java'
-    id 'com.oracle.coherence.ce'
+    id 'com.oracle.coherence.ce' version '{coherence-gradle-plugin-version}'
+}
+...
+
+dependencies {
+    ...
+    implementation 'com.oracle.coherence.ce:coherence:{coherence-version}'
 }
 ----
+
+[IMPORTANT]
+====
+Due to the incomplete `Java 21` support in `Gradle 8.3` as of the release of Coherence `{coherence-version}`, we do not publish
+a `23.09` version, yet. Instead, please use the `23.03` version of the plugin. A new plugin version with full `Java 21`
+support should be available with Coherence `23.09.1` or `24.03`. However, the plugin can be used with `Java 21` projects.
+====
 
 Without any further configuration, the plugin will add a task named `coherencePof` to your project. The `coherencePof`
 task will be executed at the end of the `compileJava` task. At the same time, `coherencePof` also depends on the `compileJava` task.
@@ -65,6 +80,35 @@ input for classes to be instrumented excluding any test classes.
 By just adding the plugin using the configuration above, the Coherence Gradle Plugin will discover and instrument all
 project classes annotated with the `@PortableType` annotation, excluding test classes. If you do need to instrument test
 classes, you can add the `coherencePof` closure and provide additional configuration properties.
+
+==== Java 21 Support
+
+As of Coherence `{coherence-version}`, `Gradle 8.3` does not have full `Java 21` support, yet.
+That support is coming with `Gradle 8.4` which is currently available as a release candidate `8.4-rc-1`.
+
+Nonetheless, `Java 21` can be used with Gradle and the Coherence Gradle plugin. In case you encounter build problems, you
+have the following 2 options. Make sure that your Gradle Wrapper's `gradle-wrapper.properties` uses version `8.4-rc-1` of
+Gradle:
+
+.gradle-wrapper.properties
+[source,properties]
+----
+...
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-rc-1-bin.zip
+...
+----
+
+You can also set up a Gradle toolchain for `Java 21`:
+
+.build.gradle
+[source,groovy]
+----
+java {
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+----
 
 ==== Custom Configuration
 
