@@ -53,8 +53,8 @@ dependencies {
 [IMPORTANT]
 ====
 Due to the incomplete `Java 21` support in `Gradle 8.3` as of the release of Coherence `{coherence-version}`, we do not publish
-a `23.09` version, yet. Instead, please use the `23.03` version of the plugin. A new plugin version with full `Java 21`
-support should be available with Coherence `23.09.1` or `24.03`. However, the plugin can be used with `Java 21` projects.
+a `23.09` version of the plugin, yet. Instead, please use the `23.03.1` version of the plugin. A new plugin version with full `Java 21`
+support should be available with a future patch of Coherence `23.09` or later. However, the plugin can be used with `Java 21` projects.
 ====
 
 Without any further configuration, the plugin will add a task named `coherencePof` to your project. The `coherencePof`
