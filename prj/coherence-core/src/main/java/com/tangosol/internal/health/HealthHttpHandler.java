@@ -106,7 +106,7 @@ public class HealthHttpHandler
      */
     public Response ready(HttpRequest request)
         {
-        Logger.finest("Health: checking readiness");
+        Logger.log("Health: checking readiness", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
