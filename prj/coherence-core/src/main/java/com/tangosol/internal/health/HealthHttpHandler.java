@@ -127,7 +127,7 @@ public class HealthHttpHandler
      */
     public Response live(HttpRequest request)
         {
-        Logger.finest("Health: checking liveness");
+        Logger.log("Health: checking liveness", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
@@ -148,7 +148,7 @@ public class HealthHttpHandler
      */
     public Response started(HttpRequest request)
         {
-        Logger.finest("Health: checking started");
+        Logger.log("Health: checking started", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
@@ -169,7 +169,7 @@ public class HealthHttpHandler
      */
     public Response safe(HttpRequest request)
         {
-        Logger.finest("Health: checking safe");
+        Logger.log("Health: checking safe", 9);
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
