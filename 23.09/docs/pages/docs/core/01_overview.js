@@ -77,7 +77,7 @@
 </router-link>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
-<v-icon class="xxx-large">fa-cogs</v-icon>
+<v-icon class="xxx-large">fa-exchange</v-icon>
 </v-avatar>
 </v-layout>
 <div class="px-3">

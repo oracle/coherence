@@ -40,8 +40,8 @@ dependencies {
 <div class="admonition important">
 <p class="admonition-textlabel">Important</p>
 <p ><p>Due to the incomplete <code>Java 21</code> support in <code>Gradle 8.3</code> as of the release of Coherence <code>23.09</code>, we do not publish
-a <code>23.09</code> version, yet. Instead, please use the <code>23.03</code> version of the plugin. A new plugin version with full <code>Java 21</code>
-support should be available with Coherence <code>23.09.1</code> or <code>24.03</code>. However, the plugin can be used with <code>Java 21</code> projects.</p>
+a <code>23.09</code> version of the plugin, yet. Instead, please use the <code>23.03.1</code> version of the plugin. A new plugin version with full <code>Java 21</code>
+support should be available with a future patch of Coherence <code>23.09</code> or later. However, the plugin can be used with <code>Java 21</code> projects.</p>
 </p>
 </div>
 <p>Without any further configuration, the plugin will add a task named <code>coherencePof</code> to your project. The <code>coherencePof</code>
