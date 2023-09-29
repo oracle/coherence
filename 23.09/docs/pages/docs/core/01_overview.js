@@ -2,7 +2,7 @@
 
 <h2 id="_overview">Overview</h2>
 <div class="section">
-<p>Learn about the features, enhancements, and changes made in Oracle Coherence  CE 23.09.</p>
+<p>Learn about the features, enhancements, and changes made in Oracle Coherence CE since release 22.06.</p>
 
 <v-layout row wrap class="mb-5">
 <v-flex xs12>

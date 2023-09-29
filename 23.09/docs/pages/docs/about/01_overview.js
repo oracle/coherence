@@ -21,7 +21,7 @@ This partitioning enables applications to not only distribute (and therefore sca
 These capabilities, in addition to numerous other features, enable Coherence to be used as a framework to write robust, distributed applications.</p>
 
 <div class="admonition important">
-<p class="admonition-inline"><strong>See <router-link to="/docs/core/01_overview">Core Improvements</router-link> to learn about new and improved functionality in this release.</strong></p>
+<p class="admonition-inline"><strong>See <router-link to="/docs/core/01_overview">Core Improvements</router-link> to learn about new and improved functionality since release 22.06.</strong></p>
 </div>
 <div class="admonition note">
 <p class="admonition-inline">Please see <a id="" title="" target="_blank" href="https://github.com/oracle/coherence/releases">here</a> for the latest release notes on GitHub.</p>
