@@ -12,7 +12,7 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Overview
 
-Learn about the features, enhancements, and changes made in Oracle Coherence  CE {version-coherence}.
+Learn about the features, enhancements, and changes made in Oracle Coherence CE since release 22.06.
 
 [PILLARS]
 ====
@@ -39,7 +39,7 @@ Instrument Portable Types using Gradle.
 
 [CARD]
 .CDI Response Caching
-[icon=fa-cogs,link=docs/core/05_response_caching.adoc]
+[icon=fa-exchange,link=docs/core/05_response_caching.adoc]
 --
 Use caching annotations for response caching.
 --
