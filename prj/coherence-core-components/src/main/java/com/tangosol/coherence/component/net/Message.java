@@ -1133,7 +1133,7 @@ public class Message
         if (input.available() > 0)
             {
             Map mapSpanCtx = (Map) ExternalizableHelper.readObject(input);
-            if (mapSpanCtx != null)
+            if (mapSpanCtx != null && !mapSpanCtx.isEmpty())
                 {
                 setTracingSpanContext(TracingHelper.getTracer().extract(mapSpanCtx));
                 }
