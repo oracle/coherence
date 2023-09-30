@@ -35,7 +35,7 @@ You can also create a view for more complex data types by passing a custom `Comp
 [source,java]
 ----
 NamedMap<Long, Person> people       = session.getMap("people");
-NamedMap<Long, Person> sortedPeople = states.view()
+NamedMap<Long, Person> sortedPeople = people.view()
                                             .sorted(Comparator.comparing(Person::getAge).reversed())
                                             .build();
 ----
@@ -47,7 +47,7 @@ Of course, you can also perform all other operations that the `ViewBuilder` API 
 [source,java]
 ----
 NamedMap<Long, Person> people       = session.getMap("people");
-NamedMap<Long, Person> sortedPeople = states.view()
+NamedMap<Long, Person> sortedPeople = people.view()
                                             .filter(Filters.equal(Person::getGender, Gender.FEMALE))
                                             .sorted(Comparator.comparing(Person::getAge))
                                             .build();
@@ -60,7 +60,7 @@ For example, the above example would work exactly the same if you reversed the o
 [source,java]
 ----
 NamedMap<Long, Person> people       = session.getMap("people");
-NamedMap<Long, Person> sortedPeople = states.view()
+NamedMap<Long, Person> sortedPeople = people.view()
                                             .sorted(Comparator.comparing(Person::getAge))
                                             .filter(Filters.equal(Person::getGender, Gender.FEMALE))
                                             .build();
@@ -71,7 +71,7 @@ The only exception is `map` operation, as it changes the type of the values that
 [source,java]
 ----
 NamedMap<Long, Person> people      = session.getMap("people");
-NamedMap<Long, Name>   sortedNames = states.view()
+NamedMap<Long, Name>   sortedNames = people.view()
                                             .filter(Filters.equal(Person::getGender, Gender.MALE))
                                             .map(Person::getName)
                                             .sorted(Comparator.comparing(Name::getLast)
