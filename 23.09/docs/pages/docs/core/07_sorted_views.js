@@ -28,7 +28,7 @@ NamedMap&lt;String, String&gt; sortedStates = states.view().sorted().build();   
 lang="java"
 
 >NamedMap&lt;Long, Person&gt; people       = session.getMap("people");
-NamedMap&lt;Long, Person&gt; sortedPeople = states.view()
+NamedMap&lt;Long, Person&gt; sortedPeople = people.view()
                                             .sorted(Comparator.comparing(Person::getAge).reversed())
                                             .build();</markup>
 
@@ -40,7 +40,7 @@ NamedMap&lt;Long, Person&gt; sortedPeople = states.view()
 lang="java"
 
 >NamedMap&lt;Long, Person&gt; people       = session.getMap("people");
-NamedMap&lt;Long, Person&gt; sortedPeople = states.view()
+NamedMap&lt;Long, Person&gt; sortedPeople = people.view()
                                             .filter(Filters.equal(Person::getGender, Gender.FEMALE))
                                             .sorted(Comparator.comparing(Person::getAge))
                                             .build();</markup>
@@ -53,7 +53,7 @@ NamedMap&lt;Long, Person&gt; sortedPeople = states.view()
 lang="java"
 
 >NamedMap&lt;Long, Person&gt; people       = session.getMap("people");
-NamedMap&lt;Long, Person&gt; sortedPeople = states.view()
+NamedMap&lt;Long, Person&gt; sortedPeople = people.view()
                                             .sorted(Comparator.comparing(Person::getAge))
                                             .filter(Filters.equal(Person::getGender, Gender.FEMALE))
                                             .build();</markup>
@@ -64,7 +64,7 @@ NamedMap&lt;Long, Person&gt; sortedPeople = states.view()
 lang="java"
 
 >NamedMap&lt;Long, Person&gt; people      = session.getMap("people");
-NamedMap&lt;Long, Name&gt;   sortedNames = states.view()
+NamedMap&lt;Long, Name&gt;   sortedNames = people.view()
                                             .filter(Filters.equal(Person::getGender, Gender.MALE))
                                             .map(Person::getName)
                                             .sorted(Comparator.comparing(Name::getLast)
