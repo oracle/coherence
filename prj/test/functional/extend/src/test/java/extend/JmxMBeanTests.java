@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package extend;
 
@@ -21,6 +21,8 @@ import com.tangosol.net.InvocationService;
 
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.Registry;
+
+import com.tangosol.util.Base;
 
 import common.AbstractFunctionalTest;
 
@@ -176,12 +178,11 @@ public class JmxMBeanTests
             assertTrue(map.size() == 1);
 
             Object oMember = map.keySet().iterator().next();
+            Object oResult = map.values().iterator().next();
             assertTrue(equals(oMember, service.getCluster().getLocalMember()));
 
-            Object oKey    = map.keySet().iterator().next();
-            Object oResult = map.values().iterator().next();
-            assertTrue(oResult instanceof String);
-            assertTrue(oResult.equals(oKey.toString()));
+            assertTrue("Expected String but got " + oResult, oResult instanceof String);
+            assertTrue(oResult.equals(oMember.toString()));
             }
         finally
             {
@@ -414,22 +415,32 @@ public class JmxMBeanTests
                 MBeanServer server = MBeanHelper.findMBeanServer();
                 try
                     {
-                    Set set = server.queryMBeans(new ObjectName("Coherence:*"), null);
-                    for (Iterator iter = set.iterator(); iter.hasNext();)
+                    int cRetry = 0;
+                    do
                         {
-                        ObjectInstance instance   = (ObjectInstance) iter.next();
-                        ObjectName     objectName = instance.getObjectName();
-                        if (objectName.toString().indexOf("type=Connection,") > 0)
+                        Set set = server.queryMBeans(new ObjectName("Coherence:*"), null);
+                        for (Iterator iter = set.iterator(); iter.hasNext(); )
                             {
-                            setValue(server.getAttribute(objectName, "Member").toString());
-                            break;
+                            ObjectInstance instance   = (ObjectInstance) iter.next();
+                            ObjectName     objectName = instance.getObjectName();
+                            if (objectName.toString().indexOf("type=Connection,") > 0)
+                                {
+                                setValue(server.getAttribute(objectName, "Member").toString());
+                                break;
+                                }
                             }
+                        cRetry++;
                         }
+                    while (m_sValue == null && cRetry < 2);
                     }
                 catch (Exception e)
                     {
                     throw ensureRuntimeException(e);
                     }
+                }
+            else
+                {
+                CacheFactory.log("MBeanInvocable.run(), m_service is not initialized.", Base.LOG_WARN);
                 }
             }
 
