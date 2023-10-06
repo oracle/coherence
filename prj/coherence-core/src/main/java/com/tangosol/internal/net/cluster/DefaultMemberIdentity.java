@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import com.tangosol.util.NullImplementation;
 
 import com.tangosol.util.comparator.PriorityComparator;
 
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 
 import java.util.Collections;
@@ -364,29 +365,7 @@ public class DefaultMemberIdentity
      */
     protected String makeProcessName()
         {
-        String sName = null;
-        try
-            {
-            Class<?> clz = Class.forName("java.lang.management.ManagementFactory");
-            Object oRT = ClassHelper.invokeStatic(clz, "getRuntimeMXBean", ClassHelper.VOID);
-            sName = (String) ClassHelper.invoke(oRT, "getName", ClassHelper.VOID);
-            }
-        catch (ClassNotFoundException e)
-            {
-            // ignore
-            }
-        catch (InvocationTargetException e)
-            {
-            // ignore
-            }
-        catch (NoSuchMethodException e)
-            {
-            // ignore
-            }
-        catch (IllegalAccessException e)
-            {
-            // ignore
-            }
+        String sName = ManagementFactory.getRuntimeMXBean().getName();
 
         // result looks like pid@machine; strip off @machine
         int ofAt = sName.indexOf('@');
