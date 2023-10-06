@@ -56,14 +56,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- codemodel -->
-    <dependency>
-      <groupId>com.sun.codemodel</groupId>
-      <artifactId>codemodel</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
     <!-- jandex for searching for PortableType -->
     <dependency>
       <groupId>org.jboss</groupId>

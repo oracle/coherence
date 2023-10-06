@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.schema.lang.cpp;
@@ -13,10 +13,9 @@ import com.oracle.coherence.common.schema.SchemaExtension;
 import com.oracle.coherence.common.schema.TypeHandler;
 import com.oracle.coherence.common.schema.lang.ClassFilePropertyHandler;
 import com.oracle.coherence.common.schema.lang.ClassFileTypeHandler;
-import com.oracle.coherence.common.schema.lang.JavaSourcePropertyHandler;
-import com.oracle.coherence.common.schema.lang.JavaSourceTypeHandler;
 import com.oracle.coherence.common.schema.lang.XmlPropertyHandler;
 import com.oracle.coherence.common.schema.lang.XmlTypeHandler;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -42,7 +41,6 @@ public class CppExtension
         {
         return Arrays.asList(new TypeHandler[] {
                 new CppClassFileTypeHandler(),
-                new CppJavaSourceTypeHandler(),
                 new CppXmlTypeHandler()
         });
         }
@@ -52,7 +50,6 @@ public class CppExtension
         {
         return Arrays.asList(new PropertyHandler[] {
                 new CppClassFilePropertyHandler(),
-                new CppJavaSourcePropertyHandler(),
                 new CppXmlPropertyHandler()
             });
         }
@@ -77,30 +74,6 @@ public class CppExtension
      */
     public static class CppClassFilePropertyHandler
             extends ClassFilePropertyHandler<CppProperty, CppTypeDescriptor,
-                            com.oracle.coherence.common.schema.lang.cpp.annotation.CppProperty>
-        {
-        }
-
-    // ---- inner class: CppJavaSourceTypeHandler ---------------------------
-
-    /**
-     * C++ type handler that reads and writes type metadata from/to Java
-     * source file.
-     */
-    public static class CppJavaSourceTypeHandler
-            extends JavaSourceTypeHandler<CppType, CppTypeDescriptor,
-                            com.oracle.coherence.common.schema.lang.cpp.annotation.CppType>
-        {
-        }
-
-    // ---- inner class: CppJavaSourcePropertyHandler -----------------------
-
-    /**
-     * C++ property handler that reads and writes property metadata from/to Java
-     * source file.
-     */
-    public static class CppJavaSourcePropertyHandler
-            extends JavaSourcePropertyHandler<CppProperty, CppTypeDescriptor,
                             com.oracle.coherence.common.schema.lang.cpp.annotation.CppProperty>
         {
         }
