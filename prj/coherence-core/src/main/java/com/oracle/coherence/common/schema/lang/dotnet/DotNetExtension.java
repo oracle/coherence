@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.schema.lang.dotnet;
@@ -13,10 +13,9 @@ import com.oracle.coherence.common.schema.SchemaExtension;
 import com.oracle.coherence.common.schema.TypeHandler;
 import com.oracle.coherence.common.schema.lang.ClassFilePropertyHandler;
 import com.oracle.coherence.common.schema.lang.ClassFileTypeHandler;
-import com.oracle.coherence.common.schema.lang.JavaSourcePropertyHandler;
-import com.oracle.coherence.common.schema.lang.JavaSourceTypeHandler;
 import com.oracle.coherence.common.schema.lang.XmlPropertyHandler;
 import com.oracle.coherence.common.schema.lang.XmlTypeHandler;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -43,7 +42,6 @@ public class DotNetExtension
         {
         return Arrays.asList(new TypeHandler[] {
                 new DotNetClassFileTypeHandler(),
-                new DotNetJavaSourceTypeHandler(),
                 new DotNetXmlTypeHandler()
             });
         }
@@ -53,7 +51,6 @@ public class DotNetExtension
         {
         return Arrays.asList(new PropertyHandler[] {
                 new DotNetClassFilePropertyHandler(),
-                new DotNetJavaSourcePropertyHandler(),
                 new DotNetXmlPropertyHandler()
             });
         }
@@ -78,30 +75,6 @@ public class DotNetExtension
      */
     public static class DotNetClassFilePropertyHandler
             extends ClassFilePropertyHandler<DotNetProperty, DotNetTypeDescriptor,
-                    com.oracle.coherence.common.schema.lang.dotnet.annotation.DotNetProperty>
-        {
-        }
-
-    // ---- inner class: DotNetJavaSourceTypeHandler ------------------------
-
-    /**
-     * .NET type handler that reads and writes type metadata from/to Java
-     * source file.
-     */
-    public static class DotNetJavaSourceTypeHandler
-            extends JavaSourceTypeHandler<DotNetType, DotNetTypeDescriptor,
-                    com.oracle.coherence.common.schema.lang.dotnet.annotation.DotNetType>
-        {
-        }
-
-    // ---- inner class: DotNetJavaSourcePropertyHandler --------------------
-
-    /**
-     * .NET property handler that reads and writes property metadata from/to
-     * Java source file.
-     */
-    public static class DotNetJavaSourcePropertyHandler
-            extends JavaSourcePropertyHandler<DotNetProperty, DotNetTypeDescriptor,
                     com.oracle.coherence.common.schema.lang.dotnet.annotation.DotNetProperty>
         {
         }
