@@ -125,20 +125,7 @@
             <phase>prepare-package</phase>
             <configuration>
               <executable>${gradle.executable}</executable>
-              <arguments>
-                <argument>${gradle.proxy.arg1}</argument>
-                <argument>${gradle.proxy.arg2}</argument>
-                <argument>${gradle.proxy.arg3}</argument>
-                <argument>-Pgroup=${project.groupId}</argument>
-                <argument>-Pversion=${project.version}</argument>
-                <argument>-PjavaVersion=${java.version.release}</argument>
-                <argument>-DartifactId=${project.artifactId}</argument>
-                <argument>clean</argument>
-                <argument>build</argument>
-                <argument>-x</argument>
-                <argument>test</argument>
-                <argument>-S</argument>
-              </arguments>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -DartifactId=${project.artifactId} clean build -x test -S</commandlineArgs>
             </configuration>
             <goals>
               <goal>exec</goal>
@@ -150,18 +137,7 @@
             <configuration>
               <skip>${gradle.skip.test}</skip>
               <executable>${gradle.executable}</executable>
-              <arguments>
-                <argument>${gradle.proxy.arg1}</argument>
-                <argument>${gradle.proxy.arg2}</argument>
-                <argument>${gradle.proxy.arg3}</argument>
-                <argument>-Pgroup=${project.groupId}</argument>
-                <argument>-Pversion=${project.version}</argument>
-                <argument>-PjavaVersion=${java.version.release}</argument>
-                <argument>-DartifactId=${project.artifactId}</argument>
-                <argument>clean</argument>
-                <argument>build</argument>
-                <argument>-S</argument>
-                </arguments>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -DartifactId=${project.artifactId} clean build -S</commandlineArgs>
             </configuration>
             <goals>
               <goal>exec</goal>
