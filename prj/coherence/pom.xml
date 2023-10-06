@@ -105,11 +105,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.sun.codemodel</groupId>
-      <artifactId>codemodel</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.jboss</groupId>
       <artifactId>jandex</artifactId>
     </dependency>
@@ -320,7 +315,6 @@
                   <include>org.ow2.asm:asm-util</include>
                   <include>org.jboss:jandex</include>
                   <include>com.sleepycat:je</include>
-                  <include>com.sun.codemodel:codemodel</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
                   <include>${coherence.group.id}:coherence-core-21</include>
@@ -390,10 +384,6 @@
                     <exclude>com/tangosol/io/bdb/**/*</exclude>
                   </excludes>
                 </relocation>
-                <relocation>
-                  <pattern>com.sun.codemodel</pattern>
-                  <shadedPattern>com.tangosol.internal.codemodel</shadedPattern>
-                </relocation>
               </relocations>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -455,10 +445,6 @@
                 <exclusion>
                   <groupId>com.sleepycat</groupId>
                   <artifactId>je</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>com.sun.codemodel</groupId>
-                  <artifactId>codemodel</artifactId>
                 </exclusion>
                 <exclusion>
                   <groupId>org.jboss</groupId>
