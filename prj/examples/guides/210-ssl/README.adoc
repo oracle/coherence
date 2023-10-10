@@ -114,7 +114,10 @@ Each configuration option is outlined below:
 include::src/test/resources/tangosol-coherence-ssl.xml[tag=sslKeyStore]
 ----
 <1> Identity manager using Java key store
-<2> Trust manager using Java key store
+<2> Identity manager key store password using custom {javadoc-root}/com/tangosol/net/PasswordProvider.html[PasswordProvider] implemenation
+<3> Identity private key password using custom {javadoc-root}/com/tangosol/net/PasswordProvider.html[PasswordProvider] implementation
+<4> Trust manager using Java key store
+<5> Trust manager key store password using custom {javadoc-root}/com/tangosol/net/PasswordProvider.html[PasswordProvider] implementation
 
 * `sslKeyAndCert` - configure SSL socket provider using key and certificate files only
 +
