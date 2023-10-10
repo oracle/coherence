@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2022, Oracle and/or its affiliates.
+  Copyright (c) 2022, 2023 Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -31,16 +31,40 @@
           <identity-manager>
             <key-store>  <!--1-->
               <url system-property="test.server.keystore">file:server.jks</url>
-              <password system-property="test.server.keystore.password">password</password>
+              <password-provider>  <!--2-->
+                <class-name>com.oracle.coherence.guides.ssl.CustomPasswordProvider</class-name>
+                <init-params>
+                  <init-param>
+                    <param-name>type</param-name>
+                    <param-value>identity-keystore</param-value>
+                  </init-param>
+                </init-params>
+              </password-provider>
             </key-store>
-            <password system-property="test.server.key.password">private</password>
+            <password-provider>  <!--3-->
+              <class-name>com.oracle.coherence.guides.ssl.CustomPasswordProvider</class-name>
+              <init-params>
+                <init-param>
+                  <param-name>type</param-name>
+                  <param-value>identity-key</param-value>
+                </init-param>
+              </init-params>
+            </password-provider>
           </identity-manager>
 
           <trust-manager>
             <algorithm>SunX509</algorithm>
-            <key-store>  <!--2-->
+            <key-store>  <!--4-->
               <url system-property="test.trust.keystore">file:trust.jks</url>
-              <password system-property="test.trust.keystore.password">password</password>
+              <password-provider>  <!--5-->
+                <class-name>com.oracle.coherence.guides.ssl.CustomPasswordProvider</class-name>
+                <init-params>
+                  <init-param>
+                    <param-name>type</param-name>
+                    <param-value>trust-keystore</param-value>
+                  </init-param>
+                </init-params>
+              </password-provider>
             </key-store>
           </trust-manager>
           <socket-provider>tcp</socket-provider>
