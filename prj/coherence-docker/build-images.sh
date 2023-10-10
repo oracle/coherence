@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -33,17 +33,20 @@ then
   echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
   exit 1
 fi
-# Ensure the GRAAL_AMD_BASE_IMAGE has been set - this is the name of the base image for amd64
-if [ "${GRAAL_AMD_BASE_IMAGE}" == "" ]
+if [ "${NO_GRAAL}" != "true" ]
 then
-  echo "ERROR: No GRAAL_AMD_BASE_IMAGE environment variable has been set"
-  exit 1
-fi
-# Ensure the GRAAL_ARM_BASE_IMAGE has been set - this is the name of the base image for arm64
-if [ "${GRAAL_ARM_BASE_IMAGE}" == "" ]
-then
-  echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
-  exit 1
+  # Ensure the GRAAL_AMD_BASE_IMAGE has been set - this is the name of the base image for amd64
+  if [ "${GRAAL_AMD_BASE_IMAGE}" == "" ]
+  then
+    echo "ERROR: No GRAAL_AMD_BASE_IMAGE environment variable has been set"
+    exit 1
+  fi
+  # Ensure the GRAAL_ARM_BASE_IMAGE has been set - this is the name of the base image for arm64
+  if [ "${GRAAL_ARM_BASE_IMAGE}" == "" ]
+  then
+    echo "ERROR: No ARM_BASE_IMAGE environment variable has been set"
+    exit 1
+  fi
 fi
 
 # Ensure there is a default architecture - if not set we assume amd64
@@ -240,17 +243,20 @@ then
   echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
 fi
 
-# Build the amd64 Graal image
-common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64"
-
-# Build the arm64 Graal image
-common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64"
-
-# Push the relevant Graal image to the docker daemon base on the build machine's o/s architecture
-if [ "${NO_DAEMON}" != "true" ]
+if [ "${NO_GRAAL}" != "true" ]
 then
-  buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-graal"
-  echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
+  # Build the amd64 Graal image
+  common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64"
+
+  # Build the arm64 Graal image
+  common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64"
+
+  # Push the relevant Graal image to the docker daemon base on the build machine's o/s architecture
+  if [ "${NO_DAEMON}" != "true" ]
+  then
+    buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-graal"
+    echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME} to Docker daemon"
+  fi
 fi
 
 # Clean-up

@@ -11,8 +11,8 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 
-ARGS            =
-CURRENT_VERSION = $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
+ARGS            ?=
+CURRENT_VERSION ?= $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
 
 # ======================================================================================================================
 # Makefile targets start here
@@ -44,11 +44,15 @@ modules: ## Build Coherence modules
 
 .PHONY: docker
 docker: ## Build the Coherence image (does not rebuild Coherence jars)
-	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu
+	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu $(ARGS)
 
 .PHONY: docker-test
 docker-test: ## Build the Coherence image (does not rebuild Coherence image)
-	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu
+	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu $(ARGS)
+
+.PHONY: docker-push
+docker-push: ## Push the Coherence image (does not rebuild Coherence image)
+	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu $(ARGS)
 
 define mvn_build_coherence
 	mvn clean install -T 1.5C -U -DskipTests $(1) $(ARGS)

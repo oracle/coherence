@@ -369,7 +369,7 @@ public class PagedTopicPublisher<V>
                     // we need to do the actual close async as we're on the service thread here
                     // setting the state to OnError will stop us accepting further messages to publish
                     m_state = State.OnError;
-                    CompletableFuture.runAsync(() -> closeInternal(false));
+                    CompletableFuture.runAsync(() -> closeInternal(false), Daemons.commonPool());
                     break;
                 case Continue:
                     // Do nothing as the individual errors will

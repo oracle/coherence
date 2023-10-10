@@ -161,6 +161,11 @@ public class LegacyXmlClusterDependencies
         ctxGlobalSocketProvider.processDocument(xmlGlobalSocketProvider);
         ctxGlobalSocketProvider.close();
 
+        XmlElement xmlCommonPool = xml.getSafeElement("common-daemon-pool");
+        DefaultProcessingContext ctxCommonPool = new DefaultProcessingContext(ctxClusterConfig, xmlCommonPool);
+        ctxCommonPool.processDocument(xmlCommonPool);
+        ctxCommonPool.close();
+
         // ------------------------------------------------------------------------
         // SUSPEND: Use CODI to parse the operational configuration
         // ------------------------------------------------------------------------

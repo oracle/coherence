@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -199,6 +199,7 @@
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
                      <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
                      <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graal.image.skip}</NO_GRAAL>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>
@@ -302,6 +303,7 @@
                    <environmentVariables>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
+                     <NO_GRAAL>${graal.image.skip}</NO_GRAAL>
                      <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
                      <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
@@ -345,6 +347,7 @@
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
                      <GRAAL_AMD_BASE_IMAGE>${graal.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
                      <GRAAL_ARM_BASE_IMAGE>${graal.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
+                     <NO_GRAAL>${graal.image.skip}</NO_GRAAL>
                      <PORT_EXTEND>${docker.port.extend}</PORT_EXTEND>
                      <PORT_CONCURRENT_EXTEND>${docker.port.concurrent.extend}</PORT_CONCURRENT_EXTEND>
                      <PORT_GRPC>${docker.port.grpc}</PORT_GRPC>

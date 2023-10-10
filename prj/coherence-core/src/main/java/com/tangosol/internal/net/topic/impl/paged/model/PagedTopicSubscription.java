@@ -8,13 +8,17 @@ package com.tangosol.internal.net.topic.impl.paged.model;
 
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.SafeClock;
+
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
+
 import com.tangosol.io.ExternalizableLite;
 
 import com.tangosol.net.topic.TopicException;
+
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ImmutableArrayList;
+import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
@@ -32,6 +36,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -519,6 +524,19 @@ public class PagedTopicSubscription
             }
         }
 
+    public Set<SubscriberId> getDepartedSubscribers(Set<UUID> setMember)
+        {
+        Set<SubscriberId> setDeparted = new HashSet<>();
+        for (SubscriberId id : m_mapSubscriber.values())
+            {
+            if (!setMember.contains(id.getUID()))
+                {
+                setDeparted.add(id);
+                }
+            }
+        return setDeparted;
+        }
+
     // ----- ExternalizableLite methods -------------------------------------
 
     @Override
@@ -689,6 +707,28 @@ public class PagedTopicSubscription
          * The subscriber group id.
          */
         public SubscriberGroupId m_groupId;
+        }
+
+    // ----- inner interface: Listener --------------------------------------
+
+    /**
+     * A listener that will be notified of changes to {@link PagedTopicSubscription subscriptions}.
+     */
+    public interface Listener
+        {
+        /**
+         * Called when a {@link PagedTopicSubscription} is updated.
+         *
+         * @param subscription  the updated {@link PagedTopicSubscription}
+         */
+        void onUpdate(PagedTopicSubscription subscription);
+
+        /**
+         * Called when a {@link PagedTopicSubscription} is deleted.
+         *
+         * @param subscription  the deleted {@link PagedTopicSubscription}
+         */
+        void onDelete(PagedTopicSubscription subscription);
         }
 
     // ----- constants ------------------------------------------------------
