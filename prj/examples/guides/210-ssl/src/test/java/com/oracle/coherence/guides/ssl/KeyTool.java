@@ -99,8 +99,6 @@ public class KeyTool
         File   fileKey      = new File(fileCerts, sName + "-ca.key");
         File   fileCert     = new File(fileCerts, sName + "-ca.cert");
         File   fileKeystore = new File(fileCerts, sName + "-ca.jks");
-        String sKeyPass    = "s3cr37";
-        String sStorePass  = "s3cr37";
         String sCN         = sName;
 
         if (fileCerts.exists())
@@ -114,20 +112,20 @@ public class KeyTool
             assertThat(fileCerts.mkdirs(), is(true));
             }
 
-        runOpenSSL(Arguments.of("genrsa", "-passout", "pass:" + sKeyPass,
+        runOpenSSL(Arguments.of("genrsa", "-passout", "pass:" + CA_PASS,
                                 "-aes256", "-out", fileKey.getAbsolutePath(),  "4096"));
 
-        runOpenSSL(Arguments.of("req", "-passin", "pass:" + sKeyPass, "-new", "-x509",
+        runOpenSSL(Arguments.of("req", "-passin", "pass:" + CA_PASS, "-new", "-x509",
                                 "-days", "3650", "-subj", "/CN=" + sCN,
                                 "-key", fileKey.getAbsolutePath(),
                                 "-out", fileCert.getAbsolutePath()));
 
-        runKeytool(Arguments.of("-import", "-storepass", sStorePass, "-noprompt", "-trustcacerts",
+        runKeytool(Arguments.of("-import", "-storepass", CA_PASS, "-noprompt", "-trustcacerts",
             "-alias", sCN, "-file", fileCert.getAbsolutePath(),
             "-keystore", fileKeystore.getAbsolutePath(),
             "-deststoretype", sStoreType));
 
-        return new KeyAndCert(fileKey, null, null, fileCert, sKeyPass, null, fileKeystore, sStorePass);
+        return new KeyAndCert(fileKey, null, null, fileCert, CA_PASS, null, fileKeystore, CA_PASS);
         }
 
     /**
@@ -153,9 +151,6 @@ public class KeyTool
         File  fileP12       = new File(fileCerts, sName + ".p12");
         File  fileKeystore  = new File(fileCerts, sName + ".jks");
         File  fileConfig    = new File(fileCerts, "csr-details.txt");
-
-        String sKeyPass     = "pa55w0rd";  // For PKCS12 key stores, both passwords must be the same
-        String sStorePass   = "pa55w0rd";
 
         if (fileCerts.exists())
             {
@@ -188,11 +183,11 @@ public class KeyTool
             }
 
         // Generate key:
-        runOpenSSL(Arguments.of("genrsa", "-passout", "pass:" + sKeyPass, "-aes256",
+        runOpenSSL(Arguments.of("genrsa", "-passout", "pass:" + ID_KEY_PASS, "-aes256",
             "-out", fileKey.getAbsolutePath(), "4096"));
 
         // Generate signing request:
-        runOpenSSL(Arguments.of("req", "-passin", "pass:" + sKeyPass, "-new", "-subj", "/CN=" + sName,
+        runOpenSSL(Arguments.of("req", "-passin", "pass:" + ID_KEY_PASS, "-new", "-subj", "/CN=" + sName,
                                 "-key", fileKey.getAbsolutePath(),
                                 "-out", fileSign.getAbsolutePath()));
 
@@ -205,10 +200,10 @@ public class KeyTool
                     "-out", fileCert.getAbsolutePath(), "-extfile", fileConfig.getAbsolutePath()));
 
         // convert the key to PEM format
-        toPem(fileKey, filePEM, sKeyPass);
+        toPem(fileKey, filePEM, ID_KEY_PASS);
 
         // Remove passphrase from key:
-        runOpenSSL(Arguments.of("rsa", "-passin", "pass:" + sKeyPass,
+        runOpenSSL(Arguments.of("rsa", "-passin", "pass:" + ID_KEY_PASS,
                 "-in", fileKey.getAbsolutePath(),
                 "-out", fileKey.getAbsolutePath()));
 
@@ -216,19 +211,19 @@ public class KeyTool
         toPem(fileKey, filePEMNoPwd, null);
 
         // Create PKCS12 keystore
-        runOpenSSL(Arguments.of("pkcs12", "-export", "-passout", "pass:" + sStorePass, "-name", sName,
+        runOpenSSL(Arguments.of("pkcs12", "-export", "-passout", "pass:" + ID_STORE_PASS, "-name", sName,
                 "-inkey", filePEMNoPwd.getAbsolutePath(),
                 "-in", fileCert.getAbsolutePath(),
                 "-out", fileP12.getAbsolutePath()));
 
         // Create Java keystore
-        runKeytool(Arguments.of("-importkeystore", "-storepass", sStorePass, "-noprompt",
-                "-srcstoretype", "jks", "-destkeypass", sKeyPass,
-                "-srcstorepass", sStorePass,
+        runKeytool(Arguments.of("-importkeystore", "-storepass", ID_STORE_PASS, "-noprompt",
+                "-srcstoretype", "jks", "-destkeypass", ID_KEY_PASS,
+                "-srcstorepass", ID_STORE_PASS,
                 "-srckeystore", fileP12.getAbsolutePath(),
                 "-destkeystore", fileKeystore.getAbsolutePath()));
 
-        return new KeyAndCert(fileKey, filePEM, filePEMNoPwd, fileCert, sKeyPass, fileP12, fileKeystore, sStorePass);
+        return new KeyAndCert(fileKey, filePEM, filePEMNoPwd, fileCert, ID_KEY_PASS, fileP12, fileKeystore, ID_STORE_PASS);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -519,6 +514,21 @@ public class KeyTool
         }
 
     // ----- constants ---------------------------------------------------------------
+
+    /**
+     * Identity Key Password
+     */
+    public static final String ID_KEY_PASS = "pa55w0rd";  // For PKCS12 key stores, both passwords must be the same
+
+    /**
+     * Identity KeyStore Password
+     */
+    public static final String ID_STORE_PASS = "pa55w0rd";
+
+    /**
+     * CA KeyStore Password
+     */
+    public static final String CA_PASS = "s3cr37";
 
     /**
      * The location of the JDK keytool executable.
