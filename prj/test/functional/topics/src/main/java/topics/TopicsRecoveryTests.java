@@ -11,6 +11,7 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
@@ -104,6 +105,9 @@ public class TopicsRecoveryTests
     @Before
     public void setupTest() throws Exception
         {
+        m_sClusterName = "TopicsRecoveryTests-" + m_cCluster.getAndIncrement();
+        System.setProperty("coherence.cluster", m_sClusterName);
+
         CoherenceConfiguration config = CoherenceConfiguration.builder()
                 .withSession(SessionConfiguration.defaultSession())
                 .build();
@@ -139,6 +143,7 @@ public class TopicsRecoveryTests
 
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 ClusterName.of(m_sClusterName),
                                                                  WellKnownAddress.loopback(),
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
@@ -207,6 +212,7 @@ public class TopicsRecoveryTests
             String              sMsg         = "foo";
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 ClusterName.of(m_sClusterName),
                                                                  WellKnownAddress.loopback(),
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
@@ -293,6 +299,7 @@ public class TopicsRecoveryTests
             String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 ClusterName.of(m_sClusterName),
                                                                  WellKnownAddress.loopback(),
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
@@ -380,6 +387,7 @@ public class TopicsRecoveryTests
             String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 ClusterName.of(m_sClusterName),
                                                                  WellKnownAddress.loopback(),
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
@@ -461,6 +469,7 @@ public class TopicsRecoveryTests
             TaskDaemon          daemon   = new TaskDaemon("test-daemon");
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 ClusterName.of(m_sClusterName),
                                                                  WellKnownAddress.loopback(),
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
@@ -514,6 +523,7 @@ public class TopicsRecoveryTests
             TaskDaemon          daemon     = new TaskDaemon("test-daemon");
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                                                                 ClusterName.of(m_sClusterName),
                                                                  WellKnownAddress.loopback(),
                                                                  LocalHost.only(),
                                                                  LocalStorage.enabled(),
@@ -879,4 +889,8 @@ public class TopicsRecoveryTests
     private static Coherence s_coherence;
 
     private static Session s_session;
+
+    private final AtomicInteger m_cCluster = new AtomicInteger();
+
+    private String m_sClusterName;
     }
