@@ -720,4 +720,18 @@
     <cve>CVE-2022-4244</cve>
     <cve>CVE-2022-4245</cve>
   </suppress>
+
+  <!-- Supress opentelemetry-grpc-1.6-1.29.0-alpha.jar CVE-2023-33953,
+  CVE-2023-4785, CVE-2023-32732. See COH-28623 -->
+  <suppress>
+    <notes><![CDATA[
+    file name: opentelemetry-grpc-1.6-1.29.0-alpha.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.opentelemetry\.instrumentation/opentelemetry\-grpc\-1\.6@.*$</packageUrl>
+    <cpe>cpe:2.3:a:grpc:grpc</cpe>
+    <cve>CVE-2023-33953</cve>
+    <cve>CVE-2023-4785</cve>
+    <cve>CVE-2023-32732</cve>
+  </suppress>
+
 </suppressions>
