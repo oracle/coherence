@@ -40,10 +40,9 @@ lang="java"
     @POST
     @CacheAdd
     @CacheName("messages")
-    public Message addMessage(@PathParam("name") String name)
-        {
+    public Message addMessage(@PathParam("name") String name) {
         return new Message("Hello " + name);
-        }</markup>
+    }</markup>
 
 </div>
 
@@ -58,10 +57,9 @@ lang="java"
     @GET
     @CacheGet
     @CacheName("messages")
-    public Message getMessage(@PathParam("name") String name)
-        {
+    public Message getMessage(@PathParam("name") String name) {
         return new Message("Hello " + name);
-        }</markup>
+    }</markup>
 
 </div>
 
@@ -80,10 +78,9 @@ lang="java"
     @CachePut
     @CacheName("messages")
     public Response putMessage(@CacheKey @PathParam("name") String name,
-                               @CacheValue Message message)
-        {
+                               @CacheValue Message message) {
         return Response.status(Response.Status.CREATED).build();
-        }</markup>
+    }</markup>
 
 </div>
 
@@ -99,10 +96,9 @@ lang="java"
 >    @Path("{name}")
     @DELETE
     @CacheRemove
-    public Response removeMessage(@PathParam("name") String name)
-        {
+    public Response removeMessage(@PathParam("name") String name) {
         return Response.ok().build();
-        }</markup>
+    }</markup>
 
 </div>
 
@@ -120,10 +116,9 @@ lang="java"
     @CacheGet
     public Message getMessage(@PathParam("lastName") @CacheKey String lastName,
                               @PathParam("firstName") @CacheKey String firstName,
-                              @HeaderParam("Accept-Language") String acceptLanguage)
-        {
+                              @HeaderParam("Accept-Language") String acceptLanguage) {
         return new Message("Hello " + firstName + " " + lastName);
-        }</markup>
+    }</markup>
 
 </div>
 </div>

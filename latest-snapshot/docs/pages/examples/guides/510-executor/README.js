@@ -8,7 +8,7 @@ custom Executors via configuration to support submission of tasks to different e
 based on the required work load.</p>
 
 <p>The functionality offered by the Coherence Executor service is through the
-<a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/oracle/coherence/concurrent/executor/RemoteExecutor.html">RemoteExecutor</a> class,
+<a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/oracle/coherence/concurrent/executor/RemoteExecutor.html">RemoteExecutor</a> class,
 which, upon inspection, should look similar to <code>java.util.concurrent.Executors</code> in the JDK.
 Also notice that <code>RemoteExecutor</code> doesn&#8217;t use <code>Runnable</code> or <code>Callable</code>, and instead
 uses <code>Remote.Runnable</code> and <code>Remote.Callable</code>.  The remote versions are functionally
@@ -172,16 +172,15 @@ As this is a JUnit test class, this can be accomplished in a static <code>@Befor
 lang="java"
 
 >    @BeforeAll
-    static void boostrapCoherence()
-        {
-        System.setProperty("coherence.wka",         "127.0.0.1");
+    static void boostrapCoherence() {
+        System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.cacheconfig", "custom-executors.xml"); <span class="conum" data-value="1" />
 
         Coherence                    coherence = Coherence.clusterMember(); <span class="conum" data-value="2" />
         CompletableFuture&lt;Coherence&gt; future    = coherence.start(); <span class="conum" data-value="3" />
 
         future.join(); <span class="conum" data-value="4" />
-        }</markup>
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">Pass in the cache configuration, <code>custom-executors.xml</code>, created previously in this guide.</li>
@@ -195,12 +194,11 @@ lang="java"
 lang="java"
 
 >    @AfterAll
-    static void shutdownCoherence()
-        {
+    static void shutdownCoherence() {
         Coherence coherence = Coherence.getInstance(); <span class="conum" data-value="1" />
 
         coherence.close();
-        }</markup>
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">Since only a single default <code>Coherence</code> instance was created, obtain that instance with the
@@ -222,24 +220,23 @@ lang="java"
 
 >    @Test
     void testSimpleRunnable()
-            throws Exception
-        {
+            throws Exception {
         NamedMap&lt;String, String&gt; map             = getMap(); <span class="conum" data-value="1" />
         RemoteExecutor           defaultExecutor = RemoteExecutor.getDefault(); <span class="conum" data-value="2" />
 
         map.truncate(); <span class="conum" data-value="3" />
         assertTrue(map.isEmpty());
 
-        Future&lt;?&gt; result = defaultExecutor.submit((Remote.Runnable) () -&gt;
+        Future&lt;?&gt; result = defaultExecutor.submit((Remote.Runnable) ()-&gt;
                 Coherence.getInstance()
-                        .getSession().getMap("data").put("key-1", "value-1")); <span class="conum" data-value="4" />
+                         .getSession().getMap("data").put("key-1", "value-1")); <span class="conum" data-value="4" />
 
         result.get(); <span class="conum" data-value="5" />
 
         String sValue = map.get("key-1"); <span class="conum" data-value="6" />
 
         assertEquals(sValue, "value-1"); <span class="conum" data-value="7" />
-        }</markup>
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">Obtain a local reference to the <code>NamedMap</code>, <code>data</code>.</li>
@@ -269,8 +266,7 @@ lang="java"
 
 >    @Test
     void testSimpleCallable()
-            throws Exception
-        {
+            throws Exception {
         NamedMap&lt;String, String&gt; map             = getMap(); <span class="conum" data-value="1" />
         RemoteExecutor           defaultExecutor = RemoteExecutor.getDefault(); <span class="conum" data-value="2" />
 
@@ -279,7 +275,7 @@ lang="java"
 
         map.put("key-1", "value-1"); <span class="conum" data-value="4" />
 
-        Future&lt;String&gt; result = defaultExecutor.submit((Remote.Callable&lt;String&gt;) () -&gt;
+        Future&lt;String&gt; result = defaultExecutor.submit((Remote.Callable&lt;String&gt;) ()-&gt;
                 (String) Coherence.getInstance().getSession().getMap("data").put("key-1", "value-2")); <span class="conum" data-value="5" />
 
         String sResult = result.get(); <span class="conum" data-value="6" />
@@ -287,7 +283,7 @@ lang="java"
 
         assertEquals(sResult, "value-1"); <span class="conum" data-value="8" />
         assertEquals(sValue, "value-2"); <span class="conum" data-value="9" />
-        }</markup>
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">Obtain a local reference to the <code>NamedMap</code>, <code>data</code>.</li>
@@ -316,32 +312,29 @@ lang="java"
 
 >    @Test
     void testCustomExecutor()
-            throws Exception
-        {
+            throws Exception {
         RemoteExecutor fixed5 = RemoteExecutor.get("fixed-5"); <span class="conum" data-value="1" />
 
         List&lt;Remote.Callable&lt;String&gt;&gt; listCallables = new ArrayList&lt;&gt;(5); <span class="conum" data-value="2" />
-        for (int i = 0; i &lt; 10; i++)
+        for (int i = 0; i &lt; 10; i++) {
+            listCallables.add(()-&gt;
             {
-            listCallables.add(() -&gt;
-                              {
-                              Thread.sleep(1000);
-                              return Thread.currentThread().getName();
-                              });
-            }
+                Thread.sleep(1000);
+                return Thread.currentThread().getName();
+            });
+        }
 
         List&lt;Future&lt;String&gt;&gt; listFutures = fixed5.invokeAll(listCallables); <span class="conum" data-value="3" />
 
         Set&lt;String&gt; results = new LinkedHashSet&lt;&gt;(); <span class="conum" data-value="4" />
-        for (Future&lt;String&gt; listFuture : listFutures)
-            {
+        for (Future&lt;String&gt; listFuture : listFutures) {
             results.add(listFuture.get());
-            }
+        }
 
         System.out.printf("Tasks executed on threads %s", results);
 
         assertEquals(5, results.size()); <span class="conum" data-value="5" />
-        }</markup>
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">Obtain a reference to the <code>fixed-5</code> <code>RemoteExecutor</code>.</li>
@@ -361,7 +354,7 @@ Developers are encouraged to explore the other functionality defined by <code>Re
 
 <h3 id="_see_also">See Also</h3>
 <div class="section">
-<p>The Javadoc for <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/oracle/coherence/concurrent/executor/RemoteExecutor.html">RemoteExecutor</a></p>
+<p>The Javadoc for <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/oracle/coherence/concurrent/executor/RemoteExecutor.html">RemoteExecutor</a></p>
 
 </div>
 </div>

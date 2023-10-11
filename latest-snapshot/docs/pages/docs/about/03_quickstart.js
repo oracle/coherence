@@ -29,7 +29,7 @@ title="pom.xml"
     &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence&lt;/artifactId&gt;
-        &lt;version&gt;23.09-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;24.03-SNAPSHOT&lt;/version&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;</markup>
 
@@ -65,9 +65,9 @@ started in the following console examples.</p>
 <markup
 lang="shell"
 
->$&gt; mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=23.09-SNAPSHOT dependency:get
+>$&gt; mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=24.03-SNAPSHOT dependency:get
 
-$&gt; export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/23.09-SNAPSHOT/coherence-23.09-SNAPSHOT.jar
+$&gt; export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/24.03-SNAPSHOT/coherence-24.03-SNAPSHOT.jar
 
 $&gt; java -jar $COH_JAR &amp;
 
@@ -110,9 +110,9 @@ $&gt; kill %1</markup>
 <markup
 lang="shell"
 
->$&gt; mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=23.09-SNAPSHOT dependency:get
+>$&gt; mvn -DgroupId=com.oracle.coherence.ce -DartifactId=coherence -Dversion=24.03-SNAPSHOT dependency:get
 
-$&gt; export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/23.09-SNAPSHOT/coherence-23.09-SNAPSHOT.jar
+$&gt; export COH_JAR=~/.m2/repository/com/oracle/coherence/ce/coherence/24.03-SNAPSHOT/coherence-24.03-SNAPSHOT.jar
 
 $&gt; java -jar $COH_JAR &amp;
 
@@ -184,7 +184,7 @@ title="pom.xml"
     &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence&lt;/artifactId&gt;
-        &lt;version&gt;23.09-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;24.03-SNAPSHOT&lt;/version&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;</markup>
 

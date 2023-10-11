@@ -171,9 +171,9 @@ The <code>Customer</code> has a <code>String</code> id field and <code>String</c
 <markup
 lang="java"
 title="Customer.java"
->@PortableType(id=1001, version=1)
-public class Customer
-    {
+>@PortableType(id = 1001, version = 1)
+public class Customer {
+
     /**
      * The customer's identifier.
      */
@@ -196,72 +196,66 @@ public class Customer
      * @param firstName  the customer's first name
      * @param lastName   the customer's last name
      */
-    public Customer(String id, String firstName, String lastName)
-        {
+    public Customer(String id, String firstName, String lastName) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-        }
+    }
 
     /**
      * Returns the customer's identifier.
      *
      * @return the customer's identifier
      */
-    public String getId()
-        {
+    public String getId() {
         return id;
-        }
+    }
 
     /**
      * Returns the customer's first name.
      *
      * @return the customer's first name
      */
-    public String getFirstName()
-        {
+    public String getFirstName() {
         return firstName;
-        }
+    }
 
     /**
      * Set the customer's first name.
      *
      * @param firstName  the customer's first name
      */
-    public void setFirstName(String firstName)
-        {
+    public void setFirstName(String firstName) {
         this.firstName = firstName;
-        }
+    }
 
     /**
      * Returns the customer's last name.
      *
      * @return the customer's last name
      */
-    public String getLastName()
-        {
+    public String getLastName() {
         return lastName;
-        }
+    }
 
     /**
      * Set the customer's last name.
      *
      * @param lastName  the customer's last name
      */
-    public void setLastName(String lastName)
-        {
+    public void setLastName(String lastName) {
         this.lastName = lastName;
-        }
-    }</markup>
+    }
+}</markup>
 
 <p>The <code>Notification</code> has a <code>String</code> body and a Java time <code>LocalDateTime</code> ttl field, to represent its expiry time.</p>
 
 <markup
 lang="java"
 title="Notification.java"
->@PortableType(id=1010, version=1)
-public class Notification
-    {
+>@PortableType(id = 1010, version = 1)
+public class Notification {
+
     /**
      * The notification text.
      */
@@ -278,32 +272,29 @@ public class Notification
      * @param body  the notification text
      * @param ttl   the time the notification expires
      */
-    public Notification(String body, LocalDateTime ttl)
-        {
+    public Notification(String body, LocalDateTime ttl) {
         this.body = body;
         this.ttl = ttl;
-        }
+    }
 
     /**
      * Returns the notification text.
      *
      * @return the notification text
      */
-    public String getBody()
-        {
+    public String getBody() {
         return body;
-        }
+    }
 
     /**
      * Returns the time the notification expires.
      *
      * @return the time the notification expires
      */
-    public LocalDateTime getTTL()
-        {
+    public LocalDateTime getTTL() {
         return ttl;
-        }
-    }</markup>
+    }
+}</markup>
 
 <p>Both of the model classes are annotated with the <code>@PortableType</code>.
 This annotation is used by the Coherence POF Maven plugin to generate Portable Object code for the classes.
@@ -335,10 +326,10 @@ serialization code generated is supports evolvability between versions.</p>
 <markup
 lang="java"
 title="NotificationId.java"
->@PortableType(id=1011, version=1)
+>@PortableType(id = 1011, version = 1)
 public class NotificationId
-        implements KeyAssociation&lt;String&gt;, Comparable&lt;NotificationId&gt;
-    {
+        implements KeyAssociation&lt;String&gt;, Comparable&lt;NotificationId&gt; {
+
     /**
      * The customer the notification is for.
      */
@@ -361,86 +352,74 @@ public class NotificationId
      * @param region      the region the notification applies to
      * @param id          the notification identifier
      */
-    public NotificationId(String customerId, String region, UUID id)
-        {
+    public NotificationId(String customerId, String region, UUID id) {
         this.customerId = customerId;
         this.region = region;
         this.id = id;
-        }
+    }
 
     /**
      * Returns the identifier of the customer the notification is for.
      *
      * @return the identifier of the customer the notification is for
      */
-    public String getCustomerId()
-        {
+    public String getCustomerId() {
         return customerId;
-        }
+    }
 
     /**
      * Returns the region the notification applies to.
      *
      * @return the region the notification applies to
      */
-    public String getRegion()
-        {
+    public String getRegion() {
         return region;
-        }
+    }
 
     /**
      * Returns the notification identifier.
      *
      * @return the notification identifier
      */
-    public UUID getId()
-        {
+    public UUID getId() {
         return id;
-        }
+    }
 
     @Override
-    public String getAssociatedKey()
-        {
+    public String getAssociatedKey() {
         return customerId;
-        }
+    }
 
     @Override
-    public int compareTo(NotificationId o)
-        {
+    public int compareTo(NotificationId o) {
         int n = SafeComparator.compareSafe(Comparator.naturalOrder(), customerId, o.customerId);
-        if (n == 0)
-            {
+        if (n == 0) {
             n = Long.compare(id.getTimestamp(), o.id.getTimestamp());
-            if (n == 0)
-                {
+            if (n == 0) {
                 n = Long.compare(id.getCount(), o.id.getCount());
-                }
             }
-        return n;
         }
+        return n;
+    }
 
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
-            }
-        if (o == null || getClass() != o.getClass())
-            {
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-            }
+        }
         NotificationId that = (NotificationId) o;
         return Objects.equals(customerId, that.customerId) &amp;&amp; Objects.equals(region, that.region)
-                &amp;&amp; Objects.equals(id, that.id);
-        }
+               &amp;&amp; Objects.equals(id, that.id);
+    }
 
     @Override
-    public int hashCode()
-        {
+    public int hashCode() {
         return Objects.hash(customerId, region, id);
-        }
-    }</markup>
+    }
+}</markup>
 
 <p>Like the <code>Customer</code> and <code>Notification</code> classes, the <code>NotificationId</code> class is annotated with <code>@PortableType</code> to automatically generate the <code>PortableObject</code> serialization code.</p>
 
@@ -453,10 +432,9 @@ This method should return the value that this key is to be associated with. In t
 lang="java"
 title="NotificationId.java"
 >    @Override
-    public String getAssociatedKey()
-        {
+    public String getAssociatedKey() {
         return customerId;
-        }</markup>
+    }</markup>
 
 </div>
 
@@ -473,8 +451,8 @@ The <code>CustomerRepository</code> class extends the <code>com.oracle.coherence
 lang="java"
 title="CustomerRepository.java"
 >public class CustomerRepository
-        extends AbstractRepository&lt;String, Customer&gt;
-    {
+        extends AbstractRepository&lt;String, Customer&gt; {
+
     /**
      * The customer's cache.
      */
@@ -486,22 +464,19 @@ title="CustomerRepository.java"
         }
 
     @Override
-    protected String getId(Customer entity)
-        {
+    protected String getId(Customer entity) {
         return entity.getId();
-        }
+    }
 
     @Override
-    protected Class&lt;? extends Customer&gt; getEntityType()
-        {
+    protected Class&lt;? extends Customer&gt; getEntityType() {
         return Customer.class;
-        }
+    }
 
     @Override
-    protected NamedMap&lt;String, Customer&gt; getMap()
-        {
+    protected NamedMap&lt;String, Customer&gt; getMap() {
         return customers;
-        }
+    }
     }</markup>
 
 <p>In the rest of the example the <code>CustomerRepository</code> will be enhanced to add additional functionality for notifications.</p>
@@ -530,10 +505,10 @@ As with other classes, the entry processor is annotated with <code>@PortableType
 <markup
 lang="java"
 title="AddNotifications.java"
->@PortableType(id=1100, version=1)
+>@PortableType(id = 1100, version = 1)
 public class AddNotifications
-        implements InvocableMap.EntryProcessor&lt;String, Customer, Void&gt;
-    {
+        implements InvocableMap.EntryProcessor&lt;String, Customer, Void&gt; {
+
     /**
      * The notifications to add to the customer.
      */
@@ -544,10 +519,9 @@ public class AddNotifications
      *
      * @param notifications  the notifications to add to the customer
      */
-    public AddNotifications(Map&lt;String, List&lt;Notification&gt;&gt; notifications)
-        {
+    public AddNotifications(Map&lt;String, List&lt;Notification&gt;&gt; notifications) {
         this.notifications = notifications;
-        }
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -562,12 +536,11 @@ The method will throw a <code>NullPointerException</code> if the customer identi
 <markup
 lang="java"
 title="CustomerRepository.java"
->    public void addNotifications(String customerId, Map&lt;String, List&lt;Notification&gt;&gt; notifications)
-        {
+>    public void addNotifications(String customerId, Map&lt;String, List&lt;Notification&gt;&gt; notifications) {
         ensureInitialized();
         customers.invoke(Objects.requireNonNull(customerId),
                 new AddNotifications(Objects.requireNonNull(notifications)));
-        }</markup>
+    }</markup>
 
 
 <h4 id="_implement_the_process_method">Implement the Process Method</h4>
@@ -704,33 +677,33 @@ title="AddNotifications.java"
 >    @Override
     @SuppressWarnings("unchecked")
     public Void process(InvocableMap.Entry&lt;String, Customer&gt; entry)
-        {
-        BackingMapManagerContext context = entry.asBinaryEntry().getContext();
-        Converter&lt;NotificationId, Binary&gt; converter = context.getKeyToInternalConverter();
-        BackingMapContext ctxNotifications = context.getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
-        String customerId = entry.getKey();
-        LocalDateTime now = LocalDateTime.now();
+    {
+        BackingMapManagerContext          context          = entry.asBinaryEntry().getContext();
+        Converter&lt;NotificationId, Binary&gt; converter        = context.getKeyToInternalConverter();
+        BackingMapContext                 ctxNotifications = context.getBackingMapContext(
+                CustomerRepository.NOTIFICATIONS_MAP_NAME);
+        String                            customerId       = entry.getKey();
+        LocalDateTime                     now              = LocalDateTime.now();
 
-        notifications.forEach((region, notificationsForRegion) -&gt;
+        notifications.forEach((region, notificationsForRegion)-&gt;
+        {
+            notificationsForRegion.forEach(notification-&gt;
             {
-            notificationsForRegion.forEach(notification -&gt;
-                {
                 long ttlInMillis = ChronoUnit.MILLIS.between(now, notification.getTTL());
-                if (ttlInMillis &gt; 0)
-                    {
-                    NotificationId id = new NotificationId(customerId, region, new UUID());
-                    Binary binaryKey = converter.convert(id);
+                if (ttlInMillis &gt; 0) {
+                    NotificationId id        = new NotificationId(customerId, region, new UUID());
+                    Binary         binaryKey = converter.convert(id);
                     BinaryEntry&lt;NotificationId, Notification&gt; binaryEntry =
                             (BinaryEntry&lt;NotificationId, Notification&gt;) ctxNotifications.getBackingMapEntry(binaryKey);
 
                     binaryEntry.setValue(notification);
                     binaryEntry.expire(ttlInMillis);
-                    }
-                });
+                }
             });
+        });
 
         return null;
-        }</markup>
+    }</markup>
 
 </div>
 </div>
@@ -786,10 +759,10 @@ The <code>extractFromEntry</code> method returns <code>null</code>, and will be 
 <markup
 lang="java"
 title="NotificationExtractor.java"
->@PortableType(id=1200, version=1)
+>@PortableType(id = 1200, version = 1)
 public class NotificationExtractor
-        extends AbstractExtractor&lt;Customer, List&lt;Notification&gt;&gt;
-    {
+        extends AbstractExtractor&lt;Customer, List&lt;Notification&gt;&gt; {
+
     /**
      * An optional region identifier to use to retrieve
      * only notifications for a specific region.
@@ -802,10 +775,9 @@ public class NotificationExtractor
      *
      * @param region an optional region identifier
      */
-    public NotificationExtractor(String region)
-        {
+    public NotificationExtractor(String region) {
         this.region = region;
-        }
+    }
 
     @Override
     public List&lt;Notification&gt; extractFromEntry(Map.Entry entry)
@@ -814,29 +786,24 @@ public class NotificationExtractor
         }
 
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o)
-            {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
-            }
-        if (o == null || getClass() != o.getClass())
-            {
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-            }
-        if (!super.equals(o))
-            {
+        }
+        if (!super.equals(o)) {
             return false;
-            }
+        }
         NotificationExtractor that = (NotificationExtractor) o;
         return Objects.equals(region, that.region);
-        }
+    }
 
     @Override
-    public int hashCode()
-        {
+    public int hashCode() {
         return Objects.hash(super.hashCode(), region);
-        }</markup>
+    }</markup>
 
 
 <h4 id="_find_the_customers_notifications">Find the Customer&#8217;s Notifications</h4>
@@ -899,15 +866,15 @@ This method can be overridden and used to ensure the notifications indexes are a
 lang="java"
 title="CustomerRepository.java"
 >    @Override
-    @SuppressWarnings({"unchecked", "resource"})
-    protected void createIndices()
-        {
+    @SuppressWarnings( {"unchecked", "resource"})
+    protected void createIndices() {
         super.createIndices();
-        CacheService service = customers.getService();
-        NamedCache&lt;NotificationId, Notification&gt; notifications = service.ensureCache(NOTIFICATIONS_MAP_NAME, service.getContextClassLoader());
+        CacheService                             service       = customers.getService();
+        NamedCache&lt;NotificationId, Notification&gt; notifications = service.ensureCache(NOTIFICATIONS_MAP_NAME,
+                service.getContextClassLoader());
         notifications.addIndex(ValueExtractor.of(NotificationId::getCustomerId).fromKey());
         notifications.addIndex(ValueExtractor.of(NotificationId::getRegion).fromKey());
-        }</markup>
+    }</markup>
 
 <p>Note, that the super class <code>createIndicies()</code> method must be called to ensure any other indicies required by the customer repository are created.</p>
 
@@ -1049,16 +1016,16 @@ The final list of notifications will be ordered by creation data. This is possib
 <markup
 lang="java"
 
->        Comparator&lt;InvocableMap.Entry&gt; comparator = (e1, e2) -&gt;
+>        Comparator&lt;InvocableMap.Entry&gt; comparator = (e1, e2)-&gt;
                 SafeComparator.compareSafe(Comparator.naturalOrder(), e1.getKey(), e2.getKey());
 
         return keys.stream()
-                .map(ctx::getReadOnlyEntry)             <span class="conum" data-value="1" />
-                .filter(InvocableMap.Entry::isPresent)  <span class="conum" data-value="2" />
-                .sorted(comparator)                     <span class="conum" data-value="3" />
-                .map(InvocableMap.Entry::getValue)      <span class="conum" data-value="4" />
-                .map(Notification.class::cast)          <span class="conum" data-value="5" />
-                .collect(Collectors.toList());          <span class="conum" data-value="6" /></markup>
+                   .map(ctx::getReadOnlyEntry)             <span class="conum" data-value="1" />
+                   .filter(InvocableMap.Entry::isPresent)  <span class="conum" data-value="2" />
+                   .sorted(comparator)                     <span class="conum" data-value="3" />
+                   .map(InvocableMap.Entry::getValue)      <span class="conum" data-value="4" />
+                   .map(Notification.class::cast)          <span class="conum" data-value="5" />
+                   .collect(Collectors.toList());          <span class="conum" data-value="6" /></markup>
 
 <ul class="colist">
 <li data-value="1">The key is mapped to a read-only <code>InvocableMap.Entry</code></li>
@@ -1076,46 +1043,43 @@ lang="java"
 lang="java"
 
 >    @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public List&lt;Notification&gt; extractFromEntry(Map.Entry entry)
-        {
+    @SuppressWarnings( {"rawtypes", "unchecked"})
+    public List&lt;Notification&gt; extractFromEntry(Map.Entry entry) {
         BinaryEntry binaryEntry = (BinaryEntry) entry;
         BackingMapContext ctx = binaryEntry.getContext()
-                .getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
+                                           .getBackingMapContext(CustomerRepository.NOTIFICATIONS_MAP_NAME);
         Map&lt;ValueExtractor, MapIndex&gt; indexMap = ctx.getIndexMap(binaryEntry.getKeyPartition());
 
         MapIndex&lt;Binary, Notification, String&gt; index = indexMap
                 .get(ValueExtractor.of(NotificationId::getCustomerId).fromKey());
 
-        String customerId = (String) entry.getKey();
-        Set&lt;Binary&gt; keys = index.getIndexContents().get(customerId);
+        String      customerId = (String) entry.getKey();
+        Set&lt;Binary&gt; keys       = index.getIndexContents().get(customerId);
 
-        if (keys == null || keys.isEmpty())
-            {
+        if (keys == null || keys.isEmpty()) {
             return Collections.emptyList();
-            }
+        }
 
-        if (region != null &amp;&amp; !region.isBlank())
-            {
+        if (region != null &amp;&amp; !region.isBlank()) {
             // copy the keys, so we don't modify the underlying index
             keys = new HashSet&lt;&gt;(keys);
 
             ValueExtractor&lt;NotificationId, String&gt; extractor = ValueExtractor.of(NotificationId::getRegion).fromKey();
-            EqualsFilter&lt;NotificationId, String&gt; filter = new EqualsFilter&lt;&gt;(extractor, region);
+            EqualsFilter&lt;NotificationId, String&gt;   filter    = new EqualsFilter&lt;&gt;(extractor, region);
             filter.applyIndex(indexMap, keys);
-            }
+        }
 
-        Comparator&lt;InvocableMap.Entry&gt; comparator = (e1, e2) -&gt;
+        Comparator&lt;InvocableMap.Entry&gt; comparator = (e1, e2)-&gt;
                 SafeComparator.compareSafe(Comparator.naturalOrder(), e1.getKey(), e2.getKey());
 
         return keys.stream()
-                .map(ctx::getReadOnlyEntry)             <span class="conum" data-value="1" />
-                .filter(InvocableMap.Entry::isPresent)  <span class="conum" data-value="2" />
-                .sorted(comparator)                     <span class="conum" data-value="3" />
-                .map(InvocableMap.Entry::getValue)      <span class="conum" data-value="4" />
-                .map(Notification.class::cast)          <span class="conum" data-value="5" />
-                .collect(Collectors.toList());          <span class="conum" data-value="6" />
-        }</markup>
+                   .map(ctx::getReadOnlyEntry)             <span class="conum" data-value="1" />
+                   .filter(InvocableMap.Entry::isPresent)  <span class="conum" data-value="2" />
+                   .sorted(comparator)                     <span class="conum" data-value="3" />
+                   .map(InvocableMap.Entry::getValue)      <span class="conum" data-value="4" />
+                   .map(Notification.class::cast)          <span class="conum" data-value="5" />
+                   .collect(Collectors.toList());          <span class="conum" data-value="6" />
+    }</markup>
 
 <div class="admonition note">
 <p class="admonition-textlabel">Note</p>
@@ -1137,12 +1101,11 @@ title="CustomerRepository.java"
      *
      * @param customerId  the identifier of the customer to obtain the notifications for
      *
-     * @return  the notifications for the customer
+     * @return the notifications for the customer
      */
-    public List&lt;Notification&gt; getNotifications(String customerId)
-        {
+    public List&lt;Notification&gt; getNotifications(String customerId) {
         return getNotifications(customerId, null);
-        }
+    }
 
     /**
      * Returns the notifications for a customer, and optionally a region.
@@ -1150,13 +1113,12 @@ title="CustomerRepository.java"
      * @param customerId  the identifier of the customer to obtain the notifications for
      * @param region      an optional region to get notifications for
      *
-     * @return  the notifications for the customer, optionally restricted to a region
+     * @return the notifications for the customer, optionally restricted to a region
      */
-    public List&lt;Notification&gt; getNotifications(String customerId, String region)
-        {
+    public List&lt;Notification&gt; getNotifications(String customerId, String region) {
         Map&lt;String, List&lt;Notification&gt;&gt; map = getAll(List.of(customerId), new NotificationExtractor(region));
         return map.getOrDefault(customerId, Collections.emptyList());
-        }</markup>
+    }</markup>
 
 <p>The <code>getNotifications()</code> method calls the <code>getAll()</code> method on the <code>AbstractRepository</code> super class, which takes a collection of keys and a <code>ValueExtractor</code>. Under the covers, the <code>AbstractRepository.getAll()</code> method just runs a <code>ReducerAggregator</code> with the provided <code>ValueExtractor</code> after ensuring the repository is properly initialized. The map of results returned by <code>getAll()</code> will only ever contain a single entry, as it is only ever called here with a singleton list of keys. The result map will be a map of customer id to a list of notifications.</p>
 

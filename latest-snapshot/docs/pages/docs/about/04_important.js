@@ -2,26 +2,23 @@
 
 <h2 id="_java_development_kit_requirements">Java Development Kit Requirements</h2>
 <div class="section">
-<p>Coherence CE 23.09 requires a minimum of version
+<p>Coherence CE 24.03 requires a minimum of version
 17 of the Java Development Kit (JDK).</p>
 
 
-<h3 id="_additional_jdk_command_line_arguments">Additional JDK Command Line Arguments</h3>
+<h3 id="_concerning_java_platform_module_jpms_options">Concerning Java Platform Module (JPMS) Options</h3>
 <div class="section">
-<p>If using Oracle Coherence Portable Object Format (POF) and/or remote Lambdas,
-it is recommended to start the JVM with:</p>
+<p>JPMS JDK command line options such as <strong>--add-opens</strong>, <strong>--add-exports</strong> and <strong>--add-reads</strong> of standard JDK modules to <strong>com.oracle.coherence</strong> module documented in Section <strong>Using Java Modules to Build a Coherence Application</strong> of Coherence commercial release 14.1.1.2206 are no longer required.</p>
 
-<div class="listing">
-<pre>--add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED</pre>
-</div>
+<p>A new JPMS requirement is an application module containing Coherence remote lambda(s) must open itself to module <strong>com.oracle.coherence</strong> so the remote lambda(s) can be resolved to the application&#8217;s lambda(s) during deserialization.</p>
 
 </div>
 </div>
 
 <h2 id="_jakarta_ee_9_1_compatibility">Jakarta EE 9.1 Compatibility</h2>
 <div class="section">
-<p>Coherence CE 23.09 has migrated to Jakarta EE 9.1 from Java EE 8, importing types in <strong>jakarta</strong> packages instead of <strong>javax</strong> packages.
-The following table describes the mapping of javax packages to jakarta packages and Maven artifacts in Coherence CE 23.09.</p>
+<p>Coherence CE 24.03 has migrated to Jakarta EE 9.1 from Java EE 8, importing types in <strong>jakarta</strong> packages instead of <strong>javax</strong> packages.
+The following table describes the mapping of javax packages to jakarta packages and Maven artifacts in Coherence CE 24.03.</p>
 
 
 <div class="table__overflow elevation-1  ">

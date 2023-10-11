@@ -2,7 +2,7 @@
 
 <h2 id="_put_get_and_remove_operations">Put Get and Remove Operations</h2>
 <div class="section">
-<p>This guide walks you through the basic CRUD operations on a Coherence <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedMap</a>.</p>
+<p>This guide walks you through the basic CRUD operations on a Coherence <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedMap</a>.</p>
 
 
 <h3 id="_what_you_will_build">What You Will Build</h3>
@@ -84,9 +84,9 @@ lang="bash"
 
 <h3 id="_coherence_namedmap">Coherence <code>NamedMap</code></h3>
 <div class="section">
-<p>The Coherence <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedMap</a> is an extension of Java&#8217;s <code>java.util.Map</code> interface
+<p>The Coherence <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedMap</a> is an extension of Java&#8217;s <code>java.util.Map</code> interface
 and as such, it has all the <code>Map</code> methods that a Java developer is familiar with. Coherence also has a
-<a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedCache</a> which extends <code>NamedMap</code> and is form more transient data
+<a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedCache</a> which extends <code>NamedMap</code> and is form more transient data
 storage in caching use cases.</p>
 
 <p>The most basic operations on a <code>NamedMap</code> are the simple CRUD methods, <code>put</code>, <code>get</code> and <code>remove</code>, which this guide
@@ -150,7 +150,7 @@ lang="java"
 <h4 id="_obtain_a_namedmap_instance">Obtain a <code>NamedMap</code> Instance</h4>
 <div class="section">
 <p>All the tests in this guide need to obtain a <code>NamedMap</code> instance,
-we will use a Coherence <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/Session.html">Session</a> for this.
+we will use a Coherence <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/Session.html">Session</a> for this.
 A <code>Session</code> is a means to access Coherence clustered resources.
 Creation of <code>Session</code> instances is part of the bootstrap API, which we can obtain named <code>Session</code> instances from.
 In this case we are using the bootstrap API&#8217;s default, so we can simply obtain the default <code>Session</code>.
@@ -185,10 +185,10 @@ lang="java"
 For this reason all <code>Objects</code> used as keys and values <strong>must</strong> be serializable so that they can be transferred between
 cluster members and clients during requests.
 Coherence Serialization support is a topic that deserves a guide of its own
-The <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/io/Serializer.html">Serializer</a> implementation used by a <code>NamedMap</code> is configurable
+The <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/io/Serializer.html">Serializer</a> implementation used by a <code>NamedMap</code> is configurable
 and Coherence comes with some out of the box <code>Serializer</code> implementations.
 The default is Java serialization, so all keys and values must be Java <code>Serializable</code> or implement Coherence
-<a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/io/ExternalizableLite.html">ExternalizableLite</a> interface for more control of serialization.
+<a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/io/ExternalizableLite.html">ExternalizableLite</a> interface for more control of serialization.
 Alternatively Coherence can also be configured to use Portable Object Format for serialization and additionally
 there is a JSON Coherence module that provides a JSON serializer that may be used.</p>
 
@@ -267,7 +267,7 @@ which obviously must be <code>"value-1"</code>.</li>
 
 <h3 id="_get_multiple_values">Get Multiple Values</h3>
 <div class="section">
-<p>The Coherence <code>NamedMap</code> contains a <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html#getAll(java.util.Collection)">getAll(java.util.Collection)</a>
+<p>The Coherence <code>NamedMap</code> contains a <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html#getAll(java.util.Collection)">getAll(java.util.Collection)</a>
 method that takes a collection of keys as a parameter and returns a new <code>Map</code> that contains the requested mappings.</p>
 
 <markup
@@ -361,10 +361,10 @@ This must return <code>true</code> as we mapped <code>"key-10"</code> to the val
 
 <h3 id="_namedcache_transient_data"><code>NamedCache</code> Transient Data</h3>
 <div class="section">
-<p>As already stated, a <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedCache</a> is typically used to store transient data
+<p>As already stated, a <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/NamedMap.html">NamedCache</a> is typically used to store transient data
 in caching use-cases.</p>
 
-<p>The <code>NamedCache</code> has an alternative <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/NamedCache.html#put(K,V,long)">put(K,V,long)</a> method
+<p>The <code>NamedCache</code> has an alternative <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/NamedCache.html#put(K,V,long)">put(K,V,long)</a> method
 that takes a key, value, and an expiry value. The expiry value is the number of milli-seconds that the key and value
 should remain in the cache. When the expiry time has passed the key and value will be removed from the cache.</p>
 

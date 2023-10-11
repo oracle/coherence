@@ -21,7 +21,7 @@ lang="xml"
 >&lt;dependency&gt;
   &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
   &lt;artifactId&gt;coherence-helidon-grpc-proxy&lt;/artifactId&gt;
-  &lt;version&gt;23.09-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;24.03-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;</markup>
 
 <p>or for Gradle:</p>
@@ -29,7 +29,7 @@ lang="xml"
 <markup
 lang="groovy"
 
->implementation 'com.oracle.coherence.ce:coherence-helidon-grpc-proxy:23.09-SNAPSHOT'</markup>
+>implementation 'com.oracle.coherence.ce:coherence-helidon-grpc-proxy:24.03-SNAPSHOT'</markup>
 
 </div>
 

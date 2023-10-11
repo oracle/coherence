@@ -2,7 +2,7 @@
 
 <h2 id="_overview">Overview</h2>
 <div class="section">
-<p>Learn about the features, enhancements, and changes made in Oracle Coherence  CE 23.09.</p>
+<p>Learn about the features, enhancements, and changes made in Oracle Coherence CE since release 22.06.</p>
 
 <v-layout row wrap class="mb-5">
 <v-flex xs12>
@@ -77,7 +77,7 @@
 </router-link>
 <v-layout align-center justify-center class="">
 <v-avatar size="150px">
-<v-icon class="xxx-large">fa-cogs</v-icon>
+<v-icon class="xxx-large">fa-exchange</v-icon>
 </v-avatar>
 </v-layout>
 <div class="px-3">
@@ -89,6 +89,69 @@
 <v-card-text class="caption">
 <p></p>
 <p>Use caching annotations for response caching.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/docs/core/06_virtual_threads"><div class="card__link-hover"/>
+</router-link>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">fa-random</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Virtual Threads Support</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Use Java 21 virtual threads within Coherence.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/docs/core/07_sorted_views"><div class="card__link-hover"/>
+</router-link>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">fa-sort-alpha-asc</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Sorted Views</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Create sorted client-side views of cached data.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/docs/core/08_secured_production"><div class="card__link-hover"/>
+</router-link>
+<v-layout align-center justify-center class="">
+<v-avatar size="150px">
+<v-icon class="xxx-large">fa-expeditedssl</v-icon>
+</v-avatar>
+</v-layout>
+<div class="px-3">
+<v-divider class="indigo lighten-4"/>
+</div>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Secured Production Mode</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>Run Coherence in secured production mode.</p>
 </v-card-text>
 </v-card>
 </v-flex>

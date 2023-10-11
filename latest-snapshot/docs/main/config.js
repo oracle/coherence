@@ -1,9 +1,9 @@
 function createConfig() {
     return {
         home: "docs/about/01_overview",
-        release: "23.09-SNAPSHOT",
+        release: "24.03-SNAPSHOT",
         releases: [
-            "23.09-SNAPSHOT"
+            "24.03-SNAPSHOT"
         ],
         pathColors: {
             "*": "blue-grey"
@@ -141,6 +141,45 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('docs-core-05_response_caching', '/docs/core/05_response_caching', {})
+        },
+        {
+            path: '/docs/core/06_virtual_threads',
+            meta: {
+                h1: 'Virtual Threads Support',
+                title: 'Virtual Threads Support',
+                h1Prefix: null,
+                description: 'Coherence Core Improvements',
+                keywords: 'coherence, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-06_virtual_threads', '/docs/core/06_virtual_threads', {})
+        },
+        {
+            path: '/docs/core/07_sorted_views',
+            meta: {
+                h1: 'Sorted Views',
+                title: 'Sorted Views',
+                h1Prefix: null,
+                description: 'Coherence Core Improvements',
+                keywords: 'coherence, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-07_sorted_views', '/docs/core/07_sorted_views', {})
+        },
+        {
+            path: '/docs/core/08_secured_production',
+            meta: {
+                h1: 'Secured Production Mode',
+                title: 'Secured Production Mode',
+                h1Prefix: null,
+                description: 'Coherence Core Improvements',
+                keywords: 'coherence, java, documentation',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('docs-core-08_secured_production', '/docs/core/08_secured_production', {})
         },
         {
             path: '/coherence-docker/README',
@@ -414,6 +453,19 @@ function createRoutes(){
                 hasNav: true
             },
             component: loadPage('examples-guides-210-ssl-README', '/examples/guides/210-ssl/README', {})
+        },
+        {
+            path: '/examples/guides/220-performance/README',
+            meta: {
+                h1: 'Performance over Consistency & Availability',
+                title: 'Performance over Consistency & Availability',
+                h1Prefix: null,
+                description: 'Coherence Guides Client Events',
+                keywords: 'coherence, java, documentation, consistency, availability,, read-locator, primary, backup, async, backup',
+                customLayout: null,
+                hasNav: true
+            },
+            component: loadPage('examples-guides-220-performance-README', '/examples/guides/220-performance/README', {})
         },
         {
             path: '/examples/guides/460-topics/README',
@@ -757,7 +809,10 @@ function createNav(){
                                 { href: '/docs/core/02_topics', title: 'Topics Management' },
                                 { href: '/docs/core/03_microprofile_health', title: 'Microprofile Health' },
                                 { href: '/docs/core/04_gradle', title: 'Gradle POF Plugin' },
-                                { href: '/docs/core/05_response_caching', title: 'CDI Response Caching' }
+                                { href: '/docs/core/05_response_caching', title: 'CDI Response Caching' },
+                                { href: '/docs/core/06_virtual_threads', title: 'Virtual Threads Support' },
+                                { href: '/docs/core/07_sorted_views', title: 'Sorted Views' },
+                                { href: '/docs/core/08_secured_production', title: 'Secured Production Mode' }
                             ]
                         },
                         {
@@ -806,6 +861,7 @@ function createNav(){
                                 { href: '/examples/guides/195-bulk-loading-caches/README', title: 'Bulk Loading Caches' },
                                 { href: '/examples/guides/200-federation/README', title: 'Federation' },
                                 { href: '/examples/guides/210-ssl/README', title: 'Securing with SSL' },
+                                { href: '/examples/guides/220-performance/README', title: 'Performance over Consistency & Availability' },
                                 { href: '/examples/guides/460-topics/README', title: 'Topics' },
                                 { href: '/examples/guides/510-executor/README', title: 'The Coherence Executor Service' },
                                 { href: '/examples/guides/600-response-caching/README', title: 'CDI Response Caching' },
@@ -840,7 +896,7 @@ function createNav(){
                         {
                             title: 'Coherence CE Java API',
                             action: 'library_books',
-                            href: 'https://oracle.github.io/coherence/23.09-SNAPSHOT/api/java/index.html',
+                            href: 'https://oracle.github.io/coherence/24.03-SNAPSHOT/api/java/index.html',
                             target: '_blank'
                         },
                         {

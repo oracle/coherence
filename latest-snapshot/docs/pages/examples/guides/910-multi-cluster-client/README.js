@@ -522,8 +522,8 @@ title="User.java"
  * A simple user entity.
  */
 public class User
-        implements PortableObject, ExternalizableLite
-    {
+        implements PortableObject, ExternalizableLite {
+
     /**
      * The user's identifier.
      */
@@ -547,9 +547,8 @@ public class User
     /**
      * A default constructor, required for Coherence serialization.
      */
-    public User()
-        {
-        }
+    public User() {
+    }
 
     /**
      * Create a user.
@@ -559,93 +558,84 @@ public class User
      * @param lastName   the user's last name
      * @param email      the user's email address
      */
-    public User(String id, String firstName, String lastName, String email)
-        {
+    public User(String id, String firstName, String lastName, String email) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        }
+    }
 
     /**
      * Returns the user's identifier.
      *
      * @return the user's identifier
      */
-    public String getId()
-        {
+    public String getId() {
         return id;
-        }
+    }
 
     /**
      * Set the user's identifier.
      *
      * @param id  the user's identifier
      */
-    public void setId(String id)
-        {
+    public void setId(String id) {
         this.id = id;
-        }
+    }
 
     /**
      * Returns the user's first name.
      *
      * @return the user's first name
      */
-    public String getFirstName()
-        {
+    public String getFirstName() {
         return firstName;
-        }
+    }
 
     /**
      * Set the user's first name.
      *
      * @param firstName  the user's first name
      */
-    public void setFirstName(String firstName)
-        {
+    public void setFirstName(String firstName) {
         this.firstName = firstName;
-        }
+    }
 
     /**
      * Returns the user's last name.
      *
      * @return the user's last name
      */
-    public String getLastName()
-        {
+    public String getLastName() {
         return lastName;
-        }
+    }
 
     /**
      * Set the user's last name.
      *
      * @param lastName  the user's last name
      */
-    public void setLastName(String lastName)
-        {
+    public void setLastName(String lastName) {
         this.lastName = lastName;
-        }
+    }
 
     /**
      * Returns the user's email address.
      *
      * @return the user's email address
      */
-    public String getEmail()
-        {
+    public String getEmail() {
         return email;
-        }
+    }
 
     /**
      * Set the user's email address.
      *
      * @param email  the user's email address
      */
-    public void setEmail(String email)
-        {
+    public void setEmail(String email) {
         this.email = email;
-        }
+    }
     }</markup>
 
 </div>
@@ -699,20 +689,17 @@ All the requests perform the same logic, the code below is from the get request 
 <markup
 lang="java"
 title="UserController.java"
->    public Response get(HttpRequest request)
-        {
+>    public Response get(HttpRequest request) {
         String tenant = request.getHeaderString(TENANT_HEADER);   <span class="conum" data-value="1" />
-        if (tenant == null || tenant.isBlank())
-            {
+        if (tenant == null || tenant.isBlank()) {
             <span class="conum" data-value="2" />
             return Response.status(400).entity(Map.of("Error", "Missing tenant identifier")).build();
-            }
+        }
         Session session = ensureSession(tenant);  <span class="conum" data-value="3" />
-        if (session == null)
-            {
+        if (session == null) {
             <span class="conum" data-value="4" />
             return Response.status(400).entity(Map.of("Error", "Unknown tenant " + tenant)).build();
-            }</markup>
+        }</markup>
 
 <ul class="colist">
 <li data-value="1">The "tenant" header value is obtained from the request</li>
@@ -730,17 +717,15 @@ title="UserController.java"
 <markup
 lang="java"
 title="UserController.java"
->    private Session ensureSession(String tenant)
-        {
+>    private Session ensureSession(String tenant) {
         TenantMetaData metaData = tenants.get(tenant);  <span class="conum" data-value="1" />
-        if (metaData == null)
-            {
+        if (metaData == null) {
             return null;  <span class="conum" data-value="2" />
-            }
+        }
         Coherence coherence = Coherence.getInstance();  <span class="conum" data-value="3" />
         return coherence.getSessionIfPresent(tenant)  <span class="conum" data-value="4" />
-                .orElseGet(() -&gt; createSession(coherence, metaData));
-        }</markup>
+                        .orElseGet(()-&gt;createSession(coherence, metaData));
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">The meta-data for the tenant is obtained from the tenants cache.</li>
@@ -761,19 +746,16 @@ The <code>UserController.createSession()</code> method is responsible for creati
 <markup
 lang="java"
 title="UserController.java"
->    private Session createSession(Coherence coherence, TenantMetaData metaData)
-        {
+>    private Session createSession(Coherence coherence, TenantMetaData metaData) {
         String tenant = metaData.getTenant();
-        if (metaData.isExtend())
-            {
-            coherence.addSessionIfAbsent(tenant, () -&gt; createExtendConfiguration(metaData));
-            }
-        else
-            {
-            coherence.addSessionIfAbsent(tenant, () -&gt; createGrpcConfiguration(metaData));
-            }
+        if (metaData.isExtend()) {
+            coherence.addSessionIfAbsent(tenant, ()-&gt;createExtendConfiguration(metaData));
+        }
+        else {
+            coherence.addSessionIfAbsent(tenant, ()-&gt;createGrpcConfiguration(metaData));
+        }
         return coherence.getSession(tenant);
-        }</markup>
+    }</markup>
 
 <p>The <code>createSession</code> method is very simple, it just delegates to another method, depending on whether the required <code>Session</code> is for an Extend client or a gRPC client.
 A <code>SessionConfiguration</code> is created, either for an Extend client, or gRPC client, and is passed to the <code>Coherence.addSessionIfAbsent()</code> method. The add if absent method is used in case multiple threads attempt to create the same tenant&#8217;s session, it will only be added once.</p>
@@ -788,18 +770,17 @@ An Extend client configuration can be created using the <code>SessionConfigurati
 <markup
 lang="java"
 title="UserController.java"
->    private SessionConfiguration createExtendConfiguration(TenantMetaData metaData)
-        {
+>    private SessionConfiguration createExtendConfiguration(TenantMetaData metaData) {
         String tenant = metaData.getTenant();
         return SessionConfiguration.builder()
-                .named(tenant)             <span class="conum" data-value="1" />
-                .withScopeName(tenant)     <span class="conum" data-value="2" />
-                .withMode(Coherence.Mode.ClientFixed)  <span class="conum" data-value="3" />
-                .withParameter("coherence.serializer", metaData.getSerializer())   <span class="conum" data-value="4" />
-                .withParameter("coherence.extend.address", metaData.getHostName()) <span class="conum" data-value="5" />
-                .withParameter("coherence.extend.port", metaData.getPort())        <span class="conum" data-value="6" />
-                .build();  <span class="conum" data-value="7" />
-        }</markup>
+                                   .named(tenant)             <span class="conum" data-value="1" />
+                                   .withScopeName(tenant)     <span class="conum" data-value="2" />
+                                   .withMode(Coherence.Mode.ClientFixed)  <span class="conum" data-value="3" />
+                                   .withParameter("coherence.serializer", metaData.getSerializer())   <span class="conum" data-value="4" />
+                                   .withParameter("coherence.extend.address", metaData.getHostName()) <span class="conum" data-value="5" />
+                                   .withParameter("coherence.extend.port", metaData.getPort())        <span class="conum" data-value="6" />
+                                   .build();  <span class="conum" data-value="7" />
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">The session configuration has a unique name, in this case the tenant name</li>
@@ -819,18 +800,17 @@ title="UserController.java"
 <markup
 lang="java"
 title="UserController.java"
->    private SessionConfiguration createGrpcConfiguration(TenantMetaData metaData)
-        {
+>    private SessionConfiguration createGrpcConfiguration(TenantMetaData metaData) {
         String tenant = metaData.getTenant();
         return SessionConfiguration.builder()
-                .named(tenant)             <span class="conum" data-value="1" />
-                .withScopeName(tenant)     <span class="conum" data-value="2" />
-                .withMode(Coherence.Mode.GrpcFixed)  <span class="conum" data-value="3" />
-                .withParameter("coherence.serializer", metaData.getSerializer()) <span class="conum" data-value="4" />
-                .withParameter("coherence.grpc.address", metaData.getHostName()) <span class="conum" data-value="5" />
-                .withParameter("coherence.grpc.port", metaData.getPort())        <span class="conum" data-value="6" />
-                .build();  <span class="conum" data-value="7" />
-        }</markup>
+                                   .named(tenant)             <span class="conum" data-value="1" />
+                                   .withScopeName(tenant)     <span class="conum" data-value="2" />
+                                   .withMode(Coherence.Mode.GrpcFixed)  <span class="conum" data-value="3" />
+                                   .withParameter("coherence.serializer", metaData.getSerializer()) <span class="conum" data-value="4" />
+                                   .withParameter("coherence.grpc.address", metaData.getHostName()) <span class="conum" data-value="5" />
+                                   .withParameter("coherence.grpc.port", metaData.getPort())        <span class="conum" data-value="6" />
+                                   .build();  <span class="conum" data-value="7" />
+    }</markup>
 
 <ul class="colist">
 <li data-value="1">The session configuration has a unique name, in this case the tenant name</li>

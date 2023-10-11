@@ -247,15 +247,15 @@ concepts:</p>
 
 <ul class="ulist">
 <li>
-<p><a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/util/Filter.html">Filter</a></p>
+<p><a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/util/Filter.html">Filter</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/util/ValueExtractor.html">ValueExtractor</a></p>
+<p><a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/util/ValueExtractor.html">ValueExtractor</a></p>
 
 </li>
 <li>
-<p><a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/util/aggregator/package-summary.html">Aggregator</a></p>
+<p><a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/util/aggregator/package-summary.html">Aggregator</a></p>
 
 </li>
 </ul>

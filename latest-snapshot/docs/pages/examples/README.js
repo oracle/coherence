@@ -288,7 +288,7 @@ bootstrap a Coherence instance.</p>
 </v-card-title>
 <v-card-text class="caption">
 <p></p>
-<p>This guide shows approaches to bluk load data into caches, typically this would be loading data into caches from a DB when applications start.</p>
+<p>This guide shows approaches to bulk load data into caches, typically this would be loading data into caches from a DB when applications start.</p>
 </v-card-text>
 </v-card>
 </v-flex>
@@ -302,6 +302,19 @@ bootstrap a Coherence instance.</p>
 <v-card-text class="caption">
 <p></p>
 <p>This guide walks you through how to secure Coherence using SSL/TLS.</p>
+</v-card-text>
+</v-card>
+</v-flex>
+<v-flex xs12 sm4 lg3>
+<v-card>
+<router-link to="/examples/guides/220-performance/README"><div class="card__link-hover"/>
+</router-link>
+<v-card-title primary class="headline layout justify-center">
+<span style="text-align:center">Performance over Consistency & Availability</span>
+</v-card-title>
+<v-card-text class="caption">
+<p></p>
+<p>This guide walks you through how to tweak Coherence to provide more performance at the expense of data consistency and availability.</p>
 </v-card-text>
 </v-card>
 </v-flex>

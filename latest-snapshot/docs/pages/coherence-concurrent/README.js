@@ -54,7 +54,7 @@ lang="xml"
 >    &lt;dependency&gt;
         &lt;groupId&gt;com.oracle.coherence.ce&lt;/groupId&gt;
         &lt;artifactId&gt;coherence-concurrent&lt;/artifactId&gt;
-        &lt;version&gt;23.09-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;24.03-SNAPSHOT&lt;/version&gt;
     &lt;/dependency&gt;</markup>
 
 <p>Once the necessary dependency is in place, you can start using the features it provides, as the following sections describe.</p>

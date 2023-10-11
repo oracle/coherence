@@ -104,12 +104,11 @@ The test will fail if Coherence takes longer than five minutes to start (it shou
 lang="java"
 title="BasicHealthIT.java"
 >    @BeforeAll
-    static void startCoherence() throws Exception
-        {
+    static void startCoherence() throws Exception {
         Coherence.clusterMember()
-                .start()
-                .get(5, TimeUnit.MINUTES);
-        }</markup>
+                 .start()
+                 .get(5, TimeUnit.MINUTES);
+    }</markup>
 
 <p>When the tests finish Coherence is shut down.</p>
 
@@ -117,14 +116,12 @@ title="BasicHealthIT.java"
 lang="java"
 title="BasicHealthIT.java"
 >    @AfterAll
-    static void cleanup()
-        {
+    static void cleanup() {
         Coherence coherence = Coherence.getInstance();
-        if (coherence != null)
-            {
+        if (coherence != null) {
             coherence.close();
-            }
-        }</markup>
+        }
+    }</markup>
 
 
 <h3 id="_check_all_health_checks_are_started">Check All Health Checks are Started</h3>
@@ -136,13 +133,12 @@ The <code>Coherence</code> instance is obtained (there is only one instance runn
 lang="java"
 title="BasicHealthIT.java"
 >    @Test
-    void shouldEventuallyBeStarted()
-        {
+    void shouldEventuallyBeStarted() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
-        Eventually.assertDeferred(() -&gt; registry.allHealthChecksStarted(), is(true));
-        }</markup>
+        Eventually.assertDeferred(registry::allHealthChecksStarted, is(true));
+    }</markup>
 
 <p>The test then asserts that "eventually", the call to <code>registry.allHealthChecksStarted()</code> returns <code>true</code>, which it should as soon as all services are started. At this point Coherence may not be "ready" or "safe", but it is started.</p>
 
@@ -157,13 +153,12 @@ The <code>Coherence</code> instance is obtained and from the <code>Coherence</co
 lang="java"
 title="BasicHealthIT.java"
 >    @Test
-    void shouldEventuallyBeStarted()
-        {
+    void shouldEventuallyBeStarted() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
-        Eventually.assertDeferred(() -&gt; registry.allHealthChecksStarted(), is(true));
-        }</markup>
+        Eventually.assertDeferred(registry::allHealthChecksStarted, is(true));
+    }</markup>
 
 <p>The test then asserts that "eventually", the call to <code>registry.allHealthChecksReady()</code> returns <code>true</code>, which it should as soon as all services reach the "ready" state.</p>
 
@@ -178,13 +173,12 @@ The <code>Coherence</code> instance is obtained and from the <code>Coherence</co
 lang="java"
 title="BasicHealthIT.java"
 >    @Test
-    void shouldEventuallyBeStarted()
-        {
+    void shouldEventuallyBeStarted() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
-        Eventually.assertDeferred(() -&gt; registry.allHealthChecksStarted(), is(true));
-        }</markup>
+        Eventually.assertDeferred(registry::allHealthChecksStarted, is(true));
+    }</markup>
 
 <p>The test then asserts that "eventually", the call to <code>registry.allHealthChecksSafe()</code> returns <code>true</code>, which it should as soon as all services reach the "safe" state.</p>
 
@@ -207,8 +201,7 @@ As the test uses the default Coherence cache configuration file, this will start
 lang="java"
 title="BasicHealthIT.java"
 >    @Test
-    void shouldGetHealthChecks()
-        {
+    void shouldGetHealthChecks() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
@@ -217,12 +210,12 @@ title="BasicHealthIT.java"
         assertThat(healthChecks.isEmpty(), is(false));
 
         HealthCheck healthCheck = healthChecks.stream()
-                .filter(h -&gt; "PartitionedCache".equals(h.getName()))
-                .findFirst()
-                .orElse(null);
+                                              .filter(h-&gt;"PartitionedCache".equals(h.getName()))
+                                              .findFirst()
+                                              .orElse(null);
 
         assertThat(healthCheck, is(notNullValue()));
-        }</markup>
+    }</markup>
 
 </div>
 
@@ -238,15 +231,14 @@ title="BasicHealthIT.java"
 lang="java"
 title="BasicHealthIT.java"
 >    @Test
-    void shouldGetHealthCheckByName()
-        {
+    void shouldGetHealthCheckByName() {
         Coherence coherence = Coherence.getInstance();
         Registry  registry  = coherence.getManagement();
 
         Optional&lt;HealthCheck&gt; optional = registry.getHealthCheck("PartitionedCache");
 
         assertThat(optional.isPresent(), is(true));
-        }</markup>
+    }</markup>
 
 </div>
 </div>
@@ -268,8 +260,7 @@ title="ApplicationHealth.java"
  * A simple custom health check.
  */
 public class ApplicationHealth
-        implements HealthCheck
-    {
+        implements HealthCheck {
 
     /**
      * The health check name.
@@ -277,35 +268,30 @@ public class ApplicationHealth
     public static final String NAME = "Demo";
 
     @Override
-    public String getName()
-        {
+    public String getName() {
         return NAME;
-        }
+    }
 
     @Override
-    public boolean isReady()
-        {
+    public boolean isReady() {
         return true;
-        }
+    }
 
     @Override
-    public boolean isLive()
-        {
+    public boolean isLive() {
         return true;
-        }
+    }
 
     @Override
-    public boolean isStarted()
-        {
+    public boolean isStarted() {
         return true;
-        }
+    }
 
     @Override
-    public boolean isSafe()
-        {
+    public boolean isSafe() {
         return true;
-        }
-    }</markup>
+    }
+}</markup>
 
 <p>The health check can be registered in application code using the <code>Registry.register(HealthCheck hc)</code> method.</p>
 
@@ -313,7 +299,7 @@ public class ApplicationHealth
 lang="java"
 
 >        Coherence coherence = Coherence.getInstance();
-        Registry registry = coherence.getManagement();
+        Registry  registry  = coherence.getManagement();
 
         ApplicationHealth healthCheck = new ApplicationHealth();
 

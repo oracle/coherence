@@ -140,13 +140,13 @@ lang="bash"
 <h2 id="_a_brief_history">A Brief History</h2>
 <div class="section">
 <p>A Coherence application is either a cluster member, or it is a client. Historically a client would be a Coherence*Extend client, but more recently Coherence has also introduced a gRPC client.
-Prior to CE v20.12, applications typically used Coherence in a couple of ways; either cluster members that started by running <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/DefaultCacheServer.html">DefaultCacheServer</a>, or by running a custom main class and obtaining Coherence resources directly from a <code>Session</code> or <code>ConfigurableCacheFactory</code> instance - possibly using static methods on <code>com.tangosol.net.CacheFactory</code>. By far the majority of applications only had a single <code>ConfigurableCacheFactory</code> instance, but occasionally an application would add more (for example an Extend client connecting to multiple cluster). Adding of additional <code>ConfigurableCacheFactory</code> required custom start-up code and management code. In an effort to make it possible to build more modular applications with multiple <code>ConfigurableCacheFactory</code> or <code>Session</code> instances a new bootstrap API was added.</p>
+Prior to CE v20.12, applications typically used Coherence in a couple of ways; either cluster members that started by running <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/DefaultCacheServer.html">DefaultCacheServer</a>, or by running a custom main class and obtaining Coherence resources directly from a <code>Session</code> or <code>ConfigurableCacheFactory</code> instance - possibly using static methods on <code>com.tangosol.net.CacheFactory</code>. By far the majority of applications only had a single <code>ConfigurableCacheFactory</code> instance, but occasionally an application would add more (for example an Extend client connecting to multiple cluster). Adding of additional <code>ConfigurableCacheFactory</code> required custom start-up code and management code. In an effort to make it possible to build more modular applications with multiple <code>ConfigurableCacheFactory</code> or <code>Session</code> instances a new bootstrap API was added.</p>
 
 </div>
 
 <h2 id="starting">Starting Coherence</h2>
 <div class="section">
-<p>The <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/Coherence.html">Coherence</a> class is the main entry point into a Coherence application.
+<p>The <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/Coherence.html">Coherence</a> class is the main entry point into a Coherence application.
 A Coherence server can be started by simply running the <code>Coherence.main()</code> method.
 From Coherence CE v22.06, this is the default way that Coherence starts using <code>java -jar coherence.jar</code>.</p>
 
@@ -192,7 +192,7 @@ lang="bash"
 <h2 id="coherence-instance">Using a Coherence Instance</h2>
 <div class="section">
 <p>Once a <code>Coherence</code> instance has been started, using either the <code>Coherence.main()</code> method, or one of the other ways described below,
-application code can obtain the running Coherence instance and obtain a Coherence <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/Session.html">Session</a>
+application code can obtain the running Coherence instance and obtain a Coherence <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/Session.html">Session</a>
 which can then be used to access Coherence resources such as <code>NamedMap</code>, <code>NamedCache</code>, <code>NamedTopic</code> etc.</p>
 
 <p>More than one Coherence instance can be running simultaneously (but in the case of a cluster member, all these instances will be a
@@ -226,8 +226,8 @@ the Coherence instance has finished starting.</p>
 lang="java"
 
 >        Coherence coherence = Coherence.getInstance()
-                .whenStarted()
-                .get(5, TimeUnit.MINUTES);</markup>
+                                       .whenStarted()
+                                       .get(5, TimeUnit.MINUTES);</markup>
 
 </div>
 
@@ -243,9 +243,9 @@ This method would be used if Coherence has been started using the default <code>
 <markup
 lang="java"
 
->        Coherence coherence = Coherence.getInstance();
-        Session session = coherence.getSession();
-        NamedMap&lt;String, String&gt; map = session.getMap("test");</markup>
+>        Coherence                coherence = Coherence.getInstance();
+        Session                  session   = coherence.getSession();
+        NamedMap&lt;String, String&gt; map       = session.getMap("test");</markup>
 
 <p>A <code>Session</code> can also be obtained using its name.
 The example below obtains the <code>Session</code> named "foo".</p>
@@ -253,9 +253,9 @@ The example below obtains the <code>Session</code> named "foo".</p>
 <markup
 lang="java"
 
->        Coherence coherence = Coherence.getInstance();
-        Session session = coherence.getSession("foo");
-        NamedMap&lt;String, String&gt; map = session.getMap("test");</markup>
+>        Coherence                coherence = Coherence.getInstance();
+        Session                  session   = coherence.getSession("foo");
+        NamedMap&lt;String, String&gt; map       = session.getMap("test");</markup>
 
 <p>It is also possible to use the static <code>Coherence.findSession()</code> method to find a <code>Session</code> by name across all
 configured Coherence instances. This method returns an optional containing the <code>Session</code> or empty if no <code>Session</code>
@@ -265,11 +265,10 @@ exists with the requested name.</p>
 lang="java"
 
 >        Optional&lt;Session&gt; optional = Coherence.findSession("foo");
-        if (optional.isPresent())
-            {
-            Session session = optional.get();
-            NamedMap&lt;String, String&gt; map = session.getMap("test");
-            }</markup>
+        if (optional.isPresent()) {
+            Session                  session = optional.get();
+            NamedMap&lt;String, String&gt; map     = session.getMap("test");
+        }</markup>
 
 </div>
 </div>
@@ -278,7 +277,7 @@ lang="java"
 <div class="section">
 <p>Sometimes an application needs to perform some initialization when it starts up.
 Before the new bootstrap API existed, this was a common reason for applications having to add a custom main class.
-The <code>Coherence</code> class has an inner interface <a id="" title="" target="_blank" href="https://coherence.community/23.09-SNAPSHOT/api/java/com/tangosol/net/Coherence.LifecycleListener.html">LifecycleListener</a> that
+The <code>Coherence</code> class has an inner interface <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java/com/tangosol/net/Coherence.LifecycleListener.html">LifecycleListener</a> that
 application code can implement to be notified of Coherence start-up and shutdown events.
 Instances of <code>LifecycleListener</code> are automatically discovered by Coherence at runtime using the Java <code>ServiceLoader</code>, which means that an
 applications can be initialised without needing a custom main class, but instead by just implementing a <code>LifecycleListener</code>.
@@ -295,24 +294,22 @@ lang="java"
 import com.tangosol.net.events.CoherenceLifecycleEvent;
 
 public class WebServerController
-        implements Coherence.LifecycleListener
-    {
+        implements Coherence.LifecycleListener {
+
+    private final HttpServer server = new HttpServer();
+
     @Override
-    public void onEvent(CoherenceLifecycleEvent event)
-        {
-        switch (event.getType())
-            {
+    public void onEvent(CoherenceLifecycleEvent event) {
+        switch (event.getType()) {
             case STARTED:
                 server.start();
                 break;
             case STOPPING:
                 server.stop();
                 break;
-            }
         }
-
-    private final HttpServer server = new HttpServer();
-    }</markup>
+    }
+}</markup>
 
 <p>The event also contains the <code>Coherence</code> instance that raised the event, so this could then be used to obtain a <code>Session</code>
 and other Coherence resources that are needed as part of the application initialisation.</p>
@@ -364,8 +361,8 @@ The example below ensures <code>Coherence</code> is started as a cluster member 
 lang="java"
 
 >        Coherence coherence = Coherence.clusterMember()
-                .start()
-                .get(5, TimeUnit.MINUTES);</markup>
+                                       .start()
+                                       .get(5, TimeUnit.MINUTES);</markup>
 
 <p>Running Coherence in this way will create a single <code>Session</code> using the default cache configuration file
 (or another file specified using the <code>-Dcoherence.cacheconfig</code> system property).
@@ -386,19 +383,19 @@ The configuration contains two <code>Session</code> configurations. The first is
 lang="java"
 
 >        SessionConfiguration sessionConfiguration = SessionConfiguration.builder()
-                .named("foo")
-                .withScopeName("Foo")
-                .withConfigUri("foo-cache-config.xml")
-                .build();
+                                                                        .named("foo")
+                                                                        .withScopeName("Foo")
+                                                                        .withConfigUri("foo-cache-config.xml")
+                                                                        .build();
 
         CoherenceConfiguration config = CoherenceConfiguration.builder()
-                .withSession(sessionConfiguration)
-                .withSession(SessionConfiguration.defaultSession())
-                .build();
+                                                              .withSession(sessionConfiguration)
+                                                              .withSession(SessionConfiguration.defaultSession())
+                                                              .build();
 
         Coherence coherence = Coherence.clusterMember(config)
-                .start()
-                .join();</markup>
+                                       .start()
+                                       .join();</markup>
 
 <p>There are various other methods on the configuration builders, for example configuring parameters to pass into the cache configuration files, configuring interceptors, etc.</p>
 
@@ -452,19 +449,19 @@ The configuration contains two <code>Session</code> configurations. The first is
 lang="java"
 
 >        SessionConfiguration sessionConfiguration = SessionConfiguration.builder()
-                .named("Foo")
-                .withScopeName("Foo")
-                .withConfigUri("foo-cache-config.xml")
-                .build();
+                                                                        .named("Foo")
+                                                                        .withScopeName("Foo")
+                                                                        .withConfigUri("foo-cache-config.xml")
+                                                                        .build();
 
         CoherenceConfiguration config = CoherenceConfiguration.builder()
-                .withSession(sessionConfiguration)
-                .withSession(SessionConfiguration.defaultSession())
-                .build();
+                                                              .withSession(sessionConfiguration)
+                                                              .withSession(SessionConfiguration.defaultSession())
+                                                              .build();
 
         Coherence coherence = Coherence.client(config)
-                .start()
-                .join();</markup>
+                                       .start()
+                                       .join();</markup>
 
 <p>Using Coherence Extend and application can configure in this way, with multiple <code>Session</code> instances,
 where each session will connect as an Extend client to a different Coherence cluster.

@@ -272,16 +272,40 @@ lang="xml"
     &lt;identity-manager&gt;
       &lt;key-store&gt;  <span class="conum" data-value="1" />
         &lt;url system-property="test.server.keystore"&gt;file:server.jks&lt;/url&gt;
-        &lt;password system-property="test.server.keystore.password"&gt;password&lt;/password&gt;
+        &lt;password-provider&gt;  <span class="conum" data-value="2" />
+          &lt;class-name&gt;com.oracle.coherence.guides.ssl.CustomPasswordProvider&lt;/class-name&gt;
+          &lt;init-params&gt;
+            &lt;init-param&gt;
+              &lt;param-name&gt;type&lt;/param-name&gt;
+              &lt;param-value&gt;identity-keystore&lt;/param-value&gt;
+            &lt;/init-param&gt;
+          &lt;/init-params&gt;
+        &lt;/password-provider&gt;
       &lt;/key-store&gt;
-      &lt;password system-property="test.server.key.password"&gt;private&lt;/password&gt;
+      &lt;password-provider&gt;  <span class="conum" data-value="3" />
+        &lt;class-name&gt;com.oracle.coherence.guides.ssl.CustomPasswordProvider&lt;/class-name&gt;
+        &lt;init-params&gt;
+          &lt;init-param&gt;
+            &lt;param-name&gt;type&lt;/param-name&gt;
+            &lt;param-value&gt;identity-key&lt;/param-value&gt;
+          &lt;/init-param&gt;
+        &lt;/init-params&gt;
+      &lt;/password-provider&gt;
     &lt;/identity-manager&gt;
 
     &lt;trust-manager&gt;
       &lt;algorithm&gt;SunX509&lt;/algorithm&gt;
-      &lt;key-store&gt;  <span class="conum" data-value="2" />
+      &lt;key-store&gt;  <span class="conum" data-value="4" />
         &lt;url system-property="test.trust.keystore"&gt;file:trust.jks&lt;/url&gt;
-        &lt;password system-property="test.trust.keystore.password"&gt;password&lt;/password&gt;
+        &lt;password-provider&gt;  <span class="conum" data-value="5" />
+          &lt;class-name&gt;com.oracle.coherence.guides.ssl.CustomPasswordProvider&lt;/class-name&gt;
+          &lt;init-params&gt;
+            &lt;init-param&gt;
+              &lt;param-name&gt;type&lt;/param-name&gt;
+              &lt;param-value&gt;trust-keystore&lt;/param-value&gt;
+            &lt;/init-param&gt;
+          &lt;/init-params&gt;
+        &lt;/password-provider&gt;
       &lt;/key-store&gt;
     &lt;/trust-manager&gt;
     &lt;socket-provider&gt;tcp&lt;/socket-provider&gt;
@@ -290,7 +314,10 @@ lang="xml"
 
 <ul class="colist">
 <li data-value="1">Identity manager using Java key store</li>
-<li data-value="2">Trust manager using Java key store</li>
+<li data-value="2">Identity manager key store password using custom <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java//com/tangosol/net/PasswordProvider.html">PasswordProvider</a> implemenation</li>
+<li data-value="3">Identity private key password using custom <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java//com/tangosol/net/PasswordProvider.html">PasswordProvider</a> implementation</li>
+<li data-value="4">Trust manager using Java key store</li>
+<li data-value="5">Trust manager key store password using custom <a id="" title="" target="_blank" href="https://coherence.community/24.03-SNAPSHOT/api/java//com/tangosol/net/PasswordProvider.html">PasswordProvider</a> implementation</li>
 </ul>
 </li>
 <li>

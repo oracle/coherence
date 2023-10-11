@@ -305,5 +305,52 @@ title="Settings.gradle"
   }
 }</markup>
 
+
+<h3 id="_building_using_a_proxy_server">Building using a Proxy Server</h3>
+<div class="section">
+<p>When building the Coherence Gradle using a proxy server instead of accessing remote repositories directly, you must
+ensure that the proxy configuration is propagated all the way down to the Gradle integration tests as they use the
+<a id="" title="" target="_blank" href="https://docs.gradle.org/current/userguide/test_kit.html#sec:functional_testing_with_the_gradle_runner">GradleRunner</a>
+(Gradle TestKit).</p>
+
+
+<h4 id="_using_gradle_directly">Using Gradle directly</h4>
+<div class="section">
+<p>The easiest way to provide the proxy settings (when building the Coherence Gradle plugin by invoking Gradle directly), is
+to add the proxy settings to the <code>gradle.properties</code> file:</p>
+
+<markup
+lang="properties"
+
+>systemProp.http.proxyHost=www-proxy-hqdc.us.oracle.com
+systemProp.http.proxyPort=80
+systemProp.https.proxyHost=www-proxy-hqdc.us.oracle.com
+systemProp.https.proxyPort=80
+systemProp.https.nonProxyHosts=localhost|127.0.0.1</markup>
+
+</div>
+
+<h4 id="_building_the_project_using_maven">Building the Project using Maven</h4>
+<div class="section">
+<p>When building the entire Coherence project using Maven, we configure the relevant proxy properties
+in <code>tools/maven/settings.xml</code>.</p>
+
+<markup
+lang="xml"
+
+>  &lt;properties&gt;
+    &lt;gradle.https.proxyHost&gt;www-proxy-hqdc.us.oracle.com&lt;/gradle.https.proxyHost&gt;
+    &lt;gradle.https.proxyPort&gt;80&lt;/gradle.https.proxyPort&gt;
+  &lt;/properties&gt;</markup>
+
+<p>In the <code>pom.xml</code> of the Coherence Gradle plugin module, the proxy properties are then populated using the <code>gradleProxy</code>
+Maven profile which is activated as soon as the property <code>gradle.https.proxyHost</code> is present.</p>
+
+<div class="admonition note">
+<p class="admonition-inline">The Gradle integration tests are activated once the Maven profile <code>stage1</code> is explicitly activated, and the build
+is executed with the Maven phase <code>verify</code> being triggered.</p>
+</div>
+</div>
+</div>
 </div>
 </doc-view>
