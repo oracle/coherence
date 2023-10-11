@@ -194,4 +194,18 @@ public interface PagedTopicService
      *         subscribed to a subscriber group for a topic
      */
     Set<SubscriberId> getSubscribers(String sTopicName, SubscriberGroupId groupId);
+
+    /**
+     * Add a listener that will be notified when changes are made to topic subscriptions.
+     *
+     * @param listener  the listener to add
+     */
+    void addSubscriptionListener(PagedTopicSubscription.Listener listener);
+
+    /**
+     * Remove a listener that was being notified when changes are made to topic subscriptions.
+     *
+     * @param listener  the listener to remove
+     */
+    void removeSubscriptionListener(PagedTopicSubscription.Listener listener);
     }

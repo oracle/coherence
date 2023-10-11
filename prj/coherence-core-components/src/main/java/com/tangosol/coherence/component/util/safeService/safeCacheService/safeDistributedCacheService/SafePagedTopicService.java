@@ -15,6 +15,8 @@ import com.tangosol.coherence.component.util.SafeNamedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.TopicService;
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.topic.NamedTopic;
@@ -770,5 +772,17 @@ public class SafePagedTopicService
             {
             __m_TopicService = serviceTopic;
             }
+        }
+
+    @Override
+    public void addSubscriptionListener(PagedTopicSubscription.Listener listener)
+        {
+        ((PagedTopicService) getRunningTopicService()).addSubscriptionListener(listener);
+        }
+
+    @Override
+    public void removeSubscriptionListener(PagedTopicSubscription.Listener listener)
+        {
+        ((PagedTopicService) getRunningTopicService()).removeSubscriptionListener(listener);
         }
     }

@@ -156,7 +156,11 @@ public class TopicSubscribeCleanupTests
                 System.err.println("Waiting for only one subscriber");
                 Eventually.assertDeferred(() -> caches.Subscribers.size(), is(1));
                 System.err.println("Waiting for subscriber to have all channels");
+                System.err.println("----------------");
+                System.err.println(subscriberOne);
+                System.err.println("----------------");
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(cChannel));
+                System.err.println("Done!!!");
                 }
             }
         }

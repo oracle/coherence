@@ -216,9 +216,7 @@ public class PagedTopicSubscriber<V>
 
         int cChannel = m_caches.getChannelCount();
 
-        f_setPolledChannels = new BitSet(cChannel);
-        f_setHitChannels    = new BitSet(cChannel);
-        m_aChannel          = initializeChannels(m_caches, cChannel, f_subscriberGroupId);
+        m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId);
 
         WithIdentifyingName withIdentifyingName = optionsMap.get(WithIdentifyingName.class);
         f_sIdentifyingName = withIdentifyingName == null ? null : withIdentifyingName.getName();
@@ -713,10 +711,11 @@ public class PagedTopicSubscriber<V>
         m_cWaitsLast          = cWaitNow;
         m_cNotifyLast         = cNotifyNow;
 
-        int    cChannelsPolled = f_setPolledChannels.cardinality();
-        String sChannelsPolled = Arrays.toString(f_setPolledChannels.stream().toArray());
-        int    cChannelsHit    = f_setHitChannels.cardinality();
-        String sChannelsHit    = Arrays.toString(f_setHitChannels.stream().toArray());
+        PagedTopicChannel[] aChannel = m_aChannel;
+        long   cChannelsPolled = Arrays.stream(aChannel).filter(PagedTopicChannel::isPolled).count();
+        String sChannelsPolled = Arrays.toString(Arrays.stream(aChannel).filter(PagedTopicChannel::isPolled).mapToInt(PagedTopicChannel::getId).toArray());
+        long   cChannelsHit    = Arrays.stream(aChannel).filter(PagedTopicChannel::isHit).count();
+        String sChannelsHit    = Arrays.toString(Arrays.stream(aChannel).filter(PagedTopicChannel::isHit).mapToInt(PagedTopicChannel::getId).toArray());
 
         String sState = getStateName();
         String sName  = f_sIdentifyingName == null ? "" : ", name=" + f_sIdentifyingName;
@@ -2313,20 +2312,22 @@ public class PagedTopicSubscriber<V>
             if (!Arrays.equals(m_aChannelOwned, aChannel))
                 {
                 Set<Integer> setRevoked = new HashSet<>();
+                Set<Integer> setAdded   = new HashSet<>(setChannel);
                 if (m_aChannelOwned != null && m_aChannelOwned.length > 0)
                     {
                     for (int nChannel : m_aChannelOwned)
                         {
                         setRevoked.add(nChannel);
+                        setAdded.remove(nChannel);
                         }
                     setChannel.forEach(setRevoked::remove);
                     }
                 setRevoked = Collections.unmodifiableSet(setRevoked);
 
-                Set<Integer> setAdded = Collections.unmodifiableSet(new HashSet<>(setChannel));
+                Set<Integer> setAssigned = Collections.unmodifiableSet(new HashSet<>(setChannel));
 
-                Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s revoked=%s",
-                                            f_id.getId(), f_sIdentifyingName, setAdded, setRevoked));
+                Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s added=%s revoked=%s",
+                                            f_id.getId(), f_sIdentifyingName, setAssigned, setAdded, setRevoked));
 
                 m_aChannelOwned = aChannel;
 
@@ -2360,6 +2361,18 @@ public class PagedTopicSubscriber<V>
                         channel.setOwned();
                         channel.setPopulated();
                         }
+                    for (int c : setAdded)
+                        {
+                        PagedTopicChannel channel = m_aChannel[c];
+                        channel.clearPolled();
+                        channel.clearHit();
+                        }
+                    for (int c : setRevoked)
+                        {
+                        PagedTopicChannel channel = m_aChannel[c];
+                        channel.clearPolled();
+                        channel.clearHit();
+                        }
                     }
 
                 // if the pre-fetch queue contains the empty marker, we need to remove it
@@ -2389,11 +2402,11 @@ public class PagedTopicSubscriber<V>
                             Logger.err(t);
                             }
                         }
-                    if (!setAdded.isEmpty())
+                    if (!setAssigned.isEmpty())
                         {
                         try
                             {
-                            listener.onChannelsAssigned(setAdded);
+                            listener.onChannelsAssigned(setAssigned);
                             }
                         catch (Throwable t)
                             {
@@ -2403,8 +2416,6 @@ public class PagedTopicSubscriber<V>
                     }
 
                 onChannelPopulatedNotification(m_aChannelOwned);
-                f_setPolledChannels.clear();
-                f_setHitChannels.clear();
                 }
             }
         }
@@ -2546,7 +2557,7 @@ public class PagedTopicSubscriber<V>
             int           cRemaining  = result.getRemainingElementCount();
             int           nNext       = result.getNextIndex();
 
-            f_setPolledChannels.set(nChannel);
+            channel.setPolled();
             ++m_cPolls;
 
             if (cReceived == 0)
@@ -2555,7 +2566,7 @@ public class PagedTopicSubscriber<V>
                 }
             else if (!queueValues.isEmpty())
                 {
-                f_setHitChannels.set(nChannel);
+                channel.setHit();
                 m_cValues += cReceived;
                 channel.adjustPolls(cReceived);
 
@@ -2841,7 +2852,6 @@ public class PagedTopicSubscriber<V>
             int                    cParts       = service.getPartitionCount();
             List<Subscription.Key> listSubParts = new ArrayList<>(cParts);
 
-
             for (int i = 0; i < cParts; ++i)
                 {
                 // Note: we unsubscribe against channel 0 in each partition, and it will in turn update all channels
@@ -2903,11 +2913,12 @@ public class PagedTopicSubscriber<V>
         {
         try
             {
-            ChannelListener listenerChannel = m_listenerChannelAllocation;
+            ChannelListener listener = m_listenerChannelAllocation;
 
-            if (listenerChannel != null)
+            if (listener != null)
                 {
-                m_caches.Subscriptions.addMapListener(listenerChannel, m_aChannel[0].subscriberPartitionSync, false);
+                m_caches.f_topicService.addSubscriptionListener(listener);
+                m_caches.Subscriptions.addMapListener(listener, m_aChannel[0].subscriberPartitionSync, false);
                 }
             }
         catch (RuntimeException e)
@@ -2927,6 +2938,7 @@ public class PagedTopicSubscriber<V>
 
             if (listener != null)
                 {
+                m_caches.f_topicService.removeSubscriptionListener(listener);
                 m_caches.Subscriptions.removeMapListener(listener, m_aChannel[0].subscriberPartitionSync);
                 }
             }
@@ -3547,6 +3559,54 @@ public class PagedTopicSubscriber<V>
             }
 
         /**
+         * Set the flag indicating this channel has been polled since ownership was last assigned.
+         */
+        public void setPolled()
+            {
+            m_fPolled = true;
+            }
+
+        /**
+         * Clear the flag indicating this channel has been polled since ownership was last assigned.
+         */
+        public void clearPolled()
+            {
+            m_fPolled = false;
+            }
+
+        /**
+         * @return the flag indicating this channel has been polled since ownership was last assigned.
+         */
+        public boolean isPolled()
+            {
+            return m_fPolled;
+            }
+
+        /**
+         * Set the flag indicating a message has been received from this channel since ownership was last assigned.
+         */
+        public void setHit()
+            {
+            m_fHit = true;
+            }
+
+        /**
+         * Clear the flag indicating a message has been received from this channel since ownership was last assigned.
+         */
+        public void clearHit()
+            {
+            m_fHit = false;
+            }
+
+        /**
+         * @return the flag indicating a message has been received from this channel since ownership was last assigned
+         */
+        public boolean isHit()
+            {
+            return m_fHit;
+            }
+
+        /**
          * Return the {@link Subscription.Key} to use to execute cluster wide subscription operations
          * for this channel.
          *
@@ -3695,6 +3755,16 @@ public class PagedTopicSubscriber<V>
          * The counter of completed receives for the channel.
          */
         Meter m_cReceived = new Meter();
+
+        /**
+         * A flag indicating this channel has been polled since ownership was last assigned.
+         */
+        boolean m_fPolled;
+
+        /**
+         * A flag indicating a message has been received from this channel since ownership was last assigned.
+         */
+        boolean m_fHit;
         }
 
     // ----- inner class: FlushMode ----------------------------------------
@@ -4114,10 +4184,31 @@ public class PagedTopicSubscriber<V>
      */
     protected class ChannelListener
             extends MultiplexingMapListener<Subscription.Key, Subscription>
+            implements PagedTopicSubscription.Listener
         {
         public ChannelListener()
             {
             m_latch = new CountDownLatch(1);
+            }
+
+        // ----- PagedTopicSubscription.Listener methods --------------------
+
+        @Override
+        public void onUpdate(PagedTopicSubscription subscription)
+            {
+            if (Objects.equals(getSubscriberGroupId(), subscription.getSubscriberGroupId()))
+                {
+                f_daemonChannels.executeTask(() -> onChannelAllocation(subscription));
+                }
+            }
+
+        @Override
+        public void onDelete(PagedTopicSubscription subscription)
+            {
+            if (Objects.equals(getSubscriberGroupId(), subscription.getSubscriberGroupId()))
+                {
+                f_daemonChannels.executeTask(() -> updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true));
+                }
             }
 
         // ----- MultiplexingMapListener methods ----------------------------
@@ -4178,36 +4269,52 @@ public class PagedTopicSubscriber<V>
                 }
 
             PagedTopicSubscription pagedTopicSubscription = m_caches.getService().getSubscription(m_subscriptionId);
-            SortedSet<Integer>     setChannel             = null;
-
             if (pagedTopicSubscription != null)
                 {
                 // we have a PagedTopicSubscription so get the channels from it rather than the
                 // subscription as these allocations come from the senior and will be consistent
-                if (pagedTopicSubscription.hasSubscriber(f_id))
-                    {
-                    setChannel = pagedTopicSubscription.getOwnedChannels(f_id);
-                    }
+                // we will get events when the subscription is updated
+                return;
+                }
+
+            SortedSet<Integer> setChannel = null;
+
+            if (evt.isDelete())
+                {
+                setChannel = PagedTopicSubscription.NO_CHANNELS;
                 }
             else
                 {
-                if (evt.isDelete())
+                Subscription subscription = evt.getNewValue();
+                if (subscription.hasSubscriber(f_id))
                     {
-                    setChannel = PagedTopicSubscription.NO_CHANNELS;
-                    }
-                else
-                    {
-                    Subscription subscription = evt.getNewValue();
-                    if (subscription.hasSubscriber(f_id))
-                        {
-                        int cChannel = m_caches.getChannelCount();
-                        setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel))
-                                .boxed()
-                                .collect(Collectors.toCollection(TreeSet::new));
-                        }
+                    int cChannel = m_caches.getChannelCount();
+                    setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel))
+                            .boxed()
+                            .collect(Collectors.toCollection(TreeSet::new));
                     }
                 }
 
+            onChannelAllocation(setChannel);
+            }
+
+        private void onChannelAllocation(PagedTopicSubscription subscription)
+            {
+            if (!isActive())
+                {
+                return;
+                }
+
+            SortedSet<Integer> setChannel = null;
+            if (subscription.hasSubscriber(f_id))
+                {
+                setChannel = subscription.getOwnedChannels(f_id);
+                }
+            onChannelAllocation(setChannel);
+            }
+
+        private void onChannelAllocation(SortedSet<Integer> setChannel)
+            {
             if (setChannel != null && setChannel.isEmpty())
                 {
                 updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
@@ -4668,16 +4775,6 @@ public class PagedTopicSubscriber<V>
      * The last value of m_cNotify used within {@link #toString} stats.
      */
     protected long m_cNotifyLast;
-
-    /**
-     * BitSet of polled channels since last toString call.
-     */
-    protected final BitSet f_setPolledChannels;
-
-    /**
-     * BitSet of channels which hit since last toString call.
-     */
-    protected final BitSet f_setHitChannels;
 
     /**
      * The deactivation listener.

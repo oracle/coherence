@@ -28,17 +28,19 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-import com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
+import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.ServiceDependencies;
-import com.tangosol.net.TopicService;
 import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.internal.ScopedTopicReferenceStore;
 import com.tangosol.net.management.MBeanHelper;
@@ -51,23 +53,24 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ListMap;
-import com.tangosol.util.LiteSet;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 /**
  * See PartitionedCacheService.doc in the main depot
@@ -184,6 +187,12 @@ public class PagedTopic
      *
      */
     private java.util.concurrent.locks.ReentrantLock __m_TopicStoreLock;
+
+    /**
+     * The list of subscription listeners.
+     */
+    private final Set<PagedTopicSubscription.Listener> __m_subscriptionListener = new HashSet<>();
+
     private static com.tangosol.util.ListMap __mapChildren;
 
     /**
@@ -412,7 +421,7 @@ public class PagedTopic
             setPartitionListeners(new com.tangosol.util.Listeners());
             setPendingIndexUpdate(new java.util.concurrent.ConcurrentLinkedQueue());
             setProcessedEvents(new com.tangosol.util.SparseArray());
-            setReferencesBinaryMap(new com.tangosol.util.SafeHashMap());
+            setReferencesBinaryMap(new ConcurrentHashMap());
             setResourceRegistry(new com.tangosol.util.SimpleResourceRegistry());
             setScopedCacheStore(new com.tangosol.net.internal.ScopedCacheReferenceStore());
             setScopedTopicStore(new com.tangosol.net.internal.ScopedTopicReferenceStore());
@@ -639,7 +648,7 @@ public class PagedTopic
                 msg.addToMember(getServiceOldestMember());
                 msg.setSubscriptionId(lSubscriptionId);
                 msg.setSubscriberAction(PagedTopic.SubscriberIdRequest.SUBSCRIBER_DESTROY);
-        
+
                 if (subscriberId == null)
                     {
                     msg.setSubscriberIds(new SubscriberId[0]);
@@ -685,7 +694,18 @@ public class PagedTopic
                     aSubscription.remove(lSubscriptionId);
                     return true;
                     }
-                
+
+                for (PagedTopicSubscription.Listener listener : __m_subscriptionListener)
+                    {
+                    try
+                        {
+                        listener.onDelete(subscription);
+                        }
+                    catch (Throwable e)
+                        {
+                        Logger.err(e);
+                        }
+                    }
                 }
             finally
                 {
@@ -864,7 +884,37 @@ public class PagedTopic
                 }
             }
         }
-    
+
+    @Override
+    public void addSubscriptionListener(PagedTopicSubscription.Listener listener)
+        {
+        ReentrantLock lock = getSubscriptionLock();
+        lock.lock();
+        try
+            {
+            __m_subscriptionListener.add(listener);
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
+    @Override
+    public void removeSubscriptionListener(PagedTopicSubscription.Listener listener)
+        {
+        ReentrantLock lock = getSubscriptionLock();
+        lock.lock();
+        try
+            {
+            __m_subscriptionListener.remove(listener);
+            }
+        finally
+            {
+            lock.unlock();
+            }
+        }
+
     public long ensureSubscription(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription subscription)
         {
         // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
@@ -876,8 +926,8 @@ public class PagedTopic
         long lSubscriptionId = subscription.getSubscriptionId();
         _assert(lSubscriptionId != 0);
         
-        PagedTopic   service       = (PagedTopic) get_Module();
-        LongArray aSubscription = getSubscriptionArray();
+        PagedTopic service       = (PagedTopic) get_Module();
+        LongArray  aSubscription = getSubscriptionArray();
         
         ReentrantLock lock = getSubscriptionLock();
         lock.lock();
@@ -898,6 +948,18 @@ public class PagedTopic
             else
                 {
                 subCurrent.update(subscription);
+                }
+
+            for (PagedTopicSubscription.Listener listener : __m_subscriptionListener)
+                {
+                try
+                    {
+                    listener.onUpdate(subCurrent);
+                    }
+                catch (Throwable e)
+                    {
+                    Logger.err(e);
+                    }
                 }
             }
         finally
@@ -1631,12 +1693,41 @@ public class PagedTopic
 
         if (memberThis == memberCoordinator)
             {
-            getDaemonPool().add(() ->
+            Daemons.commonPool().add(() ->
                 {
                 try
                     {
-                    CleanupSubscribers processor = new CleanupSubscribers();
-                    processor.execute(this);
+                    Set<UUID>        setUuid  = new HashSet<>();
+                    ServiceMemberSet memberSet = getServiceMemberSet();
+                    for (int nId : memberSet.toIdArray())
+                        {
+                        Member member = memberSet.getMember(nId);
+                        if (member != null)
+                            {
+                            setUuid.add(member.getUuid());
+                            }
+                        }
+                    Map configMap = getTopicConfigMap();
+                    Map<String, Map<PagedTopicConfigMap.SubscriptionAndGroup, Set<SubscriberId>>> mapDeparted
+                            = PagedTopicConfigMap.getDepartedSubscriptions(configMap, setUuid);
+
+                    if (!mapDeparted.isEmpty())
+                        {
+                        for (Map.Entry<String, Map<PagedTopicConfigMap.SubscriptionAndGroup, Set<SubscriberId>>> entry : mapDeparted.entrySet())
+                            {
+                            String sTopicName = entry.getKey();
+                            for (Map.Entry<PagedTopicConfigMap.SubscriptionAndGroup, Set<SubscriberId>> entrySub : entry.getValue().entrySet())
+                                {
+                                PagedTopicConfigMap.SubscriptionAndGroup sg              = entrySub.getKey();
+                                long                                     lSubscriptionId = sg.getSubscriptionId();
+                                SubscriberGroupId                        groupId         = sg.getSubscriberGroupId();
+                                for (SubscriberId id : entrySub.getValue())
+                                    {
+                                    notifySubscriberClosed(sTopicName, groupId, lSubscriptionId, id);
+                                    }
+                                }
+                            }
+                        }
                     }
                 catch (Throwable t)
                     {
@@ -1645,6 +1736,82 @@ public class PagedTopic
                 });
             }
         }
+
+    /**
+     * Called to notify the topic that a subscriber has closed or timed-out.
+     *
+     * @param sTopicName         the topic name
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param subscriberId       the subscriber identifier
+     * @param lSubscriptionId    the unique identifier of the subscription
+     */
+    void notifySubscriberClosed(String sTopicName, SubscriberGroupId subscriberGroupId, long lSubscriptionId, SubscriberId subscriberId)
+        {
+        String               sCacheName    = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
+        long                 lCacheId      = getCacheId(sTopicName, PagedTopicCaches.Names.SUBSCRIPTIONS);
+        Map                  mapRefsBinary = getReferencesBinaryMap();
+        PagedTopic.BinaryMap mapBinary     = (PagedTopic.BinaryMap) mapRefsBinary.get(sCacheName);
+
+        if (mapBinary == null)
+            {
+            mapBinary = (PagedTopic.BinaryMap) ensureBinaryMap(sCacheName, lCacheId);
+            }
+        
+        if (mapBinary == null || !mapBinary.isActive())
+            {
+            return;
+            }
+
+        if (lSubscriptionId == 0)
+            {
+            lSubscriptionId = getSubscriptionId(sTopicName, subscriberGroupId);
+            }
+
+        PagedTopicSubscription subscription = getSubscription(lSubscriptionId);
+        if (subscription != null && subscription.hasSubscriber(subscriberId))
+            {
+            destroySubscription(lSubscriptionId, subscriberId);
+            }
+
+        try
+            {
+            int                    cParts       = getPartitionCount();
+            List<Subscription.Key> listSubParts = new ArrayList<>(cParts);
+
+            for (int i = 0; i < cParts; ++i)
+                {
+                // Note: we unsubscribe against channel 0 in each partition, and it will in turn update all channels
+                listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
+                }
+
+            if (mapBinary.isActive())
+                {
+                try
+                    {
+                    mapBinary.invokeAll(listSubParts, new CloseSubscriptionProcessor(subscriberId));
+                    }
+                catch (Exception e)
+                    {
+                    // ignored -
+                    }
+                }
+            }
+        catch (Throwable t)
+            {
+            // this could have been caused by the cache becoming inactive during clean-up, if so ignore the error
+            if (mapBinary.isActive())
+                {
+                // cache is still active, so log the error
+                String sId = SubscriberId.NullSubscriber.equals(subscriberId)
+                        ? "<ALL>"
+                        : PagedTopicSubscriber.idToString(subscriberId.getId());
+
+                Logger.fine("Caught exception closing subscription for subscriber "
+                    + sId + " in group " + subscriberGroupId.getGroupName(), t);
+                }
+            }
+        }
+
 
     // Declared at the super level
     /**

@@ -10,8 +10,12 @@ import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
+import com.tangosol.util.UUID;
+
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.stream.Collectors;
@@ -200,4 +204,74 @@ public abstract class PagedTopicConfigMap
                 .collect(Collectors.toSet());
         setKeys.forEach(configMap::remove);
         }
+
+    public static Map<String, Map<SubscriptionAndGroup, Set<SubscriberId>>> getDepartedSubscriptions(Map<?, ?> configMap, Set<UUID> setMember)
+        {
+        Map<String, Map<SubscriptionAndGroup, Set<SubscriberId>>> mapDeparted = new HashMap<>();
+        for (Map.Entry<?, ?> entry : configMap.entrySet())
+            {
+            Object oKey = entry.getKey();
+            if (oKey instanceof PagedTopicSubscription.Key)
+                {
+                PagedTopicSubscription subscription = (PagedTopicSubscription) entry.getValue();
+                Set<SubscriberId>      setDeparted  = subscription.getDepartedSubscribers(setMember);
+                if (!setDeparted.isEmpty())
+                    {
+                    String                                       sTopicName = subscription.getKey().getTopicName();
+                    Map<SubscriptionAndGroup, Set<SubscriberId>> map        = mapDeparted.get(sTopicName);
+                    if (map == null)
+                        {
+                        map = new HashMap<>();
+                        }
+                    SubscriptionAndGroup sg = new SubscriptionAndGroup(subscription.getSubscriptionId(), subscription.getSubscriberGroupId());
+                    map.put(sg, setDeparted);
+                    mapDeparted.put(sTopicName, map);
+                    }
+                }
+            }
+        return mapDeparted;
+        }
+
+    // ----- inner class SubscriptionInfo -----------------------------------
+
+    public static class SubscriptionAndGroup
+        {
+        public SubscriptionAndGroup(long lSubscription, SubscriberGroupId groupId)
+            {
+            f_lSubscription = lSubscription;
+            f_groupId       = groupId;
+            }
+
+        public long getSubscriptionId()
+            {
+            return f_lSubscription;
+            }
+
+        public SubscriberGroupId getSubscriberGroupId()
+            {
+            return f_groupId;
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SubscriptionAndGroup that = (SubscriptionAndGroup) o;
+            return f_lSubscription == that.f_lSubscription && Objects.equals(f_groupId, that.f_groupId);
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(f_lSubscription, f_groupId);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private final long f_lSubscription;
+
+        private final SubscriberGroupId f_groupId;
+        }
+
     }

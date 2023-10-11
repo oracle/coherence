@@ -72,7 +72,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.fail;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "resource"})
 public class TopicSubscriberManagementTests
     {
     @BeforeClass
@@ -169,7 +169,7 @@ public class TopicSubscriberManagementTests
         OwnershipListener  listenerThree = new OwnershipListener("three");
 
         System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
-        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
+        try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service,false);
              PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
              PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
              PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
@@ -211,6 +211,7 @@ public class TopicSubscriberManagementTests
             CompletableFuture<Set<Integer>> futureLostThree = listenerThree.awaitLost();
 
             // disconnect subscriberOne *only* using its key
+            System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - Disconnecting subscriber " + subscriberOne.getSubscriberId());
             caches.disconnectSubscriber(subscriberOne.getSubscriberGroupId(), subscriberOne.getSubscriberId());
 
             Eventually.assertDeferred(futureLostOne::isDone, is(true));
@@ -219,8 +220,8 @@ public class TopicSubscriberManagementTests
 
             // all channels should eventually be allocated to subscriberTwo
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
+            Eventually.assertDeferred(() -> caches.getChannelAllocations(sGroupOne).size(), is(1));
             Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-            assertThat(mapAllocation.size(), is(1));
             assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
 
             // receive futures should still be waiting
@@ -306,8 +307,8 @@ public class TopicSubscriberManagementTests
 
             // all channels should eventually be allocated to subscriberTwo
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(topic.getChannelCount()));
+            Eventually.assertDeferred(() -> caches.getChannelAllocations(sGroupOne).size(), is(1));
             Map<Long, Set<Integer>> mapAllocation = caches.getChannelAllocations(sGroupOne);
-            assertThat(mapAllocation.size(), is(1));
             assertThat(mapAllocation.get(subscriberTwo.getId()), is(subscriberTwo.getChannelSet()));
 
             // receive futures should still be waiting
