@@ -104,7 +104,8 @@
 
     <!-- Coherence container/image properties -->
     <docker.registry>docker.io/oraclecoherence</docker.registry>
-    <docker.image.name>${docker.registry}/coherence-ce:${project.version}</docker.image.name>
+    <docker.image.suffix/>
+    <docker.image.name>${docker.registry}/coherence-ce:${project.version}${docker.image.suffix}</docker.image.name>
     <docker.image.arch>amd64</docker.image.arch>
     <!--
     The base image for the Coherence image - ideally a distroless OpenJDK image.
@@ -117,6 +118,7 @@
     <docker.base.image.name.arm>gcr.io/distroless/java-base-debian11</docker.base.image.name.arm>
     <graal.base.image.name.amd>container-registry.oracle.com/graalvm/enterprise:${graal.image.tag}</graal.base.image.name.amd>
     <graal.base.image.name.arm>container-registry.oracle.com/graalvm/enterprise:${graal.image.tag}</graal.base.image.name.arm>
+    <graal.image.skip>false</graal.image.skip>
     <!-- The prefix of the Java download URL (this URL does not have the arch specific part on the end, that is created by the build script) -->
     <java.ea.base.url>https://download.oracle.com/java/21/latest/jdk-21</java.ea.base.url>
     <!-- default ports configured in the image -->

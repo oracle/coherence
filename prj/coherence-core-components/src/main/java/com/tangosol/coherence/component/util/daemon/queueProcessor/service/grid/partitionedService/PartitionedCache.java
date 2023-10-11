@@ -1787,8 +1787,8 @@ public class PartitionedCache
         
         if (mapBinary == null)
             {
-            mapRefsBinary.put(sCacheName,
-                mapBinary = instantiateBinaryMap(sCacheName, lCacheId));
+            mapBinary = (BinaryMap) mapRefsBinary.computeIfAbsent(sCacheName,
+                k -> instantiateBinaryMap(sCacheName, lCacheId));
         
             getBinaryMapArray().set(lCacheId, mapBinary);
             }
