@@ -411,6 +411,31 @@ public class JsonSerializer
             }
         }
 
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Helper method to allow creating a {@link JsonObject} from a {@link String}. Useful for
+     * inserting JSON values from CohQL.
+     * <p>
+     * Example in CohQL: <code>insert into 'test' key(1) value json('{"id": 1, "name": "Tim"}')</code>
+     *
+     * @param sJson  JSON to parse
+     *
+     * @return  a new {@link JsonObject}
+     * @since 22.06.7
+     */
+    public static Object fromJson(String sJson)
+        {
+        try
+            {
+            return SERIALIZER.deserialize(sJson, Object.class);
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
     // ----- inner class: BundleProxy ---------------------------------------
 
     /**
@@ -507,6 +532,11 @@ public class JsonSerializer
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Serializer to be used by fromJson method.
+     */
+    private static final JsonSerializer SERIALIZER = new JsonSerializer();
 
     /**
      * The default name for the JSON serializer.

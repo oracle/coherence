@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,9 +40,10 @@ import com.oracle.coherence.testing.processors.HasIndexProcessor;
 import java.util.Date;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.hasItem;
-
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import static com.oracle.coherence.testing.util.CollectionUtils.asList;
@@ -234,6 +235,25 @@ public class QueryPlusTests
         CacheService cacheService = (CacheService) m_ccf.ensureService("DistributedCache");
         List<String> cacheNames   = asList(cacheService.getCacheNames());
         assertThat(cacheNames, hasItem("dist-shouldEnsureCache"));
+        }
+
+    @Test
+    public void shouldRunInsertWithJSON() throws Exception
+        {
+        List<String> out = m_queryPlusRunner.runCommand("ensure cache 'dist-json-test'");
+        assertThat(out.get(0), is(""));
+        assertThat(out.get(1), is(EMPTY_COHQL_PROMPT));
+
+        out = m_queryPlusRunner.runCommand("insert into 'dist-json-test' key 1 value new json('{\"foo\": 1}')");
+        assertThat(out.get(0), is(""));
+        assertThat(out.get(1), is(EMPTY_COHQL_PROMPT));
+        CacheService cacheService = (CacheService) m_ccf.ensureService("DistributedCache");
+        List<String> cacheNames   = asList(cacheService.getCacheNames());
+        assertThat(cacheNames, hasItem("dist-json-test"));
+        NamedCache   cache        = m_ccf.ensureCache("dist-json-test", null);
+        Object oValue = cache.get(1);
+        assertThat(oValue,  notNullValue());
+        assertThat(oValue.toString(), equalTo("{foo=1}")); // Json Object will be returned as HashMap
         }
 
     @Test(expected = IllegalStateException.class)

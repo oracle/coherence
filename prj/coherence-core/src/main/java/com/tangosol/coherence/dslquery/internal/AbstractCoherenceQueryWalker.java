@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.dslquery.internal;
 
@@ -11,6 +11,7 @@ import com.tangosol.coherence.config.SimpleParameterList;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 
+import com.tangosol.coherence.dslquery.CohQLException;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExtractorBuilder;
 
@@ -38,6 +39,7 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -552,7 +554,26 @@ public abstract class AbstractCoherenceQueryWalker
             extractor = (ReflectionExtractor) ao[ao.length - 1];
             }
 
-        String   sMethod = extractor.getMethodName();
+        String sMethod = extractor.getMethodName();
+
+        // check if we have an alias for the static method. E.g. "json" maps to
+        // com.oracle.coherence.io.json.JsonSerializer.fromJson.
+        // allowing user to issue "insert into test key 1 value new json('{"foo": 1}')"
+        // and this converts to a call to com.oracle.coherence.io.json.JsonSerializer.fromJson
+        String sClassAndMethod = CLASS_ALIAS_MAP.get(sMethod);
+        if (sClassAndMethod != null)
+            {
+            fUseNew = false;
+            int nIdx = sClassAndMethod.lastIndexOf(".");
+            if (nIdx == -1)
+                {
+                throw new CohQLException("Invalid class alias " + sClassAndMethod);
+                }
+
+            sbPath.append(sClassAndMethod.substring(0, nIdx));
+            sMethod = sClassAndMethod.substring(nIdx + 1);
+            }
+
         Object[] aoArgs  = extractor.getParameters();
 
         try
@@ -667,6 +688,19 @@ public abstract class AbstractCoherenceQueryWalker
         {
         m_sAlias = sAlias;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * A {@link Map} of alias to class and static method to call.  The value is in the format of
+     * class-fqdn.method.
+     */
+    private static final Map<String, String> CLASS_ALIAS_MAP =
+        new HashMap<>() {
+            {
+            put("json", "com.oracle.coherence.io.json.JsonSerializer.fromJson");
+            }
+        };
 
     // ----- data members ---------------------------------------------------
 
