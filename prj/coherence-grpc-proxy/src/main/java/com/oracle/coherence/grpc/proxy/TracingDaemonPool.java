@@ -7,18 +7,16 @@
 
 package com.oracle.coherence.grpc.proxy;
 
+import com.tangosol.internal.tracing.Span;
+
+import com.tangosol.internal.tracing.TracingHelper;
+
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.internal.util.DaemonPoolDependencies;
 
 import com.tangosol.run.xml.XmlElement;
 
 import io.grpc.Context;
-
-import io.opentracing.Span;
-
-import io.opentracing.contrib.grpc.OpenTracingContextKey;
-
-import io.opentracing.util.GlobalTracer;
 
 import java.util.function.Supplier;
 
@@ -54,7 +52,7 @@ public class TracingDaemonPool
     TracingDaemonPool(DaemonPool delegate, Supplier<Span> supplier)
         {
         this.f_delegate   = delegate;
-        this.f_activeSpan = supplier == null ? () -> GlobalTracer.get().activeSpan() : supplier;
+        this.f_activeSpan = supplier == null ? TracingHelper::getActiveSpan : supplier;
         }
 
     // ----- DaemonPool interface -------------------------------------------
@@ -167,17 +165,7 @@ public class TracingDaemonPool
      */
     protected Span findSpan()
         {
-        Span span = f_activeSpan.get();
-        if (span == null)
-            {
-            // try the gRPC context
-            Context context = Context.current();
-            if (context != null)
-                {
-                span = OpenTracingContextKey.getKey().get(context);
-                }
-            }
-        return span;
+        return TracingHelper.getActiveSpan();
         }
 
     /**
@@ -236,7 +224,7 @@ public class TracingDaemonPool
         @Override
         public void run()
             {
-            GlobalTracer.get().scopeManager().activate(f_span);
+            TracingHelper.activateSpan(f_span);
             f_span.log("starting execution in daemon pool task=" + f_lHash);
             f_delegate.run();
             f_span.log("finished execution in daemon pool task=" + f_lHash);
@@ -249,6 +237,7 @@ public class TracingDaemonPool
          *
          * @return the {@link Runnable} delegate
          */
+        @SuppressWarnings("unused")
         protected Runnable getDelegate()
             {
             return f_delegate;

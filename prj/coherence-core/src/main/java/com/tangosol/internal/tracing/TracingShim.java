@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.tracing;
 
@@ -43,6 +43,17 @@ public interface TracingShim
      * @return the current {@link Tracer}
      */
     public Tracer getTracer();
+
+    /**
+     * Activate the specified {@link Span}.
+     *
+     * @param span  the {@link Span} to activate.
+     *
+     * @return the activated {@link Span}
+     *
+     * @since 24.03
+     */
+    public Span activateSpan(Span span);
 
     /**
      * Return a {@link Span} where all operations performed against it will be no-ops.
@@ -280,6 +291,12 @@ public interface TracingShim
         public Span getNoopSpan()
             {
             return Span.Noop.INSTANCE;
+            }
+
+        @Override
+        public Span activateSpan(Span span)
+            {
+            return span;
             }
 
         @Override

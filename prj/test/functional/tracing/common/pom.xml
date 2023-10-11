@@ -21,7 +21,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <module.name>com.oracle.coherence.testing.tracing</module.name>
+    <module.name>testing.tracing</module.name>
   </properties>
 
   <dependencies>
@@ -40,23 +40,6 @@
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <!-- OpenTracing Dependencies -->
-    <dependency>
-      <groupId>io.opentracing</groupId>
-      <artifactId>opentracing-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing</groupId>
-      <artifactId>opentracing-util</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-tracerresolver</artifactId>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 

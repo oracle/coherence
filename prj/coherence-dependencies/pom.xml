@@ -250,6 +250,8 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <netty.version>4.1.97.Final</netty.version>
+    <opentelemetry.version>1.29.0</opentelemetry.version>
+    <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
@@ -273,6 +275,7 @@
     <junit.version>4.13.2</junit.version>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <mockito.version>3.12.4</mockito.version>
+    <mock.server.version>5.14.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>7.0.2</oracle.bedrock.version>
     <testcontainers.version>1.18.3</testcontainers.version>
@@ -347,6 +350,30 @@
         <groupId>io.opentracing.contrib</groupId>
         <artifactId>opentracing-tracerresolver</artifactId>
         <version>${opentracing.tracerresolver.version}</version>
+      </dependency>
+
+      <!-- OpenTelemetry -->
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry.instrumentation</groupId>
+        <artifactId>opentelemetry-grpc-1.6</artifactId>
+        <version>${opentelemetry.version}-alpha</version>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-api-events</artifactId>
+        <version>${opentelemetry.version}-alpha</version>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry.proto</groupId>
+        <artifactId>opentelemetry-proto</artifactId>
+        <version>${opentelemetry.proto.version}</version>
       </dependency>
 
       <!-- Jaeger Client -->
@@ -855,6 +882,11 @@
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
       </dependency>
+	  <dependency>
+        <groupId>org.mock-server</groupId>
+        <artifactId>mockserver-netty-no-dependencies</artifactId>
+        <version>${mock.server.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
@@ -948,6 +980,7 @@
         <artifactId>error_prone_annotations</artifactId>
         <version>${google-error-prone.version}</version>
       </dependency>
+
       <dependency>
         <groupId>io.opentracing.contrib</groupId>
         <artifactId>opentracing-grpc</artifactId>

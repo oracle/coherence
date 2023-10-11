@@ -7,17 +7,23 @@
 package com.oracle.coherence.client;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
 
-import com.tangosol.config.expression.SystemPropertyParameterResolver;
+import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
 
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
+
+import com.tangosol.internal.tracing.LegacyXmlTracingHelper;
+import com.tangosol.internal.tracing.TracingHelper;
+import com.tangosol.internal.tracing.TracingShim;
 
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
 import com.tangosol.net.MemberListener;
@@ -42,9 +48,6 @@ import io.grpc.Channel;
 import io.grpc.ClientInterceptor;
 
 import io.grpc.ManagedChannel;
-import io.opentracing.Tracer;
-import io.opentracing.contrib.grpc.TracingClientInterceptor;
-import io.opentracing.util.GlobalTracer;
 
 import java.util.Optional;
 import java.util.Set;
@@ -138,6 +141,7 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         return m_sScopeName;
         }
 
+    @SuppressWarnings("unused")
     public void setScopeName(String sScopeName)
         {
         m_sScopeName = sScopeName;
@@ -391,19 +395,6 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
     protected abstract EventDispatcherRegistry getDefaultEventDispatcherRegistry();
 
     /**
-     * Return the {@link ClientInterceptor} to use for tracing.
-     *
-     * @return the {@link ClientInterceptor} to use for tracing
-     */
-    private ClientInterceptor createTracingInterceptor()
-        {
-        Tracer tracer = GlobalTracer.get();
-        return TracingClientInterceptor.newBuilder()
-                .withTracer(tracer)
-                .build();
-        }
-
-    /**
      * Instantiate a Serializer and optionally configure it with the specified
      * ClassLoader.
      * 
@@ -427,12 +418,27 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
                 .orElse(GrpcChannelFactory.singleton().getChannel(this));
         }
 
+    /**
+     * Create and return the {@link ClientInterceptor} for tracing.
+     *
+     * @return Create and return the {@link ClientInterceptor} for tracing, or
+     *         {@code null} if tracing is disabled, or the dependent tracing
+     *         libraries aren't available on the classpath.
+     */
     protected ClientInterceptor instantiateTracingInterceptor()
         {
-        boolean fTracing = m_dependencies.isTracingEnabled()
-                .evaluate(new SystemPropertyParameterResolver());
+        if (!TracingHelper.isEnabled())
+            {
+            XmlElement xmlTracing = CacheFactory.getServiceConfig("$Tracing");
+            if (xmlTracing != null)
+                {
+                TracingShim.Dependencies depsTracing =
+                        LegacyXmlTracingHelper.fromXml(xmlTracing, TracingHelper.defaultDependencies());
+                TracingHelper.initialize(depsTracing);
+                }
+            }
 
-        return fTracing ? createTracingInterceptor() : null;
+        return TracingHelper.isEnabled() ? GrpcTracingInterceptors.getClientInterceptor() : null;
         }
 
     protected SimpleDaemonPoolExecutor instantiateExecutor()

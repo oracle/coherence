@@ -873,7 +873,23 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/security/targ
   permission java.lang.RuntimePermission "getenv.*";
 };
 
-grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/jaeger/target/-" {
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/opentracing/target/-" {
+  permission java.util.PropertyPermission "*", "read, write";
+  permission java.lang.RuntimePermission "getenv.*";
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.net.SocketPermission "*", "connect,resolve,accept,listen";
+  permission java.lang.RuntimePermission "shutdownHooks";
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/opentelemetry/core/target/-" {
+  permission java.util.PropertyPermission "*", "read, write";
+  permission java.lang.RuntimePermission "getenv.*";
+  permission java.io.FilePermission "<<ALL FILES>>", "read";
+  permission java.net.SocketPermission "*", "connect,resolve,accept,listen";
+  permission java.lang.RuntimePermission "shutdownHooks";
+};
+
+grant codeBase "file:${oracle.coherence.lib}/../../test/functional/tracing/opentelemetry/grpc/target/-" {
   permission java.util.PropertyPermission "*", "read, write";
   permission java.lang.RuntimePermission "getenv.*";
   permission java.io.FilePermission "<<ALL FILES>>", "read";

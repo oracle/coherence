@@ -64,13 +64,12 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>opentracing-common</artifactId>
+      <artifactId>opentracing</artifactId>
       <version>${project.version}</version>
     </dependency>
-
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>opentracing-0.33</artifactId>
+      <artifactId>opentelemetry</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -225,6 +224,23 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- OpenTelemetry -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-context</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Caffeine -->
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
@@ -319,8 +335,8 @@
                   <include>${coherence.group.id}:coherence-core</include>
                   <include>${coherence.group.id}:coherence-core-21</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
-                  <include>${coherence.group.id}:opentracing-common</include>
-                  <include>${coherence.group.id}:opentracing-0.33</include>
+                  <include>${coherence.group.id}:opentracing</include>
+                  <include>${coherence.group.id}:opentelemetry</include>
                 </includes>
                 <excludes>
                   <exclude>${coherence.group.id}:coherence-core:*:sources</exclude>

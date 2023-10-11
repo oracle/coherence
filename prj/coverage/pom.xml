@@ -484,7 +484,19 @@
         </dependency>
         <dependency>
           <groupId>${coherence.group.id}.tests</groupId>
-          <artifactId>tracing-jaeger-1.0.0</artifactId>
+          <artifactId>tracing-opentracing</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>tracing-opentelemetry-core</artifactId>
+          <version>${project.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>${coherence.group.id}.tests</groupId>
+          <artifactId>tracing-opentelemetry-grpc</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
         </dependency>

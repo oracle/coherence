@@ -48,7 +48,10 @@ public interface RemoteGrpcServiceDependencies
      *
      * @return the {@link Expression} that will produce the flag to
      *         determine whether client tracing is enabled
+     *
+     * @deprecated
      */
+    @Deprecated
     Expression<Boolean> isTracingEnabled();
 
     /**

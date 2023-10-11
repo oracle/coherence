@@ -8,34 +8,52 @@ package com.oracle.coherence.grpc.proxy;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.grpc.CredentialsHelper;
+
+import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
+
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
+
 import com.tangosol.coherence.config.scheme.ServiceScheme;
+
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.internal.util.DaemonPool;
+
 import com.tangosol.net.Coherence;
+
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
+import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
+
 import io.grpc.health.v1.HealthCheckResponse;
+
 import io.grpc.inprocess.InProcessServerBuilder;
+
 import io.grpc.protobuf.services.ChannelzService;
 import io.grpc.protobuf.services.HealthStatusManager;
 
 import java.io.IOException;
+
 import java.net.SocketAddress;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
+
 import java.util.concurrent.TimeUnit;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -118,6 +136,12 @@ public class DefaultGrpcAcceptorController
 //            serverBuilder.intercept(new ServerLoggingInterceptor());
 
             configure(serverBuilder, inProcessBuilder);
+
+            ServerInterceptor grpcTracingInterceptor = GrpcTracingInterceptors.getServerInterceptor();
+            if (grpcTracingInterceptor != null)
+                {
+                serverBuilder.intercept(grpcTracingInterceptor);
+                }
 
             Server server          = serverBuilder.build();
             Server inProcessServer = inProcessBuilder.build();
@@ -262,10 +286,7 @@ public class DefaultGrpcAcceptorController
         {
         BindableGrpcProxyService cacheService
                 = new NamedCacheServiceGrpcImpl(new NamedCacheService.DefaultDependencies(depsService));
-//        BindableGrpcProxyService topicService
-//                = new RemoteTopicServiceGrpcImpl(new RemoteTopicService.DefaultDependencies(deps));
-//
-//        return Arrays.asList(cacheService, topicService);
+
         return List.of(cacheService);
         }
 

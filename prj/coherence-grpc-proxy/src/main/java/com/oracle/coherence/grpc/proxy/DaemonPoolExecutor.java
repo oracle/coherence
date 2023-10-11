@@ -18,8 +18,6 @@ import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
 import com.tangosol.util.Controllable;
 
-import io.opentracing.Span;
-
 /**
  * An {@link Executor} that uses a {@link DaemonPool} to execute tasks.
  * <p>
@@ -30,8 +28,9 @@ import io.opentracing.Span;
  * Tasks submitted without calling start will be executed immediately on the calling
  * thread.
  * <p>
- * If a tracing {@link Span} is available when tasks are added to this executor then
- * the span will be re-activated when the tasks are run.
+ * If a tracing {@link com.tangosol.internal.tracing.Span} is available
+ * when tasks are added to this executor then the span will be re-activated
+ * when the tasks are run.
  *
  * @author Jonathan Knight  2019.11.19
  * @since 20.06
@@ -184,6 +183,7 @@ public class DaemonPoolExecutor
             return f_pool.getTaskTimeout();
             }
 
+        @SuppressWarnings("unused")
         public void resetStatistics()
             {
             f_pool.resetStats();
