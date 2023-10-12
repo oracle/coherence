@@ -82,7 +82,7 @@ public class VersionHelper
         {
         if (nYear > 23)
             {
-            return encodeVersion(14, 1, 2, 0, 0);
+            return encodeVersion(15, 0, 0, 0, 0);
             }
         return encodeVersion(14, 1, 1, 0, 0);
         }
@@ -286,6 +286,57 @@ public class VersionHelper
     public static boolean isPatchCompatible(int nRequired, int nActual)
         {
         return (nRequired & ~0x3F) == (nActual & ~0x3F) && (nRequired & 0x3F) <= (nActual & 0x3F);
+        }
+
+    /**
+     * Compare two version strings for compatability.
+     * <p>
+     * The first string is the version to test, the second is the version required.
+     * If the second version is compatible with the first, then "pass" is displayed
+     * otherwise "fail" is displayed.
+     *
+     * @param args the two version strings to compare
+     */
+    public static void main(String[] args)
+        {
+        if (args.length == 2)
+            {
+            String sVersionOne = args[0];
+            String sVersionTwo = args[1];
+            int    nEncodedOne = VersionHelper.parseVersion(sVersionOne.replace("-", "."));
+            int    nEncodedTwo = VersionHelper.parseVersion(sVersionTwo.replace("-", "."));
+            int    nExitCode;
+            if (VersionHelper.isVersionCompatible(nEncodedTwo, nEncodedOne))
+                {
+                System.out.println("pass");
+                nExitCode = 0;
+                }
+            else
+                {
+                System.out.println("fail");
+                nExitCode = 1;
+                }
+
+            if (Boolean.getBoolean("no.exit.code"))
+                {
+                nExitCode = 0;
+                }
+            System.exit(nExitCode);
+            }
+
+        System.err.println("Usage:");
+        System.err.println("VersionHelper <versionCheck> <versionRequired>");
+        System.err.println();
+        System.err.println("Displays \"pass\" if <versionCheck> is compatible with <versionRequired>");
+        System.err.println("Displays \"fail\" if <versionCheck> is not compatible with <versionRequired>");
+        System.err.println();
+        System.err.println("Exit code zero, versionCheck is compatible with versionRequired");
+        System.err.println("Exit code one, versionCheck is not compatible with versionRequired");
+        System.err.println("Exit code two, incorrect version arguments were specified");
+        System.err.println();
+        System.err.println("If the no.exit.code system property is set to true, the exit code will be zero regardless of a pass or fail.");
+        System.err.println();
+        System.exit(2);
         }
 
     // ----- constants ------------------------------------------------------
