@@ -18,6 +18,7 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.BMEventFabric;
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.HeuristicCommitException;
 import com.tangosol.internal.util.KeyIndexManager;
 import com.tangosol.internal.util.LockContentionException;
@@ -7988,7 +7989,7 @@ public class Storage
             }
         else
             {
-            result = ForkJoinPool.commonPool().invoke(new PartitionedQueryTask(this, filter, nQueryType, partMask, lIdxVersion));
+            result = Daemons.forkJoinPool().invoke(new PartitionedQueryTask(this, filter, nQueryType, partMask, lIdxVersion));
 
             if (nQueryType == QUERY_INVOKE)
                 {
